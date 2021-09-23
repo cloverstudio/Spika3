@@ -17,8 +17,8 @@ app.use(
   }
 );
 
-app.listen(3000, () => {
-  console.log("Start on port 3000.");
+app.listen(process.env["SERVER_PORT"], () => {
+  console.log(`Start on port ${process.env["SERVER_PORT"]}.`);
 });
 
 app.use(express.static("public"));
