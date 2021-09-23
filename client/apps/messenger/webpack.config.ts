@@ -7,3 +7,5 @@ baseWebConfig.output!.path = path.resolve(
   __dirname,
   "../../../public/messenger"
 );
+
+export default baseWebConfig;
