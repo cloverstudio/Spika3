@@ -104,3 +104,6 @@ dist
 .tern-port
 
 .docker
+
+public/management
+public/messenger
