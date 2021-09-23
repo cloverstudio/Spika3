@@ -10,7 +10,7 @@
 ```
     $ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
     $ source ~/.bashrc
-    $ nvm install v14.6.0
+    $ nvm install v12.6.0
     $ nvm use v12.6.0
     $ sudo apt install mysql-server
     $ sudo mysql_secure_installation
@@ -20,6 +20,7 @@
     $ cd Spika3
     $ npm install
     $ cp .env-sample .env
+
     # Change parameters to suit with your environment.
     $ npx prisma db push
 
@@ -35,11 +36,13 @@
 
 ```
     $ docker-compose up
+
     # Clone a repo
     $ git clone https://github.com/cloverstudio/Spika3.git
     $ cd Spika3
     $ npm install
     $ cp .env-sample .env
+
     # Change parameters to suit with your environment. ( If there are changes )
     $ npx prisma db push
 
