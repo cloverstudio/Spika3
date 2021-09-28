@@ -1,7 +1,13 @@
 import path from "path";
-import { Configuration, HotModuleReplacementPlugin } from "webpack";
+import {
+  Configuration,
+  HotModuleReplacementPlugin,
+  DefinePlugin,
+} from "webpack";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
+import * as dotenv from "dotenv";
+dotenv.config({ path: __dirname + "/.env" });
 
 const config: Configuration = {
   mode: "development",
@@ -13,6 +19,7 @@ const config: Configuration = {
   // webpack 5 comes with devServer which loads in development mode
   devServer: {
     port: 3001,
+    historyApiFallback: true,
   },
 
   // Rules of how webpack will take our files, complie & bundle them for the browser
@@ -79,10 +86,12 @@ const config: Configuration = {
     extensions: [".tsx", ".ts", ".js"],
   },
   plugins: [
-    new HtmlWebpackPlugin({ template: "./client/apps/management/index.html" }),
     new MiniCssExtractPlugin({
       filename: "[name].[hash].css",
       chunkFilename: "[id].css",
+    }),
+    new DefinePlugin({
+      API_BASEURL: JSON.stringify(process.env.API_BASEURL),
     }),
   ],
 };
