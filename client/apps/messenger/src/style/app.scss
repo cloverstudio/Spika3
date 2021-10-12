@@ -1,3 +1,10 @@
-h1 {
-  color: teal;
+@import url('https://fonts.googleapis.com/css2?family=Montserrat&display=swap');
+
+body {
+  font-family: 'Montserrat', sans-serif;
+}
+
+
+img.max-height{
+  height: 100vh;
 }
