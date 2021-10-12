@@ -1,20 +1,26 @@
 import path from "path";
-import { Configuration, HotModuleReplacementPlugin } from "webpack";
+import {
+  Configuration,
+  HotModuleReplacementPlugin,
+  DefinePlugin,
+} from "webpack";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
+import * as dotenv from "dotenv";
+dotenv.config({ path: __dirname + "/.env" });
 
 const config: Configuration = {
   mode: "development",
   entry: "./client/apps/management/index.tsx",
   output: {
     filename: "main.js",
-    path: path.resolve(__dirname, "../../../public/management"),
+    publicPath: "/",
   },
   // webpack 5 comes with devServer which loads in development mode
   devServer: {
     port: 3001,
+    historyApiFallback: true,
   },
-
   // Rules of how webpack will take our files, complie & bundle them for the browser
   module: {
     rules: [
@@ -50,9 +56,9 @@ const config: Configuration = {
         test: /\.(jpg|png)$/,
         use: [
           {
-            loader: "url-loader",
+            loader: "file-loader",
             options: {
-              limit: 25000,
+              name: "[path][name].[ext]",
             },
           },
         ],
@@ -64,7 +70,7 @@ const config: Configuration = {
             loader: "url-loader?limit=100000",
             options: {
               name: "[name].[contenthash].[ext]",
-              esModule: false, // <- here
+              esModule: false,
             },
           },
         ],
@@ -79,10 +85,12 @@ const config: Configuration = {
     extensions: [".tsx", ".ts", ".js"],
   },
   plugins: [
-    new HtmlWebpackPlugin({ template: "./client/apps/management/index.html" }),
     new MiniCssExtractPlugin({
       filename: "[name].[hash].css",
       chunkFilename: "[id].css",
+    }),
+    new DefinePlugin({
+      API_BASEURL: JSON.stringify(process.env.API_BASEURL),
     }),
   ],
 };
