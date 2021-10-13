@@ -1,5 +1,6 @@
 import express from "express";
-import userManagementRouter from "./services/management";
+import UserManagementAPIService from "./services/management";
+import MessengerAPIService from "./services/messenger";
 import bodyParser from "body-parser";
 
 import l, { error as e } from "./components/logger";
@@ -23,7 +24,18 @@ app.listen(process.env["SERVER_PORT"], () => {
 
 app.use(express.static("public"));
 
-app.use("/api/management", userManagementRouter);
+
+if(process.env["USE_MNG_API"]){
+  const userManagementAPIService: UserManagementAPIService = new UserManagementAPIService();
+  userManagementAPIService.start();
+  app.use("/api/management", userManagementAPIService.getRoutes());
+} 
+
+if(process.env["USE_MSG_API"]){
+  const messengerAPIService: MessengerAPIService = new MessengerAPIService();
+  messengerAPIService.start();
+  app.use("/api/messenger", messengerAPIService.getRoutes());
+} 
 
 // test
 app.get("/api/test", (req: express.Request, res: express.Response) => {

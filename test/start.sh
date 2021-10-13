@@ -5,6 +5,9 @@ export DATABASE_URL=mysql://root:testtest@localhost:3307/db
 export ADMIN_USERNAME=admin
 export ADMIN_PASSWORD=password
 export PORT=4000
+export USE_MNG_API=1
+export USE_MSG_API=1
+export USE_SMS=1
 
 npx prisma migrate dev --name init --preview-feature 
 
