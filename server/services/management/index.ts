@@ -9,18 +9,18 @@ import userRouter from "./route/user";
 
 import Service from "../serviceInterface"
 export default class Management implements Service {
-    async start(){
+    async start({ }) {
 
     }
 
-    getRoutes(){
+    getRoutes() {
         const userManagementRouter = Router();
-        userManagementRouter.use("/auth", authRouter);
-        userManagementRouter.use("/user", userRouter);
+        userManagementRouter.use("/auth", authRouter({}));
+        userManagementRouter.use("/user", userRouter({}));
         return userManagementRouter;
     }
 
-    async test(){
-        
+    async test() {
+
     }
 }

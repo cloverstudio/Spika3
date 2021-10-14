@@ -3,32 +3,39 @@ import { Router, Request, Response } from "express";
 import l, { error as le } from "../../../components/logger";
 import adminTokens, { Token } from "../lib/adminTokens";
 
-const router = Router();
+import { InitRouterParams } from "../../serviceInterface";
 
-router.get("/", (req: Request, res: Response) => {
-  try {
-    return res.send("OK");
-  } catch (e: any) {
-    le(e);
-    res.status(500).send(`Server error ${e}`);
-  }
-});
+export default (params: InitRouterParams) => {
 
-router.post("/", (req: Request, res: Response) => {
-  try {
-    const username: string = process.env.ADMIN_USERNAME as string;
-    const password: string = process.env.ADMIN_PASSWORD as string;
+  const router = Router();
 
-    if (req.body.username !== username || req.body.password !== password)
-      return res.status(403).send("Invalid username or password");
+  router.get("/", (req: Request, res: Response) => {
+    try {
+      return res.send("OK");
+    } catch (e: any) {
+      le(e);
+      res.status(500).send(`Server error ${e}`);
+    }
+  });
 
-    const newToken: Token = adminTokens.newToken();
+  router.post("/", (req: Request, res: Response) => {
+    try {
+      const username: string = process.env.ADMIN_USERNAME as string;
+      const password: string = process.env.ADMIN_PASSWORD as string;
 
-    res.send(newToken);
-  } catch (e: any) {
-    le(e);
-    res.status(500).send(`Server error ${e}`);
-  }
-});
+      if (req.body.username !== username || req.body.password !== password)
+        return res.status(403).send("Invalid username or password");
 
-export default router;
+      const newToken: Token = adminTokens.newToken();
+
+      res.send(newToken);
+    } catch (e: any) {
+      le(e);
+      res.status(500).send(`Server error ${e}`);
+    }
+  });
+
+  return router;
+
+}
+

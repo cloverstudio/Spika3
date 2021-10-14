@@ -6,16 +6,23 @@ import Utils from "../../../components/utils";
 import * as consts from "../../../components/consts";
 import l, { error as le } from "../../../components/logger";
 
-const router = Router();
+import { InitRouterParams } from "../../serviceInterface";
 
-router.get("/", async (req: Request, res: Response) => {
-    try{
-        res.send("test");
-    } catch (e: any) {
-        le(e);
-        res.status(500).send(`Server error ${e}`);
-    }
-});
+export default (params: InitRouterParams) => {
+
+    const router = Router();
+
+    router.get("/", async (req: Request, res: Response) => {
+        try {
+            res.send("test");
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(`Server error ${e}`);
+        }
+    });
+
+    return router;
+
+}
 
 
-export default router;
