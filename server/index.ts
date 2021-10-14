@@ -30,11 +30,12 @@ const app: express.Express = express();
   app.use(express.static("public"));
 
   const rabbitMQConnetion = await amqp.connect(process.env["RABBITMQ_URL"] || "amqp://localhost");
+  const rabbitMQChannel: amqp.Channel = await rabbitMQConnetion.createChannel();
 
   if (process.env["USE_MNG_API"]) {
     const userManagementAPIService: UserManagementAPIService = new UserManagementAPIService();
     userManagementAPIService.start({
-      rabbitMQConnetion
+      rabbitMQChannel
     });
 
     app.use("/api/management", userManagementAPIService.getRoutes());
@@ -43,7 +44,7 @@ const app: express.Express = express();
   if (process.env["USE_MSG_API"]) {
     const messengerAPIService: MessengerAPIService = new MessengerAPIService();
     messengerAPIService.start({
-      rabbitMQConnetion
+      rabbitMQChannel
     });
     app.use("/api/messenger", messengerAPIService.getRoutes());
   }
@@ -51,7 +52,7 @@ const app: express.Express = express();
   if (process.env["USE_SMS"]) {
     const smsService: SMSService = new SMSService();
     smsService.start({
-      rabbitMQConnetion
+      rabbitMQChannel
     });
   }
 

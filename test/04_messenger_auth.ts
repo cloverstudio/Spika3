@@ -3,6 +3,9 @@ import supertest from "supertest";
 import app from "../server";
 import faker from "faker";
 
+const phoneNumber = `+385${faker.fake("{{random.number}}")}`;
+const deviceId = faker.random.alphaNumeric(6);
+
 describe("API", () => {
   describe("/api/messenger/signup GET", () => {
     it("Get method doesnt work", async () => {
@@ -24,7 +27,7 @@ describe("API", () => {
         .post("/api/messenger/auth")
         .send({
           telephoneNumber: null,
-          deviceId: faker.fake("{{random.alphaNumeric}}"),
+          deviceId: deviceId,
         });
 
       expect(response.status).to.eqls(400);
@@ -34,7 +37,7 @@ describe("API", () => {
       const response = await supertest(app)
         .post("/api/messenger/auth")
         .send({
-          telephoneNumber: `+385${faker.fake("{{random.number}}")}`,
+          telephoneNumber: phoneNumber,
           deviceId: null,
         });
 
@@ -45,12 +48,59 @@ describe("API", () => {
       const response = await supertest(app)
         .post("/api/messenger/auth")
         .send({
-          telephoneNumber: `+385${faker.fake("{{random.number}}")}`,
-          deviceId: faker.fake("{{random.alphaNumeric}}"),
+          telephoneNumber: phoneNumber,
+          deviceId: deviceId,
         });
 
+      expect(response.status).to.eqls(200);
+      expect(response.body.newUser).equals(true);
+    });
+
+    it("Resend verification code", async () => {
+      const response = await supertest(app)
+        .post("/api/messenger/auth")
+        .send({
+          telephoneNumber: phoneNumber,
+          deviceId: deviceId,
+        });
+
+      expect(response.status).to.eqls(200);
+      expect(response.body.newUser).equals(true);
+    });
+
+
+    it("Verify verification code", async () => {
+      const response = await supertest(app)
+        .post("/api/messenger/auth/verify")
+        .send({
+          code: "eureka",
+          deviceId: deviceId
+        });
 
       expect(response.status).to.eqls(200);
     });
+
+    it("Verify verification code fail", async () => {
+      const response = await supertest(app)
+        .post("/api/messenger/auth/verify")
+        .send({
+          code: "eureka22",
+          deviceId: deviceId
+        });
+
+      expect(response.status).to.eqls(403);
+    });
+
+    it("Verify verification code wrong device id", async () => {
+      const response = await supertest(app)
+        .post("/api/messenger/auth/verify")
+        .send({
+          code: "eureka",
+          deviceId: "wrong"
+        });
+
+      expect(response.status).to.eqls(403);
+    });
+
   });
 });

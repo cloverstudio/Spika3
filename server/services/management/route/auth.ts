@@ -3,7 +3,7 @@ import { Router, Request, Response } from "express";
 import l, { error as le } from "../../../components/logger";
 import adminTokens, { Token } from "../lib/adminTokens";
 
-import { InitRouterParams } from "../../serviceInterface";
+import { InitRouterParams } from "../../types/serviceInterface";
 
 export default (params: InitRouterParams) => {
 

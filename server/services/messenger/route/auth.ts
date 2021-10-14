@@ -6,12 +6,16 @@ const prisma = new PrismaClient();
 
 
 import Utils from "../../../components/utils";
-import * as consts from "../../../components/consts";
+import * as Constants from "../../../components/consts";
 import l, { error as le } from "../../../components/logger";
 import { truncate } from "fs/promises";
-import { InitRouterParams } from "../../serviceInterface";
+import { InitRouterParams } from "../../types/serviceInterface";
+import { SendSMSPayload } from "../../types/queuePayloadTypes";
+import { veryficationCodeSMS } from "../../../components/string";
+import { tsNullKeyword } from "@babel/types";
 
-export default ({ rabbitMQConnetion }: InitRouterParams) => {
+
+export default ({ rabbitMQChannel }: InitRouterParams) => {
 
     const router = Router();
 
@@ -30,6 +34,7 @@ export default ({ rabbitMQConnetion }: InitRouterParams) => {
             const telephoneNumber: string = req.body.telephoneNumber as string;
             const deviceId: string = req.body.deviceId as string;
             let isNewUser: boolean = false;
+            let verificationCode: string = null;
 
             if (!telephoneNumber)
                 return res.status(400).send("Telephone number is required");
@@ -40,13 +45,40 @@ export default ({ rabbitMQConnetion }: InitRouterParams) => {
             // check existance
             let requestUser = await prisma.user.findFirst({
                 where: { telephoneNumber: telephoneNumber },
-                select: { id: true },
+                select: { id: true, verified: true, telephoneNumber: true, createdAt: true, modifiedAt: true },
             });
 
             if (!requestUser) {
+
+                verificationCode = process.env.IS_TEST === "1" ?
+                    Constants.BACKDOOR_VERIFICATION_CODE : Utils.randomString(6);
+
+                l(`Verification code ${verificationCode}, device id ${deviceId}`);
+
                 const newUser = await prisma.user.create({
                     data: {
                         telephoneNumber: telephoneNumber,
+                        verificationCode: verificationCode
+                    }
+                });
+
+                requestUser = newUser;
+                isNewUser = true;
+
+            } else if (requestUser.verified === false) {
+
+                // send sms again
+                l("Resend verification code");
+
+                verificationCode = process.env.IS_TEST === "1" ?
+                    Constants.BACKDOOR_VERIFICATION_CODE : Utils.randomString(6);
+
+                const newUser = await prisma.user.update({
+                    where: {
+                        id: requestUser.id
+                    },
+                    data: {
+                        verificationCode: verificationCode,
                     },
                 });
 
@@ -54,6 +86,7 @@ export default ({ rabbitMQConnetion }: InitRouterParams) => {
                 isNewUser = true;
 
             }
+
             // is new deive ?
             let requestDevice = await prisma.device.findFirst({
                 where: { deviceId: deviceId },
@@ -93,12 +126,23 @@ export default ({ rabbitMQConnetion }: InitRouterParams) => {
             } else {
 
                 // send sms
+                const payload: SendSMSPayload = {
+                    telephoneNumber: telephoneNumber,
+                    content: veryficationCodeSMS({ verificationCode })
+                }
+
+                rabbitMQChannel.sendToQueue(Constants.QUEUE_SMS, Buffer.from(JSON.stringify(payload)))
 
             }
 
             res.send({
                 newUser: isNewUser,
-                user: requestUser,
+                user: {
+                    id: requestUser.id,
+                    telephoneNumber: requestUser.telephoneNumber,
+                    createdAt: requestUser.createdAt,
+                    modifiedAt: requestUser.modifiedAt
+                },
                 device: requestDevice
             });
 
@@ -108,9 +152,73 @@ export default ({ rabbitMQConnetion }: InitRouterParams) => {
         }
     });
 
-    router.post("/verifySMS", async (req: Request, res: Response) => {
+    router.post("/verify", async (req: Request, res: Response) => {
         try {
-            res.send("test");
+
+            const verificationCode: string = req.body.code as string;
+            const deviceId: string = req.body.deviceId as string;
+
+            if (!verificationCode)
+                return res.status(400).send("Verification code is required");
+
+            if (!deviceId)
+                return res.status(400).send("DeviceId is required");
+
+            l(`verify ${verificationCode} deviceId ${deviceId}`);
+
+            let requestUser = await prisma.user.findFirst({
+                where: { verificationCode: verificationCode },
+                select: { id: true, verified: true, telephoneNumber: true, createdAt: true, modifiedAt: true },
+            });
+
+            l("request user", requestUser);
+
+            if (!requestUser)
+                return res.status(403).send("Verification code is invalid");
+
+            let requestDevice = await prisma.device.findFirst({
+                where: {
+                    deviceId: deviceId,
+                    userId: requestUser.id
+                }
+            });
+
+            if (!requestDevice)
+                return res.status(403).send("Invlid device id");
+
+            await prisma.user.update({
+                where: {
+                    id: requestUser.id
+                },
+                data: {
+                    verificationCode: "",
+                    verified: true
+                }
+            });
+
+            const newToken = Utils.createToken();
+            const expireDate = Utils.getTokenExpireDate();
+
+            requestDevice = await prisma.device.update({
+                where: {
+                    id: requestDevice.id
+                },
+                data: {
+                    token: newToken,
+                    tokenExpiredAt: expireDate
+                },
+            });
+
+            res.send({
+                user: {
+                    id: requestUser.id,
+                    telephoneNumber: requestUser.telephoneNumber,
+                    createdAt: requestUser.createdAt,
+                    modifiedAt: requestUser.modifiedAt
+                },
+                device: requestDevice
+            });
+
         } catch (e: any) {
             le(e);
             res.status(500).send(`Server error ${e}`);

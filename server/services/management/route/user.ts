@@ -8,7 +8,7 @@ import * as consts from "../../../components/consts";
 
 import l, { error as le } from "../../../components/logger";
 
-import { InitRouterParams } from "../../serviceInterface";
+import { InitRouterParams } from "../../types/serviceInterface";
 
 export default (params: InitRouterParams) => {
 

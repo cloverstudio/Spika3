@@ -7,7 +7,7 @@ import authRouter from "./route/auth";
 import userRouter from "./route/user";
 
 
-import Service from "../serviceInterface"
+import Service from "../types/serviceInterface"
 export default class Management implements Service {
     async start({ }) {
 
