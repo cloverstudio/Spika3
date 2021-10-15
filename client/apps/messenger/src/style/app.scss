@@ -8,8 +8,33 @@ img.mock {
   width: 100%;
 }
 
+img.logo-chat {
+  width: 50px;
+  height: 50px;
+  margin-left: 20px;
+}
+
+label.logo-chat {
+  font-weight: 500;
+  font-size: 25px;
+}
+
 img.max-height {
   height: 100vh;
+}
+
+div.chat-control {
+  background-color: #f2f2f2;
+  width: 90%;
+}
+
+div.chat-new {
+  background-color: #4696f0;
+  border-radius: 1;
+}
+
+header.top-bar-box {
+  background-color: #f2f2f2;
 }
 
 .welcome_padding {
