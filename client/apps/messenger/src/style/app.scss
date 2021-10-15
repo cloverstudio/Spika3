@@ -1,13 +1,41 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Montserrat&display=swap");
 
 body {
-  font-family: 'Montserrat', sans-serif;
+  font-family: "Montserrat", sans-serif;
 }
 
 img.mock {
   width: 100%;
 }
 
-img.max-height{
+img.max-height {
   height: 100vh;
+}
+
+.welcome_padding {
+  padding-left: 4em;
+  padding-top: 6em;
+  .css-nkzxvd-MuiStack-root {
+    img {
+      width: 3rem;
+      height: 3rem;
+      vertical-align: middle;
+    }
+    label {
+      line-height: 3rem;
+      font-weight: 700;
+      font-size: 1.4rem;
+    }
+  }
+  .welcome_title {
+    margin: 1em 0 0 0;
+    font-weight: 700;
+    font-size: 2.4em;
+  }
+  .welcome_sub_title {
+    margin-bottom: 3.8em;
+  }
+  .welcome_create {
+    padding-top: 2em;
+  }
 }
