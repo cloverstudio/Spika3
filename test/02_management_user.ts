@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import supertest from "supertest";
 import app from "../server";
+import faker from "faker";
 
 import l, { error as e } from "../server/components/logger";
 import Utils from "../server/components/utils";
@@ -12,8 +13,7 @@ describe("Admin user management API", () => {
       const response = await supertest(app)
         .post("/api/management/user")
         .send({
-          loginName: "testtest",
-          password: "testtest",
+          displayName: faker.name.firstName(),
         })
         .set({ "admin-accesstoken": globals.adminToken });
 
@@ -33,20 +33,7 @@ describe("Admin user management API", () => {
       const response = await supertest(app)
         .post("/api/management/user")
         .send({
-          loginName: "a",
-          password: "testtest",
-        })
-        .set({ "admin-accesstoken": globals.adminToken });
-
-      expect(response.status).to.eqls(400);
-    });
-
-    it("wrong password", async () => {
-      const response = await supertest(app)
-        .post("/api/management/user")
-        .send({
-          loginName: "testtest",
-          password: "a",
+          displayName: null,
         })
         .set({ "admin-accesstoken": globals.adminToken });
 
@@ -59,8 +46,7 @@ describe("Admin user management API", () => {
       const response = await supertest(app)
         .put(`/api/management/user/${globals.createdUser!.id}`)
         .send({
-          loginName: "testtest2",
-          password: "testtest2",
+          displayName: faker.name.firstName(),
         })
         .set({ "admin-accesstoken": globals.adminToken });
 
@@ -76,44 +62,20 @@ describe("Admin user management API", () => {
       expect(response.status).to.eqls(403);
     });
 
-    it("wrong login name", async () => {
-      const response = await supertest(app)
-        .put(`/api/management/user/${globals.createdUser!.id}`)
-        .send({
-          loginName: "a",
-          password: "testtest2",
-        })
-        .set({ "admin-accesstoken": globals.adminToken });
-
-      expect(response.status).to.eqls(400);
-    });
-
-    it("wrong password", async () => {
-      const response = await supertest(app)
-        .put(`/api/management/user/${globals.createdUser!.id}`)
-        .send({
-          loginName: "testtest",
-          password: "a",
-        })
-        .set({ "admin-accesstoken": globals.adminToken });
-
-      expect(response.status).to.eqls(400);
-    });
-
     it("Should change only email", async () => {
       const newEmail = `${Utils.randomString(16)}@test.com`;
 
       const response = await supertest(app)
         .put(`/api/management/user/${globals.createdUser!.id}`)
         .send({
-          email: newEmail,
+          emailAddress: newEmail,
         })
         .set({ "admin-accesstoken": globals.adminToken });
 
       globals.createdUser = response.body;
 
       expect(response.status).to.eqls(200);
-      expect(response.body.email).equals(newEmail);
+      expect(response.body.emailAddress).equals(newEmail);
     });
   });
 

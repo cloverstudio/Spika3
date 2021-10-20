@@ -39,7 +39,10 @@ services:
       PMA_HOST: mysql
       MYSQL_ROOT_PASSWORD: ZjP68Ygd
   rabbitmq:
-    image: 'bitnami/rabbitmq:latest'
+    image: rabbitmq:3.8-management-alpine
+    environment:
+        - RABBITMQ_DEFAULT_USER=myuser
+        - RABBITMQ_DEFAULT_PASS=mypassword
     ports:
       - '5672:5672'
       - '15672:15672'

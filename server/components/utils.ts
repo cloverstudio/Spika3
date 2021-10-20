@@ -1,4 +1,7 @@
 import crypto from "crypto";
+import dayjs from 'dayjs';
+
+import * as Consts from "./consts"
 
 export interface FormData {
   fields: any;
@@ -80,4 +83,13 @@ export default class utils {
   static checkPassword = (password: string): boolean => {
     return /^[a-zA-Z0-9_-]{6,}$/.test(password);
   };
+
+  static createToken = (): string => {
+    return this.randomString(16);
+  };
+
+  static getTokenExpireDate = (): Date => {
+    return dayjs().add(Consts.TOKEN_VALID_DAY).toDate();
+  };
+
 }
