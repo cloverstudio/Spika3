@@ -1,5 +1,5 @@
 import React from "react";
-import { Grid, Box, Stack, Paper, Container,TextField, Button, Link, Divider } from "@mui/material";
+import { List, Box, Stack, ListItem, ListItemAvatar,TextField, ListItemText, Avatar, Typography, ListItemSecondaryAction } from "@mui/material";
 import logo from '../../../../../../documents/pages/login_logo.svg';
 import { createTheme, ThemeProvider, styled } from "@mui/material/styles";
 import { height, textAlign } from "@mui/system";
@@ -12,6 +12,7 @@ import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined
 import PeopleOutlineOutlinedIcon from '@mui/icons-material/PeopleOutlineOutlined';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import { relative } from "path/posix";
+import FolderIcon from '@mui/icons-material/Folder';
 
 const theme = createTheme({
   palette: {
@@ -19,7 +20,17 @@ const theme = createTheme({
   },
 })
 
+function generate(element: React.ReactElement) {
+    return [0, 1, 2].map((value) =>
+      React.cloneElement(element, {
+        key: value,
+      }),
+    );
+  }
+
 const ChatRecentsPage = () => {
+    const [dense, setDense] = React.useState(false);
+
     return (
         <ThemeProvider theme={theme}>
             <Box sx ={{height:20}}></Box>
@@ -37,23 +48,43 @@ const ChatRecentsPage = () => {
                     InputLabelProps={{style: {fontSize: 12}}} />
             </Box>
             <Box sx ={{height:20}}></Box>
-            <Stack alignItems="center" spacing={1} direction="row" className = "chat-control" sx={{borderRadius: 1,}} >
-                <IconButton>
-                    <PublicIcon />
-                </IconButton>
-                <IconButton>
-                    <PersonOutlineOutlinedIcon />
-                </IconButton>
-                <IconButton >
+            <Box className='recents-list'>
+                <Stack alignItems="center" spacing={1} direction="row" className = "chat-control" sx={{borderRadius: 1,}} >
+                    <IconButton>
+                        <PublicIcon />
+                    </IconButton>
+                    <IconButton>
+                        <PersonOutlineOutlinedIcon />
+                    </IconButton>
+                    <IconButton >
                     <PeopleOutlineOutlinedIcon />
-                </IconButton>
-                <IconButton style={{textAlign:'right'}} >
-                    <Stack alignItems="center" spacing={1} direction="row" className = "chat-new" sx={{borderRadius: 1, padding:1}} >
-                        <label style={{fontSize: 14, color: "white"}}> NEW </label>
-                        <AddBoxIcon style={{fill: "white"}}/>
-                    </Stack>
-                </IconButton>
-            </Stack>
+                    </IconButton>
+                    <IconButton style={{textAlign:'right'}} >
+                        <Stack alignItems="center" spacing={1} direction="row" className = "chat-new" sx={{borderRadius: 1, padding:1}} >
+                            <label style={{fontSize: 14, color: "white"}}> NEW </label>
+                            <AddBoxIcon style={{fill: "white"}}/>
+                        </Stack>
+                    </IconButton>
+                </Stack>
+                <List dense={dense}>
+                    {generate(
+                        <ListItem>
+                            <ListItemSecondaryAction className='secondary-action'>
+                                <Typography className='timestamp'>10:30</Typography>
+                            </ListItemSecondaryAction>
+                            <ListItemAvatar>
+                                <Avatar>
+                                    <FolderIcon />
+                                </Avatar>
+                            </ListItemAvatar>
+                            <ListItemText
+                                primary="Matej Vida"
+                                secondary='Kaze da moze sada'/>
+                        </ListItem>,
+                    )}
+                </List>
+            </Box>
+            
         </ThemeProvider>
       )
 };
