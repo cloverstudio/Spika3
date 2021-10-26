@@ -50,10 +50,10 @@ export default function Dashboard() {
 
 
   const columns = [
-    { field: 'id', headerName: 'ID', flex: 0.2 },
-    { field: 'displayName', headerName: 'Display Name', flex: 1, minWidth: 300 },
-    { field: 'createdAt', headerName: 'Created', type: 'dateTime', flex: 0.5 },
-    { field: 'modifiedAt', headerName: 'Modified', type: 'dateTime', flex: 0.5 },
+    { field: 'id', headerName: 'ID', flex: 0.2, sortable: false, filterable: false },
+    { field: 'displayName', headerName: 'Display Name', flex: 1, minWidth: 300, sortable: false, filterable: false },
+    { field: 'createdAt', headerName: 'Created', type: 'dateTime', flex: 0.5, sortable: false, filterable: false },
+    { field: 'modifiedAt', headerName: 'Modified', type: 'dateTime', flex: 0.5, sortable: false, filterable: false },
     {
       field: 'actions',
       type: 'actions',

@@ -1,3 +1,7 @@
+import dotenv from 'dotenv';
+const result = dotenv.config();
+console.log(result.parsed);
+
 import express from "express";
 import UserManagementAPIService from "./services/management";
 import MessengerAPIService from "./services/messenger";
@@ -5,7 +9,7 @@ import SMSService from "./services/sms";
 import bodyParser from "body-parser";
 import amqp from 'amqplib';
 
-import l, { error as e } from "./components/logger";
+import l, { error as e } from "./components/logger"
 
 const app: express.Express = express();
 
