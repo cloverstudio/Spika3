@@ -17,6 +17,7 @@ import {
 
 import { User } from "@prisma/client";
 
+import { wait } from "../../../../../lib/utils";
 import { useGet } from "../../lib/useApi";
 import { useShowSnackBar } from "../../components/useUI";
 import { ListResponseType } from "../../lib/customTypes"
@@ -25,7 +26,10 @@ import { Box } from '@mui/system';
 
 export default function Dashboard() {
 
+  const [loading, setLoading] = React.useState<boolean>(false);
   const [list, setList] = React.useState<Array<User>>([]);
+  const [pageSize, setPageSize] = React.useState<number>(30);
+  const [totalCount, setTotalCount] = React.useState<number>(0);
 
   const showSnackBar = useShowSnackBar();
   const history = useHistory();
@@ -34,19 +38,30 @@ export default function Dashboard() {
   useEffect(() => {
 
     (async () => {
-
-      try {
-        const response: ListResponseType<User> = await get("/api/management/user");
-        console.log(response.list)
-        setList(response.list);
-      } catch (e) {
-        console.error(e);
-        showSnackBar({ severity: "error", text: "Server error, please check browser console." })
-      }
-
+      await fetchData(0);
     })();
 
   }, []);
+
+  const fetchData = async (page: number) => {
+
+    setLoading(true);
+
+    try {
+
+      const response: ListResponseType<User> = await get(`/api/management/user?page=${page}`);
+      console.log(response.list)
+      setList(response.list);
+      setPageSize(response.limit);
+      setTotalCount(response.count);
+    } catch (e) {
+      console.error(e);
+      showSnackBar({ severity: "error", text: "Server error, please check browser console." })
+    }
+
+    setLoading(false);
+
+  }
 
 
   const columns = [
@@ -90,7 +105,16 @@ export default function Dashboard() {
         }}
       >
         <div style={{ display: 'flex', width: '100%', flexGrow: 1 }}>
-          <DataGrid autoHeight rows={list} columns={columns} />
+          <DataGrid
+            autoHeight
+            rows={list}
+            columns={columns}
+            pageSize={pageSize}
+            rowCount={totalCount}
+            pagination
+            paginationMode="server"
+            onPageChange={(newPage) => fetchData(newPage)}
+            loading={loading} />
         </div>
       </Paper >
 
