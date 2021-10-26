@@ -10,6 +10,9 @@ import l, { error as le } from "../../../components/logger";
 
 import { InitRouterParams } from "../../types/serviceInterface";
 
+interface UserResponse {
+
+}
 export default (params: InitRouterParams) => {
 
   const router = Router();
