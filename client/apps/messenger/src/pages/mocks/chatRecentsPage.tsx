@@ -13,6 +13,7 @@ import PeopleOutlineOutlinedIcon from '@mui/icons-material/PeopleOutlineOutlined
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import { relative } from "path/posix";
 import FolderIcon from '@mui/icons-material/Folder';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 const theme = createTheme({
   palette: {
@@ -40,6 +41,12 @@ const ChatRecentsPage = () => {
                 <IconButton>
                     <AccountCircleRoundedIcon />
                 </IconButton>
+                <IconButton>
+                    <SettingsIcon />
+                </IconButton>
+                <IconButton>
+                    <Avatar src= "../../../../../../documents/pages/login_robot_image.svg"  />
+                </IconButton>
             </Stack>
             <Box sx={{ display: 'flex', alignItems: 'flex-end', borderRadius: 10, width: '90%', marginTop:2,}}>
                 <SearchIcon sx={{ color: 'action.active', mr: 1, my: 0.5 }} />
@@ -57,7 +64,7 @@ const ChatRecentsPage = () => {
                         <PersonOutlineOutlinedIcon />
                     </IconButton>
                     <IconButton >
-                    <PeopleOutlineOutlinedIcon />
+                        <PeopleOutlineOutlinedIcon />
                     </IconButton>
                     <IconButton style={{textAlign:'right'}} >
                         <Stack alignItems="center" spacing={1} direction="row" className = "chat-new" sx={{borderRadius: 1, padding:1}} >
