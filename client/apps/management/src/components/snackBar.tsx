@@ -29,8 +29,8 @@ export default function SnackBar() {
             open={ui.showSnackBar}
             autoHideDuration={6000}
         >
-            <Alert severity={ui.snackBarInfo.severity} sx={{ width: '100%' }}>
-                {ui.snackBarInfo.text}
+            <Alert severity={ui.snackBarInfo?.severity} sx={{ width: '100%' }}>
+                {ui.snackBarInfo?.text}
             </Alert>
         </Snackbar>
     );

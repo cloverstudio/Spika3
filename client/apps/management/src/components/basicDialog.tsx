@@ -37,11 +37,11 @@ export default function SnackBar() {
             aria-describedby="alert-dialog-description"
         >
             <DialogTitle id="alert-dialog-title">
-                {ui.basicDialogInfo.title}
+                {ui.basicDialogInfo?.title}
             </DialogTitle>
             <DialogContent>
                 <DialogContentText id="alert-dialog-description">
-                    {ui.basicDialogInfo.text}
+                    {ui.basicDialogInfo?.text}
                 </DialogContentText>
             </DialogContent>
             <DialogActions>
@@ -49,9 +49,9 @@ export default function SnackBar() {
                     dispatch(hideBasicDialog());
                     if (uiListeners.onBasicDialogOK) uiListeners.onBasicDialogOK();
                 }
-                }>{ui.basicDialogInfo.allowButtonLabel}</Button>
+                }>{ui.basicDialogInfo?.allowButtonLabel}</Button>
                 <Button onClick={e => dispatch(hideBasicDialog())}>
-                    {ui.basicDialogInfo.denyButtonLabel}
+                    {ui.basicDialogInfo?.denyButtonLabel}
                 </Button>
             </DialogActions>
         </Dialog >
