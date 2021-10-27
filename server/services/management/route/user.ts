@@ -26,10 +26,6 @@ export default (params: InitRouterParams) => {
 
       if (Utils.isEmpty(displayName))
         return res.status(400).send("displayName is required");
-
-      // todo: unique check
-      console.log("displayName", displayName);
-
       const newUser = await prisma.user.create({
         data: {
           displayName: displayName,
