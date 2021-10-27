@@ -4,10 +4,11 @@ import app from "../server";
 import faker from "faker";
 
 const phoneNumber = `+385${faker.fake("{{random.number}}")}`;
+const countryCode = `385`;
 const deviceId = faker.random.alphaNumeric(6);
 
 describe("API", () => {
-  describe("/api/messenger/signup GET", () => {
+  describe("/api/messenger/auth GET", () => {
     it("Get method doesnt work", async () => {
       const response = await supertest(app).get("/api/messenger/auth");
       expect(response.status).to.eqls(405);
@@ -27,6 +28,19 @@ describe("API", () => {
         .post("/api/messenger/auth")
         .send({
           telephoneNumber: null,
+          countryCode: countryCode,
+          deviceId: deviceId,
+        });
+
+      expect(response.status).to.eqls(400);
+    });
+
+    it("CountryCode is missing", async () => {
+      const response = await supertest(app)
+        .post("/api/messenger/auth")
+        .send({
+          telephoneNumber: phoneNumber,
+          countryCode: null,
           deviceId: deviceId,
         });
 
@@ -38,6 +52,7 @@ describe("API", () => {
         .post("/api/messenger/auth")
         .send({
           telephoneNumber: phoneNumber,
+          countryCode: countryCode,
           deviceId: null,
         });
 
@@ -49,6 +64,7 @@ describe("API", () => {
         .post("/api/messenger/auth")
         .send({
           telephoneNumber: phoneNumber,
+          countryCode: countryCode,
           deviceId: deviceId,
         });
 
@@ -61,6 +77,7 @@ describe("API", () => {
         .post("/api/messenger/auth")
         .send({
           telephoneNumber: phoneNumber,
+          countryCode: countryCode,
           deviceId: deviceId,
         });
 

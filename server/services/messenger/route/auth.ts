@@ -32,12 +32,16 @@ export default ({ rabbitMQChannel }: InitRouterParams) => {
         try {
 
             const telephoneNumber: string = req.body.telephoneNumber as string;
+            const countryCode: string = req.body.countryCode as string;
             const deviceId: string = req.body.deviceId as string;
             let isNewUser: boolean = false;
             let verificationCode: string = null;
 
             if (!telephoneNumber)
                 return res.status(400).send("Telephone number is required");
+
+            if (!countryCode)
+                return res.status(400).send("Country code is required");
 
             if (!deviceId)
                 return res.status(400).send("Device id is required");
@@ -58,6 +62,7 @@ export default ({ rabbitMQChannel }: InitRouterParams) => {
                 const newUser = await prisma.user.create({
                     data: {
                         telephoneNumber: telephoneNumber,
+                        countryCode: countryCode,
                         verificationCode: verificationCode
                     }
                 });
