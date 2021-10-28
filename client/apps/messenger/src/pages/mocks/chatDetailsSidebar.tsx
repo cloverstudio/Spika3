@@ -86,7 +86,7 @@ const ChatDetailsSidebar = () => {
                                         <AddIcon style={{fill: "white"}}/>
                                         <label style={{fontSize: 14, color: "white"}}> Add new </label>
                                     </Stack>
-                             </IconButton>
+                                </IconButton>
                             </Stack>  
                         </Box>
                         <Box >
