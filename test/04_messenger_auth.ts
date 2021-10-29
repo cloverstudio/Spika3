@@ -2,6 +2,8 @@ import { expect } from "chai";
 import supertest from "supertest";
 import app from "../server";
 import faker from "faker";
+import globals from "./global";
+
 
 const phoneNumber = `+385${faker.fake("{{random.number}}")}`;
 const countryCode = `385`;
@@ -96,6 +98,8 @@ describe("API", () => {
 
       expect(response.status).to.eqls(200);
       expect(response.body.device).to.have.property("token");
+      globals.userToken = response.body.device.token;
+
     });
 
     it("Verify verification code fail", async () => {

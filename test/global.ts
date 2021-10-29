@@ -6,6 +6,7 @@ export interface Globals {
   createdUser: User | undefined;
   deviceId: string | undefined;
   telephoneNumber: string | undefined;
+  userToken: string | undefined;
 }
 
 const globals: Globals = {
@@ -13,6 +14,7 @@ const globals: Globals = {
   createdUser: undefined,
   telephoneNumber: undefined,
   deviceId: undefined,
+  userToken: ""
 };
 
 export default globals;
