@@ -90,6 +90,17 @@ export default ({ rabbitMQChannel }: InitRouterParams) => {
                 requestUser = newUser;
                 isNewUser = true;
 
+            } else {
+                // re-login
+                const newUser = await prisma.user.update({
+                    where: {
+                        id: requestUser.id
+                    },
+                    data: {
+                        verificationCode: verificationCode,
+                        verified: false
+                    },
+                });
             }
 
             // is new deive ?
@@ -127,18 +138,15 @@ export default ({ rabbitMQChannel }: InitRouterParams) => {
                         tokenExpiredAt: expireDate
                     },
                 });
-
-            } else {
-
-                // send sms
-                const payload: SendSMSPayload = {
-                    telephoneNumber: telephoneNumber,
-                    content: veryficationCodeSMS({ verificationCode })
-                }
-
-                rabbitMQChannel.sendToQueue(Constants.QUEUE_SMS, Buffer.from(JSON.stringify(payload)))
-
             }
+
+            // send sms
+            const payload: SendSMSPayload = {
+                telephoneNumber: telephoneNumber,
+                content: veryficationCodeSMS({ verificationCode })
+            }
+
+            rabbitMQChannel.sendToQueue(Constants.QUEUE_SMS, Buffer.from(JSON.stringify(payload)))
 
             res.send({
                 newUser: isNewUser,
@@ -148,7 +156,10 @@ export default ({ rabbitMQChannel }: InitRouterParams) => {
                     createdAt: requestUser.createdAt,
                     modifiedAt: requestUser.modifiedAt
                 },
-                device: requestDevice
+                device: {
+                    id: requestDevice.id
+                }
+
             });
 
         } catch (e: any) {
