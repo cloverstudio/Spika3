@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../layout'
 import { useHistory } from "react-router-dom";
-import { DataGrid, GridColDef, GridActionsCellItem, GridRenderCellParams } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridActionsCellItem } from '@mui/x-data-grid';
 import {
   IconButton,
   Paper,
-  Fab,
-  Avatar
+  Fab
 } from "@mui/material";
 
 import {
@@ -63,24 +62,17 @@ export default function Dashboard() {
 
   }
 
-  function getFullNumber(params: { getValue: (arg0: any, arg1: string) => any; id: any; }) {
-    return `${params.getValue(params.id, 'countryCode') || ''} ${
-      params.getValue(params.id, 'telephoneNumber') || ''
-    }`;
-  }
 
   const columns = [
     { field: 'id', headerName: 'ID', flex: 0.2, sortable: false, filterable: false },
-    { field: 'avatar', headerName: 'Avatar', flex: 0.3, sortable: false, filterable: false,  renderCell: (params: GridRenderCellParams<Date>) => (
-      <strong>
-        <Avatar alt="Remy Sharp" src= "../../../../../../documents/pages/login_robot_image.svg"  />
-      </strong> ),},
-    { field: 'displayName', headerName: 'Display Name', flex: 1, minWidth: 300, sortable: false, filterable: false },
-    { field: 'customField', headerName: 'Phone Number', flex: 0.5, sortable: false, filterable: false,  valueGetter: getFullNumber,
-    sortComparator: (v1: any, v2: any) => v1!.toString().localeCompare(v2!.toString()),
-   },
-    { field: 'emailAddress', headerName: 'E-mail', type: 'dateTime', flex: 0.5, sortable: false, filterable: false },
-    { field: 'verified', headerName: 'Verified', type: 'boolean', flex: 0.5, sortable: false, filterable: false },
+    { field: 'userId', headerName: 'User Id', flex: 1, minWidth: 300, sortable: false, filterable: false },
+    { field: 'deviceId', headerName: 'Device Id', flex: 0.5, sortable: false, filterable: false },
+    { field: 'type', headerName: 'Type', flex: 0.5, sortable: false, filterable: false },
+    { field: 'osName', headerName: 'OS Name', flex: 0.5, sortable: false, filterable: false },
+    { field: 'appVersion', headerName: 'App Version', flex: 0.3, sortable: false, filterable: false },
+    { field: 'token', headerName: 'Token', flex: 0.5, sortable: false, filterable: false },
+    { field: 'pushToken', headerName: 'Push Token', flex: 0.5, sortable: false, filterable: false },
+    { field: 'tokenExpired', headerName: 'Token Expired', type: 'dateTime', flex: 0.5, sortable: false, filterable: false },
     { field: 'createdAt', headerName: 'Created', type: 'dateTime', flex: 0.5, sortable: false, filterable: false },
     { field: 'modifiedAt', headerName: 'Modified', type: 'dateTime', flex: 0.5, sortable: false, filterable: false },
     {
@@ -111,7 +103,7 @@ export default function Dashboard() {
   ];
 
   return (
-    <Layout subtitle="Users">
+    <Layout subtitle="Devices">
       <Paper
         sx={{
           margin: '24px',
@@ -133,7 +125,7 @@ export default function Dashboard() {
       </Paper >
 
       <Fab color="primary" aria-label="add" className="fab-main" onClick={e => {
-        history.push("/user/add");
+        history.push("/device/add");
       }}>
         <AddIcon />
       </Fab>

@@ -8,7 +8,9 @@ import {
   Typography,
   Paper,
   Grid,
-  Button
+  Button,
+  Avatar,
+  Checkbox
 } from "@mui/material";
 
 import { useSelector, useDispatch } from "react-redux";
@@ -78,11 +80,49 @@ export default function Page() {
                     {detail.id}
                   </Typography>
                   <Typography component='dt' variant='h6'>
+                    Avatar
+                  </Typography>
+                  <Avatar alt="Remy Sharp" src= "../../../../../../documents/pages/login_robot_image.svg"  />
+                  <Typography component='dt' variant='h6'>
                     Display Name
                   </Typography>
                   <Typography component='dd'>
                     {detail.displayName}
                   </Typography>
+                  <Typography component='dt' variant='h6'>
+                    Country Code
+                  </Typography>
+                  <Typography component='dd'>
+                    {detail.countryCode}
+                  </Typography>
+                  <Typography component='dt' variant='h6'>
+                    Phone Number
+                  </Typography>
+                  <Typography component='dd'>
+                    {detail.telephoneNumber}
+                  </Typography>
+                  <Typography component='dt' variant='h6'>
+                    E-mail
+                  </Typography>
+                  <Typography component='dd'>
+                    {detail.emailAddress}
+                  </Typography>
+                  <Typography component='dt' variant='h6'>
+                    Avatar Url
+                  </Typography>
+                  <Typography component='dd'>
+                    {detail.avatarUrl}
+                  </Typography>
+                  <Typography component='dt' variant='h6'>
+                    Verification Code
+                  </Typography>
+                  <Typography component='dd'>
+                    {detail.verificationCode}
+                  </Typography>
+                  <Typography component='dt' variant='h6'>
+                    Verified
+                  </Typography>
+                  <Checkbox checked={detail.verified}/>
                 </Grid>
               </Grid> : null}
 

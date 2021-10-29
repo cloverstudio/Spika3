@@ -8,9 +8,7 @@ import {
   Typography,
   Paper,
   Grid,
-  Button,
-  Avatar,
-  Checkbox
+  Button
 } from "@mui/material";
 
 import { useSelector, useDispatch } from "react-redux";
@@ -69,10 +67,6 @@ export default function Page() {
                     {detail.id}
                   </Typography>
                   <Typography component='dt' variant='h6'>
-                    Avatar
-                  </Typography>
-                  <Avatar alt="Remy Sharp" src= "../../../../../../documents/pages/login_robot_image.svg"  />
-                  <Typography component='dt' variant='h6'>
                     Display Name
                   </Typography>
                   <Typography component='dd'>
@@ -102,16 +96,6 @@ export default function Page() {
                   <Typography component='dd'>
                     {detail.avatarUrl}
                   </Typography>
-                  <Typography component='dt' variant='h6'>
-                    Verification Code
-                  </Typography>
-                  <Typography component='dd'>
-                    {detail.verificationCode}
-                  </Typography>
-                  <Typography component='dt' variant='h6'>
-                    Verified
-                  </Typography>
-                  <Checkbox checked={detail.verified}/>
                 </Grid>
               </Grid> : null}
 

@@ -2,28 +2,38 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../layout'
 import { useHistory, useParams } from "react-router-dom";
 import faker from "faker";
-import { useGet, usePost } from "../../lib/useApi";
+import { useGet, useDelete } from "../../lib/useApi";
 
 import {
   Typography,
   Paper,
   Grid,
-  Button,
-  Avatar,
-  Checkbox
+  Button
 } from "@mui/material";
 
 import { useSelector, useDispatch } from "react-redux";
-import { useShowSnackBar } from "../../components/useUI";
+import { useShowBasicDialog, useShowSnackBar } from "../../components/useUI";
 import { User } from "@prisma/client";
+
+interface formItem {
+  value: string,
+  isError: boolean,
+  helperText: string
+}
+
+interface formItems {
+  displayName: formItem
+}
 
 export default function Page() {
   const urlParams: { id: string } = useParams();
   const dispatch = useDispatch();
   const history = useHistory();
   const showSnackBar = useShowSnackBar();
+  const showBasicDialog = useShowBasicDialog();
   const [detail, setDetail] = React.useState<User>();
 
+  const callDelete = useDelete();
   const get = useGet();
 
   useEffect(() => {
@@ -43,9 +53,8 @@ export default function Page() {
   }, []);
 
 
-
   return (
-    <Layout subtitle={`User detail ( ${urlParams.id} )`} showBack={true} >
+    <Layout subtitle={`Delete user ( ${urlParams.id} )`} showBack={true} >
       <Paper
         sx={{
           margin: '24px',
@@ -63,15 +72,11 @@ export default function Page() {
                 spacing={2}>
                 <Grid item>
                   <Typography component='dt' variant='h6'>
-                    ID:
+                    ID
                   </Typography>
                   <Typography component='dd' className="margin-bottom">
                     {detail.id}
                   </Typography>
-                  <Typography component='dt' variant='h6'>
-                    Avatar
-                  </Typography>
-                  <Avatar alt="Remy Sharp" src= "../../../../../../documents/pages/login_robot_image.svg"  />
                   <Typography component='dt' variant='h6'>
                     Display Name
                   </Typography>
@@ -102,27 +107,26 @@ export default function Page() {
                   <Typography component='dd'>
                     {detail.avatarUrl}
                   </Typography>
-                  <Typography component='dt' variant='h6'>
-                    Verification Code
-                  </Typography>
-                  <Typography component='dd'>
-                    {detail.verificationCode}
-                  </Typography>
-                  <Typography component='dt' variant='h6'>
-                    Verified
-                  </Typography>
-                  <Checkbox checked={detail.verified}/>
                 </Grid>
               </Grid> : null}
 
           </Grid>
           <Grid item xs={12} md={8} textAlign="right">
-            <Button className="margin-right" variant="contained" onClick={e => {
-              history.push(`/user/edit/${urlParams.id}`)
-            }}>Edit</Button>
             <Button color="error" variant="contained" onClick={e => {
-              history.push(`/user/delete/${urlParams.id}`)
-            }}>Delete</Button>
+
+              showBasicDialog({ text: "Please confirm delete." }, async () => {
+
+                try {
+                  await callDelete(`/api/management/user/${urlParams.id}`);
+                  history.push("/user");
+                } catch (e) {
+                  console.error(e);
+                  showSnackBar({ severity: "error", text: "Server error, please check browser console." })
+                }
+
+              });
+
+            }}>Confirm delete</Button>
           </Grid>
 
         </Grid>

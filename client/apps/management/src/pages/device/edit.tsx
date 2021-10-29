@@ -9,11 +9,7 @@ import {
   Paper,
   Grid,
   Button,
-  Stack,
-  FormGroup,
-  FormControl,
-  FormControlLabel,
-  Checkbox
+  Stack
 } from "@mui/material";
 
 import { useSelector, useDispatch } from "react-redux";
@@ -73,16 +69,6 @@ export default function Page() {
     }
   });
 
-  const [verificationCode, setVerificationCode] = React.useState<formItems>({
-    displayName: {
-      value: "",
-      isError: false,
-      helperText: ""
-    }
-  });
-
-  const [verified, setVerified] = React.useState<boolean>(false);
-
   const get = useGet();
   const put = usePut();
 
@@ -98,8 +84,6 @@ export default function Page() {
         const checkPhone = response.telephoneNumber == null ? "" : response.telephoneNumber
         const checkEmail = response.emailAddress == null ? "" : response.emailAddress
         const checkUrl = response.avatarUrl == null ? "" : response.avatarUrl
-        const checkVer = response.verified == null ? false : response.verified
-        const checkVerCode = response.verificationCode == null ? "" : response.verificationCode
         setForms({
           displayName: {
             value: checkName,
@@ -135,14 +119,6 @@ export default function Page() {
             helperText: ""
           }
         })
-        setVerificationCode({
-          displayName: {
-            value: checkVerCode,
-            isError: false,
-            helperText: ""
-          }
-        })
-        setVerified(checkVer)
       } catch (e) {
         console.error(e);
         showSnackBar({ severity: "error", text: "Server error, please check browser console." })
@@ -196,11 +172,8 @@ export default function Page() {
         const result = await put(`/api/management/user/${urlParams.id}`, {
           displayName: forms.displayName.value,
           emailAddress: email.displayName.value,
-          countryCode: countryCode.displayName.value,
           telephoneNumber: phoneNumber.displayName.value,
-          avatarUrl: avatarUrl.displayName.value,
-          verified:verified,
-          verificationCode:verificationCode.displayName.value
+          avatarUrl: avatarUrl.displayName.value
         });
 
         showSnackBar({ severity: "success", text: "User updated" });
@@ -216,10 +189,6 @@ export default function Page() {
 
     setForms(newItems);
   }
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setVerified(event.target.checked);
-  };
 
   return (
     <Layout subtitle={`User detail ( ${urlParams.id} )`} showBack={true} >
@@ -300,31 +269,6 @@ export default function Page() {
               }}
               helperText={avatarUrl.displayName.helperText}
             />
-          </Grid>
-          <Grid item xs={12} md={8}>
-            <TextField
-              fullWidth
-              error={verificationCode.displayName.isError}
-              label="Verification Code"
-              value={verificationCode.displayName.value}
-              onChange={e => {
-                verificationCode.displayName.value = e.target.value;
-                setVerificationCode({ ...verificationCode });
-              }}
-              helperText={avatarUrl.displayName.helperText}
-            />
-          </Grid>
-          <Grid item xs={12} md={8}>
-            <FormControl component="fieldset">
-              <FormGroup aria-label="position" row>
-                <FormControlLabel
-                  value="start"
-                  control={<Checkbox checked={verified} onChange={handleChange}/>}
-                  label="Verified"
-                  labelPlacement="start"
-                />
-              </FormGroup>
-            </FormControl>
           </Grid>
           <Grid item xs={12} md={8} textAlign="right">
             <Button variant="contained" onClick={e => {
