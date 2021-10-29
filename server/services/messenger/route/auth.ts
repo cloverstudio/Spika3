@@ -55,7 +55,7 @@ export default ({ rabbitMQChannel }: InitRouterParams) => {
             if (!requestUser) {
 
                 verificationCode = process.env.IS_TEST === "1" ?
-                    Constants.BACKDOOR_VERIFICATION_CODE : Utils.randomString(6);
+                    Constants.BACKDOOR_VERIFICATION_CODE : Utils.randomNumber(6);
 
                 l(`Verification code ${verificationCode}, device id ${deviceId}`);
 
