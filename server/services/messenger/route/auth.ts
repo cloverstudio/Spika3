@@ -76,7 +76,7 @@ export default ({ rabbitMQChannel }: InitRouterParams) => {
                 l("Resend verification code");
 
                 verificationCode = process.env.IS_TEST === "1" ?
-                    Constants.BACKDOOR_VERIFICATION_CODE : Utils.randomString(6);
+                    Constants.BACKDOOR_VERIFICATION_CODE : Utils.randomNumber(6);
 
                 const newUser = await prisma.user.update({
                     where: {
