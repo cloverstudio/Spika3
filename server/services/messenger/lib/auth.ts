@@ -63,12 +63,7 @@ export default async (req: Request, res: Response, next: Function) => {
 
         const newDevice = await prisma.device.update({
           where: { id: device.id },
-          data: {
-            osName: osName,
-            osVersion: osVersion,
-            deviceName: deviceName,
-            appVersion: appVersion,
-          }
+          data: updateData
         });
 
         userRequset.device = newDevice;
