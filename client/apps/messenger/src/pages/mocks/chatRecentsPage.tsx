@@ -50,6 +50,7 @@ const ChatRecentsPage = () => {
         alignItems="center"
         spacing={2}
         width="100%"
+        className="logo-chat-title"
       >
         <img className="logo-chat" src={logo} />
         <label className="logo-chat"> Spika </label>
