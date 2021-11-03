@@ -58,15 +58,7 @@ const ChatRecentsPage = () => {
           <AccountCircleRoundedIcon />
         </IconButton>
       </Stack>
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "flex-end",
-          borderRadius: 10,
-          width: "90%",
-          marginTop: 2,
-        }}
-      >
+      <Box className="search-box">
         <SearchIcon sx={{ color: "action.active", mr: 1, my: 0.5 }} />
         <TextField
           label="Search for contact, message, file ..."

@@ -96,3 +96,18 @@ label.side-empty-title {
     text-align: left;
   }
 }
+
+.search-box {
+  position: relative;
+  svg {
+    position: absolute;
+    left: 0.35em;
+    top: 0.35em;
+  }
+  input[type="text"] {
+    text-indent: 2em;
+  }
+  label {
+    padding-left: 2em;
+  }
+}
