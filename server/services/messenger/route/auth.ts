@@ -32,6 +32,7 @@ export default ({ rabbitMQChannel }: InitRouterParams) => {
         try {
 
             const telephoneNumber: string = req.body.telephoneNumber as string;
+            const telephoneNumberHashed: string = req.body.telephoneNumberHashed as string;
             const countryCode: string = req.body.countryCode as string;
             const deviceId: string = req.body.deviceId as string;
             let isNewUser: boolean = false;
@@ -39,6 +40,9 @@ export default ({ rabbitMQChannel }: InitRouterParams) => {
 
             if (!telephoneNumber)
                 return res.status(400).send("Telephone number is required");
+
+            if (!telephoneNumberHashed)
+                return res.status(400).send("Hashed telephone number is required");
 
             if (!countryCode)
                 return res.status(400).send("Country code is required");
@@ -49,7 +53,7 @@ export default ({ rabbitMQChannel }: InitRouterParams) => {
             // check existance
             let requestUser = await prisma.user.findFirst({
                 where: { telephoneNumber: telephoneNumber },
-                select: { id: true, verified: true, telephoneNumber: true, createdAt: true, modifiedAt: true },
+                select: { id: true, verified: true, telephoneNumber: true, telephoneNumberHashed: true, createdAt: true, modifiedAt: true },
             });
 
             if (!requestUser) {
@@ -62,6 +66,7 @@ export default ({ rabbitMQChannel }: InitRouterParams) => {
                 const newUser = await prisma.user.create({
                     data: {
                         telephoneNumber: telephoneNumber,
+                        telephoneNumberHashed: telephoneNumberHashed,
                         countryCode: countryCode,
                         verificationCode: verificationCode
                     }
@@ -153,6 +158,7 @@ export default ({ rabbitMQChannel }: InitRouterParams) => {
                 user: {
                     id: requestUser.id,
                     telephoneNumber: requestUser.telephoneNumber,
+                    telephoneNumberHashed: requestUser.telephoneNumberHashed,
                     createdAt: requestUser.createdAt,
                     modifiedAt: requestUser.modifiedAt
                 },

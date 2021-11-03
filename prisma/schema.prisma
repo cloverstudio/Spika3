@@ -12,16 +12,17 @@ generator client {
 
 // List of users managed by own
 model User {
-  id                Int      @id      @default(autoincrement()) @map(name: "id")
-  emailAddress      String?  @unique                            @map(name: "email_address")
-  telephoneNumber   String?  @unique                            @map(name: "telephone_number")
-  countryCode       String?                                     @map(name: "country_code")
-  displayName       String?                                     @map(name: "display_name")
-  avatarUrl         String?                                     @map(name: "avatar_url")
-  verificationCode  String?                                     @map(name: "verification_code")
-  verified          Boolean  @default(false)                    @map(name: "verified")
-  createdAt         DateTime @default(now())                    @map(name: "created_at")
-  modifiedAt        DateTime @default(now())                    @map(name: "modified_at")
+  id                      Int      @id      @default(autoincrement()) @map(name: "id")
+  emailAddress            String?  @unique                            @map(name: "email_address")
+  telephoneNumber         String?  @unique                            @map(name: "telephone_number")
+  telephoneNumberHashed   String?  @unique                            @map(name: "telephone_number_hashed")
+  countryCode             String?                                     @map(name: "country_code")
+  displayName             String?                                     @map(name: "display_name")
+  avatarUrl               String?                                     @map(name: "avatar_url")
+  verificationCode        String?                                     @map(name: "verification_code")
+  verified                Boolean  @default(false)                    @map(name: "verified")
+  createdAt               DateTime @default(now())                    @map(name: "created_at")
+  modifiedAt              DateTime @default(now())                    @map(name: "modified_at")
 
   @@map(name: "user")
   Device          Device[]

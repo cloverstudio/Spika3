@@ -1,11 +1,16 @@
 import { expect } from "chai";
 import supertest from "supertest";
+import crypto from 'crypto';
+
 import app from "../server";
 import faker from "faker";
 import globals from "./global";
 
-
 const phoneNumber = `+385${faker.fake("{{random.number}}")}`;
+
+const shasum = crypto.createHash('sha1')
+shasum.update(phoneNumber)
+const phoneNumberHash = shasum.digest('hex');
 const countryCode = `385`;
 const deviceId = faker.random.alphaNumeric(6);
 
@@ -61,11 +66,25 @@ describe("API", () => {
       expect(response.status).to.eqls(400);
     });
 
+
+    it("Hash is missing", async () => {
+      const response = await supertest(app)
+        .post("/api/messenger/auth")
+        .send({
+          telephoneNumber: phoneNumber,
+          countryCode: countryCode,
+          deviceId: deviceId,
+        });
+
+      expect(response.status).to.eqls(400);
+    });
+
     it("New user", async () => {
       const response = await supertest(app)
         .post("/api/messenger/auth")
         .send({
           telephoneNumber: phoneNumber,
+          telephoneNumberHashed: phoneNumberHash,
           countryCode: countryCode,
           deviceId: deviceId,
         });
@@ -79,6 +98,7 @@ describe("API", () => {
         .post("/api/messenger/auth")
         .send({
           telephoneNumber: phoneNumber,
+          telephoneNumberHashed: phoneNumberHash,
           countryCode: countryCode,
           deviceId: deviceId,
         });
