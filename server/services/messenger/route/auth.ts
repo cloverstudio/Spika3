@@ -89,6 +89,8 @@ export default ({ rabbitMQChannel }: InitRouterParams) => {
                     },
                     data: {
                         verificationCode: verificationCode,
+                        telephoneNumberHashed: telephoneNumberHashed,
+                        countryCode: countryCode,
                     },
                 });
 

@@ -91,6 +91,8 @@ describe("API", () => {
 
       expect(response.status).to.eqls(200);
       expect(response.body.newUser).equals(true);
+
+      console.log(response.body);
     });
 
     it("Resend verification code", async () => {
