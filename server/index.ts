@@ -1,6 +1,5 @@
 import dotenv from 'dotenv';
 const result = dotenv.config();
-console.log(result.parsed);
 
 import express from "express";
 import UserManagementAPIService from "./services/management";

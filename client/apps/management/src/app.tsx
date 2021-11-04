@@ -8,6 +8,11 @@ import UserAdd from "./pages/user/add";
 import UserDetail from "./pages/user/detail";
 import UserEdit from "./pages/user/edit";
 import UserDelete from "./pages/user/delete";
+import Device from "./pages/device/index";
+import DeviceAdd from "./pages/device/add";
+import DeviceDetail from "./pages/device/detail";
+import DeviceEdit from "./pages/device/edit";
+import DeviceDelete from "./pages/device/delete";
 
 function App() {
   return (
@@ -34,6 +39,21 @@ function App() {
           </Route>
           <Route exact path="/user/delete/:id">
             <UserDelete />
+          </Route>
+          <Route exact path="/device">
+            <Device />
+          </Route>
+          <Route exact path="/device/add">
+            <DeviceAdd />
+          </Route>
+          <Route exact path="/device/detail/:id">
+            <DeviceDetail />
+          </Route>
+          <Route exact path="/device/edit/:id">
+            <DeviceEdit />
+          </Route>
+          <Route exact path="/device/delete/:id">
+            <DeviceDelete />
           </Route>
         </Switch>
       </Router>
