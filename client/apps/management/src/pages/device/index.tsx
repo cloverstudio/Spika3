@@ -15,7 +15,7 @@ import {
   Description as DescriptionIcon
 } from "@mui/icons-material/";
 
-import { User } from "@prisma/client";
+import { Device } from "@prisma/client";
 
 import { wait } from "../../../../../lib/utils";
 import { useGet } from "../../lib/useApi";
@@ -27,7 +27,7 @@ import { Box } from '@mui/system';
 export default function Dashboard() {
 
   const [loading, setLoading] = React.useState<boolean>(false);
-  const [list, setList] = React.useState<Array<User>>([]);
+  const [list, setList] = React.useState<Array<Device>>([]);
   const [pageSize, setPageSize] = React.useState<number>(30);
   const [totalCount, setTotalCount] = React.useState<number>(0);
 
@@ -49,7 +49,7 @@ export default function Dashboard() {
 
     try {
 
-      const response: ListResponseType<User> = await get(`/api/management/user?page=${page}`);
+      const response: ListResponseType<Device> = await get(`/api/management/device?page=${page}`);
       setList(response.list);
       setPageSize(response.limit);
       setTotalCount(response.count);
@@ -79,23 +79,23 @@ export default function Dashboard() {
       field: 'actions',
       type: 'actions',
       width: 80,
-      getActions: (params: User) => [
+      getActions: (params: Device) => [
         <GridActionsCellItem
           icon={<DescriptionIcon />}
           label="Detail"
-          onClick={() => history.push(`/user/detail/${params.id}`)}
+          onClick={() => history.push(`/device/detail/${params.id}`)}
           showInMenu
         />,
         < GridActionsCellItem
           icon={< EditIcon />}
           label="Edit"
-          onClick={() => history.push(`/user/edit/${params.id}`)}
+          onClick={() => history.push(`/device/edit/${params.id}`)}
           showInMenu
         />,
         <GridActionsCellItem
           icon={<DeleteIcon />}
           label="Delete"
-          onClick={() => history.push(`/user/delete/${params.id}`)}
+          onClick={() => history.push(`/device/delete/${params.id}`)}
           showInMenu
         />
       ]

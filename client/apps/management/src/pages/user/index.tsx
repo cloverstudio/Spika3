@@ -13,7 +13,9 @@ import {
   Add as AddIcon,
   Delete as DeleteIcon,
   Edit as EditIcon,
-  Description as DescriptionIcon
+  Description as DescriptionIcon,
+  CancelOutlined,
+  CheckCircleOutlineOutlined
 } from "@mui/icons-material/";
 
 import { User } from "@prisma/client";
@@ -23,6 +25,7 @@ import { useGet } from "../../lib/useApi";
 import { useShowSnackBar } from "../../components/useUI";
 import { ListResponseType } from "../../lib/customTypes"
 import { Box } from '@mui/system';
+
 
 
 export default function Dashboard() {
@@ -69,18 +72,23 @@ export default function Dashboard() {
     }`;
   }
 
+
+
   const columns = [
     { field: 'id', headerName: 'ID', flex: 0.2, sortable: false, filterable: false },
-    { field: 'avatar', headerName: 'Avatar', flex: 0.3, sortable: false, filterable: false,  renderCell: (params: GridRenderCellParams<Date>) => (
+    { field: 'avatarUrl', headerName: 'Avatar', flex: 0.3, sortable: false, filterable: false,  renderCell: (params: GridRenderCellParams<string>) => (
       <strong>
-        <Avatar alt="Remy Sharp" src= "../../../../../../documents/pages/login_robot_image.svg"  />
+        <Avatar alt="Remy Sharp" src={params.value}  />
       </strong> ),},
     { field: 'displayName', headerName: 'Display Name', flex: 1, minWidth: 300, sortable: false, filterable: false },
     { field: 'customField', headerName: 'Phone Number', flex: 0.5, sortable: false, filterable: false,  valueGetter: getFullNumber,
     sortComparator: (v1: any, v2: any) => v1!.toString().localeCompare(v2!.toString()),
    },
     { field: 'emailAddress', headerName: 'E-mail', type: 'dateTime', flex: 0.5, sortable: false, filterable: false },
-    { field: 'verified', headerName: 'Verified', type: 'boolean', flex: 0.5, sortable: false, filterable: false },
+    { field: 'verified', headerName: 'Verified', type: 'boolean', flex: 0.5, sortable: false, filterable: false, renderCell: (params: GridRenderCellParams<boolean>) => (
+      <strong>
+        {params.value ? <CheckCircleOutlineOutlined style={{fill: "green"}}/> : <CancelOutlined style={{fill: "red"}} /> }
+      </strong> ), },
     { field: 'createdAt', headerName: 'Created', type: 'dateTime', flex: 0.5, sortable: false, filterable: false },
     { field: 'modifiedAt', headerName: 'Modified', type: 'dateTime', flex: 0.5, sortable: false, filterable: false },
     {

@@ -1,5 +1,5 @@
 export interface formItem {
-    value: string,
+    value: any,
     isError: boolean,
     helperText: string
 }

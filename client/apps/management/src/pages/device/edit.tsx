@@ -14,22 +14,17 @@ import {
 
 import { useSelector, useDispatch } from "react-redux";
 import { useShowSnackBar } from "../../components/useUI";
-import { User } from "@prisma/client";
+import { Device } from "@prisma/client";
 import { formItem, formItems } from "./types"
-
-function validateEmail(email: any) {
-  const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  return re.test(String(email).toLowerCase());
-}
-
 
 export default function Page() {
   const urlParams: { id: string } = useParams();
   const dispatch = useDispatch();
   const history = useHistory();
   const showSnackBar = useShowSnackBar();
-  const [detail, setDetail] = React.useState<User>();
-  const [forms, setForms] = React.useState<formItems>({
+  const [detail, setDetail] = React.useState<Device>();
+  
+  const [userId, setUserId] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
@@ -37,7 +32,7 @@ export default function Page() {
     }
   });
 
-  const [countryCode, setCountryCode] = React.useState<formItems>({
+  const [deviceId, setDeviceId] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
@@ -45,7 +40,7 @@ export default function Page() {
     }
   });
 
-  const [phoneNumber, setPhoneNumber] = React.useState<formItems>({
+  const [type, setType] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
@@ -53,7 +48,7 @@ export default function Page() {
     }
   });
 
-  const [email, setEmail] = React.useState<formItems>({
+  const [osName, setOsName] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
@@ -61,7 +56,23 @@ export default function Page() {
     }
   });
 
-  const [avatarUrl, setAvatarUrl] = React.useState<formItems>({
+  const [appVersion, setAppVersion] = React.useState<formItems>({
+    displayName: {
+      value: "",
+      isError: false,
+      helperText: ""
+    }
+  });
+
+  const [token, setToken] = React.useState<formItems>({
+    displayName: {
+      value: "",
+      isError: false,
+      helperText: ""
+    }
+  });
+
+  const [pushToken, setPushToken] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
@@ -77,44 +88,60 @@ export default function Page() {
     (async () => {
 
       try {
-        const response: User = await get(`/api/management/user/${urlParams.id}`);
+        const response: Device = await get(`/api/management/device/${urlParams.id}`);
         setDetail(response);
-        const checkName = response.displayName == null ? "" : response.displayName
-        const checkCC = response.countryCode == null ? "" : response.countryCode
-        const checkPhone = response.telephoneNumber == null ? "" : response.telephoneNumber
-        const checkEmail = response.emailAddress == null ? "" : response.emailAddress
-        const checkUrl = response.avatarUrl == null ? "" : response.avatarUrl
-        setForms({
+        const checkUId = response.userId == null ? "" : response.userId
+        const checkDId = response.deviceId == null ? "" : response.deviceId
+        const checkType = response.type == null ? "" : response.type
+        const checkOsName = response.osName == null ? "" : response.osName
+        const checkAppVersion = response.appVersion == null ? "" : response.appVersion
+        const checkToken = response.token == null ? "" : response.token
+        const checkPushToken = response.pushToken == null ? "" : response.pushToken
+        setUserId({
           displayName: {
-            value: checkName,
+            value: checkUId,
             isError: false,
             helperText: ""
           }
         })
-        setCountryCode({
+        setDeviceId({
           displayName: {
-            value: checkCC,
+            value: checkDId,
             isError: false,
             helperText: ""
           }
         })
-        setPhoneNumber({
+        setType({
           displayName: {
-            value: checkPhone,
+            value: checkType,
             isError: false,
             helperText: ""
           }
         })
-        setEmail({
+        setOsName({
           displayName: {
-            value: checkEmail,
+            value: checkOsName,
             isError: false,
             helperText: ""
           }
         })
-        setAvatarUrl({
+        setAppVersion({
           displayName: {
-            value: checkUrl,
+            value: checkAppVersion,
+            isError: false,
+            helperText: ""
+          }
+        })
+        setToken({
+          displayName: {
+            value: checkToken,
+            isError: false,
+            helperText: ""
+          }
+        })
+        setPushToken({
+          displayName: {
+            value: checkPushToken,
             isError: false,
             helperText: ""
           }
@@ -131,67 +158,82 @@ export default function Page() {
   const validateAndUpdate = async () => {
     let hasError = false;
 
-    const newItems: formItems = { ...forms };
+    const newItems: formItems = { ...userId };
     newItems.displayName.isError = false;
     newItems.displayName.helperText = "";
 
-    if (forms.displayName.value.length == 0) {
-      forms.displayName.isError = true;
-      forms.displayName.helperText = "Please input display name";
+    if (userId.displayName.value.length == 0) {
+      userId.displayName.isError = true;
+      userId.displayName.helperText = "Please input user id";
       hasError = true;
     }
 
-    // if (countryCode.displayName.value.length == 0) {
-    //   countryCode.displayName.isError = true;
-    //   countryCode.displayName.helperText = "Please input code";
-    //   hasError = true;
-    // }
-
-    // if (phoneNumber.displayName.value.length == 0) {
-    //   phoneNumber.displayName.isError = true;
-    //   phoneNumber.displayName.helperText = "Please input phone number";
-    //   hasError = true;
-    // }
-
-
-    if (validateEmail(email.displayName.value.length)) {
-      email.displayName.isError = true;
-      email.displayName.helperText = "Please input display name";
+    if (deviceId.displayName.value.length == 0) {
+      deviceId.displayName.isError = true;
+      deviceId.displayName.helperText = "Please device id";
       hasError = true;
     }
 
-    if (avatarUrl.displayName.value.length == 0) {
-      avatarUrl.displayName.isError = true;
-      avatarUrl.displayName.helperText = "Please input display name";
+    if (type.displayName.value.length == 0) {
+      type.displayName.isError = true;
+      type.displayName.helperText = "Please input type";
+      hasError = true;
+    }
+
+
+    if (osName.displayName.value.length == 0) {
+      osName.displayName.isError = true;
+      osName.displayName.helperText = "Please input os name";
+      hasError = true;
+    }
+
+    if (appVersion.displayName.value.length == 0) {
+      appVersion.displayName.isError = true;
+      appVersion.displayName.helperText = "Please input app version";
+      hasError = true;
+    }
+
+    if (token.displayName.value.length == 0) {
+      token.displayName.isError = true;
+      token.displayName.helperText = "Please input token";
+      hasError = true;
+    }
+
+    if (pushToken.displayName.value.length == 0) {
+      pushToken.displayName.isError = true;
+      pushToken.displayName.helperText = "Please input push token";
       hasError = true;
     }
 
     if (!hasError) {
 
       try {
-        const result = await put(`/api/management/user/${urlParams.id}`, {
-          displayName: forms.displayName.value,
-          emailAddress: email.displayName.value,
-          telephoneNumber: phoneNumber.displayName.value,
-          avatarUrl: avatarUrl.displayName.value
+        const result = await put(`/api/management/device/${urlParams.id}`, {
+          userId: userId.displayName.value,
+          deviceId: deviceId.displayName.value,
+          type: type.displayName.value,
+          osName: osName.displayName.value,
+          appVersion: appVersion.displayName.value,
+          token:token.displayName.value,
+          pushToken:pushToken.displayName.value
         });
 
-        showSnackBar({ severity: "success", text: "User updated" });
-        history.push("/user");
+        showSnackBar({ severity: "success", text: "Device updated" });
+        history.push("/device");
         newItems.displayName.value = "";
 
       } catch (e) {
         console.error(e);
-        showSnackBar({ severity: "error", text: "Failed to update user, please check console." })
+        showSnackBar({ severity: "error", text: "Failed to update device, please check console." })
       }
 
     }
 
-    setForms(newItems);
+    setUserId(newItems);
   }
 
   return (
-    <Layout subtitle={`User detail ( ${urlParams.id} )`} showBack={true} >
+    <Layout subtitle={`Device detail ( ${urlParams.id} )`} showBack={true} >
       <Paper
         sx={{
           margin: '24px',
@@ -204,14 +246,14 @@ export default function Page() {
             <TextField
               required
               fullWidth
-              error={forms.displayName.isError}
-              label="Display Name"
-              value={forms.displayName.value}
+              error={userId.displayName.isError}
+              label="User Id"
+              value={userId.displayName.value}
               onChange={e => {
-                forms.displayName.value = e.target.value;
-                setForms({ ...forms });
+                userId.displayName.value = e.target.value;
+                setUserId({ ...userId });
               }}
-              helperText={forms.displayName.helperText}
+              helperText={userId.displayName.helperText}
             />
           </Grid>
           <Grid item xs={12} md={8}>
@@ -219,26 +261,26 @@ export default function Page() {
               <TextField
                 required
                 
-                error={countryCode.displayName.isError}
-                label="Country code"
-                value={countryCode.displayName.value}
+                error={deviceId.displayName.isError}
+                label="Device Id"
+                value={deviceId.displayName.value}
                 onChange={e => {
-                  countryCode.displayName.value = e.target.value;
-                  setCountryCode({ ...countryCode });
+                  deviceId.displayName.value = e.target.value;
+                  setDeviceId({ ...deviceId });
                 }}
-                helperText={countryCode.displayName.helperText}
+                helperText={deviceId.displayName.helperText}
               />
                <TextField
                 required
                 fullWidth
-                error={phoneNumber.displayName.isError}
-                label="Phone number"
-                value={phoneNumber.displayName.value}
+                error={type.displayName.isError}
+                label="Type"
+                value={type.displayName.value}
                 onChange={e => {
-                  phoneNumber.displayName.value = e.target.value;
-                  setPhoneNumber({ ...phoneNumber });
+                  type.displayName.value = e.target.value;
+                  setType({ ...type });
                 }}
-                helperText={phoneNumber.displayName.helperText}
+                helperText={type.displayName.helperText}
               />
             </Stack>
           </Grid>
@@ -246,34 +288,62 @@ export default function Page() {
             <TextField
               required
               fullWidth
-              error={email.displayName.isError}
-              label="E-mail"
-              value={email.displayName.value}
+              error={osName.displayName.isError}
+              label="OS Name"
+              value={osName.displayName.value}
               onChange={e => {
-                email.displayName.value = e.target.value;
-                setEmail({ ...email });
+                osName.displayName.value = e.target.value;
+                setOsName({ ...osName });
               }}
-              helperText={email.displayName.helperText}
+              helperText={osName.displayName.helperText}
             />
           </Grid>
           <Grid item xs={12} md={8}>
             <TextField
               required
               fullWidth
-              error={avatarUrl.displayName.isError}
-              label="Avatar URL"
-              value={avatarUrl.displayName.value}
+              error={appVersion.displayName.isError}
+              label="App Version"
+              value={appVersion.displayName.value}
               onChange={e => {
-                avatarUrl.displayName.value = e.target.value;
-                setAvatarUrl({ ...avatarUrl });
+                appVersion.displayName.value = e.target.value;
+                setAppVersion({ ...appVersion });
               }}
-              helperText={avatarUrl.displayName.helperText}
+              helperText={appVersion.displayName.helperText}
+            />
+          </Grid>
+          <Grid item xs={12} md={8}>
+            <TextField
+              required
+              fullWidth
+              error={token.displayName.isError}
+              label="Token"
+              value={token.displayName.value}
+              onChange={e => {
+                token.displayName.value = e.target.value;
+                setToken({ ...token });
+              }}
+              helperText={token.displayName.helperText}
+            />
+          </Grid>
+          <Grid item xs={12} md={8}>
+            <TextField
+              required
+              fullWidth
+              error={pushToken.displayName.isError}
+              label="Push Token"
+              value={pushToken.displayName.value}
+              onChange={e => {
+                pushToken.displayName.value = e.target.value;
+                setPushToken({ ...pushToken });
+              }}
+              helperText={pushToken.displayName.helperText}
             />
           </Grid>
           <Grid item xs={12} md={8} textAlign="right">
             <Button variant="contained" onClick={e => {
               validateAndUpdate();
-            }}>Update user</Button>
+            }}>Update device</Button>
           </Grid>
         </Grid>
       </Paper>

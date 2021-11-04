@@ -13,14 +13,14 @@ import {
 
 import { useSelector, useDispatch } from "react-redux";
 import { useShowSnackBar } from "../../components/useUI";
-import { User } from "@prisma/client";
+import { Device } from "@prisma/client";
 
 export default function Page() {
   const urlParams: { id: string } = useParams();
   const dispatch = useDispatch();
   const history = useHistory();
   const showSnackBar = useShowSnackBar();
-  const [detail, setDetail] = React.useState<User>();
+  const [detail, setDetail] = React.useState<Device>();
 
   const get = useGet();
 
@@ -29,7 +29,7 @@ export default function Page() {
     (async () => {
 
       try {
-        const response: User = await get(`/api/management/user/${urlParams.id}`);
+        const response: Device = await get(`/api/management/device/${urlParams.id}`);
         setDetail(response);
       } catch (e) {
         console.error(e);
@@ -43,7 +43,7 @@ export default function Page() {
 
 
   return (
-    <Layout subtitle={`User detail ( ${urlParams.id} )`} showBack={true} >
+    <Layout subtitle={`Device detail ( ${urlParams.id} )`} showBack={true} >
       <Paper
         sx={{
           margin: '24px',
@@ -67,34 +67,52 @@ export default function Page() {
                     {detail.id}
                   </Typography>
                   <Typography component='dt' variant='h6'>
-                    Display Name
+                    Device Id
                   </Typography>
                   <Typography component='dd'>
-                    {detail.displayName}
+                    {detail.deviceId}
                   </Typography>
                   <Typography component='dt' variant='h6'>
-                    Country Code
+                    User Id
                   </Typography>
                   <Typography component='dd'>
-                    {detail.countryCode}
+                    {detail.userId}
                   </Typography>
                   <Typography component='dt' variant='h6'>
-                    Phone Number
+                    Type
                   </Typography>
                   <Typography component='dd'>
-                    {detail.telephoneNumber}
+                    {detail.type}
                   </Typography>
                   <Typography component='dt' variant='h6'>
-                    E-mail
+                    OS name
                   </Typography>
                   <Typography component='dd'>
-                    {detail.emailAddress}
+                    {detail.osName}
                   </Typography>
                   <Typography component='dt' variant='h6'>
-                    Avatar Url
+                    App Version
                   </Typography>
                   <Typography component='dd'>
-                    {detail.avatarUrl}
+                    {detail.appVersion}
+                  </Typography>
+                  <Typography component='dt' variant='h6'>
+                    Token
+                  </Typography>
+                  <Typography component='dd'>
+                    {detail.token}
+                  </Typography>
+                  <Typography component='dt' variant='h6'>
+                    Push Token
+                  </Typography>
+                  <Typography component='dd'>
+                    {detail.pushToken}
+                  </Typography>
+                  <Typography component='dt' variant='h6'>
+                    Token Expired
+                  </Typography>
+                  <Typography component='dd'>
+                    {detail.tokenExpiredAt}
                   </Typography>
                 </Grid>
               </Grid> : null}
@@ -102,10 +120,10 @@ export default function Page() {
           </Grid>
           <Grid item xs={12} md={8} textAlign="right">
             <Button className="margin-right" variant="contained" onClick={e => {
-              history.push(`/user/edit/${urlParams.id}`)
+              history.push(`/device/edit/${urlParams.id}`)
             }}>Edit</Button>
             <Button color="error" variant="contained" onClick={e => {
-              history.push(`/user/delete/${urlParams.id}`)
+              history.push(`/device/delete/${urlParams.id}`)
             }}>Delete</Button>
           </Grid>
 

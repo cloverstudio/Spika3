@@ -26,7 +26,7 @@ export default function Dashboard() {
   const history = useHistory();
   const showSnackBar = useShowSnackBar();
   const [name, setName] = React.useState<string>("");
-  const [forms, setForms] = React.useState<formItems>({
+  const [userId, setUserId] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
@@ -34,7 +34,7 @@ export default function Dashboard() {
     }
   });
 
-  const [countryCode, setCountryCode] = React.useState<formItems>({
+  const [deviceId, setDeviceId] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
@@ -42,7 +42,7 @@ export default function Dashboard() {
     }
   });
 
-  const [phoneNumber, setPhoneNumber] = React.useState<formItems>({
+  const [type, setType] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
@@ -50,7 +50,7 @@ export default function Dashboard() {
     }
   });
 
-  const [email, setEmail] = React.useState<formItems>({
+  const [osName, setOsName] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
@@ -58,7 +58,23 @@ export default function Dashboard() {
     }
   });
 
-  const [avatarUrl, setAvatarUrl] = React.useState<formItems>({
+  const [appVersion, setAppVersion] = React.useState<formItems>({
+    displayName: {
+      value: "",
+      isError: false,
+      helperText: ""
+    }
+  });
+
+  const [token, setToken] = React.useState<formItems>({
+    displayName: {
+      value: "",
+      isError: false,
+      helperText: ""
+    }
+  });
+
+  const [pushToken, setPushToken] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
@@ -72,52 +88,67 @@ export default function Dashboard() {
   const validateAndAdd = async () => {
     let hasError = false;
 
-    const newItems: formItems = { ...forms };
+    const newItems: formItems = { ...userId };
     newItems.displayName.isError = false;
     newItems.displayName.helperText = "";
 
-    if (forms.displayName.value.length == 0) {
-      forms.displayName.isError = true;
-      forms.displayName.helperText = "Please input display name";
+    if (userId.displayName.value.length == 0) {
+      userId.displayName.isError = true;
+      userId.displayName.helperText = "Please input user id";
       hasError = true;
     }
 
-    if (countryCode.displayName.value.length == 0) {
-      countryCode.displayName.isError = true;
-      countryCode.displayName.helperText = "Please input code";
+    if (deviceId.displayName.value.length == 0) {
+      deviceId.displayName.isError = true;
+      deviceId.displayName.helperText = "Please device id";
       hasError = true;
     }
 
-    if (phoneNumber.displayName.value.length == 0) {
-      phoneNumber.displayName.isError = true;
-      phoneNumber.displayName.helperText = "Please input phone number";
+    if (type.displayName.value.length == 0) {
+      type.displayName.isError = true;
+      type.displayName.helperText = "Please input type";
       hasError = true;
     }
 
 
-    if (validateEmail(email.displayName.value.length)) {
-      email.displayName.isError = true;
-      email.displayName.helperText = "Please input display name";
+    if (osName.displayName.value.length == 0) {
+      osName.displayName.isError = true;
+      osName.displayName.helperText = "Please input os name";
       hasError = true;
     }
 
-    if (avatarUrl.displayName.value.length == 0) {
-      avatarUrl.displayName.isError = true;
-      avatarUrl.displayName.helperText = "Please input display name";
+    if (appVersion.displayName.value.length == 0) {
+      appVersion.displayName.isError = true;
+      appVersion.displayName.helperText = "Please input app version";
+      hasError = true;
+    }
+
+    if (token.displayName.value.length == 0) {
+      token.displayName.isError = true;
+      token.displayName.helperText = "Please input token";
+      hasError = true;
+    }
+
+    if (pushToken.displayName.value.length == 0) {
+      pushToken.displayName.isError = true;
+      pushToken.displayName.helperText = "Please input push token";
       hasError = true;
     }
 
     if (!hasError) {
       try {
-        const result = await post("/api/management/user", {
-          displayName: forms.displayName.value,
-          emailAddress: email.displayName.value,
-          telephoneNumber: phoneNumber.displayName.value,
-          avatarUrl: avatarUrl.displayName.value
+        const result = await post("/api/management/device", {
+          userId: userId.displayName.value,
+          deviceId: deviceId.displayName.value,
+          type: type.displayName.value,
+          osName: osName.displayName.value,
+          appVersion: appVersion.displayName.value,
+          token:token.displayName.value,
+          pushToken:pushToken.displayName.value
         });
 
         showSnackBar({ severity: "success", text: "User added" });
-        history.push("/user");
+        history.push("/device");
         newItems.displayName.value = "";
 
       } catch (e) {
@@ -127,143 +158,115 @@ export default function Dashboard() {
 
     }
 
-    setForms(newItems);
+    setUserId(newItems);
   }
 
   return (
-    <Layout subtitle="Add new user" showBack={true}>
+    <Layout subtitle="Add new device" showBack={true}>
       <Paper
         sx={{
           margin: '24px',
           padding: '24px',
           minHeight: 'calc(100vh-64px)',
         }}
-      >
+      >          
         <Grid container spacing={2}>
           <Grid item xs={12} md={8}>
             <TextField
               required
               fullWidth
-              error={forms.displayName.isError}
+              error={userId.displayName.isError}
               label="User Id"
-              value={forms.displayName.value}
+              value={userId.displayName.value}
               onChange={e => {
-                forms.displayName.value = e.target.value;
-                setForms({ ...forms });
+                userId.displayName.value = e.target.value;
+                setUserId({ ...userId });
               }}
-              helperText={forms.displayName.helperText}
+              helperText={userId.displayName.helperText}
             />
           </Grid>
           <Grid item xs={12} md={8}>
               <TextField
                 required
                 fullWidth
-                error={countryCode.displayName.isError}
+                error={deviceId.displayName.isError}
                 label="Device Id"
-                value={countryCode.displayName.value}
+                value={deviceId.displayName.value}
                 onChange={e => {
-                  countryCode.displayName.value = e.target.value;
-                  setCountryCode({ ...countryCode });
+                  deviceId.displayName.value = e.target.value;
+                  setDeviceId({ ...deviceId });
                 }}
-                helperText={countryCode.displayName.helperText}
+                helperText={deviceId.displayName.helperText}
               />
           </Grid>
           <Grid item xs={12} md={8}>
                <TextField
                 required
                 fullWidth
-                error={phoneNumber.displayName.isError}
+                error={type.displayName.isError}
                 label="Type"
-                value={phoneNumber.displayName.value}
+                value={type.displayName.value}
                 onChange={e => {
-                  phoneNumber.displayName.value = e.target.value;
-                  setPhoneNumber({ ...phoneNumber });
+                  type.displayName.value = e.target.value;
+                  setType({ ...type });
                 }}
-                helperText={phoneNumber.displayName.helperText}
+                helperText={type.displayName.helperText}
               />
           </Grid>
           <Grid item xs={12} md={8}>
             <TextField
               required
               fullWidth
-              error={email.displayName.isError}
+              error={osName.displayName.isError}
               label="OS Name"
-              value={email.displayName.value}
+              value={osName.displayName.value}
               onChange={e => {
-                email.displayName.value = e.target.value;
-                setEmail({ ...email });
+                osName.displayName.value = e.target.value;
+                setOsName({ ...osName });
               }}
-              helperText={email.displayName.helperText}
+              helperText={osName.displayName.helperText}
             />
           </Grid>
           <Grid item xs={12} md={8}>
             <TextField
               required
               fullWidth
-              error={avatarUrl.displayName.isError}
-              label="OS Version"
-              value={avatarUrl.displayName.value}
-              onChange={e => {
-                avatarUrl.displayName.value = e.target.value;
-                setAvatarUrl({ ...avatarUrl });
-              }}
-              helperText={avatarUrl.displayName.helperText}
-            />
-          </Grid>
-          <Grid item xs={12} md={8}>
-            <TextField
-              required
-              fullWidth
-              error={avatarUrl.displayName.isError}
+              error={appVersion.displayName.isError}
               label="App Version"
-              value={avatarUrl.displayName.value}
+              value={appVersion.displayName.value}
               onChange={e => {
-                avatarUrl.displayName.value = e.target.value;
-                setAvatarUrl({ ...avatarUrl });
+                appVersion.displayName.value = e.target.value;
+                setAppVersion({ ...appVersion });
               }}
-              helperText={avatarUrl.displayName.helperText}
+              helperText={appVersion.displayName.helperText}
             />
           </Grid>
           <Grid item xs={12} md={8}>
             <TextField
               required
               fullWidth
-              error={avatarUrl.displayName.isError}
+              error={token.displayName.isError}
               label="Token"
-              value={avatarUrl.displayName.value}
+              value={token.displayName.value}
               onChange={e => {
-                avatarUrl.displayName.value = e.target.value;
-                setAvatarUrl({ ...avatarUrl });
+                token.displayName.value = e.target.value;
+                setToken({ ...token });
               }}
-              helperText={avatarUrl.displayName.helperText}
+              helperText={token.displayName.helperText}
             />
           </Grid>
           <Grid item xs={12} md={8}>
             <TextField
               required
               fullWidth
-              error={avatarUrl.displayName.isError}
+              error={pushToken.displayName.isError}
               label="Push Token"
-              value={avatarUrl.displayName.value}
+              value={pushToken.displayName.value}
               onChange={e => {
-                avatarUrl.displayName.value = e.target.value;
-                setAvatarUrl({ ...avatarUrl });
+                pushToken.displayName.value = e.target.value;
+                setPushToken({ ...pushToken });
               }}
-              helperText={avatarUrl.displayName.helperText}
-            />
-          </Grid>
-          <Grid item xs={12} md={8}>
-            <TextField
-              required
-              fullWidth
-              error={avatarUrl.displayName.isError}
-              label="OS Version"
-              value={avatarUrl.displayName.value}
-              onChange={e => {
-                avatarUrl.displayName.value = e.target.value;
-                setAvatarUrl({ ...avatarUrl });
-              }}
-              helperText={avatarUrl.displayName.helperText}
+              helperText={pushToken.displayName.helperText}
             />
           </Grid>
           <Grid item xs={12} md={8} textAlign="right">

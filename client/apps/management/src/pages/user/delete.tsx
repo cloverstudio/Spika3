@@ -82,7 +82,7 @@ export default function Page() {
                   <Typography component='dt' variant='h6'>
                     Avatar
                   </Typography>
-                  <Avatar alt="Remy Sharp" src= "../../../../../../documents/pages/login_robot_image.svg"  />
+                  <Avatar alt="Remy Sharp" src={detail.avatarUrl}  />
                   <Typography component='dt' variant='h6'>
                     Display Name
                   </Typography>

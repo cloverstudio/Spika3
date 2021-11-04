@@ -13,7 +13,7 @@ import {
 
 import { useSelector, useDispatch } from "react-redux";
 import { useShowBasicDialog, useShowSnackBar } from "../../components/useUI";
-import { User } from "@prisma/client";
+import { Device } from "@prisma/client";
 
 interface formItem {
   value: string,
@@ -31,7 +31,7 @@ export default function Page() {
   const history = useHistory();
   const showSnackBar = useShowSnackBar();
   const showBasicDialog = useShowBasicDialog();
-  const [detail, setDetail] = React.useState<User>();
+  const [detail, setDetail] = React.useState<Device>();
 
   const callDelete = useDelete();
   const get = useGet();
@@ -41,7 +41,7 @@ export default function Page() {
     (async () => {
 
       try {
-        const response: User = await get(`/api/management/user/${urlParams.id}`);
+        const response: Device = await get(`/api/management/device/${urlParams.id}`);
         setDetail(response);
       } catch (e) {
         console.error(e);
@@ -54,7 +54,7 @@ export default function Page() {
 
 
   return (
-    <Layout subtitle={`Delete user ( ${urlParams.id} )`} showBack={true} >
+    <Layout subtitle={`Delete device ( ${urlParams.id} )`} showBack={true} >
       <Paper
         sx={{
           margin: '24px',
@@ -71,41 +71,59 @@ export default function Page() {
                 component='dl' // mount a Definition List
                 spacing={2}>
                 <Grid item>
-                  <Typography component='dt' variant='h6'>
-                    ID
+                <Typography component='dt' variant='h6'>
+                    ID:
                   </Typography>
                   <Typography component='dd' className="margin-bottom">
                     {detail.id}
                   </Typography>
                   <Typography component='dt' variant='h6'>
-                    Display Name
+                    Device Id
                   </Typography>
                   <Typography component='dd'>
-                    {detail.displayName}
+                    {detail.deviceId}
                   </Typography>
                   <Typography component='dt' variant='h6'>
-                    Country Code
+                    User Id
                   </Typography>
                   <Typography component='dd'>
-                    {detail.countryCode}
+                    {detail.userId}
                   </Typography>
                   <Typography component='dt' variant='h6'>
-                    Phone Number
+                    Type
                   </Typography>
                   <Typography component='dd'>
-                    {detail.telephoneNumber}
+                    {detail.type}
                   </Typography>
                   <Typography component='dt' variant='h6'>
-                    E-mail
+                    OS name
                   </Typography>
                   <Typography component='dd'>
-                    {detail.emailAddress}
+                    {detail.osName}
                   </Typography>
                   <Typography component='dt' variant='h6'>
-                    Avatar Url
+                    App Version
                   </Typography>
                   <Typography component='dd'>
-                    {detail.avatarUrl}
+                    {detail.appVersion}
+                  </Typography>
+                  <Typography component='dt' variant='h6'>
+                    Token
+                  </Typography>
+                  <Typography component='dd'>
+                    {detail.token}
+                  </Typography>
+                  <Typography component='dt' variant='h6'>
+                    Push Token
+                  </Typography>
+                  <Typography component='dd'>
+                    {detail.pushToken}
+                  </Typography>
+                  <Typography component='dt' variant='h6'>
+                    Token Expired
+                  </Typography>
+                  <Typography component='dd'>
+                    {detail.tokenExpiredAt}
                   </Typography>
                 </Grid>
               </Grid> : null}
@@ -117,8 +135,8 @@ export default function Page() {
               showBasicDialog({ text: "Please confirm delete." }, async () => {
 
                 try {
-                  await callDelete(`/api/management/user/${urlParams.id}`);
-                  history.push("/user");
+                  await callDelete(`/api/management/device/${urlParams.id}`);
+                  history.push("/device");
                 } catch (e) {
                   console.error(e);
                   showSnackBar({ severity: "error", text: "Server error, please check browser console." })
