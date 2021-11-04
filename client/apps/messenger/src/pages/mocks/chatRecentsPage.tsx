@@ -62,12 +62,11 @@ const ChatRecentsPage = () => {
         <SearchIcon sx={{ color: "action.active", mr: 1, my: 0.5 }} />
         <TextField
           label="Search for contact, message, file ..."
-          sx={{ width: "90%", fontSize: 12 }}
+          sx={{ width: "100%", fontSize: 12 }}
           inputProps={{ style: { fontSize: 12 } }}
           InputLabelProps={{ style: { fontSize: 12 } }}
         />
       </Box>
-      <Box sx={{ height: 20 }}></Box>
       <Box className="recents-list">
         <Stack
           alignItems="center"
@@ -85,7 +84,7 @@ const ChatRecentsPage = () => {
           <IconButton>
             <PeopleOutlineOutlinedIcon />
           </IconButton>
-          <IconButton style={{ textAlign: "right" }}>
+          <IconButton className="chat-new">
             <Stack
               alignItems="center"
               spacing={1}

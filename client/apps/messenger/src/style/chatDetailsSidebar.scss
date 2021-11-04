@@ -99,15 +99,29 @@ label.side-empty-title {
 
 .search-box {
   position: relative;
+  margin: 1em;
   svg {
     position: absolute;
-    left: 0.35em;
-    top: 0.35em;
+    left: 0.3em;
+    top: 0.37em;
   }
   input[type="text"] {
     text-indent: 2em;
+    width: 100%;
   }
   label {
     padding-left: 2em;
+  }
+}
+
+.recents-list {
+  margin: 1em;
+  border-radius: 10px;
+  .chat-control {
+    margin: 0.5em;
+  }
+  button.chat-new {
+    margin-left: auto;
+    padding: 0;
   }
 }
