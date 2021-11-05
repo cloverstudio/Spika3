@@ -21,8 +21,10 @@ export default (params: InitRouterParams) => {
     try {
       const displayName: string = req.body.displayName;
       const emailAddress: string = req.body.emailAddress;
-      const telephoneNumber: string = req.body.email;
+      const countryCode:string = req.body.countryCode
+      const telephoneNumber: string = req.body.telephoneNumber;
       const avatarUrl: string = req.body.avatarUrl;
+      const verified:boolean = req.body.verified
 
       if (Utils.isEmpty(displayName))
         return res.status(400).send("displayName is required");
@@ -30,11 +32,13 @@ export default (params: InitRouterParams) => {
         data: {
           displayName: displayName,
           emailAddress: emailAddress,
+          countryCode: countryCode,
           telephoneNumber: telephoneNumber,
           avatarUrl: avatarUrl,
+          verified:verified
         },
       });
-
+      
       return res.send(newUser);
     } catch (e: any) {
       le(e);
@@ -100,8 +104,11 @@ export default (params: InitRouterParams) => {
 
       const displayName: string = req.body.displayName;
       const emailAddress: string = req.body.emailAddress;
-      const telephoneNumber: string = req.body.email;
+      const countryCode:string = req.body.countryCode
+      const telephoneNumber: string = req.body.telephoneNumber;
       const avatarUrl: string = req.body.avatarUrl;
+      const verified:boolean = req.body.verified
+      const verificationCode:string = req.body.verificationCode
 
       // check existance
       const user = await prisma.user.findFirst({
@@ -117,11 +124,13 @@ export default (params: InitRouterParams) => {
         data: {
           displayName: displayName,
           emailAddress: emailAddress,
+          countryCode: countryCode,
           telephoneNumber: telephoneNumber,
           avatarUrl: avatarUrl,
+          verified:verified,
+          verificationCode:verificationCode
         },
       });
-
       return res.send(updateUser);
     } catch (e: any) {
       le(e);

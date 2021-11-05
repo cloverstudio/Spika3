@@ -194,7 +194,7 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
                             <ListItemText primary="Users" />
                         </ListItem>
                         <ListItem button onClick={e => {
-                            console.log("Devices");
+                            history.push("/device");
                         }}>
                             <ListItemIcon>
                                 <DashboardIcon />
