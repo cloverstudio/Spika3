@@ -25,7 +25,7 @@ model User {
   modifiedAt              DateTime @default(now())                    @map(name: "modified_at")
 
   @@map(name: "user")
-  Device          Device[]
+  Device                  Device[]
 }
 
 model Device {
@@ -47,3 +47,19 @@ model Device {
 
   @@map(name: "device")
 }
+
+model File {
+  id             Int       @id @default(autoincrement()) @map(name: "id")
+  type           String    @map(name: "type")
+  relationiId    Int       @map(name: "relationId")
+  path           String    @map(name: "path")
+  mimeType       String    @map(name: "mime_type")
+  fileName       String    @map(name: "file_name")
+  size           Int       @map(name: "size")
+
+  createdAt       DateTime @default(now()) @map(name: "created_at")
+  modifiedAt      DateTime @default(now()) @map(name: "modified_at")
+
+  @@map(name: "file")
+}
+
