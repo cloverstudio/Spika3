@@ -14,14 +14,13 @@ const config: Configuration = {
   entry: "./client/apps/management/index.tsx",
   output: {
     filename: "main.js",
-    path: path.resolve(__dirname, "../../../public/management"),
+    publicPath: "/",
   },
   // webpack 5 comes with devServer which loads in development mode
   devServer: {
     port: 3001,
     historyApiFallback: true,
   },
-
   // Rules of how webpack will take our files, complie & bundle them for the browser
   module: {
     rules: [
@@ -57,9 +56,9 @@ const config: Configuration = {
         test: /\.(jpg|png)$/,
         use: [
           {
-            loader: "url-loader",
+            loader: "file-loader",
             options: {
-              limit: 25000,
+              name: "[path][name].[ext]",
             },
           },
         ],
@@ -71,7 +70,7 @@ const config: Configuration = {
             loader: "url-loader?limit=100000",
             options: {
               name: "[name].[contenthash].[ext]",
-              esModule: false, // <- here
+              esModule: false,
             },
           },
         ],

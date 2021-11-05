@@ -6,8 +6,9 @@ import {
   createAsyncThunk,
 } from "@reduxjs/toolkit";
 
-import API from "../../../../lib/api";
 import type { RootState } from "./store";
+
+import API from "../../../../lib/api";
 
 // Define a type for the slice state
 interface AdminAuthState {
@@ -21,6 +22,7 @@ interface AdminSigninParams {
   password: string | null;
 }
 
+
 export const callAdminAuthApi = createAsyncThunk(
   "adminAuth/callAdminAuthApi",
   async (adminAuthCredentials: AdminSigninParams, thunkAPI) => {
@@ -32,6 +34,7 @@ export const callAdminAuthApi = createAsyncThunk(
     return { ...response, username: adminAuthCredentials.username };
   }
 );
+
 
 export const adminAuthSlice = createSlice({
   name: <string>"adminAuth",

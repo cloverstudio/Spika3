@@ -3,11 +3,13 @@ import { save, load } from "redux-localstorage-simple";
 
 import counterReducer from "./counterSlice";
 import adminAuthReducer from "./adminAuthSlice";
+import uiReducer from "./uiSlice";
 
 export const store = configureStore({
   reducer: {
     counter: counterReducer,
     auth: adminAuthReducer,
+    ui: uiReducer
   },
   preloadedState: load(),
   middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(save()),

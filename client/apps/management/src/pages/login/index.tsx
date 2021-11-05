@@ -16,34 +16,22 @@ import {
 
 import { LockOutlined } from "@mui/icons-material/";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-
 import { useSelector, useDispatch } from "react-redux";
+import dayjs from "dayjs";
+
 import { RootState } from "../../store/store";
 import { login, callAdminAuthApi } from "../../store/adminAuthSlice";
+import { usePost } from "../../lib/useApi";
+import SnackBar from "../../components/snackBar";
+import { useShowSnackBar } from "../../components/useUI";
 
 export default function () {
   const count = useSelector((state: RootState) => state.counter.value);
   const dispatch = useDispatch();
+  const post = usePost();
+  const showSnackBar = useShowSnackBar();
 
   let history = useHistory();
-
-  function Copyright(props: any) {
-    return (
-      <Typography
-        variant="body2"
-        color="text.secondary"
-        align="center"
-        {...props}
-      >
-        {"Copyright © "}
-        <Link color="inherit" href="https://material-ui.com/">
-          Your Website {count}
-        </Link>{" "}
-        {new Date().getFullYear()}
-        {"."}
-      </Typography>
-    );
-  }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -53,17 +41,31 @@ export default function () {
     const password: string = formdata.password.value;
 
     try {
-      const dispatchResponse: any = await dispatch(
-        callAdminAuthApi({
+
+      const loginResult: any = await post("/api/management/auth", {
+        username: username,
+        password: password
+      });
+
+      if (loginResult.token) {
+
+
+        dispatch(login({
+          token: loginResult.token,
           username: username,
-          password: password,
-        })
-      );
-      if (dispatchResponse.payload.token) {
+          expireDate: dayjs.unix(loginResult.expireDate).toDate()
+        }))
+
+        showSnackBar({ severity: "success", text: "Signed In" });
+
         history.push("/dashboard");
+
+      } else {
+        showSnackBar({ severity: "error", text: "Failed to signin" });
       }
+
     } catch (e) {
-      console.error("e", e);
+      showSnackBar({ severity: "error", text: "Failed to signin" });
     }
   };
 
@@ -132,28 +134,7 @@ export default function () {
           </Box>
         </Box>
 
-        {/*
-        <button
-          aria-label="Increment value"
-          onClick={() => dispatch(increment())}
-        >
-          Increment
-        </button>
-        <span>{count}</span>
-        <button
-          aria-label="Decrement value"
-          onClick={() => dispatch(decrement())}
-        >
-          Decrement
-        </button>
-        <button
-          aria-label="Decrement value"
-          onClick={() => dispatch(incrementByAmount(4))}
-        >
-          Add 4
-        </button>
-
-        */}
+        <SnackBar />
       </Container>
     </ThemeProvider>
   );

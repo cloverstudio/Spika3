@@ -7,6 +7,12 @@ class API {
     const response: AxiosResponse = await axios.post(API_BASEURL + url, params);
     return response.data;
   }
+
+  async get(url: string) {
+    const response: AxiosResponse = await axios.get(API_BASEURL + url);
+    return response.data;
+  }
+
 }
 
 export default new API();
