@@ -1,34 +1,40 @@
-import { Router, Request, Response } from "express";
-import amqp from 'amqplib';
+import { Router } from "express";
+import amqp from "amqplib";
 
 import testRouter from "./route/test";
 import signupRouter from "./route/auth";
+import contactRouter from "./route/contact";
 
-import * as Constants from "../../components/consts"
+import * as Constants from "../../components/consts";
+import Service, { ServiceStartParams } from "../types/serviceInterface";
+import { CreateContactPayload } from "../types/queuePayloadTypes";
 
-import Service, { ServiceStartParams } from "../types/serviceInterface"
+import saveContactWorker from "./workers/saveContact";
+
 export default class Messenger implements Service {
-
     rabbitMQChannel: amqp.Channel | null | undefined = null;
 
-    async start({ rabbitMQChannel }: ServiceStartParams) {
+    async start({ rabbitMQChannel }: ServiceStartParams): Promise<void> {
         this.rabbitMQChannel = rabbitMQChannel;
 
-        // check queue
-        this.rabbitMQChannel.assertQueue(Constants.QUEUE_SMS, {
-            durable: false
+        await this.rabbitMQChannel.assertQueue(Constants.QUEUE_CREATE_CONTACT, {
+            durable: false,
+        });
+
+        this.rabbitMQChannel.consume(Constants.QUEUE_CREATE_CONTACT, async (msg: amqp.ConsumeMessage) => {
+            const payload: CreateContactPayload = JSON.parse(msg.content.toString());
+            await saveContactWorker.run(payload);
+            rabbitMQChannel.ack(msg);
         });
     }
 
-    getRoutes() {
+    getRoutes(): Router {
         const messengerRouter = Router();
         messengerRouter.use("/test", testRouter({}));
         messengerRouter.use("/auth", signupRouter({ rabbitMQChannel: this.rabbitMQChannel }));
+        messengerRouter.use("/contacts", contactRouter({ rabbitMQChannel: this.rabbitMQChannel }));
         return messengerRouter;
     }
 
-    async test() {
-
-    }
-
+    async test() {}
 }

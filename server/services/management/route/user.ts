@@ -10,24 +10,20 @@ import l, { error as le } from "../../../components/logger";
 
 import { InitRouterParams } from "../../types/serviceInterface";
 
-interface UserResponse {
-
-}
+interface UserResponse {}
 export default (params: InitRouterParams) => {
-
   const router = Router();
 
   router.post("/", adminAuth, async (req: Request, res: Response) => {
     try {
       const displayName: string = req.body.displayName;
       const emailAddress: string = req.body.emailAddress;
-      const countryCode:string = req.body.countryCode
+      const countryCode: string = req.body.countryCode;
       const telephoneNumber: string = req.body.telephoneNumber;
       const avatarUrl: string = req.body.avatarUrl;
-      const verified:boolean = req.body.verified
+      const verified: boolean = req.body.verified;
 
-      if (Utils.isEmpty(displayName))
-        return res.status(400).send("displayName is required");
+      if (Utils.isEmpty(displayName)) return res.status(400).send("displayName is required");
       const newUser = await prisma.user.create({
         data: {
           displayName: displayName,
@@ -35,10 +31,10 @@ export default (params: InitRouterParams) => {
           countryCode: countryCode,
           telephoneNumber: telephoneNumber,
           avatarUrl: avatarUrl,
-          verified:verified
+          verified: verified,
         },
       });
-      
+
       return res.send(newUser);
     } catch (e: any) {
       le(e);
@@ -50,8 +46,7 @@ export default (params: InitRouterParams) => {
    * TODO: impliment order
    */
   router.get("/", adminAuth, async (req: Request, res: Response) => {
-    const page: number =
-      parseInt(req.query.page ? (req.query.page as string) : "") || 0;
+    const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 0;
 
     try {
       const users = await prisma.user.findMany({
@@ -104,11 +99,11 @@ export default (params: InitRouterParams) => {
 
       const displayName: string = req.body.displayName;
       const emailAddress: string = req.body.emailAddress;
-      const countryCode:string = req.body.countryCode
+      const countryCode: string = req.body.countryCode;
       const telephoneNumber: string = req.body.telephoneNumber;
       const avatarUrl: string = req.body.avatarUrl;
-      const verified:boolean = req.body.verified
-      const verificationCode:string = req.body.verificationCode
+      const verified: boolean = req.body.verified;
+      const verificationCode: string = req.body.verificationCode;
 
       // check existance
       const user = await prisma.user.findFirst({
@@ -127,8 +122,8 @@ export default (params: InitRouterParams) => {
           countryCode: countryCode,
           telephoneNumber: telephoneNumber,
           avatarUrl: avatarUrl,
-          verified:verified,
-          verificationCode:verificationCode
+          verified: verified,
+          verificationCode: verificationCode,
         },
       });
       return res.send(updateUser);
@@ -163,6 +158,4 @@ export default (params: InitRouterParams) => {
   });
 
   return router;
-
-}
-
+};

@@ -12,38 +12,39 @@ generator client {
 
 // List of users managed by own
 model User {
-  id                      Int      @id      @default(autoincrement()) @map(name: "id")
-  emailAddress            String?  @unique                            @map(name: "email_address")
-  telephoneNumber         String?  @unique                            @map(name: "telephone_number")
-  telephoneNumberHashed   String?  @unique                            @map(name: "telephone_number_hashed")
-  countryCode             String?                                     @map(name: "country_code")
-  displayName             String?                                     @map(name: "display_name")
-  avatarUrl               String?                                     @map(name: "avatar_url")
-  verificationCode        String?                                     @map(name: "verification_code")
-  verified                Boolean  @default(false)                    @map(name: "verified")
-  createdAt               DateTime @default(now())                    @map(name: "created_at")
-  modifiedAt              DateTime @default(now())                    @map(name: "modified_at")
+  id                    Int      @id @default(autoincrement()) @map(name: "id")
+  emailAddress          String?  @unique @map(name: "email_address")
+  telephoneNumber       String?  @unique @map(name: "telephone_number")
+  telephoneNumberHashed String?  @unique @map(name: "telephone_number_hashed")
+  countryCode           String?  @map(name: "country_code")
+  displayName           String?  @map(name: "display_name")
+  avatarUrl             String?  @map(name: "avatar_url")
+  verificationCode      String?  @map(name: "verification_code")
+  verified              Boolean  @default(false) @map(name: "verified")
+  createdAt             DateTime @default(now()) @map(name: "created_at")
+  modifiedAt            DateTime @default(now()) @map(name: "modified_at")
 
   @@map(name: "user")
-  Device                  Device[]
+  device  Device[]
+  contacts Contact[] @relation("user")
+  contactee Contact[] @relation("contact")
 }
 
 model Device {
   id             Int       @id @default(autoincrement()) @map(name: "id")
   userId         Int       @map(name: "user_id")
-  User           User      @relation(fields: [userId], references: [id])
+  user           User      @relation(fields: [userId], references: [id])
   deviceId       String    @unique @map(name: "device_id")
   type           String?   @map(name: "type")
   deviceName     String?   @map(name: "device_name")
   osName         String?   @map(name: "os_name")
-  osVersion      String?      @map(name: "os_version")
+  osVersion      String?   @map(name: "os_version")
   appVersion     Int?      @map(name: "app_version")
   token          String?   @map(name: "token")
   pushToken      String?   @map(name: "push_token")
   tokenExpiredAt DateTime? @map(name: "token_expired_at")
-
-  createdAt       DateTime @default(now()) @map(name: "created_at")
-  modifiedAt      DateTime @default(now()) @map(name: "modified_at")
+  createdAt  DateTime @default(now()) @map(name: "created_at")
+  modifiedAt DateTime @default(now()) @map(name: "modified_at")
 
   @@map(name: "device")
 }
@@ -63,3 +64,14 @@ model File {
   @@map(name: "file")
 }
 
+model Contact {
+  id Int @id @default(autoincrement()) @map(name: "id")
+  userId Int
+  user   User @relation("user", fields: [userId], references: [id])
+  contactId Int
+  contact   User @relation("contact", fields: [contactId], references: [id])
+  createdAt  DateTime @default(now()) @map(name: "created_at")
+  modifiedAt DateTime @default(now()) @map(name: "modified_at")
+
+  @@map(name: "contact")
+}
