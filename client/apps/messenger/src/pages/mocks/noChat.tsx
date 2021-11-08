@@ -7,19 +7,19 @@ import Screenshot from "../../../../../../documents/pages/nochat.png";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 const theme = createTheme({
-  palette: {
-    mode: "light",
-  },
+    palette: {
+        mode: "light",
+    },
 });
 
 export default function () {
-  return (
-    <ThemeProvider theme={theme}>
-      <Box>
-        <Grid item xs={12} md={12}>
-          <img src={Screenshot} className="mock" />
-        </Grid>
-      </Box>
-    </ThemeProvider>
-  );
+    return (
+        <ThemeProvider theme={theme}>
+            <Box>
+                <Grid item xs={12} md={12}>
+                    <img src={Screenshot} className="mock" />
+                </Grid>
+            </Box>
+        </ThemeProvider>
+    );
 }

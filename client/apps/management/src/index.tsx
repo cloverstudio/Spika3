@@ -9,9 +9,9 @@ import { Provider } from "react-redux";
 
 console.log("aaaa");
 ReactDom.render(
-  <Provider store={store}>
-    <App />
-  </Provider>,
-  document.getElementById("app")
+    <Provider store={store}>
+        <App />
+    </Provider>,
+    document.getElementById("app")
 );
 console.log("ssss");

@@ -6,13 +6,13 @@ import adminAuthReducer from "./adminAuthSlice";
 import uiReducer from "./uiSlice";
 
 export const store = configureStore({
-  reducer: {
-    counter: counterReducer,
-    auth: adminAuthReducer,
-    ui: uiReducer,
-  },
-  preloadedState: load(),
-  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(save()),
+    reducer: {
+        counter: counterReducer,
+        auth: adminAuthReducer,
+        ui: uiReducer,
+    },
+    preloadedState: load(),
+    middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(save()),
 });
 
 // Infer the `RootState` and `AppDispatch` types from the store itself

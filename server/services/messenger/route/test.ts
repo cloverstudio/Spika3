@@ -10,30 +10,30 @@ import auth from "../lib/auth";
 import { InitRouterParams } from "../../types/serviceInterface";
 
 export default (params: InitRouterParams) => {
-  const router = Router();
+    const router = Router();
 
-  router.get("/", async (req: Request, res: Response) => {
-    try {
-      res.send("test");
-    } catch (e: any) {
-      le(e);
-      res.status(500).send(`Server error ${e}`);
-    }
-  });
+    router.get("/", async (req: Request, res: Response) => {
+        try {
+            res.send("test");
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(`Server error ${e}`);
+        }
+    });
 
-  router.get("/auth", auth, async (req: Request, res: Response) => {
-    const userReq: UserRequest = req as UserRequest;
+    router.get("/auth", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
 
-    try {
-      res.send({
-        device: userReq.device,
-        user: userReq.user,
-      });
-    } catch (e: any) {
-      le(e);
-      res.status(500).send(`Server error ${e}`);
-    }
-  });
+        try {
+            res.send({
+                device: userReq.device,
+                user: userReq.user,
+            });
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(`Server error ${e}`);
+        }
+    });
 
-  return router;
+    return router;
 };
