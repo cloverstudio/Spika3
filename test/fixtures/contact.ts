@@ -9,5 +9,7 @@ export default async function createFakeContacts({
     userId: number;
     contacts: User[];
 }): Promise<Prisma.BatchPayload> {
-    return prisma.contact.createMany({ data: contacts.map((u) => ({ userId, contactId: u.id })) });
+    return prisma.contact.createMany({
+        data: contacts.map((u) => ({ userId, contactId: u.id })),
+    });
 }

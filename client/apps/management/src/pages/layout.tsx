@@ -1,9 +1,8 @@
+import React, { useState, useEffect } from "react";
 
-import React, { useState, useEffect } from 'react';
-
-import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
-import MuiDrawer from '@mui/material/Drawer';
-import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
+import { styled, createTheme, ThemeProvider } from "@mui/material/styles";
+import MuiDrawer from "@mui/material/Drawer";
+import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
 import { useHistory } from "react-router-dom";
 
 import {
@@ -39,7 +38,7 @@ import {
     People as PeopleIcon,
     BarChart as BarChartIcon,
     Layers as LayersIcon,
-    ArrowBackIos as ArrowBackIosIcon
+    ArrowBackIos as ArrowBackIosIcon,
 } from "@mui/icons-material/";
 
 import SnackBar from "../components/snackBar";
@@ -55,59 +54,58 @@ interface AppBarProps extends MuiAppBarProps {
 }
 
 const AppBar = styled(MuiAppBar, {
-    shouldForwardProp: (prop) => prop !== 'open',
+    shouldForwardProp: (prop) => prop !== "open",
 })<AppBarProps>(({ theme, open }) => ({
     zIndex: theme.zIndex.drawer + 1,
-    transition: theme.transitions.create(['width', 'margin'], {
+    transition: theme.transitions.create(["width", "margin"], {
         easing: theme.transitions.easing.sharp,
         duration: theme.transitions.duration.leavingScreen,
     }),
     ...(open && {
         marginLeft: drawerWidth,
         width: `calc(100% - ${drawerWidth}px)`,
-        transition: theme.transitions.create(['width', 'margin'], {
+        transition: theme.transitions.create(["width", "margin"], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.enteringScreen,
         }),
     }),
 }));
 
-const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
-    ({ theme, open }) => ({
-        '& .MuiDrawer-paper': {
-            position: 'relative',
-            whiteSpace: 'nowrap',
-            width: drawerWidth,
-            transition: theme.transitions.create('width', {
+const Drawer = styled(MuiDrawer, {
+    shouldForwardProp: (prop) => prop !== "open",
+})(({ theme, open }) => ({
+    "& .MuiDrawer-paper": {
+        position: "relative",
+        whiteSpace: "nowrap",
+        width: drawerWidth,
+        transition: theme.transitions.create("width", {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.enteringScreen,
+        }),
+        boxSizing: "border-box",
+        ...(!open && {
+            overflowX: "hidden",
+            transition: theme.transitions.create("width", {
                 easing: theme.transitions.easing.sharp,
-                duration: theme.transitions.duration.enteringScreen,
+                duration: theme.transitions.duration.leavingScreen,
             }),
-            boxSizing: 'border-box',
-            ...(!open && {
-                overflowX: 'hidden',
-                transition: theme.transitions.create('width', {
-                    easing: theme.transitions.easing.sharp,
-                    duration: theme.transitions.duration.leavingScreen,
-                }),
-                width: theme.spacing(7),
-                [theme.breakpoints.up('sm')]: {
-                    width: theme.spacing(9),
-                },
-            }),
-        },
-    }),
-);
+            width: theme.spacing(7),
+            [theme.breakpoints.up("sm")]: {
+                width: theme.spacing(9),
+            },
+        }),
+    },
+}));
 
 const mdTheme = createTheme();
 
 type LayoutParams = {
-    subtitle: string,
-    children: React.ReactNode,
-    showBack: boolean | undefined
-}
+    subtitle: string;
+    children: React.ReactNode;
+    showBack: boolean | undefined;
+};
 
 function DashboardContent({ subtitle, children, showBack = false }: LayoutParams) {
-
     const dispatch = useDispatch();
     let history = useHistory();
 
@@ -118,12 +116,12 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
 
     return (
         <ThemeProvider theme={mdTheme}>
-            <Box sx={{ display: 'flex' }}>
+            <Box sx={{ display: "flex" }}>
                 <CssBaseline />
                 <AppBar position="absolute" open={open}>
                     <Toolbar
                         sx={{
-                            pr: '24px', // keep right padding when drawer closed
+                            pr: "24px", // keep right padding when drawer closed
                         }}
                     >
                         <IconButton
@@ -132,19 +130,23 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
                             aria-label="open drawer"
                             onClick={toggleDrawer}
                             sx={{
-                                marginRight: '36px',
-                                ...(open && { display: 'none' }),
+                                marginRight: "36px",
+                                ...(open && { display: "none" }),
                             }}
                         >
                             <MenuIcon />
                         </IconButton>
 
-                        {showBack ?
-                            <IconButton color="inherit" onClick={e => {
-                                history.goBack();
-                            }}>
+                        {showBack ? (
+                            <IconButton
+                                color="inherit"
+                                onClick={(e) => {
+                                    history.goBack();
+                                }}
+                            >
                                 <ArrowBackIosIcon />
-                            </IconButton> : null}
+                            </IconButton>
+                        ) : null}
 
                         <Typography
                             component="h1"
@@ -165,9 +167,9 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
                 <Drawer variant="permanent" open={open}>
                     <Toolbar
                         sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'flex-end',
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "flex-end",
                             px: [1],
                         }}
                     >
@@ -177,25 +179,34 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
                     </Toolbar>
                     <Divider />
                     <List>
-                        <ListItem button onClick={e => {
-                            history.push("/dashboard");
-                        }}>
+                        <ListItem
+                            button
+                            onClick={(e) => {
+                                history.push("/dashboard");
+                            }}
+                        >
                             <ListItemIcon>
                                 <DashboardIcon />
                             </ListItemIcon>
                             <ListItemText primary="Dashboard" />
                         </ListItem>
-                        <ListItem button onClick={e => {
-                            history.push("/user");
-                        }}>
+                        <ListItem
+                            button
+                            onClick={(e) => {
+                                history.push("/user");
+                            }}
+                        >
                             <ListItemIcon>
                                 <DashboardIcon />
                             </ListItemIcon>
                             <ListItemText primary="Users" />
                         </ListItem>
-                        <ListItem button onClick={e => {
-                            history.push("/device");
-                        }}>
+                        <ListItem
+                            button
+                            onClick={(e) => {
+                                history.push("/device");
+                            }}
+                        >
                             <ListItemIcon>
                                 <DashboardIcon />
                             </ListItemIcon>
@@ -204,34 +215,38 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
                     </List>
                     <Divider />
                     <List>
-                        <ListItem button onClick={e => {
-                            dispatch(logout());
-                            dispatch(showSnackBar({
-                                severity: "success",
-                                text: "Singed out"
-                            }))
+                        <ListItem
+                            button
+                            onClick={(e) => {
+                                dispatch(logout());
+                                dispatch(
+                                    showSnackBar({
+                                        severity: "success",
+                                        text: "Singed out",
+                                    })
+                                );
 
-                            history.push("/");
-                        }}>
+                                history.push("/");
+                            }}
+                        >
                             <ListItemIcon>
                                 <DashboardIcon />
                             </ListItemIcon>
                             <ListItemText primary="Logout" />
                         </ListItem>
                     </List>
-
                 </Drawer>
                 <Box
                     component="main"
                     sx={{
                         backgroundColor: (theme) =>
-                            theme.palette.mode === 'light'
+                            theme.palette.mode === "light"
                                 ? theme.palette.grey[100]
                                 : theme.palette.grey[900],
                         flexGrow: 1,
-                        height: '100vh',
-                        overflow: 'auto',
-                        paddingTop: '64px'
+                        height: "100vh",
+                        overflow: "auto",
+                        paddingTop: "64px",
                     }}
                 >
                     {children}
@@ -240,7 +255,7 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
 
             <SnackBar />
             <BasicDialog />
-        </ThemeProvider >
+        </ThemeProvider>
     );
 }
 

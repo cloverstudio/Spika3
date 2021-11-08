@@ -36,7 +36,10 @@ describe("API", () => {
         });
 
         it("Accepts page query", async () => {
-            const contacts = await createFakeContacts({ userId: globals.userId, contacts: users });
+            const contacts = await createFakeContacts({
+                userId: globals.userId,
+                contacts: users,
+            });
 
             const response = await supertest(app)
                 .get("/api/messenger/contacts?page=2")

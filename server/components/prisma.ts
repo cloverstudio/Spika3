@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 interface CustomNodeJsGlobal extends NodeJS.Global {
     prisma: PrismaClient;
@@ -11,9 +11,9 @@ const prisma: PrismaClient =
     new PrismaClient({
         log: [
             {
-                emit: 'event',
-                level: 'query',
-            }
+                emit: "event",
+                level: "query",
+            },
         ],
     });
 
@@ -24,6 +24,6 @@ prisma.$on('query' as any, async (e: any) => {
 */
 
 const enviroment: any = process.env.BRANCH;
-if (enviroment !== 'production' && enviroment !== 'staging') global.prisma = prisma;
+if (enviroment !== "production" && enviroment !== "staging") global.prisma = prisma;
 
 export default prisma;

@@ -21,11 +21,14 @@ export default class Messenger implements Service {
             durable: false,
         });
 
-        this.rabbitMQChannel.consume(Constants.QUEUE_CREATE_CONTACT, async (msg: amqp.ConsumeMessage) => {
-            const payload: CreateContactPayload = JSON.parse(msg.content.toString());
-            await saveContactWorker.run(payload);
-            rabbitMQChannel.ack(msg);
-        });
+        this.rabbitMQChannel.consume(
+            Constants.QUEUE_CREATE_CONTACT,
+            async (msg: amqp.ConsumeMessage) => {
+                const payload: CreateContactPayload = JSON.parse(msg.content.toString());
+                await saveContactWorker.run(payload);
+                rabbitMQChannel.ack(msg);
+            }
+        );
     }
 
     getRoutes(): Router {
