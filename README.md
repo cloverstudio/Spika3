@@ -46,7 +46,7 @@
     # Change parameters to suit with your environment. ( If there are changes )
     $ npx prisma db push
 
-    # Confirm buid passes
+    # Confirm build passes
     $ npm run build:management
     $ npm run build:messenger
 

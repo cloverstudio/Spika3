@@ -1,13 +1,15 @@
-import { PrismaClient, User, Device} from "@prisma/client";
+import { PrismaClient, User, Device } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export interface Globals {
   adminToken: string;
   createdUser: User | undefined;
-  createdDevice: Device | undefined
+  createdDevice: Device | undefined;
   deviceId: string | undefined;
   telephoneNumber: string | undefined;
   userToken: string | undefined;
+  userId?: number | undefined;
+  prisma: PrismaClient;
 }
 
 const globals: Globals = {
@@ -16,7 +18,8 @@ const globals: Globals = {
   createdDevice: undefined,
   telephoneNumber: undefined,
   deviceId: undefined,
-  userToken: ""
+  userToken: "",
+  prisma,
 };
 
 export default globals;

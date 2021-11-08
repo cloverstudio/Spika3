@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import dayjs from "dayjs";
-import { Device } from '@prisma/client';
+import { Device } from "@prisma/client";
 import * as constants from "../../../components/consts";
 import utils from "../../../components/utils";
 
@@ -13,8 +13,7 @@ export default async (req: Request, res: Response, next: Function) => {
   // check access token
 
   try {
-    if (!req.headers[constants.ACCESS_TOKEN])
-      return res.status(403).send("Invalid access token");
+    if (!req.headers[constants.ACCESS_TOKEN]) return res.status(403).send("Invalid access token");
 
     const osName = req.headers["os-name"] as string;
     const osVersion = req.headers["os-version"] as string;
@@ -28,31 +27,30 @@ export default async (req: Request, res: Response, next: Function) => {
         token: accessToken,
       },
       include: {
-        User: true
-      }
+        user: true,
+      },
     });
 
-    if (!device)
-      return res.status(403).send("Invalid access token");
+    if (!device) return res.status(403).send("Invalid access token");
 
     const tokenExpiredAtTS: number = dayjs(device.tokenExpiredAt).unix();
     const now: number = dayjs().unix();
 
-    if (now - tokenExpiredAtTS > constants.TOKEN_EXPIRED)
-      return res.status(403).send("Token is expired");
+    if (now - tokenExpiredAtTS > constants.TOKEN_EXPIRED) return res.status(403).send("Token is expired");
 
     const userRequset: UserRequest = req as UserRequest;
 
-    userRequset.user = device.User;
-    delete device.User;
+    userRequset.user = device.user;
+    delete device.user;
     userRequset.device = device;
 
     // update device is there is a change
-    if (device.osName !== osName ||
+    if (
+      device.osName !== osName ||
       device.osVersion !== osVersion ||
       device.deviceName !== deviceName ||
-      device.appVersion !== appVersion) {
-
+      device.appVersion !== appVersion
+    ) {
       const updateData: any = {};
       if (osName) updateData.osName = osName;
       if (osVersion) updateData.osVersion = osVersion;
@@ -60,17 +58,13 @@ export default async (req: Request, res: Response, next: Function) => {
       if (appVersion) updateData.appVersion = appVersion;
 
       if (Object.keys(updateData).length > 0) {
-
         const newDevice = await prisma.device.update({
           where: { id: device.id },
-          data: updateData
+          data: updateData,
         });
 
         userRequset.device = newDevice;
-
       }
-
-
     }
 
     next();
@@ -78,5 +72,4 @@ export default async (req: Request, res: Response, next: Function) => {
     le(e);
     res.status(500).send(`Server error ${e}`);
   }
-
 };
