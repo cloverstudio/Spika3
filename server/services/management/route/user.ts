@@ -23,7 +23,8 @@ export default (params: InitRouterParams) => {
       const avatarUrl: string = req.body.avatarUrl;
       const verified: boolean = req.body.verified;
 
-      if (Utils.isEmpty(displayName)) return res.status(400).send("displayName is required");
+      if (Utils.isEmpty(displayName))
+        return res.status(400).send("displayName is required");
       const newUser = await prisma.user.create({
         data: {
           displayName: displayName,
@@ -46,7 +47,8 @@ export default (params: InitRouterParams) => {
    * TODO: impliment order
    */
   router.get("/", adminAuth, async (req: Request, res: Response) => {
-    const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 0;
+    const page: number =
+      parseInt(req.query.page ? (req.query.page as string) : "") || 0;
 
     try {
       const users = await prisma.user.findMany({

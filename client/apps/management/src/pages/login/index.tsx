@@ -41,29 +41,26 @@ export default function () {
     const password: string = formdata.password.value;
 
     try {
-
       const loginResult: any = await post("/api/management/auth", {
         username: username,
-        password: password
+        password: password,
       });
 
       if (loginResult.token) {
-
-
-        dispatch(login({
-          token: loginResult.token,
-          username: username,
-          expireDate: dayjs.unix(loginResult.expireDate).toDate()
-        }))
+        dispatch(
+          login({
+            token: loginResult.token,
+            username: username,
+            expireDate: dayjs.unix(loginResult.expireDate).toDate(),
+          })
+        );
 
         showSnackBar({ severity: "success", text: "Signed In" });
 
         history.push("/dashboard");
-
       } else {
         showSnackBar({ severity: "error", text: "Failed to signin" });
       }
-
     } catch (e) {
       showSnackBar({ severity: "error", text: "Failed to signin" });
     }

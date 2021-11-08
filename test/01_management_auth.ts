@@ -8,15 +8,14 @@ const wait = (): Promise<void> => {
   return new Promise<void>((res, rej) => {
     setTimeout(() => {
       res();
-    }, 500)
-  })
-}
+    }, 500);
+  });
+};
 
 describe("Admin auth API", () => {
   describe("/api/management/auth GET", () => {
     it("Should work", async () => {
-
-      // wait to server boot up 
+      // wait to server boot up
       await wait();
       const response = await supertest(app).get("/api/management/auth");
       expect(response.status).to.eqls(200);

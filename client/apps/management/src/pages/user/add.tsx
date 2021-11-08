@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import Layout from '../layout'
+import React, { useState, useEffect } from "react";
+import Layout from "../layout";
 import { useHistory } from "react-router-dom";
 import faker from "faker";
 import { usePost } from "../../lib/useApi";
@@ -20,13 +20,11 @@ import { useSelector, useDispatch } from "react-redux";
 import { useShowSnackBar } from "../../components/useUI";
 import { formItem, formItems } from "./types";
 
-
 function validateEmail(email: any) {
-  const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  const re =
+    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   return re.test(String(email).toLowerCase());
 }
-
-
 
 export default function Dashboard() {
   const dispatch = useDispatch();
@@ -37,40 +35,40 @@ export default function Dashboard() {
     displayName: {
       value: "",
       isError: false,
-      helperText: ""
-    }
+      helperText: "",
+    },
   });
 
   const [countryCode, setCountryCode] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
-      helperText: ""
-    }
+      helperText: "",
+    },
   });
 
   const [phoneNumber, setPhoneNumber] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
-      helperText: ""
-    }
+      helperText: "",
+    },
   });
 
   const [email, setEmail] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
-      helperText: ""
-    }
+      helperText: "",
+    },
   });
 
   const [avatarUrl, setAvatarUrl] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
-      helperText: ""
-    }
+      helperText: "",
+    },
   });
 
   const [verified, setVerified] = React.useState<boolean>(false);
@@ -106,7 +104,6 @@ export default function Dashboard() {
       hasError = true;
     }
 
-
     if (validateEmail(email.displayName.value.length)) {
       email.displayName.isError = true;
       email.displayName.helperText = "Please input display name";
@@ -124,33 +121,34 @@ export default function Dashboard() {
         const result = await post("/api/management/user", {
           displayName: forms.displayName.value,
           emailAddress: email.displayName.value,
-          countryCode:countryCode.displayName.value,
+          countryCode: countryCode.displayName.value,
           telephoneNumber: phoneNumber.displayName.value,
           avatarUrl: avatarUrl.displayName.value,
-          verified:verified
+          verified: verified,
         });
 
         showSnackBar({ severity: "success", text: "User added" });
         history.push("/user");
         newItems.displayName.value = "";
-
       } catch (e) {
         console.error(e);
-        showSnackBar({ severity: "error", text: "Failed to add user, please check console." })
+        showSnackBar({
+          severity: "error",
+          text: "Failed to add user, please check console.",
+        });
       }
-
     }
 
     setForms(newItems);
-  }
+  };
 
   return (
     <Layout subtitle="Add new user" showBack={true}>
       <Paper
         sx={{
-          margin: '24px',
-          padding: '24px',
-          minHeight: 'calc(100vh-64px)',
+          margin: "24px",
+          padding: "24px",
+          minHeight: "calc(100vh-64px)",
         }}
       >
         <Grid container spacing={2}>
@@ -161,7 +159,7 @@ export default function Dashboard() {
               error={forms.displayName.isError}
               label="Display Name"
               value={forms.displayName.value}
-              onChange={e => {
+              onChange={(e) => {
                 forms.displayName.value = e.target.value;
                 setForms({ ...forms });
               }}
@@ -172,23 +170,22 @@ export default function Dashboard() {
             <Stack alignItems="center" spacing={1} direction="row">
               <TextField
                 required
-                
                 error={countryCode.displayName.isError}
                 label="Country code"
                 value={countryCode.displayName.value}
-                onChange={e => {
+                onChange={(e) => {
                   countryCode.displayName.value = e.target.value;
                   setCountryCode({ ...countryCode });
                 }}
                 helperText={countryCode.displayName.helperText}
               />
-               <TextField
+              <TextField
                 required
                 fullWidth
                 error={phoneNumber.displayName.isError}
                 label="Phone number"
                 value={phoneNumber.displayName.value}
-                onChange={e => {
+                onChange={(e) => {
                   phoneNumber.displayName.value = e.target.value;
                   setPhoneNumber({ ...phoneNumber });
                 }}
@@ -203,7 +200,7 @@ export default function Dashboard() {
               error={email.displayName.isError}
               label="E-mail"
               value={email.displayName.value}
-              onChange={e => {
+              onChange={(e) => {
                 email.displayName.value = e.target.value;
                 setEmail({ ...email });
               }}
@@ -217,7 +214,7 @@ export default function Dashboard() {
               error={avatarUrl.displayName.isError}
               label="Avatar URL"
               value={avatarUrl.displayName.value}
-              onChange={e => {
+              onChange={(e) => {
                 avatarUrl.displayName.value = e.target.value;
                 setAvatarUrl({ ...avatarUrl });
               }}
@@ -229,7 +226,7 @@ export default function Dashboard() {
               <FormGroup aria-label="position" row>
                 <FormControlLabel
                   value="start"
-                  control={<Checkbox onChange={handleChange}/>}
+                  control={<Checkbox onChange={handleChange} />}
                   label="Verified"
                   labelPlacement="start"
                 />
@@ -237,13 +234,17 @@ export default function Dashboard() {
             </FormControl>
           </Grid>
           <Grid item xs={12} md={8} textAlign="right">
-            <Button variant="contained" onClick={e => {
-              validateAndAdd();
-            }}>Add new user</Button>
+            <Button
+              variant="contained"
+              onClick={(e) => {
+                validateAndAdd();
+              }}
+            >
+              Add new user
+            </Button>
           </Grid>
         </Grid>
       </Paper>
-
-    </Layout >
+    </Layout>
   );
 }

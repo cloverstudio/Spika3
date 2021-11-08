@@ -9,7 +9,7 @@ export const store = configureStore({
   reducer: {
     counter: counterReducer,
     auth: adminAuthReducer,
-    ui: uiReducer
+    ui: uiReducer,
   },
   preloadedState: load(),
   middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(save()),

@@ -2,11 +2,11 @@ import express, { Router } from "express";
 import amqp from "amqplib";
 
 export type SendSMSPayload = {
-    telephoneNumber: string;
-    content: string;
+  telephoneNumber: string;
+  content: string;
 };
 
 export type CreateContactPayload = {
-    userId: number;
-    contactId: number;
+  userId: number;
+  contactId: number;
 };

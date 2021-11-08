@@ -1,23 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import Layout from '../layout'
+import React, { useState, useEffect } from "react";
+import Layout from "../layout";
 import { useHistory } from "react-router-dom";
 import faker from "faker";
 import { usePost } from "../../lib/useApi";
 
-import {
-  TextField,
-  Paper,
-  Grid,
-  Button,
-  Stack,
-} from "@mui/material";
+import { TextField, Paper, Grid, Button, Stack } from "@mui/material";
 
 import { useSelector, useDispatch } from "react-redux";
 import { useShowSnackBar } from "../../components/useUI";
-import { formItem, formItems } from "./types"
+import { formItem, formItems } from "./types";
 
 function validateEmail(email: any) {
-  const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  const re =
+    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   return re.test(String(email).toLowerCase());
 }
 
@@ -30,58 +25,57 @@ export default function Dashboard() {
     displayName: {
       value: "",
       isError: false,
-      helperText: ""
-    }
+      helperText: "",
+    },
   });
 
   const [deviceId, setDeviceId] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
-      helperText: ""
-    }
+      helperText: "",
+    },
   });
 
   const [type, setType] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
-      helperText: ""
-    }
+      helperText: "",
+    },
   });
 
   const [osName, setOsName] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
-      helperText: ""
-    }
+      helperText: "",
+    },
   });
 
   const [appVersion, setAppVersion] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
-      helperText: ""
-    }
+      helperText: "",
+    },
   });
 
   const [token, setToken] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
-      helperText: ""
-    }
+      helperText: "",
+    },
   });
 
   const [pushToken, setPushToken] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
-      helperText: ""
-    }
+      helperText: "",
+    },
   });
-
 
   const post = usePost();
 
@@ -109,7 +103,6 @@ export default function Dashboard() {
       type.displayName.helperText = "Please input type";
       hasError = true;
     }
-
 
     if (osName.displayName.value.length == 0) {
       osName.displayName.isError = true;
@@ -143,33 +136,34 @@ export default function Dashboard() {
           type: type.displayName.value,
           osName: osName.displayName.value,
           appVersion: appVersion.displayName.value,
-          token:token.displayName.value,
-          pushToken:pushToken.displayName.value
+          token: token.displayName.value,
+          pushToken: pushToken.displayName.value,
         });
 
         showSnackBar({ severity: "success", text: "User added" });
         history.push("/device");
         newItems.displayName.value = "";
-
       } catch (e) {
         console.error(e);
-        showSnackBar({ severity: "error", text: "Failed to add user, please check console." })
+        showSnackBar({
+          severity: "error",
+          text: "Failed to add user, please check console.",
+        });
       }
-
     }
 
     setUserId(newItems);
-  }
+  };
 
   return (
     <Layout subtitle="Add new device" showBack={true}>
       <Paper
         sx={{
-          margin: '24px',
-          padding: '24px',
-          minHeight: 'calc(100vh-64px)',
+          margin: "24px",
+          padding: "24px",
+          minHeight: "calc(100vh-64px)",
         }}
-      >          
+      >
         <Grid container spacing={2}>
           <Grid item xs={12} md={8}>
             <TextField
@@ -178,7 +172,7 @@ export default function Dashboard() {
               error={userId.displayName.isError}
               label="User Id"
               value={userId.displayName.value}
-              onChange={e => {
+              onChange={(e) => {
                 userId.displayName.value = e.target.value;
                 setUserId({ ...userId });
               }}
@@ -186,32 +180,32 @@ export default function Dashboard() {
             />
           </Grid>
           <Grid item xs={12} md={8}>
-              <TextField
-                required
-                fullWidth
-                error={deviceId.displayName.isError}
-                label="Device Id"
-                value={deviceId.displayName.value}
-                onChange={e => {
-                  deviceId.displayName.value = e.target.value;
-                  setDeviceId({ ...deviceId });
-                }}
-                helperText={deviceId.displayName.helperText}
-              />
+            <TextField
+              required
+              fullWidth
+              error={deviceId.displayName.isError}
+              label="Device Id"
+              value={deviceId.displayName.value}
+              onChange={(e) => {
+                deviceId.displayName.value = e.target.value;
+                setDeviceId({ ...deviceId });
+              }}
+              helperText={deviceId.displayName.helperText}
+            />
           </Grid>
           <Grid item xs={12} md={8}>
-               <TextField
-                required
-                fullWidth
-                error={type.displayName.isError}
-                label="Type"
-                value={type.displayName.value}
-                onChange={e => {
-                  type.displayName.value = e.target.value;
-                  setType({ ...type });
-                }}
-                helperText={type.displayName.helperText}
-              />
+            <TextField
+              required
+              fullWidth
+              error={type.displayName.isError}
+              label="Type"
+              value={type.displayName.value}
+              onChange={(e) => {
+                type.displayName.value = e.target.value;
+                setType({ ...type });
+              }}
+              helperText={type.displayName.helperText}
+            />
           </Grid>
           <Grid item xs={12} md={8}>
             <TextField
@@ -220,7 +214,7 @@ export default function Dashboard() {
               error={osName.displayName.isError}
               label="OS Name"
               value={osName.displayName.value}
-              onChange={e => {
+              onChange={(e) => {
                 osName.displayName.value = e.target.value;
                 setOsName({ ...osName });
               }}
@@ -234,7 +228,7 @@ export default function Dashboard() {
               error={appVersion.displayName.isError}
               label="App Version"
               value={appVersion.displayName.value}
-              onChange={e => {
+              onChange={(e) => {
                 appVersion.displayName.value = e.target.value;
                 setAppVersion({ ...appVersion });
               }}
@@ -248,7 +242,7 @@ export default function Dashboard() {
               error={token.displayName.isError}
               label="Token"
               value={token.displayName.value}
-              onChange={e => {
+              onChange={(e) => {
                 token.displayName.value = e.target.value;
                 setToken({ ...token });
               }}
@@ -262,7 +256,7 @@ export default function Dashboard() {
               error={pushToken.displayName.isError}
               label="Push Token"
               value={pushToken.displayName.value}
-              onChange={e => {
+              onChange={(e) => {
                 pushToken.displayName.value = e.target.value;
                 setPushToken({ ...pushToken });
               }}
@@ -270,13 +264,17 @@ export default function Dashboard() {
             />
           </Grid>
           <Grid item xs={12} md={8} textAlign="right">
-            <Button variant="contained" onClick={e => {
-              validateAndAdd();
-            }}>Add new device</Button>
+            <Button
+              variant="contained"
+              onClick={(e) => {
+                validateAndAdd();
+              }}
+            >
+              Add new device
+            </Button>
           </Grid>
         </Grid>
       </Paper>
-
-    </Layout >
+    </Layout>
   );
 }

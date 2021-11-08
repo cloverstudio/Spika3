@@ -12,7 +12,6 @@ class API {
     const response: AxiosResponse = await axios.get(API_BASEURL + url);
     return response.data;
   }
-
 }
 
 export default new API();

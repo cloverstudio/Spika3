@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import Layout from '../layout'
+import React, { useState, useEffect } from "react";
+import Layout from "../layout";
 import { useHistory, useParams } from "react-router-dom";
 import faker from "faker";
 import { useGet, usePut } from "../../lib/useApi";
@@ -13,19 +13,19 @@ import {
   FormGroup,
   FormControl,
   FormControlLabel,
-  Checkbox
+  Checkbox,
 } from "@mui/material";
 
 import { useSelector, useDispatch } from "react-redux";
 import { useShowSnackBar } from "../../components/useUI";
 import { User } from "@prisma/client";
-import { formItem, formItems } from "./types"
+import { formItem, formItems } from "./types";
 
 function validateEmail(email: any) {
-  const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  const re =
+    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   return re.test(String(email).toLowerCase());
 }
-
 
 export default function Page() {
   const urlParams: { id: string } = useParams();
@@ -37,48 +37,48 @@ export default function Page() {
     displayName: {
       value: "",
       isError: false,
-      helperText: ""
-    }
+      helperText: "",
+    },
   });
 
   const [countryCode, setCountryCode] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
-      helperText: ""
-    }
+      helperText: "",
+    },
   });
 
   const [phoneNumber, setPhoneNumber] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
-      helperText: ""
-    }
+      helperText: "",
+    },
   });
 
   const [email, setEmail] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
-      helperText: ""
-    }
+      helperText: "",
+    },
   });
 
   const [avatarUrl, setAvatarUrl] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
-      helperText: ""
-    }
+      helperText: "",
+    },
   });
 
   const [verificationCode, setVerificationCode] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
-      helperText: ""
-    }
+      helperText: "",
+    },
   });
 
   const [verified, setVerified] = React.useState<boolean>(false);
@@ -87,69 +87,75 @@ export default function Page() {
   const put = usePut();
 
   useEffect(() => {
-
     (async () => {
-
       try {
-        const response: User = await get(`/api/management/user/${urlParams.id}`);
+        const response: User = await get(
+          `/api/management/user/${urlParams.id}`
+        );
         setDetail(response);
-        const checkName = response.displayName == null ? "" : response.displayName
-        const checkCC = response.countryCode == null ? "" : response.countryCode
-        const checkPhone = response.telephoneNumber == null ? "" : response.telephoneNumber
-        const checkEmail = response.emailAddress == null ? "" : response.emailAddress
-        const checkUrl = response.avatarUrl == null ? "" : response.avatarUrl
-        const checkVer = response.verified == null ? false : response.verified
-        const checkVerCode = response.verificationCode == null ? "" : response.verificationCode
+        const checkName =
+          response.displayName == null ? "" : response.displayName;
+        const checkCC =
+          response.countryCode == null ? "" : response.countryCode;
+        const checkPhone =
+          response.telephoneNumber == null ? "" : response.telephoneNumber;
+        const checkEmail =
+          response.emailAddress == null ? "" : response.emailAddress;
+        const checkUrl = response.avatarUrl == null ? "" : response.avatarUrl;
+        const checkVer = response.verified == null ? false : response.verified;
+        const checkVerCode =
+          response.verificationCode == null ? "" : response.verificationCode;
         setForms({
           displayName: {
             value: checkName,
             isError: false,
-            helperText: ""
-          }
-        })
+            helperText: "",
+          },
+        });
         setCountryCode({
           displayName: {
             value: checkCC,
             isError: false,
-            helperText: ""
-          }
-        })
+            helperText: "",
+          },
+        });
         setPhoneNumber({
           displayName: {
             value: checkPhone,
             isError: false,
-            helperText: ""
-          }
-        })
+            helperText: "",
+          },
+        });
         setEmail({
           displayName: {
             value: checkEmail,
             isError: false,
-            helperText: ""
-          }
-        })
+            helperText: "",
+          },
+        });
         setAvatarUrl({
           displayName: {
             value: checkUrl,
             isError: false,
-            helperText: ""
-          }
-        })
+            helperText: "",
+          },
+        });
         setVerificationCode({
           displayName: {
             value: checkVerCode,
             isError: false,
-            helperText: ""
-          }
-        })
-        setVerified(checkVer)
+            helperText: "",
+          },
+        });
+        setVerified(checkVer);
       } catch (e) {
         console.error(e);
-        showSnackBar({ severity: "error", text: "Server error, please check browser console." })
+        showSnackBar({
+          severity: "error",
+          text: "Server error, please check browser console.",
+        });
       }
-
     })();
-
   }, []);
 
   const validateAndUpdate = async () => {
@@ -177,7 +183,6 @@ export default function Page() {
     //   hasError = true;
     // }
 
-
     if (validateEmail(email.displayName.value.length)) {
       email.displayName.isError = true;
       email.displayName.helperText = "Please input display name";
@@ -191,7 +196,6 @@ export default function Page() {
     }
 
     if (!hasError) {
-
       try {
         const result = await put(`/api/management/user/${urlParams.id}`, {
           displayName: forms.displayName.value,
@@ -199,35 +203,36 @@ export default function Page() {
           countryCode: countryCode.displayName.value,
           telephoneNumber: phoneNumber.displayName.value,
           avatarUrl: avatarUrl.displayName.value,
-          verified:verified,
-          verificationCode:verificationCode.displayName.value
+          verified: verified,
+          verificationCode: verificationCode.displayName.value,
         });
 
         showSnackBar({ severity: "success", text: "User updated" });
         history.push("/user");
         newItems.displayName.value = "";
-
       } catch (e) {
         console.error(e);
-        showSnackBar({ severity: "error", text: "Failed to update user, please check console." })
+        showSnackBar({
+          severity: "error",
+          text: "Failed to update user, please check console.",
+        });
       }
-
     }
 
     setForms(newItems);
-  }
+  };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setVerified(event.target.checked);
   };
 
   return (
-    <Layout subtitle={`User detail ( ${urlParams.id} )`} showBack={true} >
+    <Layout subtitle={`User detail ( ${urlParams.id} )`} showBack={true}>
       <Paper
         sx={{
-          margin: '24px',
-          padding: '24px',
-          minHeight: 'calc(100vh-64px)',
+          margin: "24px",
+          padding: "24px",
+          minHeight: "calc(100vh-64px)",
         }}
       >
         <Grid container spacing={2}>
@@ -238,7 +243,7 @@ export default function Page() {
               error={forms.displayName.isError}
               label="Display Name"
               value={forms.displayName.value}
-              onChange={e => {
+              onChange={(e) => {
                 forms.displayName.value = e.target.value;
                 setForms({ ...forms });
               }}
@@ -249,23 +254,22 @@ export default function Page() {
             <Stack alignItems="center" spacing={1} direction="row">
               <TextField
                 required
-                
                 error={countryCode.displayName.isError}
                 label="Country code"
                 value={countryCode.displayName.value}
-                onChange={e => {
+                onChange={(e) => {
                   countryCode.displayName.value = e.target.value;
                   setCountryCode({ ...countryCode });
                 }}
                 helperText={countryCode.displayName.helperText}
               />
-               <TextField
+              <TextField
                 required
                 fullWidth
                 error={phoneNumber.displayName.isError}
                 label="Phone number"
                 value={phoneNumber.displayName.value}
-                onChange={e => {
+                onChange={(e) => {
                   phoneNumber.displayName.value = e.target.value;
                   setPhoneNumber({ ...phoneNumber });
                 }}
@@ -280,7 +284,7 @@ export default function Page() {
               error={email.displayName.isError}
               label="E-mail"
               value={email.displayName.value}
-              onChange={e => {
+              onChange={(e) => {
                 email.displayName.value = e.target.value;
                 setEmail({ ...email });
               }}
@@ -294,7 +298,7 @@ export default function Page() {
               error={avatarUrl.displayName.isError}
               label="Avatar URL"
               value={avatarUrl.displayName.value}
-              onChange={e => {
+              onChange={(e) => {
                 avatarUrl.displayName.value = e.target.value;
                 setAvatarUrl({ ...avatarUrl });
               }}
@@ -307,7 +311,7 @@ export default function Page() {
               error={verificationCode.displayName.isError}
               label="Verification Code"
               value={verificationCode.displayName.value}
-              onChange={e => {
+              onChange={(e) => {
                 verificationCode.displayName.value = e.target.value;
                 setVerificationCode({ ...verificationCode });
               }}
@@ -319,7 +323,9 @@ export default function Page() {
               <FormGroup aria-label="position" row>
                 <FormControlLabel
                   value="start"
-                  control={<Checkbox checked={verified} onChange={handleChange}/>}
+                  control={
+                    <Checkbox checked={verified} onChange={handleChange} />
+                  }
                   label="Verified"
                   labelPlacement="start"
                 />
@@ -327,13 +333,17 @@ export default function Page() {
             </FormControl>
           </Grid>
           <Grid item xs={12} md={8} textAlign="right">
-            <Button variant="contained" onClick={e => {
-              validateAndUpdate();
-            }}>Update user</Button>
+            <Button
+              variant="contained"
+              onClick={(e) => {
+                validateAndUpdate();
+              }}
+            >
+              Update user
+            </Button>
           </Grid>
         </Grid>
       </Paper>
-
-    </Layout >
+    </Layout>
   );
 }

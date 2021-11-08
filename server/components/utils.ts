@@ -1,7 +1,7 @@
 import crypto from "crypto";
-import dayjs from 'dayjs';
+import dayjs from "dayjs";
 
-import * as Consts from "./consts"
+import * as Consts from "./consts";
 
 export interface FormData {
   fields: any;
@@ -30,8 +30,7 @@ export default class utils {
 
   static randomNumber = (length: number) => {
     var result = "";
-    var characters =
-      "0123456789";
+    var characters = "0123456789";
     var charactersLength = characters.length;
     for (var i = 0; i < length; i++) {
       result += characters.charAt(Math.floor(Math.random() * charactersLength));
@@ -102,5 +101,4 @@ export default class utils {
   static getTokenExpireDate = (): Date => {
     return dayjs().add(Consts.TOKEN_VALID_DAY).toDate();
   };
-
 }

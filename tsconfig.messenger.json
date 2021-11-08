@@ -1,10 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "./client/apps/messenger/dist", /* Specify an output folder for all emitted files. */
+    "outDir": "./client/apps/messenger/dist" /* Specify an output folder for all emitted files. */
   },
-  "include": [
-    "index.d.ts",
-    "./client/apps/messenger"
-  ]
+  "include": ["index.d.ts", "./client/apps/messenger"]
 }

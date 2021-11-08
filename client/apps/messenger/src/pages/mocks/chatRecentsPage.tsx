@@ -108,7 +108,10 @@ const ChatRecentsPage = () => {
                   <FolderIcon />
                 </Avatar>
               </ListItemAvatar>
-              <ListItemText primary="Matej Vida" secondary="Kaze da moze sada" />
+              <ListItemText
+                primary="Matej Vida"
+                secondary="Kaze da moze sada"
+              />
             </ListItem>
           )}
         </List>

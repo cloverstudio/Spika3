@@ -1,11 +1,11 @@
 {
-    "configurations": [
-        {
-            "type": "node-terminal",
-            "name": "Run Script: dev",
-            "request": "launch",
-            "command": "npm run dev:management",
-            "cwd": "${workspaceFolder}"
-        }
-    ]
+  "configurations": [
+    {
+      "type": "node-terminal",
+      "name": "Run Script: dev",
+      "request": "launch",
+      "command": "npm run dev:management",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
 }

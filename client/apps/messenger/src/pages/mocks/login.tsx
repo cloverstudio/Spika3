@@ -1,6 +1,15 @@
 import React from "react";
 import { useHistory } from "react-router-dom";
-import { Grid, Box, Stack, Paper, Container, TextField, Button, Link } from "@mui/material";
+import {
+  Grid,
+  Box,
+  Stack,
+  Paper,
+  Container,
+  TextField,
+  Button,
+  Link,
+} from "@mui/material";
 import image from "../../../../../../documents/pages/login_robot_image.svg";
 import logo from "../../../../../../documents/pages/login_logo.svg";
 import { createTheme, ThemeProvider, styled } from "@mui/material/styles";
@@ -17,13 +26,26 @@ export default function () {
     <ThemeProvider theme={theme}>
       <Grid container id="login">
         <Grid item xs={12} md={6} lg={4} className="welcome_padding">
-          <Stack justifyContent="start" alignItems="start" spacing={2} sx={{ height: "100%" }}>
-            <Stack justifyContent="start" alignItems="start" spacing={2} direction="row">
+          <Stack
+            justifyContent="start"
+            alignItems="start"
+            spacing={2}
+            sx={{ height: "100%" }}
+          >
+            <Stack
+              justifyContent="start"
+              alignItems="start"
+              spacing={2}
+              direction="row"
+            >
               <img src={logo} />
               <label> Spika </label>
             </Stack>
             <Box className="welcome_title"> Welcome! </Box>
-            <Box className="welcome_sub_title"> Sign in to start using Spika! </Box>
+            <Box className="welcome_sub_title">
+              {" "}
+              Sign in to start using Spika!{" "}
+            </Box>
             <TextField
               sx={{ width: "80%", height: 50 }}
               id="outlined-basic"
@@ -41,7 +63,9 @@ export default function () {
           </Stack>
         </Grid>
         <Grid item md={6} lg={8}>
-          <Box sx={{ display: { xs: "none", md: "block" }, textAlign: "right" }}>
+          <Box
+            sx={{ display: { xs: "none", md: "block" }, textAlign: "right" }}
+          >
             <img className="max-height" src={image} />
           </Box>
         </Grid>

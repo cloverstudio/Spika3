@@ -13,7 +13,8 @@ export default async (req: Request, res: Response, next: Function) => {
   // check access token
 
   try {
-    if (!req.headers[constants.ACCESS_TOKEN]) return res.status(403).send("Invalid access token");
+    if (!req.headers[constants.ACCESS_TOKEN])
+      return res.status(403).send("Invalid access token");
 
     const osName = req.headers["os-name"] as string;
     const osVersion = req.headers["os-version"] as string;
@@ -36,7 +37,8 @@ export default async (req: Request, res: Response, next: Function) => {
     const tokenExpiredAtTS: number = dayjs(device.tokenExpiredAt).unix();
     const now: number = dayjs().unix();
 
-    if (now - tokenExpiredAtTS > constants.TOKEN_EXPIRED) return res.status(403).send("Token is expired");
+    if (now - tokenExpiredAtTS > constants.TOKEN_EXPIRED)
+      return res.status(403).send("Token is expired");
 
     const userRequset: UserRequest = req as UserRequest;
 

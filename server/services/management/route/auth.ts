@@ -6,7 +6,6 @@ import adminTokens, { Token } from "../lib/adminTokens";
 import { InitRouterParams } from "../../types/serviceInterface";
 
 export default (params: InitRouterParams) => {
-
   const router = Router();
 
   router.get("/", (req: Request, res: Response) => {
@@ -36,6 +35,4 @@ export default (params: InitRouterParams) => {
   });
 
   return router;
-
-}
-
+};

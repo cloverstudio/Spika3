@@ -2,7 +2,11 @@ import { Request, Response, NextFunction } from "express";
 import * as yup from "yup";
 
 export default function validate(schema: yup.AnySchema) {
-  return async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+  return async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<any> => {
     try {
       await schema.validate({
         body: req.body,

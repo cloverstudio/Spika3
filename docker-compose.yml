@@ -1,7 +1,7 @@
-version: '2.0'
+version: "2.0"
 services:
   mysql:
-    image: 'mysql:8.0'
+    image: "mysql:8.0"
     restart: always
     environment:
       MYSQL_DATABASE: db
@@ -9,13 +9,13 @@ services:
       MYSQL_PASSWORD: ZjP68Ygd
       MYSQL_ROOT_PASSWORD: ZjP68Ygd
     ports:
-      - '3306:3306'
+      - "3306:3306"
     expose:
-      - '3306'
+      - "3306"
     volumes:
-      - 'spika3-db:/var/lib/mysql'
+      - "spika3-db:/var/lib/mysql"
   mysql-test:
-    image: 'mysql:8.0'
+    image: "mysql:8.0"
     restart: always
     environment:
       MYSQL_DATABASE: dbtest
@@ -23,34 +23,34 @@ services:
       MYSQL_PASSWORD: testtest
       MYSQL_ROOT_PASSWORD: testtest
     ports:
-      - '3307:3306'
+      - "3307:3306"
     expose:
-      - '3307'
+      - "3307"
     volumes:
-      - 'spika3-db-test:/var/lib/mysql'
+      - "spika3-db-test:/var/lib/mysql"
   phpmyadmin:
     depends_on:
       - mysql
     image: phpmyadmin/phpmyadmin
     restart: always
     ports:
-      - '8082:80'
+      - "8082:80"
     environment:
       PMA_HOST: mysql
       MYSQL_ROOT_PASSWORD: ZjP68Ygd
   rabbitmq:
     image: rabbitmq:3.8-management-alpine
     environment:
-        - RABBITMQ_DEFAULT_USER=myuser
-        - RABBITMQ_DEFAULT_PASS=mypassword
+      - RABBITMQ_DEFAULT_USER=myuser
+      - RABBITMQ_DEFAULT_PASS=mypassword
     ports:
-      - '5672:5672'
-      - '15672:15672'
+      - "5672:5672"
+      - "15672:15672"
   redis-spika:
-    image: 'redis:latest'
+    image: "redis:latest"
     restart: always
     ports:
-      - '6379:6379'
+      - "6379:6379"
     environment:
       - REDIS_AOF_ENABLED=no
 volumes:

@@ -22,7 +22,6 @@ interface AdminSigninParams {
   password: string | null;
 }
 
-
 export const callAdminAuthApi = createAsyncThunk(
   "adminAuth/callAdminAuthApi",
   async (adminAuthCredentials: AdminSigninParams, thunkAPI) => {
@@ -34,7 +33,6 @@ export const callAdminAuthApi = createAsyncThunk(
     return { ...response, username: adminAuthCredentials.username };
   }
 );
-
 
 export const adminAuthSlice = createSlice({
   name: <string>"adminAuth",

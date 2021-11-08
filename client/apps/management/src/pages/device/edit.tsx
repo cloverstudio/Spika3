@@ -1,21 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import Layout from '../layout'
+import React, { useState, useEffect } from "react";
+import Layout from "../layout";
 import { useHistory, useParams } from "react-router-dom";
 import faker from "faker";
 import { useGet, usePut } from "../../lib/useApi";
 
-import {
-  TextField,
-  Paper,
-  Grid,
-  Button,
-  Stack
-} from "@mui/material";
+import { TextField, Paper, Grid, Button, Stack } from "@mui/material";
 
 import { useSelector, useDispatch } from "react-redux";
 import { useShowSnackBar } from "../../components/useUI";
 import { Device } from "@prisma/client";
-import { formItem, formItems } from "./types"
+import { formItem, formItems } from "./types";
 
 export default function Page() {
   const urlParams: { id: string } = useParams();
@@ -23,136 +17,139 @@ export default function Page() {
   const history = useHistory();
   const showSnackBar = useShowSnackBar();
   const [detail, setDetail] = React.useState<Device>();
-  
+
   const [userId, setUserId] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
-      helperText: ""
-    }
+      helperText: "",
+    },
   });
 
   const [deviceId, setDeviceId] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
-      helperText: ""
-    }
+      helperText: "",
+    },
   });
 
   const [type, setType] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
-      helperText: ""
-    }
+      helperText: "",
+    },
   });
 
   const [osName, setOsName] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
-      helperText: ""
-    }
+      helperText: "",
+    },
   });
 
   const [appVersion, setAppVersion] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
-      helperText: ""
-    }
+      helperText: "",
+    },
   });
 
   const [token, setToken] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
-      helperText: ""
-    }
+      helperText: "",
+    },
   });
 
   const [pushToken, setPushToken] = React.useState<formItems>({
     displayName: {
       value: "",
       isError: false,
-      helperText: ""
-    }
+      helperText: "",
+    },
   });
 
   const get = useGet();
   const put = usePut();
 
   useEffect(() => {
-
     (async () => {
-
       try {
-        const response: Device = await get(`/api/management/device/${urlParams.id}`);
+        const response: Device = await get(
+          `/api/management/device/${urlParams.id}`
+        );
         setDetail(response);
-        const checkUId = response.userId == null ? "" : response.userId
-        const checkDId = response.deviceId == null ? "" : response.deviceId
-        const checkType = response.type == null ? "" : response.type
-        const checkOsName = response.osName == null ? "" : response.osName
-        const checkAppVersion = response.appVersion == null ? "" : response.appVersion
-        const checkToken = response.token == null ? "" : response.token
-        const checkPushToken = response.pushToken == null ? "" : response.pushToken
+        const checkUId = response.userId == null ? "" : response.userId;
+        const checkDId = response.deviceId == null ? "" : response.deviceId;
+        const checkType = response.type == null ? "" : response.type;
+        const checkOsName = response.osName == null ? "" : response.osName;
+        const checkAppVersion =
+          response.appVersion == null ? "" : response.appVersion;
+        const checkToken = response.token == null ? "" : response.token;
+        const checkPushToken =
+          response.pushToken == null ? "" : response.pushToken;
         setUserId({
           displayName: {
             value: checkUId,
             isError: false,
-            helperText: ""
-          }
-        })
+            helperText: "",
+          },
+        });
         setDeviceId({
           displayName: {
             value: checkDId,
             isError: false,
-            helperText: ""
-          }
-        })
+            helperText: "",
+          },
+        });
         setType({
           displayName: {
             value: checkType,
             isError: false,
-            helperText: ""
-          }
-        })
+            helperText: "",
+          },
+        });
         setOsName({
           displayName: {
             value: checkOsName,
             isError: false,
-            helperText: ""
-          }
-        })
+            helperText: "",
+          },
+        });
         setAppVersion({
           displayName: {
             value: checkAppVersion,
             isError: false,
-            helperText: ""
-          }
-        })
+            helperText: "",
+          },
+        });
         setToken({
           displayName: {
             value: checkToken,
             isError: false,
-            helperText: ""
-          }
-        })
+            helperText: "",
+          },
+        });
         setPushToken({
           displayName: {
             value: checkPushToken,
             isError: false,
-            helperText: ""
-          }
-        })
+            helperText: "",
+          },
+        });
       } catch (e) {
         console.error(e);
-        showSnackBar({ severity: "error", text: "Server error, please check browser console." })
+        showSnackBar({
+          severity: "error",
+          text: "Server error, please check browser console.",
+        });
       }
-
     })();
-
   }, []);
 
   const validateAndUpdate = async () => {
@@ -180,7 +177,6 @@ export default function Page() {
       hasError = true;
     }
 
-
     if (osName.displayName.value.length == 0) {
       osName.displayName.isError = true;
       osName.displayName.helperText = "Please input os name";
@@ -206,7 +202,6 @@ export default function Page() {
     }
 
     if (!hasError) {
-
       try {
         const result = await put(`/api/management/device/${urlParams.id}`, {
           userId: userId.displayName.value,
@@ -214,31 +209,32 @@ export default function Page() {
           type: type.displayName.value,
           osName: osName.displayName.value,
           appVersion: appVersion.displayName.value,
-          token:token.displayName.value,
-          pushToken:pushToken.displayName.value
+          token: token.displayName.value,
+          pushToken: pushToken.displayName.value,
         });
 
         showSnackBar({ severity: "success", text: "Device updated" });
         history.push("/device");
         newItems.displayName.value = "";
-
       } catch (e) {
         console.error(e);
-        showSnackBar({ severity: "error", text: "Failed to update device, please check console." })
+        showSnackBar({
+          severity: "error",
+          text: "Failed to update device, please check console.",
+        });
       }
-
     }
 
     setUserId(newItems);
-  }
+  };
 
   return (
-    <Layout subtitle={`Device detail ( ${urlParams.id} )`} showBack={true} >
+    <Layout subtitle={`Device detail ( ${urlParams.id} )`} showBack={true}>
       <Paper
         sx={{
-          margin: '24px',
-          padding: '24px',
-          minHeight: 'calc(100vh-64px)',
+          margin: "24px",
+          padding: "24px",
+          minHeight: "calc(100vh-64px)",
         }}
       >
         <Grid container spacing={2}>
@@ -249,7 +245,7 @@ export default function Page() {
               error={userId.displayName.isError}
               label="User Id"
               value={userId.displayName.value}
-              onChange={e => {
+              onChange={(e) => {
                 userId.displayName.value = e.target.value;
                 setUserId({ ...userId });
               }}
@@ -260,23 +256,22 @@ export default function Page() {
             <Stack alignItems="center" spacing={1} direction="row">
               <TextField
                 required
-                
                 error={deviceId.displayName.isError}
                 label="Device Id"
                 value={deviceId.displayName.value}
-                onChange={e => {
+                onChange={(e) => {
                   deviceId.displayName.value = e.target.value;
                   setDeviceId({ ...deviceId });
                 }}
                 helperText={deviceId.displayName.helperText}
               />
-               <TextField
+              <TextField
                 required
                 fullWidth
                 error={type.displayName.isError}
                 label="Type"
                 value={type.displayName.value}
-                onChange={e => {
+                onChange={(e) => {
                   type.displayName.value = e.target.value;
                   setType({ ...type });
                 }}
@@ -291,7 +286,7 @@ export default function Page() {
               error={osName.displayName.isError}
               label="OS Name"
               value={osName.displayName.value}
-              onChange={e => {
+              onChange={(e) => {
                 osName.displayName.value = e.target.value;
                 setOsName({ ...osName });
               }}
@@ -305,7 +300,7 @@ export default function Page() {
               error={appVersion.displayName.isError}
               label="App Version"
               value={appVersion.displayName.value}
-              onChange={e => {
+              onChange={(e) => {
                 appVersion.displayName.value = e.target.value;
                 setAppVersion({ ...appVersion });
               }}
@@ -319,7 +314,7 @@ export default function Page() {
               error={token.displayName.isError}
               label="Token"
               value={token.displayName.value}
-              onChange={e => {
+              onChange={(e) => {
                 token.displayName.value = e.target.value;
                 setToken({ ...token });
               }}
@@ -333,7 +328,7 @@ export default function Page() {
               error={pushToken.displayName.isError}
               label="Push Token"
               value={pushToken.displayName.value}
-              onChange={e => {
+              onChange={(e) => {
                 pushToken.displayName.value = e.target.value;
                 setPushToken({ ...pushToken });
               }}
@@ -341,13 +336,17 @@ export default function Page() {
             />
           </Grid>
           <Grid item xs={12} md={8} textAlign="right">
-            <Button variant="contained" onClick={e => {
-              validateAndUpdate();
-            }}>Update device</Button>
+            <Button
+              variant="contained"
+              onClick={(e) => {
+                validateAndUpdate();
+              }}
+            >
+              Update device
+            </Button>
           </Grid>
         </Grid>
       </Paper>
-
-    </Layout >
+    </Layout>
   );
 }

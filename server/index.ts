@@ -1,4 +1,4 @@
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 const result = dotenv.config();
 
 import express from "express";
@@ -6,36 +6,37 @@ import UserManagementAPIService from "./services/management";
 import MessengerAPIService from "./services/messenger";
 import SMSService from "./services/sms";
 import bodyParser from "body-parser";
-import amqp from 'amqplib';
+import amqp from "amqplib";
 
-import l, { error as e } from "./components/logger"
+import l, { error as e } from "./components/logger";
 
 const app: express.Express = express();
 
 (async () => {
-
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
-
   // cors
   app.use(
-    (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    (
+      req: express.Request,
+      res: express.Response,
+      next: express.NextFunction
+    ) => {
       res.header("Access-Control-Allow-Origin", "*");
       res.header("Access-Control-Allow-Methods", "*");
       res.header("Access-Control-Allow-Headers", "*");
       res.header(
-        'Access-Control-Allow-Headers',
-        'Content-Type, Authorization, access-token, admin-accesstoken'
-      )
+        "Access-Control-Allow-Headers",
+        "Content-Type, Authorization, access-token, admin-accesstoken"
+      );
 
       // intercept OPTIONS method
-      if ('OPTIONS' === req.method) {
-        res.send(200)
+      if ("OPTIONS" === req.method) {
+        res.send(200);
       } else {
-        next()
+        next();
       }
-
     }
   );
 
@@ -45,13 +46,16 @@ const app: express.Express = express();
 
   app.use(express.static("public"));
 
-  const rabbitMQConnetion = await amqp.connect(process.env["RABBITMQ_URL"] || "amqp://localhost");
+  const rabbitMQConnetion = await amqp.connect(
+    process.env["RABBITMQ_URL"] || "amqp://localhost"
+  );
   const rabbitMQChannel: amqp.Channel = await rabbitMQConnetion.createChannel();
 
   if (process.env["USE_MNG_API"]) {
-    const userManagementAPIService: UserManagementAPIService = new UserManagementAPIService();
+    const userManagementAPIService: UserManagementAPIService =
+      new UserManagementAPIService();
     userManagementAPIService.start({
-      rabbitMQChannel
+      rabbitMQChannel,
     });
 
     app.use("/api/management", userManagementAPIService.getRoutes());
@@ -60,7 +64,7 @@ const app: express.Express = express();
   if (process.env["USE_MSG_API"]) {
     const messengerAPIService: MessengerAPIService = new MessengerAPIService();
     messengerAPIService.start({
-      rabbitMQChannel
+      rabbitMQChannel,
     });
     app.use("/api/messenger", messengerAPIService.getRoutes());
   }
@@ -68,7 +72,7 @@ const app: express.Express = express();
   if (process.env["USE_SMS"]) {
     const smsService: SMSService = new SMSService();
     smsService.start({
-      rabbitMQChannel
+      rabbitMQChannel,
     });
   }
 
@@ -89,8 +93,6 @@ const app: express.Express = express();
       return res.status(500).send(`Server Error ${err.message}`);
     }
   );
-
-})()
-
+})();
 
 export default app;

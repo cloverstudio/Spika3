@@ -38,7 +38,7 @@ import {
   ShoppingCart as ShoppingCartIcon,
   People as PeopleIcon,
   BarChart as BarChartIcon,
-  Layers as LayersIcon
+  Layers as LayersIcon,
 } from "@mui/icons-material/";
 import { styled, createTheme, ThemeProvider } from "@mui/material/styles";
 
@@ -145,9 +145,7 @@ export default function () {
             </IconButton>
           </Toolbar>
           <Divider />
-          <List>
-
-          </List>
+          <List></List>
           <Divider />
           <List>
             <ListItem button>

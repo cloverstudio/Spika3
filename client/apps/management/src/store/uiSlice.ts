@@ -6,9 +6,7 @@ import {
   createAsyncThunk,
 } from "@reduxjs/toolkit";
 
-import {
-  SnackbarProps
-} from "@mui/material";
+import { SnackbarProps } from "@mui/material";
 
 import type { RootState } from "./store";
 
@@ -16,22 +14,22 @@ import API from "../../../../lib/api";
 
 // Define a type for the slice state
 interface UIState {
-  showSnackBar: boolean,
-  snackBarInfo: snackBarInfo | null,
-  showBasicDialog: boolean,
-  basicDialogInfo: basicDialogInfo
+  showSnackBar: boolean;
+  snackBarInfo: snackBarInfo | null;
+  showBasicDialog: boolean;
+  basicDialogInfo: basicDialogInfo;
 }
 
 interface snackBarInfo {
-  severity: "error" | "warning" | "info" | "success",
-  text: string
+  severity: "error" | "warning" | "info" | "success";
+  text: string;
 }
 
 interface basicDialogInfo {
-  allowButtonLabel: string,
-  denyButtonLabel: string
-  text: string,
-  title: string
+  allowButtonLabel: string;
+  denyButtonLabel: string;
+  text: string;
+  title: string;
 }
 
 export const uiSlice = createSlice({
@@ -41,7 +39,7 @@ export const uiSlice = createSlice({
     showSnackBar: false,
     snackBarInfo: null,
     basicDialogInfo: null,
-    showBasicDialog: false
+    showBasicDialog: false,
   },
   reducers: {
     showSnackBar: (state, action: PayloadAction<snackBarInfo>) => {
@@ -61,6 +59,7 @@ export const uiSlice = createSlice({
   },
 });
 
-export const { showSnackBar, hideSnackBar, hideBasicDialog, showBasicDialog } = uiSlice.actions;
+export const { showSnackBar, hideSnackBar, hideBasicDialog, showBasicDialog } =
+  uiSlice.actions;
 
 export default uiSlice.reducer;
