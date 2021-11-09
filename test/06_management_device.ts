@@ -13,8 +13,8 @@ describe("Admin device management API", () => {
             const response = await supertest(app)
                 .post("/api/management/device")
                 .send({
-                    userId: globals.createdUser.id,
-                    deviceId: faker.datatype.number,
+                    userId: globals.userId,
+                    deviceId: faker.datatype.string(6),
                 })
                 .set({ "admin-accesstoken": globals.adminToken });
 
@@ -47,7 +47,7 @@ describe("Admin device management API", () => {
             const response = await supertest(app)
                 .put(`/api/management/device/${globals.createdDevice!.id}`)
                 .send({
-                    userId: faker.datatype.number,
+                    type: "ios",
                 })
                 .set({ "admin-accesstoken": globals.adminToken });
 
@@ -62,22 +62,6 @@ describe("Admin device management API", () => {
 
             expect(response.status).to.eqls(403);
         });
-
-        //   it("Should change only email", async () => {
-        //     const newEmail = `${Utils.randomString(16)}@test.com`;
-
-        //     const response = await supertest(app)
-        //       .put(`/api/management/user/${globals.createdUser!.id}`)
-        //       .send({
-        //         emailAddress: newEmail,
-        //       })
-        //       .set({ "admin-accesstoken": globals.adminToken });
-
-        //     globals.createdUser = response.body;
-
-        //     expect(response.status).to.eqls(200);
-        //     expect(response.body.emailAddress).equals(newEmail);
-        //   });
     });
 
     describe("/api/management/device/:id GET", () => {

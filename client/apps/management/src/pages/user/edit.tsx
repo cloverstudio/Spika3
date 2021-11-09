@@ -39,42 +39,27 @@ export default function Page() {
             isError: false,
             helperText: "",
         },
-    });
-
-    const [countryCode, setCountryCode] = React.useState<formItems>({
-        displayName: {
+        phoneNumber: {
             value: "",
             isError: false,
             helperText: "",
         },
-    });
-
-    const [phoneNumber, setPhoneNumber] = React.useState<formItems>({
-        displayName: {
+        countryCode: {
             value: "",
             isError: false,
             helperText: "",
         },
-    });
-
-    const [email, setEmail] = React.useState<formItems>({
-        displayName: {
+        email: {
             value: "",
             isError: false,
             helperText: "",
         },
-    });
-
-    const [avatarUrl, setAvatarUrl] = React.useState<formItems>({
-        displayName: {
+        avatarUrl: {
             value: "",
             isError: false,
             helperText: "",
         },
-    });
-
-    const [verificationCode, setVerificationCode] = React.useState<formItems>({
-        displayName: {
+        verified: {
             value: "",
             isError: false,
             helperText: "",
@@ -99,48 +84,40 @@ export default function Page() {
                 const checkVer = response.verified == null ? false : response.verified;
                 const checkVerCode =
                     response.verificationCode == null ? "" : response.verificationCode;
+
                 setForms({
                     displayName: {
                         value: checkName,
                         isError: false,
                         helperText: "",
                     },
-                });
-                setCountryCode({
-                    displayName: {
-                        value: checkCC,
-                        isError: false,
-                        helperText: "",
-                    },
-                });
-                setPhoneNumber({
-                    displayName: {
+                    phoneNumber: {
                         value: checkPhone,
                         isError: false,
                         helperText: "",
                     },
-                });
-                setEmail({
-                    displayName: {
+                    countryCode: {
+                        value: checkCC,
+                        isError: false,
+                        helperText: "",
+                    },
+                    email: {
                         value: checkEmail,
                         isError: false,
                         helperText: "",
                     },
-                });
-                setAvatarUrl({
-                    displayName: {
+                    avatarUrl: {
                         value: checkUrl,
                         isError: false,
                         helperText: "",
                     },
-                });
-                setVerificationCode({
-                    displayName: {
-                        value: checkVerCode,
+                    verified: {
+                        value: "",
                         isError: false,
                         helperText: "",
                     },
                 });
+
                 setVerified(checkVer);
             } catch (e) {
                 console.error(e);
@@ -177,6 +154,7 @@ export default function Page() {
         //   hasError = true;
         // }
 
+        /*
         if (validateEmail(email.displayName.value.length)) {
             email.displayName.isError = true;
             email.displayName.helperText = "Please input display name";
@@ -189,16 +167,17 @@ export default function Page() {
             hasError = true;
         }
 
+        */
         if (!hasError) {
             try {
                 const result = await put(`/api/management/user/${urlParams.id}`, {
                     displayName: forms.displayName.value,
-                    emailAddress: email.displayName.value,
-                    countryCode: countryCode.displayName.value,
-                    telephoneNumber: phoneNumber.displayName.value,
-                    avatarUrl: avatarUrl.displayName.value,
-                    verified: verified,
-                    verificationCode: verificationCode.displayName.value,
+                    //emailAddress: forms.email.value,
+                    //countryCode: forms.countryCode.value,
+                    //telephoneNumber: forms.phoneNumber.value,
+                    //avatarUrl: forms.avatarUrl.value,
+                    //verified: verified,
+                    //verificationCode: forms.verificationCode.value,
                 });
 
                 showSnackBar({ severity: "success", text: "User updated" });
@@ -244,6 +223,8 @@ export default function Page() {
                             helperText={forms.displayName.helperText}
                         />
                     </Grid>
+
+                    {/*
                     <Grid item xs={12} md={8}>
                         <Stack alignItems="center" spacing={1} direction="row">
                             <TextField
@@ -326,6 +307,9 @@ export default function Page() {
                             </FormGroup>
                         </FormControl>
                     </Grid>
+
+                                */}
+
                     <Grid item xs={12} md={8} textAlign="right">
                         <Button
                             variant="contained"

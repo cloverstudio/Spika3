@@ -19,11 +19,12 @@ export default (params: InitRouterParams) => {
             const deviceId: string = req.body.deviceId;
             const type: string = req.body.type;
             const osName: string = req.body.osName;
-            const appVersion: number = parseInt(req.body.appVersion);
+            const appVersion: number = req.body.appVersion ? parseInt(req.body.appVersion) : null;
             const token: string = req.body.token;
             const pushToken: string = req.body.pushToken;
 
             if (Utils.isEmptyNumber(userId)) return res.status(400).send("userId is required");
+            if (!deviceId) return res.status(400).send("deviceId is required");
             const newDevice = await prisma.device.create({
                 data: {
                     userId: userId,
@@ -115,17 +116,19 @@ export default (params: InitRouterParams) => {
 
             if (!device) return res.status(404).send("wrong device id");
 
+            const updateValues: any = {};
+            if (type) updateValues.type = type;
+            if (osName) updateValues.osName = osName;
+            if (appVersion) updateValues.appVersion = appVersion;
+            if (token) updateValues.token = token;
+            if (pushToken) updateValues.pushToken = pushToken;
+
+            if (Object.keys(updateValues).length == 0)
+                return res.status(400).send("No params to update");
+
             const updateDevice = await prisma.device.update({
                 where: { id: idOfDevice },
-                data: {
-                    userId: userId,
-                    deviceId: deviceId,
-                    type: type,
-                    osName: osName,
-                    appVersion: appVersion,
-                    token: token,
-                    pushToken: pushToken,
-                },
+                data: updateValues,
             });
             return res.send(updateDevice);
         } catch (e: any) {

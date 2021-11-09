@@ -114,17 +114,21 @@ export default (params: InitRouterParams) => {
 
             if (!user) return res.status(404).send("wrong user id");
 
+            const updateValues: any = {};
+            if (displayName) updateValues.displayName = displayName;
+            if (emailAddress) updateValues.emailAddress = emailAddress;
+            if (countryCode) updateValues.countryCode = countryCode;
+            if (telephoneNumber) updateValues.telephoneNumber = telephoneNumber;
+            if (avatarUrl) updateValues.avatarUrl = avatarUrl;
+            if (verified) updateValues.verified = verified;
+            if (verificationCode) updateValues.verificationCode = verificationCode;
+
+            if (Object.keys(updateValues).length == 0)
+                return res.status(400).send("No params to update");
+
             const updateUser = await prisma.user.update({
                 where: { id: userId },
-                data: {
-                    displayName: displayName,
-                    emailAddress: emailAddress,
-                    countryCode: countryCode,
-                    telephoneNumber: telephoneNumber,
-                    avatarUrl: avatarUrl,
-                    verified: verified,
-                    verificationCode: verificationCode,
-                },
+                data: updateValues,
             });
             return res.send(updateUser);
         } catch (e: any) {

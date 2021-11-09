@@ -6,4 +6,10 @@ export interface formItem {
 
 export interface formItems {
     displayName: formItem;
+    phoneNumber: formItem;
+    countryCode: formItem;
+    email?: formItem;
+    avatarUrl?: formItem;
+    verified?: formItem;
+    verificationCode?: formItem;
 }

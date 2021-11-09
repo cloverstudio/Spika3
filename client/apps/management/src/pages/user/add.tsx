@@ -37,34 +37,27 @@ export default function Dashboard() {
             isError: false,
             helperText: "",
         },
-    });
-
-    const [countryCode, setCountryCode] = React.useState<formItems>({
-        displayName: {
+        phoneNumber: {
             value: "",
             isError: false,
             helperText: "",
         },
-    });
-
-    const [phoneNumber, setPhoneNumber] = React.useState<formItems>({
-        displayName: {
+        countryCode: {
             value: "",
             isError: false,
             helperText: "",
         },
-    });
-
-    const [email, setEmail] = React.useState<formItems>({
-        displayName: {
+        email: {
             value: "",
             isError: false,
             helperText: "",
         },
-    });
-
-    const [avatarUrl, setAvatarUrl] = React.useState<formItems>({
-        displayName: {
+        avatarUrl: {
+            value: "",
+            isError: false,
+            helperText: "",
+        },
+        verified: {
             value: "",
             isError: false,
             helperText: "",
@@ -92,27 +85,15 @@ export default function Dashboard() {
             hasError = true;
         }
 
-        if (countryCode.displayName.value.length == 0) {
-            countryCode.displayName.isError = true;
-            countryCode.displayName.helperText = "Please input code";
+        if (forms.countryCode.value.length == 0) {
+            forms.countryCode.isError = true;
+            forms.countryCode.helperText = "Please input country code";
             hasError = true;
         }
 
-        if (phoneNumber.displayName.value.length == 0) {
-            phoneNumber.displayName.isError = true;
-            phoneNumber.displayName.helperText = "Please input phone number";
-            hasError = true;
-        }
-
-        if (validateEmail(email.displayName.value.length)) {
-            email.displayName.isError = true;
-            email.displayName.helperText = "Please input display name";
-            hasError = true;
-        }
-
-        if (avatarUrl.displayName.value.length == 0) {
-            avatarUrl.displayName.isError = true;
-            avatarUrl.displayName.helperText = "Please input display name";
+        if (forms.phoneNumber.value.length == 0) {
+            forms.phoneNumber.isError = true;
+            forms.phoneNumber.helperText = "Please input phone number";
             hasError = true;
         }
 
@@ -120,16 +101,15 @@ export default function Dashboard() {
             try {
                 const result = await post("/api/management/user", {
                     displayName: forms.displayName.value,
-                    emailAddress: email.displayName.value,
-                    countryCode: countryCode.displayName.value,
-                    telephoneNumber: phoneNumber.displayName.value,
-                    avatarUrl: avatarUrl.displayName.value,
+                    emailAddress: forms.email.value,
+                    countryCode: forms.countryCode.value,
+                    telephoneNumber: forms.phoneNumber.value,
+                    avatarUrl: forms.avatarUrl.value,
                     verified: verified,
                 });
 
                 showSnackBar({ severity: "success", text: "User added" });
                 history.push("/user");
-                newItems.displayName.value = "";
             } catch (e) {
                 console.error(e);
                 showSnackBar({
@@ -170,26 +150,26 @@ export default function Dashboard() {
                         <Stack alignItems="center" spacing={1} direction="row">
                             <TextField
                                 required
-                                error={countryCode.displayName.isError}
+                                error={forms.countryCode.isError}
                                 label="Country code"
-                                value={countryCode.displayName.value}
+                                value={forms.countryCode.value}
                                 onChange={(e) => {
-                                    countryCode.displayName.value = e.target.value;
-                                    setCountryCode({ ...countryCode });
+                                    forms.countryCode.value = e.target.value;
+                                    setForms({ ...forms });
                                 }}
-                                helperText={countryCode.displayName.helperText}
+                                helperText={forms.countryCode.helperText}
                             />
                             <TextField
                                 required
                                 fullWidth
-                                error={phoneNumber.displayName.isError}
+                                error={forms.phoneNumber.isError}
                                 label="Phone number"
-                                value={phoneNumber.displayName.value}
+                                value={forms.phoneNumber.value}
                                 onChange={(e) => {
-                                    phoneNumber.displayName.value = e.target.value;
-                                    setPhoneNumber({ ...phoneNumber });
+                                    forms.phoneNumber.value = e.target.value;
+                                    setForms({ ...forms });
                                 }}
-                                helperText={phoneNumber.displayName.helperText}
+                                helperText={forms.phoneNumber.helperText}
                             />
                         </Stack>
                     </Grid>
@@ -197,28 +177,28 @@ export default function Dashboard() {
                         <TextField
                             required
                             fullWidth
-                            error={email.displayName.isError}
+                            error={forms.email.isError}
                             label="E-mail"
-                            value={email.displayName.value}
+                            value={forms.email.value}
                             onChange={(e) => {
-                                email.displayName.value = e.target.value;
-                                setEmail({ ...email });
+                                forms.email.value = e.target.value;
+                                setForms({ ...forms });
                             }}
-                            helperText={email.displayName.helperText}
+                            helperText={forms.email.helperText}
                         />
                     </Grid>
                     <Grid item xs={12} md={8}>
                         <TextField
                             required
                             fullWidth
-                            error={avatarUrl.displayName.isError}
+                            error={forms.avatarUrl.isError}
                             label="Avatar URL"
-                            value={avatarUrl.displayName.value}
+                            value={forms.avatarUrl.value}
                             onChange={(e) => {
-                                avatarUrl.displayName.value = e.target.value;
-                                setAvatarUrl({ ...avatarUrl });
+                                forms.avatarUrl.value = e.target.value;
+                                setForms({ ...forms });
                             }}
-                            helperText={avatarUrl.displayName.helperText}
+                            helperText={forms.avatarUrl.helperText}
                         />
                     </Grid>
                     <Grid item xs={12} md={8}>
