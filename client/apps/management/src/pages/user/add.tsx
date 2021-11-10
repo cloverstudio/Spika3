@@ -1,249 +1,230 @@
-import React, { useState, useEffect } from 'react';
-import Layout from '../layout'
+import React, { useState, useEffect } from "react";
+import Layout from "../layout";
 import { useHistory } from "react-router-dom";
 import faker from "faker";
 import { usePost } from "../../lib/useApi";
 
 import {
-  TextField,
-  Paper,
-  Grid,
-  Button,
-  Stack,
-  Checkbox,
-  FormGroup,
-  FormControl,
-  FormControlLabel,
+    TextField,
+    Paper,
+    Grid,
+    Button,
+    Stack,
+    Checkbox,
+    FormGroup,
+    FormControl,
+    FormControlLabel,
 } from "@mui/material";
 
 import { useSelector, useDispatch } from "react-redux";
 import { useShowSnackBar } from "../../components/useUI";
 import { formItem, formItems } from "./types";
 
-
 function validateEmail(email: any) {
-  const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  return re.test(String(email).toLowerCase());
+    const re =
+        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(String(email).toLowerCase());
 }
 
-
-
 export default function Dashboard() {
-  const dispatch = useDispatch();
-  const history = useHistory();
-  const showSnackBar = useShowSnackBar();
-  const [name, setName] = React.useState<string>("");
-  const [forms, setForms] = React.useState<formItems>({
-    displayName: {
-      value: "",
-      isError: false,
-      helperText: ""
-    }
-  });
+    const dispatch = useDispatch();
+    const history = useHistory();
+    const showSnackBar = useShowSnackBar();
+    const [name, setName] = React.useState<string>("");
+    const [forms, setForms] = React.useState<formItems>({
+        displayName: {
+            value: "",
+            isError: false,
+            helperText: "",
+        },
+        phoneNumber: {
+            value: "",
+            isError: false,
+            helperText: "",
+        },
+        countryCode: {
+            value: "",
+            isError: false,
+            helperText: "",
+        },
+        email: {
+            value: "",
+            isError: false,
+            helperText: "",
+        },
+        avatarUrl: {
+            value: "",
+            isError: false,
+            helperText: "",
+        },
+        verified: {
+            value: "",
+            isError: false,
+            helperText: "",
+        },
+    });
 
-  const [countryCode, setCountryCode] = React.useState<formItems>({
-    displayName: {
-      value: "",
-      isError: false,
-      helperText: ""
-    }
-  });
+    const [verified, setVerified] = React.useState<boolean>(false);
 
-  const [phoneNumber, setPhoneNumber] = React.useState<formItems>({
-    displayName: {
-      value: "",
-      isError: false,
-      helperText: ""
-    }
-  });
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setVerified(event.target.checked);
+    };
 
-  const [email, setEmail] = React.useState<formItems>({
-    displayName: {
-      value: "",
-      isError: false,
-      helperText: ""
-    }
-  });
+    const post = usePost();
 
-  const [avatarUrl, setAvatarUrl] = React.useState<formItems>({
-    displayName: {
-      value: "",
-      isError: false,
-      helperText: ""
-    }
-  });
+    const validateAndAdd = async () => {
+        let hasError = false;
 
-  const [verified, setVerified] = React.useState<boolean>(false);
+        const newItems: formItems = { ...forms };
+        newItems.displayName.isError = false;
+        newItems.displayName.helperText = "";
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setVerified(event.target.checked);
-  };
+        if (forms.displayName.value.length == 0) {
+            forms.displayName.isError = true;
+            forms.displayName.helperText = "Please input display name";
+            hasError = true;
+        }
 
-  const post = usePost();
+        if (forms.countryCode.value.length == 0) {
+            forms.countryCode.isError = true;
+            forms.countryCode.helperText = "Please input country code";
+            hasError = true;
+        }
 
-  const validateAndAdd = async () => {
-    let hasError = false;
+        if (forms.phoneNumber.value.length == 0) {
+            forms.phoneNumber.isError = true;
+            forms.phoneNumber.helperText = "Please input phone number";
+            hasError = true;
+        }
 
-    const newItems: formItems = { ...forms };
-    newItems.displayName.isError = false;
-    newItems.displayName.helperText = "";
+        if (!hasError) {
+            try {
+                const result = await post("/api/management/user", {
+                    displayName: forms.displayName.value,
+                    emailAddress: forms.email.value,
+                    countryCode: forms.countryCode.value,
+                    telephoneNumber: forms.phoneNumber.value,
+                    avatarUrl: forms.avatarUrl.value,
+                    verified: verified,
+                });
 
-    if (forms.displayName.value.length == 0) {
-      forms.displayName.isError = true;
-      forms.displayName.helperText = "Please input display name";
-      hasError = true;
-    }
+                showSnackBar({ severity: "success", text: "User added" });
+                history.push("/user");
+            } catch (e) {
+                console.error(e);
+                showSnackBar({
+                    severity: "error",
+                    text: "Failed to add user, please check console.",
+                });
+            }
+        }
 
-    if (countryCode.displayName.value.length == 0) {
-      countryCode.displayName.isError = true;
-      countryCode.displayName.helperText = "Please input code";
-      hasError = true;
-    }
+        setForms(newItems);
+    };
 
-    if (phoneNumber.displayName.value.length == 0) {
-      phoneNumber.displayName.isError = true;
-      phoneNumber.displayName.helperText = "Please input phone number";
-      hasError = true;
-    }
-
-
-    if (validateEmail(email.displayName.value.length)) {
-      email.displayName.isError = true;
-      email.displayName.helperText = "Please input display name";
-      hasError = true;
-    }
-
-    if (avatarUrl.displayName.value.length == 0) {
-      avatarUrl.displayName.isError = true;
-      avatarUrl.displayName.helperText = "Please input display name";
-      hasError = true;
-    }
-
-    if (!hasError) {
-      try {
-        const result = await post("/api/management/user", {
-          displayName: forms.displayName.value,
-          emailAddress: email.displayName.value,
-          countryCode:countryCode.displayName.value,
-          telephoneNumber: phoneNumber.displayName.value,
-          avatarUrl: avatarUrl.displayName.value,
-          verified:verified
-        });
-
-        showSnackBar({ severity: "success", text: "User added" });
-        history.push("/user");
-        newItems.displayName.value = "";
-
-      } catch (e) {
-        console.error(e);
-        showSnackBar({ severity: "error", text: "Failed to add user, please check console." })
-      }
-
-    }
-
-    setForms(newItems);
-  }
-
-  return (
-    <Layout subtitle="Add new user" showBack={true}>
-      <Paper
-        sx={{
-          margin: '24px',
-          padding: '24px',
-          minHeight: 'calc(100vh-64px)',
-        }}
-      >
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={8}>
-            <TextField
-              required
-              fullWidth
-              error={forms.displayName.isError}
-              label="Display Name"
-              value={forms.displayName.value}
-              onChange={e => {
-                forms.displayName.value = e.target.value;
-                setForms({ ...forms });
-              }}
-              helperText={forms.displayName.helperText}
-            />
-          </Grid>
-          <Grid item xs={12} md={8}>
-            <Stack alignItems="center" spacing={1} direction="row">
-              <TextField
-                required
-                
-                error={countryCode.displayName.isError}
-                label="Country code"
-                value={countryCode.displayName.value}
-                onChange={e => {
-                  countryCode.displayName.value = e.target.value;
-                  setCountryCode({ ...countryCode });
+    return (
+        <Layout subtitle="Add new user" showBack={true}>
+            <Paper
+                sx={{
+                    margin: "24px",
+                    padding: "24px",
+                    minHeight: "calc(100vh-64px)",
                 }}
-                helperText={countryCode.displayName.helperText}
-              />
-               <TextField
-                required
-                fullWidth
-                error={phoneNumber.displayName.isError}
-                label="Phone number"
-                value={phoneNumber.displayName.value}
-                onChange={e => {
-                  phoneNumber.displayName.value = e.target.value;
-                  setPhoneNumber({ ...phoneNumber });
-                }}
-                helperText={phoneNumber.displayName.helperText}
-              />
-            </Stack>
-          </Grid>
-          <Grid item xs={12} md={8}>
-            <TextField
-              required
-              fullWidth
-              error={email.displayName.isError}
-              label="E-mail"
-              value={email.displayName.value}
-              onChange={e => {
-                email.displayName.value = e.target.value;
-                setEmail({ ...email });
-              }}
-              helperText={email.displayName.helperText}
-            />
-          </Grid>
-          <Grid item xs={12} md={8}>
-            <TextField
-              required
-              fullWidth
-              error={avatarUrl.displayName.isError}
-              label="Avatar URL"
-              value={avatarUrl.displayName.value}
-              onChange={e => {
-                avatarUrl.displayName.value = e.target.value;
-                setAvatarUrl({ ...avatarUrl });
-              }}
-              helperText={avatarUrl.displayName.helperText}
-            />
-          </Grid>
-          <Grid item xs={12} md={8}>
-            <FormControl component="fieldset">
-              <FormGroup aria-label="position" row>
-                <FormControlLabel
-                  value="start"
-                  control={<Checkbox onChange={handleChange}/>}
-                  label="Verified"
-                  labelPlacement="start"
-                />
-              </FormGroup>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} md={8} textAlign="right">
-            <Button variant="contained" onClick={e => {
-              validateAndAdd();
-            }}>Add new user</Button>
-          </Grid>
-        </Grid>
-      </Paper>
-
-    </Layout >
-  );
+            >
+                <Grid container spacing={2}>
+                    <Grid item xs={12} md={8}>
+                        <TextField
+                            required
+                            fullWidth
+                            error={forms.displayName.isError}
+                            label="Display Name"
+                            value={forms.displayName.value}
+                            onChange={(e) => {
+                                forms.displayName.value = e.target.value;
+                                setForms({ ...forms });
+                            }}
+                            helperText={forms.displayName.helperText}
+                        />
+                    </Grid>
+                    <Grid item xs={12} md={8}>
+                        <Stack alignItems="center" spacing={1} direction="row">
+                            <TextField
+                                required
+                                error={forms.countryCode.isError}
+                                label="Country code"
+                                value={forms.countryCode.value}
+                                onChange={(e) => {
+                                    forms.countryCode.value = e.target.value;
+                                    setForms({ ...forms });
+                                }}
+                                helperText={forms.countryCode.helperText}
+                            />
+                            <TextField
+                                required
+                                fullWidth
+                                error={forms.phoneNumber.isError}
+                                label="Phone number"
+                                value={forms.phoneNumber.value}
+                                onChange={(e) => {
+                                    forms.phoneNumber.value = e.target.value;
+                                    setForms({ ...forms });
+                                }}
+                                helperText={forms.phoneNumber.helperText}
+                            />
+                        </Stack>
+                    </Grid>
+                    <Grid item xs={12} md={8}>
+                        <TextField
+                            required
+                            fullWidth
+                            error={forms.email.isError}
+                            label="E-mail"
+                            value={forms.email.value}
+                            onChange={(e) => {
+                                forms.email.value = e.target.value;
+                                setForms({ ...forms });
+                            }}
+                            helperText={forms.email.helperText}
+                        />
+                    </Grid>
+                    <Grid item xs={12} md={8}>
+                        <TextField
+                            required
+                            fullWidth
+                            error={forms.avatarUrl.isError}
+                            label="Avatar URL"
+                            value={forms.avatarUrl.value}
+                            onChange={(e) => {
+                                forms.avatarUrl.value = e.target.value;
+                                setForms({ ...forms });
+                            }}
+                            helperText={forms.avatarUrl.helperText}
+                        />
+                    </Grid>
+                    <Grid item xs={12} md={8}>
+                        <FormControl component="fieldset">
+                            <FormGroup aria-label="position" row>
+                                <FormControlLabel
+                                    value="start"
+                                    control={<Checkbox onChange={handleChange} />}
+                                    label="Verified"
+                                    labelPlacement="start"
+                                />
+                            </FormGroup>
+                        </FormControl>
+                    </Grid>
+                    <Grid item xs={12} md={8} textAlign="right">
+                        <Button
+                            variant="contained"
+                            onClick={(e) => {
+                                validateAndAdd();
+                            }}
+                        >
+                            Add new user
+                        </Button>
+                    </Grid>
+                </Grid>
+            </Paper>
+        </Layout>
+    );
 }

@@ -1,91 +1,128 @@
-div.top-details-box{
+div.top-details-box {
     flex-grow: 1;
     background-color: #f2f2f2;
     margin: 15px;
     border-radius: 10px;
 }
 
-div.inner-box{
+div.inner-box {
     margin: 15px;
     flex-grow: 1;
     position: relative;
 }
 
-img.chat-avatar{
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  max-width: 100%;
-  height: auto;
+img.chat-avatar {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    max-width: 100%;
+    height: auto;
 }
 
-label.chat-title{
+label.chat-title {
     font-size: 15px;
     font-weight: 500;
 }
 
-svg.red-type{
+svg.red-type {
     fill: red;
 }
 
-svg.green-type{
+svg.green-type {
     fill: green;
 }
 
-svg.yellow-type{
+svg.yellow-type {
     fill: yellow;
 }
 
-svg.blue-type{
+svg.blue-type {
     fill: blue;
 }
 
-svg.white-type{
+svg.white-type {
     fill: white;
 }
-div.color-box{
+div.color-box {
     margin: 15px;
     flex-grow: 1;
     position: relative;
 }
 
-div.button-box{
+div.button-box {
     margin: 5px;
     flex-grow: 1;
     position: relative;
 }
 
-label.button-text{
+label.button-text {
     color: white;
     font-size: 12px;
-    
 }
 
-div.button-component{
+div.button-component {
     width: 50px;
     height: 70px;
     border-radius: 10px;
     padding: 3px;
 }
 
-div.light-blue-button{
-    background-color: #4696F0;
+div.light-blue-button {
+    background-color: #4696f0;
 }
 
-div.dark-blue-button{
+div.dark-blue-button {
     background-color: #131940;
 }
 
-button.no-padding{
+button.no-padding {
     padding: 2px;
 }
 
-label.side-title{
+label.side-title {
     font-size: 15px;
     font-weight: 500;
 }
 
-label.side-empty-title{
+label.side-empty-title {
     font-size: 12px;
     color: grey;
+}
+
+.logo-chat-title {
+    padding-top: 1rem;
+    label.logo-chat {
+        width: 80%;
+        text-align: left;
+    }
+}
+
+.search-box {
+    position: relative;
+    margin: 1em;
+    svg {
+        position: absolute;
+        left: 0.3em;
+        top: 0.37em;
+    }
+    input[type="text"] {
+        text-indent: 2em;
+        width: 100%;
+    }
+    label {
+        padding-left: 2em;
+    }
+}
+
+.recents-list {
+    margin: 1em;
+    margin-top: 0;
+    border-radius: 10px;
+    .chat-control {
+        margin: 0.5em;
+    }
+    button.chat-new {
+        margin-left: auto;
+        padding: 0;
+    }
 }

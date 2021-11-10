@@ -1,9 +1,9 @@
 export interface formItem {
-    value: any,
-    isError: boolean,
-    helperText: string
+    value: any;
+    isError: boolean;
+    helperText: string;
 }
 
 export interface formItems {
-    displayName: formItem
+    displayName: formItem;
 }

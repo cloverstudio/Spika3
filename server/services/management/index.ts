@@ -1,4 +1,3 @@
-
 import express from "express";
 
 import { Router, Request, Response } from "express";
@@ -7,12 +6,9 @@ import authRouter from "./route/auth";
 import userRouter from "./route/user";
 import deviceRouter from "./route/device";
 
-
-import Service from "../types/serviceInterface"
+import Service from "../types/serviceInterface";
 export default class Management implements Service {
-    async start({ }) {
-
-    }
+    async start({}) {}
 
     getRoutes() {
         const userManagementRouter = Router();
@@ -22,7 +18,5 @@ export default class Management implements Service {
         return userManagementRouter;
     }
 
-    async test() {
-
-    }
+    async test() {}
 }

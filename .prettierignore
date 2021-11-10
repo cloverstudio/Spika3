@@ -1,0 +1,9 @@
+.config
+.github
+documents
+node_modules
+prisma
+public
+
+*.hbs
+*.md

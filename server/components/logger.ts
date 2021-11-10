@@ -1,7 +1,7 @@
 export default function (...aynthing: any): void {
-  console.log(...aynthing);
+    console.log(...aynthing);
 }
 
 export function error(...aynthing: any): void {
-  console.error(...aynthing);
+    console.error(...aynthing);
 }

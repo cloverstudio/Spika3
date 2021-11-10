@@ -1,10 +1,7 @@
 {
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "outDir": "./client/apps/management/dist",                                      /* Specify an output folder for all emitted files. */
-  },
-  "include": [
-    "index.d.ts",
-    "./client/apps/management"
-  ]
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "outDir": "./client/apps/management/dist" /* Specify an output folder for all emitted files. */
+    },
+    "include": ["index.d.ts", "./client/apps/management"]
 }
