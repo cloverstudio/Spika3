@@ -168,8 +168,7 @@ export default function Dashboard() {
           margin: '24px',
           padding: '24px',
           minHeight: 'calc(100vh-64px)',
-        }}
-      >          
+        }}>          
         <Grid container spacing={2}>
           <Grid item xs={12} md={8}>
             <TextField

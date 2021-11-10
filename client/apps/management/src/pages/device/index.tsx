@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../layout'
-import { useHistory } from "react-router-dom";
+import { useHistory, useParams } from "react-router-dom";
 import { DataGrid, GridColDef, GridActionsCellItem } from '@mui/x-data-grid';
 import {
   IconButton,
@@ -30,7 +30,7 @@ export default function Dashboard() {
   const [list, setList] = React.useState<Array<Device>>([]);
   const [pageSize, setPageSize] = React.useState<number>(30);
   const [totalCount, setTotalCount] = React.useState<number>(0);
-
+  const urlParams: { id: string } = useParams();
   const showSnackBar = useShowSnackBar();
   const history = useHistory();
   const get = useGet();
@@ -46,10 +46,12 @@ export default function Dashboard() {
   const fetchData = async (page: number) => {
 
     setLoading(true);
-
+    
     try {
-
-      const response: ListResponseType<Device> = await get(`/api/management/device?page=${page}`);
+      console.log("UrlParams:"+urlParams.id)
+      const url:string = urlParams.id == null ? `/api/management/device?page=${page}` : `/api/management/device?page=${page}&userId=${urlParams.id}`
+      console.log(url)
+      const response: ListResponseType<Device> = await get(url);
       setList(response.list);
       setPageSize(response.limit);
       setTotalCount(response.count);

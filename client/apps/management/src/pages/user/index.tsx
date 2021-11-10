@@ -15,7 +15,8 @@ import {
   Edit as EditIcon,
   Description as DescriptionIcon,
   CancelOutlined,
-  CheckCircleOutlineOutlined
+  CheckCircleOutlineOutlined,
+  DevicesOther
 } from "@mui/icons-material/";
 
 import { User } from "@prisma/client";
@@ -102,6 +103,12 @@ export default function Dashboard() {
           onClick={() => history.push(`/user/detail/${params.id}`)}
           showInMenu
         />,
+        <GridActionsCellItem
+        icon={<DevicesOther />}
+        label="Devices"
+        onClick={() => history.push(`/user/${params.id}/devices`)}
+        showInMenu
+      />,
         < GridActionsCellItem
           icon={< EditIcon />}
           label="Edit"

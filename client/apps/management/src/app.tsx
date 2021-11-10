@@ -40,6 +40,9 @@ function App() {
           <Route exact path="/user/delete/:id">
             <UserDelete />
           </Route>
+          <Route exact path="/user/:id/devices" key="userDevices">
+            <Device />
+          </Route>
           <Route exact path="/device">
             <Device />
           </Route>
