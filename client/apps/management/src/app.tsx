@@ -14,10 +14,12 @@ import DeviceDetail from "./pages/device/detail";
 import DeviceEdit from "./pages/device/edit";
 import DeviceDelete from "./pages/device/delete";
 
+declare var BASE_URL: string;
+
 function App() {
     return (
         <>
-            <Router>
+            <Router basename={BASE_URL}>
                 <Switch>
                     <Route exact path="/">
                         <Login />

@@ -15,10 +15,13 @@ import MockMessageMedia from "./pages/mocks/messageMedia";
 import MockNoChat from "./pages/mocks/noChat";
 import MockUserLIst from "./pages/mocks/userLIst";
 
+declare var BASE_URL: string;
+
 function App() {
+    console.log("BASE_URL", BASE_URL);
     return (
         <>
-            <Router>
+            <Router basename={BASE_URL}>
                 <Switch>
                     <Route exact path="/">
                         <MockTop />
