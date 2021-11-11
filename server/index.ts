@@ -5,6 +5,7 @@ import express from "express";
 import UserManagementAPIService from "./services/management";
 import MessengerAPIService from "./services/messenger";
 import SMSService from "./services/sms";
+import UploadService from "./services/upload";
 import bodyParser from "body-parser";
 import amqp from "amqplib";
 
@@ -65,6 +66,15 @@ const app: express.Express = express();
         smsService.start({
             rabbitMQChannel,
         });
+    }
+
+    if (process.env["USE_UPLOAD"]) {
+        const uploadService: UploadService = new UploadService();
+        uploadService.start({
+            rabbitMQChannel,
+        });
+
+        app.use("/api/upload", uploadService.getRoutes());
     }
 
     // test

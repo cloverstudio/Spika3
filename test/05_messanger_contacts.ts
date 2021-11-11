@@ -6,14 +6,7 @@ import createFakeUser, { createManyFakeUsers } from "./fixtures/user";
 import { User } from ".prisma/client";
 import * as Constants from "../server/components/consts";
 import createFakeContacts from "./fixtures/contact";
-
-const wait = (s: number): Promise<void> => {
-    return new Promise<void>((res) => {
-        setTimeout(() => {
-            res();
-        }, s);
-    });
-};
+import utils from "../server/components/utils";
 
 describe("API", () => {
     const users: User[] = [];
@@ -166,7 +159,7 @@ describe("API", () => {
         it("Create contact record for every existing verified users", async () => {
             // not sure about how to wait for rabbitMq workers to finish adding contacts
             // this bellow seems to be working but not sure if it is the best way
-            await wait(500);
+            await utils.wait(0.5);
 
             const contacts = await globals.prisma.contact.findMany({
                 where: { userId: globals.userId },
