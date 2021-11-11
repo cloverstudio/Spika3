@@ -154,30 +154,28 @@ export default function Page() {
         //   hasError = true;
         // }
 
-        /*
-        if (validateEmail(email.displayName.value.length)) {
-            email.displayName.isError = true;
-            email.displayName.helperText = "Please input display name";
+        if (validateEmail(forms.email.value.length)) {
+            forms.email.isError = true;
+            forms.email.helperText = "Please input display name";
             hasError = true;
         }
 
-        if (avatarUrl.displayName.value.length == 0) {
-            avatarUrl.displayName.isError = true;
-            avatarUrl.displayName.helperText = "Please input display name";
+        if (forms.avatarUrl.value.length == 0) {
+            forms.avatarUrl.isError = true;
+            forms.avatarUrl.helperText = "Please input display name";
             hasError = true;
         }
 
-        */
         if (!hasError) {
             try {
                 const result = await put(`/api/management/user/${urlParams.id}`, {
                     displayName: forms.displayName.value,
-                    //emailAddress: forms.email.value,
-                    //countryCode: forms.countryCode.value,
-                    //telephoneNumber: forms.phoneNumber.value,
-                    //avatarUrl: forms.avatarUrl.value,
-                    //verified: verified,
-                    //verificationCode: forms.verificationCode.value,
+                    emailAddress: forms.email.value,
+                    countryCode: forms.countryCode.value,
+                    telephoneNumber: forms.phoneNumber.value,
+                    avatarUrl: forms.avatarUrl.value,
+                    verified: verified,
+                    verificationCode: forms.verificationCode.value,
                 });
 
                 showSnackBar({ severity: "success", text: "User updated" });
@@ -223,32 +221,30 @@ export default function Page() {
                             helperText={forms.displayName.helperText}
                         />
                     </Grid>
-
-                    {/*
                     <Grid item xs={12} md={8}>
                         <Stack alignItems="center" spacing={1} direction="row">
                             <TextField
                                 required
-                                error={countryCode.displayName.isError}
+                                error={forms.countryCode.isError}
                                 label="Country code"
-                                value={countryCode.displayName.value}
+                                value={forms.countryCode.value}
                                 onChange={(e) => {
-                                    countryCode.displayName.value = e.target.value;
-                                    setCountryCode({ ...countryCode });
+                                    forms.countryCode.value = e.target.value;
+                                    setForms({ ...forms });
                                 }}
-                                helperText={countryCode.displayName.helperText}
+                                helperText={forms.countryCode.helperText}
                             />
                             <TextField
                                 required
                                 fullWidth
-                                error={phoneNumber.displayName.isError}
+                                error={forms.phoneNumber.isError}
                                 label="Phone number"
-                                value={phoneNumber.displayName.value}
+                                value={forms.phoneNumber.value}
                                 onChange={(e) => {
-                                    phoneNumber.displayName.value = e.target.value;
-                                    setPhoneNumber({ ...phoneNumber });
+                                    forms.phoneNumber.value = e.target.value;
+                                    setForms({ ...forms });
                                 }}
-                                helperText={phoneNumber.displayName.helperText}
+                                helperText={forms.phoneNumber.helperText}
                             />
                         </Stack>
                     </Grid>
@@ -256,41 +252,40 @@ export default function Page() {
                         <TextField
                             required
                             fullWidth
-                            error={email.displayName.isError}
+                            error={forms.email.isError}
                             label="E-mail"
-                            value={email.displayName.value}
+                            value={forms.email.value}
                             onChange={(e) => {
-                                email.displayName.value = e.target.value;
-                                setEmail({ ...email });
+                                forms.email.value = e.target.value;
+                                setForms({ ...forms });
                             }}
-                            helperText={email.displayName.helperText}
+                            helperText={forms.email.helperText}
                         />
                     </Grid>
                     <Grid item xs={12} md={8}>
                         <TextField
                             required
                             fullWidth
-                            error={avatarUrl.displayName.isError}
+                            error={forms.avatarUrl.isError}
                             label="Avatar URL"
-                            value={avatarUrl.displayName.value}
+                            value={forms.avatarUrl.value}
                             onChange={(e) => {
-                                avatarUrl.displayName.value = e.target.value;
-                                setAvatarUrl({ ...avatarUrl });
+                                forms.avatarUrl.value = e.target.value;
+                                setForms({ ...forms });
                             }}
-                            helperText={avatarUrl.displayName.helperText}
+                            helperText={forms.avatarUrl.helperText}
                         />
                     </Grid>
                     <Grid item xs={12} md={8}>
                         <TextField
                             fullWidth
-                            error={verificationCode.displayName.isError}
                             label="Verification Code"
-                            value={verificationCode.displayName.value}
+                            value={forms.verificationCode.value}
                             onChange={(e) => {
-                                verificationCode.displayName.value = e.target.value;
-                                setVerificationCode({ ...verificationCode });
+                                forms.verificationCode.value = e.target.value;
+                                setForms({ ...forms });
                             }}
-                            helperText={avatarUrl.displayName.helperText}
+                            helperText={forms.avatarUrl.helperText}
                         />
                     </Grid>
                     <Grid item xs={12} md={8}>
@@ -307,9 +302,6 @@ export default function Page() {
                             </FormGroup>
                         </FormControl>
                     </Grid>
-
-                                */}
-
                     <Grid item xs={12} md={8} textAlign="right">
                         <Button
                             variant="contained"

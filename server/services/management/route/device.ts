@@ -48,34 +48,31 @@ export default (params: InitRouterParams) => {
      * TODO: impliment order
      */
     router.get("/", adminAuth, async (req: Request, res: Response) => {
-      const page: number =
-        parseInt(req.query.page ? (req.query.page as string) : "") || 0;
-      const userId: number =
-        parseInt(req.query.userId ? (req.query.userId as string) : "") || 0;
-      const clause = userId == 0 ? {} : {userId:userId}
-      try {
-        const devices = await prisma.device.findMany({
-          where: clause,
-          orderBy: [
-            {
-              createdAt: "asc",
-            },
-          ],
-          skip: consts.PAGING_LIMIT * page,
-          take: consts.PAGING_LIMIT,
-        });
-  
-        const count = await prisma.user.count();
-  
-        res.json({
-          list: devices,
-          count: count,
-          limit: consts.PAGING_LIMIT,
-        });
-      } catch (e: any) {
-        le(e);
-        res.status(500).send(`Server error ${e}`);
-      }
+        const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 0;
+        const userId: number = parseInt(req.query.userId ? (req.query.userId as string) : "") || 0;
+        const clause = userId == 0 ? {} : { userId: userId };
+        try {
+            const devices = await prisma.device.findMany({
+                where: clause,
+                orderBy: [
+                    {
+                        createdAt: "asc",
+                    },
+                ],
+                skip: consts.PAGING_LIMIT * page,
+                take: consts.PAGING_LIMIT,
+            });
+            const count = userId == 0 ? await prisma.device.count() : devices.length;
+
+            res.json({
+                list: devices,
+                count: count,
+                limit: consts.PAGING_LIMIT,
+            });
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(`Server error ${e}`);
+        }
     });
 
     router.get("/:deviceId", adminAuth, async (req: Request, res: Response) => {
@@ -141,26 +138,26 @@ export default (params: InitRouterParams) => {
     });
 
     router.delete("/:deviceId", adminAuth, async (req: Request, res: Response) => {
-      try {
-        const idOfDevice: number = parseInt(req.params.deviceId);
-        // check existance
-        const device = await prisma.device.findFirst({
-          where: {
-            id: idOfDevice,
-          },
-        });
-  
-        if (!device) return res.status(404).send("wrong device id");
-  
-        const deleteResult = await prisma.device.delete({
-          where: { id: idOfDevice },
-        });
-  
-        return res.send("OK");
-      } catch (e: any) {
-        le(e);
-        res.status(500).send(`Server error ${e}`);
-      }
+        try {
+            const idOfDevice: number = parseInt(req.params.deviceId);
+            // check existance
+            const device = await prisma.device.findFirst({
+                where: {
+                    id: idOfDevice,
+                },
+            });
+
+            if (!device) return res.status(404).send("wrong device id");
+
+            const deleteResult = await prisma.device.delete({
+                where: { id: idOfDevice },
+            });
+
+            return res.send("OK");
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(`Server error ${e}`);
+        }
     });
 
     return router;
