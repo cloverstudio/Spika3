@@ -64,6 +64,11 @@ export default function Page() {
             isError: false,
             helperText: "",
         },
+        verificationCode: {
+            value: "",
+            isError: false,
+            helperText: "",
+        },
     });
 
     const [verified, setVerified] = React.useState<boolean>(false);
@@ -112,7 +117,12 @@ export default function Page() {
                         helperText: "",
                     },
                     verified: {
-                        value: "",
+                        value: String(checkVer),
+                        isError: false,
+                        helperText: "",
+                    },
+                    verificationCode: {
+                        value: checkVerCode,
                         isError: false,
                         helperText: "",
                     },
