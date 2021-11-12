@@ -64,6 +64,11 @@ export default function Page() {
             isError: false,
             helperText: "",
         },
+        verificationCode: {
+            value: "",
+            isError: false,
+            helperText: "",
+        },
     });
 
     const [verified, setVerified] = React.useState<boolean>(false);
@@ -112,7 +117,12 @@ export default function Page() {
                         helperText: "",
                     },
                     verified: {
-                        value: "",
+                        value: String(checkVer),
+                        isError: false,
+                        helperText: "",
+                    },
+                    verificationCode: {
+                        value: checkVerCode,
                         isError: false,
                         helperText: "",
                     },
@@ -135,6 +145,14 @@ export default function Page() {
         const newItems: formItems = { ...forms };
         newItems.displayName.isError = false;
         newItems.displayName.helperText = "";
+        newItems.countryCode.isError = false;
+        newItems.countryCode.helperText = "";
+        newItems.phoneNumber.isError = false;
+        newItems.phoneNumber.helperText = "";
+        newItems.email.isError = false;
+        newItems.email.helperText = "";
+        newItems.avatarUrl.isError = false;
+        newItems.avatarUrl.helperText = "";
 
         if (forms.displayName.value.length == 0) {
             forms.displayName.isError = true;
@@ -142,32 +160,30 @@ export default function Page() {
             hasError = true;
         }
 
-        // if (countryCode.displayName.value.length == 0) {
-        //   countryCode.displayName.isError = true;
-        //   countryCode.displayName.helperText = "Please input code";
-        //   hasError = true;
-        // }
-
-        // if (phoneNumber.displayName.value.length == 0) {
-        //   phoneNumber.displayName.isError = true;
-        //   phoneNumber.displayName.helperText = "Please input phone number";
-        //   hasError = true;
-        // }
-
-        /*
-        if (validateEmail(email.displayName.value.length)) {
-            email.displayName.isError = true;
-            email.displayName.helperText = "Please input display name";
+        if (forms.countryCode.value.length == 0) {
+            forms.countryCode.isError = true;
+            forms.countryCode.helperText = "Please input code";
             hasError = true;
         }
 
-        if (avatarUrl.displayName.value.length == 0) {
-            avatarUrl.displayName.isError = true;
-            avatarUrl.displayName.helperText = "Please input display name";
+        if (forms.phoneNumber.value.length == 0) {
+            forms.phoneNumber.isError = true;
+            forms.phoneNumber.helperText = "Please input phone number";
             hasError = true;
         }
 
-        */
+        // if (validateEmail(forms.email.value.length)) {
+        //     forms.email.isError = true;
+        //     forms.email.helperText = "Please input display name";
+        //     hasError = true;
+        // }
+
+        // if (forms.avatarUrl.value.length == 0) {
+        //     forms.avatarUrl.isError = true;
+        //     forms.avatarUrl.helperText = "Please input display name";
+        //     hasError = true;
+        // }
+
         if (!hasError) {
             try {
                 const result = await put(`/api/management/user/${urlParams.id}`, {
@@ -254,7 +270,6 @@ export default function Page() {
                     </Grid>
                     <Grid item xs={12} md={8}>
                         <TextField
-                            required
                             fullWidth
                             error={email.displayName.isError}
                             label="E-mail"
@@ -268,7 +283,6 @@ export default function Page() {
                     </Grid>
                     <Grid item xs={12} md={8}>
                         <TextField
-                            required
                             fullWidth
                             error={avatarUrl.displayName.isError}
                             label="Avatar URL"

@@ -82,9 +82,22 @@ export default function Dashboard() {
     const validateAndAdd = async () => {
         let hasError = false;
 
-        const newItems: formItems = { ...userId };
-        newItems.displayName.isError = false;
-        newItems.displayName.helperText = "";
+        const newItems: formItems = { ...forms };
+        newItems.userId.isError = false;
+        newItems.userId.helperText = "";
+        newItems.deviceId.isError = false;
+        newItems.deviceId.helperText = "";
+        newItems.type.isError = false;
+        newItems.type.helperText = "";
+        newItems.osName.isError = false;
+        newItems.osName.helperText = "";
+        newItems.appVersion.isError = false;
+        newItems.appVersion.helperText = "";
+        newItems.token.isError = false;
+        newItems.token.helperText = "";
+        newItems.pushToken.isError = false;
+        newItems.pushToken.helperText = "";
+
 
         if (userId.displayName.value.length == 0) {
             userId.displayName.isError = true;
