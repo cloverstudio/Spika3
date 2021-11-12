@@ -145,6 +145,14 @@ export default function Page() {
         const newItems: formItems = { ...forms };
         newItems.displayName.isError = false;
         newItems.displayName.helperText = "";
+        newItems.countryCode.isError = false;
+        newItems.countryCode.helperText = "";
+        newItems.phoneNumber.isError = false;
+        newItems.phoneNumber.helperText = "";
+        newItems.email.isError = false;
+        newItems.email.helperText = "";
+        newItems.avatarUrl.isError = false;
+        newItems.avatarUrl.helperText = "";
 
         if (forms.displayName.value.length == 0) {
             forms.displayName.isError = true;
@@ -152,29 +160,29 @@ export default function Page() {
             hasError = true;
         }
 
-        // if (countryCode.displayName.value.length == 0) {
-        //   countryCode.displayName.isError = true;
-        //   countryCode.displayName.helperText = "Please input code";
-        //   hasError = true;
-        // }
-
-        // if (phoneNumber.displayName.value.length == 0) {
-        //   phoneNumber.displayName.isError = true;
-        //   phoneNumber.displayName.helperText = "Please input phone number";
-        //   hasError = true;
-        // }
-
-        if (validateEmail(forms.email.value.length)) {
-            forms.email.isError = true;
-            forms.email.helperText = "Please input display name";
+        if (forms.countryCode.value.length == 0) {
+            forms.countryCode.isError = true;
+            forms.countryCode.helperText = "Please input code";
             hasError = true;
         }
 
-        if (forms.avatarUrl.value.length == 0) {
-            forms.avatarUrl.isError = true;
-            forms.avatarUrl.helperText = "Please input display name";
+        if (forms.phoneNumber.value.length == 0) {
+            forms.phoneNumber.isError = true;
+            forms.phoneNumber.helperText = "Please input phone number";
             hasError = true;
         }
+
+        // if (validateEmail(forms.email.value.length)) {
+        //     forms.email.isError = true;
+        //     forms.email.helperText = "Please input display name";
+        //     hasError = true;
+        // }
+
+        // if (forms.avatarUrl.value.length == 0) {
+        //     forms.avatarUrl.isError = true;
+        //     forms.avatarUrl.helperText = "Please input display name";
+        //     hasError = true;
+        // }
 
         if (!hasError) {
             try {
@@ -260,7 +268,6 @@ export default function Page() {
                     </Grid>
                     <Grid item xs={12} md={8}>
                         <TextField
-                            required
                             fullWidth
                             error={forms.email.isError}
                             label="E-mail"
@@ -274,7 +281,6 @@ export default function Page() {
                     </Grid>
                     <Grid item xs={12} md={8}>
                         <TextField
-                            required
                             fullWidth
                             error={forms.avatarUrl.isError}
                             label="Avatar URL"

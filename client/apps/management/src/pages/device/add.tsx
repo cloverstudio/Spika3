@@ -67,6 +67,18 @@ export default function Dashboard() {
         const newItems: formItems = { ...forms };
         newItems.userId.isError = false;
         newItems.userId.helperText = "";
+        newItems.deviceId.isError = false;
+        newItems.deviceId.helperText = "";
+        newItems.type.isError = false;
+        newItems.type.helperText = "";
+        newItems.osName.isError = false;
+        newItems.osName.helperText = "";
+        newItems.appVersion.isError = false;
+        newItems.appVersion.helperText = "";
+        newItems.token.isError = false;
+        newItems.token.helperText = "";
+        newItems.pushToken.isError = false;
+        newItems.pushToken.helperText = "";
 
         if (forms.userId.value.length == 0) {
             forms.userId.isError = true;

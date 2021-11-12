@@ -78,6 +78,14 @@ export default function Dashboard() {
         const newItems: formItems = { ...forms };
         newItems.displayName.isError = false;
         newItems.displayName.helperText = "";
+        newItems.countryCode.isError = false;
+        newItems.countryCode.helperText = "";
+        newItems.phoneNumber.isError = false;
+        newItems.phoneNumber.helperText = "";
+        newItems.email.isError = false;
+        newItems.email.helperText = "";
+        newItems.avatarUrl.isError = false;
+        newItems.avatarUrl.helperText = "";
 
         if (forms.displayName.value.length == 0) {
             forms.displayName.isError = true;
@@ -175,7 +183,6 @@ export default function Dashboard() {
                     </Grid>
                     <Grid item xs={12} md={8}>
                         <TextField
-                            required
                             fullWidth
                             error={forms.email.isError}
                             label="E-mail"
@@ -189,7 +196,6 @@ export default function Dashboard() {
                     </Grid>
                     <Grid item xs={12} md={8}>
                         <TextField
-                            required
                             fullWidth
                             error={forms.avatarUrl.isError}
                             label="Avatar URL"
