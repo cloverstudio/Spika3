@@ -78,6 +78,10 @@ export default function Dashboard() {
         const newItems: formItems = { ...forms };
         newItems.displayName.isError = false;
         newItems.displayName.helperText = "";
+        newItems.countryCode.isError = false;
+        newItems.countryCode.helperText = "";
+        newItems.phoneNumber.isError = false;
+        newItems.phoneNumber.helperText = "";
 
         if (forms.displayName.value.length == 0) {
             forms.displayName.isError = true;
