@@ -47,13 +47,14 @@ describe("API", () => {
                 type: "string",
                 fileHash: "string",
                 relationId: 8,
-                clientId: faker.datatype.string(20),
+                clientId: String(faker.datatype.number({ min: 1, max: 10000 })),
             };
         });
 
         after(async () => {
             await globals.prisma.file.deleteMany();
         });
+
         it("Requires chunk param to be string", async () => {
             const responseInvalid = await supertest(app)
                 .post("/api/upload/files")
@@ -282,38 +283,42 @@ describe("API", () => {
         });
 
         it("Returns error if hash is not matching", async () => {
-            const chunk = Buffer.from("101").toString("base64");
-            const fileHash = utils.sha1("101");
-            const fileHashInvalid = utils.sha1("101");
+            const fileName = "test.png";
+            const filePath = path.join(__dirname, `fixtures/files/${fileName}`);
+            const fileHash = "wrong hash";
+            const { size } = await getFileStat(filePath);
+            const chunkSize = 8; // in bytes
+            const readable = fs.createReadStream(filePath, { highWaterMark: chunkSize });
+            const total = Math.ceil(size / chunkSize);
 
-            const responseValid = await supertest(app)
-                .post("/api/upload/files")
-                .set({ accesstoken: globals.userToken })
-                .send({
-                    ...validParams,
-                    fileHash,
-                    chunk,
-                    offset: 0,
-                    total: 1,
-                });
+            let offset = -1;
 
-            expect(responseValid.status).to.eqls(200);
-            expect(responseValid.body).to.has.property("data");
-            expect(responseValid.body.data).to.has.property("uploadedChunks");
-            expect(responseValid.body.data).to.has.property("file");
+            readable.on("data", async function (chunk) {
+                offset++;
+                await supertest(app)
+                    .post("/api/upload/files")
+                    .set({ accesstoken: globals.userToken })
+                    .send({
+                        ...validParams,
+                        fileName,
+                        chunk: chunk.toString("base64"),
+                        offset,
+                        total,
+                        size,
+                        fileHash,
+                    });
+            });
 
-            const responseInvalid = await supertest(app)
-                .post("/api/upload/files")
-                .set({ accesstoken: globals.userToken })
-                .send({
-                    ...validParams,
-                    fileHash: fileHashInvalid,
-                    chunk,
-                    offset: 0,
-                    total: 1,
-                });
+            await utils.wait(1);
 
-            expect(responseInvalid.status).to.eqls(400);
+            const filesDir = path.join(Constants.UPLOAD_FOLDER, `files`);
+            const files = await readDir(filesDir);
+            expect(files).to.be.an("array").that.does.not.include(validParams.clientId);
+
+            const fileFromDb = await globals.prisma.file.findFirst({
+                where: { clientId: validParams.clientId },
+            });
+            expect(fileFromDb).to.eqls(null);
         });
 
         it("Uploads chunk of file", async () => {

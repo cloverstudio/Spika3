@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import util from "util";
 import fs from "fs";
+import crypto from "crypto";
 import path from "path";
 
 const mkdir = util.promisify(fs.mkdir);
@@ -13,7 +14,6 @@ const removeFile = util.promisify(fs.unlink);
 
 const prisma = new PrismaClient();
 
-import Utils from "../../../components/utils";
 import * as Constants from "../../../components/consts";
 import l, { error as le } from "../../../components/logger";
 import * as yup from "yup";
@@ -98,6 +98,7 @@ export default (): Router => {
                 });
             }
 
+            await writeFile(filePath, "");
             const writeStream = fs.createWriteStream(filePath);
 
             for (const chunkIndex of allChunks) {
@@ -109,6 +110,7 @@ export default (): Router => {
 
             const hashMatches = await checkHashes(fileHash, filePath);
             if (!hashMatches) {
+                await removeFile(filePath);
                 return res.status(400).send("hash doesn't match");
             }
 
@@ -190,12 +192,39 @@ export default (): Router => {
     return router;
 };
 
-async function checkHashes(hash: string, filePath: string) {
-    if (!hash) {
-        return true;
-    }
-    const content = await readFile(filePath, "utf-8");
+async function checkHashes(hashed: string, filePath: string) {
+    return new Promise((resolve, reject) => {
+        try {
+            if (!hashed) {
+                return resolve(true);
+            }
+            const readable = fs.createReadStream(filePath);
 
-    const fileHash = Utils.sha1(content);
-    return hash === fileHash;
+            const hash = crypto.createHash("sha1");
+            hash.setEncoding("hex");
+
+            readable.on("end", function () {
+                hash.end();
+
+                const result = hash.read().toString("hex");
+
+                if (!result) {
+                    console.log({ hashedFailed: hashed });
+                    return resolve(false);
+                }
+
+                return resolve(result == hashed);
+            });
+
+            readable.on("error", function (error) {
+                hash.end();
+                return reject(error);
+            });
+
+            readable.pipe(hash);
+        } catch (error) {
+            console.log({ error });
+            reject(error);
+        }
+    });
 }
