@@ -19,6 +19,15 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import { useShowSnackBar } from "../../components/useUI";
 import { formItem, formItems } from "./types";
+import * as yup from "yup";
+
+const postUserSchema = yup.object().shape({
+    displayName: yup.string().required(),
+    countryCode: yup.number().required(),
+    telephoneNumber: yup.string().email(),
+    avatarUrl: yup.string().url(),
+    verified: yup.boolean(),
+});
 
 function validateEmail(email: any) {
     const re =
@@ -87,7 +96,6 @@ export default function Dashboard() {
         newItems.email.helperText = "";
         newItems.avatarUrl.isError = false;
         newItems.avatarUrl.helperText = "";
-
 
         if (forms.displayName.value.length == 0) {
             forms.displayName.isError = true;
