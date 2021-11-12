@@ -18,38 +18,56 @@ export default function Page() {
     const showSnackBar = useShowSnackBar();
     const [detail, setDetail] = React.useState<Device>();
 
-    const [forms, setForms] = React.useState<formItems>({
-        userId: {
+    const [userId, setUserId] = React.useState<formItems>({
+        displayName: {
             value: "",
             isError: false,
             helperText: "",
         },
-        deviceId: {
+    });
+
+    const [deviceId, setDeviceId] = React.useState<formItems>({
+        displayName: {
             value: "",
             isError: false,
             helperText: "",
         },
-        type: {
+    });
+
+    const [type, setType] = React.useState<formItems>({
+        displayName: {
             value: "",
             isError: false,
             helperText: "",
         },
-        osName: {
+    });
+
+    const [osName, setOsName] = React.useState<formItems>({
+        displayName: {
             value: "",
             isError: false,
             helperText: "",
         },
-        appVersion: {
+    });
+
+    const [appVersion, setAppVersion] = React.useState<formItems>({
+        displayName: {
             value: "",
             isError: false,
             helperText: "",
         },
-        token: {
+    });
+
+    const [token, setToken] = React.useState<formItems>({
+        displayName: {
             value: "",
             isError: false,
             helperText: "",
         },
-        pushToken: {
+    });
+
+    const [pushToken, setPushToken] = React.useState<formItems>({
+        displayName: {
             value: "",
             isError: false,
             helperText: "",
@@ -71,38 +89,50 @@ export default function Page() {
                 const checkAppVersion = response.appVersion == null ? "" : response.appVersion;
                 const checkToken = response.token == null ? "" : response.token;
                 const checkPushToken = response.pushToken == null ? "" : response.pushToken;
-                setForms({
-                    userId: {
+                setUserId({
+                    displayName: {
                         value: checkUId,
                         isError: false,
                         helperText: "",
                     },
-                    deviceId: {
+                });
+                setDeviceId({
+                    displayName: {
                         value: checkDId,
                         isError: false,
                         helperText: "",
                     },
-                    type: {
+                });
+                setType({
+                    displayName: {
                         value: checkType,
                         isError: false,
                         helperText: "",
                     },
-                    osName: {
+                });
+                setOsName({
+                    displayName: {
                         value: checkOsName,
                         isError: false,
                         helperText: "",
                     },
-                    appVersion: {
+                });
+                setAppVersion({
+                    displayName: {
                         value: checkAppVersion,
                         isError: false,
                         helperText: "",
                     },
-                    token: {
+                });
+                setToken({
+                    displayName: {
                         value: checkToken,
                         isError: false,
                         helperText: "",
                     },
-                    pushToken: {
+                });
+                setPushToken({
+                    displayName: {
                         value: checkPushToken,
                         isError: false,
                         helperText: "",
@@ -121,6 +151,7 @@ export default function Page() {
     const validateAndUpdate = async () => {
         let hasError = false;
 
+
         const newItems: formItems = { ...forms };
         newItems.userId.isError = false;
         newItems.userId.helperText = "";
@@ -137,62 +168,64 @@ export default function Page() {
         newItems.pushToken.isError = false;
         newItems.pushToken.helperText = "";
 
-        if (forms.userId.value.length == 0) {
-            forms.userId.isError = true;
-            forms.userId.helperText = "Please input user id";
+
+        if (userId.displayName.value.length == 0) {
+            userId.displayName.isError = true;
+            userId.displayName.helperText = "Please input user id";
             hasError = true;
         }
 
-        if (forms.deviceId.value.length == 0) {
-            forms.deviceId.isError = true;
-            forms.deviceId.helperText = "Please device id";
+        if (deviceId.displayName.value.length == 0) {
+            deviceId.displayName.isError = true;
+            deviceId.displayName.helperText = "Please device id";
             hasError = true;
         }
 
-        if (forms.type.value.length == 0) {
-            forms.type.isError = true;
-            forms.type.helperText = "Please input type";
+        if (type.displayName.value.length == 0) {
+            type.displayName.isError = true;
+            type.displayName.helperText = "Please input type";
             hasError = true;
         }
 
-        if (forms.osName.value.length == 0) {
-            forms.osName.isError = true;
-            forms.osName.helperText = "Please input os name";
+        if (osName.displayName.value.length == 0) {
+            osName.displayName.isError = true;
+            osName.displayName.helperText = "Please input os name";
             hasError = true;
         }
 
-        if (forms.appVersion.value.length == 0) {
-            forms.appVersion.isError = true;
-            forms.appVersion.helperText = "Please input app version";
+        if (appVersion.displayName.value.length == 0) {
+            appVersion.displayName.isError = true;
+            appVersion.displayName.helperText = "Please input app version";
             hasError = true;
         }
 
-        if (forms.token.value.length == 0) {
-            forms.token.isError = true;
-            forms.token.helperText = "Please input token";
+        if (token.displayName.value.length == 0) {
+            token.displayName.isError = true;
+            token.displayName.helperText = "Please input token";
             hasError = true;
         }
 
-        if (forms.pushToken.value.length == 0) {
-            forms.pushToken.isError = true;
-            forms.pushToken.helperText = "Please input push token";
+        if (pushToken.displayName.value.length == 0) {
+            pushToken.displayName.isError = true;
+            pushToken.displayName.helperText = "Please input push token";
             hasError = true;
         }
 
         if (!hasError) {
             try {
                 const result = await put(`/api/management/device/${urlParams.id}`, {
-                    userId: forms.userId.value,
-                    deviceId: forms.deviceId.value,
-                    type: forms.type.value,
-                    osName: forms.osName.value,
-                    appVersion: forms.appVersion.value,
-                    token: forms.token.value,
-                    pushToken: forms.pushToken.value,
+                    userId: userId.displayName.value,
+                    deviceId: deviceId.displayName.value,
+                    type: type.displayName.value,
+                    osName: osName.displayName.value,
+                    appVersion: appVersion.displayName.value,
+                    token: token.displayName.value,
+                    pushToken: pushToken.displayName.value,
                 });
 
                 showSnackBar({ severity: "success", text: "Device updated" });
                 history.push("/device");
+                newItems.displayName.value = "";
             } catch (e) {
                 console.error(e);
                 showSnackBar({
@@ -202,7 +235,7 @@ export default function Page() {
             }
         }
 
-        setForms(newItems);
+        setUserId(newItems);
     };
 
     return (
@@ -219,40 +252,40 @@ export default function Page() {
                         <TextField
                             required
                             fullWidth
-                            error={forms.userId.isError}
+                            error={userId.displayName.isError}
                             label="User Id"
-                            value={forms.userId.value}
+                            value={userId.displayName.value}
                             onChange={(e) => {
-                                forms.userId.value = e.target.value;
-                                setForms({ ...forms });
+                                userId.displayName.value = e.target.value;
+                                setUserId({ ...userId });
                             }}
-                            helperText={forms.userId.helperText}
+                            helperText={userId.displayName.helperText}
                         />
                     </Grid>
                     <Grid item xs={12} md={8}>
                         <Stack alignItems="center" spacing={1} direction="row">
                             <TextField
                                 required
-                                error={forms.deviceId.isError}
+                                error={deviceId.displayName.isError}
                                 label="Device Id"
-                                value={forms.deviceId.value}
+                                value={deviceId.displayName.value}
                                 onChange={(e) => {
-                                    forms.deviceId.value = e.target.value;
-                                    setForms({ ...forms });
+                                    deviceId.displayName.value = e.target.value;
+                                    setDeviceId({ ...deviceId });
                                 }}
-                                helperText={forms.deviceId.helperText}
+                                helperText={deviceId.displayName.helperText}
                             />
                             <TextField
                                 required
                                 fullWidth
-                                error={forms.type.isError}
+                                error={type.displayName.isError}
                                 label="Type"
-                                value={forms.type.value}
+                                value={type.displayName.value}
                                 onChange={(e) => {
-                                    forms.type.value = e.target.value;
-                                    setForms({ ...forms });
+                                    type.displayName.value = e.target.value;
+                                    setType({ ...type });
                                 }}
-                                helperText={forms.type.helperText}
+                                helperText={type.displayName.helperText}
                             />
                         </Stack>
                     </Grid>
@@ -260,56 +293,56 @@ export default function Page() {
                         <TextField
                             required
                             fullWidth
-                            error={forms.osName.isError}
+                            error={osName.displayName.isError}
                             label="OS Name"
-                            value={forms.osName.value}
+                            value={osName.displayName.value}
                             onChange={(e) => {
-                                forms.osName.value = e.target.value;
-                                setForms({ ...forms });
+                                osName.displayName.value = e.target.value;
+                                setOsName({ ...osName });
                             }}
-                            helperText={forms.osName.helperText}
+                            helperText={osName.displayName.helperText}
                         />
                     </Grid>
                     <Grid item xs={12} md={8}>
                         <TextField
                             required
                             fullWidth
-                            error={forms.appVersion.isError}
+                            error={appVersion.displayName.isError}
                             label="App Version"
-                            value={forms.appVersion.value}
+                            value={appVersion.displayName.value}
                             onChange={(e) => {
-                                forms.appVersion.value = e.target.value;
-                                setForms({ ...forms });
+                                appVersion.displayName.value = e.target.value;
+                                setAppVersion({ ...appVersion });
                             }}
-                            helperText={forms.appVersion.helperText}
+                            helperText={appVersion.displayName.helperText}
                         />
                     </Grid>
                     <Grid item xs={12} md={8}>
                         <TextField
                             required
                             fullWidth
-                            error={forms.token.isError}
+                            error={token.displayName.isError}
                             label="Token"
-                            value={forms.token.value}
+                            value={token.displayName.value}
                             onChange={(e) => {
-                                forms.token.value = e.target.value;
-                                setForms({ ...forms });
+                                token.displayName.value = e.target.value;
+                                setToken({ ...token });
                             }}
-                            helperText={forms.token.helperText}
+                            helperText={token.displayName.helperText}
                         />
                     </Grid>
                     <Grid item xs={12} md={8}>
                         <TextField
                             required
                             fullWidth
-                            error={forms.pushToken.isError}
+                            error={pushToken.displayName.isError}
                             label="Push Token"
-                            value={forms.pushToken.value}
+                            value={pushToken.displayName.value}
                             onChange={(e) => {
-                                forms.pushToken.value = e.target.value;
-                                setForms({ ...forms });
+                                pushToken.displayName.value = e.target.value;
+                                setPushToken({ ...pushToken });
                             }}
-                            helperText={forms.pushToken.helperText}
+                            helperText={pushToken.displayName.helperText}
                         />
                     </Grid>
                     <Grid item xs={12} md={8} textAlign="right">

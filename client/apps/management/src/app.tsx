@@ -14,54 +14,53 @@ import DeviceDetail from "./pages/device/detail";
 import DeviceEdit from "./pages/device/edit";
 import DeviceDelete from "./pages/device/delete";
 
+declare var BASE_URL: string;
+
 function App() {
-  return (
-    <>
-      <Router>
-        <Switch>
-          <Route exact path="/">
-            <Login />
-          </Route>
-          <Route exact path="/dashboard">
-            <Dashboard />
-          </Route>
-          <Route exact path="/user">
-            <User />
-          </Route>
-          <Route exact path="/user/add">
-            <UserAdd />
-          </Route>
-          <Route exact path="/user/detail/:id">
-            <UserDetail />
-          </Route>
-          <Route exact path="/user/edit/:id">
-            <UserEdit />
-          </Route>
-          <Route exact path="/user/delete/:id">
-            <UserDelete />
-          </Route>
-          <Route exact path="/user/:id/devices" key="userDevices">
-            <Device />
-          </Route>
-          <Route exact path="/device">
-            <Device />
-          </Route>
-          <Route exact path="/device/add">
-            <DeviceAdd />
-          </Route>
-          <Route exact path="/device/detail/:id">
-            <DeviceDetail />
-          </Route>
-          <Route exact path="/device/edit/:id">
-            <DeviceEdit />
-          </Route>
-          <Route exact path="/device/delete/:id">
-            <DeviceDelete />
-          </Route>
-        </Switch>
-      </Router>
-    </>
-  );
+    return (
+        <>
+            <Router basename={BASE_URL}>
+                <Switch>
+                    <Route exact path="/">
+                        <Login />
+                    </Route>
+                    <Route exact path="/dashboard">
+                        <Dashboard />
+                    </Route>
+                    <Route exact path="/user">
+                        <User />
+                    </Route>
+                    <Route exact path="/user/add">
+                        <UserAdd />
+                    </Route>
+                    <Route exact path="/user/detail/:id">
+                        <UserDetail />
+                    </Route>
+                    <Route exact path="/user/edit/:id">
+                        <UserEdit />
+                    </Route>
+                    <Route exact path="/user/delete/:id">
+                        <UserDelete />
+                    </Route>
+                    <Route exact path="/device">
+                        <Device />
+                    </Route>
+                    <Route exact path="/device/add">
+                        <DeviceAdd />
+                    </Route>
+                    <Route exact path="/device/detail/:id">
+                        <DeviceDetail />
+                    </Route>
+                    <Route exact path="/device/edit/:id">
+                        <DeviceEdit />
+                    </Route>
+                    <Route exact path="/device/delete/:id">
+                        <DeviceDelete />
+                    </Route>
+                </Switch>
+            </Router>
+        </>
+    );
 }
 
 export default App;

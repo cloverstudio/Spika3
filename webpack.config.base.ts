@@ -65,7 +65,7 @@ const config: Configuration = {
                     {
                         loader: "url-loader?limit=100000",
                         options: {
-                            name: "[name].[contenthash].[ext]",
+                            name: "[name].[ext]",
                             esModule: false,
                         },
                     },
@@ -82,7 +82,7 @@ const config: Configuration = {
     },
     plugins: [
         new MiniCssExtractPlugin({
-            filename: "[name].[hash].css",
+            filename: "[name].css",
             chunkFilename: "[id].css",
         }),
         new DefinePlugin({

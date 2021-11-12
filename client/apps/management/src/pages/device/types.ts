@@ -5,11 +5,5 @@ export interface formItem {
 }
 
 export interface formItems {
-    userId: formItem;
-    deviceId: formItem;
-    type: formItem;
-    osName: formItem;
-    appVersion: formItem;
-    token: formItem;
-    pushToken: formItem;
+    displayName: formItem;
 }

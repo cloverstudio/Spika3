@@ -188,12 +188,12 @@ export default function Page() {
             try {
                 const result = await put(`/api/management/user/${urlParams.id}`, {
                     displayName: forms.displayName.value,
-                    emailAddress: forms.email.value,
-                    countryCode: forms.countryCode.value,
-                    telephoneNumber: forms.phoneNumber.value,
-                    avatarUrl: forms.avatarUrl.value,
-                    verified: verified,
-                    verificationCode: forms.verificationCode.value,
+                    //emailAddress: forms.email.value,
+                    //countryCode: forms.countryCode.value,
+                    //telephoneNumber: forms.phoneNumber.value,
+                    //avatarUrl: forms.avatarUrl.value,
+                    //verified: verified,
+                    //verificationCode: forms.verificationCode.value,
                 });
 
                 showSnackBar({ severity: "success", text: "User updated" });
@@ -239,69 +239,72 @@ export default function Page() {
                             helperText={forms.displayName.helperText}
                         />
                     </Grid>
+
+                    {/*
                     <Grid item xs={12} md={8}>
                         <Stack alignItems="center" spacing={1} direction="row">
                             <TextField
                                 required
-                                error={forms.countryCode.isError}
+                                error={countryCode.displayName.isError}
                                 label="Country code"
-                                value={forms.countryCode.value}
+                                value={countryCode.displayName.value}
                                 onChange={(e) => {
-                                    forms.countryCode.value = e.target.value;
-                                    setForms({ ...forms });
+                                    countryCode.displayName.value = e.target.value;
+                                    setCountryCode({ ...countryCode });
                                 }}
-                                helperText={forms.countryCode.helperText}
+                                helperText={countryCode.displayName.helperText}
                             />
                             <TextField
                                 required
                                 fullWidth
-                                error={forms.phoneNumber.isError}
+                                error={phoneNumber.displayName.isError}
                                 label="Phone number"
-                                value={forms.phoneNumber.value}
+                                value={phoneNumber.displayName.value}
                                 onChange={(e) => {
-                                    forms.phoneNumber.value = e.target.value;
-                                    setForms({ ...forms });
+                                    phoneNumber.displayName.value = e.target.value;
+                                    setPhoneNumber({ ...phoneNumber });
                                 }}
-                                helperText={forms.phoneNumber.helperText}
+                                helperText={phoneNumber.displayName.helperText}
                             />
                         </Stack>
                     </Grid>
                     <Grid item xs={12} md={8}>
                         <TextField
                             fullWidth
-                            error={forms.email.isError}
+                            error={email.displayName.isError}
                             label="E-mail"
-                            value={forms.email.value}
+                            value={email.displayName.value}
                             onChange={(e) => {
-                                forms.email.value = e.target.value;
-                                setForms({ ...forms });
+                                email.displayName.value = e.target.value;
+                                setEmail({ ...email });
                             }}
-                            helperText={forms.email.helperText}
+                            helperText={email.displayName.helperText}
                         />
                     </Grid>
                     <Grid item xs={12} md={8}>
                         <TextField
                             fullWidth
-                            error={forms.avatarUrl.isError}
+                            error={avatarUrl.displayName.isError}
                             label="Avatar URL"
-                            value={forms.avatarUrl.value}
+                            value={avatarUrl.displayName.value}
                             onChange={(e) => {
-                                forms.avatarUrl.value = e.target.value;
-                                setForms({ ...forms });
+                                avatarUrl.displayName.value = e.target.value;
+                                setAvatarUrl({ ...avatarUrl });
                             }}
-                            helperText={forms.avatarUrl.helperText}
+                            helperText={avatarUrl.displayName.helperText}
                         />
                     </Grid>
                     <Grid item xs={12} md={8}>
                         <TextField
                             fullWidth
+                            error={verificationCode.displayName.isError}
                             label="Verification Code"
-                            value={forms.verificationCode.value}
+                            value={verificationCode.displayName.value}
                             onChange={(e) => {
-                                forms.verificationCode.value = e.target.value;
-                                setForms({ ...forms });
+                                verificationCode.displayName.value = e.target.value;
+                                setVerificationCode({ ...verificationCode });
                             }}
-                            helperText={forms.avatarUrl.helperText}
+                            helperText={avatarUrl.displayName.helperText}
                         />
                     </Grid>
                     <Grid item xs={12} md={8}>
@@ -318,6 +321,9 @@ export default function Page() {
                             </FormGroup>
                         </FormControl>
                     </Grid>
+
+                                */}
+
                     <Grid item xs={12} md={8} textAlign="right">
                         <Button
                             variant="contained"

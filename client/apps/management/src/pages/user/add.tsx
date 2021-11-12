@@ -82,10 +82,12 @@ export default function Dashboard() {
         newItems.countryCode.helperText = "";
         newItems.phoneNumber.isError = false;
         newItems.phoneNumber.helperText = "";
+
         newItems.email.isError = false;
         newItems.email.helperText = "";
         newItems.avatarUrl.isError = false;
         newItems.avatarUrl.helperText = "";
+
 
         if (forms.displayName.value.length == 0) {
             forms.displayName.isError = true;

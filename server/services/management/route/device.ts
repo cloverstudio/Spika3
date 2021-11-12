@@ -49,11 +49,10 @@ export default (params: InitRouterParams) => {
      */
     router.get("/", adminAuth, async (req: Request, res: Response) => {
         const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 0;
-        const userId: number = parseInt(req.query.userId ? (req.query.userId as string) : "") || 0;
-        const clause = userId == 0 ? {} : { userId: userId };
+
         try {
             const devices = await prisma.device.findMany({
-                where: clause,
+                where: {},
                 orderBy: [
                     {
                         createdAt: "asc",
@@ -62,7 +61,8 @@ export default (params: InitRouterParams) => {
                 skip: consts.PAGING_LIMIT * page,
                 take: consts.PAGING_LIMIT,
             });
-            const count = userId == 0 ? await prisma.device.count() : devices.length;
+
+            const count = await prisma.user.count();
 
             res.json({
                 list: devices,
@@ -140,6 +140,7 @@ export default (params: InitRouterParams) => {
     router.delete("/:deviceId", adminAuth, async (req: Request, res: Response) => {
         try {
             const idOfDevice: number = parseInt(req.params.deviceId);
+            console.log(req.params.deviceId);
             // check existance
             const device = await prisma.device.findFirst({
                 where: {
