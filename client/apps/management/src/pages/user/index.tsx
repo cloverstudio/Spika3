@@ -11,6 +11,7 @@ import {
     Description as DescriptionIcon,
     CancelOutlined,
     CheckCircleOutlineOutlined,
+    DevicesOther,
 } from "@mui/icons-material/";
 
 import { User } from "@prisma/client";
@@ -63,13 +64,7 @@ export default function Dashboard() {
     }
 
     const columns = [
-        {
-            field: "id",
-            headerName: "ID",
-            flex: 0.2,
-            sortable: false,
-            filterable: false,
-        },
+        { field: "id", headerName: "ID", flex: 0.2, sortable: false, filterable: false },
         {
             field: "avatarUrl",
             headerName: "Avatar",
@@ -149,6 +144,12 @@ export default function Dashboard() {
                     icon={<DescriptionIcon />}
                     label="Detail"
                     onClick={() => history.push(`/user/detail/${params.id}`)}
+                    showInMenu
+                />,
+                <GridActionsCellItem
+                    icon={<DevicesOther />}
+                    label="Devices"
+                    onClick={() => history.push(`/user/${params.id}/devices`)}
                     showInMenu
                 />,
                 <GridActionsCellItem
