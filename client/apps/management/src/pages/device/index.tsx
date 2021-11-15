@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Layout from "../layout";
-import { useHistory } from "react-router-dom";
+import { useHistory, useParams } from "react-router-dom";
 import { DataGrid, GridColDef, GridActionsCellItem } from "@mui/x-data-grid";
 import { IconButton, Paper, Fab } from "@mui/material";
 
@@ -24,7 +24,7 @@ export default function Dashboard() {
     const [list, setList] = React.useState<Array<Device>>([]);
     const [pageSize, setPageSize] = React.useState<number>(30);
     const [totalCount, setTotalCount] = React.useState<number>(0);
-
+    const urlParams: { id: string } = useParams();
     const showSnackBar = useShowSnackBar();
     const history = useHistory();
     const get = useGet();
@@ -39,9 +39,13 @@ export default function Dashboard() {
         setLoading(true);
 
         try {
-            const response: ListResponseType<Device> = await get(
-                `/api/management/device?page=${page}`
-            );
+            console.log("UrlParams:" + urlParams.id);
+            const url: string =
+                urlParams.id == null
+                    ? `/api/management/device?page=${page}`
+                    : `/api/management/device?page=${page}&userId=${urlParams.id}`;
+            console.log(url);
+            const response: ListResponseType<Device> = await get(url);
             setList(response.list);
             setPageSize(response.limit);
             setTotalCount(response.count);
@@ -57,13 +61,7 @@ export default function Dashboard() {
     };
 
     const columns = [
-        {
-            field: "id",
-            headerName: "ID",
-            flex: 0.2,
-            sortable: false,
-            filterable: false,
-        },
+        { field: "id", headerName: "ID", flex: 0.2, sortable: false, filterable: false },
         {
             field: "userId",
             headerName: "User Id",
@@ -79,20 +77,8 @@ export default function Dashboard() {
             sortable: false,
             filterable: false,
         },
-        {
-            field: "type",
-            headerName: "Type",
-            flex: 0.5,
-            sortable: false,
-            filterable: false,
-        },
-        {
-            field: "osName",
-            headerName: "OS Name",
-            flex: 0.5,
-            sortable: false,
-            filterable: false,
-        },
+        { field: "type", headerName: "Type", flex: 0.5, sortable: false, filterable: false },
+        { field: "osName", headerName: "OS Name", flex: 0.5, sortable: false, filterable: false },
         {
             field: "appVersion",
             headerName: "App Version",
@@ -100,13 +86,7 @@ export default function Dashboard() {
             sortable: false,
             filterable: false,
         },
-        {
-            field: "token",
-            headerName: "Token",
-            flex: 0.5,
-            sortable: false,
-            filterable: false,
-        },
+        { field: "token", headerName: "Token", flex: 0.5, sortable: false, filterable: false },
         {
             field: "pushToken",
             headerName: "Push Token",
