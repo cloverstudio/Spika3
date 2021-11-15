@@ -7,7 +7,7 @@ describe("API", () => {
         it("Messenger test api works", async () => {
             const response = await supertest(app).get("/api/messenger/test");
             expect(response.status).to.eqls(200);
-            expect(response.text).to.equal("test");
+            expect(response.body.data).to.equal("test");
         });
     });
 });
