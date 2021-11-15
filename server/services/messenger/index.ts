@@ -4,6 +4,7 @@ import amqp from "amqplib";
 import testRouter from "./route/test";
 import signupRouter from "./route/auth";
 import contactRouter from "./route/contact";
+import roomRouter from "./route/room";
 
 import * as Constants from "../../components/consts";
 import Service, { ServiceStartParams } from "../types/serviceInterface";
@@ -36,6 +37,7 @@ export default class Messenger implements Service {
         messengerRouter.use("/test", testRouter({}));
         messengerRouter.use("/auth", signupRouter({ rabbitMQChannel: this.rabbitMQChannel }));
         messengerRouter.use("/contacts", contactRouter({ rabbitMQChannel: this.rabbitMQChannel }));
+        messengerRouter.use("/rooms", roomRouter());
         return messengerRouter;
     }
 
