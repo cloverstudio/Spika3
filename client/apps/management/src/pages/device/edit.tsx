@@ -1,69 +1,93 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import Layout from "../layout";
 import { useHistory, useParams } from "react-router-dom";
-import faker from "faker";
 import { useGet, usePut } from "../../lib/useApi";
 
 import { TextField, Paper, Grid, Button, Stack } from "@mui/material";
 
-import { useSelector, useDispatch } from "react-redux";
 import { useShowSnackBar } from "../../components/useUI";
 import { Device } from "@prisma/client";
-import { formItem, formItems } from "./types";
+import * as yup from "yup";
+import { useFormik } from "formik";
+
+const deviceModelSchema = yup.object({
+    userId: yup.number().required("User id is required"),
+    deviceId: yup.string().required("Device id is required"),
+    type: yup.string(),
+    osName: yup.string(),
+    appVersion: yup.number(),
+    token: yup.string(),
+    pushToken: yup.string(),
+});
 
 export default function Page() {
     const urlParams: { id: string } = useParams();
-    const dispatch = useDispatch();
     const history = useHistory();
     const showSnackBar = useShowSnackBar();
-    const [detail, setDetail] = React.useState<Device>();
-
-    const [forms, setForms] = React.useState<formItems>({
-        userId: {
-            value: "",
-            isError: false,
-            helperText: "",
-        },
-        deviceId: {
-            value: "",
-            isError: false,
-            helperText: "",
-        },
-        type: {
-            value: "",
-            isError: false,
-            helperText: "",
-        },
-        osName: {
-            value: "",
-            isError: false,
-            helperText: "",
-        },
-        appVersion: {
-            value: "",
-            isError: false,
-            helperText: "",
-        },
-        token: {
-            value: "",
-            isError: false,
-            helperText: "",
-        },
-        pushToken: {
-            value: "",
-            isError: false,
-            helperText: "",
-        },
-    });
 
     const get = useGet();
     const put = usePut();
+
+    const formik = useFormik({
+        initialValues: {
+            userId: "",
+            deviceId: "",
+            type: "",
+            osName: "",
+            appVersion: "",
+            token: "",
+            pushToken: "",
+        },
+        validationSchema: deviceModelSchema,
+        onSubmit: (values) => {
+            if (serverDevice.values.deviceId == values.deviceId) {
+                validateAndUpdate();
+            } else {
+                checkDeviceId();
+            }
+        },
+    });
+
+    const serverDevice = useFormik({
+        initialValues: {
+            userId: "",
+            deviceId: "",
+            type: "",
+            osName: "",
+            appVersion: "",
+            token: "",
+            pushToken: "",
+        },
+        validationSchema: deviceModelSchema,
+        onSubmit: (values) => {},
+    });
+
+    const checkDeviceId = async () => {
+        try {
+            const response = await get(
+                `/api/management/device/findDeviceId?deviceId=${formik.values.deviceId}`
+            );
+            if (response.exists) {
+                showSnackBar({
+                    severity: "error",
+                    text: "Device Id already exist, provide different id",
+                });
+            } else {
+                validateAndUpdate();
+            }
+        } catch (e) {
+            console.error(e);
+            showSnackBar({
+                severity: "error",
+                text: "Server error, please check browser console.",
+            });
+        }
+    };
 
     useEffect(() => {
         (async () => {
             try {
                 const response: Device = await get(`/api/management/device/${urlParams.id}`);
-                setDetail(response);
                 const checkUId = response.userId == null ? "" : response.userId;
                 const checkDId = response.deviceId == null ? "" : response.deviceId;
                 const checkType = response.type == null ? "" : response.type;
@@ -71,42 +95,23 @@ export default function Page() {
                 const checkAppVersion = response.appVersion == null ? "" : response.appVersion;
                 const checkToken = response.token == null ? "" : response.token;
                 const checkPushToken = response.pushToken == null ? "" : response.pushToken;
-                setForms({
-                    userId: {
-                        value: checkUId,
-                        isError: false,
-                        helperText: "",
-                    },
-                    deviceId: {
-                        value: checkDId,
-                        isError: false,
-                        helperText: "",
-                    },
-                    type: {
-                        value: checkType,
-                        isError: false,
-                        helperText: "",
-                    },
-                    osName: {
-                        value: checkOsName,
-                        isError: false,
-                        helperText: "",
-                    },
-                    appVersion: {
-                        value: checkAppVersion,
-                        isError: false,
-                        helperText: "",
-                    },
-                    token: {
-                        value: checkToken,
-                        isError: false,
-                        helperText: "",
-                    },
-                    pushToken: {
-                        value: checkPushToken,
-                        isError: false,
-                        helperText: "",
-                    },
+                formik.setValues({
+                    userId: String(checkUId),
+                    deviceId: checkDId,
+                    type: checkType,
+                    osName: checkOsName,
+                    appVersion: String(checkAppVersion),
+                    token: checkToken,
+                    pushToken: checkPushToken,
+                });
+                serverDevice.setValues({
+                    userId: String(checkUId),
+                    deviceId: checkDId,
+                    type: checkType,
+                    osName: checkOsName,
+                    appVersion: String(checkAppVersion),
+                    token: checkToken,
+                    pushToken: checkPushToken,
                 });
             } catch (e) {
                 console.error(e);
@@ -119,211 +124,128 @@ export default function Page() {
     }, []);
 
     const validateAndUpdate = async () => {
-        let hasError = false;
+        try {
+            const result = await put(`/api/management/device/${urlParams.id}`, {
+                userId: formik.values.userId,
+                deviceId: formik.values.deviceId,
+                type: formik.values.type,
+                osName: formik.values.osName,
+                appVersion: formik.values.appVersion,
+                token: formik.values.token,
+                pushToken: formik.values.pushToken,
+            });
 
-        const newItems: formItems = { ...forms };
-        newItems.userId.isError = false;
-        newItems.userId.helperText = "";
-        newItems.deviceId.isError = false;
-        newItems.deviceId.helperText = "";
-        newItems.type.isError = false;
-        newItems.type.helperText = "";
-        newItems.osName.isError = false;
-        newItems.osName.helperText = "";
-        newItems.appVersion.isError = false;
-        newItems.appVersion.helperText = "";
-        newItems.token.isError = false;
-        newItems.token.helperText = "";
-        newItems.pushToken.isError = false;
-        newItems.pushToken.helperText = "";
-
-        if (forms.userId.value.length == 0) {
-            forms.userId.isError = true;
-            forms.userId.helperText = "Please input user id";
-            hasError = true;
+            showSnackBar({ severity: "success", text: "Device updated" });
+            history.push("/device");
+        } catch (e) {
+            console.error(e);
+            showSnackBar({
+                severity: "error",
+                text: "Failed to update device, please check console.",
+            });
         }
-
-        if (forms.deviceId.value.length == 0) {
-            forms.deviceId.isError = true;
-            forms.deviceId.helperText = "Please device id";
-            hasError = true;
-        }
-
-        if (forms.type.value.length == 0) {
-            forms.type.isError = true;
-            forms.type.helperText = "Please input type";
-            hasError = true;
-        }
-
-        if (forms.osName.value.length == 0) {
-            forms.osName.isError = true;
-            forms.osName.helperText = "Please input os name";
-            hasError = true;
-        }
-
-        if (forms.appVersion.value.length == 0) {
-            forms.appVersion.isError = true;
-            forms.appVersion.helperText = "Please input app version";
-            hasError = true;
-        }
-
-        if (forms.token.value.length == 0) {
-            forms.token.isError = true;
-            forms.token.helperText = "Please input token";
-            hasError = true;
-        }
-
-        if (forms.pushToken.value.length == 0) {
-            forms.pushToken.isError = true;
-            forms.pushToken.helperText = "Please input push token";
-            hasError = true;
-        }
-
-        if (!hasError) {
-            try {
-                const result = await put(`/api/management/device/${urlParams.id}`, {
-                    userId: forms.userId.value,
-                    deviceId: forms.deviceId.value,
-                    type: forms.type.value,
-                    osName: forms.osName.value,
-                    appVersion: forms.appVersion.value,
-                    token: forms.token.value,
-                    pushToken: forms.pushToken.value,
-                });
-
-                showSnackBar({ severity: "success", text: "Device updated" });
-                history.push("/device");
-            } catch (e) {
-                console.error(e);
-                showSnackBar({
-                    severity: "error",
-                    text: "Failed to update device, please check console.",
-                });
-            }
-        }
-
-        setForms(newItems);
     };
 
     return (
         <Layout subtitle={`Device detail ( ${urlParams.id} )`} showBack={true}>
-            <Paper
-                sx={{
-                    margin: "24px",
-                    padding: "24px",
-                    minHeight: "calc(100vh-64px)",
-                }}
-            >
-                <Grid container spacing={2}>
-                    <Grid item xs={12} md={8}>
-                        <TextField
-                            required
-                            fullWidth
-                            error={forms.userId.isError}
-                            label="User Id"
-                            value={forms.userId.value}
-                            onChange={(e) => {
-                                forms.userId.value = e.target.value;
-                                setForms({ ...forms });
-                            }}
-                            helperText={forms.userId.helperText}
-                        />
-                    </Grid>
-                    <Grid item xs={12} md={8}>
-                        <Stack alignItems="center" spacing={1} direction="row">
-                            <TextField
-                                required
-                                error={forms.deviceId.isError}
-                                label="Device Id"
-                                value={forms.deviceId.value}
-                                onChange={(e) => {
-                                    forms.deviceId.value = e.target.value;
-                                    setForms({ ...forms });
-                                }}
-                                helperText={forms.deviceId.helperText}
-                            />
+            <form onSubmit={formik.handleSubmit}>
+                <Paper
+                    sx={{
+                        margin: "24px",
+                        padding: "24px",
+                        minHeight: "calc(100vh-64px)",
+                    }}
+                >
+                    <Grid container spacing={2}>
+                        <Grid item xs={12} md={8}>
                             <TextField
                                 required
                                 fullWidth
-                                error={forms.type.isError}
-                                label="Type"
-                                value={forms.type.value}
-                                onChange={(e) => {
-                                    forms.type.value = e.target.value;
-                                    setForms({ ...forms });
-                                }}
-                                helperText={forms.type.helperText}
+                                id="userId"
+                                error={formik.touched.userId && Boolean(formik.errors.userId)}
+                                label="User Id"
+                                value={formik.values.userId}
+                                onChange={formik.handleChange}
+                                helperText={formik.touched.userId && formik.errors.userId}
                             />
-                        </Stack>
+                        </Grid>
+                        <Grid item xs={12} md={8}>
+                            <TextField
+                                required
+                                fullWidth
+                                id="deviceId"
+                                error={formik.touched.deviceId && Boolean(formik.errors.deviceId)}
+                                label="Device Id"
+                                value={formik.values.deviceId}
+                                onChange={formik.handleChange}
+                                helperText={formik.touched.deviceId && formik.errors.deviceId}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={8}>
+                            <TextField
+                                fullWidth
+                                id="type"
+                                error={formik.touched.type && Boolean(formik.errors.type)}
+                                label="Type"
+                                value={formik.values.type}
+                                onChange={formik.handleChange}
+                                helperText={formik.touched.type && formik.errors.type}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={8}>
+                            <TextField
+                                fullWidth
+                                id="osName"
+                                error={formik.touched.osName && Boolean(formik.errors.osName)}
+                                label="Os Name"
+                                value={formik.values.osName}
+                                onChange={formik.handleChange}
+                                helperText={formik.touched.osName && formik.errors.osName}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={8}>
+                            <TextField
+                                fullWidth
+                                id="appVersion"
+                                error={
+                                    formik.touched.appVersion && Boolean(formik.errors.appVersion)
+                                }
+                                label="App version"
+                                value={formik.values.appVersion}
+                                onChange={formik.handleChange}
+                                helperText={formik.touched.appVersion && formik.errors.appVersion}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={8}>
+                            <TextField
+                                fullWidth
+                                id="token"
+                                error={formik.touched.token && Boolean(formik.errors.token)}
+                                label="Token"
+                                value={formik.values.token}
+                                onChange={formik.handleChange}
+                                helperText={formik.touched.token && formik.errors.token}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={8}>
+                            <TextField
+                                fullWidth
+                                id="pushToken"
+                                error={formik.touched.pushToken && Boolean(formik.errors.pushToken)}
+                                label="Push token"
+                                value={formik.values.pushToken}
+                                onChange={formik.handleChange}
+                                helperText={formik.touched.pushToken && formik.errors.pushToken}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={8} textAlign="right">
+                            <Button variant="contained" type="submit">
+                                Update device
+                            </Button>
+                        </Grid>
                     </Grid>
-                    <Grid item xs={12} md={8}>
-                        <TextField
-                            required
-                            fullWidth
-                            error={forms.osName.isError}
-                            label="OS Name"
-                            value={forms.osName.value}
-                            onChange={(e) => {
-                                forms.osName.value = e.target.value;
-                                setForms({ ...forms });
-                            }}
-                            helperText={forms.osName.helperText}
-                        />
-                    </Grid>
-                    <Grid item xs={12} md={8}>
-                        <TextField
-                            required
-                            fullWidth
-                            error={forms.appVersion.isError}
-                            label="App Version"
-                            value={forms.appVersion.value}
-                            onChange={(e) => {
-                                forms.appVersion.value = e.target.value;
-                                setForms({ ...forms });
-                            }}
-                            helperText={forms.appVersion.helperText}
-                        />
-                    </Grid>
-                    <Grid item xs={12} md={8}>
-                        <TextField
-                            required
-                            fullWidth
-                            error={forms.token.isError}
-                            label="Token"
-                            value={forms.token.value}
-                            onChange={(e) => {
-                                forms.token.value = e.target.value;
-                                setForms({ ...forms });
-                            }}
-                            helperText={forms.token.helperText}
-                        />
-                    </Grid>
-                    <Grid item xs={12} md={8}>
-                        <TextField
-                            required
-                            fullWidth
-                            error={forms.pushToken.isError}
-                            label="Push Token"
-                            value={forms.pushToken.value}
-                            onChange={(e) => {
-                                forms.pushToken.value = e.target.value;
-                                setForms({ ...forms });
-                            }}
-                            helperText={forms.pushToken.helperText}
-                        />
-                    </Grid>
-                    <Grid item xs={12} md={8} textAlign="right">
-                        <Button
-                            variant="contained"
-                            onClick={(e) => {
-                                validateAndUpdate();
-                            }}
-                        >
-                            Update device
-                        </Button>
-                    </Grid>
-                </Grid>
-            </Paper>
+                </Paper>
+            </form>
         </Layout>
     );
 }

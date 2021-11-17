@@ -73,6 +73,77 @@ export default (params: InitRouterParams) => {
         }
     });
 
+    router.get("/existingUserParams", adminAuth, async (req: Request, res: Response) => {
+        try {
+            const countryCode: string = req.query.countryCode
+                ? (req.query.countryCode as string)
+                : "";
+            const telephoneNumber: string = req.query.telephoneNumber
+                ? (req.query.telephoneNumber as string)
+                : "";
+            const emailAddress: string = req.query.email ? (req.query.email as string) : "";
+            const user = await prisma.user.findMany({
+                where: {
+                    countryCode: countryCode,
+                    telephoneNumber: telephoneNumber,
+                },
+            });
+            const email = await prisma.user.findUnique({
+                where: {
+                    emailAddress: emailAddress,
+                },
+            });
+            res.json({
+                exists: user.length > 0 || email != null,
+                phoneExist: user.length > 0,
+                emailExists: email != null,
+            });
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(`Server error ${e}`);
+        }
+    });
+
+    router.get("/existingUserPhoneNumber", adminAuth, async (req: Request, res: Response) => {
+        try {
+            const countryCode: string = req.query.countryCode
+                ? (req.query.countryCode as string)
+                : "";
+            const telephoneNumber: string = req.query.telephoneNumber
+                ? (req.query.telephoneNumber as string)
+                : "";
+            const user = await prisma.user.findMany({
+                where: {
+                    countryCode: countryCode,
+                    telephoneNumber: telephoneNumber,
+                },
+            });
+            res.json({
+                exists: user.length > 0,
+            });
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(`Server error ${e}`);
+        }
+    });
+
+    router.get("/existingUserEmail", adminAuth, async (req: Request, res: Response) => {
+        try {
+            const emailAddress: string = req.query.email ? (req.query.email as string) : "";
+            const email = await prisma.user.findUnique({
+                where: {
+                    emailAddress: emailAddress,
+                },
+            });
+            res.json({
+                exists: email != null,
+            });
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(`Server error ${e}`);
+        }
+    });
+
     router.get("/:userId", adminAuth, async (req: Request, res: Response) => {
         try {
             const userId: number = parseInt(req.params.userId);

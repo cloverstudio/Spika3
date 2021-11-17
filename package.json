@@ -10,7 +10,7 @@
         "test": "./test/start.sh",
         "dev:server": "nodemon server/index.ts",
         "start:server": "npx ts-node server/index.ts",
-        "dev:management": "concurrently --kill-others \"npx ts-node server/index.ts\" \"webpack serve --mode development --config client/apps/management/webpack.config.ts\"",
+        "dev:management": "concurrently --kill-others \"nodemon server/index.ts\" \"webpack serve --mode development --config client/apps/management/webpack.config.ts\"",
         "build:management": "webpack --mode production --config client/apps/management/webpack.config.prod.ts",
         "dev:messenger": "concurrently --kill-others \"npx ts-node server/index.ts\" \"webpack serve --mode development --config client/apps/messenger/webpack.config.ts\"",
         "build:messenger": "webpack --mode production --config client/apps/messenger/webpack.config.prod.ts",
@@ -34,6 +34,7 @@
         "body-parser": "^1.19.0",
         "dayjs": "^1.10.7",
         "express": "^4.17.1",
+        "formik": "^2.2.9",
         "redux-localstorage-simple": "^2.4.1",
         "twilio": "^3.69.0",
         "yup": "^0.32.11"
