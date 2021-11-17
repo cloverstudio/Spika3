@@ -1,25 +1,27 @@
 import { PrismaClient } from "@prisma/client";
 
-import QueueWorkerInterface from "../../types/queueWokerInterface";
+import QueueWorkerInterface from "../../types/queueWorkerInterface";
 import { CreateContactPayload } from "../../types/queuePayloadTypes";
-import l from "../../../components/logger";
+import { error as le } from "../../../components/logger";
 
 const prisma = new PrismaClient();
 
 class saveContactWorker implements QueueWorkerInterface {
     async run(payload: CreateContactPayload) {
-        const { contactId, userId } = payload;
+        try {
+            const { contactId, userId } = payload;
 
-        const existingContact = await prisma.contact.findFirst({
-            where: { contactId, userId },
-            select: { contactId: true },
-        });
+            const existingContact = await prisma.contact.findFirst({
+                where: { contactId, userId },
+                select: { contactId: true },
+            });
 
-        if (!existingContact) {
-            await prisma.contact.create({ data: { contactId, userId } });
+            if (!existingContact) {
+                await prisma.contact.create({ data: { contactId, userId } });
+            }
+        } catch (error) {
+            le("Create contact worker failed: ", error);
         }
-
-        l("Create contact worker payload: ", payload, "New contact created: ", !existingContact);
     }
 }
 

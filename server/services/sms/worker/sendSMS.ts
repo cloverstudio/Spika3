@@ -1,4 +1,4 @@
-import QueueWorkerInterface from "../../types/queueWokerInterface";
+import QueueWorkerInterface from "../../types/queueWorkerInterface";
 import { SendSMSPayload } from "../../types/queuePayloadTypes";
 import l from "../../../components/logger";
 import internal from "stream";

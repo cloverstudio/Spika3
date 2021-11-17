@@ -2,13 +2,13 @@ import { Router, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 
 import { UserRequest, errorParams } from "../lib/types";
-import l, { error as le } from "../../../components/logger";
+import { error as le } from "../../../components/logger";
 import * as Constants from "../../../components/consts";
 
 import auth from "../lib/auth";
 import { InitRouterParams } from "../../types/serviceInterface";
 import * as yup from "yup";
-import validate from "../lib/validate";
+import validate from "../../../components/validateMiddleware";
 
 const prisma = new PrismaClient();
 

@@ -14,10 +14,9 @@ const removeFile = util.promisify(fs.unlink);
 
 const prisma = new PrismaClient();
 
-import * as Constants from "../../../components/consts";
-import l, { error as le } from "../../../components/logger";
+import { error as le } from "../../../components/logger";
 import * as yup from "yup";
-import validate from "../lib/validate";
+import validate from "../../../components/validateMiddleware";
 
 const postFilesSchema = yup.object().shape({
     body: yup.object().shape({
@@ -57,7 +56,7 @@ export default (): Router => {
             if (exists) {
                 return res.status(400).send("file with that clientId already exists");
             }
-            const tempFileDir = path.join(Constants.UPLOAD_FOLDER, `.temp/${clientId}`);
+            const tempFileDir = path.join(process.env["UPLOAD_FOLDER"], `.temp/${clientId}`);
             if (!fs.existsSync(tempFileDir)) {
                 await mkdir(tempFileDir, { recursive: true });
             }
@@ -80,7 +79,7 @@ export default (): Router => {
                 });
             }
 
-            const filesDir = path.join(Constants.UPLOAD_FOLDER, "files");
+            const filesDir = path.join(process.env["UPLOAD_FOLDER"], "files");
             if (!fs.existsSync(filesDir)) {
                 await mkdir(filesDir);
             }

@@ -100,4 +100,8 @@ export default class utils {
     static getTokenExpireDate = (): Date => {
         return dayjs().add(Consts.TOKEN_VALID_DAY).toDate();
     };
+
+    static generateRoomName = (): string => {
+        return this.randomString(16);
+    };
 }
