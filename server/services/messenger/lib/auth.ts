@@ -20,6 +20,7 @@ export default async (req: Request, res: Response, next: Function) => {
         const osVersion = req.headers["os-version"] as string;
         const deviceName = req.headers["device-name"] as string;
         const appVersion: number = parseInt(req.headers["app-version"] as string);
+        const lang: string = (req.headers["lang"] as string) || "en";
 
         const accessToken: string = req.headers[constants.ACCESS_TOKEN] as string;
 
@@ -45,6 +46,7 @@ export default async (req: Request, res: Response, next: Function) => {
         userRequset.user = device.user;
         delete device.user;
         userRequset.device = device;
+        userRequset.lang = lang;
 
         // update device is there is a change
         if (
