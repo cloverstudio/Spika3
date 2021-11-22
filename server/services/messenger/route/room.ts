@@ -7,6 +7,7 @@ import { error as le } from "../../../components/logger";
 import auth from "../lib/auth";
 import * as yup from "yup";
 import validate from "../../../components/validateMiddleware";
+import { successResponse, errorResponse } from "../../../components/response";
 
 const prisma = new PrismaClient();
 
@@ -40,9 +41,9 @@ export default (): Router => {
     const router = Router();
 
     router.post("/", auth, validate(postRoomSchema), async (req: Request, res: Response) => {
-        try {
-            const userReq: UserRequest = req as UserRequest;
+        const userReq: UserRequest = req as UserRequest;
 
+        try {
             const {
                 avatarUrl,
                 type: userDefinedType,
@@ -81,29 +82,28 @@ export default (): Router => {
                 },
             });
 
-            res.send({
-                data: room,
-            });
+            res.send(successResponse({ room }, userReq.lang));
         } catch (e: any) {
             le(e);
-            res.status(500).send(`Server error ${e}`);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
         }
     });
 
     router.put("/:id", auth, validate(patchRoomSchema), async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+
         try {
-            const userReq: UserRequest = req as UserRequest;
             const id = parseInt((req.params.id as string) || "");
             const { userIds, adminUserIds, name, avatarUrl } = req.body;
 
             const room = await prisma.room.findFirst({ where: { id }, include: { users: true } });
             if (!room) {
-                return res.status(404).send("not found");
+                return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
             const userIsAdmin = isAdminCheck(userReq.user.id, room.users);
             if (!userIsAdmin) {
-                return res.status(403).send("forbidden");
+                return res.status(403).send(errorResponse("Forbidden", userReq.lang));
             }
 
             const shouldUpdateUsers = typeof userIds !== "undefined";
@@ -135,28 +135,27 @@ export default (): Router => {
                 include: { users: true },
             });
 
-            res.send({ data: updated });
+            res.send(successResponse({ room: updated }, userReq.lang));
         } catch (e: any) {
             le(e);
-            res.status(500).send(`Server error ${e}`);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
         }
     });
 
     router.delete("/:id", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+
         try {
-            const userReq: UserRequest = req as UserRequest;
             const id = parseInt((req.params.id as string) || "");
 
             const room = await prisma.room.findFirst({ where: { id }, include: { users: true } });
-
             if (!room) {
-                return res.status(404).send("not found");
+                return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
             const userIsAdmin = isAdminCheck(userReq.user.id, room.users);
-
             if (!userIsAdmin) {
-                return res.status(403).send("forbidden");
+                return res.status(403).send(errorResponse("Forbidden", userReq.lang));
             }
 
             const updated = await prisma.room.update({
@@ -165,10 +164,10 @@ export default (): Router => {
                 include: { users: true },
             });
 
-            res.send({ data: updated });
+            res.send(successResponse({ room: updated }, userReq.lang));
         } catch (e: any) {
             le(e);
-            res.status(500).send(`Server error ${e}`);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
         }
     });
 
@@ -177,8 +176,9 @@ export default (): Router => {
         validate(leaveRoomSchema),
         auth,
         async (req: Request, res: Response) => {
+            const userReq: UserRequest = req as UserRequest;
+
             try {
-                const userReq: UserRequest = req as UserRequest;
                 const id = parseInt((req.params.id as string) || "");
                 const { adminUserIds } = req.body;
 
@@ -188,13 +188,13 @@ export default (): Router => {
                 });
 
                 if (!room) {
-                    return res.status(404).send("not found");
+                    return res.status(404).send(errorResponse("Not found", userReq.lang));
                 }
 
                 const isRoomUser = isRoomUserCheck(userReq.user.id, room.users);
 
                 if (!isRoomUser) {
-                    return res.status(404).send("not found");
+                    return res.status(404).send(errorResponse("Not found", userReq.lang));
                 }
 
                 const canLeaveRoom = canLeaveRoomCheck(userReq.user.id, room.users);
@@ -211,11 +211,13 @@ export default (): Router => {
                         include: { users: true },
                     });
 
-                    return res.send({ data: updated });
+                    return res.send(successResponse({ room: updated }, userReq.lang));
                 }
 
                 if (!adminUserIds) {
-                    return res.status(400).send(`New admin(s) must be defined`);
+                    return res
+                        .status(400)
+                        .send(errorResponse(`New admin(s) must be defined`, userReq.lang));
                 }
 
                 const foundUsers = await prisma.user.findMany({
@@ -223,7 +225,9 @@ export default (): Router => {
                 });
 
                 if (!foundUsers.length) {
-                    return res.status(400).send(`New admin(s) must be defined`);
+                    return res
+                        .status(400)
+                        .send(errorResponse(`New admin(s) must be defined`, userReq.lang));
                 }
 
                 const foundUsersIds = foundUsers.map((u) => u.id);
@@ -250,11 +254,10 @@ export default (): Router => {
                     },
                     include: { users: true },
                 });
-
-                res.send({ data: updated });
+                res.send(successResponse({ room: updated }, userReq.lang));
             } catch (e: any) {
                 le(e);
-                res.status(500).send(`Server error ${e}`);
+                res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
             }
         }
     );

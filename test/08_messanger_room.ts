@@ -180,8 +180,10 @@ describe("API", () => {
 
             expect(responseWithName.status).to.eqls(200);
             expect(responseWithName.body).to.has.property("data");
-            expect(responseWithName.body.data).to.has.property("name");
-            expect(responseWithName.body.data.name).to.eqls(name);
+            expect(responseWithName.body.data).to.has.property("room");
+
+            const roomFromRes = responseWithName.body.data.room;
+            expect(roomFromRes.name).to.eqls(name);
         });
 
         it("sets name to 'Private room' when only one user", async () => {
@@ -192,8 +194,10 @@ describe("API", () => {
 
             expect(response.status).to.eqls(200);
             expect(response.body).to.has.property("data");
-            expect(response.body.data).to.has.property("name");
-            expect(response.body.data.name).to.eqls("Private room");
+            expect(response.body.data).to.has.property("room");
+
+            const roomFromRes = response.body.data.room;
+            expect(roomFromRes.name).to.eqls("Private room");
         });
 
         it("sets name to empty string when only two users", async () => {
@@ -206,8 +210,10 @@ describe("API", () => {
 
             expect(response.status).to.eqls(200);
             expect(response.body).to.has.property("data");
-            expect(response.body.data).to.has.property("name");
-            expect(response.body.data.name).to.eqls("");
+            expect(response.body.data).to.has.property("room");
+
+            const roomFromRes = response.body.data.room;
+            expect(roomFromRes.name).to.eqls("");
         });
 
         it("sets name to 'United room' when more than two users", async () => {
@@ -225,8 +231,10 @@ describe("API", () => {
 
             expect(response.status).to.eqls(200);
             expect(response.body).to.has.property("data");
-            expect(response.body.data).to.has.property("name");
-            expect(response.body.data.name).to.eqls("United room");
+            expect(response.body.data).to.has.property("room");
+
+            const roomFromRes = response.body.data.room;
+            expect(roomFromRes.name).to.eqls("United room");
         });
 
         it("ignores users that doesn't exist", async () => {
@@ -240,10 +248,12 @@ describe("API", () => {
 
             expect(responseWithFakeUsers.status).to.eqls(200);
             expect(responseWithFakeUsers.body).to.has.property("data");
-            expect(responseWithFakeUsers.body.data).to.has.property("users");
-            expect(responseWithFakeUsers.body.data.users).to.be.an("array");
+            expect(responseWithFakeUsers.body.data).to.has.property("room");
+
+            const roomFromRes = responseWithFakeUsers.body.data.room;
+            expect(roomFromRes.users).to.be.an("array");
             expect(
-                responseWithFakeUsers.body.data.users.some((u: { id: number }) =>
+                roomFromRes.users.some((u: { id: number }) =>
                     [...userIds, ...adminUserIds].includes(u.id)
                 )
             ).to.eqls(false);
@@ -257,12 +267,13 @@ describe("API", () => {
 
             expect(responseWithFakeUsers.status).to.eqls(200);
             expect(responseWithFakeUsers.body).to.has.property("data");
-            expect(responseWithFakeUsers.body.data).to.has.property("users");
-            expect(responseWithFakeUsers.body.data.users).to.be.an("array");
+            expect(responseWithFakeUsers.body.data).to.has.property("room");
+
+            const roomFromRes = responseWithFakeUsers.body.data.room;
+            expect(roomFromRes).to.has.property("users");
+            expect(roomFromRes.users).to.be.an("array");
             expect(
-                responseWithFakeUsers.body.data.users
-                    .filter((u: RoomUser) => u.isAdmin)
-                    .map((u: RoomUser) => u.userId)
+                roomFromRes.users.filter((u: RoomUser) => u.isAdmin).map((u: RoomUser) => u.userId)
             )
                 .to.be.an("array")
                 .that.does.include(globals.userId);
@@ -277,8 +288,10 @@ describe("API", () => {
 
             expect(response.status).to.eqls(200);
             expect(response.body).to.has.property("data");
-            expect(response.body.data).to.has.property("type");
-            expect(response.body.data.type).to.eqls(type);
+            expect(response.body.data).to.has.property("room");
+
+            const roomFromRes = response.body.data.room;
+            expect(roomFromRes.type).to.eqls(type);
         });
 
         it("sets type as private when appropriate", async () => {
@@ -289,8 +302,8 @@ describe("API", () => {
 
             expect(responseOne.status).to.eqls(200);
             expect(responseOne.body).to.has.property("data");
-            expect(responseOne.body.data).to.has.property("type");
-            expect(responseOne.body.data.type).to.eqls("private");
+            expect(responseOne.body.data).to.has.property("room");
+            expect(responseOne.body.data.room.type).to.eqls("private");
 
             const user = await createFakeUser();
             const responseTwo = await supertest(app)
@@ -300,8 +313,8 @@ describe("API", () => {
 
             expect(responseTwo.status).to.eqls(200);
             expect(responseTwo.body).to.has.property("data");
-            expect(responseTwo.body.data).to.has.property("type");
-            expect(responseTwo.body.data.type).to.eqls("private");
+            expect(responseTwo.body.data).to.has.property("room");
+            expect(responseTwo.body.data.room.type).to.eqls("private");
 
             const type = "defined";
             const responseThree = await supertest(app)
@@ -311,8 +324,8 @@ describe("API", () => {
 
             expect(responseThree.status).to.eqls(200);
             expect(responseThree.body).to.has.property("data");
-            expect(responseThree.body.data).to.has.property("type");
-            expect(responseThree.body.data.type).to.eqls(type);
+            expect(responseThree.body.data).to.has.property("room");
+            expect(responseThree.body.data.room.type).to.eqls(type);
         });
 
         it("saves room to db", async () => {
@@ -323,13 +336,14 @@ describe("API", () => {
 
             expect(response.status).to.eqls(200);
             expect(response.body).to.has.property("data");
+            expect(response.body.data).to.has.property("room");
 
             const room = await globals.prisma.room.findFirst({
-                where: { id: response.body.data.id },
+                where: { id: response.body.data.room.id },
                 include: { users: true },
             });
 
-            expect(JSON.stringify(response.body.data)).to.eqls(JSON.stringify(room));
+            expect(JSON.stringify(response.body.data.room)).to.eqls(JSON.stringify(room));
         });
     });
 
@@ -367,12 +381,12 @@ describe("API", () => {
 
             expect(response.status).to.eqls(200);
             expect(response.body).to.has.property("data");
-            expect(response.body.data).to.has.property("users");
-            expect(response.body.data.users).to.be.an("array");
+            expect(response.body.data).to.has.property("room");
+
+            const roomFromRes = response.body.data.room;
+            expect(roomFromRes.users).to.be.an("array");
             expect(
-                response.body.data.users
-                    .filter((u: RoomUser) => !u.isAdmin)
-                    .map((u: RoomUser) => u.userId)
+                roomFromRes.users.filter((u: RoomUser) => !u.isAdmin).map((u: RoomUser) => u.userId)
             ).to.include.members(userIds);
         });
 
@@ -391,12 +405,12 @@ describe("API", () => {
 
             expect(response.status).to.eqls(200);
             expect(response.body).to.has.property("data");
-            expect(response.body.data).to.has.property("users");
-            expect(response.body.data.users).to.be.an("array");
+            expect(response.body.data).to.has.property("room");
+
+            const roomFromRes = response.body.data.room;
+            expect(roomFromRes.users).to.be.an("array");
             expect(
-                response.body.data.users
-                    .filter((u: RoomUser) => !u.isAdmin)
-                    .map((u: RoomUser) => u.userId)
+                roomFromRes.users.filter((u: RoomUser) => !u.isAdmin).map((u: RoomUser) => u.userId)
             ).to.have.length(0);
         });
 
@@ -412,12 +426,12 @@ describe("API", () => {
 
             expect(response.status).to.eqls(200);
             expect(response.body).to.has.property("data");
-            expect(response.body.data).to.has.property("users");
-            expect(response.body.data.users).to.be.an("array");
+            expect(response.body.data).to.has.property("room");
+
+            const roomFromRes = response.body.data.room;
+            expect(roomFromRes.users).to.be.an("array");
             expect(
-                response.body.data.users
-                    .filter((u: RoomUser) => u.isAdmin)
-                    .map((u: RoomUser) => u.userId)
+                roomFromRes.users.filter((u: RoomUser) => u.isAdmin).map((u: RoomUser) => u.userId)
             ).to.include.members([globals.userId, ...adminUserIds]);
         });
 
@@ -438,12 +452,14 @@ describe("API", () => {
 
             expect(response.status).to.eqls(200);
             expect(response.body).to.has.property("data");
-            expect(response.body.data).to.has.property("users");
-            expect(response.body.data.users).to.be.an("array");
-            expect(response.body.data.users).to.have.length(3);
-            expect(response.body.data).to.has.property("type");
+            expect(response.body.data).to.has.property("room");
 
-            expect(response.body.data.type).to.eqls("group");
+            const roomFromRes = response.body.data.room;
+            expect(roomFromRes.users).to.be.an("array");
+            expect(roomFromRes.users).to.have.length(3);
+            expect(roomFromRes).to.has.property("type");
+
+            expect(roomFromRes.type).to.eqls("group");
         });
 
         it("updates name if defined", async () => {
@@ -457,8 +473,10 @@ describe("API", () => {
 
             expect(response.status).to.eqls(200);
             expect(response.body).to.has.property("data");
-            expect(response.body.data).to.has.property("name");
-            expect(response.body.data.name).to.eqls(name);
+            expect(response.body.data).to.has.property("room");
+
+            const roomFromRes = response.body.data.room;
+            expect(roomFromRes.name).to.eqls(name);
         });
 
         it("updates avatarUrl if defined", async () => {
@@ -472,8 +490,10 @@ describe("API", () => {
 
             expect(response.status).to.eqls(200);
             expect(response.body).to.has.property("data");
-            expect(response.body.data).to.has.property("avatarUrl");
-            expect(response.body.data.avatarUrl).to.eqls(avatarUrl);
+            expect(response.body.data).to.has.property("room");
+
+            const roomFromRes = response.body.data.room;
+            expect(roomFromRes.avatarUrl).to.eqls(avatarUrl);
         });
 
         it("updates are saved in db", async () => {
@@ -543,8 +563,10 @@ describe("API", () => {
 
             expect(response.status).to.eqls(200);
             expect(response.body).to.has.property("data");
-            expect(response.body.data).to.has.property("deleted");
-            expect(response.body.data.deleted).to.eqls(true);
+            expect(response.body.data).to.has.property("room");
+
+            const roomFromRes = response.body.data.room;
+            expect(roomFromRes.deleted).to.eqls(true);
         });
 
         it("deletion is saved in db", async () => {
@@ -598,11 +620,11 @@ describe("API", () => {
 
             expect(response.status).to.eqls(200);
             expect(response.body).to.has.property("data");
-            expect(response.body.data).to.has.property("users");
-            expect(response.body.data.users).to.be.an("array");
-            expect(response.body.data.users.map((u: RoomUser) => u.userId)).to.not.include(
-                globals.userId
-            );
+            expect(response.body.data).to.has.property("room");
+
+            const roomFromRes = response.body.data.room;
+            expect(roomFromRes.users).to.be.an("array");
+            expect(roomFromRes.users.map((u: RoomUser) => u.userId)).to.not.include(globals.userId);
         });
 
         it("not last admin can leave room", async () => {
@@ -618,11 +640,11 @@ describe("API", () => {
 
             expect(response.status).to.eqls(200);
             expect(response.body).to.has.property("data");
-            expect(response.body.data).to.has.property("users");
-            expect(response.body.data.users).to.be.an("array");
-            expect(response.body.data.users.map((u: RoomUser) => u.userId)).to.not.include(
-                globals.userId
-            );
+            expect(response.body.data).to.has.property("room");
+
+            const roomFromRes = response.body.data.room;
+            expect(roomFromRes.users).to.be.an("array");
+            expect(roomFromRes.users.map((u: RoomUser) => u.userId)).to.not.include(globals.userId);
         });
 
         it("Last admin can leave room", async () => {
@@ -636,12 +658,12 @@ describe("API", () => {
 
             expect(response.status).to.eqls(200);
             expect(response.body).to.has.property("data");
-            expect(response.body.data).to.has.property("users");
-            expect(response.body.data.users).to.be.an("array");
-            expect(response.body.data.users.map((u: RoomUser) => u.userId)).to.not.include(
-                globals.userId
-            );
-            expect(response.body.data.users.map((u: RoomUser) => u.userId)).to.include(user.id);
+            expect(response.body.data).to.has.property("room");
+
+            const roomFromRes = response.body.data.room;
+            expect(roomFromRes.users).to.be.an("array");
+            expect(roomFromRes.users.map((u: RoomUser) => u.userId)).to.not.include(globals.userId);
+            expect(roomFromRes.users.map((u: RoomUser) => u.userId)).to.include(user.id);
         });
 
         it("Last admin have to send adminUserIds so he can leave room", async () => {

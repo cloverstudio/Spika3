@@ -9,6 +9,7 @@ import auth from "../lib/auth";
 import { InitRouterParams } from "../../types/serviceInterface";
 import * as yup from "yup";
 import validate from "../../../components/validateMiddleware";
+import { successResponse, errorResponse } from "../../../components/response";
 
 const prisma = new PrismaClient();
 
@@ -46,8 +47,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
     const router = Router();
 
     router.get("/", auth, validate(getContactsSchema), async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
         try {
-            const userReq: UserRequest = req as UserRequest;
             const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
 
             const contacts = await prisma.contact.findMany({
@@ -72,20 +73,25 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 },
             });
 
-            res.json({
-                list: contacts.map((c) => c.contact),
-                count: count,
-                limit: Constants.PAGING_LIMIT,
-            });
+            res.send(
+                successResponse(
+                    {
+                        list: contacts.map((c) => c.contact),
+                        count: count,
+                        limit: Constants.PAGING_LIMIT,
+                    },
+                    userReq.lang
+                )
+            );
         } catch (e: any) {
             le(e);
-            res.status(500).send(`Server error ${e}`);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
         }
     });
 
     router.post("/", auth, validate(postContactsSchema), async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
         try {
-            const userReq: UserRequest = req as UserRequest;
             const hashList: Array<string> = req.body.contacts;
 
             const verifiedUsers = await prisma.user.findMany({
@@ -104,14 +110,19 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 );
             });
 
-            res.json({
-                list: verifiedUsers,
-                count: verifiedUsers.length,
-                limit: Constants.CONTACT_SYNC_LIMIT,
-            });
+            res.send(
+                successResponse(
+                    {
+                        list: verifiedUsers,
+                        count: verifiedUsers.length,
+                        limit: Constants.CONTACT_SYNC_LIMIT,
+                    },
+                    userReq.lang
+                )
+            );
         } catch (e: any) {
             le(e);
-            res.status(500).send(`Server error ${e}`);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
         }
     });
 
