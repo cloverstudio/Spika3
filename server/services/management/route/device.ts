@@ -75,10 +75,29 @@ export default (params: InitRouterParams) => {
         }
     });
 
+    router.get("/findDeviceId", adminAuth, async (req: Request, res: Response) => {
+        try {
+            const deviceId: string = req.query.deviceId ? (req.query.deviceId as string) : "";
+            // check existance
+            if (!deviceId) return res.status(400).send("deviceId is required");
+            const device = await prisma.device.findFirst({
+                where: {
+                    deviceId: deviceId,
+                },
+            });
+
+            res.json({
+                exists: device != null,
+            });
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(`Server error ${e}`);
+        }
+    });
+
     router.get("/:deviceId", adminAuth, async (req: Request, res: Response) => {
         try {
             const deviceId: number = parseInt(req.params.deviceId);
-
             // check existance
             const device = await prisma.device.findFirst({
                 where: {
@@ -106,7 +125,6 @@ export default (params: InitRouterParams) => {
             const appVersion: number = parseInt(req.body.appVersion);
             const token: string = req.body.token;
             const pushToken: string = req.body.pushToken;
-
             // check existance
             const device = await prisma.device.findFirst({
                 where: {

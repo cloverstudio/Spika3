@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import Layout from "../layout";
 import { useHistory, useParams } from "react-router-dom";
-import faker from "faker";
 import { useGet, usePut } from "../../lib/useApi";
 
 import {
@@ -16,71 +15,79 @@ import {
     Checkbox,
 } from "@mui/material";
 
-import { useSelector, useDispatch } from "react-redux";
 import { useShowSnackBar } from "../../components/useUI";
 import { User } from "@prisma/client";
-import { formItem, formItems } from "./types";
+import * as yup from "yup";
+import { useFormik } from "formik";
+import e from "express";
 
-function validateEmail(email: any) {
-    const re =
-        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    return re.test(String(email).toLowerCase());
-}
+const userModelSchema = yup.object({
+    displayName: yup.string().required("Display name is required"),
+    countryCode: yup.string().required("Code is required"),
+    telephoneNumber: yup.string().required("Telephone number is required"),
+    email: yup.string().required("Email is required").email("Not valid email"),
+    avatarUrl: yup.string().url(),
+    verificationCode: yup.string(),
+    verified: yup.boolean(),
+});
 
 export default function Page() {
     const urlParams: { id: string } = useParams();
-    const dispatch = useDispatch();
     const history = useHistory();
     const showSnackBar = useShowSnackBar();
-    const [detail, setDetail] = React.useState<User>();
-    const [forms, setForms] = React.useState<formItems>({
-        displayName: {
-            value: "",
-            isError: false,
-            helperText: "",
+    const get = useGet();
+    const put = usePut();
+
+    const formik = useFormik({
+        initialValues: {
+            displayName: "",
+            countryCode: "",
+            telephoneNumber: "",
+            email: "",
+            avatarUrl: "",
+            verificationCode: "",
+            verified: false,
         },
-        phoneNumber: {
-            value: "",
-            isError: false,
-            helperText: "",
-        },
-        countryCode: {
-            value: "",
-            isError: false,
-            helperText: "",
-        },
-        email: {
-            value: "",
-            isError: false,
-            helperText: "",
-        },
-        avatarUrl: {
-            value: "",
-            isError: false,
-            helperText: "",
-        },
-        verified: {
-            value: "",
-            isError: false,
-            helperText: "",
-        },
-        verificationCode: {
-            value: "",
-            isError: false,
-            helperText: "",
+        validationSchema: userModelSchema,
+        onSubmit: (values) => {
+            console.log(serverUser);
+            if (
+                (serverUser.values.countryCode != formik.values.countryCode ||
+                    serverUser.values.telephoneNumber != formik.values.telephoneNumber) &&
+                serverUser.values.email != formik.values.email
+            ) {
+                checkAllParameters();
+            } else if (
+                serverUser.values.countryCode != formik.values.countryCode ||
+                serverUser.values.telephoneNumber != formik.values.telephoneNumber
+            ) {
+                checkPhoneNumber();
+            } else if (serverUser.values.email != formik.values.email) {
+                checkEmail();
+            } else {
+                validateAndUpdate();
+            }
         },
     });
 
-    const [verified, setVerified] = React.useState<boolean>(false);
-
-    const get = useGet();
-    const put = usePut();
+    const serverUser = useFormik({
+        initialValues: {
+            displayName: "",
+            countryCode: "",
+            telephoneNumber: "",
+            email: "",
+            avatarUrl: "",
+            verificationCode: "",
+            verified: false,
+        },
+        validationSchema: userModelSchema,
+        onSubmit: (values) => {},
+    });
 
     useEffect(() => {
         (async () => {
             try {
                 const response: User = await get(`/api/management/user/${urlParams.id}`);
-                setDetail(response);
                 const checkName = response.displayName == null ? "" : response.displayName;
                 const checkCC = response.countryCode == null ? "" : response.countryCode;
                 const checkPhone = response.telephoneNumber == null ? "" : response.telephoneNumber;
@@ -89,46 +96,24 @@ export default function Page() {
                 const checkVer = response.verified == null ? false : response.verified;
                 const checkVerCode =
                     response.verificationCode == null ? "" : response.verificationCode;
-
-                setForms({
-                    displayName: {
-                        value: checkName,
-                        isError: false,
-                        helperText: "",
-                    },
-                    phoneNumber: {
-                        value: checkPhone,
-                        isError: false,
-                        helperText: "",
-                    },
-                    countryCode: {
-                        value: checkCC,
-                        isError: false,
-                        helperText: "",
-                    },
-                    email: {
-                        value: checkEmail,
-                        isError: false,
-                        helperText: "",
-                    },
-                    avatarUrl: {
-                        value: checkUrl,
-                        isError: false,
-                        helperText: "",
-                    },
-                    verified: {
-                        value: String(checkVer),
-                        isError: false,
-                        helperText: "",
-                    },
-                    verificationCode: {
-                        value: checkVerCode,
-                        isError: false,
-                        helperText: "",
-                    },
+                formik.setValues({
+                    displayName: checkName,
+                    countryCode: checkCC,
+                    telephoneNumber: checkPhone,
+                    email: checkEmail,
+                    avatarUrl: checkUrl,
+                    verificationCode: checkVerCode,
+                    verified: checkVer,
                 });
-
-                setVerified(checkVer);
+                serverUser.setValues({
+                    displayName: checkName,
+                    countryCode: checkCC,
+                    telephoneNumber: checkPhone,
+                    email: checkEmail,
+                    avatarUrl: checkUrl,
+                    verificationCode: checkVerCode,
+                    verified: checkVer,
+                });
             } catch (e) {
                 console.error(e);
                 showSnackBar({
@@ -139,203 +124,224 @@ export default function Page() {
         })();
     }, []);
 
-    const validateAndUpdate = async () => {
-        let hasError = false;
-
-        const newItems: formItems = { ...forms };
-        newItems.displayName.isError = false;
-        newItems.displayName.helperText = "";
-        newItems.countryCode.isError = false;
-        newItems.countryCode.helperText = "";
-        newItems.phoneNumber.isError = false;
-        newItems.phoneNumber.helperText = "";
-        newItems.email.isError = false;
-        newItems.email.helperText = "";
-        newItems.avatarUrl.isError = false;
-        newItems.avatarUrl.helperText = "";
-
-        if (forms.displayName.value.length == 0) {
-            forms.displayName.isError = true;
-            forms.displayName.helperText = "Please input display name";
-            hasError = true;
-        }
-
-        if (forms.countryCode.value.length == 0) {
-            forms.countryCode.isError = true;
-            forms.countryCode.helperText = "Please input code";
-            hasError = true;
-        }
-
-        if (forms.phoneNumber.value.length == 0) {
-            forms.phoneNumber.isError = true;
-            forms.phoneNumber.helperText = "Please input phone number";
-            hasError = true;
-        }
-
-        // if (validateEmail(forms.email.value.length)) {
-        //     forms.email.isError = true;
-        //     forms.email.helperText = "Please input display name";
-        //     hasError = true;
-        // }
-
-        // if (forms.avatarUrl.value.length == 0) {
-        //     forms.avatarUrl.isError = true;
-        //     forms.avatarUrl.helperText = "Please input display name";
-        //     hasError = true;
-        // }
-
-        if (!hasError) {
-            try {
-                const result = await put(`/api/management/user/${urlParams.id}`, {
-                    displayName: forms.displayName.value,
-                    //emailAddress: forms.email.value,
-                    //countryCode: forms.countryCode.value,
-                    //telephoneNumber: forms.phoneNumber.value,
-                    //avatarUrl: forms.avatarUrl.value,
-                    //verified: verified,
-                    //verificationCode: forms.verificationCode.value,
-                });
-
-                showSnackBar({ severity: "success", text: "User updated" });
-                history.push("/user");
-                newItems.displayName.value = "";
-            } catch (e) {
-                console.error(e);
+    const checkAllParameters = async () => {
+        try {
+            const response = await get(
+                `/api/management/user/phoneNumber?countryCode=${formik.values.countryCode}&telephoneNumber=${formik.values.telephoneNumber}&email=${formik.values.email}`
+            );
+            if (!response.exists) {
+                validateAndUpdate();
+            } else {
+                var errorText = "";
+                if (response.phoneExist && response.emailExists) {
+                    errorText = "User with that phone number and email already exists";
+                } else if (response.phoneExist) {
+                    errorText = "User with that country code and telephone number already exists";
+                } else if (response.emailExists) {
+                    errorText = "User with that email already exists";
+                }
                 showSnackBar({
                     severity: "error",
-                    text: "Failed to update user, please check console.",
+                    text: errorText,
                 });
             }
+        } catch (e) {
+            console.error(e);
+            showSnackBar({
+                severity: "error",
+                text: "Server error, please check browser console.",
+            });
         }
-
-        setForms(newItems);
     };
 
-    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setVerified(event.target.checked);
+    const checkPhoneNumber = async () => {
+        try {
+            const response = await get(
+                `/api/management/user/existingUserPhoneNumber?countryCode=${formik.values.countryCode}&telephoneNumber=${formik.values.telephoneNumber}`
+            );
+            if (!response.exists) {
+                validateAndUpdate();
+            } else {
+                var errorText = "User with that country code and telephone number already exists";
+                showSnackBar({
+                    severity: "error",
+                    text: errorText,
+                });
+            }
+        } catch (e) {
+            console.error(e);
+            showSnackBar({
+                severity: "error",
+                text: "Server error, please check browser console.",
+            });
+        }
+    };
+
+    const checkEmail = async () => {
+        try {
+            const response = await get(
+                `/api/management/user/existingUserEmail?email=${formik.values.email}`
+            );
+            if (!response.exists) {
+                validateAndUpdate();
+            } else {
+                var errorText = "User with that email already exists";
+                showSnackBar({
+                    severity: "error",
+                    text: errorText,
+                });
+            }
+        } catch (e) {
+            console.error(e);
+            showSnackBar({
+                severity: "error",
+                text: "Server error, please check browser console.",
+            });
+        }
+    };
+
+    const validateAndUpdate = async () => {
+        try {
+            const result = await put(`/api/management/user/${urlParams.id}`, {
+                displayName: formik.values.displayName,
+                emailAddress: formik.values.email,
+                countryCode: formik.values.countryCode,
+                telephoneNumber: formik.values.telephoneNumber,
+                avatarUrl: formik.values.avatarUrl,
+                verified: formik.values.verified,
+                verificationCode: formik.values.verificationCode,
+            });
+
+            showSnackBar({ severity: "success", text: "User updated" });
+            history.push("/user");
+        } catch (e) {
+            console.error(e);
+            showSnackBar({
+                severity: "error",
+                text: "Failed to update user, please check console.",
+            });
+        }
     };
 
     return (
         <Layout subtitle={`User detail ( ${urlParams.id} )`} showBack={true}>
-            <Paper
-                sx={{
-                    margin: "24px",
-                    padding: "24px",
-                    minHeight: "calc(100vh-64px)",
-                }}
-            >
-                <Grid container spacing={2}>
-                    <Grid item xs={12} md={8}>
-                        <TextField
-                            required
-                            fullWidth
-                            error={forms.displayName.isError}
-                            label="Display Name"
-                            value={forms.displayName.value}
-                            onChange={(e) => {
-                                forms.displayName.value = e.target.value;
-                                setForms({ ...forms });
-                            }}
-                            helperText={forms.displayName.helperText}
-                        />
-                    </Grid>
-
-                    {/*
-                    <Grid item xs={12} md={8}>
-                        <Stack alignItems="center" spacing={1} direction="row">
-                            <TextField
-                                required
-                                error={countryCode.displayName.isError}
-                                label="Country code"
-                                value={countryCode.displayName.value}
-                                onChange={(e) => {
-                                    countryCode.displayName.value = e.target.value;
-                                    setCountryCode({ ...countryCode });
-                                }}
-                                helperText={countryCode.displayName.helperText}
-                            />
+            <form onSubmit={formik.handleSubmit}>
+                <Paper
+                    sx={{
+                        margin: "24px",
+                        padding: "24px",
+                        minHeight: "calc(100vh-64px)",
+                    }}
+                >
+                    <Grid container spacing={2}>
+                        <Grid item xs={12} md={8}>
                             <TextField
                                 required
                                 fullWidth
-                                error={phoneNumber.displayName.isError}
-                                label="Phone number"
-                                value={phoneNumber.displayName.value}
-                                onChange={(e) => {
-                                    phoneNumber.displayName.value = e.target.value;
-                                    setPhoneNumber({ ...phoneNumber });
-                                }}
-                                helperText={phoneNumber.displayName.helperText}
+                                id="displayName"
+                                error={
+                                    formik.touched.displayName && Boolean(formik.errors.displayName)
+                                }
+                                label="Display Name"
+                                value={formik.values.displayName}
+                                onChange={formik.handleChange}
+                                helperText={formik.touched.displayName && formik.errors.displayName}
                             />
-                        </Stack>
-                    </Grid>
-                    <Grid item xs={12} md={8}>
-                        <TextField
-                            fullWidth
-                            error={email.displayName.isError}
-                            label="E-mail"
-                            value={email.displayName.value}
-                            onChange={(e) => {
-                                email.displayName.value = e.target.value;
-                                setEmail({ ...email });
-                            }}
-                            helperText={email.displayName.helperText}
-                        />
-                    </Grid>
-                    <Grid item xs={12} md={8}>
-                        <TextField
-                            fullWidth
-                            error={avatarUrl.displayName.isError}
-                            label="Avatar URL"
-                            value={avatarUrl.displayName.value}
-                            onChange={(e) => {
-                                avatarUrl.displayName.value = e.target.value;
-                                setAvatarUrl({ ...avatarUrl });
-                            }}
-                            helperText={avatarUrl.displayName.helperText}
-                        />
-                    </Grid>
-                    <Grid item xs={12} md={8}>
-                        <TextField
-                            fullWidth
-                            error={verificationCode.displayName.isError}
-                            label="Verification Code"
-                            value={verificationCode.displayName.value}
-                            onChange={(e) => {
-                                verificationCode.displayName.value = e.target.value;
-                                setVerificationCode({ ...verificationCode });
-                            }}
-                            helperText={avatarUrl.displayName.helperText}
-                        />
-                    </Grid>
-                    <Grid item xs={12} md={8}>
-                        <FormControl component="fieldset">
-                            <FormGroup aria-label="position" row>
-                                <FormControlLabel
-                                    value="start"
-                                    control={
-                                        <Checkbox checked={verified} onChange={handleChange} />
+                        </Grid>
+                        <Grid item xs={12} md={8}>
+                            <Stack alignItems="center" spacing={1} direction="row">
+                                <TextField
+                                    required
+                                    id="countryCode"
+                                    error={
+                                        formik.touched.countryCode &&
+                                        Boolean(formik.errors.countryCode)
                                     }
-                                    label="Verified"
-                                    labelPlacement="start"
+                                    label="Country code"
+                                    value={formik.values.countryCode}
+                                    onChange={formik.handleChange}
+                                    helperText={
+                                        formik.touched.countryCode && formik.errors.countryCode
+                                    }
                                 />
-                            </FormGroup>
-                        </FormControl>
+                                <TextField
+                                    required
+                                    fullWidth
+                                    id="telephoneNumber"
+                                    error={
+                                        formik.touched.telephoneNumber &&
+                                        Boolean(formik.errors.telephoneNumber)
+                                    }
+                                    label="Phone number"
+                                    value={formik.values.telephoneNumber}
+                                    onChange={formik.handleChange}
+                                    helperText={
+                                        formik.touched.telephoneNumber &&
+                                        formik.errors.telephoneNumber
+                                    }
+                                />
+                            </Stack>
+                        </Grid>
+                        <Grid item xs={12} md={8}>
+                            <TextField
+                                fullWidth
+                                required
+                                id="email"
+                                error={formik.touched.email && Boolean(formik.errors.email)}
+                                label="E-mail"
+                                value={formik.values.email}
+                                onChange={formik.handleChange}
+                                helperText={formik.touched.email && formik.errors.email}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={8}>
+                            <TextField
+                                fullWidth
+                                id="telephoneNumber"
+                                error={formik.touched.avatarUrl && Boolean(formik.errors.avatarUrl)}
+                                label="Avatar Url"
+                                value={formik.values.avatarUrl}
+                                onChange={formik.handleChange}
+                                helperText={formik.touched.avatarUrl && formik.errors.avatarUrl}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={8}>
+                            <TextField
+                                fullWidth
+                                id="verificationCode"
+                                error={
+                                    formik.touched.verificationCode &&
+                                    Boolean(formik.errors.verificationCode)
+                                }
+                                label="Verification Code"
+                                value={formik.values.verificationCode}
+                                onChange={formik.handleChange}
+                                helperText={
+                                    formik.touched.verificationCode &&
+                                    formik.errors.verificationCode
+                                }
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={8}>
+                            <FormControl component="fieldset">
+                                <FormGroup aria-label="position" row>
+                                    <FormControlLabel
+                                        value="start"
+                                        control={<Checkbox onChange={formik.handleChange} />}
+                                        label="Verified"
+                                        labelPlacement="start"
+                                    />
+                                </FormGroup>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12} md={8} textAlign="right">
+                            <Button variant="contained" type="submit">
+                                Edit user
+                            </Button>
+                        </Grid>
                     </Grid>
-
-                                */}
-
-                    <Grid item xs={12} md={8} textAlign="right">
-                        <Button
-                            variant="contained"
-                            onClick={(e) => {
-                                validateAndUpdate();
-                            }}
-                        >
-                            Update user
-                        </Button>
-                    </Grid>
-                </Grid>
-            </Paper>
+                </Paper>
+            </form>
         </Layout>
     );
 }
