@@ -85,7 +85,9 @@ model Room {
   avatarUrl String    @map(name: "avatarUrl")
   createdAt  DateTime @default(now()) @map(name: "created_at")
   modifiedAt DateTime @default(now()) @map(name: "modified_at")
-  users RoomUser[]
+  deleted Boolean @default(false) @map(name: "deleted")
+
+  users RoomUser[] 
 
   @@map(name: "room")
 }
@@ -98,8 +100,8 @@ model RoomUser {
   roomId Int @map(name: "room_id")
   createdAt  DateTime @default(now()) @map(name: "created_at")
   modifiedAt DateTime @default(now()) @map(name: "modified_at")
+  isAdmin Boolean @default(false) @map(name: "is_admin")
 
   @@map(name: "room_user")
 }
-
 

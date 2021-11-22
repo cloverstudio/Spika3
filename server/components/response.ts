@@ -1,33 +1,33 @@
-export interface failedResponseType {
+export interface errorResponseType {
     status: string;
     message: string;
 }
 
-export interface succeedResponseType {
+export interface successResponseType {
     status: string;
     data: any;
 }
 
-export function response_fail(message: string, lang?: string): failedResponseType {
+export function errorResponse(message: string, lang?: string): errorResponseType {
     const messageTable = {
         "Error happens": {
             ja: "エラーが発生しました。",
         },
     };
 
-    const translattion: any = messageTable[message as keyof Object]
+    const translation: any = messageTable[message as keyof Object]
         ? messageTable[message as keyof Object][lang as keyof Object]
         : null;
 
     return {
         status: "fail",
-        message: translattion || message,
+        message: translation || message,
     };
 }
 
-export function response_success(data: any, lang?: string): succeedResponseType {
+export function successResponse(data: any, lang?: string): successResponseType {
     return {
         status: "success",
-        data: data,
+        data,
     };
 }

@@ -8,7 +8,7 @@ import * as consts from "../../../components/consts";
 import l, { error as le } from "../../../components/logger";
 import auth from "../lib/auth";
 import { InitRouterParams } from "../../types/serviceInterface";
-import { response_success, response_fail } from "../../../components/respons";
+import { successResponse, errorResponse } from "../../../components/response";
 
 export default (params: InitRouterParams) => {
     const router = Router();
@@ -17,10 +17,10 @@ export default (params: InitRouterParams) => {
         const userReq: UserRequest = req as UserRequest;
 
         try {
-            res.send(response_success("test", userReq.lang));
+            res.send(successResponse("test", userReq.lang));
         } catch (e: any) {
             le(e);
-            res.status(500).json(response_fail(`Server error ${e}`, userReq.lang));
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
     });
 
@@ -29,7 +29,7 @@ export default (params: InitRouterParams) => {
 
         try {
             res.send(
-                response_success(
+                successResponse(
                     {
                         device: userReq.device,
                         user: userReq.user,
@@ -40,13 +40,13 @@ export default (params: InitRouterParams) => {
             );
         } catch (e: any) {
             le(e);
-            res.status(500).json(response_fail(`Server error ${e}`, userReq.lang));
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
     });
 
     router.get("/error", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
-        res.status(400).json(response_fail(`Error happens`, userReq.lang));
+        res.status(400).json(errorResponse(`Error happens`, userReq.lang));
     });
 
     return router;

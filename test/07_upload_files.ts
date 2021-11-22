@@ -4,7 +4,6 @@ import app from "../server";
 import globals from "./global";
 import util from "util";
 import fs from "fs";
-import * as Constants from "../server/components/consts";
 import path from "path";
 import utils from "../server/components/utils";
 import createFakeFile from "./fixtures/file";
@@ -40,14 +39,14 @@ describe("API", () => {
             validParams = {
                 chunk: "string",
                 offset: 0,
-                total: 10,
+                total: 100,
                 size: 200,
                 mimeType: "string",
                 fileName: "string",
                 type: "string",
                 fileHash: "string",
                 relationId: 8,
-                clientId: String(faker.datatype.number({ min: 1, max: 10000 })),
+                clientId: String(faker.datatype.number({ min: 1, max: 100000 })),
             };
         });
 
@@ -311,7 +310,7 @@ describe("API", () => {
 
             await utils.wait(1);
 
-            const filesDir = path.join(Constants.UPLOAD_FOLDER, `files`);
+            const filesDir = path.join(process.env["UPLOAD_FOLDER"], `files`);
             const files = await readDir(filesDir);
             expect(files).to.be.an("array").that.does.not.include(validParams.clientId);
 
@@ -343,7 +342,10 @@ describe("API", () => {
             expect(responseValid.body.data.uploadedChunks).to.be.an("array").that.does.include(0);
             expect(responseValid.body.data.uploadedChunks).to.have.lengthOf(1);
 
-            const tempFileDir = path.join(Constants.UPLOAD_FOLDER, `.temp/${validParams.clientId}`);
+            const tempFileDir = path.join(
+                process.env["UPLOAD_FOLDER"],
+                `.temp/${validParams.clientId}`
+            );
             const tempFileDirExists = fs.existsSync(tempFileDir);
 
             expect(tempFileDirExists).to.eqls(true);
@@ -383,7 +385,7 @@ describe("API", () => {
 
             await utils.wait(1);
 
-            const filesDir = path.join(Constants.UPLOAD_FOLDER, `files`);
+            const filesDir = path.join(process.env["UPLOAD_FOLDER"], `files`);
             const filesDirExists = fs.existsSync(filesDir);
 
             expect(filesDirExists).to.eqls(true);

@@ -4,6 +4,8 @@ import util from "util";
 import fs from "fs";
 import crypto from "crypto";
 import path from "path";
+import { successResponse, errorResponse } from "../../../components/response";
+import { UserRequest } from "../lib/types";
 
 const mkdir = util.promisify(fs.mkdir);
 const readDir = util.promisify(fs.readdir);
@@ -14,10 +16,9 @@ const removeFile = util.promisify(fs.unlink);
 
 const prisma = new PrismaClient();
 
-import * as Constants from "../../../components/consts";
-import l, { error as le } from "../../../components/logger";
+import { error as le } from "../../../components/logger";
 import * as yup from "yup";
-import validate from "../lib/validate";
+import validate from "../../../components/validateMiddleware";
 
 const postFilesSchema = yup.object().shape({
     body: yup.object().shape({
@@ -38,6 +39,8 @@ export default (): Router => {
     const router = Router();
 
     router.post("/", validate(postFilesSchema), async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+
         try {
             const {
                 chunk,
@@ -55,9 +58,11 @@ export default (): Router => {
             const exists = await prisma.file.findFirst({ where: { clientId } });
 
             if (exists) {
-                return res.status(400).send("file with that clientId already exists");
+                return res
+                    .status(400)
+                    .send(errorResponse("File with that clientId already exists", userReq.lang));
             }
-            const tempFileDir = path.join(Constants.UPLOAD_FOLDER, `.temp/${clientId}`);
+            const tempFileDir = path.join(process.env["UPLOAD_FOLDER"], `.temp/${clientId}`);
             if (!fs.existsSync(tempFileDir)) {
                 await mkdir(tempFileDir, { recursive: true });
             }
@@ -80,7 +85,7 @@ export default (): Router => {
                 });
             }
 
-            const filesDir = path.join(Constants.UPLOAD_FOLDER, "files");
+            const filesDir = path.join(process.env["UPLOAD_FOLDER"], "files");
             if (!fs.existsSync(filesDir)) {
                 await mkdir(filesDir);
             }
@@ -111,7 +116,7 @@ export default (): Router => {
             const hashMatches = await checkHashes(fileHash, filePath);
             if (!hashMatches) {
                 await removeFile(filePath);
-                return res.status(400).send("hash doesn't match");
+                return res.status(400).send(errorResponse("Hash doesn't match", userReq.lang));
             }
 
             const file = await prisma.file.create({
@@ -126,12 +131,7 @@ export default (): Router => {
                 },
             });
 
-            res.send({
-                data: {
-                    uploadedChunks,
-                    file,
-                },
-            });
+            res.send(successResponse({ uploadedChunks, file }, userReq.lang));
 
             try {
                 for (const fileName of await readDir(tempFileDir)) {
@@ -148,44 +148,52 @@ export default (): Router => {
             }
         } catch (e: any) {
             le(e);
-            res.status(500).send(`Server error ${e}`);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
         }
     });
 
     router.get("/:id", async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+
         try {
             const id = parseInt((req.params.id as string) || "");
 
             const file = await prisma.file.findFirst({ where: { id } });
 
-            if (file) {
-                const readable = fs.createReadStream(file.path);
-                readable.pipe(res);
-            } else {
-                res.status(404).send(`Not found`);
+            if (!file) {
+                return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
+
+            if (!fs.existsSync(file.path)) {
+                return res.status(404).send(errorResponse("Not found", userReq.lang));
+            }
+
+            const readable = fs.createReadStream(file.path);
+            readable.pipe(res);
         } catch (e: any) {
             le(e);
-            res.status(500).send(`Server error ${e}`);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
         }
     });
 
     router.get("/check/:fileName", async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+
         try {
             const { fileName } = req.params;
             const dirPath = path.join(__dirname, `../uploads/.temp/${fileName}`);
 
             if (!fs.existsSync(dirPath)) {
-                return res.status(404).send(`Not found`);
+                return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
             const files = await readDir(dirPath);
             const uploadedChunks = files.map((chunkName) => +chunkName.split("-")[0]);
 
-            res.send({ uploadedChunks });
+            res.send(successResponse({ uploadedChunks }, userReq.lang));
         } catch (e: any) {
             le(e);
-            res.status(500).send(`Server error ${e}`);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
         }
     });
 
