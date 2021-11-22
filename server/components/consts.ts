@@ -10,5 +10,3 @@ export const BACKDOOR_VERIFICATION_CODE = "eureka";
 
 export const QUEUE_SMS = "QUEUE_SMS";
 export const QUEUE_CREATE_CONTACT = "QUEUE_CREATE_CONTACT";
-
-export const UPLOAD_FOLDER = process.env.IS_TEST ? "./test-uploads" : "./uploads";

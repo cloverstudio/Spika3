@@ -15,10 +15,10 @@ describe("API", () => {
                 .get("/api/messenger/test/auth")
                 .set({ accesstoken: globals.userToken });
             expect(response.status).to.eqls(200);
-            expect(response.body).to.have.property("user");
-            expect(response.body).to.have.property("device");
-            expect(response.body.device).to.have.property("id");
-            expect(response.body.user).to.have.property("id");
+            expect(response.body.data).to.have.property("user");
+            expect(response.body.data).to.have.property("device");
+            expect(response.body.data.device).to.have.property("id");
+            expect(response.body.data.user).to.have.property("id");
         });
     });
 
@@ -45,10 +45,58 @@ describe("API", () => {
                 .get("/api/messenger/test/auth")
                 .set({ accesstoken: globals.userToken });
             expect(response.status).to.eqls(200);
-            expect(response.body).to.have.property("user");
-            expect(response.body).to.have.property("device");
-            expect(response.body.device).to.have.property("id");
-            expect(response.body.user).to.have.property("id");
+            expect(response.body.data).to.have.property("user");
+            expect(response.body.data).to.have.property("device");
+            expect(response.body.data.device).to.have.property("id");
+            expect(response.body.data.user).to.have.property("id");
+        });
+    });
+
+    // lang
+    describe("/api/messenger/test/auth GET", () => {
+        it("Lang works", async () => {
+            const response = await supertest(app).get("/api/messenger/test/auth").set({
+                accesstoken: globals.userToken,
+                lang: "ja",
+            });
+
+            expect(response.status).to.eqls(200);
+            expect(response.body.data).to.have.property("user");
+            expect(response.body.data).to.have.property("device");
+            expect(response.body.data.device).to.have.property("id");
+            expect(response.body.data.user).to.have.property("id");
+            expect(response.body.data.lang).to.equal("ja");
+        });
+
+        it("Lang works", async () => {
+            const response = await supertest(app).get("/api/messenger/test/auth").set({
+                accesstoken: globals.userToken,
+            });
+
+            expect(response.status).to.eqls(200);
+            expect(response.body.data).to.have.property("user");
+            expect(response.body.data).to.have.property("device");
+            expect(response.body.data.device).to.have.property("id");
+            expect(response.body.data.user).to.have.property("id");
+            expect(response.body.data.lang).to.equal("en");
+        });
+
+        it("Lang works", async () => {
+            const response = await supertest(app).get("/api/messenger/test/error").set({
+                accesstoken: globals.userToken,
+            });
+            expect(response.status).to.eqls(400);
+            expect(response.body.message).to.equal("Error happens");
+        });
+
+        it("Lang works", async () => {
+            const response = await supertest(app).get("/api/messenger/test/error").set({
+                accesstoken: globals.userToken,
+                lang: "ja",
+            });
+
+            expect(response.status).to.eqls(400);
+            expect(response.body.message).to.equal("エラーが発生しました。");
         });
     });
 });

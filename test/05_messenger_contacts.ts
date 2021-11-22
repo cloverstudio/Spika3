@@ -22,10 +22,11 @@ describe("API", () => {
                 .set({ accesstoken: globals.userToken });
 
             expect(response.status).to.eqls(200);
-            expect(response.body).to.has.property("list");
-            expect(response.body).to.has.property("count");
-            expect(response.body).to.has.property("limit");
-            expect(response.body.limit).to.eqls(Constants.PAGING_LIMIT);
+            expect(response.body).to.has.property("data");
+            expect(response.body.data).to.has.property("list");
+            expect(response.body.data).to.has.property("count");
+            expect(response.body.data).to.has.property("limit");
+            expect(response.body.data.limit).to.eqls(Constants.PAGING_LIMIT);
         });
 
         it("Accepts page query", async () => {
@@ -39,12 +40,13 @@ describe("API", () => {
                 .set({ accesstoken: globals.userToken });
 
             expect(response.status).to.eqls(200);
-            expect(response.body).to.has.property("list");
-            expect(response.body).to.has.property("count");
-            expect(response.body).to.has.property("limit");
-            expect(response.body.limit).to.eqls(Constants.PAGING_LIMIT);
-            expect(response.body.count).to.eqls(contacts.count);
-            expect(response.body.list.length === 0).to.eqls(
+            expect(response.body).to.has.property("data");
+            expect(response.body.data).to.has.property("list");
+            expect(response.body.data).to.has.property("count");
+            expect(response.body.data).to.has.property("limit");
+            expect(response.body.data.limit).to.eqls(Constants.PAGING_LIMIT);
+            expect(response.body.data.count).to.eqls(contacts.count);
+            expect(response.body.data.list.length === 0).to.eqls(
                 contacts.count > Constants.PAGING_LIMIT ? false : true
             );
         });
@@ -147,13 +149,14 @@ describe("API", () => {
                 });
 
             expect(response.status).to.eqls(200);
-            expect(response.body).to.has.property("list");
-            expect(response.body).to.has.property("count");
-            expect(response.body).to.has.property("limit");
-            expect(response.body.limit).to.eqls(Constants.CONTACT_SYNC_LIMIT);
-            expect(response.body.count).to.eqls(users.length);
-            expect(response.body.list.length).to.eqls(users.length);
-            expect(response.body.list.some((u: User) => u.verified === false)).to.eqls(false);
+            expect(response.body).to.has.property("data");
+            expect(response.body.data).to.has.property("list");
+            expect(response.body.data).to.has.property("count");
+            expect(response.body.data).to.has.property("limit");
+            expect(response.body.data.limit).to.eqls(Constants.CONTACT_SYNC_LIMIT);
+            expect(response.body.data.count).to.eqls(users.length);
+            expect(response.body.data.list.length).to.eqls(users.length);
+            expect(response.body.data.list.some((u: User) => u.verified === false)).to.eqls(false);
         });
 
         it("Create contact record for every existing verified users", async () => {

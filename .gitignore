@@ -108,4 +108,5 @@ dist
 public/management
 public/messenger
 uploads
+test/upload
 test-uploads

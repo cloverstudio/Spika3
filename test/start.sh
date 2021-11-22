@@ -8,7 +8,9 @@ export PORT=4000
 export USE_MNG_API=1
 export USE_MSG_API=1
 export USE_SMS=1
+export USE_UPLOAD=1
 export IS_TEST=1
+export UPLOAD_FOLDER=./test/upload
 
 npx prisma migrate dev --name init --preview-feature 
 
