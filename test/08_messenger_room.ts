@@ -2,12 +2,8 @@ import { expect } from "chai";
 import supertest from "supertest";
 import app from "../server";
 import globals from "./global";
-import * as Constants from "../server/components/consts";
-import path from "path";
-import utils from "../server/components/utils";
 import createFakeRoom from "./fixtures/room";
-import faker from "faker";
-import { after, beforeEach } from "mocha";
+import { beforeEach } from "mocha";
 import createFakeUser, { createManyFakeUsers } from "./fixtures/user";
 import { RoomUser } from ".prisma/client";
 
