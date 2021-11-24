@@ -8,6 +8,7 @@ import auth from "../lib/auth";
 import * as yup from "yup";
 import validate from "../../../components/validateMiddleware";
 import { successResponse, errorResponse } from "../../../components/response";
+import { MESSAGE_ACTION_NEW_MESSAGE } from "../../../components/consts";
 
 const prisma = new PrismaClient();
 
@@ -53,7 +54,7 @@ export default (): Router => {
                 fromUserId,
                 fromDeviceId,
                 messageBody,
-                action: "new_message",
+                action: MESSAGE_ACTION_NEW_MESSAGE,
             }));
 
             const message = await prisma.message.create({
@@ -62,7 +63,7 @@ export default (): Router => {
                     roomId,
                     fromUserId: userReq.user.id,
                     fromDeviceId: userReq.device.id,
-                    totalDeviceCount: 0,
+                    totalDeviceCount: deviceMessages.length,
                     deviceMessages: {
                         createMany: {
                             data: deviceMessages,

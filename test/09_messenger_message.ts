@@ -3,14 +3,11 @@ import supertest from "supertest";
 import app from "../server";
 import globals from "./global";
 import * as Constants from "../server/components/consts";
-import path from "path";
-import utils from "../server/components/utils";
 import createFakeRoom from "./fixtures/room";
-import faker from "faker";
-import { after, before, beforeEach } from "mocha";
-import createFakeUser, { createManyFakeUsers } from "./fixtures/user";
-import { Room, RoomUser } from ".prisma/client";
+import { before, beforeEach } from "mocha";
+import { Room } from ".prisma/client";
 import { createFakeDevices } from "./fixtures/device";
+import { createManyFakeUsers } from "./fixtures/user";
 
 describe("API", () => {
     describe("/api/messenger/messages POST", () => {
@@ -156,6 +153,7 @@ describe("API", () => {
             const deviceMessageIds = deviceMessages.map((d) => d.deviceId);
 
             expect(deviceMessageIds).to.include.members(deviceIds);
+            expect(message.totalDeviceCount).to.eqls(devices.length);
         });
 
         it("every deviceMessage contains info about sender", async () => {
@@ -248,7 +246,9 @@ describe("API", () => {
             });
             const actions = deviceMessages.map((dm) => dm.action);
 
-            expect(actions.every((a: string) => a === "new_message")).to.eqls(true);
+            expect(
+                actions.every((a: string) => a === Constants.MESSAGE_ACTION_NEW_MESSAGE)
+            ).to.eqls(true);
         });
     });
 });
