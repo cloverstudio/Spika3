@@ -18,6 +18,11 @@ import { useGet } from "../../lib/useApi";
 import { useShowSnackBar } from "../../components/useUI";
 import { ListResponseType } from "../../lib/customTypes";
 import { Box } from "@mui/system";
+import {
+    successResponse,
+    errorResponse,
+    successResponseType,
+} from "../../../../../../server/components/response";
 
 export default function Dashboard() {
     const [loading, setLoading] = React.useState<boolean>(false);
@@ -45,7 +50,8 @@ export default function Dashboard() {
                     ? `/api/management/device?page=${page}`
                     : `/api/management/device?page=${page}&userId=${urlParams.id}`;
             console.log(url);
-            const response: ListResponseType<Device> = await get(url);
+            const serverResponse: successResponseType = await get(url);
+            const response: ListResponseType<Device> = serverResponse.data;
             setList(response.list);
             setPageSize(response.limit);
             setTotalCount(response.count);

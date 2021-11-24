@@ -17,7 +17,7 @@ describe("Admin user management API", () => {
                 })
                 .set({ "admin-accesstoken": globals.adminToken });
 
-            globals.createdUser = response.body;
+            globals.createdUser = response.body.user;
             expect(response.status).to.eqls(200);
         });
 
@@ -50,7 +50,7 @@ describe("Admin user management API", () => {
                 })
                 .set({ "admin-accesstoken": globals.adminToken });
 
-            globals.createdUser = response.body;
+            globals.createdUser = response.body.user;
             expect(response.status).to.eqls(200);
         });
 
@@ -72,7 +72,7 @@ describe("Admin user management API", () => {
                 })
                 .set({ "admin-accesstoken": globals.adminToken });
 
-            globals.createdUser = response.body;
+            globals.createdUser = response.body.user;
 
             expect(response.status).to.eqls(200);
             expect(response.body.emailAddress).equals(newEmail);

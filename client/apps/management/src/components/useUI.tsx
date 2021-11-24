@@ -45,7 +45,7 @@ export function useShowBasicDialog() {
                 text: param.text,
                 allowButtonLabel: "OK",
                 denyButtonLabel: "Cancel",
-                title: "Worning",
+                title: "Warning",
             })
         );
     };

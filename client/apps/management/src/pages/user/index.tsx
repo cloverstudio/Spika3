@@ -20,7 +20,11 @@ import { wait } from "../../../../../lib/utils";
 import { useGet } from "../../lib/useApi";
 import { useShowSnackBar } from "../../components/useUI";
 import { ListResponseType } from "../../lib/customTypes";
-import { Box } from "@mui/system";
+import {
+    successResponse,
+    errorResponse,
+    successResponseType,
+} from "../../../../../../server/components/response";
 
 export default function Dashboard() {
     const [loading, setLoading] = React.useState<boolean>(false);
@@ -42,10 +46,11 @@ export default function Dashboard() {
         setLoading(true);
 
         try {
-            const response: ListResponseType<User> = await get(`/api/management/user?page=${page}`);
-            setList(response.list);
-            setPageSize(response.limit);
-            setTotalCount(response.count);
+            const response: successResponseType = await get(`/api/management/user?page=${page}`);
+            const data: ListResponseType<User> = response.data;
+            setList(data.list);
+            setPageSize(data.limit);
+            setTotalCount(data.count);
         } catch (e) {
             console.error(e);
             showSnackBar({

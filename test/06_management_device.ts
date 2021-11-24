@@ -18,7 +18,7 @@ describe("Admin device management API", () => {
                 })
                 .set({ "admin-accesstoken": globals.adminToken });
 
-            globals.createdDevice = response.body;
+            globals.createdDevice = response.body.device;
             expect(response.status).to.eqls(200);
         });
 
@@ -51,7 +51,7 @@ describe("Admin device management API", () => {
                 })
                 .set({ "admin-accesstoken": globals.adminToken });
 
-            globals.createdDevice = response.body;
+            globals.createdDevice = response.body.device;
             expect(response.status).to.eqls(200);
         });
 
