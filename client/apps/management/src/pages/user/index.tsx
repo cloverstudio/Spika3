@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import Layout from "../layout";
 import { useHistory } from "react-router-dom";
-import { DataGrid, GridColDef, GridActionsCellItem, GridRenderCellParams } from "@mui/x-data-grid";
-import { IconButton, Paper, Fab, Avatar } from "@mui/material";
+import { DataGrid, GridActionsCellItem, GridRenderCellParams } from "@mui/x-data-grid";
+import { Paper, Fab, Avatar } from "@mui/material";
 
 import {
     Add as AddIcon,
@@ -16,15 +16,10 @@ import {
 
 import { User } from "@prisma/client";
 
-import { wait } from "../../../../../lib/utils";
 import { useGet } from "../../lib/useApi";
 import { useShowSnackBar } from "../../components/useUI";
 import { ListResponseType } from "../../lib/customTypes";
-import {
-    successResponse,
-    errorResponse,
-    successResponseType,
-} from "../../../../../../server/components/response";
+import { successResponseType } from "../../../../../../server/components/response";
 
 export default function Dashboard() {
     const [loading, setLoading] = React.useState<boolean>(false);
