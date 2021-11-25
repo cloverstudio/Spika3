@@ -8,6 +8,8 @@ import SMSService from "./services/sms";
 import UploadService from "./services/upload";
 import bodyParser from "body-parser";
 import amqp from "amqplib";
+import spdy from "spdy";
+import fs from "fs";
 
 import l, { error as e } from "./components/logger";
 
@@ -35,9 +37,12 @@ const app: express.Express = express();
         }
     });
 
-    app.listen(process.env["SERVER_PORT"], () => {
-        console.log(`Start on port ${process.env["SERVER_PORT"]}.`);
-    });
+    const options: any = {};
+
+    if (process.env["HTTP2_SELFSIGNCERTIFICATE"]) {
+        options.key = fs.readFileSync(__dirname + "/certificates/privateKey.key");
+        options.cert = fs.readFileSync(__dirname + "/certificates/certificate.crt");
+    }
 
     app.use(express.static("public"));
 
@@ -86,6 +91,10 @@ const app: express.Express = express();
     app.use(async (err: Error, req: express.Request, res: express.Response, next: Function) => {
         e(err);
         return res.status(500).send(`Server Error ${err.message}`);
+    });
+
+    spdy.createServer(options, app).listen(process.env["SERVER_PORT"], () => {
+        console.log(`HTTP/2 server listening on port: ${process.env["SERVER_PORT"]}`);
     });
 })();
 
