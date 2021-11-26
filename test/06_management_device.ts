@@ -51,7 +51,9 @@ describe("Admin device management API", () => {
                     osName: "iOs",
                 })
                 .set({ "admin-accesstoken": globals.adminToken });
-            console.log(response.body);
+
+            // console.log("------------------------------------__", globals.createdDevice!.id);
+            // console.log("------------------------------------__", response.body);
             globals.createdDevice = response.body.data.device;
             expect(response.status).to.eqls(200);
         });

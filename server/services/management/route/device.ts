@@ -124,7 +124,6 @@ export default (params: InitRouterParams) => {
         const userReq: UserRequest = req as UserRequest;
         try {
             const idOfDevice: number = parseInt(req.params.deviceId);
-            const id: number = parseInt(req.params.id);
             const userId: number = parseInt(req.body.userId);
             const deviceId: string = req.body.deviceId;
             const type: string = req.body.type;
@@ -132,21 +131,26 @@ export default (params: InitRouterParams) => {
             const appVersion: number = parseInt(req.body.appVersion);
             const token: string = req.body.token;
             const pushToken: string = req.body.pushToken;
-            // check existance
             const device: Device = await prisma.device.findFirst({
                 where: {
                     id: idOfDevice,
+                },
+            });
+            const deviceCheckUnique: Device = await prisma.device.findFirst({
+                where: {
+                    deviceId: deviceId,
                 },
             });
 
             if (!device)
                 return res.status(404).send(errorResponse(`Wrong device id`, userReq.lang));
 
-            if (device.id != id)
-                return res
-                    .status(404)
-                    .send(errorResponse(`Device id already in use`, userReq.lang));
-            console.log("HURA!");
+            if (deviceCheckUnique != null) {
+                if (device.id != deviceCheckUnique.id)
+                    return res
+                        .status(404)
+                        .send(errorResponse(`Device id already in use`, userReq.lang));
+            }
             const updateValues: any = {};
             if (type) updateValues.type = type;
             if (osName) updateValues.osName = osName;
