@@ -146,7 +146,7 @@ export default (params: InitRouterParams) => {
                 return res
                     .status(404)
                     .send(errorResponse(`Device id already in use`, userReq.lang));
-
+            console.log("HURA!");
             const updateValues: any = {};
             if (type) updateValues.type = type;
             if (osName) updateValues.osName = osName;
