@@ -28,6 +28,7 @@ model User {
   device    Device[]
   contacts  Contact[] @relation("user")
   contactee Contact[] @relation("contact")
+  messages Message[]
   @@map(name: "user")
 }
 
@@ -47,6 +48,7 @@ model Device {
   createdAt      DateTime  @default(now()) @map(name: "created_at")
   modifiedAt     DateTime  @default(now()) @map(name: "modified_at")
 
+  messages Message[]
   @@map(name: "device")
 }
 
@@ -82,12 +84,13 @@ model Room {
   id Int @id @default(autoincrement()) @map(name: "id")
   type String @map(name: "type")
   name String @map(name: "name")
-  avatarUrl String    @map(name: "avatarUrl")
+  avatarUrl String    @map(name: "avatar_url")
   createdAt  DateTime @default(now()) @map(name: "created_at")
   modifiedAt DateTime @default(now()) @map(name: "modified_at")
   deleted Boolean @default(false) @map(name: "deleted")
 
-  users RoomUser[] 
+  users RoomUser[]
+  messages Message[]
 
   @@map(name: "room")
 }
@@ -98,10 +101,54 @@ model RoomUser {
   userId Int @map(name: "user_id")
   room Room @relation(fields: [roomId], references: [id])
   roomId Int @map(name: "room_id")
+  isAdmin Boolean @default(false) @map(name: "is_admin")
   createdAt  DateTime @default(now()) @map(name: "created_at")
   modifiedAt DateTime @default(now()) @map(name: "modified_at")
-  isAdmin Boolean @default(false) @map(name: "is_admin")
 
   @@map(name: "room_user")
+}
+
+model Message {
+  id Int @id @default(autoincrement()) @map(name: "id")
+  fromUserId Int @map(name: "from_user_id")
+  fromUser User @relation(fields: [fromUserId], references: [id])
+
+  fromDeviceId Int @map(name: "from_device_id")
+  fromDevice Device @relation(fields: [fromDeviceId], references: [id])
+
+  roomId Int @map(name: "room_id")
+  room Room @relation(fields: [roomId], references: [id])
+
+  type String @map(name: "type")
+  seenCount Int @default(0) @map(name: "seen_count")
+  receivedCount Int @default(0) @map(name: "received_count")
+  totalDeviceCount Int @map(name: "total_device_count")
+
+  createdAt  DateTime @default(now()) @map(name: "created_at")
+  modifiedAt DateTime @default(now()) @map(name: "modified_at")
+  deleted Boolean @default(false) @map(name: "deleted")
+
+  deviceMessages DeviceMessage[]
+
+  @@map(name: "message")
+}
+
+model DeviceMessage {
+  id Int @id @default(autoincrement()) @map(name: "id")
+  deviceId Int @map(name: "device_id")
+  userId Int @map(name: "user_id")
+  fromUserId Int @map(name: "from_user_id")
+  fromDeviceId Int @map(name: "from_device_id")
+
+  messageId Int @map(name: "message_id")
+  message Message @relation(fields: [messageId], references: [id])
+
+  messageBody Json @map(name: "message_body")
+  action String @map(name: "action")
+
+  createdAt  DateTime @default(now()) @map(name: "created_at")
+  modifiedAt DateTime @default(now()) @map(name: "modified_at")
+
+  @@map(name: "message_device")
 }
 
