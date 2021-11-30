@@ -12,54 +12,96 @@ generator client {
 
 // List of users managed by own
 model User {
-  id                      Int      @id      @default(autoincrement()) @map(name: "id")
-  emailAddress            String?  @unique                            @map(name: "email_address")
-  telephoneNumber         String?  @unique                            @map(name: "telephone_number")
-  telephoneNumberHashed   String?  @unique                            @map(name: "telephone_number_hashed")
-  countryCode             String?                                     @map(name: "country_code")
-  displayName             String?                                     @map(name: "display_name")
-  avatarUrl               String?                                     @map(name: "avatar_url")
-  verificationCode        String?                                     @map(name: "verification_code")
-  verified                Boolean  @default(false)                    @map(name: "verified")
-  createdAt               DateTime @default(now())                    @map(name: "created_at")
-  modifiedAt              DateTime @default(now())                    @map(name: "modified_at")
+  id                    Int      @id @default(autoincrement()) @map(name: "id")
+  emailAddress          String?  @unique @map(name: "email_address")
+  telephoneNumber       String?  @unique @map(name: "telephone_number")
+  telephoneNumberHashed String?  @unique @map(name: "telephone_number_hashed")
+  countryCode           String?  @map(name: "country_code")
+  displayName           String?  @map(name: "display_name")
+  avatarUrl             String?  @map(name: "avatar_url")
+  verificationCode      String?  @map(name: "verification_code")
+  verified              Boolean  @default(false) @map(name: "verified")
+  createdAt             DateTime @default(now()) @map(name: "created_at")
+  modifiedAt            DateTime @default(now()) @map(name: "modified_at")
+  rooms RoomUser[]
 
+  device    Device[]
+  contacts  Contact[] @relation("user")
+  contactee Contact[] @relation("contact")
   @@map(name: "user")
-  Device                  Device[]
 }
 
 model Device {
   id             Int       @id @default(autoincrement()) @map(name: "id")
   userId         Int       @map(name: "user_id")
-  User           User      @relation(fields: [userId], references: [id])
+  user           User      @relation(fields: [userId], references: [id])
   deviceId       String    @unique @map(name: "device_id")
   type           String?   @map(name: "type")
   deviceName     String?   @map(name: "device_name")
   osName         String?   @map(name: "os_name")
-  osVersion      String?      @map(name: "os_version")
+  osVersion      String?   @map(name: "os_version")
   appVersion     Int?      @map(name: "app_version")
   token          String?   @map(name: "token")
   pushToken      String?   @map(name: "push_token")
   tokenExpiredAt DateTime? @map(name: "token_expired_at")
-
-  createdAt       DateTime @default(now()) @map(name: "created_at")
-  modifiedAt      DateTime @default(now()) @map(name: "modified_at")
+  createdAt      DateTime  @default(now()) @map(name: "created_at")
+  modifiedAt     DateTime  @default(now()) @map(name: "modified_at")
 
   @@map(name: "device")
 }
 
 model File {
-  id             Int       @id @default(autoincrement()) @map(name: "id")
-  type           String    @map(name: "type")
-  relationiId    Int       @map(name: "relationId")
-  path           String    @map(name: "path")
-  mimeType       String    @map(name: "mime_type")
-  fileName       String    @map(name: "file_name")
-  size           Int       @map(name: "size")
+  id         Int    @id @default(autoincrement()) @map(name: "id")
+  type       String @map(name: "type")
+  relationId Int    @map(name: "relation_id")
+  path       String @map(name: "path")
+  mimeType   String @map(name: "mime_type")
+  fileName   String @map(name: "file_name")
+  size       Int    @map(name: "size")
+  clientId   String @unique @map(name: "client_id")
 
-  createdAt       DateTime @default(now()) @map(name: "created_at")
-  modifiedAt      DateTime @default(now()) @map(name: "modified_at")
+  createdAt  DateTime @default(now()) @map(name: "created_at")
+  modifiedAt DateTime @default(now()) @map(name: "modified_at")
 
   @@map(name: "file")
+}
+
+model Contact {
+  id         Int      @id @default(autoincrement()) @map(name: "id")
+  userId     Int
+  user       User     @relation("user", fields: [userId], references: [id])
+  contactId  Int
+  contact    User     @relation("contact", fields: [contactId], references: [id])
+  createdAt  DateTime @default(now()) @map(name: "created_at")
+  modifiedAt DateTime @default(now()) @map(name: "modified_at")
+
+  @@map(name: "contact")
+}
+
+model Room {
+  id Int @id @default(autoincrement()) @map(name: "id")
+  type String @map(name: "type")
+  name String @map(name: "name")
+  avatarUrl String    @map(name: "avatarUrl")
+  createdAt  DateTime @default(now()) @map(name: "created_at")
+  modifiedAt DateTime @default(now()) @map(name: "modified_at")
+  deleted Boolean @default(false) @map(name: "deleted")
+
+  users RoomUser[] 
+
+  @@map(name: "room")
+}
+
+model RoomUser {
+  id Int @id @default(autoincrement()) @map(name: "id")
+  user User @relation(fields: [userId], references: [id])
+  userId Int @map(name: "user_id")
+  room Room @relation(fields: [roomId], references: [id])
+  roomId Int @map(name: "room_id")
+  createdAt  DateTime @default(now()) @map(name: "created_at")
+  modifiedAt DateTime @default(now()) @map(name: "modified_at")
+  isAdmin Boolean @default(false) @map(name: "is_admin")
+
+  @@map(name: "room_user")
 }
 

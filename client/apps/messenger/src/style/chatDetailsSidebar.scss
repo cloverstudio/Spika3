@@ -1,128 +1,128 @@
 div.top-details-box {
-  flex-grow: 1;
-  background-color: #f2f2f2;
-  margin: 15px;
-  border-radius: 10px;
+    flex-grow: 1;
+    background-color: #f2f2f2;
+    margin: 15px;
+    border-radius: 10px;
 }
 
 div.inner-box {
-  margin: 15px;
-  flex-grow: 1;
-  position: relative;
+    margin: 15px;
+    flex-grow: 1;
+    position: relative;
 }
 
 img.chat-avatar {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  max-width: 100%;
-  height: auto;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    max-width: 100%;
+    height: auto;
 }
 
 label.chat-title {
-  font-size: 15px;
-  font-weight: 500;
+    font-size: 15px;
+    font-weight: 500;
 }
 
 svg.red-type {
-  fill: red;
+    fill: red;
 }
 
 svg.green-type {
-  fill: green;
+    fill: green;
 }
 
 svg.yellow-type {
-  fill: yellow;
+    fill: yellow;
 }
 
 svg.blue-type {
-  fill: blue;
+    fill: blue;
 }
 
 svg.white-type {
-  fill: white;
+    fill: white;
 }
 div.color-box {
-  margin: 15px;
-  flex-grow: 1;
-  position: relative;
+    margin: 15px;
+    flex-grow: 1;
+    position: relative;
 }
 
 div.button-box {
-  margin: 5px;
-  flex-grow: 1;
-  position: relative;
+    margin: 5px;
+    flex-grow: 1;
+    position: relative;
 }
 
 label.button-text {
-  color: white;
-  font-size: 12px;
+    color: white;
+    font-size: 12px;
 }
 
 div.button-component {
-  width: 50px;
-  height: 70px;
-  border-radius: 10px;
-  padding: 3px;
+    width: 50px;
+    height: 70px;
+    border-radius: 10px;
+    padding: 3px;
 }
 
 div.light-blue-button {
-  background-color: #4696f0;
+    background-color: #4696f0;
 }
 
 div.dark-blue-button {
-  background-color: #131940;
+    background-color: #131940;
 }
 
 button.no-padding {
-  padding: 2px;
+    padding: 2px;
 }
 
 label.side-title {
-  font-size: 15px;
-  font-weight: 500;
+    font-size: 15px;
+    font-weight: 500;
 }
 
 label.side-empty-title {
-  font-size: 12px;
-  color: grey;
+    font-size: 12px;
+    color: grey;
 }
 
 .logo-chat-title {
-  padding-top: 1rem;
-  label.logo-chat {
-    width: 80%;
-    text-align: left;
-  }
+    padding-top: 1rem;
+    label.logo-chat {
+        width: 80%;
+        text-align: left;
+    }
 }
 
 .search-box {
-  position: relative;
-  margin: 1em;
-  svg {
-    position: absolute;
-    left: 0.3em;
-    top: 0.37em;
-  }
-  input[type="text"] {
-    text-indent: 2em;
-    width: 100%;
-  }
-  label {
-    padding-left: 2em;
-  }
+    position: relative;
+    margin: 1em;
+    svg {
+        position: absolute;
+        left: 0.3em;
+        top: 0.37em;
+    }
+    input[type="text"] {
+        text-indent: 2em;
+        width: 100%;
+    }
+    label {
+        padding-left: 2em;
+    }
 }
 
 .recents-list {
-  margin: 1em;
-  margin-top: 0;
-  border-radius: 10px;
-  .chat-control {
-    margin: 0.5em;
-  }
-  button.chat-new {
-    margin-left: auto;
-    padding: 0;
-  }
+    margin: 1em;
+    margin-top: 0;
+    border-radius: 10px;
+    .chat-control {
+        margin: 0.5em;
+    }
+    button.chat-new {
+        margin-left: auto;
+        padding: 0;
+    }
 }

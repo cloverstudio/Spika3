@@ -1,9 +1,15 @@
 export interface formItem {
-    value: any,
-    isError: boolean,
-    helperText: string
+    value: any;
+    isError: boolean;
+    helperText: string;
 }
 
 export interface formItems {
-    displayName: formItem
+    userId: formItem;
+    deviceId: formItem;
+    type: formItem;
+    osName: formItem;
+    appVersion: formItem;
+    token: formItem;
+    pushToken: formItem;
 }

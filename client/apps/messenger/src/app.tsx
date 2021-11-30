@@ -15,48 +15,51 @@ import MockMessageMedia from "./pages/mocks/messageMedia";
 import MockNoChat from "./pages/mocks/noChat";
 import MockUserLIst from "./pages/mocks/userLIst";
 
+declare var BASE_URL: string;
+
 function App() {
-  return (
-    <>
-      <Router>
-        <Switch>
-          <Route exact path="/">
-            <MockTop />
-          </Route>
-          <Route exact path="/mock/login">
-            <MockLogin />
-          </Route>
-          <Route exact path="/mock/chat">
-            <MockChat />
-          </Route>
-          <Route exact path="/mock/chat_medialist">
-            <MockChatMedialist />
-          </Route>
-          <Route exact path="/mock/chat_nomessage_userlist">
-            <MockChatNomessageUserList />
-          </Route>
-          <Route exact path="/mock/chat_nomessage">
-            <MockChatNomessage />
-          </Route>
-          <Route exact path="/mock/chat_small_sidebar">
-            <MockChatSmallSidebar />
-          </Route>
-          <Route exact path="/mock/groupdetail">
-            <MockGroupDetail />
-          </Route>
-          <Route exact path="/mock/message_media">
-            <MockMessageMedia />
-          </Route>
-          <Route exact path="/mock/nochat">
-            <MockNoChat />
-          </Route>
-          <Route exact path="/mock/userlist">
-            <MockUserLIst />
-          </Route>
-        </Switch>
-      </Router>
-    </>
-  );
+    console.log("BASE_URL", BASE_URL);
+    return (
+        <>
+            <Router basename={BASE_URL}>
+                <Switch>
+                    <Route exact path="/">
+                        <MockTop />
+                    </Route>
+                    <Route exact path="/mock/login">
+                        <MockLogin />
+                    </Route>
+                    <Route exact path="/mock/chat">
+                        <MockChat />
+                    </Route>
+                    <Route exact path="/mock/chat_medialist">
+                        <MockChatMedialist />
+                    </Route>
+                    <Route exact path="/mock/chat_nomessage_userlist">
+                        <MockChatNomessageUserList />
+                    </Route>
+                    <Route exact path="/mock/chat_nomessage">
+                        <MockChatNomessage />
+                    </Route>
+                    <Route exact path="/mock/chat_small_sidebar">
+                        <MockChatSmallSidebar />
+                    </Route>
+                    <Route exact path="/mock/groupdetail">
+                        <MockGroupDetail />
+                    </Route>
+                    <Route exact path="/mock/message_media">
+                        <MockMessageMedia />
+                    </Route>
+                    <Route exact path="/mock/nochat">
+                        <MockNoChat />
+                    </Route>
+                    <Route exact path="/mock/userlist">
+                        <MockUserLIst />
+                    </Route>
+                </Switch>
+            </Router>
+        </>
+    );
 }
 
 export default App;

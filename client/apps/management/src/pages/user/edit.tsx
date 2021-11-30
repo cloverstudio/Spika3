@@ -1,339 +1,262 @@
-import React, { useState, useEffect } from 'react';
-import Layout from '../layout'
+import React, { useEffect } from "react";
+import Layout from "../layout";
 import { useHistory, useParams } from "react-router-dom";
-import faker from "faker";
 import { useGet, usePut } from "../../lib/useApi";
 
 import {
-  TextField,
-  Paper,
-  Grid,
-  Button,
-  Stack,
-  FormGroup,
-  FormControl,
-  FormControlLabel,
-  Checkbox
+    TextField,
+    Paper,
+    Grid,
+    Button,
+    Stack,
+    FormGroup,
+    FormControl,
+    FormControlLabel,
+    Checkbox,
 } from "@mui/material";
 
-import { useSelector, useDispatch } from "react-redux";
 import { useShowSnackBar } from "../../components/useUI";
 import { User } from "@prisma/client";
-import { formItem, formItems } from "./types"
+import * as yup from "yup";
+import { useFormik } from "formik";
+import e from "express";
+import {
+    successResponse,
+    errorResponse,
+    successResponseType,
+} from "../../../../../../server/components/response";
 
-function validateEmail(email: any) {
-  const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  return re.test(String(email).toLowerCase());
-}
-
+const userModelSchema = yup.object({
+    displayName: yup.string().required("Display name is required"),
+    countryCode: yup.string().required("Code is required"),
+    telephoneNumber: yup.string().required("Telephone number is required"),
+    email: yup.string().required("Email is required").email("Not valid email"),
+    avatarUrl: yup.string().url(),
+    verificationCode: yup.string(),
+    verified: yup.boolean(),
+});
 
 export default function Page() {
-  const urlParams: { id: string } = useParams();
-  const dispatch = useDispatch();
-  const history = useHistory();
-  const showSnackBar = useShowSnackBar();
-  const [detail, setDetail] = React.useState<User>();
-  const [forms, setForms] = React.useState<formItems>({
-    displayName: {
-      value: "",
-      isError: false,
-      helperText: ""
-    }
-  });
+    const urlParams: { id: string } = useParams();
+    const history = useHistory();
+    const showSnackBar = useShowSnackBar();
+    const get = useGet();
+    const put = usePut();
 
-  const [countryCode, setCountryCode] = React.useState<formItems>({
-    displayName: {
-      value: "",
-      isError: false,
-      helperText: ""
-    }
-  });
+    const formik = useFormik({
+        initialValues: {
+            displayName: "",
+            countryCode: "",
+            telephoneNumber: "",
+            email: "",
+            avatarUrl: "",
+            verificationCode: "",
+            verified: false,
+        },
+        validationSchema: userModelSchema,
+        onSubmit: (values) => {
+            validateAndUpdate();
+        },
+    });
 
-  const [phoneNumber, setPhoneNumber] = React.useState<formItems>({
-    displayName: {
-      value: "",
-      isError: false,
-      helperText: ""
-    }
-  });
+    const serverUser = useFormik({
+        initialValues: {
+            displayName: "",
+            countryCode: "",
+            telephoneNumber: "",
+            email: "",
+            avatarUrl: "",
+            verificationCode: "",
+            verified: false,
+        },
+        validationSchema: userModelSchema,
+        onSubmit: (values) => {},
+    });
 
-  const [email, setEmail] = React.useState<formItems>({
-    displayName: {
-      value: "",
-      isError: false,
-      helperText: ""
-    }
-  });
+    useEffect(() => {
+        (async () => {
+            try {
+                const serverResponse: successResponseType = await get(
+                    `/api/management/user/${urlParams.id}`
+                );
+                const response: User = serverResponse.data.user;
+                const checkName = response.displayName == null ? "" : response.displayName;
+                const checkCC = response.countryCode == null ? "" : response.countryCode;
+                const checkPhone = response.telephoneNumber == null ? "" : response.telephoneNumber;
+                const checkEmail = response.emailAddress == null ? "" : response.emailAddress;
+                const checkUrl = response.avatarUrl == null ? "" : response.avatarUrl;
+                const checkVer = response.verified == null ? false : response.verified;
+                const checkVerCode =
+                    response.verificationCode == null ? "" : response.verificationCode;
+                formik.setValues({
+                    displayName: checkName,
+                    countryCode: checkCC,
+                    telephoneNumber: checkPhone,
+                    email: checkEmail,
+                    avatarUrl: checkUrl,
+                    verificationCode: checkVerCode,
+                    verified: checkVer,
+                });
+                serverUser.setValues({
+                    displayName: checkName,
+                    countryCode: checkCC,
+                    telephoneNumber: checkPhone,
+                    email: checkEmail,
+                    avatarUrl: checkUrl,
+                    verificationCode: checkVerCode,
+                    verified: checkVer,
+                });
+            } catch (e) {
+                console.error(e);
+                showSnackBar({
+                    severity: "error",
+                    text: "Server error, please check browser console.",
+                });
+            }
+        })();
+    }, []);
 
-  const [avatarUrl, setAvatarUrl] = React.useState<formItems>({
-    displayName: {
-      value: "",
-      isError: false,
-      helperText: ""
-    }
-  });
+    const validateAndUpdate = async () => {
+        try {
+            const result = await put(`/api/management/user/${urlParams.id}`, {
+                displayName: formik.values.displayName,
+                emailAddress: formik.values.email,
+                countryCode: formik.values.countryCode,
+                telephoneNumber: formik.values.telephoneNumber,
+                avatarUrl: formik.values.avatarUrl,
+                verified: formik.values.verified,
+                verificationCode: formik.values.verificationCode,
+            });
 
-  const [verificationCode, setVerificationCode] = React.useState<formItems>({
-    displayName: {
-      value: "",
-      isError: false,
-      helperText: ""
-    }
-  });
+            showSnackBar({ severity: "success", text: "User updated" });
+            history.push("/user");
+        } catch (e: any) {
+            showSnackBar({
+                severity: "error",
+                text: String(e.message),
+            });
+        }
+    };
 
-  const [verified, setVerified] = React.useState<boolean>(false);
-
-  const get = useGet();
-  const put = usePut();
-
-  useEffect(() => {
-
-    (async () => {
-
-      try {
-        const response: User = await get(`/api/management/user/${urlParams.id}`);
-        setDetail(response);
-        const checkName = response.displayName == null ? "" : response.displayName
-        const checkCC = response.countryCode == null ? "" : response.countryCode
-        const checkPhone = response.telephoneNumber == null ? "" : response.telephoneNumber
-        const checkEmail = response.emailAddress == null ? "" : response.emailAddress
-        const checkUrl = response.avatarUrl == null ? "" : response.avatarUrl
-        const checkVer = response.verified == null ? false : response.verified
-        const checkVerCode = response.verificationCode == null ? "" : response.verificationCode
-        setForms({
-          displayName: {
-            value: checkName,
-            isError: false,
-            helperText: ""
-          }
-        })
-        setCountryCode({
-          displayName: {
-            value: checkCC,
-            isError: false,
-            helperText: ""
-          }
-        })
-        setPhoneNumber({
-          displayName: {
-            value: checkPhone,
-            isError: false,
-            helperText: ""
-          }
-        })
-        setEmail({
-          displayName: {
-            value: checkEmail,
-            isError: false,
-            helperText: ""
-          }
-        })
-        setAvatarUrl({
-          displayName: {
-            value: checkUrl,
-            isError: false,
-            helperText: ""
-          }
-        })
-        setVerificationCode({
-          displayName: {
-            value: checkVerCode,
-            isError: false,
-            helperText: ""
-          }
-        })
-        setVerified(checkVer)
-      } catch (e) {
-        console.error(e);
-        showSnackBar({ severity: "error", text: "Server error, please check browser console." })
-      }
-
-    })();
-
-  }, []);
-
-  const validateAndUpdate = async () => {
-    let hasError = false;
-
-    const newItems: formItems = { ...forms };
-    newItems.displayName.isError = false;
-    newItems.displayName.helperText = "";
-
-    if (forms.displayName.value.length == 0) {
-      forms.displayName.isError = true;
-      forms.displayName.helperText = "Please input display name";
-      hasError = true;
-    }
-
-    // if (countryCode.displayName.value.length == 0) {
-    //   countryCode.displayName.isError = true;
-    //   countryCode.displayName.helperText = "Please input code";
-    //   hasError = true;
-    // }
-
-    // if (phoneNumber.displayName.value.length == 0) {
-    //   phoneNumber.displayName.isError = true;
-    //   phoneNumber.displayName.helperText = "Please input phone number";
-    //   hasError = true;
-    // }
-
-
-    if (validateEmail(email.displayName.value.length)) {
-      email.displayName.isError = true;
-      email.displayName.helperText = "Please input display name";
-      hasError = true;
-    }
-
-    if (avatarUrl.displayName.value.length == 0) {
-      avatarUrl.displayName.isError = true;
-      avatarUrl.displayName.helperText = "Please input display name";
-      hasError = true;
-    }
-
-    if (!hasError) {
-
-      try {
-        const result = await put(`/api/management/user/${urlParams.id}`, {
-          displayName: forms.displayName.value,
-          emailAddress: email.displayName.value,
-          countryCode: countryCode.displayName.value,
-          telephoneNumber: phoneNumber.displayName.value,
-          avatarUrl: avatarUrl.displayName.value,
-          verified:verified,
-          verificationCode:verificationCode.displayName.value
-        });
-
-        showSnackBar({ severity: "success", text: "User updated" });
-        history.push("/user");
-        newItems.displayName.value = "";
-
-      } catch (e) {
-        console.error(e);
-        showSnackBar({ severity: "error", text: "Failed to update user, please check console." })
-      }
-
-    }
-
-    setForms(newItems);
-  }
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setVerified(event.target.checked);
-  };
-
-  return (
-    <Layout subtitle={`User detail ( ${urlParams.id} )`} showBack={true} >
-      <Paper
-        sx={{
-          margin: '24px',
-          padding: '24px',
-          minHeight: 'calc(100vh-64px)',
-        }}
-      >
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={8}>
-            <TextField
-              required
-              fullWidth
-              error={forms.displayName.isError}
-              label="Display Name"
-              value={forms.displayName.value}
-              onChange={e => {
-                forms.displayName.value = e.target.value;
-                setForms({ ...forms });
-              }}
-              helperText={forms.displayName.helperText}
-            />
-          </Grid>
-          <Grid item xs={12} md={8}>
-            <Stack alignItems="center" spacing={1} direction="row">
-              <TextField
-                required
-                
-                error={countryCode.displayName.isError}
-                label="Country code"
-                value={countryCode.displayName.value}
-                onChange={e => {
-                  countryCode.displayName.value = e.target.value;
-                  setCountryCode({ ...countryCode });
-                }}
-                helperText={countryCode.displayName.helperText}
-              />
-               <TextField
-                required
-                fullWidth
-                error={phoneNumber.displayName.isError}
-                label="Phone number"
-                value={phoneNumber.displayName.value}
-                onChange={e => {
-                  phoneNumber.displayName.value = e.target.value;
-                  setPhoneNumber({ ...phoneNumber });
-                }}
-                helperText={phoneNumber.displayName.helperText}
-              />
-            </Stack>
-          </Grid>
-          <Grid item xs={12} md={8}>
-            <TextField
-              required
-              fullWidth
-              error={email.displayName.isError}
-              label="E-mail"
-              value={email.displayName.value}
-              onChange={e => {
-                email.displayName.value = e.target.value;
-                setEmail({ ...email });
-              }}
-              helperText={email.displayName.helperText}
-            />
-          </Grid>
-          <Grid item xs={12} md={8}>
-            <TextField
-              required
-              fullWidth
-              error={avatarUrl.displayName.isError}
-              label="Avatar URL"
-              value={avatarUrl.displayName.value}
-              onChange={e => {
-                avatarUrl.displayName.value = e.target.value;
-                setAvatarUrl({ ...avatarUrl });
-              }}
-              helperText={avatarUrl.displayName.helperText}
-            />
-          </Grid>
-          <Grid item xs={12} md={8}>
-            <TextField
-              fullWidth
-              error={verificationCode.displayName.isError}
-              label="Verification Code"
-              value={verificationCode.displayName.value}
-              onChange={e => {
-                verificationCode.displayName.value = e.target.value;
-                setVerificationCode({ ...verificationCode });
-              }}
-              helperText={avatarUrl.displayName.helperText}
-            />
-          </Grid>
-          <Grid item xs={12} md={8}>
-            <FormControl component="fieldset">
-              <FormGroup aria-label="position" row>
-                <FormControlLabel
-                  value="start"
-                  control={<Checkbox checked={verified} onChange={handleChange}/>}
-                  label="Verified"
-                  labelPlacement="start"
-                />
-              </FormGroup>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} md={8} textAlign="right">
-            <Button variant="contained" onClick={e => {
-              validateAndUpdate();
-            }}>Update user</Button>
-          </Grid>
-        </Grid>
-      </Paper>
-
-    </Layout >
-  );
+    return (
+        <Layout subtitle={`User detail ( ${urlParams.id} )`} showBack={true}>
+            <form onSubmit={formik.handleSubmit}>
+                <Paper
+                    sx={{
+                        margin: "24px",
+                        padding: "24px",
+                        minHeight: "calc(100vh-64px)",
+                    }}
+                >
+                    <Grid container spacing={2}>
+                        <Grid item xs={12} md={8}>
+                            <TextField
+                                required
+                                fullWidth
+                                id="displayName"
+                                error={
+                                    formik.touched.displayName && Boolean(formik.errors.displayName)
+                                }
+                                label="Display Name"
+                                value={formik.values.displayName}
+                                onChange={formik.handleChange}
+                                helperText={formik.touched.displayName && formik.errors.displayName}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={8}>
+                            <Stack alignItems="center" spacing={1} direction="row">
+                                <TextField
+                                    required
+                                    id="countryCode"
+                                    error={
+                                        formik.touched.countryCode &&
+                                        Boolean(formik.errors.countryCode)
+                                    }
+                                    label="Country code"
+                                    value={formik.values.countryCode}
+                                    onChange={formik.handleChange}
+                                    helperText={
+                                        formik.touched.countryCode && formik.errors.countryCode
+                                    }
+                                />
+                                <TextField
+                                    required
+                                    fullWidth
+                                    id="telephoneNumber"
+                                    error={
+                                        formik.touched.telephoneNumber &&
+                                        Boolean(formik.errors.telephoneNumber)
+                                    }
+                                    label="Phone number"
+                                    value={formik.values.telephoneNumber}
+                                    onChange={formik.handleChange}
+                                    helperText={
+                                        formik.touched.telephoneNumber &&
+                                        formik.errors.telephoneNumber
+                                    }
+                                />
+                            </Stack>
+                        </Grid>
+                        <Grid item xs={12} md={8}>
+                            <TextField
+                                fullWidth
+                                required
+                                id="email"
+                                error={formik.touched.email && Boolean(formik.errors.email)}
+                                label="E-mail"
+                                value={formik.values.email}
+                                onChange={formik.handleChange}
+                                helperText={formik.touched.email && formik.errors.email}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={8}>
+                            <TextField
+                                fullWidth
+                                id="telephoneNumber"
+                                error={formik.touched.avatarUrl && Boolean(formik.errors.avatarUrl)}
+                                label="Avatar Url"
+                                value={formik.values.avatarUrl}
+                                onChange={formik.handleChange}
+                                helperText={formik.touched.avatarUrl && formik.errors.avatarUrl}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={8}>
+                            <TextField
+                                fullWidth
+                                id="verificationCode"
+                                error={
+                                    formik.touched.verificationCode &&
+                                    Boolean(formik.errors.verificationCode)
+                                }
+                                label="Verification Code"
+                                value={formik.values.verificationCode}
+                                onChange={formik.handleChange}
+                                helperText={
+                                    formik.touched.verificationCode &&
+                                    formik.errors.verificationCode
+                                }
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={8}>
+                            <FormControl component="fieldset">
+                                <FormGroup aria-label="position" row>
+                                    <FormControlLabel
+                                        value="start"
+                                        control={<Checkbox onChange={formik.handleChange} />}
+                                        label="Verified"
+                                        labelPlacement="start"
+                                    />
+                                </FormGroup>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12} md={8} textAlign="right">
+                            <Button variant="contained" type="submit">
+                                Edit user
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </Paper>
+            </form>
+        </Layout>
+    );
 }
