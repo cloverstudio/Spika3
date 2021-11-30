@@ -9,6 +9,11 @@ import { useShowSnackBar } from "../../components/useUI";
 import { Device } from "@prisma/client";
 import * as yup from "yup";
 import { useFormik } from "formik";
+import {
+    successResponse,
+    errorResponse,
+    successResponseType,
+} from "../../../../../../server/components/response";
 
 const deviceModelSchema = yup.object({
     userId: yup.number().required("User id is required"),
@@ -40,16 +45,13 @@ export default function Page() {
         },
         validationSchema: deviceModelSchema,
         onSubmit: (values) => {
-            if (serverDevice.values.deviceId == values.deviceId) {
-                validateAndUpdate();
-            } else {
-                checkDeviceId();
-            }
+            validateAndUpdate();
         },
     });
 
     const serverDevice = useFormik({
         initialValues: {
+            id: 0,
             userId: "",
             deviceId: "",
             type: "",
@@ -62,32 +64,13 @@ export default function Page() {
         onSubmit: (values) => {},
     });
 
-    const checkDeviceId = async () => {
-        try {
-            const response = await get(
-                `/api/management/device/findDeviceId?deviceId=${formik.values.deviceId}`
-            );
-            if (response.exists) {
-                showSnackBar({
-                    severity: "error",
-                    text: "Device Id already exist, provide different id",
-                });
-            } else {
-                validateAndUpdate();
-            }
-        } catch (e) {
-            console.error(e);
-            showSnackBar({
-                severity: "error",
-                text: "Server error, please check browser console.",
-            });
-        }
-    };
-
     useEffect(() => {
         (async () => {
             try {
-                const response: Device = await get(`/api/management/device/${urlParams.id}`);
+                const serverResponse: successResponseType = await get(
+                    `/api/management/device/${urlParams.id}`
+                );
+                const response: Device = serverResponse.data.device;
                 const checkUId = response.userId == null ? "" : response.userId;
                 const checkDId = response.deviceId == null ? "" : response.deviceId;
                 const checkType = response.type == null ? "" : response.type;
@@ -105,6 +88,7 @@ export default function Page() {
                     pushToken: checkPushToken,
                 });
                 serverDevice.setValues({
+                    id: response.id,
                     userId: String(checkUId),
                     deviceId: checkDId,
                     type: checkType,
@@ -126,6 +110,7 @@ export default function Page() {
     const validateAndUpdate = async () => {
         try {
             const result = await put(`/api/management/device/${urlParams.id}`, {
+                id: serverDevice.values.id,
                 userId: formik.values.userId,
                 deviceId: formik.values.deviceId,
                 type: formik.values.type,
@@ -137,11 +122,11 @@ export default function Page() {
 
             showSnackBar({ severity: "success", text: "Device updated" });
             history.push("/device");
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
             showSnackBar({
                 severity: "error",
-                text: "Failed to update device, please check console.",
+                text: String(e.message),
             });
         }
     };

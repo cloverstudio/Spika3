@@ -9,12 +9,16 @@ import * as consts from "../../../components/consts";
 import l, { error as le } from "../../../components/logger";
 
 import { InitRouterParams } from "../../types/serviceInterface";
+import { successResponse, errorResponse } from "../../../components/response";
+import { UserRequest } from "../../messenger/lib/types";
+import { User } from "@prisma/client";
 
 interface UserResponse {}
 export default (params: InitRouterParams) => {
     const router = Router();
 
     router.post("/", adminAuth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
         try {
             const displayName: string = req.body.displayName;
             const emailAddress: string = req.body.emailAddress;
@@ -23,7 +27,34 @@ export default (params: InitRouterParams) => {
             const avatarUrl: string = req.body.avatarUrl;
             const verified: boolean = req.body.verified;
 
-            if (Utils.isEmpty(displayName)) return res.status(400).send("displayName is required");
+            if (Utils.isEmpty(displayName))
+                return res
+                    .status(400)
+                    .send(errorResponse(`Display name is required`, userReq.lang));
+
+            const user = await prisma.user.findMany({
+                where: {
+                    countryCode: countryCode,
+                    telephoneNumber: telephoneNumber,
+                },
+            });
+            const email = await prisma.user.findUnique({
+                where: {
+                    emailAddress: emailAddress,
+                },
+            });
+
+            if (user.length > 0 && email != null) {
+                return res
+                    .status(400)
+                    .send(errorResponse(`Phone number and email are already in use`, userReq.lang));
+            } else if (user.length > 0) {
+                return res
+                    .status(400)
+                    .send(errorResponse(`Phone number is already in use`, userReq.lang));
+            } else if (email != null) {
+                return res.status(400).send(errorResponse(`Email is already in use`, userReq.lang));
+            }
             const newUser = await prisma.user.create({
                 data: {
                     displayName: displayName,
@@ -35,10 +66,10 @@ export default (params: InitRouterParams) => {
                 },
             });
 
-            return res.send(newUser);
+            return res.send(successResponse({ user: newUser }, userReq.lang));
         } catch (e: any) {
             le(e);
-            res.status(500).send(`Server error ${e}`);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
     });
 
@@ -47,7 +78,7 @@ export default (params: InitRouterParams) => {
      */
     router.get("/", adminAuth, async (req: Request, res: Response) => {
         const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 0;
-
+        const userReq: UserRequest = req as UserRequest;
         try {
             const users = await prisma.user.findMany({
                 where: {},
@@ -61,90 +92,24 @@ export default (params: InitRouterParams) => {
             });
 
             const count = await prisma.user.count();
-
-            res.json({
-                list: users,
-                count: count,
-                limit: consts.PAGING_LIMIT,
-            });
+            res.send(
+                successResponse(
+                    {
+                        list: users,
+                        count: count,
+                        limit: consts.PAGING_LIMIT,
+                    },
+                    userReq.lang
+                )
+            );
         } catch (e: any) {
             le(e);
-            res.status(500).send(`Server error ${e}`);
-        }
-    });
-
-    router.get("/existingUserParams", adminAuth, async (req: Request, res: Response) => {
-        try {
-            const countryCode: string = req.query.countryCode
-                ? (req.query.countryCode as string)
-                : "";
-            const telephoneNumber: string = req.query.telephoneNumber
-                ? (req.query.telephoneNumber as string)
-                : "";
-            const emailAddress: string = req.query.email ? (req.query.email as string) : "";
-            const user = await prisma.user.findMany({
-                where: {
-                    countryCode: countryCode,
-                    telephoneNumber: telephoneNumber,
-                },
-            });
-            const email = await prisma.user.findUnique({
-                where: {
-                    emailAddress: emailAddress,
-                },
-            });
-            res.json({
-                exists: user.length > 0 || email != null,
-                phoneExist: user.length > 0,
-                emailExists: email != null,
-            });
-        } catch (e: any) {
-            le(e);
-            res.status(500).send(`Server error ${e}`);
-        }
-    });
-
-    router.get("/existingUserPhoneNumber", adminAuth, async (req: Request, res: Response) => {
-        try {
-            const countryCode: string = req.query.countryCode
-                ? (req.query.countryCode as string)
-                : "";
-            const telephoneNumber: string = req.query.telephoneNumber
-                ? (req.query.telephoneNumber as string)
-                : "";
-            const user = await prisma.user.findMany({
-                where: {
-                    countryCode: countryCode,
-                    telephoneNumber: telephoneNumber,
-                },
-            });
-            res.json({
-                exists: user.length > 0,
-            });
-        } catch (e: any) {
-            le(e);
-            res.status(500).send(`Server error ${e}`);
-        }
-    });
-
-    router.get("/existingUserEmail", adminAuth, async (req: Request, res: Response) => {
-        try {
-            const emailAddress: string = req.query.email ? (req.query.email as string) : "";
-            const email = await prisma.user.findUnique({
-                where: {
-                    emailAddress: emailAddress,
-                },
-            });
-            res.json({
-                exists: email != null,
-            });
-        } catch (e: any) {
-            le(e);
-            res.status(500).send(`Server error ${e}`);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
     });
 
     router.get("/:userId", adminAuth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
         try {
             const userId: number = parseInt(req.params.userId);
 
@@ -155,16 +120,17 @@ export default (params: InitRouterParams) => {
                 },
             });
 
-            if (!user) return res.status(404).send("wrong user id");
+            if (!user) return res.status(404).send(errorResponse(`Wrong user id`, userReq.lang));
 
-            return res.send(user);
+            return res.send(successResponse({ user }, userReq.lang));
         } catch (e: any) {
             le(e);
-            res.status(500).send(`Server error ${e}`);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
     });
 
     router.put("/:userId", adminAuth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
         try {
             const userId: number = parseInt(req.params.userId);
 
@@ -177,13 +143,42 @@ export default (params: InitRouterParams) => {
             const verificationCode: string = req.body.verificationCode;
 
             // check existance
-            const user = await prisma.user.findFirst({
+            const user: User = await prisma.user.findFirst({
                 where: {
                     id: userId,
                 },
             });
 
-            if (!user) return res.status(404).send("wrong user id");
+            if (!user) return res.status(404).send(errorResponse(`Wrong user id`, userReq.lang));
+
+            const phoneNumber: User = await prisma.user.findFirst({
+                where: {
+                    countryCode: countryCode,
+                    telephoneNumber: telephoneNumber,
+                },
+            });
+            const email: User = await prisma.user.findUnique({
+                where: {
+                    emailAddress: emailAddress,
+                },
+            });
+
+            if (
+                phoneNumber != null &&
+                phoneNumber.id != user.id &&
+                email != null &&
+                email.id != user.id
+            ) {
+                return res
+                    .status(400)
+                    .send(errorResponse(`Phone number and email are already in use`, userReq.lang));
+            } else if (phoneNumber != null && phoneNumber.id != user.id) {
+                return res
+                    .status(400)
+                    .send(errorResponse(`Phone number is already in use`, userReq.lang));
+            } else if (email != null && email.id != user.id) {
+                return res.status(400).send(errorResponse(`Email is already in use`, userReq.lang));
+            }
 
             const updateValues: any = {};
             if (displayName) updateValues.displayName = displayName;
@@ -195,20 +190,21 @@ export default (params: InitRouterParams) => {
             if (verificationCode) updateValues.verificationCode = verificationCode;
 
             if (Object.keys(updateValues).length == 0)
-                return res.status(400).send("No params to update");
+                return res.status(400).send(errorResponse(`Nothing to update`, userReq.lang));
 
             const updateUser = await prisma.user.update({
                 where: { id: userId },
                 data: updateValues,
             });
-            return res.send(updateUser);
+            return res.send(successResponse({ user: updateUser }, userReq.lang));
         } catch (e: any) {
             le(e);
-            res.status(500).send(`Server error ${e}`);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
     });
 
     router.delete("/:userId", adminAuth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
         try {
             const userId: number = parseInt(req.params.userId);
 
@@ -219,16 +215,15 @@ export default (params: InitRouterParams) => {
                 },
             });
 
-            if (!user) return res.status(404).send("wrong user id");
+            if (!user) return res.status(404).send(errorResponse(`Wrong user id`, userReq.lang));
 
             const deleteResult = await prisma.user.delete({
                 where: { id: userId },
             });
-
-            return res.send("OK");
+            return res.send(successResponse("OK", userReq.lang));
         } catch (e: any) {
             le(e);
-            res.status(500).send(`Server error ${e}`);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
     });
 

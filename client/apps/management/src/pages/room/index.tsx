@@ -21,7 +21,7 @@ import { useShowSnackBar } from "../../components/useUI";
 import { ListResponseType } from "../../lib/customTypes";
 import { successResponseType } from "../../../../../../server/components/response";
 
-export default function Dashboard() {
+export default function Room() {
     const [loading, setLoading] = React.useState<boolean>(false);
     const [list, setList] = React.useState<Array<User>>([]);
     const [pageSize, setPageSize] = React.useState<number>(30);

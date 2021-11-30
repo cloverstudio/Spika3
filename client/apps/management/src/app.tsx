@@ -13,6 +13,7 @@ import DeviceAdd from "./pages/device/add";
 import DeviceDetail from "./pages/device/detail";
 import DeviceEdit from "./pages/device/edit";
 import DeviceDelete from "./pages/device/delete";
+import Room from "./pages/room/index";
 
 declare var BASE_URL: string;
 
@@ -59,6 +60,9 @@ function App() {
                     </Route>
                     <Route exact path="/device/delete/:id">
                         <DeviceDelete />
+                    </Route>
+                    <Route exact path="/room">
+                        <Room />
                     </Route>
                 </Switch>
             </Router>

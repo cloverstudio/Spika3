@@ -46,7 +46,7 @@ export default function Dashboard() {
         },
         validationSchema: userModelSchema,
         onSubmit: (values) => {
-            checkPhoneNumber();
+            validateAndAdd();
         },
     });
 
@@ -56,38 +56,7 @@ export default function Dashboard() {
         setVerified(event.target.checked);
     };
 
-    const get = useGet();
     const post = usePost();
-
-    const checkPhoneNumber = async () => {
-        try {
-            const response = await get(
-                `/api/management/user/existingUserParams?countryCode=${formik.values.countryCode}&telephoneNumber=${formik.values.telephoneNumber}&email=${formik.values.email}`
-            );
-            if (!response.exists) {
-                validateAndAdd();
-            } else {
-                var errorText = "";
-                if (response.phoneExist && response.emailExists) {
-                    errorText = "User with that phone number and email already exists";
-                } else if (response.phoneExist) {
-                    errorText = "User with that country code and telephone number already exists";
-                } else if (response.emailExists) {
-                    errorText = "User with that email already exists";
-                }
-                showSnackBar({
-                    severity: "error",
-                    text: errorText,
-                });
-            }
-        } catch (e) {
-            console.error(e);
-            showSnackBar({
-                severity: "error",
-                text: "Server error, please check browser console.",
-            });
-        }
-    };
 
     const validateAndAdd = async () => {
         try {
@@ -102,11 +71,10 @@ export default function Dashboard() {
 
             showSnackBar({ severity: "success", text: "User added" });
             history.push("/user");
-        } catch (e) {
-            console.error(e);
+        } catch (e: any) {
             showSnackBar({
                 severity: "error",
-                text: "Failed to add user, please check console.",
+                text: String(e.message),
             });
         }
     };

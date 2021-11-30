@@ -8,6 +8,11 @@ import { TextField, Paper, Grid, Button, Stack } from "@mui/material";
 import { useShowSnackBar } from "../../components/useUI";
 import * as yup from "yup";
 import { useFormik } from "formik";
+import {
+    successResponse,
+    errorResponse,
+    successResponseType,
+} from "../../../../../../server/components/response";
 
 const deviceModelSchema = yup.object({
     userId: yup.number().required("User id is required"),
@@ -37,31 +42,10 @@ export default function Dashboard() {
         },
         validationSchema: deviceModelSchema,
         onSubmit: (values) => {
-            checkDeviceId();
+            validateAndAdd();
         },
     });
 
-    const checkDeviceId = async () => {
-        try {
-            const response = await get(
-                `/api/management/device/findDeviceId?deviceId=${formik.values.deviceId}`
-            );
-            if (response.exists) {
-                showSnackBar({
-                    severity: "error",
-                    text: "Device Id already exist, provide different id",
-                });
-            } else {
-                validateAndAdd();
-            }
-        } catch (e) {
-            console.error(e);
-            showSnackBar({
-                severity: "error",
-                text: "Server error, please check browser console.",
-            });
-        }
-    };
     const validateAndAdd = async () => {
         try {
             const result = await post("/api/management/device", {
@@ -76,11 +60,11 @@ export default function Dashboard() {
 
             showSnackBar({ severity: "success", text: "Device added" });
             history.push("/device");
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
             showSnackBar({
                 severity: "error",
-                text: "Failed to add device, please check console.",
+                text: String(e.message),
             });
         }
     };

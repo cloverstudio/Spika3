@@ -7,6 +7,8 @@ declare var API_BASEURL: string;
 
 type CallbackFunction = (data: any) => void;
 
+axios.defaults.validateStatus = (status) => status >= 200 && status < 500;
+
 export function usePost() {
     const accessToken = useSelector((state: RootState) => state.auth.token);
 
@@ -19,7 +21,9 @@ export function usePost() {
                 "admin-accesstoken": accessToken,
             },
         });
-
+        if (response.data.status === "fail") {
+            throw Error(response.data.message);
+        }
         return response.data;
     };
 }
@@ -35,6 +39,9 @@ export function useGet() {
                 "admin-accesstoken": accessToken,
             },
         });
+        if (response.data.status === "fail") {
+            throw Error(response.data.message);
+        }
 
         return response.data;
     };
@@ -53,6 +60,9 @@ export function usePut() {
             },
         });
 
+        if (response.data.status === "fail") {
+            throw Error(response.data.message);
+        }
         return response.data;
     };
 }
@@ -68,7 +78,9 @@ export function useDelete() {
                 "admin-accesstoken": accessToken,
             },
         });
-
+        if (response.data.status === "fail") {
+            throw Error(response.data.message);
+        }
         return response.data;
     };
 }

@@ -18,7 +18,7 @@ describe("Admin device management API", () => {
                 })
                 .set({ "admin-accesstoken": globals.adminToken });
 
-            globals.createdDevice = response.body;
+            globals.createdDevice = response.body.data.device;
             expect(response.status).to.eqls(200);
         });
 
@@ -47,11 +47,12 @@ describe("Admin device management API", () => {
             const response = await supertest(app)
                 .put(`/api/management/device/${globals.createdDevice!.id}`)
                 .send({
-                    type: "ios",
+                    deviceId: faker.datatype.string(6),
+                    osName: "iOs",
                 })
                 .set({ "admin-accesstoken": globals.adminToken });
 
-            globals.createdDevice = response.body;
+            globals.createdDevice = response.body.data.device;
             expect(response.status).to.eqls(200);
         });
 
@@ -81,9 +82,9 @@ describe("Admin device management API", () => {
                 .set({ "admin-accesstoken": globals.adminToken });
 
             expect(response.status).to.eqls(200);
-            expect(response.body).to.be.an("object");
-            expect(response.body.list).to.be.an("array");
-            expect(response.body.count).to.be.an("number");
+            expect(response.body.data).to.be.an("object");
+            expect(response.body.data.list).to.be.an("array");
+            expect(response.body.data.count).to.be.an("number");
         });
     });
 
@@ -94,9 +95,9 @@ describe("Admin device management API", () => {
                 .set({ "admin-accesstoken": globals.adminToken });
 
             expect(response.status).to.eqls(200);
-            expect(response.body).to.be.an("object");
-            expect(response.body.list).to.be.an("array");
-            expect(response.body.count).to.be.an("number");
+            expect(response.body.data).to.be.an("object");
+            expect(response.body.data.list).to.be.an("array");
+            expect(response.body.data.count).to.be.an("number");
         });
     });
 

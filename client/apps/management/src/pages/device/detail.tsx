@@ -9,6 +9,11 @@ import { Typography, Paper, Grid, Button } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
 import { useShowSnackBar } from "../../components/useUI";
 import { Device } from "@prisma/client";
+import {
+    successResponse,
+    errorResponse,
+    successResponseType,
+} from "../../../../../../server/components/response";
 
 export default function Page() {
     const urlParams: { id: string } = useParams();
@@ -22,7 +27,10 @@ export default function Page() {
     useEffect(() => {
         (async () => {
             try {
-                const response: Device = await get(`/api/management/device/${urlParams.id}`);
+                const serverResponse: successResponseType = await get(
+                    `/api/management/device/${urlParams.id}`
+                );
+                const response: Device = serverResponse.data;
                 setDetail(response);
             } catch (e) {
                 console.error(e);

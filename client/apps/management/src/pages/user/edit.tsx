@@ -20,6 +20,11 @@ import { User } from "@prisma/client";
 import * as yup from "yup";
 import { useFormik } from "formik";
 import e from "express";
+import {
+    successResponse,
+    errorResponse,
+    successResponseType,
+} from "../../../../../../server/components/response";
 
 const userModelSchema = yup.object({
     displayName: yup.string().required("Display name is required"),
@@ -50,23 +55,7 @@ export default function Page() {
         },
         validationSchema: userModelSchema,
         onSubmit: (values) => {
-            console.log(serverUser);
-            if (
-                (serverUser.values.countryCode != formik.values.countryCode ||
-                    serverUser.values.telephoneNumber != formik.values.telephoneNumber) &&
-                serverUser.values.email != formik.values.email
-            ) {
-                checkAllParameters();
-            } else if (
-                serverUser.values.countryCode != formik.values.countryCode ||
-                serverUser.values.telephoneNumber != formik.values.telephoneNumber
-            ) {
-                checkPhoneNumber();
-            } else if (serverUser.values.email != formik.values.email) {
-                checkEmail();
-            } else {
-                validateAndUpdate();
-            }
+            validateAndUpdate();
         },
     });
 
@@ -87,7 +76,10 @@ export default function Page() {
     useEffect(() => {
         (async () => {
             try {
-                const response: User = await get(`/api/management/user/${urlParams.id}`);
+                const serverResponse: successResponseType = await get(
+                    `/api/management/user/${urlParams.id}`
+                );
+                const response: User = serverResponse.data.user;
                 const checkName = response.displayName == null ? "" : response.displayName;
                 const checkCC = response.countryCode == null ? "" : response.countryCode;
                 const checkPhone = response.telephoneNumber == null ? "" : response.telephoneNumber;
@@ -124,82 +116,6 @@ export default function Page() {
         })();
     }, []);
 
-    const checkAllParameters = async () => {
-        try {
-            const response = await get(
-                `/api/management/user/phoneNumber?countryCode=${formik.values.countryCode}&telephoneNumber=${formik.values.telephoneNumber}&email=${formik.values.email}`
-            );
-            if (!response.exists) {
-                validateAndUpdate();
-            } else {
-                var errorText = "";
-                if (response.phoneExist && response.emailExists) {
-                    errorText = "User with that phone number and email already exists";
-                } else if (response.phoneExist) {
-                    errorText = "User with that country code and telephone number already exists";
-                } else if (response.emailExists) {
-                    errorText = "User with that email already exists";
-                }
-                showSnackBar({
-                    severity: "error",
-                    text: errorText,
-                });
-            }
-        } catch (e) {
-            console.error(e);
-            showSnackBar({
-                severity: "error",
-                text: "Server error, please check browser console.",
-            });
-        }
-    };
-
-    const checkPhoneNumber = async () => {
-        try {
-            const response = await get(
-                `/api/management/user/existingUserPhoneNumber?countryCode=${formik.values.countryCode}&telephoneNumber=${formik.values.telephoneNumber}`
-            );
-            if (!response.exists) {
-                validateAndUpdate();
-            } else {
-                var errorText = "User with that country code and telephone number already exists";
-                showSnackBar({
-                    severity: "error",
-                    text: errorText,
-                });
-            }
-        } catch (e) {
-            console.error(e);
-            showSnackBar({
-                severity: "error",
-                text: "Server error, please check browser console.",
-            });
-        }
-    };
-
-    const checkEmail = async () => {
-        try {
-            const response = await get(
-                `/api/management/user/existingUserEmail?email=${formik.values.email}`
-            );
-            if (!response.exists) {
-                validateAndUpdate();
-            } else {
-                var errorText = "User with that email already exists";
-                showSnackBar({
-                    severity: "error",
-                    text: errorText,
-                });
-            }
-        } catch (e) {
-            console.error(e);
-            showSnackBar({
-                severity: "error",
-                text: "Server error, please check browser console.",
-            });
-        }
-    };
-
     const validateAndUpdate = async () => {
         try {
             const result = await put(`/api/management/user/${urlParams.id}`, {
@@ -214,11 +130,10 @@ export default function Page() {
 
             showSnackBar({ severity: "success", text: "User updated" });
             history.push("/user");
-        } catch (e) {
-            console.error(e);
+        } catch (e: any) {
             showSnackBar({
                 severity: "error",
-                text: "Failed to update user, please check console.",
+                text: String(e.message),
             });
         }
     };

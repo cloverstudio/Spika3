@@ -9,6 +9,11 @@ import { Typography, Paper, Grid, Button, Avatar, Checkbox } from "@mui/material
 import { useSelector, useDispatch } from "react-redux";
 import { useShowSnackBar } from "../../components/useUI";
 import { User } from "@prisma/client";
+import {
+    successResponse,
+    errorResponse,
+    successResponseType,
+} from "../../../../../../server/components/response";
 
 export default function Page() {
     const urlParams: { id: string } = useParams();
@@ -22,8 +27,11 @@ export default function Page() {
     useEffect(() => {
         (async () => {
             try {
-                const response: User = await get(`/api/management/user/${urlParams.id}`);
-                setDetail(response);
+                const response: successResponseType = await get(
+                    `/api/management/user/${urlParams.id}`
+                );
+                const user: User = response.data.user;
+                setDetail(user);
             } catch (e) {
                 console.error(e);
                 showSnackBar({

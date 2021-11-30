@@ -9,11 +9,15 @@ import * as consts from "../../../components/consts";
 import l, { error as le } from "../../../components/logger";
 
 import { InitRouterParams } from "../../types/serviceInterface";
+import { successResponse, errorResponse } from "../../../components/response";
+import { UserRequest } from "../../messenger/lib/types";
+import { Device } from "@prisma/client";
 
 export default (params: InitRouterParams) => {
     const router = Router();
 
     router.post("/", adminAuth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
         try {
             const userId: number = parseInt(req.body.userId);
             const deviceId: string = req.body.deviceId;
@@ -23,8 +27,22 @@ export default (params: InitRouterParams) => {
             const token: string = req.body.token;
             const pushToken: string = req.body.pushToken;
 
-            if (Utils.isEmptyNumber(userId)) return res.status(400).send("userId is required");
-            if (!deviceId) return res.status(400).send("deviceId is required");
+            if (Utils.isEmptyNumber(userId))
+                return res.status(400).send(errorResponse(`User id is required`, userReq.lang));
+            if (!deviceId)
+                return res.status(400).send(errorResponse(`Device id is required`, userReq.lang));
+
+            const device = await prisma.device.findFirst({
+                where: {
+                    deviceId: deviceId,
+                },
+            });
+
+            if (device != null)
+                return res
+                    .status(400)
+                    .send(errorResponse(`Device id already exists`, userReq.lang));
+
             const newDevice = await prisma.device.create({
                 data: {
                     userId: userId,
@@ -37,10 +55,10 @@ export default (params: InitRouterParams) => {
                 },
             });
 
-            return res.send(newDevice);
+            return res.send(successResponse({ device: newDevice }, userReq.lang));
         } catch (e: any) {
             le(e);
-            res.status(500).send(`Server error ${e}`);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
     });
 
@@ -48,6 +66,7 @@ export default (params: InitRouterParams) => {
      * TODO: impliment order
      */
     router.get("/", adminAuth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
         const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 0;
         const userId: number = parseInt(req.query.userId ? (req.query.userId as string) : "") || 0;
         const clause = userId == 0 ? {} : { userId: userId };
@@ -64,38 +83,24 @@ export default (params: InitRouterParams) => {
             });
             const count = userId == 0 ? await prisma.device.count() : devices.length;
 
-            res.json({
-                list: devices,
-                count: count,
-                limit: consts.PAGING_LIMIT,
-            });
+            res.send(
+                successResponse(
+                    {
+                        list: devices,
+                        count: count,
+                        limit: consts.PAGING_LIMIT,
+                    },
+                    userReq.lang
+                )
+            );
         } catch (e: any) {
             le(e);
-            res.status(500).send(`Server error ${e}`);
-        }
-    });
-
-    router.get("/findDeviceId", adminAuth, async (req: Request, res: Response) => {
-        try {
-            const deviceId: string = req.query.deviceId ? (req.query.deviceId as string) : "";
-            // check existance
-            if (!deviceId) return res.status(400).send("deviceId is required");
-            const device = await prisma.device.findFirst({
-                where: {
-                    deviceId: deviceId,
-                },
-            });
-
-            res.json({
-                exists: device != null,
-            });
-        } catch (e: any) {
-            le(e);
-            res.status(500).send(`Server error ${e}`);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
     });
 
     router.get("/:deviceId", adminAuth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
         try {
             const deviceId: number = parseInt(req.params.deviceId);
             // check existance
@@ -105,19 +110,20 @@ export default (params: InitRouterParams) => {
                 },
             });
 
-            if (!device) return res.status(404).send("wrong device id");
+            if (!device)
+                return res.status(404).send(errorResponse(`Wrong device id`, userReq.lang));
 
-            return res.send(device);
+            return res.send(successResponse({ device }, userReq.lang));
         } catch (e: any) {
             le(e);
-            res.status(500).send(`Server error ${e}`);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
     });
 
     router.put("/:deviceId", adminAuth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
         try {
             const idOfDevice: number = parseInt(req.params.deviceId);
-
             const userId: number = parseInt(req.body.userId);
             const deviceId: string = req.body.deviceId;
             const type: string = req.body.type;
@@ -125,15 +131,26 @@ export default (params: InitRouterParams) => {
             const appVersion: number = parseInt(req.body.appVersion);
             const token: string = req.body.token;
             const pushToken: string = req.body.pushToken;
-            // check existance
-            const device = await prisma.device.findFirst({
+            const device: Device = await prisma.device.findFirst({
                 where: {
                     id: idOfDevice,
                 },
             });
+            const deviceCheckUnique: Device = await prisma.device.findFirst({
+                where: {
+                    deviceId: deviceId,
+                },
+            });
 
-            if (!device) return res.status(404).send("wrong device id");
+            if (!device)
+                return res.status(404).send(errorResponse(`Wrong device id`, userReq.lang));
 
+            if (deviceCheckUnique != null) {
+                if (device.id != deviceCheckUnique.id)
+                    return res
+                        .status(404)
+                        .send(errorResponse(`Device id already in use`, userReq.lang));
+            }
             const updateValues: any = {};
             if (type) updateValues.type = type;
             if (osName) updateValues.osName = osName;
@@ -142,20 +159,21 @@ export default (params: InitRouterParams) => {
             if (pushToken) updateValues.pushToken = pushToken;
 
             if (Object.keys(updateValues).length == 0)
-                return res.status(400).send("No params to update");
+                return res.status(400).send(errorResponse(`Nothing to update`, userReq.lang));
 
             const updateDevice = await prisma.device.update({
                 where: { id: idOfDevice },
                 data: updateValues,
             });
-            return res.send(updateDevice);
+            return res.send(successResponse({ device: updateDevice }, userReq.lang));
         } catch (e: any) {
             le(e);
-            res.status(500).send(`Server error ${e}`);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
     });
 
     router.delete("/:deviceId", adminAuth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
         try {
             const idOfDevice: number = parseInt(req.params.deviceId);
             // check existance
@@ -165,16 +183,16 @@ export default (params: InitRouterParams) => {
                 },
             });
 
-            if (!device) return res.status(404).send("wrong device id");
+            if (!device)
+                return res.status(404).send(errorResponse(`Wrong device id`, userReq.lang));
 
             const deleteResult = await prisma.device.delete({
                 where: { id: idOfDevice },
             });
-
-            return res.send("OK");
+            return res.send(successResponse("OK", userReq.lang));
         } catch (e: any) {
             le(e);
-            res.status(500).send(`Server error ${e}`);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
     });
 
