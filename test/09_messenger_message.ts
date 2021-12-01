@@ -1,4 +1,5 @@
-import { expect } from "chai";
+import chai, { expect } from "chai";
+
 import supertest from "supertest";
 import app from "../server";
 import globals from "./global";
@@ -8,6 +9,7 @@ import { before, beforeEach } from "mocha";
 import { Room } from ".prisma/client";
 import { createFakeDevices } from "./fixtures/device";
 import { createManyFakeUsers } from "./fixtures/user";
+import sendPush from "../server/services/push/worker/sendPush";
 
 describe("API", () => {
     describe("/api/messenger/messages POST", () => {
@@ -249,6 +251,35 @@ describe("API", () => {
             expect(
                 actions.every((a: string) => a === Constants.MESSAGE_ACTION_NEW_MESSAGE)
             ).to.eqls(true);
+        });
+
+        it("sends  push for every deviceMessage", async () => {
+            const users = await createManyFakeUsers(2);
+            const userIds = users.map((u) => u.id);
+            await createFakeDevices(userIds);
+            const room = await createFakeRoom([
+                { userId: globals.userId, isAdmin: true },
+                ...users.map((u) => ({ userId: u.id })),
+            ]);
+
+            chai.spy.on(sendPush, "run", () => true);
+
+            const response = await supertest(app)
+                .post("/api/messenger/messages")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, roomId: room.id });
+
+            expect(response.status).to.eqls(200);
+            expect(response.body).to.has.property("data");
+            expect(response.body.data).to.has.property("message");
+
+            const message = response.body.data.message;
+            const deviceMessagesCount = await globals.prisma.deviceMessage.count({
+                where: { messageId: message.id },
+            });
+
+            expect(sendPush.run).to.have.been.called.exactly(deviceMessagesCount);
+            chai.spy.restore(sendPush, "run");
         });
     });
 });

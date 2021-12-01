@@ -9,6 +9,9 @@ import * as yup from "yup";
 import validate from "../../../components/validateMiddleware";
 import { successResponse, errorResponse } from "../../../components/response";
 import { MESSAGE_ACTION_NEW_MESSAGE } from "../../../components/consts";
+import * as Constants from "../../../components/consts";
+
+import { InitRouterParams } from "../../types/serviceInterface";
 
 const prisma = new PrismaClient();
 
@@ -20,7 +23,7 @@ const postMessageSchema = yup.object().shape({
     }),
 });
 
-export default (): Router => {
+export default ({ rabbitMQChannel }: InitRouterParams): Router => {
     const router = Router();
 
     router.post("/", auth, validate(postMessageSchema), async (req: Request, res: Response) => {
@@ -71,6 +74,21 @@ export default (): Router => {
                     },
                 },
             });
+
+            for (const deviceMessage of deviceMessages) {
+                rabbitMQChannel.sendToQueue(
+                    Constants.QUEUE_PUSH,
+                    Buffer.from(
+                        JSON.stringify({
+                            type: "new_message",
+                            token: devices.find((d) => d.id == deviceMessage.deviceId)?.pushToken,
+                            data: {
+                                deviceMessage,
+                            },
+                        })
+                    )
+                );
+            }
             res.send(successResponse({ message }, userReq.lang));
         } catch (e: any) {
             le(e);
