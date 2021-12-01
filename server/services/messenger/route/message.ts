@@ -67,29 +67,34 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     fromUserId: userReq.user.id,
                     fromDeviceId: userReq.device.id,
                     totalDeviceCount: deviceMessages.length,
-                    deviceMessages: {
-                        createMany: {
-                            data: deviceMessages,
-                        },
-                    },
                 },
             });
 
-            for (const deviceMessage of deviceMessages) {
-                rabbitMQChannel.sendToQueue(
-                    Constants.QUEUE_PUSH,
-                    Buffer.from(
-                        JSON.stringify({
-                            type: Constants.PUSH_TYPE_NEW_MESSAGE,
-                            token: devices.find((d) => d.id == deviceMessage.deviceId)?.pushToken,
-                            data: {
-                                deviceMessage,
-                            },
-                        })
-                    )
+            res.send(successResponse({ message }, userReq.lang));
+
+            while (deviceMessages.length) {
+                await Promise.all(
+                    deviceMessages.splice(0, 10).map(async (deviceMessage) => {
+                        await prisma.deviceMessage.create({
+                            data: { ...deviceMessage, messageId: message.id },
+                        });
+
+                        rabbitMQChannel.sendToQueue(
+                            Constants.QUEUE_PUSH,
+                            Buffer.from(
+                                JSON.stringify({
+                                    type: Constants.PUSH_TYPE_NEW_MESSAGE,
+                                    token: devices.find((d) => d.id == deviceMessage.deviceId)
+                                        ?.pushToken,
+                                    data: {
+                                        deviceMessage,
+                                    },
+                                })
+                            )
+                        );
+                    })
                 );
             }
-            res.send(successResponse({ message }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
