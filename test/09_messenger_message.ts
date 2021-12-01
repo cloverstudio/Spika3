@@ -5,7 +5,7 @@ import app from "../server";
 import globals from "./global";
 import * as Constants from "../server/components/consts";
 import createFakeRoom from "./fixtures/room";
-import { before, beforeEach } from "mocha";
+import { before, beforeEach, afterEach } from "mocha";
 import { Room } from ".prisma/client";
 import { createFakeDevices } from "./fixtures/device";
 import { createManyFakeUsers } from "./fixtures/user";
@@ -20,6 +20,10 @@ describe("API", () => {
             room = await createFakeRoom([{ userId: globals.userId, isAdmin: true }]);
         });
 
+        afterEach(() => {
+            chai.spy.restore(sendPush, "run");
+        });
+
         beforeEach(async () => {
             validParams = {
                 roomId: room.id,
@@ -29,6 +33,7 @@ describe("API", () => {
                     mediaUrl: "url",
                 },
             };
+            chai.spy.on(sendPush, "run", () => true);
         });
 
         it("roomId param is required", async () => {
@@ -262,8 +267,6 @@ describe("API", () => {
                 ...users.map((u) => ({ userId: u.id })),
             ]);
 
-            chai.spy.on(sendPush, "run", () => true);
-
             const response = await supertest(app)
                 .post("/api/messenger/messages")
                 .set({ accesstoken: globals.userToken })
@@ -278,8 +281,7 @@ describe("API", () => {
                 where: { messageId: message.id },
             });
 
-            expect(sendPush.run).to.have.been.called.exactly(deviceMessagesCount);
-            chai.spy.restore(sendPush, "run");
+            expect(sendPush.run).to.have.been.called.min(deviceMessagesCount);
         });
     });
 });

@@ -12,6 +12,9 @@ export USE_UPLOAD=1
 export USE_PUSH=1
 export IS_TEST=1
 export UPLOAD_FOLDER=./test/upload
+export LOG_INFO=1
+export LOG_WARN=0
+export LOG_ERROR=1
 
 npx prisma migrate dev --name init --preview-feature 
 
