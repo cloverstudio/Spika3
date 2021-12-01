@@ -186,7 +186,7 @@ export default (params: InitRouterParams) => {
             if (countryCode) updateValues.countryCode = countryCode;
             if (telephoneNumber) updateValues.telephoneNumber = telephoneNumber;
             if (avatarUrl) updateValues.avatarUrl = avatarUrl;
-            if (verified) updateValues.verified = verified;
+            if (verified != null) updateValues.verified = verified;
             if (verificationCode) updateValues.verificationCode = verificationCode;
 
             if (Object.keys(updateValues).length == 0)

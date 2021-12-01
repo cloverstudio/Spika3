@@ -14,7 +14,10 @@ import DeviceDetail from "./pages/device/detail";
 import DeviceEdit from "./pages/device/edit";
 import DeviceDelete from "./pages/device/delete";
 import Room from "./pages/room/index";
-
+import RoomAdd from "./pages/room/add";
+import RoomDetail from "./pages/room/detail";
+import RoomEdit from "./pages/room/edit";
+import RoomDelete from "./pages/room/delete";
 declare var BASE_URL: string;
 
 function App() {
@@ -46,6 +49,9 @@ function App() {
                     <Route exact path="/user/:id/devices">
                         <Device key="user_devices" />
                     </Route>
+                    <Route exact path="/user/:userId/room">
+                        <Room key="user_rooms" />
+                    </Route>
                     <Route exact path="/device">
                         <Device />
                     </Route>
@@ -63,6 +69,18 @@ function App() {
                     </Route>
                     <Route exact path="/room">
                         <Room />
+                    </Route>
+                    <Route exact path="/room/add">
+                        <RoomAdd />
+                    </Route>
+                    <Route exact path="/room/detail/:id">
+                        <RoomDetail />
+                    </Route>
+                    <Route exact path="/room/edit/:id">
+                        <RoomEdit />
+                    </Route>
+                    <Route exact path="/room/delete/:id">
+                        <RoomDelete />
                     </Route>
                 </Switch>
             </Router>

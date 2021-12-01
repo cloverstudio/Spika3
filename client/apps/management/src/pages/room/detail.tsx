@@ -2,27 +2,27 @@ import React, { useEffect } from "react";
 import Layout from "../layout";
 import { useHistory, useParams } from "react-router-dom";
 import { useGet } from "../../lib/useApi";
-import { Typography, Paper, Grid, Button } from "@mui/material";
+import { Typography, Paper, Grid, Button, Avatar, Checkbox } from "@mui/material";
 import { useShowSnackBar } from "../../components/useUI";
-import { Device } from "@prisma/client";
+import { Room } from "@prisma/client";
 import { successResponseType } from "../../../../../../server/components/response";
 
 export default function Page() {
     const urlParams: { id: string } = useParams();
     const history = useHistory();
     const showSnackBar = useShowSnackBar();
-    const [detail, setDetail] = React.useState<Device>();
+    const [detail, setDetail] = React.useState<Room>();
 
     const get = useGet();
 
     useEffect(() => {
         (async () => {
             try {
-                const serverResponse: successResponseType = await get(
-                    `/api/management/device/${urlParams.id}`
+                const response: successResponseType = await get(
+                    `/api/management/room/${urlParams.id}`
                 );
-                const response: Device = serverResponse.data;
-                setDetail(response);
+                const room: Room = response.data.room;
+                setDetail(room);
             } catch (e) {
                 console.error(e);
                 showSnackBar({
@@ -34,7 +34,7 @@ export default function Page() {
     }, []);
 
     return (
-        <Layout subtitle={`Device detail ( ${urlParams.id} )`} showBack={true}>
+        <Layout subtitle={`Room detail ( ${urlParams.id} )`} showBack={true}>
             <Paper
                 sx={{
                     margin: "24px",
@@ -58,37 +58,25 @@ export default function Page() {
                                         {detail.id}
                                     </Typography>
                                     <Typography component="dt" variant="h6">
-                                        Device Id
+                                        Avatar
                                     </Typography>
-                                    <Typography component="dd">{detail.deviceId}</Typography>
+                                    <Avatar alt="Remy Sharp" src={detail.avatarUrl} />
                                     <Typography component="dt" variant="h6">
-                                        User Id
+                                        Name
                                     </Typography>
-                                    <Typography component="dd">{detail.userId}</Typography>
+                                    <Typography component="dd">{detail.name}</Typography>
                                     <Typography component="dt" variant="h6">
                                         Type
                                     </Typography>
                                     <Typography component="dd">{detail.type}</Typography>
                                     <Typography component="dt" variant="h6">
-                                        OS name
+                                        Avatar Url
                                     </Typography>
-                                    <Typography component="dd">{detail.osName}</Typography>
+                                    <Typography component="dd">{detail.avatarUrl}</Typography>
                                     <Typography component="dt" variant="h6">
-                                        App Version
+                                        Deleted
                                     </Typography>
-                                    <Typography component="dd">{detail.appVersion}</Typography>
-                                    <Typography component="dt" variant="h6">
-                                        Token
-                                    </Typography>
-                                    <Typography component="dd">{detail.token}</Typography>
-                                    <Typography component="dt" variant="h6">
-                                        Push Token
-                                    </Typography>
-                                    <Typography component="dd">{detail.pushToken}</Typography>
-                                    <Typography component="dt" variant="h6">
-                                        Token Expired
-                                    </Typography>
-                                    <Typography component="dd">{detail.tokenExpiredAt}</Typography>
+                                    <Checkbox checked={detail.deleted} />
                                 </Grid>
                             </Grid>
                         ) : null}
@@ -98,7 +86,7 @@ export default function Page() {
                             className="margin-right"
                             variant="contained"
                             onClick={(e) => {
-                                history.push(`/device/edit/${urlParams.id}`);
+                                history.push(`/room/edit/${urlParams.id}`);
                             }}
                         >
                             Edit
@@ -107,7 +95,7 @@ export default function Page() {
                             color="error"
                             variant="contained"
                             onClick={(e) => {
-                                history.push(`/device/delete/${urlParams.id}`);
+                                history.push(`/room/delete/${urlParams.id}`);
                             }}
                         >
                             Delete

@@ -1,8 +1,7 @@
 import React from "react";
 import Layout from "../layout";
 import { useHistory } from "react-router-dom";
-import { useGet, usePost } from "../../lib/useApi";
-
+import { usePost } from "../../lib/useApi";
 import {
     TextField,
     Paper,
@@ -14,7 +13,6 @@ import {
     FormControl,
     FormControlLabel,
 } from "@mui/material";
-
 import { useShowSnackBar } from "../../components/useUI";
 import * as yup from "yup";
 import { useFormik } from "formik";
@@ -166,7 +164,12 @@ export default function Dashboard() {
                                 <FormGroup aria-label="position" row>
                                     <FormControlLabel
                                         value="start"
-                                        control={<Checkbox onChange={formik.handleChange} />}
+                                        control={
+                                            <Checkbox
+                                                id="verified"
+                                                onChange={formik.handleChange}
+                                            />
+                                        }
                                         label="Verified"
                                         labelPlacement="start"
                                     />

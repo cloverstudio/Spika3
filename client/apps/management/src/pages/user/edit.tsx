@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import Layout from "../layout";
 import { useHistory, useParams } from "react-router-dom";
 import { useGet, usePut } from "../../lib/useApi";
-
 import {
     TextField,
     Paper,
@@ -14,17 +13,11 @@ import {
     FormControlLabel,
     Checkbox,
 } from "@mui/material";
-
 import { useShowSnackBar } from "../../components/useUI";
 import { User } from "@prisma/client";
 import * as yup from "yup";
 import { useFormik } from "formik";
-import e from "express";
-import {
-    successResponse,
-    errorResponse,
-    successResponseType,
-} from "../../../../../../server/components/response";
+import { successResponseType } from "../../../../../../server/components/response";
 
 const userModelSchema = yup.object({
     displayName: yup.string().required("Display name is required"),
@@ -242,7 +235,12 @@ export default function Page() {
                                 <FormGroup aria-label="position" row>
                                     <FormControlLabel
                                         value="start"
-                                        control={<Checkbox onChange={formik.handleChange} />}
+                                        control={
+                                            <Checkbox
+                                                id="verified"
+                                                onChange={formik.handleChange}
+                                            />
+                                        }
                                         label="Verified"
                                         labelPlacement="start"
                                     />
