@@ -10,6 +10,7 @@ import { Room } from ".prisma/client";
 import { createFakeDevices } from "./fixtures/device";
 import { createManyFakeUsers } from "./fixtures/user";
 import sendPush from "../server/services/push/worker/sendPush";
+import { wait } from "../client/lib/utils";
 
 describe("API", () => {
     describe("/api/messenger/messages POST", () => {
@@ -147,8 +148,10 @@ describe("API", () => {
             expect(response.body).to.has.property("data");
             expect(response.body.data).to.has.property("message");
 
-            const message = response.body.data.message;
+            // this is because we create device messages after we send response
+            await wait(0.05);
 
+            const message = response.body.data.message;
             const devices = await globals.prisma.device.findMany({
                 where: { userId: { in: [...userIds, globals.userId] } },
             });
@@ -180,6 +183,8 @@ describe("API", () => {
             expect(response.status).to.eqls(200);
             expect(response.body).to.has.property("data");
             expect(response.body.data).to.has.property("message");
+
+            await wait(0.05);
 
             const message = response.body.data.message;
             const deviceMessages = await globals.prisma.deviceMessage.findMany({
@@ -214,6 +219,8 @@ describe("API", () => {
             expect(response.body).to.has.property("data");
             expect(response.body.data).to.has.property("message");
 
+            await wait(0.05);
+
             const message = response.body.data.message;
             const deviceMessages = await globals.prisma.deviceMessage.findMany({
                 where: { messageId: message.id },
@@ -247,6 +254,8 @@ describe("API", () => {
             expect(response.body).to.has.property("data");
             expect(response.body.data).to.has.property("message");
 
+            await wait(0.05);
+
             const message = response.body.data.message;
             const deviceMessages = await globals.prisma.deviceMessage.findMany({
                 where: { messageId: message.id },
@@ -275,6 +284,8 @@ describe("API", () => {
             expect(response.status).to.eqls(200);
             expect(response.body).to.has.property("data");
             expect(response.body.data).to.has.property("message");
+
+            await wait(0.05);
 
             const message = response.body.data.message;
             const deviceMessagesCount = await globals.prisma.deviceMessage.count({
