@@ -99,6 +99,15 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     telephoneNumberHashed: { in: hashList },
                     verified: true,
                 },
+                select: {
+                    id: true,
+                    emailAddress: true,
+                    telephoneNumber: true,
+                    telephoneNumberHashed: true,
+                    displayName: true,
+                    avatarUrl: true,
+                    createdAt: true,
+                },
             });
 
             verifiedUsers.forEach((contact) => {

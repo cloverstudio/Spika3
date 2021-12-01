@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 export default async function createFakeUser(overrides?: any): Promise<User> {
     const telephoneNumber = `+385${faker.datatype.number({ min: 911111111, max: 999999999 })}`;
-    const shasum = crypto.createHash("sha1");
+    const shasum = crypto.createHash("sha256");
     shasum.update(telephoneNumber);
     const telephoneNumberHashed = shasum.digest("hex");
     const countryCode = `385`;

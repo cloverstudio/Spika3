@@ -8,7 +8,7 @@ import globals from "./global";
 
 const phoneNumber = `+385${faker.fake("{{datatype.number}}")}`;
 
-const shasum = crypto.createHash("sha1");
+const shasum = crypto.createHash("sha256");
 shasum.update(phoneNumber);
 const phoneNumberHash = shasum.digest("hex");
 const countryCode = `385`;
