@@ -208,7 +208,7 @@ async function checkHashes(hashed: string, filePath: string) {
             }
             const readable = fs.createReadStream(filePath);
 
-            const hash = crypto.createHash("sha1");
+            const hash = crypto.createHash("sha256");
             hash.setEncoding("hex");
 
             readable.on("end", function () {
