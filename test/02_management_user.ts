@@ -3,8 +3,6 @@ import supertest from "supertest";
 import app from "../server";
 import faker from "faker";
 
-import l, { error as e } from "../server/components/logger";
-import Utils from "../server/components/utils";
 import globals from "./global";
 
 describe("Admin user management API", () => {

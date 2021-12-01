@@ -1,9 +1,8 @@
 import React, { useEffect } from "react";
 import Layout from "../layout";
-import { useHistory } from "react-router-dom";
+import { useHistory, useParams } from "react-router-dom";
 import { DataGrid, GridActionsCellItem, GridRenderCellParams } from "@mui/x-data-grid";
 import { Paper, Fab, Avatar } from "@mui/material";
-
 import {
     Add as AddIcon,
     Delete as DeleteIcon,
@@ -11,11 +10,8 @@ import {
     Description as DescriptionIcon,
     CancelOutlined,
     CheckCircleOutlineOutlined,
-    DevicesOther,
 } from "@mui/icons-material/";
-
-import { User } from "@prisma/client";
-
+import { Room } from "@prisma/client";
 import { useGet } from "../../lib/useApi";
 import { useShowSnackBar } from "../../components/useUI";
 import { ListResponseType } from "../../lib/customTypes";
@@ -23,9 +19,10 @@ import { successResponseType } from "../../../../../../server/components/respons
 
 export default function Room() {
     const [loading, setLoading] = React.useState<boolean>(false);
-    const [list, setList] = React.useState<Array<User>>([]);
+    const [list, setList] = React.useState<Array<Room>>([]);
     const [pageSize, setPageSize] = React.useState<number>(30);
     const [totalCount, setTotalCount] = React.useState<number>(0);
+    const urlParams: { userId: string } = useParams();
 
     const showSnackBar = useShowSnackBar();
     const history = useHistory();
@@ -41,8 +38,13 @@ export default function Room() {
         setLoading(true);
 
         try {
-            const response: successResponseType = await get(`/api/management/user?page=${page}`);
-            const data: ListResponseType<User> = response.data;
+            console.log("UrlParams:" + urlParams.userId);
+            const url: string =
+                urlParams.userId == null
+                    ? `/api/management/room?page=${page}`
+                    : `/api/management/room?page=${page}&userId=${urlParams.userId}`;
+            const response: successResponseType = await get(url);
+            const data: ListResponseType<Room> = response.data;
             setList(data.list);
             setPageSize(data.limit);
             setTotalCount(data.count);
@@ -81,33 +83,23 @@ export default function Room() {
             ),
         },
         {
-            field: "displayName",
-            headerName: "Display Name",
+            field: "name",
+            headerName: "Name",
             flex: 1,
             minWidth: 300,
             sortable: false,
             filterable: false,
         },
         {
-            field: "customField",
-            headerName: "Phone Number",
-            flex: 0.5,
-            sortable: false,
-            filterable: false,
-            valueGetter: getFullNumber,
-            sortComparator: (v1: any, v2: any) => v1!.toString().localeCompare(v2!.toString()),
-        },
-        {
-            field: "emailAddress",
-            headerName: "E-mail",
-            type: "dateTime",
+            field: "type",
+            headerName: "Type",
             flex: 0.5,
             sortable: false,
             filterable: false,
         },
         {
-            field: "verified",
-            headerName: "Verified",
+            field: "deleted",
+            headerName: "Deleted",
             type: "boolean",
             flex: 0.5,
             sortable: false,
@@ -142,29 +134,29 @@ export default function Room() {
             field: "actions",
             type: "actions",
             width: 80,
-            getActions: (params: User) => [
+            getActions: (params: Room) => [
                 <GridActionsCellItem
                     icon={<DescriptionIcon />}
                     label="Detail"
-                    onClick={() => history.push(`/user/detail/${params.id}`)}
+                    onClick={() => history.push(`/room/detail/${params.id}`)}
                     showInMenu
                 />,
-                <GridActionsCellItem
-                    icon={<DevicesOther />}
-                    label="Devices"
-                    onClick={() => history.push(`/user/${params.id}/devices`)}
-                    showInMenu
-                />,
+                // <GridActionsCellItem
+                //     icon={<DevicesOther />}
+                //     label="Devices"
+                //     onClick={() => history.push(`/room/${params.id}/devices`)}
+                //     showInMenu
+                // />,
                 <GridActionsCellItem
                     icon={<EditIcon />}
                     label="Edit"
-                    onClick={() => history.push(`/user/edit/${params.id}`)}
+                    onClick={() => history.push(`/room/edit/${params.id}`)}
                     showInMenu
                 />,
                 <GridActionsCellItem
                     icon={<DeleteIcon />}
                     label="Delete"
-                    onClick={() => history.push(`/user/delete/${params.id}`)}
+                    onClick={() => history.push(`/room/delete/${params.id}`)}
                     showInMenu
                 />,
             ],
@@ -172,7 +164,7 @@ export default function Room() {
     ];
 
     return (
-        <Layout subtitle="Users">
+        <Layout subtitle="Rooms">
             <Paper
                 sx={{
                     margin: "24px",
@@ -199,7 +191,7 @@ export default function Room() {
                 aria-label="add"
                 className="fab-main"
                 onClick={(e) => {
-                    history.push("/user/add");
+                    history.push("/room/add");
                 }}
             >
                 <AddIcon />

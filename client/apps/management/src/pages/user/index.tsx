@@ -3,7 +3,6 @@ import Layout from "../layout";
 import { useHistory } from "react-router-dom";
 import { DataGrid, GridActionsCellItem, GridRenderCellParams } from "@mui/x-data-grid";
 import { Paper, Fab, Avatar } from "@mui/material";
-
 import {
     Add as AddIcon,
     Delete as DeleteIcon,
@@ -12,10 +11,9 @@ import {
     CancelOutlined,
     CheckCircleOutlineOutlined,
     DevicesOther,
+    MeetingRoom as RoomIcon,
 } from "@mui/icons-material/";
-
 import { User } from "@prisma/client";
-
 import { useGet } from "../../lib/useApi";
 import { useShowSnackBar } from "../../components/useUI";
 import { ListResponseType } from "../../lib/customTypes";
@@ -153,6 +151,12 @@ export default function Dashboard() {
                     icon={<DevicesOther />}
                     label="Devices"
                     onClick={() => history.push(`/user/${params.id}/devices`)}
+                    showInMenu
+                />,
+                <GridActionsCellItem
+                    icon={<RoomIcon />}
+                    label="Rooms"
+                    onClick={() => history.push(`/user/${params.id}/room`)}
                     showInMenu
                 />,
                 <GridActionsCellItem

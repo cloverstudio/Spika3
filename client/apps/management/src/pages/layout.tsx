@@ -6,17 +6,9 @@ import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
 import { useHistory } from "react-router-dom";
 
 import {
-    Avatar,
-    Button,
     CssBaseline,
-    TextField,
-    FormControlLabel,
-    Checkbox,
-    Link,
-    Alert,
     Box,
     Typography,
-    Snackbar,
     Toolbar,
     IconButton,
     Divider,
@@ -29,23 +21,22 @@ import {
 } from "@mui/material";
 
 import {
-    LockOutlined,
     Menu as MenuIcon,
     Notifications as NotificationsIcon,
     ChevronLeft as ChevronLeftIcon,
     Dashboard as DashboardIcon,
-    ShoppingCart as ShoppingCartIcon,
-    People as PeopleIcon,
-    BarChart as BarChartIcon,
-    Layers as LayersIcon,
     ArrowBackIos as ArrowBackIosIcon,
+    Person as UserIcon,
+    Devices as DeviceIcon,
+    MeetingRoom as RoomIcon,
+    Logout as LogoutIcon,
 } from "@mui/icons-material/";
 
 import SnackBar from "../components/snackBar";
 import BasicDialog from "../components/basicDialog";
 import { logout } from "../store/adminAuthSlice";
 import { showSnackBar } from "../store/uiSlice";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 
 const drawerWidth: number = 240;
 
@@ -197,7 +188,7 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
                             }}
                         >
                             <ListItemIcon>
-                                <DashboardIcon />
+                                <UserIcon />
                             </ListItemIcon>
                             <ListItemText primary="Users" />
                         </ListItem>
@@ -208,9 +199,20 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
                             }}
                         >
                             <ListItemIcon>
-                                <DashboardIcon />
+                                <DeviceIcon />
                             </ListItemIcon>
                             <ListItemText primary="Devices" />
+                        </ListItem>
+                        <ListItem
+                            button
+                            onClick={(e) => {
+                                history.push("/room");
+                            }}
+                        >
+                            <ListItemIcon>
+                                <RoomIcon />
+                            </ListItemIcon>
+                            <ListItemText primary="Rooms" />
                         </ListItem>
                     </List>
                     <Divider />
@@ -230,7 +232,7 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
                             }}
                         >
                             <ListItemIcon>
-                                <DashboardIcon />
+                                <LogoutIcon />
                             </ListItemIcon>
                             <ListItemText primary="Logout" />
                         </ListItem>

@@ -2,18 +2,12 @@ import React, { useEffect } from "react";
 import Layout from "../layout";
 import { useHistory, useParams } from "react-router-dom";
 import { useGet, usePut } from "../../lib/useApi";
-
-import { TextField, Paper, Grid, Button, Stack } from "@mui/material";
-
+import { TextField, Paper, Grid, Button } from "@mui/material";
 import { useShowSnackBar } from "../../components/useUI";
 import { Device } from "@prisma/client";
 import * as yup from "yup";
 import { useFormik } from "formik";
-import {
-    successResponse,
-    errorResponse,
-    successResponseType,
-} from "../../../../../../server/components/response";
+import { successResponseType } from "../../../../../../server/components/response";
 
 const deviceModelSchema = yup.object({
     userId: yup.number().required("User id is required"),

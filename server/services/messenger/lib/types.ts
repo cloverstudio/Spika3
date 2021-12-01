@@ -1,9 +1,10 @@
 import { Router, Request, Response } from "express";
-import { User, Device } from "@prisma/client";
+import { User, Device, Room } from "@prisma/client";
 
 export interface UserRequest extends Request {
     user: User;
     device: Device;
+    room: Room;
     lang: string;
 }
 

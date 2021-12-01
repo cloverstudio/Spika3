@@ -1,19 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import Layout from "../layout";
 import { useHistory, useParams } from "react-router-dom";
-import faker from "faker";
 import { useGet, useDelete } from "../../lib/useApi";
-
 import { Typography, Paper, Grid, Button } from "@mui/material";
-
-import { useSelector, useDispatch } from "react-redux";
 import { useShowBasicDialog, useShowSnackBar } from "../../components/useUI";
 import { Device } from "@prisma/client";
-import {
-    successResponse,
-    errorResponse,
-    successResponseType,
-} from "../../../../../../server/components/response";
+import { successResponseType } from "../../../../../../server/components/response";
 
 interface formItem {
     value: string;
@@ -21,13 +13,8 @@ interface formItem {
     helperText: string;
 }
 
-interface formItems {
-    displayName: formItem;
-}
-
 export default function Page() {
     const urlParams: { id: string } = useParams();
-    const dispatch = useDispatch();
     const history = useHistory();
     const showSnackBar = useShowSnackBar();
     const showBasicDialog = useShowBasicDialog();

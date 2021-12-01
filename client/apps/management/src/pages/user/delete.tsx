@@ -1,33 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import Layout from "../layout";
 import { useHistory, useParams } from "react-router-dom";
-import faker from "faker";
 import { useGet, useDelete } from "../../lib/useApi";
-
 import { Typography, Paper, Grid, Button, Avatar, Checkbox } from "@mui/material";
-
-import { useSelector, useDispatch } from "react-redux";
 import { useShowBasicDialog, useShowSnackBar } from "../../components/useUI";
 import { User } from "@prisma/client";
-import {
-    successResponse,
-    errorResponse,
-    successResponseType,
-} from "../../../../../../server/components/response";
-
-interface formItem {
-    value: string;
-    isError: boolean;
-    helperText: string;
-}
-
-interface formItems {
-    displayName: formItem;
-}
+import { successResponseType } from "../../../../../../server/components/response";
 
 export default function Page() {
     const urlParams: { id: string } = useParams();
-    const dispatch = useDispatch();
     const history = useHistory();
     const showSnackBar = useShowSnackBar();
     const showBasicDialog = useShowBasicDialog();

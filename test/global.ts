@@ -1,4 +1,4 @@
-import { PrismaClient, User, Device } from "@prisma/client";
+import { PrismaClient, User, Device, Room } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export interface Globals {
@@ -10,6 +10,7 @@ export interface Globals {
     userToken: string | undefined;
     userId?: number | undefined;
     prisma: PrismaClient;
+    createdRoom: Room;
 }
 
 const globals: Globals = {
@@ -20,6 +21,7 @@ const globals: Globals = {
     deviceId: undefined,
     userToken: "",
     prisma,
+    createdRoom: undefined,
 };
 
 export default globals;
