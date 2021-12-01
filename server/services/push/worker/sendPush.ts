@@ -1,6 +1,6 @@
 import QueueWorkerInterface from "../../types/queueWorkerInterface";
 import { SendPushPayload } from "../../types/queuePayloadTypes";
-import { error as le } from "../../../components/logger";
+import { warn as lw } from "../../../components/logger";
 import sendFcmMessage, { FcmMessagePayload } from "../lib/sendFcmMessage";
 import { PUSH_TYPE_NEW_MESSAGE } from "../../../components/consts";
 
@@ -15,7 +15,7 @@ class sendPushWorker implements QueueWorkerInterface {
             await sendFcmMessage(fcmMessagePayload);
         } catch (error) {
             // handle push sending failed case
-            le("push sending failed", { error, payload });
+            lw("push sending failed", { error, payload });
         }
     }
 }

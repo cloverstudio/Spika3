@@ -37,6 +37,10 @@ export type FcmMessagePayload = {
 };
 
 export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Promise<any> {
+    if (process.env.IS_TEST === "1") {
+        return;
+    }
+
     const accessToken = await getAccessToken();
 
     const response: AxiosResponse<any> = await axios({

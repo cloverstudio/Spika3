@@ -80,7 +80,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     Constants.QUEUE_PUSH,
                     Buffer.from(
                         JSON.stringify({
-                            type: "new_message",
+                            type: Constants.PUSH_TYPE_NEW_MESSAGE,
                             token: devices.find((d) => d.id == deviceMessage.deviceId)?.pushToken,
                             data: {
                                 deviceMessage,
