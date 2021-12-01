@@ -1,6 +1,3 @@
-// sms service consumes rabbit mq queue and sends sms
-
-import { Router, Request, Response } from "express";
 import amqp from "amqplib";
 
 import * as Constants from "../../components/consts";
@@ -16,10 +13,9 @@ export default class SMSService implements Service {
         });
 
         rabbitMQChannel.consume(Constants.QUEUE_SMS, async (msg: amqp.ConsumeMessage) => {
-            console.log("hi mom ");
+            rabbitMQChannel.ack(msg);
             const payload: SendSMSPayload = JSON.parse(msg.content.toString());
             await sendSMSWorker.run(payload);
-            rabbitMQChannel.ack(msg);
         });
     }
 
