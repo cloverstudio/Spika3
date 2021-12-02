@@ -10,13 +10,13 @@ import { verificationCodeSMS } from "../../../components/string";
 import validate from "../../../components/validateMiddleware";
 import * as yup from "yup";
 import { successResponse, errorResponse } from "../../../components/response";
+import sanitize from "../../../components/sanitize";
 
 const prisma = new PrismaClient();
 
 const authSchema = yup.object().shape({
     body: yup.object().shape({
         telephoneNumber: yup.string().required(),
-        countryCode: yup.string().required(),
         telephoneNumberHashed: yup.string().required(),
         deviceId: yup.string().required(),
     }),
@@ -45,7 +45,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         try {
             const telephoneNumber = req.body.telephoneNumber as string;
             const telephoneNumberHashed = req.body.telephoneNumberHashed as string;
-            const countryCode = req.body.countryCode as string;
             const deviceId = req.body.deviceId as string;
 
             let isNewUser = false;
@@ -67,7 +66,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     data: {
                         telephoneNumber,
                         telephoneNumberHashed,
-                        countryCode,
                         verificationCode,
                     },
                 });
@@ -89,7 +87,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     data: {
                         verificationCode,
                         telephoneNumberHashed,
-                        countryCode,
                     },
                 });
 
@@ -151,14 +148,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             res.send(
                 successResponse({
-                    newUser: isNewUser,
-                    user: {
-                        id: requestUser.id,
-                        telephoneNumber: requestUser.telephoneNumber,
-                        telephoneNumberHashed: requestUser.telephoneNumberHashed,
-                        createdAt: requestUser.createdAt,
-                        modifiedAt: requestUser.modifiedAt,
-                    },
+                    isNewUser,
+                    user: sanitize("user", requestUser),
                     device: {
                         id: requestDevice.id,
                     },
@@ -219,12 +210,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             res.send(
                 successResponse({
-                    user: {
-                        id: requestUser.id,
-                        telephoneNumber: requestUser.telephoneNumber,
-                        createdAt: requestUser.createdAt,
-                        modifiedAt: requestUser.modifiedAt,
-                    },
+                    user: sanitize("user", requestUser),
                     device: requestDevice,
                 })
             );
