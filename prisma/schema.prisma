@@ -16,7 +16,6 @@ model User {
   emailAddress          String?  @unique @map(name: "email_address")
   telephoneNumber       String?  @unique @map(name: "telephone_number")
   telephoneNumberHashed String?  @unique @map(name: "telephone_number_hashed")
-  countryCode           String?  @map(name: "country_code")
   displayName           String?  @map(name: "display_name")
   avatarUrl             String?  @map(name: "avatar_url")
   verificationCode      String?  @map(name: "verification_code")

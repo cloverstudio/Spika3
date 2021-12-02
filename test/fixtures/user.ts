@@ -9,12 +9,12 @@ export default async function createFakeUser(overrides?: any): Promise<User> {
     const shasum = crypto.createHash("sha256");
     shasum.update(telephoneNumber);
     const telephoneNumberHashed = shasum.digest("hex");
-    const countryCode = `385`;
+    const emailAddress = faker.internet.email();
 
     const user = {
         telephoneNumber,
         telephoneNumberHashed,
-        countryCode,
+        emailAddress,
         verified: true,
         ...(overrides && { ...overrides }),
     };

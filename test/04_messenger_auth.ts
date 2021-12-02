@@ -8,7 +8,6 @@ import utils from "../server/components/utils";
 
 const telephoneNumber = `+385${faker.fake("{{datatype.number}}")}`;
 const telephoneNumberHashed = utils.sha256(telephoneNumber);
-const countryCode = `385`;
 const deviceId = faker.random.alphaNumeric(6);
 
 describe("API", () => {
@@ -23,17 +22,6 @@ describe("API", () => {
         it("Telephone number is missing", async () => {
             const response = await supertest(app).post("/api/messenger/auth").send({
                 telephoneNumber: null,
-                countryCode,
-                deviceId,
-            });
-
-            expect(response.status).to.eqls(400);
-        });
-
-        it("CountryCode is missing", async () => {
-            const response = await supertest(app).post("/api/messenger/auth").send({
-                telephoneNumber,
-                countryCode: null,
                 deviceId,
             });
 
@@ -43,7 +31,6 @@ describe("API", () => {
         it("DeviceId is missing", async () => {
             const response = await supertest(app).post("/api/messenger/auth").send({
                 telephoneNumber,
-                countryCode,
                 deviceId: null,
             });
 
@@ -53,7 +40,6 @@ describe("API", () => {
         it("Hash is missing", async () => {
             const response = await supertest(app).post("/api/messenger/auth").send({
                 telephoneNumber,
-                countryCode,
                 deviceId,
             });
 
@@ -64,12 +50,11 @@ describe("API", () => {
             const response = await supertest(app).post("/api/messenger/auth").send({
                 telephoneNumber,
                 telephoneNumberHashed,
-                countryCode,
                 deviceId,
             });
 
             expect(response.status).to.eqls(200);
-            expect(response.body.data.newUser).equals(true);
+            expect(response.body.data.isNewUser).equals(true);
             globals.userId = response.body.data.user.id;
         });
 
@@ -77,12 +62,11 @@ describe("API", () => {
             const response = await supertest(app).post("/api/messenger/auth").send({
                 telephoneNumber,
                 telephoneNumberHashed,
-                countryCode,
                 deviceId,
             });
 
             expect(response.status).to.eqls(200);
-            expect(response.body.data.newUser).equals(true);
+            expect(response.body.data.isNewUser).equals(true);
         });
 
         it("Verify verification code", async () => {
