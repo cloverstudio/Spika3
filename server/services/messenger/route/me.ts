@@ -28,7 +28,7 @@ export default (): Router => {
         const userReq: UserRequest = req as UserRequest;
 
         try {
-            res.send(successResponse({ user: sanitize("user", userReq.user) }));
+            res.send(successResponse({ user: sanitize(userReq.user).user() }));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -89,7 +89,7 @@ export default (): Router => {
                 },
             });
 
-            res.send(successResponse({ user: sanitize("user", user) }));
+            res.send(successResponse({ user: sanitize(user).user() }));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

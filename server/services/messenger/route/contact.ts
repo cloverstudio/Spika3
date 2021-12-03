@@ -114,7 +114,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             res.send(
                 successResponse(
                     {
-                        list: verifiedUsers.map((user) => sanitize("user", user)),
+                        list: verifiedUsers.map((user) => sanitize(user).user()),
                         count: verifiedUsers.length,
                         limit: Constants.CONTACT_SYNC_LIMIT,
                     },

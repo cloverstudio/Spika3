@@ -1,33 +1,53 @@
-export default function sanitize(modelName: string, data: any): any {
-    switch (modelName) {
-        case "user": {
-            return sanitizeUser(data);
-        }
+import { Device, User } from ".prisma/client";
 
-        default: {
-            throw new Error("Unknown sanitize modelName");
-        }
-    }
+interface sanitizeTypes {
+    user: () => Partial<User>;
+    device: () => Partial<Device>;
 }
 
-function sanitizeUser(data: any) {
-    const {
-        id,
-        emailAddress,
-        telephoneNumber,
-        telephoneNumberHashed,
-        displayName,
-        avatarUrl,
-        createdAt,
-    } = data;
-
+export default function sanitize(data: any): sanitizeTypes {
     return {
-        id,
-        emailAddress,
-        telephoneNumber,
-        telephoneNumberHashed,
-        displayName,
-        avatarUrl,
-        createdAt,
+        user: () => {
+            const {
+                id,
+                emailAddress,
+                telephoneNumber,
+                telephoneNumberHashed,
+                displayName,
+                avatarUrl,
+                createdAt,
+            } = data;
+
+            return {
+                id,
+                emailAddress,
+                telephoneNumber,
+                telephoneNumberHashed,
+                displayName,
+                avatarUrl,
+                createdAt,
+            };
+        },
+        device: () => {
+            const {
+                id,
+                emailAddress,
+                telephoneNumber,
+                telephoneNumberHashed,
+                displayName,
+                avatarUrl,
+                createdAt,
+            } = data;
+
+            return {
+                id,
+                emailAddress,
+                telephoneNumber,
+                telephoneNumberHashed,
+                displayName,
+                avatarUrl,
+                createdAt,
+            };
+        },
     };
 }
