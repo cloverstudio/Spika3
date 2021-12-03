@@ -19,7 +19,6 @@ import { useFormik } from "formik";
 
 const userModelSchema = yup.object({
     displayName: yup.string().required("Display name is required"),
-    countryCode: yup.number().required("Code is required").typeError("Numbers only!"),
     telephoneNumber: yup
         .number()
         .required("Telephone number is required")
@@ -36,7 +35,6 @@ export default function Dashboard() {
     const formik = useFormik({
         initialValues: {
             displayName: "",
-            countryCode: "",
             telephoneNumber: "",
             email: "",
             avatarUrl: "",
@@ -61,7 +59,6 @@ export default function Dashboard() {
             const result = await post("/api/management/user", {
                 displayName: formik.values.displayName,
                 emailAddress: formik.values.email,
-                countryCode: formik.values.countryCode,
                 telephoneNumber: formik.values.telephoneNumber,
                 avatarUrl: formik.values.avatarUrl,
                 verified: formik.values.verified,
@@ -104,20 +101,6 @@ export default function Dashboard() {
                         </Grid>
                         <Grid item xs={12} md={8}>
                             <Stack alignItems="center" spacing={1} direction="row">
-                                <TextField
-                                    required
-                                    id="countryCode"
-                                    error={
-                                        formik.touched.countryCode &&
-                                        Boolean(formik.errors.countryCode)
-                                    }
-                                    label="Country code"
-                                    value={formik.values.countryCode}
-                                    onChange={formik.handleChange}
-                                    helperText={
-                                        formik.touched.countryCode && formik.errors.countryCode
-                                    }
-                                />
                                 <TextField
                                     required
                                     fullWidth
