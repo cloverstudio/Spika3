@@ -149,7 +149,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             res.send(
                 successResponse({
                     isNewUser,
-                    user: sanitize("user", requestUser),
+                    user: sanitize(requestUser).user(),
                     device: {
                         id: requestDevice.id,
                     },
@@ -210,7 +210,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             res.send(
                 successResponse({
-                    user: sanitize("user", requestUser),
+                    user: sanitize(requestUser).user(),
                     device: requestDevice,
                 })
             );
