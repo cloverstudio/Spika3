@@ -60,7 +60,12 @@ export default function Room() {
     };
 
     function getFullNumber(params: { getValue: (arg0: any, arg1: string) => any; id: any }) {
-        return "+" + `${params.getValue(params.id, "telephoneNumber") || ""}`;
+        return (
+            "+" +
+            `${params.getValue(params.id, "countryCode") || ""} ${
+                params.getValue(params.id, "telephoneNumber") || ""
+            }`
+        );
     }
 
     const columns = [
