@@ -13,7 +13,6 @@ describe("Admin user management API", () => {
                 .send({
                     displayName: faker.name.firstName(),
                     emailAddress: faker.internet.email(),
-                    countryCode: faker.address.countryCode(),
                     telephoneNumber: faker.phone.phoneNumber(),
                 })
                 .set({ "admin-accesstoken": globals.adminToken });
@@ -49,7 +48,6 @@ describe("Admin user management API", () => {
                 .send({
                     displayName: faker.name.firstName(),
                     emailAddress: faker.internet.email(),
-                    countryCode: faker.address.countryCode(),
                     telephoneNumber: faker.phone.phoneNumber(),
                 })
                 .set({ "admin-accesstoken": globals.adminToken });
@@ -74,7 +72,6 @@ describe("Admin user management API", () => {
                 .send({
                     displayName: faker.name.firstName(),
                     emailAddress: newEmail,
-                    countryCode: faker.address.countryCode(),
                     telephoneNumber: faker.phone.phoneNumber(),
                 })
                 .set({ "admin-accesstoken": globals.adminToken });

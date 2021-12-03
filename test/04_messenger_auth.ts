@@ -1,29 +1,18 @@
 import { expect } from "chai";
 import supertest from "supertest";
-import crypto from "crypto";
 
 import app from "../server";
 import faker from "faker";
 import globals from "./global";
+import utils from "../server/components/utils";
 
-const phoneNumber = `+385${faker.fake("{{datatype.number}}")}`;
-
-const shasum = crypto.createHash("sha256");
-shasum.update(phoneNumber);
-const phoneNumberHash = shasum.digest("hex");
-const countryCode = `385`;
+const telephoneNumber = `+385${faker.fake("{{datatype.number}}")}`;
+const telephoneNumberHashed = utils.sha256(telephoneNumber);
 const deviceId = faker.random.alphaNumeric(6);
 
 describe("API", () => {
     describe("/api/messenger/auth GET", () => {
-        it("Get method doesnt work", async () => {
-            const response = await supertest(app).get("/api/messenger/auth");
-            expect(response.status).to.eqls(405);
-        });
-    });
-
-    describe("/api/messenger/auth GET", () => {
-        it("Get method doesnt work", async () => {
+        it("Get method doesn't work", async () => {
             const response = await supertest(app).get("/api/messenger/auth");
             expect(response.status).to.eqls(405);
         });
@@ -33,18 +22,7 @@ describe("API", () => {
         it("Telephone number is missing", async () => {
             const response = await supertest(app).post("/api/messenger/auth").send({
                 telephoneNumber: null,
-                countryCode: countryCode,
-                deviceId: deviceId,
-            });
-
-            expect(response.status).to.eqls(400);
-        });
-
-        it("CountryCode is missing", async () => {
-            const response = await supertest(app).post("/api/messenger/auth").send({
-                telephoneNumber: phoneNumber,
-                countryCode: null,
-                deviceId: deviceId,
+                deviceId,
             });
 
             expect(response.status).to.eqls(400);
@@ -52,8 +30,7 @@ describe("API", () => {
 
         it("DeviceId is missing", async () => {
             const response = await supertest(app).post("/api/messenger/auth").send({
-                telephoneNumber: phoneNumber,
-                countryCode: countryCode,
+                telephoneNumber,
                 deviceId: null,
             });
 
@@ -62,9 +39,8 @@ describe("API", () => {
 
         it("Hash is missing", async () => {
             const response = await supertest(app).post("/api/messenger/auth").send({
-                telephoneNumber: phoneNumber,
-                countryCode: countryCode,
-                deviceId: deviceId,
+                telephoneNumber,
+                deviceId,
             });
 
             expect(response.status).to.eqls(400);
@@ -72,44 +48,41 @@ describe("API", () => {
 
         it("New user", async () => {
             const response = await supertest(app).post("/api/messenger/auth").send({
-                telephoneNumber: phoneNumber,
-                telephoneNumberHashed: phoneNumberHash,
-                countryCode: countryCode,
-                deviceId: deviceId,
+                telephoneNumber,
+                telephoneNumberHashed,
+                deviceId,
             });
 
             expect(response.status).to.eqls(200);
-            expect(response.body.newUser).equals(true);
-            globals.userId = response.body.user.id;
+            expect(response.body.data.isNewUser).equals(true);
+            globals.userId = response.body.data.user.id;
         });
 
         it("Resend verification code", async () => {
             const response = await supertest(app).post("/api/messenger/auth").send({
-                telephoneNumber: phoneNumber,
-                telephoneNumberHashed: phoneNumberHash,
-                countryCode: countryCode,
-                deviceId: deviceId,
+                telephoneNumber,
+                telephoneNumberHashed,
+                deviceId,
             });
 
             expect(response.status).to.eqls(200);
-            expect(response.body.newUser).equals(true);
+            expect(response.body.data.isNewUser).equals(true);
         });
 
         it("Verify verification code", async () => {
             const response = await supertest(app).post("/api/messenger/auth/verify").send({
                 code: "eureka",
-                deviceId: deviceId,
+                deviceId,
             });
-
             expect(response.status).to.eqls(200);
-            expect(response.body.device).to.have.property("token");
-            globals.userToken = response.body.device.token;
+            expect(response.body.data.device).to.have.property("token");
+            globals.userToken = response.body.data.device.token;
         });
 
         it("Verify verification code fail", async () => {
             const response = await supertest(app).post("/api/messenger/auth/verify").send({
                 code: "eureka22",
-                deviceId: deviceId,
+                deviceId,
             });
 
             expect(response.status).to.eqls(403);

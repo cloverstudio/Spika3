@@ -13,7 +13,6 @@ import { successResponse, errorResponse } from "../../../components/response";
 import { UserRequest } from "../../messenger/lib/types";
 import { User } from "@prisma/client";
 
-interface UserResponse {}
 export default (params: InitRouterParams) => {
     const router = Router();
 
@@ -22,7 +21,6 @@ export default (params: InitRouterParams) => {
         try {
             const displayName: string = req.body.displayName;
             const emailAddress: string = req.body.emailAddress;
-            const countryCode: string = req.body.countryCode;
             const telephoneNumber: string = req.body.telephoneNumber;
             const avatarUrl: string = req.body.avatarUrl;
             const verified: boolean = req.body.verified;
@@ -34,7 +32,6 @@ export default (params: InitRouterParams) => {
 
             const user = await prisma.user.findMany({
                 where: {
-                    countryCode: countryCode,
                     telephoneNumber: telephoneNumber,
                 },
             });
@@ -59,7 +56,6 @@ export default (params: InitRouterParams) => {
                 data: {
                     displayName: displayName,
                     emailAddress: emailAddress,
-                    countryCode: countryCode,
                     telephoneNumber: telephoneNumber,
                     avatarUrl: avatarUrl,
                     verified: verified,
@@ -136,7 +132,6 @@ export default (params: InitRouterParams) => {
 
             const displayName: string = req.body.displayName;
             const emailAddress: string = req.body.emailAddress;
-            const countryCode: string = req.body.countryCode;
             const telephoneNumber: string = req.body.telephoneNumber;
             const avatarUrl: string = req.body.avatarUrl;
             const verified: boolean = req.body.verified;
@@ -153,7 +148,6 @@ export default (params: InitRouterParams) => {
 
             const phoneNumber: User = await prisma.user.findFirst({
                 where: {
-                    countryCode: countryCode,
                     telephoneNumber: telephoneNumber,
                 },
             });
@@ -183,7 +177,6 @@ export default (params: InitRouterParams) => {
             const updateValues: any = {};
             if (displayName) updateValues.displayName = displayName;
             if (emailAddress) updateValues.emailAddress = emailAddress;
-            if (countryCode) updateValues.countryCode = countryCode;
             if (telephoneNumber) updateValues.telephoneNumber = telephoneNumber;
             if (avatarUrl) updateValues.avatarUrl = avatarUrl;
             if (verified != null) updateValues.verified = verified;
