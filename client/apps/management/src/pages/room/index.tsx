@@ -2,13 +2,12 @@ import React, { useEffect } from "react";
 import Layout from "../layout";
 import { useHistory, useParams } from "react-router-dom";
 import { DataGrid, GridActionsCellItem, GridRenderCellParams } from "@mui/x-data-grid";
-import { Paper, Fab, Avatar } from "@mui/material";
+import { Paper, Fab, Avatar, Checkbox, FormGroup, FormControlLabel } from "@mui/material";
 import {
     Add as AddIcon,
     Delete as DeleteIcon,
     Edit as EditIcon,
     Description as DescriptionIcon,
-    CancelOutlined,
     CheckCircleOutlineOutlined,
 } from "@mui/icons-material/";
 import { Room } from "@prisma/client";
@@ -17,32 +16,82 @@ import { useShowSnackBar } from "../../components/useUI";
 import { ListResponseType } from "../../lib/customTypes";
 import { successResponseType } from "../../../../../../server/components/response";
 
+import { createTheme, darken, lighten } from "@mui/material/styles";
+import { makeStyles } from "@material-ui/styles";
+
+const defaultTheme = createTheme();
+const useStyles = makeStyles(
+    (theme: {
+        palette: {
+            mode: string;
+            info: { main: any };
+            success: { main: any };
+            warning: { main: any };
+            error: { main: any };
+        };
+    }) => {
+        const getBackgroundColor = (color: string) =>
+            theme.palette.mode === "dark" ? darken(color, 0.6) : lighten(color, 0.6);
+
+        const getHoverBackgroundColor = (color: string) =>
+            theme.palette.mode === "dark" ? darken(color, 0.5) : lighten(color, 0.5);
+
+        return {
+            root: {
+                "& .super-app-theme--true": {
+                    backgroundColor: getBackgroundColor(theme.palette.info.main),
+                    "&:hover": {
+                        backgroundColor: getHoverBackgroundColor(theme.palette.info.main),
+                    },
+                },
+                "& .super-app-theme--false": {
+                    backgroundColor: getBackgroundColor(theme.palette.success.main),
+                    "&:hover": {
+                        backgroundColor: getHoverBackgroundColor(theme.palette.success.main),
+                    },
+                },
+            },
+        };
+    },
+    { defaultTheme }
+);
+
 export default function Room() {
     const [loading, setLoading] = React.useState<boolean>(false);
     const [list, setList] = React.useState<Array<Room>>([]);
     const [pageSize, setPageSize] = React.useState<number>(30);
     const [totalCount, setTotalCount] = React.useState<number>(0);
+    const [deleteFilter, setDeleteFilter] = React.useState<boolean>(false);
     const urlParams: { userId: string } = useParams();
 
     const showSnackBar = useShowSnackBar();
     const history = useHistory();
     const get = useGet();
+    const classes = useStyles();
 
     useEffect(() => {
         (async () => {
             await fetchData(0);
         })();
-    }, []);
+    }, [deleteFilter]);
 
     const fetchData = async (page: number) => {
         setLoading(true);
-
+        console.log(deleteFilter);
         try {
-            console.log("UrlParams:" + urlParams.userId);
-            const url: string =
-                urlParams.userId == null
-                    ? `/api/management/room?page=${page}`
-                    : `/api/management/room?page=${page}&userId=${urlParams.userId}`;
+            var url: string = "";
+            if (!deleteFilter) {
+                url =
+                    urlParams.userId == null
+                        ? `/api/management/room?page=${page}`
+                        : `/api/management/room?page=${page}&userId=${urlParams.userId}`;
+            } else {
+                url =
+                    urlParams.userId == null
+                        ? `/api/management/room?page=${page}&deleted=${deleteFilter}`
+                        : `/api/management/room?page=${page}&userId=${urlParams.userId}&deleted=${deleteFilter}`;
+            }
+
             const response: successResponseType = await get(url);
             const data: ListResponseType<Room> = response.data;
             setList(data.list);
@@ -58,15 +107,6 @@ export default function Room() {
 
         setLoading(false);
     };
-
-    function getFullNumber(params: { getValue: (arg0: any, arg1: string) => any; id: any }) {
-        return (
-            "+" +
-            `${params.getValue(params.id, "countryCode") || ""} ${
-                params.getValue(params.id, "telephoneNumber") || ""
-            }`
-        );
-    }
 
     const columns = [
         { field: "id", headerName: "ID", flex: 0.2, sortable: false, filterable: false },
@@ -106,11 +146,7 @@ export default function Room() {
             filterable: false,
             renderCell: (params: GridRenderCellParams<boolean>) => (
                 <strong>
-                    {params.value ? (
-                        <CheckCircleOutlineOutlined style={{ fill: "green" }} />
-                    ) : (
-                        <CancelOutlined style={{ fill: "red" }} />
-                    )}
+                    {!params.value ? "" : <CheckCircleOutlineOutlined style={{ fill: "red" }} />}
                 </strong>
             ),
         },
@@ -141,12 +177,6 @@ export default function Room() {
                     onClick={() => history.push(`/room/detail/${params.id}`)}
                     showInMenu
                 />,
-                // <GridActionsCellItem
-                //     icon={<DevicesOther />}
-                //     label="Devices"
-                //     onClick={() => history.push(`/room/${params.id}/devices`)}
-                //     showInMenu
-                // />,
                 <GridActionsCellItem
                     icon={<EditIcon />}
                     label="Edit"
@@ -171,7 +201,23 @@ export default function Room() {
                     padding: "24px",
                 }}
             >
-                <div style={{ display: "flex", width: "100%", flexGrow: 1 }}>
+                <FormGroup>
+                    <FormControlLabel
+                        label="Only Deleted"
+                        control={
+                            <Checkbox
+                                checked={deleteFilter}
+                                onChange={(e) => {
+                                    setDeleteFilter(e.target.checked);
+                                }}
+                            />
+                        }
+                    />
+                </FormGroup>
+                <div
+                    style={{ display: "flex", width: "100%", flexGrow: 1 }}
+                    className={classes.root}
+                >
                     <DataGrid
                         autoHeight
                         rows={list}
@@ -182,6 +228,9 @@ export default function Room() {
                         paginationMode="server"
                         onPageChange={(newPage) => fetchData(newPage)}
                         loading={loading}
+                        getRowClassName={(params) =>
+                            `super-app-theme--${params.getValue(params.id, "deleted")}`
+                        }
                     />
                 </div>
             </Paper>

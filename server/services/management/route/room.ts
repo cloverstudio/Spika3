@@ -49,10 +49,13 @@ export default (params: InitRouterParams) => {
         const userReq: UserRequest = req as UserRequest;
         const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 0;
         const userId: number = parseInt(req.query.userId ? (req.query.userId as string) : "") || 0;
+        const deleted: boolean = req.query.deleted == "true";
         try {
             var rooms: Room[] = null;
             if (userId == 0) {
+                const clause = !deleted ? {} : { deleted: true };
                 rooms = await prisma.room.findMany({
+                    where: clause,
                     orderBy: [
                         {
                             createdAt: "asc",
@@ -62,22 +65,39 @@ export default (params: InitRouterParams) => {
                     take: consts.PAGING_LIMIT,
                 });
             } else {
-                rooms = await prisma.room.findMany({
-                    where: {
-                        users: {
-                            some: {
-                                user: {
-                                    id: userId,
+                if (!deleted) {
+                    rooms = await prisma.room.findMany({
+                        where: {
+                            users: {
+                                some: {
+                                    user: {
+                                        id: userId,
+                                    },
                                 },
                             },
                         },
-                    },
-                    skip: consts.PAGING_LIMIT * page,
-                    take: consts.PAGING_LIMIT,
-                });
+                        skip: consts.PAGING_LIMIT * page,
+                        take: consts.PAGING_LIMIT,
+                    });
+                } else {
+                    rooms = await prisma.room.findMany({
+                        where: {
+                            deleted: true,
+                            users: {
+                                some: {
+                                    user: {
+                                        id: userId,
+                                    },
+                                },
+                            },
+                        },
+                        skip: consts.PAGING_LIMIT * page,
+                        take: consts.PAGING_LIMIT,
+                    });
+                }
             }
 
-            const count = userId == 0 ? await prisma.room.count() : rooms.length;
+            const count = userId == 0 && !deleted ? await prisma.room.count() : rooms.length;
 
             res.send(
                 successResponse(
