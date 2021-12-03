@@ -21,7 +21,6 @@ import { successResponseType } from "../../../../../../server/components/respons
 
 const userModelSchema = yup.object({
     displayName: yup.string().required("Display name is required"),
-    countryCode: yup.string().required("Code is required"),
     telephoneNumber: yup.string().required("Telephone number is required"),
     email: yup.string().required("Email is required").email("Not valid email"),
     avatarUrl: yup.string().url(),
@@ -39,7 +38,6 @@ export default function Page() {
     const formik = useFormik({
         initialValues: {
             displayName: "",
-            countryCode: "",
             telephoneNumber: "",
             email: "",
             avatarUrl: "",
@@ -55,7 +53,6 @@ export default function Page() {
     const serverUser = useFormik({
         initialValues: {
             displayName: "",
-            countryCode: "",
             telephoneNumber: "",
             email: "",
             avatarUrl: "",
@@ -74,7 +71,6 @@ export default function Page() {
                 );
                 const response: User = serverResponse.data.user;
                 const checkName = response.displayName == null ? "" : response.displayName;
-                const checkCC = response.countryCode == null ? "" : response.countryCode;
                 const checkPhone = response.telephoneNumber == null ? "" : response.telephoneNumber;
                 const checkEmail = response.emailAddress == null ? "" : response.emailAddress;
                 const checkUrl = response.avatarUrl == null ? "" : response.avatarUrl;
@@ -83,7 +79,6 @@ export default function Page() {
                     response.verificationCode == null ? "" : response.verificationCode;
                 formik.setValues({
                     displayName: checkName,
-                    countryCode: checkCC,
                     telephoneNumber: checkPhone,
                     email: checkEmail,
                     avatarUrl: checkUrl,
@@ -92,7 +87,6 @@ export default function Page() {
                 });
                 serverUser.setValues({
                     displayName: checkName,
-                    countryCode: checkCC,
                     telephoneNumber: checkPhone,
                     email: checkEmail,
                     avatarUrl: checkUrl,
@@ -114,7 +108,6 @@ export default function Page() {
             const result = await put(`/api/management/user/${urlParams.id}`, {
                 displayName: formik.values.displayName,
                 emailAddress: formik.values.email,
-                countryCode: formik.values.countryCode,
                 telephoneNumber: formik.values.telephoneNumber,
                 avatarUrl: formik.values.avatarUrl,
                 verified: formik.values.verified,
@@ -158,20 +151,6 @@ export default function Page() {
                         </Grid>
                         <Grid item xs={12} md={8}>
                             <Stack alignItems="center" spacing={1} direction="row">
-                                <TextField
-                                    required
-                                    id="countryCode"
-                                    error={
-                                        formik.touched.countryCode &&
-                                        Boolean(formik.errors.countryCode)
-                                    }
-                                    label="Country code"
-                                    value={formik.values.countryCode}
-                                    onChange={formik.handleChange}
-                                    helperText={
-                                        formik.touched.countryCode && formik.errors.countryCode
-                                    }
-                                />
                                 <TextField
                                     required
                                     fullWidth
