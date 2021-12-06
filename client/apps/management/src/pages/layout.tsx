@@ -89,7 +89,7 @@ const Drawer = styled(MuiDrawer, {
 }));
 
 const mdTheme = createTheme();
-
+const localToken = "localToken";
 type LayoutParams = {
     subtitle: string;
     children: React.ReactNode;
@@ -227,7 +227,7 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
                                         text: "Singed out",
                                     })
                                 );
-
+                                localStorage.removeItem(localToken);
                                 history.push("/");
                             }}
                         >
