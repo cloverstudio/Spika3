@@ -77,7 +77,6 @@ export default function Room() {
 
     const fetchData = async (page: number) => {
         setLoading(true);
-        console.log(deleteFilter);
         try {
             var url: string = "";
             if (!deleteFilter) {
@@ -91,7 +90,6 @@ export default function Room() {
                         ? `/api/management/room?page=${page}&deleted=${deleteFilter}`
                         : `/api/management/room?page=${page}&userId=${urlParams.userId}&deleted=${deleteFilter}`;
             }
-
             const response: successResponseType = await get(url);
             const data: ListResponseType<Room> = response.data;
             setList(data.list);

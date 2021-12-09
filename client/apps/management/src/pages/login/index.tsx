@@ -76,7 +76,6 @@ export default function () {
             });
             if (loginResult.token) {
                 if (rememberMe) {
-                    console.log(loginResult.token);
                     localStorage.setItem(localToken, loginResult.token);
                 }
                 dispatch(
