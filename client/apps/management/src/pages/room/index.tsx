@@ -38,7 +38,6 @@ export default function Room() {
         setLoading(true);
 
         try {
-            console.log("UrlParams:" + urlParams.userId);
             const url: string =
                 urlParams.userId == null
                     ? `/api/management/room?page=${page}`
