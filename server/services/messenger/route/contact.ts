@@ -10,6 +10,7 @@ import { InitRouterParams } from "../../types/serviceInterface";
 import * as yup from "yup";
 import validate from "../../../components/validateMiddleware";
 import { successResponse, errorResponse } from "../../../components/response";
+import sanitize from "../../../components/sanitize";
 
 const prisma = new PrismaClient();
 
@@ -113,7 +114,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             res.send(
                 successResponse(
                     {
-                        list: verifiedUsers,
+                        list: verifiedUsers.map((user) => sanitize(user).user()),
                         count: verifiedUsers.length,
                         limit: Constants.CONTACT_SYNC_LIMIT,
                     },

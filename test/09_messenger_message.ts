@@ -1,13 +1,16 @@
-import { expect } from "chai";
+import chai, { expect } from "chai";
+
 import supertest from "supertest";
 import app from "../server";
 import globals from "./global";
 import * as Constants from "../server/components/consts";
 import createFakeRoom from "./fixtures/room";
-import { before, beforeEach } from "mocha";
+import { before, beforeEach, afterEach } from "mocha";
 import { Room } from ".prisma/client";
 import { createFakeDevices } from "./fixtures/device";
 import { createManyFakeUsers } from "./fixtures/user";
+import sendPush from "../server/services/push/worker/sendPush";
+import { wait } from "../client/lib/utils";
 
 describe("API", () => {
     describe("/api/messenger/messages POST", () => {
@@ -16,6 +19,10 @@ describe("API", () => {
 
         before(async () => {
             room = await createFakeRoom([{ userId: globals.userId, isAdmin: true }]);
+        });
+
+        afterEach(() => {
+            chai.spy.restore(sendPush, "run");
         });
 
         beforeEach(async () => {
@@ -27,6 +34,7 @@ describe("API", () => {
                     mediaUrl: "url",
                 },
             };
+            chai.spy.on(sendPush, "run", () => true);
         });
 
         it("roomId param is required", async () => {
@@ -140,8 +148,10 @@ describe("API", () => {
             expect(response.body).to.has.property("data");
             expect(response.body.data).to.has.property("message");
 
-            const message = response.body.data.message;
+            // this is because we create device messages after we send response
+            await wait(0.05);
 
+            const message = response.body.data.message;
             const devices = await globals.prisma.device.findMany({
                 where: { userId: { in: [...userIds, globals.userId] } },
             });
@@ -173,6 +183,8 @@ describe("API", () => {
             expect(response.status).to.eqls(200);
             expect(response.body).to.has.property("data");
             expect(response.body.data).to.has.property("message");
+
+            await wait(0.05);
 
             const message = response.body.data.message;
             const deviceMessages = await globals.prisma.deviceMessage.findMany({
@@ -207,6 +219,8 @@ describe("API", () => {
             expect(response.body).to.has.property("data");
             expect(response.body.data).to.has.property("message");
 
+            await wait(0.05);
+
             const message = response.body.data.message;
             const deviceMessages = await globals.prisma.deviceMessage.findMany({
                 where: { messageId: message.id },
@@ -240,6 +254,8 @@ describe("API", () => {
             expect(response.body).to.has.property("data");
             expect(response.body.data).to.has.property("message");
 
+            await wait(0.05);
+
             const message = response.body.data.message;
             const deviceMessages = await globals.prisma.deviceMessage.findMany({
                 where: { messageId: message.id },
@@ -249,6 +265,34 @@ describe("API", () => {
             expect(
                 actions.every((a: string) => a === Constants.MESSAGE_ACTION_NEW_MESSAGE)
             ).to.eqls(true);
+        });
+
+        it("sends  push for every deviceMessage", async () => {
+            const users = await createManyFakeUsers(2);
+            const userIds = users.map((u) => u.id);
+            await createFakeDevices(userIds);
+            const room = await createFakeRoom([
+                { userId: globals.userId, isAdmin: true },
+                ...users.map((u) => ({ userId: u.id })),
+            ]);
+
+            const response = await supertest(app)
+                .post("/api/messenger/messages")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, roomId: room.id });
+
+            expect(response.status).to.eqls(200);
+            expect(response.body).to.has.property("data");
+            expect(response.body.data).to.has.property("message");
+
+            await wait(0.05);
+
+            const message = response.body.data.message;
+            const deviceMessagesCount = await globals.prisma.deviceMessage.count({
+                where: { messageId: message.id },
+            });
+
+            expect(sendPush.run).to.have.been.called.min(deviceMessagesCount);
         });
     });
 });

@@ -9,6 +9,9 @@ import * as yup from "yup";
 import validate from "../../../components/validateMiddleware";
 import { successResponse, errorResponse } from "../../../components/response";
 import { MESSAGE_ACTION_NEW_MESSAGE } from "../../../components/consts";
+import * as Constants from "../../../components/consts";
+
+import { InitRouterParams } from "../../types/serviceInterface";
 
 const prisma = new PrismaClient();
 
@@ -20,7 +23,7 @@ const postMessageSchema = yup.object().shape({
     }),
 });
 
-export default (): Router => {
+export default ({ rabbitMQChannel }: InitRouterParams): Router => {
     const router = Router();
 
     router.post("/", auth, validate(postMessageSchema), async (req: Request, res: Response) => {
@@ -64,14 +67,34 @@ export default (): Router => {
                     fromUserId: userReq.user.id,
                     fromDeviceId: userReq.device.id,
                     totalDeviceCount: deviceMessages.length,
-                    deviceMessages: {
-                        createMany: {
-                            data: deviceMessages,
-                        },
-                    },
                 },
             });
+
             res.send(successResponse({ message }, userReq.lang));
+
+            while (deviceMessages.length) {
+                await Promise.all(
+                    deviceMessages.splice(0, 10).map(async (deviceMessage) => {
+                        await prisma.deviceMessage.create({
+                            data: { ...deviceMessage, messageId: message.id },
+                        });
+
+                        rabbitMQChannel.sendToQueue(
+                            Constants.QUEUE_PUSH,
+                            Buffer.from(
+                                JSON.stringify({
+                                    type: Constants.PUSH_TYPE_NEW_MESSAGE,
+                                    token: devices.find((d) => d.id == deviceMessage.deviceId)
+                                        ?.pushToken,
+                                    data: {
+                                        deviceMessage,
+                                    },
+                                })
+                            )
+                        );
+                    })
+                );
+            }
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

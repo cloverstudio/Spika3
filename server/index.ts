@@ -6,6 +6,7 @@ import UserManagementAPIService from "./services/management";
 import MessengerAPIService from "./services/messenger";
 import SMSService from "./services/sms";
 import UploadService from "./services/upload";
+import PushService from "./services/push";
 import bodyParser from "body-parser";
 import amqp from "amqplib";
 
@@ -75,6 +76,13 @@ const app: express.Express = express();
         });
 
         app.use("/api/upload", uploadService.getRoutes());
+    }
+
+    if (process.env["USE_PUSH"]) {
+        const pushService: PushService = new PushService();
+        pushService.start({
+            rabbitMQChannel,
+        });
     }
 
     // test

@@ -1,7 +1,6 @@
 import QueueWorkerInterface from "../../types/queueWorkerInterface";
 import { SendSMSPayload } from "../../types/queuePayloadTypes";
 import l from "../../../components/logger";
-import internal from "stream";
 
 const accountSid = process.env.TWILIO_SID;
 const authToken = process.env.TWILIO_TOKEN;

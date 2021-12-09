@@ -78,8 +78,8 @@ export default class utils {
         return str.substr(0, limit) + suffix;
     };
 
-    static sha1 = (original: string): string => {
-        const shasum = crypto.createHash("sha1");
+    static sha256 = (original: string): string => {
+        const shasum = crypto.createHash("sha256");
         shasum.update(original);
         const hash = shasum.digest("hex");
         return hash;
