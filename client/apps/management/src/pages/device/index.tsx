@@ -35,12 +35,10 @@ export default function Dashboard() {
         setLoading(true);
 
         try {
-            console.log("UrlParams:" + urlParams.id);
             const url: string =
                 urlParams.id == null
                     ? `/api/management/device?page=${page}`
                     : `/api/management/device?page=${page}&userId=${urlParams.id}`;
-            console.log(url);
             const serverResponse: successResponseType = await get(url);
             const response: ListResponseType<Device> = serverResponse.data;
             setList(response.list);

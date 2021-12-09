@@ -73,7 +73,6 @@ export default function RoomEdit() {
     }, []);
 
     const validateAndUpdate = async () => {
-        console.log(formik.values);
         try {
             const result = await put(`/api/management/room/${urlParams.id}`, {
                 name: formik.values.name,
