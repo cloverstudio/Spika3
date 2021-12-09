@@ -4,9 +4,20 @@ import l, { error as le } from "../../../components/logger";
 import adminTokens, { Token } from "../lib/adminTokens";
 
 import { InitRouterParams } from "../../types/serviceInterface";
+import adminAuth from "../lib/adminAuth";
 
 export default (params: InitRouterParams) => {
     const router = Router();
+    const localToken = "localToken";
+
+    router.get("/check", adminAuth, (req: Request, res: Response) => {
+        try {
+            return res.send("true");
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(`Server error ${e}`);
+        }
+    });
 
     router.get("/", (req: Request, res: Response) => {
         try {
@@ -21,12 +32,10 @@ export default (params: InitRouterParams) => {
         try {
             const username: string = process.env.ADMIN_USERNAME as string;
             const password: string = process.env.ADMIN_PASSWORD as string;
-
             if (req.body.username !== username || req.body.password !== password)
                 return res.status(403).send("Invalid username or password");
 
             const newToken: Token = adminTokens.newToken();
-
             res.send(newToken);
         } catch (e: any) {
             le(e);

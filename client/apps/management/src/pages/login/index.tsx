@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useHistory } from "react-router-dom";
 import {
     Avatar,
@@ -21,17 +21,47 @@ import dayjs from "dayjs";
 
 import { RootState } from "../../store/store";
 import { login, callAdminAuthApi } from "../../store/adminAuthSlice";
-import { usePost } from "../../lib/useApi";
+import { useGet, usePost } from "../../lib/useApi";
 import SnackBar from "../../components/snackBar";
 import { useShowSnackBar } from "../../components/useUI";
 
 export default function () {
     const count = useSelector((state: RootState) => state.counter.value);
     const dispatch = useDispatch();
+    const get = useGet();
     const post = usePost();
     const showSnackBar = useShowSnackBar();
+    const localToken = "localToken";
 
     let history = useHistory();
+
+    const [rememberMe, setRememberMe] = React.useState(true);
+
+    useEffect(() => {
+        (async () => {
+            if (rememberMe) {
+                await checkToken();
+            }
+        })();
+    }, []);
+
+    const checkToken = async () => {
+        try {
+            const response: string = await get(`/api/management/auth/check`);
+            const check: boolean = JSON.parse(response);
+            const authToken = localStorage.getItem(localToken);
+            if (check && authToken != null && authToken.length != 0) {
+                history.push("/dashboard");
+            }
+        } catch (e) {
+            console.error(e);
+            showSnackBar({ severity: "error", text: "Token expired" });
+        }
+    };
+
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setRememberMe(event.target.checked);
+    };
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -39,14 +69,16 @@ export default function () {
         const formdata: any = event.target;
         const username: string = formdata.username.value;
         const password: string = formdata.password.value;
-
         try {
-            const loginResult: any = await post("/api/management/auth", {
+            const loginResult: any = await post(`/api/management/auth`, {
                 username: username,
                 password: password,
             });
-
             if (loginResult.token) {
+                if (rememberMe) {
+                    console.log(loginResult.token);
+                    localStorage.setItem(localToken, loginResult.token);
+                }
                 dispatch(
                     login({
                         token: loginResult.token,
@@ -112,7 +144,7 @@ export default function () {
                             autoComplete="current-password"
                         />
                         <FormControlLabel
-                            control={<Checkbox value="remember" color="primary" />}
+                            control={<Checkbox checked={rememberMe} onChange={handleChange} />}
                             label="Remember me"
                         />
                         <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>

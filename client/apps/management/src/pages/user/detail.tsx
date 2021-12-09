@@ -66,10 +66,6 @@ export default function Page() {
                                     </Typography>
                                     <Typography component="dd">{detail.displayName}</Typography>
                                     <Typography component="dt" variant="h6">
-                                        Country Code
-                                    </Typography>
-                                    <Typography component="dd">{detail.countryCode}</Typography>
-                                    <Typography component="dt" variant="h6">
                                         Phone Number
                                     </Typography>
                                     <Typography component="dd">{detail.telephoneNumber}</Typography>
