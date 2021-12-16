@@ -10,6 +10,8 @@ import ChatRecentsPage from "./chatRecentsPage";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import MainChatView from "./mainChatView";
+import { Avatar, Stack } from "@mui/material";
+import { Search, Call, Videocam } from "@mui/icons-material";
 
 const drawerWidth = 400;
 
@@ -73,7 +75,11 @@ function ResponsiveDrawer() {
                     width: { sm: `calc(100% - ${drawerWidth}px)` },
                     right: "auto",
                     ml: { sm: `${drawerWidth}px` },
-                    backgroundColor: "#f2f2f2",
+                    boxShadow: "none",
+                    paddingTop: "0.9rem",
+                    backgroundColor: "white",
+                    borderBottom: 1,
+                    borderColor: "lightgray",
                 }}
                 open={open}
             >
@@ -87,7 +93,26 @@ function ResponsiveDrawer() {
                     >
                         <KeyboardArrowDownIcon />
                     </IconButton>
-                    <Box sx={{ flexGrow: 1 }}>Wow</Box>
+                    <Avatar
+                        alt="Remy Sharp"
+                        src="../../../../../../documents/pages/login_robot_image.svg"
+                    />
+                    <Box sx={{ flexGrow: 1 }} color="black" pl="1em">
+                        Matej Vida
+                    </Box>
+
+                    <Stack direction="row" alignItems="center" spacing={1} pr="2em">
+                        <IconButton>
+                            <Videocam color="info" />
+                        </IconButton>
+                        <IconButton>
+                            <Call color="info" />
+                        </IconButton>
+                        <IconButton>
+                            <Search color="info" />
+                        </IconButton>
+                    </Stack>
+
                     <IconButton
                         color="inherit"
                         aria-label="open drawer"

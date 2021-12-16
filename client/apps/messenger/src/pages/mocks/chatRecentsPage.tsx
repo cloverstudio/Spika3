@@ -10,19 +10,25 @@ import {
     Avatar,
     Typography,
     ListItemSecondaryAction,
+    ToggleButton,
+    ToggleButtonGroup,
 } from "@mui/material";
 import logo from "../../../../../../documents/pages/login_logo.svg";
 import { createTheme, ThemeProvider, styled } from "@mui/material/styles";
-import { height, textAlign } from "@mui/system";
-import AccountCircleRoundedIcon from "@mui/icons-material/AccountCircleRounded";
 import IconButton from "@mui/material/IconButton";
-import InputAdornment from "@mui/material/InputAdornment";
 import SearchIcon from "@mui/icons-material/Search";
 import PublicIcon from "@mui/icons-material/Public";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import PeopleOutlineOutlinedIcon from "@mui/icons-material/PeopleOutlineOutlined";
 import AddBoxIcon from "@mui/icons-material/AddBox";
-import { relative } from "path/posix";
+import {
+    DriveFileRenameOutlineOutlined,
+    Settings,
+    Message,
+    Call,
+    AccountCircle,
+} from "@mui/icons-material";
+
 import FolderIcon from "@mui/icons-material/Folder";
 
 const theme = createTheme({
@@ -41,7 +47,11 @@ function generate(element: React.ReactElement) {
 
 const ChatRecentsPage = () => {
     const [dense, setDense] = React.useState(false);
+    const [recentState, setRecentState] = React.useState<string | null>("left");
 
+    const handleRecentState = (event: React.MouseEvent<HTMLElement>, newState: string | null) => {
+        setRecentState(newState);
+    };
     return (
         <ThemeProvider theme={theme}>
             <Stack
@@ -51,76 +61,66 @@ const ChatRecentsPage = () => {
                 spacing={2}
                 width="100%"
                 paddingTop="1rem"
+                sx={{ borderBottom: 1, borderColor: "lightGrey", paddingBottom: 1.5 }}
             >
-                <Stack direction="row" spacing={2} alignItems="center">
-                    <Box
-                        ml="1em"
-                        component="img"
-                        width="50px"
-                        height="50px"
-                        display="flex"
-                        src={logo}
-                    ></Box>
-                    <label> Spika </label>
-                </Stack>
+                <Box
+                    ml="1em"
+                    component="img"
+                    width="50px"
+                    height="50px"
+                    display="flex"
+                    src={logo}
+                ></Box>
 
-                <IconButton>
-                    <AccountCircleRoundedIcon />
-                </IconButton>
+                <Stack direction="row" alignItems="center" spacing={1} pr="2em">
+                    <Avatar
+                        alt="Remy Sharp"
+                        src="../../../../../../documents/pages/login_robot_image.svg"
+                    />
+                    <IconButton sx={{ marginLeft: 1 }}>
+                        <Settings />
+                    </IconButton>
+                    <IconButton>
+                        <DriveFileRenameOutlineOutlined />
+                    </IconButton>
+                </Stack>
             </Stack>
-            <Box position="relative" margin="1em">
-                <SearchIcon
-                    sx={{
-                        color: "action.active",
-                        mr: 1,
-                        my: 0.5,
-                        position: "absolute",
-                        left: "0.3em",
-                        top: "0.37em",
-                    }}
-                />
+            <ToggleButtonGroup
+                color="info"
+                size="large"
+                value={recentState}
+                exclusive
+                onChange={handleRecentState}
+                aria-label="text alignment"
+                sx={{ p: "1.5em", justifyContent: "space-between" }}
+            >
+                <ToggleButton value="left" aria-label="left aligned" sx={{ border: 0 }}>
+                    <Message />
+                </ToggleButton>
+                <ToggleButton value="center" aria-label="centered" sx={{ border: 0 }}>
+                    <Call />
+                </ToggleButton>
+                <ToggleButton value="right" aria-label="right aligned" sx={{ border: 0 }}>
+                    <AccountCircle />
+                </ToggleButton>
+            </ToggleButtonGroup>
+            <Box
+                sx={{ display: "flex", alignItems: "flex-end", paddingBottom: 1 }}
+                ml="1em"
+                mr="1em"
+                bgcolor="lightGray"
+                borderRadius="1em"
+            >
+                <SearchIcon sx={{ color: "action.active", ml: 1, mr: 1, my: 0.5 }} />
                 <TextField
-                    label="Search for contact, message, file ..."
-                    sx={{ width: "100%", fontSize: 12, textIndent: "2em" }}
-                    inputProps={{ style: { fontSize: 12, paddingLeft: "2.5em" } }}
-                    InputLabelProps={{ style: { fontSize: 12 } }}
+                    id="searchInput"
+                    label="Search"
+                    variant="standard"
+                    sx={{ width: "85%" }}
+                    InputProps={{ disableUnderline: true }}
                 />
             </Box>
             <Box margin="1em" marginTop="0" borderRadius={1}>
-                <Stack
-                    alignItems="center"
-                    spacing={1}
-                    direction="row"
-                    margin="0.5em"
-                    justifyContent="space-between"
-                    sx={{ borderRadius: 1 }}
-                >
-                    <Stack alignItems="center" spacing={1} direction="row">
-                        <IconButton>
-                            <PublicIcon />
-                        </IconButton>
-                        <IconButton>
-                            <PersonOutlineOutlinedIcon />
-                        </IconButton>
-                        <IconButton>
-                            <PeopleOutlineOutlinedIcon />
-                        </IconButton>
-                    </Stack>
-
-                    <IconButton
-                        sx={{
-                            marginLeft: "auto",
-                            padding: 0,
-                            backgroundColor: "#4696f0",
-                            borderRadius: 1,
-                        }}
-                    >
-                        <Stack alignItems="center" spacing={1} direction="row" sx={{ padding: 1 }}>
-                            <label style={{ fontSize: 14, color: "white" }}> NEW </label>
-                            <AddBoxIcon style={{ fill: "white" }} />
-                        </Stack>
-                    </IconButton>
-                </Stack>
                 <List dense={dense}>
                     {generate(
                         <ListItem>
