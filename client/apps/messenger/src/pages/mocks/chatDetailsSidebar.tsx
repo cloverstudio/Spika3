@@ -19,6 +19,7 @@ import VideocamOutlinedIcon from "@mui/icons-material/VideocamOutlined";
 import VolumeOffOutlinedIcon from "@mui/icons-material/VolumeOffOutlined";
 import MoreHorizOutlinedIcon from "@mui/icons-material/MoreHorizOutlined";
 import AddIcon from "@mui/icons-material/Add";
+import { padding } from "@mui/system";
 
 const theme = createTheme({
     palette: {
@@ -26,70 +27,104 @@ const theme = createTheme({
     },
 });
 
-const lightClasses = `button-component light-blue-button `;
-const darkClasses = `button-component dark-blue-button `;
-
 const ChatDetailsSidebar = () => {
     return (
         <ThemeProvider theme={theme}>
-            <Box className="top-details-box">
-                <Box className="inner-box">
+            <Box margin="15px" borderRadius={10} flexGrow={1} bgcolor={"#f2f2f2"}>
+                <Box margin="15px" flexGrow={1} position="relative">
                     <Avatar
-                        className="chat-avata"
                         alt="Remy Sharp"
                         src="../../../../../../documents/pages/login_robot_image.svg"
                     />
-                    <label className="chat-title">Group work and stuff</label>
-                    <Box className="color-box">
+                    <Box fontSize="15px" fontWeight={500}>
+                        <label>Group work and stuff</label>
+                    </Box>
+                    <Box margin="15px" flexGrow={1} position="relative">
                         <Stack alignItems="center" spacing={1} direction="row">
                             <IconButton>
-                                <CircleTwoToneIcon className="red-type" />
+                                <CircleTwoToneIcon style={{ color: "red" }} />
                             </IconButton>
                             <IconButton>
-                                <CircleTwoToneIcon className="green-type" />
+                                <CircleTwoToneIcon style={{ color: "green" }} />
                             </IconButton>
                             <IconButton>
-                                <CircleTwoToneIcon className="yellow-type" />
+                                <CircleTwoToneIcon style={{ color: "yellow" }} />
                             </IconButton>
                             <IconButton>
-                                <CircleTwoToneIcon className="blue-type" />
+                                <CircleTwoToneIcon style={{ color: "blue" }} />
                             </IconButton>
                         </Stack>
                     </Box>
-                    <Box className="button-box">
+                    <Box margin="5px" flexGrow={1} position="relative">
                         <Stack alignItems="center" direction="row">
-                            <IconButton className="no-padding">
-                                <Box className={lightClasses}>
-                                    <CallOutlinedIcon className="white-type" />
-                                    <label className="button-text">Audio</label>
+                            <IconButton
+                                sx={{
+                                    padding: 2,
+                                    backgroundColor: "#4696f0",
+                                    borderRadius: 1,
+                                    margin: 1,
+                                }}
+                            >
+                                <Box>
+                                    <CallOutlinedIcon style={{ color: "white" }} />
+                                    <Box color={"white"} fontSize="12px">
+                                        <label>Audio</label>
+                                    </Box>
                                 </Box>
                             </IconButton>
-                            <IconButton className="no-padding">
-                                <Box className={lightClasses}>
-                                    <VideocamOutlinedIcon className="white-type" />
-                                    <label className="button-text">Video</label>
+                            <IconButton
+                                sx={{
+                                    padding: 2,
+                                    backgroundColor: "#4696f0",
+                                    borderRadius: 1,
+                                    margin: 1,
+                                }}
+                            >
+                                <Box>
+                                    <VideocamOutlinedIcon style={{ color: "white" }} />
+                                    <Box color={"white"} fontSize="12px">
+                                        <label>Video</label>
+                                    </Box>
                                 </Box>
                             </IconButton>
-                            <IconButton className="no-padding">
-                                <Box className={darkClasses}>
-                                    <VolumeOffOutlinedIcon className="white-type" />
-                                    <label className="button-text">Mute</label>
+                            <IconButton
+                                sx={{
+                                    padding: 2,
+                                    backgroundColor: "#131940",
+                                    borderRadius: 1,
+                                    margin: 1,
+                                }}
+                            >
+                                <Box>
+                                    <VolumeOffOutlinedIcon style={{ color: "white" }} />
+                                    <Box color={"white"} fontSize="12px">
+                                        <label>Mute</label>
+                                    </Box>
                                 </Box>
                             </IconButton>
-                            <IconButton className="no-padding">
-                                <Box className={darkClasses}>
-                                    <MoreHorizOutlinedIcon className="white-type" />
-                                    <label className="button-text">More</label>
+                            <IconButton
+                                sx={{
+                                    padding: 2,
+                                    backgroundColor: "#131940",
+                                    borderRadius: 1,
+                                    margin: 1,
+                                }}
+                            >
+                                <Box>
+                                    <MoreHorizOutlinedIcon style={{ color: "white" }} />
+                                    <Box color={"white"} fontSize="12px">
+                                        <label>More</label>
+                                    </Box>
                                 </Box>
                             </IconButton>
                         </Stack>
                     </Box>
                     <Box>
-                        <Box>
-                            <label className="side-title">Call history</label>
+                        <Box fontSize={"15px"} fontWeight={500}>
+                            <label> Call history</label>
                         </Box>
-                        <Box>
-                            <label className="side-empty-title">No call history yet...</label>
+                        <Box fontSize={"12px"} color={"grey"}>
+                            <label>No call history yet...</label>
                         </Box>
                     </Box>
                     <Box>
@@ -98,49 +133,44 @@ const ChatDetailsSidebar = () => {
                                 alignItems="center"
                                 spacing={1}
                                 direction="row"
-                                className="chat-control"
+                                margin="0.5em"
                                 sx={{ borderRadius: 1 }}
                             >
-                                <label className="side-title">Notes</label>
-                                <IconButton style={{ textAlign: "right" }}>
-                                    <Stack
-                                        alignItems="center"
-                                        spacing={1}
-                                        direction="row"
-                                        className="chat-new"
-                                        sx={{ borderRadius: 1, padding: 1 }}
-                                    >
+                                <Box fontSize={"15px"} fontWeight={500}>
+                                    <label>Notes</label>
+                                </Box>
+
+                                <IconButton
+                                    style={{ textAlign: "right" }}
+                                    sx={{ color: "#4696f0", borderRadius: 1, padding: 1 }}
+                                >
+                                    <Stack alignItems="center" spacing={1} direction="row">
                                         <AddIcon style={{ fill: "white" }} />
                                         <label style={{ fontSize: 14, color: "white" }}>
-                                            {" "}
-                                            Add new{" "}
+                                            Add new
                                         </label>
                                     </Stack>
                                 </IconButton>
                             </Stack>
                         </Box>
-                        <Box>
-                            <label className="side-empty-title">There are no notes so far...</label>
+                        <Box fontSize={"12px"} color={"grey"}>
+                            <label>There are no notes so far...</label>
                         </Box>
                     </Box>
                     <Box>
-                        <Box>
-                            <label className="side-title">Favorites</label>
+                        <Box fontSize={"15px"} fontWeight={500}>
+                            <label>Favorites</label>
                         </Box>
-                        <Box>
-                            <label className="side-empty-title">
-                                You haven’t favorited any message so far....
-                            </label>
+                        <Box fontSize={"12px"} color={"grey"}>
+                            <label>You haven’t favorited any message so far....</label>
                         </Box>
                     </Box>
                     <Box>
-                        <Box>
-                            <label className="side-title">Shared media</label>
+                        <Box fontSize={"15px"} fontWeight={500}>
+                            <label>Shared media</label>
                         </Box>
-                        <Box>
-                            <label className="side-empty-title">
-                                There is no media shared so far...
-                            </label>
+                        <Box fontSize={"12px"} color={"grey"}>
+                            <label>There is no media shared so far...</label>
                         </Box>
                     </Box>
                 </Box>

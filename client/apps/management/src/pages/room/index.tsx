@@ -236,7 +236,7 @@ export default function Room() {
             <Fab
                 color="primary"
                 aria-label="add"
-                className="fab-main"
+                sx={{ position: "absolute", right: 64, bottom: 128, zIndex: 100 }}
                 onClick={(e) => {
                     history.push("/room/add");
                 }}

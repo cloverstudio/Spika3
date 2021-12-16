@@ -56,7 +56,7 @@ export default function Page() {
                                     <Typography component="dt" variant="h6">
                                         ID
                                     </Typography>
-                                    <Typography component="dd" className="margin-bottom">
+                                    <Typography component="dd" marginBottom={10}>
                                         {detail.id}
                                     </Typography>
                                     <Typography component="dt" variant="h6">

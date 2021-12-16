@@ -73,9 +73,9 @@ function ResponsiveDrawer() {
                     width: { sm: `calc(100% - ${drawerWidth}px)` },
                     right: "auto",
                     ml: { sm: `${drawerWidth}px` },
+                    backgroundColor: "#f2f2f2",
                 }}
                 open={open}
-                className="top-bar-box"
             >
                 <Toolbar>
                     <IconButton
