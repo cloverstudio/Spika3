@@ -1,4 +1,3 @@
-import faker from "faker";
 import amqp from "amqplib";
 import os from "os";
 
@@ -18,7 +17,7 @@ class Connection {
 
     constructor(params: connectionInitializer) {
         this.channelId = params.channelId;
-        this.connectionId = faker.datatype.hexaDecimal(40);
+        this.connectionId = utils.randomString(40);
         this.onNotify = params.onNotify;
     }
 }
