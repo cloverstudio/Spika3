@@ -13,11 +13,18 @@ const theme = createTheme({
 const ChatInputBar = () => {
     return (
         <ThemeProvider theme={theme}>
-            <Box className="input-box">
+            <Box
+                height="2.5em"
+                ml="1em"
+                mr="1em"
+                borderColor="black"
+                borderRadius="0.2em"
+                sx={{ borderWidth: "1px", borderStyle: "double" }}
+            >
                 <Stack alignItems="center" spacing={1} direction="row">
                     <ControlPointIcon />
                     <InputBase
-                        className="text-field-box"
+                        sx={{ width: "95%", borderStyle: "none" }}
                         placeholder="Type here..."
                         inputProps={{ style: { fontSize: 12 } }}
                     />

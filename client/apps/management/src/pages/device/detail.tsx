@@ -54,7 +54,7 @@ export default function Page() {
                                     <Typography component="dt" variant="h6">
                                         ID:
                                     </Typography>
-                                    <Typography component="dd" className="margin-bottom">
+                                    <Typography component="dd" marginBottom={10}>
                                         {detail.id}
                                     </Typography>
                                     <Typography component="dt" variant="h6">
@@ -95,7 +95,7 @@ export default function Page() {
                     </Grid>
                     <Grid item xs={12} md={8} textAlign="right">
                         <Button
-                            className="margin-right"
+                            sx={{ marginRight: "1em" }}
                             variant="contained"
                             onClick={(e) => {
                                 history.push(`/device/edit/${urlParams.id}`);
