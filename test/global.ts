@@ -1,4 +1,6 @@
 import { PrismaClient, User, Device, Room } from "@prisma/client";
+import amqp from "amqplib";
+
 const prisma = new PrismaClient();
 
 export interface Globals {
@@ -11,6 +13,7 @@ export interface Globals {
     userId?: number | undefined;
     prisma: PrismaClient;
     createdRoom: Room;
+    rabbitMQChannel?: amqp.Channel;
 }
 
 const globals: Globals = {
