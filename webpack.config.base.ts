@@ -87,6 +87,7 @@ const config: Configuration = {
         }),
         new DefinePlugin({
             API_BASEURL: JSON.stringify(process.env.API_BASEURL),
+            ENV: JSON.stringify(process.env.ENV),
         }),
     ],
 };

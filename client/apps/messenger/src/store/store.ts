@@ -1,17 +1,24 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { save, load } from "redux-localstorage-simple";
+import api from "../api/api";
+import rootReducer from "./reducer";
 
-import counterReducer from "./counterSlice";
-import adminAuthReducer from "./adminAuthSlice";
-
+declare const ENV: string;
+console.log({ ENV });
 export const store = configureStore({
-    reducer: {
-        counter: counterReducer,
-        auth: adminAuthReducer,
-    },
+    reducer: rootReducer,
     preloadedState: load(),
-    middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(save()),
+    middleware: (getDefaultMiddleware) =>
+        getDefaultMiddleware({
+            serializableCheck: { ignoredPaths: ["store.api"] },
+        })
+            .concat(api.middleware)
+            .concat(save()),
 });
+
+if (ENV !== "production" && module?.hot) {
+    module.hot.accept("./reducer", () => store.replaceReducer(rootReducer));
+}
 
 // Infer the `RootState` and `AppDispatch` types from the store itself
 export type RootState = ReturnType<typeof store.getState>;

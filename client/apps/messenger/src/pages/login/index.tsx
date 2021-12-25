@@ -1,145 +1,250 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useHistory } from "react-router-dom";
 import {
-    Avatar,
     Button,
-    CssBaseline,
     TextField,
     FormControlLabel,
     Checkbox,
-    Link,
-    Grid,
+    FormLabel,
     Box,
     Typography,
-    Container,
+    Link,
+    InputBase,
 } from "@mui/material";
-
-import { LockOutlined } from "@mui/icons-material/";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
+import logo from "../../assets/logo.svg";
+import loginBg from "../../assets/login-bg.svg";
 
 import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "../../store/store";
-import { login, callAdminAuthApi } from "../../store/adminAuthSlice";
+import Loader from "../../components/Loader";
+import Base from "../../components/Base";
+import { useSignUpMutation, useVerifyMutation } from "../../api/auth";
 
-export default function () {
-    const count = useSelector((state: RootState) => state.counter.value);
-    const dispatch = useDispatch();
+export default function LoginPage(): React.ReactElement {
+    const history = useHistory();
+    const [telephoneNumber, setTelephoneNumber] = useState("");
+    const refs = [
+        useRef(null),
+        useRef(null),
+        useRef(null),
+        useRef(null),
+        useRef(null),
+        useRef(null),
+    ];
+    const [codeArr, setCodeArr] = useState(
+        Array(6)
+            .fill(true)
+            .map((_, i) => ({ ref: refs[i], value: "" }))
+    );
+    const [signUp, signUpMutation] = useSignUpMutation();
+    const [verify, verifyMutation] = useVerifyMutation();
+    const handleSubmit = () => {
+        const telephoneNumberHashed = "hahahahahahahahaah";
 
-    let history = useHistory();
-
-    function Copyright(props: any) {
-        return (
-            <Typography variant="body2" color="text.secondary" align="center" {...props}>
-                {"Copyright © "}
-                <Link color="inherit" href="https://material-ui.com/">
-                    Your Website {count}
-                </Link>{" "}
-                {new Date().getFullYear()}
-                {"."}
-            </Typography>
-        );
-    }
-
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-
-        const formdata: any = event.target;
-        const username: string = formdata.username.value;
-        const password: string = formdata.password.value;
-
-        try {
-            const dispatchResponse: any = await dispatch(
-                callAdminAuthApi({
-                    username: username,
-                    password: password,
-                })
-            );
-            if (dispatchResponse.payload.token) {
-                history.push("/dashboard");
-            }
-        } catch (e) {
-            console.error("e", e);
-        }
+        signUp({ telephoneNumber, deviceId: "111111111111", telephoneNumberHashed });
     };
 
-    const theme = createTheme({
-        palette: {
-            mode: "light",
-        },
-    });
+    const tryToSubmit = () => {
+        const emptyIndex = codeArr.findIndex((c) => !c.value);
+
+        if (emptyIndex > -1) {
+            return codeArr[emptyIndex].ref.current.focus();
+        }
+
+        const verificationCode = codeArr.map((c) => c.value).join("");
+        const deviceId = "111111111111";
+
+        verify({ verificationCode, deviceId });
+    };
 
     return (
-        <ThemeProvider theme={theme}>
-            <Container component="main" maxWidth="xs">
-                <CssBaseline />
-                <Box
-                    sx={{
-                        marginTop: 8,
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                    }}
-                >
-                    <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
-                        <LockOutlined />
-                    </Avatar>
-                    <Typography component="h1" variant="h5">
-                        Spika3 Messenger
+        <Base>
+            <Box
+                minHeight={{ xs: "85vh", md: "100vh" }}
+                display="flex"
+                flexDirection="column"
+                justifyContent="center"
+                alignItems={{ xs: "center", md: "start" }}
+                sx={{
+                    backgroundImage: {
+                        md: `url(${loginBg})`,
+                    },
+                    backgroundPosition: "350px",
+                    backgroundSize: "cover",
+                    backgroundRepeat: "no-repeat",
+                }}
+                p={{ xs: 2, md: 8 }}
+            >
+                <Box py={2} textAlign={{ xs: "center", md: "left" }} maxWidth="350px">
+                    <Box
+                        mb={{ xs: 3, md: 4 }}
+                        display="flex"
+                        justifyContent={{ xs: "center", md: "left" }}
+                        alignItems="center"
+                    >
+                        <Box component="img" src={logo} width={{ xs: "72px", md: "50px" }} />
+                        <Typography
+                            ml={1.5}
+                            display={{ xs: "none", md: "block" }}
+                            component="span"
+                            variant="body1"
+                            fontSize="1.15rem"
+                            fontWeight="bold"
+                        >
+                            Spika
+                        </Typography>
+                    </Box>
+                    <Typography
+                        display={{ xs: "none", md: "block" }}
+                        mb={3}
+                        component="h1"
+                        variant="h3"
+                        fontWeight="bold"
+                    >
+                        Welcome!
                     </Typography>
-                    <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+                    <Typography
+                        component="p"
+                        variant="body1"
+                        mx={{ xs: "auto", md: 0 }}
+                        maxWidth={{ xs: "220px", md: "none" }}
+                        mb={{ xs: 5, md: 10 }}
+                        fontWeight="medium"
+                    >
+                        Enter your phone number to start using Spika
+                    </Typography>
+                    <Box textAlign="left" mb={{ xs: 3, md: 6 }}>
+                        {/* <FormLabel sx={{ mb: 1.5, display: "block" }}>Phone number</FormLabel>
                         <TextField
-                            margin="normal"
+                            sx={{ mb: 3 }}
                             required
                             fullWidth
-                            id="username"
-                            label="Admin User Name"
-                            name="username"
-                            autoComplete="username"
+                            id="telephone"
+                            placeholder="Eg. 98726546"
+                            name="telephoneNumber"
+                            autoComplete="telephone"
                             autoFocus
-                        />
-                        <TextField
-                            margin="normal"
-                            required
+                            value={telephoneNumber}
+                            onChange={({ target }) => setTelephoneNumber(target.value)}
+                        /> */}
+
+                        <Box mb={2}>
+                            <Box display="flex" justifyContent="space-between" mb={2}>
+                                <Typography component="span" variant="body1" fontWeight="medium">
+                                    02:00
+                                </Typography>
+                                <Link
+                                    fontWeight="bold"
+                                    underline="hover"
+                                    href="/login"
+                                    variant="body1"
+                                >
+                                    Resend code
+                                </Link>
+                            </Box>
+                            <Box
+                                display="grid"
+                                gap={1}
+                                gridTemplateColumns="repeat(6, 1fr)"
+                                justifyContent="space-between"
+                            >
+                                {codeArr.map((c, i) => {
+                                    return (
+                                        <NumberInput
+                                            key={i}
+                                            value={c.value}
+                                            inputRef={c.ref}
+                                            handleChange={(value) => {
+                                                const isDelete = !value;
+
+                                                if (!isDelete && value.length > 1) {
+                                                    return;
+                                                }
+
+                                                const newArr = [...codeArr];
+                                                newArr.splice(i, 1, { ...codeArr[i], value });
+                                                setCodeArr(newArr);
+
+                                                if (i < 5 && !isDelete) {
+                                                    newArr[i + 1].ref.current.focus();
+                                                } else if (i === 5 && !isDelete) {
+                                                    tryToSubmit();
+                                                }
+                                            }}
+                                        />
+                                    );
+                                })}
+                            </Box>
+                        </Box>
+
+                        {/* <FormControlLabel
+                        control={<Checkbox value="remember" color="primary" />}
+                        label="Remember me"
+                    /> */}
+                        <Button
+                            onClick={handleSubmit}
+                            disabled={telephoneNumber.length === 0}
                             fullWidth
-                            name="password"
-                            label="Admin Password"
-                            type="password"
-                            id="password"
-                            autoComplete="current-password"
-                        />
-                        <FormControlLabel
-                            control={<Checkbox value="remember" color="primary" />}
-                            label="Remember me"
-                        />
-                        <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
-                            Sign In
+                            variant="contained"
+                        >
+                            Next
                         </Button>
                     </Box>
+                    <Link fontWeight="bold" underline="hover" href="/login" variant="body1">
+                        Already have an account? Log in
+                    </Link>
                 </Box>
+            </Box>
+        </Base>
+    );
+}
 
-                {/*
-        <button
-          aria-label="Increment value"
-          onClick={() => dispatch(increment())}
-        >
-          Increment
-        </button>
-        <span>{count}</span>
-        <button
-          aria-label="Decrement value"
-          onClick={() => dispatch(decrement())}
-        >
-          Decrement
-        </button>
-        <button
-          aria-label="Decrement value"
-          onClick={() => dispatch(incrementByAmount(4))}
-        >
-          Add 4
-        </button>
-
-        */}
-            </Container>
-        </ThemeProvider>
+function NumberInput({
+    value,
+    handleChange,
+    inputRef,
+}: {
+    value: string;
+    handleChange: (v: string) => void;
+    inputRef: React.MutableRefObject<any>;
+}): React.ReactElement {
+    return (
+        <Box>
+            <InputBase
+                type="number"
+                inputProps={{
+                    ref: inputRef,
+                }}
+                value={value}
+                onChange={({ target }) => {
+                    //target.value && target.blur();
+                    handleChange(target.value);
+                }}
+                sx={{
+                    input: {
+                        border: "1px solid #9AA0A6",
+                        borderRadius: "10px",
+                        height: "100%",
+                        padding: "5px",
+                        textAlign: "center",
+                        color: "#141414",
+                        fontWeight: "bold",
+                        fontSize: "28px",
+                        lineHeight: "34px",
+                        "&::-webkit-outer-spin-button": {
+                            margin: "0",
+                            WebkitAppearance: "none",
+                        },
+                        "&::-webkit-inner-spin-button": {
+                            margin: "0",
+                            WebkitAppearance: "none",
+                        },
+                        "&[type=number]": {
+                            margin: "0",
+                            WebkitAppearance: "textfield",
+                        },
+                    },
+                }}
+            />
+        </Box>
     );
 }

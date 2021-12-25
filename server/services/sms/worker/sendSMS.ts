@@ -1,6 +1,6 @@
 import QueueWorkerInterface from "../../types/queueWorkerInterface";
 import { SendSMSPayload } from "../../types/queuePayloadTypes";
-import l from "../../../components/logger";
+import l, { error as le } from "../../../components/logger";
 
 const accountSid = process.env.TWILIO_SID;
 const authToken = process.env.TWILIO_TOKEN;
@@ -12,13 +12,17 @@ class sendSMSWorker implements QueueWorkerInterface {
             return l("Ignore sending SMS");
         }
 
-        const twilioResult = await client.messages.create({
-            body: payload.content,
-            from: process.env.TWILIO_FROM_NUMBER,
-            to: payload.telephoneNumber,
-        });
+        try {
+            const twilioResult = await client.messages.create({
+                body: payload.content,
+                from: process.env.TWILIO_FROM_NUMBER,
+                to: payload.telephoneNumber,
+            });
 
-        l("Twilio: ", twilioResult);
+            l("Twilio: ", twilioResult);
+        } catch (error) {
+            le("Twilio error: ", error);
+        }
     }
 }
 

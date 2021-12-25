@@ -13,8 +13,9 @@ import MockGroupDetail from "./pages/mocks/groupDetail";
 import MockMessageMedia from "./pages/mocks/messageMedia";
 import MockNoChat from "./pages/mocks/noChat";
 import MockUserLIst from "./pages/mocks/userLIst";
+import LoginPage from "./pages/login/index";
 
-declare var BASE_URL: string;
+declare const BASE_URL: string;
 
 function App() {
     console.log("BASE_URL", BASE_URL);
@@ -54,6 +55,10 @@ function App() {
                     </Route>
                     <Route exact path="/mock/userlist">
                         <MockUserLIst />
+                    </Route>
+
+                    <Route exact path="/login">
+                        <LoginPage />
                     </Route>
                 </Switch>
             </Router>
