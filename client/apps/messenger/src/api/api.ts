@@ -14,15 +14,21 @@ const axiosBaseQuery =
                 headers: {
                     ...(token && { Authorization: `Bearer ${token}` }),
                 },
+                validateStatus: (status) => status < 500,
             });
             console.log({ [url]: result.data });
-            return { data: result.data };
+
+            if (result.data.status !== "success") {
+                console.log("ja bacio");
+                throw new Error(result.data.message);
+                //return { error: result.data.message };
+            }
+
+            return { data: result.data.data };
         } catch (error) {
             console.error({ [url]: error });
 
-            return {
-                error,
-            };
+            throw error;
         }
     };
 

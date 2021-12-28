@@ -13,7 +13,8 @@ import MockGroupDetail from "./pages/mocks/groupDetail";
 import MockMessageMedia from "./pages/mocks/messageMedia";
 import MockNoChat from "./pages/mocks/noChat";
 import MockUserLIst from "./pages/mocks/userLIst";
-import LoginPage from "./pages/login/index";
+import LoginPage from "./pages/login";
+import SignUpPage from "./pages/signUp";
 
 declare const BASE_URL: string;
 
@@ -59,6 +60,9 @@ function App() {
 
                     <Route exact path="/login">
                         <LoginPage />
+                    </Route>
+                    <Route exact path="/sign-up">
+                        <SignUpPage />
                     </Route>
                 </Switch>
             </Router>
