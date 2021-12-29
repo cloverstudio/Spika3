@@ -30,7 +30,7 @@
     },
     "homepage": "https://github.com/cloverstudio/Spika3#readme",
     "dependencies": {
-        "@mui/styles": "^5.2.2",
+        "@mui/styles": "^5.2.3",
         "@prisma/client": "^3.0.2",
         "amqplib": "^0.8.0",
         "axios": "^0.21.4",
@@ -40,6 +40,7 @@
         "express": "^4.17.1",
         "formik": "^2.2.9",
         "googleapis": "^91.0.0",
+        "react-window": "^1.8.6",
         "redux-localstorage-simple": "^2.4.1",
         "twilio": "^3.69.0",
         "yup": "^0.32.11"
@@ -74,6 +75,7 @@
         "@types/react-dom": "^16.9.14",
         "@types/react-redux": "^7.1.18",
         "@types/react-router-dom": "^5.3.0",
+        "@types/react-window": "^1.8.5",
         "@types/spdy": "^3.4.5",
         "@types/supertest": "^2.0.11",
         "@types/webpack-dev-server": "^4.1.0",
