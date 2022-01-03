@@ -12,14 +12,13 @@ const axiosBaseQuery =
                 method,
                 data,
                 headers: {
-                    ...(token && { Authorization: `Bearer ${token}` }),
+                    ...(token && { accesstoken: token }),
                 },
                 validateStatus: (status) => status < 500,
             });
             console.log({ [url]: result.data });
 
             if (result.data.status !== "success") {
-                console.log("ja bacio");
                 throw new Error(result.data.message);
                 //return { error: result.data.message };
             }
@@ -36,8 +35,8 @@ const rawBaseQuery = axiosBaseQuery({
     baseUrl: API_BASEURL,
 });
 
-const dynamicBaseQuery = async (args: any, api: { getState: () => any }) => {
-    const token = api.getState()?.auth.token;
+const dynamicBaseQuery = async (args: any) => {
+    const token = window.localStorage.getItem("access-token");
 
     const argsObj = typeof args === "string" ? { url: args } : await args;
     return rawBaseQuery(argsObj, token);

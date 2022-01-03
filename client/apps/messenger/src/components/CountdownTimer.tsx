@@ -3,11 +3,12 @@ import { Typography } from "@mui/material";
 import useCountdownTimer from "../hooks/useCountdownTimer";
 
 type Props = {
+    value: number;
     onDone: () => void;
 };
 
-export default function CountdownTimer({ onDone }: Props): React.ReactElement {
-    const timeLeft = useCountdownTimer(20);
+export default function CountdownTimer({ onDone, value }: Props): React.ReactElement {
+    const timeLeft = useCountdownTimer(value);
     const m = timeLeft ? `0${Math.floor(timeLeft / 60)}` : "00";
     const s =
         timeLeft && timeLeft % 60 > 0

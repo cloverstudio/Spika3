@@ -12,8 +12,13 @@ const userApi = api.injectEndpoints({
                 return { url: "/messenger/auth/verify", method: "POST", data };
             },
         }),
+        update: build.mutation({
+            query: (data) => {
+                return { url: "/messenger/me", method: "PUT", data };
+            },
+        }),
     }),
     overrideExisting: true,
 });
 
-export const { useSignUpMutation, useVerifyMutation } = userApi;
+export const { useSignUpMutation, useVerifyMutation, useUpdateMutation } = userApi;

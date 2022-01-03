@@ -9,10 +9,9 @@ type Code = {
 type Props = {
     codeArr: Code[];
     setCodeArr: React.Dispatch<React.SetStateAction<Code[]>>;
-    onSubmit: () => void;
 };
 
-export default function PinInput({ codeArr, setCodeArr, onSubmit }: Props): React.ReactElement {
+export default function PinInput({ codeArr, setCodeArr }: Props): React.ReactElement {
     return (
         <Box
             display="grid"
@@ -53,8 +52,6 @@ export default function PinInput({ codeArr, setCodeArr, onSubmit }: Props): Reac
 
                             if (i < 5 && !isDelete) {
                                 newArr[i + 1].ref.current.focus();
-                            } else if (i === 5 && !isDelete) {
-                                onSubmit();
                             }
                         }}
                     />
