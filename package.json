@@ -40,6 +40,7 @@
         "express": "^4.17.1",
         "formik": "^2.2.9",
         "googleapis": "^91.0.0",
+        "libphonenumber-js": "^1.9.44",
         "react-window": "^1.8.6",
         "redux-localstorage-simple": "^2.4.1",
         "twilio": "^3.69.0",

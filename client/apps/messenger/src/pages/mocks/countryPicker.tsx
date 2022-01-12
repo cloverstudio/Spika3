@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import {
     Box,
     Stack,
@@ -9,15 +9,15 @@ import {
     ListItem,
     ListItemText,
     ListItemButton,
-    ListItemAvatar,
-    Avatar,
+    Button,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { KeyboardArrowDown, Search } from "@mui/icons-material";
+import { KeyboardArrowDown, KeyboardArrowUp, MenuOpen, Search } from "@mui/icons-material";
 import { makeStyles } from "@mui/styles";
 import { FixedSizeList, ListChildComponentProps } from "react-window";
 import * as defaults from "./countries";
 import { CountryType } from "./countries";
+import { isValidPhoneNumber } from "libphonenumber-js";
 
 const theme = createTheme({
     palette: {
@@ -31,24 +31,37 @@ const useStyles = makeStyles(() => ({
     },
 }));
 
-const CountryPicker = () => {
+const CountryPicker = (props: any) => {
     const countries: CountryType[] = defaults.countries;
     const classes = useStyles();
     const [searchText, setSearchText] = React.useState<string>("");
     const [tempCountries, setTempCountries] = React.useState<CountryType[]>(countries);
     const [countryCode, setCountryCode] = React.useState<string>("1");
+    const [openMenu, setOpenMenu] = React.useState<boolean>(false);
+    const [staticBoxCoordinates, setStaticBoxCoordinates] = React.useState<DOMRect>(null);
 
     const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchText(event.target.value);
+    };
+    const handlePhoneNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
+        props.phoneNum(event.target.value);
+        let checkPhone = "+" + countryCode + event.target.value;
+        props.validation(isValidPhoneNumber(checkPhone));
     };
     const handleListItemClick = (
         event: React.MouseEvent<HTMLDivElement, MouseEvent>,
         index: number
     ) => {
-        console.log(index);
-        console.log(tempCountries[index].phone);
         setCountryCode(tempCountries[index].phone);
+        props.code(tempCountries[index].phone);
+        setOpenMenu(!openMenu);
     };
+
+    const handleOpen = () => {
+        setOpenMenu(!openMenu);
+    };
+
+    const inputRef = useRef(null);
 
     function renderRow(props: ListChildComponentProps) {
         const { index, style } = props;
@@ -82,6 +95,7 @@ const CountryPicker = () => {
     }
 
     useEffect(() => {
+        setStaticBoxCoordinates(inputRef.current.getBoundingClientRect());
         (async () => {
             await filterCountries(searchText);
         })();
@@ -89,80 +103,110 @@ const CountryPicker = () => {
 
     const filterCountries = async (search: string) => {
         const filter: CountryType[] = countries.filter(
-            (country) => country.label.includes(search) || country.phone.includes(search)
+            (country) =>
+                country.label.toLowerCase().includes(search.toLowerCase()) ||
+                country.phone.includes(search)
         );
         setTempCountries(filter);
     };
 
     return (
         <ThemeProvider theme={theme}>
-            <Box
-                sx={{
-                    border: "solid",
-                    borderWidth: "1px",
-                    borderColor: "lightgray",
-                    borderRadius: 1,
-                    padding: "0.5em",
-                    width: "80%",
-                }}
-            >
-                <Stack justifyContent="center" alignItems="center" spacing={2} direction="row">
-                    <Typography color="#0288d1"> +{countryCode}</Typography>
-                    <KeyboardArrowDown color="info" />
-                    <Divider orientation="vertical" flexItem />
-                    <TextField
-                        variant="outlined"
-                        margin="normal"
-                        required
-                        fullWidth
-                        autoFocus
-                        size="small"
-                        placeholder="Eg. 98334234"
-                        InputProps={{
-                            classes: { notchedOutline: classes.noBorder },
-                        }}
-                    />
-                </Stack>
-
-                <TextField
-                    variant="outlined"
-                    fullWidth
+            <div ref={inputRef} style={{ width: "77%" }}>
+                <Box
                     sx={{
-                        backgroundColor: "#F2F2F2",
-                        borderRadius: "1em",
-                        marginTop: "2em",
-                        marginBottom: "2em",
+                        border: "solid",
+                        borderWidth: "1px",
+                        borderColor: "lightgray",
+                        borderRadius: 1,
+                        padding: "0.5em",
+                        width: "100%",
                     }}
-                    value={searchText}
-                    onChange={handleSearch}
-                    placeholder="Search"
-                    InputProps={{
-                        startAdornment: (
-                            <InputAdornment position="start">
-                                <Search />
-                            </InputAdornment>
-                        ),
-                        classes: { notchedOutline: classes.noBorder },
-                    }}
-                    inputProps={{
-                        style: {
-                            padding: 10,
-                        },
-                    }}
-                />
-                <Typography color="#9AA0A6" marginLeft="1em">
-                    ALL COUNTRIES
-                </Typography>
-                <FixedSizeList
-                    height={400}
-                    width="100%"
-                    itemSize={46}
-                    itemCount={tempCountries.length}
-                    overscanCount={5}
                 >
-                    {renderRow}
-                </FixedSizeList>
-            </Box>
+                    <Stack justifyContent="center" alignItems="center" spacing={2} direction="row">
+                        <Button onClick={() => handleOpen()}>
+                            <Typography color="#0288d1"> +{countryCode}</Typography>
+                            {!openMenu ? (
+                                <KeyboardArrowDown color="info" />
+                            ) : (
+                                <KeyboardArrowUp color="info" />
+                            )}
+                        </Button>
+                        <Divider orientation="vertical" flexItem />
+                        <TextField
+                            variant="outlined"
+                            margin="normal"
+                            required
+                            fullWidth
+                            autoFocus
+                            size="small"
+                            placeholder="Eg. 98334234"
+                            InputProps={{
+                                classes: { notchedOutline: classes.noBorder },
+                            }}
+                            onChange={handlePhoneNumber}
+                        />
+                    </Stack>
+                    {openMenu ? (
+                        <Box
+                            sx={{
+                                position: "absolute",
+                                backgroundColor: "white",
+                                zIndex: 10,
+                                width: staticBoxCoordinates.width - 1,
+                                margin: -1.1,
+                                padding: 1,
+                                borderStyle: "none solid solid solid",
+                                borderWidth: "1px",
+                                borderColor: "lightgray",
+                                borderRadius: 1,
+                            }}
+                        >
+                            <TextField
+                                variant="outlined"
+                                fullWidth
+                                autoFocus
+                                sx={{
+                                    backgroundColor: "#F2F2F2",
+                                    borderRadius: "1em",
+                                    marginTop: "1.0em",
+                                    marginBottom: "2em",
+                                }}
+                                value={searchText}
+                                onChange={handleSearch}
+                                placeholder="Search"
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <Search />
+                                        </InputAdornment>
+                                    ),
+                                    classes: { notchedOutline: classes.noBorder },
+                                }}
+                                inputProps={{
+                                    style: {
+                                        padding: 10,
+                                    },
+                                }}
+                            />
+                            <Typography color="#9AA0A6" marginLeft="1em">
+                                ALL COUNTRIES
+                            </Typography>
+                            <FixedSizeList
+                                height={200}
+                                width="100%"
+                                itemSize={46}
+                                itemCount={tempCountries.length}
+                                overscanCount={5}
+                            >
+                                {renderRow}
+                            </FixedSizeList>
+                        </Box>
+                    ) : (
+                        <Box></Box>
+                    )}
+                </Box>
+            </div>
         </ThemeProvider>
     );
 };
