@@ -102,6 +102,12 @@ export default function () {
                         </ListItemIcon>
                         <ListItemText primary="No Chat" />
                     </ListItemButton>
+                    <ListItemButton onClick={(e) => history.push("/mock/confcall")}>
+                        <ListItemIcon>
+                            <ContactPageOutlinedIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Conference call" />
+                    </ListItemButton>
                 </List>
             </Container>
         </ThemeProvider>

@@ -13,7 +13,7 @@ import MockGroupDetail from "./pages/mocks/groupDetail";
 import MockMessageMedia from "./pages/mocks/messageMedia";
 import MockNoChat from "./pages/mocks/noChat";
 import MockUserLIst from "./pages/mocks/userLIst";
-
+import MockConfcall from "./pages/mocks/confcall";
 declare var BASE_URL: string;
 
 function App() {
@@ -54,6 +54,9 @@ function App() {
                     </Route>
                     <Route exact path="/mock/userlist">
                         <MockUserLIst />
+                    </Route>
+                    <Route exact path="/mock/confcall">
+                        <MockConfcall />
                     </Route>
                 </Switch>
             </Router>
