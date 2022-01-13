@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-const result = dotenv.config();
+dotenv.config();
 
 import express from "express";
 import UserManagementAPIService from "./services/management";
@@ -7,7 +7,7 @@ import MessengerAPIService from "./services/messenger";
 import SMSService from "./services/sms";
 import UploadService from "./services/upload";
 import PushService from "./services/push";
-import bodyParser from "body-parser";
+import SSEService from "./services/sse";
 import amqp from "amqplib";
 
 import l, { error as e } from "./components/logger";
@@ -25,7 +25,7 @@ const app: express.Express = express();
         res.header("Access-Control-Allow-Headers", "*");
         res.header(
             "Access-Control-Allow-Headers",
-            "Content-Type, Authorization, access-token, admin-accesstoken"
+            "Content-Type, Authorization, access-token, admin-accesstoken, accesstoken"
         );
 
         // intercept OPTIONS method
@@ -42,8 +42,10 @@ const app: express.Express = express();
 
     app.use(express.static("public"));
 
-    const rabbitMQConnetion = await amqp.connect(process.env["RABBITMQ_URL"] || "amqp://localhost");
-    const rabbitMQChannel: amqp.Channel = await rabbitMQConnetion.createChannel();
+    const rabbitMQConnection = await amqp.connect(
+        process.env["RABBITMQ_URL"] || "amqp://localhost"
+    );
+    const rabbitMQChannel: amqp.Channel = await rabbitMQConnection.createChannel();
 
     if (process.env["USE_MNG_API"]) {
         const userManagementAPIService: UserManagementAPIService = new UserManagementAPIService();
@@ -83,6 +85,15 @@ const app: express.Express = express();
         pushService.start({
             rabbitMQChannel,
         });
+    }
+
+    if (process.env["USE_SSE"]) {
+        const sseService: SSEService = new SSEService();
+        sseService.start({
+            rabbitMQChannel,
+        });
+
+        app.use("/api/sse", sseService.getRoutes());
     }
 
     // test

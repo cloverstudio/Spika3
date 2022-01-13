@@ -13,3 +13,9 @@ export type SendPushPayload = {
     token: string;
     data: any;
 };
+
+export type SendSSEPayload = {
+    type: string;
+    channelId: string;
+    data: any;
+};

@@ -60,8 +60,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         ? Constants.BACKDOOR_VERIFICATION_CODE
                         : Utils.randomNumber(6);
 
-                l(`Verification code ${verificationCode}, device id ${deviceId}`);
-
                 const newUser = await prisma.user.create({
                     data: {
                         telephoneNumber,
@@ -103,6 +101,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     },
                 });
             }
+
+            l(`Verification code ${verificationCode}, device id ${deviceId}`);
 
             // is new device ?
             let requestDevice = await prisma.device.findFirst({

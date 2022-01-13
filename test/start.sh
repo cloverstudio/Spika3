@@ -2,6 +2,7 @@
 
 export NODE_ENV=test
 export DATABASE_URL=mysql://root:testtest@localhost:3307/db
+export RABBITMQ_URL=amqp://myuser:mypassword@localhost
 export ADMIN_USERNAME=admin
 export ADMIN_PASSWORD=password
 export PORT=4000
@@ -10,6 +11,7 @@ export USE_MSG_API=1
 export USE_SMS=1
 export USE_UPLOAD=1
 export USE_PUSH=1
+export USE_SSE=1
 export IS_TEST=1
 export UPLOAD_FOLDER=./test/upload
 export LOG_INFO=1
