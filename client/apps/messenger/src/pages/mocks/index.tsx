@@ -6,17 +6,10 @@ import {
     ListItemButton,
     ListItemIcon,
     ListItemText,
-    Collapse,
-    Link,
     Container,
 } from "@mui/material";
 
-import {
-    Inbox as InboxIcon,
-    Drafts as DraftsIcon,
-    Send as SendIcon,
-    ContactPageOutlined as ContactPageOutlinedIcon,
-} from "@mui/icons-material";
+import { ContactPageOutlined as ContactPageOutlinedIcon } from "@mui/icons-material";
 
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
@@ -101,6 +94,12 @@ export default function () {
                             <ContactPageOutlinedIcon />
                         </ListItemIcon>
                         <ListItemText primary="No Chat" />
+                    </ListItemButton>
+                    <ListItemButton onClick={(e) => history.push("/mock/conferenceCallView")}>
+                        <ListItemIcon>
+                            <ContactPageOutlinedIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Conference call" />
                     </ListItemButton>
                 </List>
             </Container>
