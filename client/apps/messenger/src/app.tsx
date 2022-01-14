@@ -2,7 +2,6 @@ import React from "react";
 import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
 
 import MockTop from "./pages/mocks";
-
 import MockLogin from "./pages/mocks/login";
 import MockChat from "./pages/mocks/chat";
 import MockChatMedialist from "./pages/mocks/chatMedialist";

@@ -112,7 +112,7 @@ const CountryPicker = (props: any) => {
 
     return (
         <ThemeProvider theme={theme}>
-            <div ref={inputRef} style={{ width: "77%" }}>
+            <div ref={inputRef} style={{ width: "100%" }}>
                 <Box
                     sx={{
                         border: "solid",
@@ -153,9 +153,9 @@ const CountryPicker = (props: any) => {
                                 position: "absolute",
                                 backgroundColor: "white",
                                 zIndex: 10,
-                                width: staticBoxCoordinates.width - 1,
-                                margin: -1.1,
-                                padding: 1,
+                                width: staticBoxCoordinates.width,
+                                left: staticBoxCoordinates.left,
+                                padding: "0.5em",
                                 borderStyle: "none solid solid solid",
                                 borderWidth: "1px",
                                 borderColor: "lightgray",

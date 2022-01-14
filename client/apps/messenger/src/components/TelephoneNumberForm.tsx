@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Button, TextField, FormLabel, Box, Typography } from "@mui/material";
+import CountryPicker from "../pages/mocks/countryPicker";
 
 type TelephoneNumberFormProps = {
     onSubmit: (telephoneNumber: string) => void;
@@ -8,7 +9,9 @@ type TelephoneNumberFormProps = {
 export default function TelephoneNumberForm({
     onSubmit,
 }: TelephoneNumberFormProps): React.ReactElement {
-    const [telephoneNumber, setTelephoneNumber] = useState("");
+    const [countryCode, setCountryCode] = React.useState<string>("1");
+    const [phoneNumber, setPhoneNumber] = React.useState<string>("");
+    const [validPhoneNumber, setValidPhoneNumber] = React.useState<boolean>(false);
 
     return (
         <>
@@ -34,23 +37,17 @@ export default function TelephoneNumberForm({
             </Typography>
             <Box textAlign="left" mb={{ xs: 3, md: 6 }}>
                 <FormLabel sx={{ mb: 1.5, display: "block" }}>Phone number</FormLabel>
-                <TextField
-                    sx={{ mb: 3 }}
-                    required
-                    fullWidth
-                    id="telephone"
-                    placeholder="Eg. 98726546"
-                    name="telephoneNumber"
-                    autoComplete="telephone"
-                    autoFocus
-                    value={telephoneNumber}
-                    onChange={({ target }) => setTelephoneNumber(target.value)}
+                <CountryPicker
+                    code={setCountryCode}
+                    phoneNum={setPhoneNumber}
+                    validation={setValidPhoneNumber}
                 />
                 <Button
-                    onClick={() => onSubmit(telephoneNumber)}
-                    disabled={telephoneNumber.length === 0}
+                    // onClick={() => onSubmit(telephoneNumber)}
+                    disabled={!validPhoneNumber}
                     fullWidth
                     variant="contained"
+                    sx={{ marginTop: "1em" }}
                 >
                     Next
                 </Button>
