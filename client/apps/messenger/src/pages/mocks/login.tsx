@@ -3,7 +3,7 @@ import { Grid, Box, Stack, Button, Link } from "@mui/material";
 import image from "../../../../../../documents/pages/login_robot_image.svg";
 import logo from "../../../../../../documents/pages/login_logo.svg";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import CountryPicker from "./countryPicker";
+import CountryPicker from "../../components/countryPicker";
 
 const theme = createTheme({
     palette: {

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button, TextField, FormLabel, Box, Typography } from "@mui/material";
-import CountryPicker from "../pages/mocks/countryPicker";
+import CountryPicker from "../components/countryPicker";
 
 type TelephoneNumberFormProps = {
     onSubmit: (telephoneNumber: string) => void;
