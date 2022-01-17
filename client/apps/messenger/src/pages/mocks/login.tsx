@@ -1,8 +1,9 @@
 import React from "react";
-import { Grid, Box, Stack, TextField, Button, Link } from "@mui/material";
+import { Grid, Box, Stack, Button, Link } from "@mui/material";
 import image from "../../../../../../documents/pages/login_robot_image.svg";
 import logo from "../../../../../../documents/pages/login_logo.svg";
-import { createTheme, ThemeProvider, styled } from "@mui/material/styles";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import CountryPicker from "../../components/countryPicker";
 
 const theme = createTheme({
     palette: {
@@ -11,6 +12,15 @@ const theme = createTheme({
 });
 
 export default function () {
+    const [countryCode, setCountryCode] = React.useState<string>("1");
+    const [phoneNumber, setPhoneNumber] = React.useState<string>("");
+    const [validPhoneNumber, setValidPhoneNumber] = React.useState<boolean>(false);
+
+    const handleNext = () => {
+        console.log(countryCode);
+        console.log(phoneNumber);
+    };
+
     return (
         <ThemeProvider theme={theme}>
             <Grid container>
@@ -39,13 +49,17 @@ export default function () {
                             Welcome!!
                         </Box>
                         <Box pb="3.8em"> Sign in to start using Spika! </Box>
-                        <TextField
-                            sx={{ width: "80%", height: 50 }}
-                            id="outlined-basic"
-                            label="email or phone number"
-                            variant="outlined"
+                        <CountryPicker
+                            code={setCountryCode}
+                            phoneNum={setPhoneNumber}
+                            validation={setValidPhoneNumber}
                         />
-                        <Button sx={{ width: "80%", height: 56 }} variant="outlined">
+                        <Button
+                            disabled={!validPhoneNumber}
+                            sx={{ width: "80%", height: 56, padding: 0 }}
+                            variant="outlined"
+                            onClick={() => handleNext()}
+                        >
                             Next
                         </Button>
                         <Box pt="2em">
