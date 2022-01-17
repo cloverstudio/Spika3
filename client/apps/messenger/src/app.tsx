@@ -15,8 +15,9 @@ import MockUserLIst from "./pages/mocks/userLIst";
 import MockConferenceCall from "./pages/mocks/conferenceCallView";
 import LoginPage from "./pages/login";
 import SignUpPage from "./pages/signUp";
+import MockConfcall from "./pages/mocks/confcall";
 
-declare const BASE_URL: string;
+declare var BASE_URL: string;
 
 function App() {
     console.log("BASE_URL", BASE_URL);
@@ -65,6 +66,9 @@ function App() {
                     </Route>
                     <Route exact path="/sign-up">
                         <SignUpPage />
+                    </Route>
+                    <Route exact path="/mock/confcall">
+                        <MockConfcall />
                     </Route>
                 </Switch>
             </Router>

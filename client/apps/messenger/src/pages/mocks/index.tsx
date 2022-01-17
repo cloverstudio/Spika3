@@ -99,6 +99,12 @@ export default function () {
                         <ListItemIcon>
                             <ContactPageOutlinedIcon />
                         </ListItemIcon>
+                        <ListItemText primary="Conference call (Vedran)" />
+                    </ListItemButton>
+                    <ListItemButton onClick={(e) => history.push("/mock/confcall")}>
+                        <ListItemIcon>
+                            <ContactPageOutlinedIcon />
+                        </ListItemIcon>
                         <ListItemText primary="Conference call" />
                     </ListItemButton>
                 </List>
