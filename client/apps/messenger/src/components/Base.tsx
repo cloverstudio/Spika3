@@ -67,9 +67,13 @@ theme = createTheme(theme, {
                 },
             },
         },
-        MuiInput: {
+        MuiAlertTitle: {
             styleOverrides: {
-                root: {},
+                root: {
+                    fontSize: "1rem",
+                    fontWeight: theme.typography.fontWeightBold,
+                    color: "#ef5350",
+                },
             },
         },
     },

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
-import { Link } from "@mui/material";
 
 import { useSignUpMutation, useVerifyMutation, useUpdateMutation } from "../api/auth";
 
@@ -11,6 +10,7 @@ import UsernameForm from "../components/UsernameForm";
 
 import useDeviceId from "../hooks/useDeviceId";
 import { sha256 } from "../../../../lib/utils";
+import useCountdownTimer from "../hooks/useCountdownTimer";
 
 export default function SignUpPage(): React.ReactElement {
     const history = useHistory();
@@ -19,8 +19,10 @@ export default function SignUpPage(): React.ReactElement {
     const [signUp, signUpMutation] = useSignUpMutation();
     const [verify, verifyMutation] = useVerifyMutation();
     const [update, updateMutation] = useUpdateMutation();
+    const timer = useCountdownTimer(60);
 
     const handleSignUp = (telephoneNumber: string) => {
+        timer.start();
         signUp({ telephoneNumber, telephoneNumberHashed: sha256(telephoneNumber), deviceId });
     };
 
@@ -69,7 +71,8 @@ export default function SignUpPage(): React.ReactElement {
                         onSubmit={handleVerify}
                         onResend={() => handleSignUp(signUpMutation.data?.user.telephoneNumber)}
                         telephoneNumber={signUpMutation.data?.user.telephoneNumber}
-                        error={verifyMutation.error}
+                        error={verifyMutation.error as any}
+                        timeLeft={timer.left}
                     />
                 );
             case 2:
@@ -82,11 +85,6 @@ export default function SignUpPage(): React.ReactElement {
     return (
         <AuthLayout loading={signUpMutation.isLoading || verifyMutation.isLoading}>
             {getForm()}
-            {step !== 2 && (
-                <Link fontWeight="bold" underline="hover" href="/login" variant="body1">
-                    Already have an account? Log in
-                </Link>
-            )}
         </AuthLayout>
     );
 }

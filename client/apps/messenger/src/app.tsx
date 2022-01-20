@@ -13,9 +13,8 @@ import MockMessageMedia from "./pages/mocks/messageMedia";
 import MockNoChat from "./pages/mocks/noChat";
 import MockUserLIst from "./pages/mocks/userLIst";
 import MockConferenceCall from "./pages/mocks/conferenceCallView";
-import LoginPage from "./pages/login";
-import SignUpPage from "./pages/signUp";
 import MockConfcall from "./pages/mocks/confcall";
+import AuthPage from "./pages/auth";
 
 declare var BASE_URL: string;
 
@@ -61,11 +60,8 @@ function App() {
                     <Route exact path="/mock/conferenceCallView">
                         <MockConferenceCall />
                     </Route>
-                    <Route exact path="/login">
-                        <LoginPage />
-                    </Route>
-                    <Route exact path="/sign-up">
-                        <SignUpPage />
+                    <Route exact path="/auth">
+                        <AuthPage />
                     </Route>
                     <Route exact path="/mock/confcall">
                         <MockConfcall />

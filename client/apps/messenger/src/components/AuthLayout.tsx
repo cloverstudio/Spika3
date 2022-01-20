@@ -7,7 +7,7 @@ import loginBg from "../assets/login-bg.svg";
 import Base from "./Base";
 
 type AuthLayoutProps = {
-    children: React.ReactElement[];
+    children: React.ReactElement | React.ReactElement[];
     loading?: boolean;
 };
 

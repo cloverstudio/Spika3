@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import { Button, Box, Typography, Link } from "@mui/material";
+import { Button, Box, Typography, Link, Alert, AlertTitle } from "@mui/material";
 import PinInput from "./PinInput";
 import CountdownTimer from "./CountdownTimer";
 
@@ -7,7 +7,8 @@ type VerificationCodeFormProps = {
     onSubmit: (verificationCode: string) => void;
     onResend: () => void;
     telephoneNumber: string;
-    error?: unknown;
+    timeLeft: number;
+    error?: any;
 };
 
 export default function VerificationCodeForm({
@@ -15,6 +16,7 @@ export default function VerificationCodeForm({
     onResend,
     telephoneNumber,
     error,
+    timeLeft,
 }: VerificationCodeFormProps): React.ReactElement {
     const refs = [
         useRef(null),
@@ -29,10 +31,9 @@ export default function VerificationCodeForm({
             .fill(true)
             .map((_, i) => ({ ref: refs[i], value: "" }))
     );
-    const [timerExpired, setTimerExpired] = useState(false);
 
     const tryToSubmit = () => {
-        if (timerExpired) {
+        if (!timeLeft) {
             return;
         }
 
@@ -54,6 +55,7 @@ export default function VerificationCodeForm({
     }, [codeArr]);
 
     const codeFilled = codeArr.every((o) => !!o.value);
+    const someCodeEntered = codeArr.some((o) => !!o.value);
 
     return (
         <>
@@ -72,16 +74,20 @@ export default function VerificationCodeForm({
                 variant="body1"
                 mx={{ xs: "auto", md: 0 }}
                 maxWidth={{ xs: "220px", md: "none" }}
-                mb={{ xs: 5, md: 10 }}
+                mb={{ xs: error ? 1 : 5, md: error ? 4 : 10 }}
                 fontWeight="medium"
             >
                 We sent you verification code on {telephoneNumber}!
             </Typography>
+            {error && !someCodeEntered && (
+                <Alert sx={{ mb: 4 }} severity="error">
+                    <AlertTitle sx={{ mb: 0 }}>{error.message}</AlertTitle>
+                </Alert>
+            )}
             <Box textAlign="left" mb={{ xs: 3, md: 6 }}>
-                {error && <Box>Error</Box>}
                 <Box mb={2}>
                     <Box display="flex" justifyContent="space-between" mb={2}>
-                        <CountdownTimer value={60} onDone={() => setTimerExpired(true)} />
+                        <CountdownTimer timeLeft={timeLeft} />
                         <Link
                             fontWeight="bold"
                             underline="hover"
@@ -96,7 +102,7 @@ export default function VerificationCodeForm({
                 </Box>
                 <Button
                     onClick={tryToSubmit}
-                    disabled={!codeFilled || timerExpired}
+                    disabled={!codeFilled || !timeLeft}
                     fullWidth
                     variant="contained"
                 >

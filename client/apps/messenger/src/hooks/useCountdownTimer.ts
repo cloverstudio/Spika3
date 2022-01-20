@@ -1,18 +1,32 @@
 import { useEffect, useState } from "react";
 
-export default function useCountdownTimer(time: number): number {
+type CountdownTimerReturnProps = {
+    left: number;
+    start: () => void;
+};
+
+export default function useCountdownTimer(time: number): CountdownTimerReturnProps {
     const [left, setLeft] = useState(time);
+    const [started, setStarted] = useState(false);
 
     useEffect(() => {
-        const t = setInterval(() => {
-            setLeft((left) => {
-                if (left > 0) {
-                    return left - 1;
-                }
-            });
-        }, 1000);
+        if (started) {
+            const t = setInterval(() => {
+                setLeft((left) => {
+                    if (left > 0) {
+                        return left - 1;
+                    }
+                });
+            }, 1000);
 
-        return () => clearInterval(t);
-    });
-    return left;
+            return () => clearInterval(t);
+        }
+    }, [started]);
+
+    const start = () => {
+        setLeft(time);
+        setStarted(true);
+    };
+
+    return { left, start };
 }
