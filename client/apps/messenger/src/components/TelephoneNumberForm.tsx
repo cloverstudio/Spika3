@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button, TextField, FormLabel, Box, Typography } from "@mui/material";
-import CountryPicker from "../components/countryPicker";
+import CountryPicker from "./CountryPicker";
 
 type TelephoneNumberFormProps = {
     onSubmit: (telephoneNumber: string) => void;
@@ -43,7 +43,7 @@ export default function TelephoneNumberForm({
                     validation={setValidPhoneNumber}
                 />
                 <Button
-                    // onClick={() => onSubmit(telephoneNumber)}
+                    onClick={() => onSubmit(`+${countryCode}${phoneNumber}`)}
                     disabled={!validPhoneNumber}
                     fullWidth
                     variant="contained"

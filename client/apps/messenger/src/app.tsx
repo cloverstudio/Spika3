@@ -1,8 +1,7 @@
 import React from "react";
-import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
 import MockTop from "./pages/mocks";
-import MockLogin from "./pages/mocks/login";
 import MockChat from "./pages/mocks/chat";
 import MockChatMedialist from "./pages/mocks/chatMedialist";
 import MockChatNomessageUserList from "./pages/mocks/chatNomessageUserList";
@@ -16,7 +15,7 @@ import MockConferenceCall from "./pages/mocks/conferenceCallView";
 import MockConfcall from "./pages/mocks/confcall";
 import AuthPage from "./pages/auth";
 
-declare var BASE_URL: string;
+declare const BASE_URL: string;
 
 function App() {
     console.log("BASE_URL", BASE_URL);
@@ -26,9 +25,6 @@ function App() {
                 <Switch>
                     <Route exact path="/">
                         <MockTop />
-                    </Route>
-                    <Route exact path="/mock/login">
-                        <MockLogin />
                     </Route>
                     <Route exact path="/mock/chat">
                         <MockChat />
