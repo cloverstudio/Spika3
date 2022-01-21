@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useHistory } from "react-router-dom";
 
 import { useSignUpMutation, useVerifyMutation, useUpdateMutation } from "../api/auth";
@@ -21,70 +21,66 @@ export default function SignUpPage(): React.ReactElement {
     const [update, updateMutation] = useUpdateMutation();
     const timer = useCountdownTimer(60);
 
-    const handleSignUp = (telephoneNumber: string) => {
-        timer.start();
-        signUp({ telephoneNumber, telephoneNumberHashed: sha256(telephoneNumber), deviceId });
-    };
-
-    const handleVerify = (code: string) => {
-        console.log({ code, deviceId });
-        verify({ code, deviceId });
-    };
-
-    const handleSetUsername = (username: string) => {
-        update({ displayName: username });
-    };
-
-    useEffect(() => {
-        if (signUpMutation.isSuccess) {
-            console.log({ signUpData: signUpMutation.data });
+    const handleSignUp = async (telephoneNumber: string) => {
+        try {
+            timer.start();
+            await signUp({
+                telephoneNumber,
+                telephoneNumberHashed: sha256(telephoneNumber),
+                deviceId,
+            });
             setStep(1);
+        } catch (error) {
+            console.error("Sign up error", error);
         }
-    }, [signUpMutation]);
+    };
 
-    useEffect(() => {
-        if (verifyMutation.isSuccess && verifyMutation.data?.device?.token) {
-            console.log({ verifyData: verifyMutation.data });
-            window.localStorage.setItem("access-token", verifyMutation.data.device.token);
-            if (signUpMutation.data.isNewUser) {
-                setStep(2);
+    const handleVerify = async (code: string) => {
+        try {
+            const res = await verify({ code, deviceId }).unwrap();
+
+            if (res.device?.token) {
+                window.localStorage.setItem("access-token", res.device.token);
+
+                if (signUpMutation.data.isNewUser) {
+                    setStep(2);
+                } else {
+                    history.push("/");
+                }
             } else {
-                history.push("/");
+                console.error("Token not returned");
             }
+        } catch (error) {
+            console.log({ error });
         }
-    }, [verifyMutation]);
+    };
 
-    useEffect(() => {
-        if (updateMutation.isSuccess) {
-            console.log({ updateData: updateMutation.data });
+    const handleSetUsername = async (username: string) => {
+        try {
+            await update({ displayName: username }).unwrap();
             history.push("/");
-        }
-    }, [updateMutation]);
-
-    const getForm = () => {
-        switch (step) {
-            case 0:
-                return <TelephoneNumberForm onSubmit={handleSignUp} />;
-            case 1:
-                return (
-                    <VerificationCodeForm
-                        onSubmit={handleVerify}
-                        onResend={() => handleSignUp(signUpMutation.data?.user.telephoneNumber)}
-                        telephoneNumber={signUpMutation.data?.user.telephoneNumber}
-                        error={verifyMutation.error as any}
-                        timeLeft={timer.left}
-                    />
-                );
-            case 2:
-                return <UpdateUserForm onSubmit={handleSetUsername} />;
-            default:
-                console.error("unknown step");
+        } catch (error) {
+            console.error("Update failed ", error);
         }
     };
 
     return (
         <AuthLayout loading={signUpMutation.isLoading || verifyMutation.isLoading}>
-            {getForm()}
+            {step === 0 && <TelephoneNumberForm onSubmit={handleSignUp} />}
+
+            {step === 1 && (
+                <VerificationCodeForm
+                    onSubmit={handleVerify}
+                    onResend={() => handleSignUp(signUpMutation.data?.user.telephoneNumber)}
+                    telephoneNumber={signUpMutation.data?.user.telephoneNumber}
+                    error={verifyMutation.error as any}
+                    timeLeft={timer.left}
+                />
+            )}
+
+            {step === 2 && (
+                <UpdateUserForm onSubmit={handleSetUsername} error={updateMutation.error as any} />
+            )}
         </AuthLayout>
     );
 }
