@@ -3,11 +3,11 @@ import { Button, TextField, FormLabel, Box, Typography } from "@mui/material";
 
 import uploadImage from "../assets/upload-image.svg";
 
-type UsernameFormProps = {
+type UpdateUserFormProps = {
     onSubmit: (username: string) => void;
 };
 
-export default function UsernameForm({ onSubmit }: UsernameFormProps): React.ReactElement {
+export default function UpdateUserForm({ onSubmit }: UpdateUserFormProps): React.ReactElement {
     const [username, setUsername] = useState("");
 
     return (

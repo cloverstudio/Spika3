@@ -6,7 +6,7 @@ import { useSignUpMutation, useVerifyMutation, useUpdateMutation } from "../api/
 import AuthLayout from "../components/AuthLayout";
 import VerificationCodeForm from "../components/VerificationCodeForm";
 import TelephoneNumberForm from "../components/TelephoneNumberForm";
-import UsernameForm from "../components/UsernameForm";
+import UpdateUserForm from "../components/UpdateUserForm";
 
 import useDeviceId from "../hooks/useDeviceId";
 import { sha256 } from "../../../../lib/utils";
@@ -76,7 +76,7 @@ export default function SignUpPage(): React.ReactElement {
                     />
                 );
             case 2:
-                return <UsernameForm onSubmit={handleSetUsername} />;
+                return <UpdateUserForm onSubmit={handleSetUsername} />;
             default:
                 console.error("unknown step");
         }
