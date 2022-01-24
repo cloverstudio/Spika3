@@ -35,12 +35,6 @@ export default function () {
                         </ListSubheader>
                     }
                 >
-                    <ListItemButton onClick={(e) => history.push("/login")}>
-                        <ListItemIcon>
-                            <ContactPageOutlinedIcon />
-                        </ListItemIcon>
-                        <ListItemText primary="Login" />
-                    </ListItemButton>
                     <ListItemButton onClick={(e) => history.push("/mock/chat")}>
                         <ListItemIcon>
                             <ContactPageOutlinedIcon />

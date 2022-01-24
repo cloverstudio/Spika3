@@ -48,18 +48,16 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             const deviceId = req.body.deviceId as string;
 
             let isNewUser = false;
-            let verificationCode: string = null;
+            const verificationCode =
+                process.env.IS_TEST === "1"
+                    ? Constants.BACKDOOR_VERIFICATION_CODE
+                    : Utils.randomNumber(6);
 
             let requestUser = await prisma.user.findFirst({
                 where: { telephoneNumber },
             });
 
             if (!requestUser) {
-                verificationCode =
-                    process.env.IS_TEST === "1"
-                        ? Constants.BACKDOOR_VERIFICATION_CODE
-                        : Utils.randomNumber(6);
-
                 const newUser = await prisma.user.create({
                     data: {
                         telephoneNumber,
@@ -70,27 +68,9 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
                 requestUser = newUser;
                 isNewUser = true;
-            } else if (requestUser.verified === false) {
-                // send sms again
-
-                verificationCode =
-                    process.env.IS_TEST === "1"
-                        ? Constants.BACKDOOR_VERIFICATION_CODE
-                        : Utils.randomNumber(6);
-
-                requestUser = await prisma.user.update({
-                    where: {
-                        id: requestUser.id,
-                    },
-                    data: {
-                        verificationCode,
-                        telephoneNumberHashed,
-                    },
-                });
-
-                isNewUser = true;
             } else {
-                // re-login
+                isNewUser = !requestUser.displayName;
+
                 requestUser = await prisma.user.update({
                     where: {
                         id: requestUser.id,
@@ -116,26 +96,18 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         userId: requestUser.id,
                     },
                 });
-            }
-
-            // generate token if existed user
-            // send SMS if new user
-            if (!isNewUser) {
-                const newToken = Utils.createToken();
-                const expireDate = Utils.getTokenExpireDate();
-
+            } else {
+                // expire token if existing device
                 requestDevice = await prisma.device.update({
                     where: {
                         id: requestDevice.id,
                     },
                     data: {
-                        token: newToken,
-                        tokenExpiredAt: expireDate,
+                        tokenExpiredAt: new Date(),
                     },
                 });
             }
 
-            // send sms
             const SMSPayload: SendSMSPayload = {
                 telephoneNumber,
                 content: verificationCodeSMS({ verificationCode }),

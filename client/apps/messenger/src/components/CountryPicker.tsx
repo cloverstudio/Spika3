@@ -15,8 +15,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { KeyboardArrowDown, KeyboardArrowUp, MenuOpen, Search } from "@mui/icons-material";
 import { makeStyles } from "@mui/styles";
 import { FixedSizeList, ListChildComponentProps } from "react-window";
-import * as defaults from "./countries";
-import { CountryType } from "./countries";
+import countries, { CountryType } from "../../../../lib/countries";
 import { isValidPhoneNumber } from "libphonenumber-js";
 
 const theme = createTheme({
@@ -32,12 +31,11 @@ const useStyles = makeStyles(() => ({
 }));
 
 const CountryPicker = (props: any) => {
-    const countries: CountryType[] = defaults.countries;
     const classes = useStyles();
-    const [searchText, setSearchText] = React.useState<string>("");
-    const [tempCountries, setTempCountries] = React.useState<CountryType[]>(countries);
-    const [countryCode, setCountryCode] = React.useState<string>("1");
-    const [openMenu, setOpenMenu] = React.useState<boolean>(false);
+    const [searchText, setSearchText] = React.useState("");
+    const [tempCountries, setTempCountries] = React.useState(countries);
+    const [countryCode, setCountryCode] = React.useState("1");
+    const [openMenu, setOpenMenu] = React.useState(false);
     const [staticBoxCoordinates, setStaticBoxCoordinates] = React.useState<DOMRect>(null);
 
     const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,7 +43,7 @@ const CountryPicker = (props: any) => {
     };
     const handlePhoneNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
         props.phoneNum(event.target.value);
-        let checkPhone = "+" + countryCode + event.target.value;
+        const checkPhone = "+" + countryCode + event.target.value;
         props.validation(isValidPhoneNumber(checkPhone));
     };
     const handleListItemClick = (
