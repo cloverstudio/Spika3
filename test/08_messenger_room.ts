@@ -5,7 +5,7 @@ import globals from "./global";
 import createFakeRoom from "./fixtures/room";
 import { beforeEach } from "mocha";
 import createFakeUser, { createManyFakeUsers } from "./fixtures/user";
-import { RoomUser } from ".prisma/client";
+import { RoomUser, Room } from ".prisma/client";
 
 describe("API", () => {
     describe("/api/messenger/rooms POST", () => {
@@ -341,6 +341,25 @@ describe("API", () => {
 
             expect(JSON.stringify(response.body.data.room)).to.eqls(JSON.stringify(room));
         });
+
+        it("Two users can't have more than one private room", async () => {
+            const user = await createFakeUser();
+
+            await createFakeRoom(
+                [
+                    { userId: globals.userId, isAdmin: true },
+                    { userId: user.id, isAdmin: false },
+                ],
+                { type: "private" }
+            );
+
+            const response = await supertest(app)
+                .post("/api/messenger/rooms")
+                .set({ accesstoken: globals.userToken })
+                .send({ userIds: [user.id] });
+
+            expect(response.status).to.eqls(409);
+        });
     });
 
     describe("/api/messenger/rooms/:id PUT", () => {
@@ -525,6 +544,39 @@ describe("API", () => {
             expect(
                 roomFromDb.users.filter((u: RoomUser) => !u.isAdmin).map((u: RoomUser) => u.userId)
             ).to.include.members(userIds);
+        });
+    });
+
+    describe("/api/messenger/rooms GET", () => {
+        it("Gets list of users rooms", async () => {
+            const response = await supertest(app)
+                .get("/api/messenger/rooms")
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(200);
+            expect(response.body).to.has.property("data");
+            expect(response.body.data).to.has.property("list");
+
+            const roomsFromRes = response.body.data.list as (Room & { users: RoomUser[] })[];
+            expect(roomsFromRes).to.be.an("array");
+            expect(
+                roomsFromRes.every((r) => r.users.map((u) => u.userId).includes(globals.userId))
+            ).to.eqls(true);
+        });
+    });
+
+    describe("/api/messenger/rooms/:id GET", () => {
+        it("Gets room details", async () => {
+            const room = await createFakeRoom([{ userId: globals.userId, isAdmin: true }]);
+
+            const response = await supertest(app)
+                .get(`/api/messenger/rooms/${room.id}`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(200);
+            expect(response.body).to.has.property("data");
+            expect(response.body.data).to.has.property("room");
+            expect(response.body.data.room.id).to.eqls(room.id);
         });
     });
 

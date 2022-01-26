@@ -1,8 +1,8 @@
-import { Device, User } from ".prisma/client";
+import { Room, User } from ".prisma/client";
 
 interface sanitizeTypes {
     user: () => Partial<User>;
-    device: () => Partial<Device>;
+    room: () => Partial<Room & { users: Partial<User>[] }>;
 }
 
 export default function sanitize(data: any): sanitizeTypes {
@@ -28,24 +28,15 @@ export default function sanitize(data: any): sanitizeTypes {
                 createdAt,
             };
         },
-        device: () => {
-            const {
-                id,
-                emailAddress,
-                telephoneNumber,
-                telephoneNumberHashed,
-                displayName,
-                avatarUrl,
-                createdAt,
-            } = data;
+        room: () => {
+            const { id, type, name, avatarUrl, users, createdAt } = data;
 
             return {
                 id,
-                emailAddress,
-                telephoneNumber,
-                telephoneNumberHashed,
-                displayName,
+                type,
+                name,
                 avatarUrl,
+                users,
                 createdAt,
             };
         },
