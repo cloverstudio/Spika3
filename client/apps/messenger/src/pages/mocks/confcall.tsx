@@ -16,7 +16,7 @@ export interface Participant {
     audioEnabled: boolean;
 }
 
-const me: Participant = {
+export const me: Participant = {
     user: {
         displayName: "Vedran",
         avatarUrl: "",
@@ -61,7 +61,15 @@ const participant4: Participant = {
     audioEnabled: true,
 };
 
-const participants = [participant1, participant2, participant3, participant4];
+export const participants = [
+    participant1,
+    participant2,
+    participant3,
+    participant4,
+    participant4,
+    participant4,
+    participant4,
+];
 
 const theme = createTheme({
     palette: {
