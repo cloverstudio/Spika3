@@ -1,8 +1,8 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import axios, { Method } from "axios";
 
-declare const API_BASEURL: string;
-console.log({ API_BASEURL });
+declare const API_BASE_URL: string;
+console.log({ API_BASE_URL });
 const axiosBaseQuery =
     ({ baseUrl } = { baseUrl: "" }) =>
     async ({ url, method, data }: { url: string; method: Method; data: any }, token: string) => {
@@ -32,7 +32,7 @@ const axiosBaseQuery =
     };
 
 const rawBaseQuery = axiosBaseQuery({
-    baseUrl: API_BASEURL,
+    baseUrl: API_BASE_URL,
 });
 
 const dynamicBaseQuery = async (args: any) => {

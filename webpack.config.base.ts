@@ -86,7 +86,7 @@ const config: Configuration = {
             chunkFilename: "[id].css",
         }),
         new DefinePlugin({
-            API_BASEURL: JSON.stringify(process.env.API_BASEURL),
+            API_BASE_URL: JSON.stringify(process.env.API_BASE_URL),
             ENV: JSON.stringify(process.env.ENV),
         }),
     ],

@@ -46,6 +46,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             const telephoneNumber = req.body.telephoneNumber as string;
             const telephoneNumberHashed = req.body.telephoneNumberHashed as string;
             const deviceId = req.body.deviceId as string;
+            const osName = (req.headers["os-name"] || "") as string;
 
             let isNewUser = false;
             const verificationCode =
@@ -110,7 +111,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             const SMSPayload: SendSMSPayload = {
                 telephoneNumber,
-                content: verificationCodeSMS({ verificationCode }),
+                content: verificationCodeSMS({ verificationCode, osName }),
             };
 
             rabbitMQChannel.sendToQueue(
@@ -140,6 +141,9 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             const requestUser = await prisma.user.findFirst({
                 where: { verificationCode },
+                orderBy: {
+                    createdAt: "desc",
+                },
             });
 
             if (!requestUser) {

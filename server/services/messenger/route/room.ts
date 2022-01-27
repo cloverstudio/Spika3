@@ -8,6 +8,8 @@ import auth from "../lib/auth";
 import * as yup from "yup";
 import validate from "../../../components/validateMiddleware";
 import { successResponse, errorResponse } from "../../../components/response";
+import * as Constants from "../../../components/consts";
+import sanitize from "../../../components/sanitize";
 
 const prisma = new PrismaClient();
 
@@ -67,6 +69,24 @@ export default (): Router => {
 
             const type = userDefinedType || (userIds.length < 3 ? "private" : "group");
             const name = getRoomName(userDefinedName, users.length);
+
+            if (users.length === 2 && type === "private") {
+                const existingRoom = await prisma.room.findFirst({
+                    where: {
+                        users: {
+                            every: { userId: { in: users.map((u) => u.userId) } },
+                        },
+                        type,
+                    },
+                    include: {
+                        users: true,
+                    },
+                });
+
+                if (existingRoom) {
+                    return res.status(409).send(errorResponse("Room already exists", userReq.lang));
+                }
+            }
 
             const room = await prisma.room.create({
                 data: {
@@ -261,6 +281,89 @@ export default (): Router => {
             }
         }
     );
+
+    router.get("/", auth, validate(postRoomSchema), async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+
+        try {
+            const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
+
+            const rooms = await prisma.room.findMany({
+                where: {
+                    users: {
+                        some: {
+                            userId: userReq.user.id,
+                        },
+                    },
+                },
+                include: {
+                    users: true,
+                },
+                orderBy: [
+                    {
+                        createdAt: "asc",
+                    },
+                ],
+                skip: Constants.PAGING_LIMIT * (page - 1),
+                take: Constants.PAGING_LIMIT,
+            });
+
+            const count = await prisma.room.count({
+                where: {
+                    users: {
+                        some: {
+                            userId: userReq.user.id,
+                        },
+                    },
+                },
+            });
+
+            res.send(
+                successResponse(
+                    {
+                        list: rooms.map((room) => sanitize(room).room()),
+                        count,
+                        limit: Constants.PAGING_LIMIT,
+                    },
+                    userReq.lang
+                )
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.get("/:id", auth, validate(postRoomSchema), async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+
+        try {
+            const id = parseInt((req.params.id as string) || "");
+
+            const room = await prisma.room.findFirst({
+                where: {
+                    id,
+                    users: {
+                        some: {
+                            userId: userReq.user.id,
+                        },
+                    },
+                },
+                include: {
+                    users: true,
+                },
+            });
+
+            if (!room) {
+                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+            }
+
+            res.send(successResponse({ room: sanitize(room).room() }, userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
 
     return router;
 };
