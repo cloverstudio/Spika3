@@ -14,6 +14,8 @@ import MockUserLIst from "./pages/mocks/userLIst";
 import MockConferenceCall from "./pages/mocks/conferenceCallView";
 import MockConfcall from "./pages/mocks/confcall";
 import AuthPage from "./pages/auth";
+import AppTop from "./pages/app";
+import Conftest from "./pages/app/confcall";
 
 declare const BASE_URL: string;
 
@@ -61,6 +63,12 @@ function App() {
                     </Route>
                     <Route exact path="/mock/confcall">
                         <MockConfcall />
+                    </Route>
+                    <Route exact path="/app">
+                        <AppTop />
+                    </Route>
+                    <Route exact path="/conftest">
+                        <Conftest />
                     </Route>
                 </Switch>
             </Router>

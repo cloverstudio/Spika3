@@ -2,12 +2,14 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
+import http from "http";
 import UserManagementAPIService from "./services/management";
 import MessengerAPIService from "./services/messenger";
 import SMSService from "./services/sms";
 import UploadService from "./services/upload";
 import PushService from "./services/push";
 import SSEService from "./services/sse";
+import ConfcallService from "./services/confcall";
 import amqp from "amqplib";
 
 import l, { error as e } from "./components/logger";
@@ -36,7 +38,7 @@ const app: express.Express = express();
         }
     });
 
-    app.listen(process.env["SERVER_PORT"], () => {
+    const server: http.Server = app.listen(process.env["SERVER_PORT"], () => {
         console.log(`Start on port ${process.env["SERVER_PORT"]}.`);
     });
 
@@ -94,6 +96,16 @@ const app: express.Express = express();
         });
 
         app.use("/api/sse", sseService.getRoutes());
+    }
+
+    if (process.env["USE_CONFCALL"]) {
+        const confcallService: ConfcallService = new ConfcallService();
+        confcallService.start({
+            rabbitMQChannel,
+            server,
+        });
+
+        app.use("/api/confcall", confcallService.getRoutes());
     }
 
     // test
