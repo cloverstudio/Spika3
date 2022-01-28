@@ -90,36 +90,37 @@ var screenshare_svg_1 = __importDefault(require("./assets/img/screenshare.svg"))
 var screenshareoff_svg_1 = __importDefault(require("./assets/img/screenshareoff.svg"));
 var users_svg_1 = __importDefault(require("./assets/img/users.svg"));
 var settingarrow_svg_1 = __importDefault(require("./assets/img/settingarrow.svg"));
-function Conference() {
+function Conference(_a) {
     var _this = this;
+    var onClose = _a.onClose;
     var history = (0, react_router_dom_1.useHistory)();
     var myVideoElm = (0, react_1.useRef)(null);
-    var _a = (0, react_1.useState)(null), participants = _a[0], setParticipants = _a[1];
-    var _b = (0, react_1.useState)([]), consumerRefs = _b[0], setConsumerRefs = _b[1];
-    var _c = (0, react_1.useState)(localStorage.getItem(Constants.LSKEY_MUTECAM) === "0" ? false : true), cameraEnabled = _c[0], setCameraEnabled = _c[1];
-    var _d = (0, react_1.useState)(false), screenShareEnabled = _d[0], setScreenShareEnabled = _d[1];
+    var _b = (0, react_1.useState)(null), participants = _b[0], setParticipants = _b[1];
+    var _c = (0, react_1.useState)([]), consumerRefs = _c[0], setConsumerRefs = _c[1];
+    var _d = (0, react_1.useState)(localStorage.getItem(Constants.LSKEY_MUTECAM) === "0" ? false : true), cameraEnabled = _d[0], setCameraEnabled = _d[1];
+    var _e = (0, react_1.useState)(false), screenShareEnabled = _e[0], setScreenShareEnabled = _e[1];
     ("");
-    var _e = (0, react_1.useState)(localStorage.getItem(Constants.LSKEY_MUTEMIC) === "0" ? false : true), micEnabled = _e[0], setMicEnabled = _e[1];
-    var _f = (0, react_1.useState)(null), spikabroadcastClient = _f[0], setSpikabroadcastClient = _f[1];
-    var _g = (0, react_1.useState)(null), webcamProcuder = _g[0], setWebcamProducer = _g[1];
-    var _h = (0, react_1.useState)(null), microphoneProducer = _h[0], setMicrophoneProducer = _h[1];
-    var _j = (0, react_1.useState)(null), screenShareProducer = _j[0], setScreenshareProducer = _j[1];
-    var _k = (0, react_1.useState)([]), log = _k[0], setLog = _k[1];
-    var _l = (0, react_1.useState)("type1"), peerContainerClass = _l[0], setPeerContainerClass = _l[1];
-    var _m = (0, react_1.useState)(false), screenShareMode = _m[0], setScreenShareMode = _m[1];
+    var _f = (0, react_1.useState)(localStorage.getItem(Constants.LSKEY_MUTEMIC) === "0" ? false : true), micEnabled = _f[0], setMicEnabled = _f[1];
+    var _g = (0, react_1.useState)(null), spikabroadcastClient = _g[0], setSpikabroadcastClient = _g[1];
+    var _h = (0, react_1.useState)(null), webcamProcuder = _h[0], setWebcamProducer = _h[1];
+    var _j = (0, react_1.useState)(null), microphoneProducer = _j[0], setMicrophoneProducer = _j[1];
+    var _k = (0, react_1.useState)(null), screenShareProducer = _k[0], setScreenshareProducer = _k[1];
+    var _l = (0, react_1.useState)([]), log = _l[0], setLog = _l[1];
+    var _m = (0, react_1.useState)("type1"), peerContainerClass = _m[0], setPeerContainerClass = _m[1];
+    var _o = (0, react_1.useState)(false), screenShareMode = _o[0], setScreenShareMode = _o[1];
     var roomId = (0, react_router_dom_1.useParams)().roomId;
-    var _o = (0, react_1.useState)(false), openSettings = _o[0], setOpenSettings = _o[1];
-    var _p = (0, react_1.useState)(null), selectedCamera = _p[0], setSelectedCamera = _p[1];
-    var _q = (0, react_1.useState)(null), selectedMicrophone = _q[0], setSelectedMicrophone = _q[1];
-    var _r = (0, react_1.useState)(localStorage.getItem(Constants.LSKEY_USERNAME) || "No name"), displayName = _r[0], setDisplayName = _r[1];
-    var _s = (0, react_1.useState)(localStorage.getItem(Constants.LSKEY_USERNAME) || "No name"), tmpDisplayName = _s[0], setTmpDisplayName = _s[1];
-    var _t = (0, react_1.useState)(false), editNameEnabled = _t[0], setEditNameEnabled = _t[1];
-    var _u = (0, react_1.useState)({
+    var _p = (0, react_1.useState)(false), openSettings = _p[0], setOpenSettings = _p[1];
+    var _q = (0, react_1.useState)(null), selectedCamera = _q[0], setSelectedCamera = _q[1];
+    var _r = (0, react_1.useState)(null), selectedMicrophone = _r[0], setSelectedMicrophone = _r[1];
+    var _s = (0, react_1.useState)(localStorage.getItem(Constants.LSKEY_USERNAME) || "No name"), displayName = _s[0], setDisplayName = _s[1];
+    var _t = (0, react_1.useState)(localStorage.getItem(Constants.LSKEY_USERNAME) || "No name"), tmpDisplayName = _t[0], setTmpDisplayName = _t[1];
+    var _u = (0, react_1.useState)(false), editNameEnabled = _u[0], setEditNameEnabled = _u[1];
+    var _v = (0, react_1.useState)({
         showVideo: false,
         showMicrophone: false,
         showName: false,
-    }), modalState = _u[0], setModalState = _u[1];
-    var _v = (0, react_1.useState)(false), ready = _v[0], setReady = _v[1];
+    }), modalState = _v[0], setModalState = _v[1];
+    var _w = (0, react_1.useState)(false), ready = _w[0], setReady = _w[1];
     var peerId = localStorage.getItem(Constants.LSKEY_PEERID)
         ? localStorage.getItem(Constants.LSKEY_PEERID)
         : Utils_1.default.randomStr(8);
@@ -166,8 +167,8 @@ function Conference() {
                         }
                         spikaBroadcastClientLocal = new SpikaBroadcastClient_1.default({
                             debug: true,
-                            host: "localhost",
-                            port: 3000,
+                            host: CONFCALL_HOST,
+                            port: CONFCALL_PORT,
                             roomId: "test",
                             peerId: Utils_1.default.randomStr(8),
                             displayName: localStorage.getItem(Constants.LSKEY_USERNAME) || "No name",
@@ -276,7 +277,8 @@ function Conference() {
                 case 0: return [4 /*yield*/, spikabroadcastClient.disconnect()];
                 case 1:
                     _a.sent();
-                    history.push("/");
+                    if (onClose)
+                        onClose();
                     return [2 /*return*/];
             }
         });

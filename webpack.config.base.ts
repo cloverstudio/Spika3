@@ -87,6 +87,8 @@ const config: Configuration = {
         }),
         new DefinePlugin({
             API_BASE_URL: JSON.stringify(process.env.API_BASE_URL),
+            CONFCALL_HOST: JSON.stringify(process.env.CONFCALL_HOST),
+            CONFCALL_PORT: JSON.stringify(process.env.CONFCALL_PORT),
             ENV: JSON.stringify(process.env.ENV),
         }),
     ],

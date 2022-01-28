@@ -8,29 +8,14 @@ import SpikaBroadcastClient, {
 } from "./lib/SpikaBroadcastClient";
 import { types as mediasoupClientTypes } from "mediasoup-client";
 import Utils from "./lib/Utils";
-import Peer from "./Peer";
-import ScreenShareView from "./ScreenShareView";
-import Me from "./Me";
-import dayjs from "dayjs";
-
-import SettingModal from "./Modal";
-import MicrophoneSelectorModal from "./MicrophoneSelectorModal";
-import VideoSelectorModal from "./VideoSelectorModal";
 import deviceInfo from "./lib/deviceInfo";
 import * as Constants from "./lib/Constants";
-
-import iconCamera from "./assets/img/camera.svg";
-import iconMic from "./assets/img/mic.svg";
-import iconCameraOff from "./assets/img/cameraoff.svg";
-import iconMicOff from "./assets/img/micoff.svg";
-import iconExit from "./assets/img/exit.svg";
-import iconScreenShare from "./assets/img/screenshare.svg";
-import iconScreenShareOff from "./assets/img/screenshareoff.svg";
-import iconUsers from "./assets/img/users.svg";
-import iconSettingArrow from "./assets/img/settingarrow.svg";
 import { constants } from "buffer";
 import { BinaryOperatorToken } from "typescript";
 import { propsToClassKey } from "@mui/styles";
+
+declare var CONFCALL_HOST: string;
+declare var CONFCALL_PORT: number;
 
 interface ModalState {
     showVideo: boolean;
@@ -130,8 +115,8 @@ function Conference({ onClose }: { onClose: Function }) {
 
             const spikaBroadcastClientLocal = new SpikaBroadcastClient({
                 debug: true,
-                host: "localhost",
-                port: 3000,
+                host: CONFCALL_HOST,
+                port: CONFCALL_PORT,
                 roomId: "test",
                 peerId: Utils.randomStr(8),
                 displayName: localStorage.getItem(Constants.LSKEY_USERNAME) || "No name",
@@ -174,11 +159,7 @@ function Conference({ onClose }: { onClose: Function }) {
                     onUpdateCameraDevice: () => {},
                     onUpdateMicrophoneDevice: () => {},
                     onUpdateSpeakerDevice: () => {},
-                    onLogging: (type, message) => {
-                        if (typeof message !== "string")
-                            message = `<span class="small">${Utils.printObj(message)}</span>`;
-                        log.push({ time: dayjs().format("HH:mm"), type, message });
-                    },
+                    onLogging: (type, message) => {},
                     onJoined: () => {
                         setReady(true);
                     },
@@ -255,224 +236,7 @@ function Conference({ onClose }: { onClose: Function }) {
         }
     };
 
-    return (
-        <div id="spikabroadcast">
-            <header></header>
-            <main
-                className={`conference-main ${
-                    screenShareMode || screenShareEnabled ? "screen-share" : "no-screen-share"
-                }`}
-            >
-                <div className={`peers ${peerContainerClass}`}>
-                    <div className="me">
-                        <Me videoProducer={webcamProcuder} audioProducer={microphoneProducer} />
-                        <div
-                            className="info"
-                            onClick={(e) =>
-                                setModalState({ ...modalState, showName: !modalState.showName })
-                            }
-                        >
-                            {displayName}
-                        </div>
-                    </div>
-                    <>
-                        {participants
-                            ? participants.map((participant, i) => {
-                                  return (
-                                      <div
-                                          className={`participant ${
-                                              participant.activeSpeaker ? "active" : ""
-                                          }`}
-                                          key={participant.id}
-                                      >
-                                          <Peer participant={participant} key={participant.id} />
-                                      </div>
-                                  );
-                              })
-                            : null}
-                    </>
-                </div>
-                <>
-                    {participants
-                        ? participants.map((participant, i) => {
-                              if (
-                                  participant.consumers.find((consumer) => {
-                                      return consumer.appData.share;
-                                  })
-                              ) {
-                                  const videoTrackConsumer: mediasoupClient.types.Consumer =
-                                      participant.consumers.find((consumer) => {
-                                          return consumer.appData.share;
-                                      });
-                                  return (
-                                      <div className="screenshare" key={participant.id}>
-                                          <ScreenShareView videoTrack={videoTrackConsumer.track} />
-                                      </div>
-                                  );
-                              }
-                          })
-                        : null}
-
-                    {screenShareEnabled ? (
-                        <div className="screenshare">
-                            <ScreenShareView videoTrack={screenShareProducer.track} />
-                        </div>
-                    ) : null}
-                </>
-
-                <div className="log">
-                    {log.map(({ time, type, message }, index) => {
-                        return (
-                            <div className={type} key={index}>
-                                <span className="date">{time}</span>
-                                <span dangerouslySetInnerHTML={{ __html: message }} />
-                            </div>
-                        );
-                    })}
-                </div>
-                <div className="controlls">
-                    <ul>
-                        {ready ? (
-                            <>
-                                <li style={{ width: "67px" }}>
-                                    <a
-                                        className="large_icon"
-                                        onClick={(e) => spikabroadcastClient.toggleCamera()}
-                                    >
-                                        {cameraEnabled ? (
-                                            <img src={iconCamera} />
-                                        ) : (
-                                            <img src={iconCameraOff} />
-                                        )}
-                                    </a>
-                                </li>
-                                <li
-                                    className="setting-arrow"
-                                    onClick={(e) =>
-                                        setModalState({
-                                            ...modalState,
-                                            showVideo: !modalState.showVideo,
-                                        })
-                                    }
-                                >
-                                    <img src={iconSettingArrow} />
-                                </li>
-                                <li style={{ width: "67px" }}>
-                                    <a
-                                        className="large_icon"
-                                        onClick={(e) => spikabroadcastClient.toggleMicrophone()}
-                                    >
-                                        {micEnabled ? (
-                                            <img src={iconMic} />
-                                        ) : (
-                                            <img src={iconMicOff} />
-                                        )}
-                                    </a>
-                                </li>
-                                <li
-                                    className="setting-arrow"
-                                    onClick={(e) =>
-                                        setModalState({
-                                            ...modalState,
-                                            showMicrophone: !modalState.showMicrophone,
-                                        })
-                                    }
-                                >
-                                    <img src={iconSettingArrow} />
-                                </li>
-                                <li>
-                                    <a className="large_icon">
-                                        <img src={iconUsers} />
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        className="large_icon"
-                                        onClick={(e) => {
-                                            if (screenShareMode) {
-                                                if (
-                                                    confirm(
-                                                        "Another use is sharing screen, do you want disable the current share ?"
-                                                    )
-                                                )
-                                                    return spikabroadcastClient.toggleScreenShare();
-                                            } else {
-                                            }
-                                            spikabroadcastClient.toggleScreenShare();
-                                        }}
-                                    >
-                                        {!screenShareEnabled ? (
-                                            <img src={iconScreenShare} />
-                                        ) : (
-                                            <img src={iconScreenShareOff} />
-                                        )}
-                                    </a>
-                                </li>
-                            </>
-                        ) : null}
-                        <li>
-                            <a className="button" onClick={(e) => close()}>
-                                <img src={iconExit} />
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </main>
-            <footer></footer>
-
-            {modalState.showVideo ? (
-                <VideoSelectorModal
-                    selectedDeviceId={selectedCamera ? selectedCamera.deviceId : ""}
-                    onOK={() => {
-                        updateDevice(selectedCamera, selectedMicrophone);
-                        setModalState({ ...modalState, showVideo: !modalState.showVideo });
-                    }}
-                    onClose={() =>
-                        setModalState({ ...modalState, showVideo: !modalState.showVideo })
-                    }
-                    onChange={(media: MediaDeviceInfo) => setSelectedCamera(media)}
-                />
-            ) : null}
-
-            {modalState.showMicrophone ? (
-                <MicrophoneSelectorModal
-                    selectedDeviceId={selectedMicrophone ? selectedMicrophone.deviceId : ""}
-                    onOK={() => {
-                        updateDevice(selectedCamera, selectedMicrophone);
-                        setModalState({
-                            ...modalState,
-                            showMicrophone: !modalState.showMicrophone,
-                        });
-                    }}
-                    onClose={() =>
-                        setModalState({ ...modalState, showMicrophone: !modalState.showMicrophone })
-                    }
-                    onChange={(media: MediaDeviceInfo) => setSelectedMicrophone(media)}
-                />
-            ) : null}
-            {modalState.showName ? (
-                <SettingModal
-                    title="Set Display Name"
-                    onOK={() => {
-                        setDisplayName(tmpDisplayName);
-                        setModalState({ ...modalState, showName: !modalState.showName });
-                    }}
-                    onClose={() => setModalState({ ...modalState, showName: !modalState.showName })}
-                >
-                    <>
-                        <input
-                            type="text"
-                            value={tmpDisplayName}
-                            onChange={(e: React.FormEvent<HTMLInputElement>) =>
-                                setTmpDisplayName(e.currentTarget.value)
-                            }
-                        />{" "}
-                        :
-                    </>
-                </SettingModal>
-            ) : null}
-        </div>
-    );
+    return <>source code comes here</>;
 }
 
 export default Conference;
