@@ -8,7 +8,7 @@ import * as e2e from "./e2e";
 import { ShorthandPropertyAssignment } from "typescript";
 import { timeStamp } from "console";
 import { mainModule } from "process";
-import Utils from "../lib/Utils";
+import Utils from "./Utils";
 import { utils } from "mocha";
 
 const PC_PROPRIETARY_CONSTRAINTS = {
