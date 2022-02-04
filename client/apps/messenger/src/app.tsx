@@ -16,6 +16,7 @@ import MockConfcall from "./pages/mocks/confcall";
 import AuthPage from "./pages/auth";
 import HomePage from "./pages/home";
 import RoomPage from "./pages/room";
+import Conftest from "./pages/app/confcall";
 
 declare const BASE_URL: string;
 
@@ -30,6 +31,8 @@ export default function App(): React.ReactElement {
                     <Route path="rooms" element={<HomePage />}>
                         <Route path=":id" element={<RoomPage />} />
                     </Route>
+                  
+                    <Route path="conftest" element={<Conftest />} />
 
                     <Route path="mock">
                         <Route index element={<MockTop />} />
