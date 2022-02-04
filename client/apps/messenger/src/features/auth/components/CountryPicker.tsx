@@ -12,10 +12,10 @@ import {
     Button,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { KeyboardArrowDown, KeyboardArrowUp, MenuOpen, Search } from "@mui/icons-material";
+import { KeyboardArrowDown, KeyboardArrowUp, Search } from "@mui/icons-material";
 import { makeStyles } from "@mui/styles";
 import { FixedSizeList, ListChildComponentProps } from "react-window";
-import countries, { CountryType } from "../../../../lib/countries";
+import countries, { CountryType } from "../lib/countries";
 import { isValidPhoneNumber } from "libphonenumber-js";
 
 const theme = createTheme({

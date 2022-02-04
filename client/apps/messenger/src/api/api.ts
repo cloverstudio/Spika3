@@ -2,7 +2,7 @@ import { createApi } from "@reduxjs/toolkit/query/react";
 import axios, { Method } from "axios";
 
 declare const API_BASE_URL: string;
-console.log({ API_BASE_URL });
+
 const axiosBaseQuery =
     ({ baseUrl } = { baseUrl: "" }) =>
     async ({ url, method, data }: { url: string; method: Method; data: any }, token: string) => {
@@ -20,7 +20,6 @@ const axiosBaseQuery =
 
             if (result.data.status !== "success") {
                 throw new Error(result.data.message);
-                //return { error: result.data.message };
             }
 
             return { data: result.data.data };
@@ -35,7 +34,7 @@ const rawBaseQuery = axiosBaseQuery({
     baseUrl: API_BASE_URL,
 });
 
-const dynamicBaseQuery = async (args: any) => {
+export const dynamicBaseQuery = async (args: any) => {
     const token = window.localStorage.getItem("access-token");
 
     const argsObj = typeof args === "string" ? { url: args } : await args;
@@ -45,11 +44,8 @@ const dynamicBaseQuery = async (args: any) => {
 export default createApi({
     reducerPath: "api",
     baseQuery: dynamicBaseQuery,
-    tagTypes: ["User"],
+    tagTypes: ["User", "Auth", "Contacts", "Rooms", "Device"],
+    refetchOnMountOrArgChange: true,
 
-    endpoints: (builder) => ({
-        getSupport: builder.query({
-            query: () => "support me",
-        }),
-    }),
+    endpoints: () => ({}),
 });

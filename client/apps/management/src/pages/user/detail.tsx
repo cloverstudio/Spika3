@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import Layout from "../layout";
-import { useHistory, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useGet } from "../../lib/useApi";
 import { Typography, Paper, Grid, Button, Avatar, Checkbox } from "@mui/material";
 import { useShowSnackBar } from "../../components/useUI";
@@ -8,8 +8,8 @@ import { User } from "@prisma/client";
 import { successResponseType } from "../../../../../../server/components/response";
 
 export default function Page() {
-    const urlParams: { id: string } = useParams();
-    const history = useHistory();
+    const urlParams = useParams();
+    const navigate = useNavigate();
     const showSnackBar = useShowSnackBar();
     const [detail, setDetail] = React.useState<User>();
 
@@ -96,7 +96,7 @@ export default function Page() {
                             sx={{ marginRight: "10px" }}
                             variant="contained"
                             onClick={(e) => {
-                                history.push(`/user/edit/${urlParams.id}`);
+                                navigate(`/user/edit/${urlParams.id}`);
                             }}
                         >
                             Edit
@@ -105,7 +105,7 @@ export default function Page() {
                             color="error"
                             variant="contained"
                             onClick={(e) => {
-                                history.push(`/user/delete/${urlParams.id}`);
+                                navigate(`/user/delete/${urlParams.id}`);
                             }}
                         >
                             Delete

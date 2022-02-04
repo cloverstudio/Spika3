@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { Button, TextField, FormLabel, Box, Typography, Alert, AlertTitle } from "@mui/material";
+import { Button, TextField, FormLabel, Box, Alert, AlertTitle } from "@mui/material";
 
-import uploadImage from "../assets/upload-image.svg";
+import uploadImage from "../../../assets/upload-image.svg";
 
 type UpdateUserFormProps = {
     onSubmit: (username: string) => void;

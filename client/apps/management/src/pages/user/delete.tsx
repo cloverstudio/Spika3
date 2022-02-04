@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import Layout from "../layout";
-import { useHistory, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useGet, useDelete } from "../../lib/useApi";
 import { Typography, Paper, Grid, Button, Avatar, Checkbox } from "@mui/material";
 import { useShowBasicDialog, useShowSnackBar } from "../../components/useUI";
@@ -8,8 +8,8 @@ import { User } from "@prisma/client";
 import { successResponseType } from "../../../../../../server/components/response";
 
 export default function Page() {
-    const urlParams: { id: string } = useParams();
-    const history = useHistory();
+    const urlParams = useParams();
+    const navigate = useNavigate();
     const showSnackBar = useShowSnackBar();
     const showBasicDialog = useShowBasicDialog();
     const [detail, setDetail] = React.useState<User>();
@@ -101,7 +101,7 @@ export default function Page() {
                                 showBasicDialog({ text: "Please confirm delete." }, async () => {
                                     try {
                                         await callDelete(`/api/management/user/${urlParams.id}`);
-                                        history.push("/user");
+                                        navigate("/user");
                                     } catch (e) {
                                         console.error(e);
                                         showSnackBar({

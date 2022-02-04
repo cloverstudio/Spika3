@@ -78,11 +78,7 @@ export default (): Router => {
             const allChunksUploaded = allChunks.every((c) => uploadedChunks.includes(c));
 
             if (!allChunksUploaded) {
-                return res.send({
-                    data: {
-                        uploadedChunks,
-                    },
-                });
+                return res.send(successResponse({ uploadedChunks }, userReq.lang));
             }
 
             const filesDir = path.join(process.env["UPLOAD_FOLDER"], "files");
@@ -96,11 +92,7 @@ export default (): Router => {
                 // not sure what to return here as file is not saved yet in db, try log line bellow
                 // const file = await prisma.file.findFirst({ where: { clientId } });
 
-                return res.send({
-                    data: {
-                        uploadedChunks,
-                    },
-                });
+                return res.send(successResponse({ uploadedChunks }, userReq.lang));
             }
 
             await writeFile(filePath, "");

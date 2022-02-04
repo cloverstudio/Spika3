@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import Layout from "../layout";
-import { useHistory, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useGet, usePut } from "../../lib/useApi";
 import { TextField, Paper, Grid, Button } from "@mui/material";
 import { useShowSnackBar } from "../../components/useUI";
@@ -20,8 +20,8 @@ const deviceModelSchema = yup.object({
 });
 
 export default function Page() {
-    const urlParams: { id: string } = useParams();
-    const history = useHistory();
+    const urlParams = useParams();
+    const navigate = useNavigate();
     const showSnackBar = useShowSnackBar();
 
     const get = useGet();
@@ -115,7 +115,7 @@ export default function Page() {
             });
 
             showSnackBar({ severity: "success", text: "Device updated" });
-            history.push("/device");
+            navigate("/device");
         } catch (e: any) {
             console.error(e);
             showSnackBar({

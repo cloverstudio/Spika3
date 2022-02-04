@@ -41,6 +41,7 @@ const app: express.Express = express();
     });
 
     app.use(express.static("public"));
+    app.use(express.static("uploads"));
 
     const rabbitMQConnection = await amqp.connect(
         process.env["RABBITMQ_URL"] || "amqp://localhost"

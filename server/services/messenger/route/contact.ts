@@ -61,7 +61,9 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 },
                 orderBy: [
                     {
-                        createdAt: "asc",
+                        contact: {
+                            displayName: "asc",
+                        },
                     },
                 ],
                 skip: Constants.PAGING_LIMIT * (page - 1),
@@ -77,8 +79,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             res.send(
                 successResponse(
                     {
-                        list: contacts.map((c) => c.contact),
-                        count: count,
+                        list: contacts.map((c) => sanitize(c.contact).user()),
+                        count,
                         limit: Constants.PAGING_LIMIT,
                     },
                     userReq.lang

@@ -30,7 +30,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         const userReq: UserRequest = req as UserRequest;
 
         try {
-            const roomId = parseInt((req.body.roomId as string) || "0");
+            const roomId = parseInt(req.body.roomId as string);
             const type = req.body.type;
             const messageBody = req.body.message;
             const fromUserId = userReq.user.id;
@@ -70,7 +70,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 },
             });
 
-            res.send(successResponse({ message }, userReq.lang));
+            res.send(successResponse({ message: { ...message, messageBody } }, userReq.lang));
 
             while (deviceMessages.length) {
                 await Promise.all(
@@ -88,6 +88,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                                         ?.pushToken,
                                     data: {
                                         deviceMessage,
+                                        message: { ...message, messageBody },
                                     },
                                 })
                             )
