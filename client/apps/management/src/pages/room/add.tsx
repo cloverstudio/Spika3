@@ -1,6 +1,6 @@
 import React from "react";
 import Layout from "../layout";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { usePost } from "../../lib/useApi";
 import { TextField, Paper, Grid, Button } from "@mui/material";
 import { useShowSnackBar } from "../../components/useUI";
@@ -15,7 +15,7 @@ const roomModelSchema = yup.object({
 });
 
 export default function RoomAdd() {
-    const history = useHistory();
+    const navigate = useNavigate();
     const showSnackBar = useShowSnackBar();
     const post = usePost();
 
@@ -42,7 +42,7 @@ export default function RoomAdd() {
             });
 
             showSnackBar({ severity: "success", text: "Room added" });
-            history.push("/room");
+            navigate("/room");
         } catch (e: any) {
             console.error(e);
             showSnackBar({

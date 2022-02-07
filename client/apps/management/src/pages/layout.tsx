@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 
 import { styled, createTheme, ThemeProvider } from "@mui/material/styles";
 import MuiDrawer from "@mui/material/Drawer";
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import {
     CssBaseline,
@@ -17,7 +17,6 @@ import {
     ListItem,
     ListItemIcon,
     ListItemText,
-    Paper,
 } from "@mui/material";
 
 import {
@@ -38,7 +37,7 @@ import { logout } from "../store/adminAuthSlice";
 import { showSnackBar } from "../store/uiSlice";
 import { useDispatch } from "react-redux";
 
-const drawerWidth: number = 240;
+const drawerWidth = 240;
 
 interface AppBarProps extends MuiAppBarProps {
     open?: boolean;
@@ -98,7 +97,7 @@ type LayoutParams = {
 
 function DashboardContent({ subtitle, children, showBack = false }: LayoutParams) {
     const dispatch = useDispatch();
-    let history = useHistory();
+    const navigate = useNavigate();
 
     const [open, setOpen] = React.useState(true);
     const toggleDrawer = () => {
@@ -129,12 +128,7 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
                         </IconButton>
 
                         {showBack ? (
-                            <IconButton
-                                color="inherit"
-                                onClick={(e) => {
-                                    history.goBack();
-                                }}
-                            >
+                            <IconButton color="inherit" onClick={() => navigate(-1)}>
                                 <ArrowBackIosIcon />
                             </IconButton>
                         ) : null}
@@ -173,7 +167,7 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
                         <ListItem
                             button
                             onClick={(e) => {
-                                history.push("/dashboard");
+                                navigate("/dashboard");
                             }}
                         >
                             <ListItemIcon>
@@ -184,7 +178,7 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
                         <ListItem
                             button
                             onClick={(e) => {
-                                history.push("/user");
+                                navigate("/user");
                             }}
                         >
                             <ListItemIcon>
@@ -195,7 +189,7 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
                         <ListItem
                             button
                             onClick={(e) => {
-                                history.push("/device");
+                                navigate("/device");
                             }}
                         >
                             <ListItemIcon>
@@ -206,7 +200,7 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
                         <ListItem
                             button
                             onClick={(e) => {
-                                history.push("/room");
+                                navigate("/room");
                             }}
                         >
                             <ListItemIcon>
@@ -228,7 +222,7 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
                                     })
                                 );
                                 localStorage.removeItem(localToken);
-                                history.push("/");
+                                navigate("/");
                             }}
                         >
                             <ListItemIcon>
@@ -261,6 +255,6 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
     );
 }
 
-export default function Dashboard(props: any) {
+export default function Dashboard(props: any): React.ReactElement {
     return <DashboardContent {...props} />;
 }

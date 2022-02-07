@@ -1,6 +1,5 @@
 import React from "react";
 
-import Base from "../components/Base";
 import { Stack } from "@mui/material";
 import logo from "../assets/logo.svg";
 

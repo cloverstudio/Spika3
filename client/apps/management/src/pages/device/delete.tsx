@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import Layout from "../layout";
-import { useHistory, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useGet, useDelete } from "../../lib/useApi";
 import { Typography, Paper, Grid, Button } from "@mui/material";
 import { useShowBasicDialog, useShowSnackBar } from "../../components/useUI";
@@ -14,8 +14,8 @@ interface formItem {
 }
 
 export default function Page() {
-    const urlParams: { id: string } = useParams();
-    const history = useHistory();
+    const urlParams = useParams();
+    const navigate = useNavigate();
     const showSnackBar = useShowSnackBar();
     const showBasicDialog = useShowBasicDialog();
     const [detail, setDetail] = React.useState<Device>();
@@ -109,7 +109,7 @@ export default function Page() {
                                 showBasicDialog({ text: "Please confirm delete." }, async () => {
                                     try {
                                         await callDelete(`/api/management/device/${urlParams.id}`);
-                                        history.push("/device");
+                                        navigate("/device");
                                     } catch (e) {
                                         console.error(e);
                                         showSnackBar({

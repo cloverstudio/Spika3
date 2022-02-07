@@ -1,17 +1,20 @@
 import React from "react";
 import { Box, Typography } from "@mui/material";
 
-import logo from "../assets/logo.svg";
-import loginBg from "../assets/login-bg.svg";
+import logo from "../../../assets/logo.svg";
+import loginBg from "../../../assets/login-bg.svg";
 
-import Base from "./Base";
+import { Base } from "../../../components/Base";
 
 type AuthLayoutProps = {
     children: React.ReactElement | React.ReactElement[];
     loading?: boolean;
 };
 
-export default function AuthLayout({ children, loading = false }: AuthLayoutProps) {
+export default function AuthLayout({
+    children,
+    loading = false,
+}: AuthLayoutProps): React.ReactElement {
     return (
         <Base>
             <Box

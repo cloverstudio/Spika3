@@ -7,6 +7,9 @@ import { PUSH_TYPE_NEW_MESSAGE } from "../../../components/consts";
 class sendPushWorker implements QueueWorkerInterface {
     async run(payload: SendPushPayload) {
         try {
+            if (!payload.token) {
+                return lw("push sending failed: NO TOKEN");
+            }
             const formattingFunction: (payload: SendPushPayload) => FcmMessagePayload =
                 getFormattingFunction(payload.type);
 
@@ -27,6 +30,9 @@ function newMessageFormatter(payload: SendPushPayload) {
             notification: {
                 title: "New message",
                 body: payload.data.deviceMessage.messageBody.text,
+            },
+            data: {
+                message: JSON.stringify(payload.data.message),
             },
         },
     };

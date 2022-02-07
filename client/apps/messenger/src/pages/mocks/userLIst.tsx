@@ -1,6 +1,5 @@
 import React from "react";
-import { useHistory } from "react-router-dom";
-import { Grid, Box, Container } from "@mui/material";
+import { Grid, Box } from "@mui/material";
 
 import Screenshot from "../../../../../../documents/pages/userlist.png";
 
@@ -12,7 +11,7 @@ const theme = createTheme({
     },
 });
 
-export default function () {
+export default function UserList(): React.ReactElement {
     return (
         <ThemeProvider theme={theme}>
             <Box>

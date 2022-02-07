@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import Layout from "../layout";
-import { useHistory, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useGet, usePut } from "../../lib/useApi";
 import {
     TextField,
@@ -29,8 +29,8 @@ const userModelSchema = yup.object({
 });
 
 export default function Page() {
-    const urlParams: { id: string } = useParams();
-    const history = useHistory();
+    const urlParams = useParams();
+    const navigate = useNavigate();
     const showSnackBar = useShowSnackBar();
     const get = useGet();
     const put = usePut();
@@ -115,7 +115,7 @@ export default function Page() {
             });
 
             showSnackBar({ severity: "success", text: "User updated" });
-            history.push("/user");
+            navigate("/user");
         } catch (e: any) {
             showSnackBar({
                 severity: "error",

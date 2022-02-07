@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import Layout from "../layout";
-import { useHistory, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { DataGrid, GridActionsCellItem } from "@mui/x-data-grid";
 import { Paper, Fab } from "@mui/material";
 import {
@@ -20,9 +20,9 @@ export default function Dashboard() {
     const [list, setList] = React.useState<Array<Device>>([]);
     const [pageSize, setPageSize] = React.useState<number>(30);
     const [totalCount, setTotalCount] = React.useState<number>(0);
-    const urlParams: { id: string } = useParams();
+    const urlParams = useParams();
     const showSnackBar = useShowSnackBar();
-    const history = useHistory();
+    const navigate = useNavigate();
     const get = useGet();
 
     useEffect(() => {
@@ -121,19 +121,19 @@ export default function Dashboard() {
                 <GridActionsCellItem
                     icon={<DescriptionIcon />}
                     label="Detail"
-                    onClick={() => history.push(`/device/detail/${params.id}`)}
+                    onClick={() => navigate(`/device/detail/${params.id}`)}
                     showInMenu
                 />,
                 <GridActionsCellItem
                     icon={<EditIcon />}
                     label="Edit"
-                    onClick={() => history.push(`/device/edit/${params.id}`)}
+                    onClick={() => navigate(`/device/edit/${params.id}`)}
                     showInMenu
                 />,
                 <GridActionsCellItem
                     icon={<DeleteIcon />}
                     label="Delete"
-                    onClick={() => history.push(`/device/delete/${params.id}`)}
+                    onClick={() => navigate(`/device/delete/${params.id}`)}
                     showInMenu
                 />,
             ],
@@ -168,7 +168,7 @@ export default function Dashboard() {
                 aria-label="add"
                 sx={{ position: "absolute", right: 64, bottom: 128, zIndex: 100 }}
                 onClick={(e) => {
-                    history.push("/device/add");
+                    navigate("/device/add");
                 }}
             >
                 <AddIcon />

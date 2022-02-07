@@ -1,6 +1,6 @@
 import React from "react";
 import Layout from "../layout";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { usePost } from "../../lib/useApi";
 import {
     TextField,
@@ -29,7 +29,7 @@ const userModelSchema = yup.object({
 });
 
 export default function Dashboard() {
-    const history = useHistory();
+    const navigate = useNavigate();
     const showSnackBar = useShowSnackBar();
 
     const formik = useFormik({
@@ -65,7 +65,7 @@ export default function Dashboard() {
             });
 
             showSnackBar({ severity: "success", text: "User added" });
-            history.push("/user");
+            navigate("/user");
         } catch (e: any) {
             showSnackBar({
                 severity: "error",

@@ -282,7 +282,7 @@ export default (): Router => {
         }
     );
 
-    router.get("/", auth, validate(postRoomSchema), async (req: Request, res: Response) => {
+    router.get("/", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
 
         try {
@@ -318,10 +318,45 @@ export default (): Router => {
                 },
             });
 
+            const users = await prisma.user.findMany({
+                where: {
+                    id: {
+                        in: rooms
+                            .reduce((users, room) => [...users, ...room.users], [])
+                            .map((ru) => ru.userId),
+                    },
+                },
+                select: {
+                    id: true,
+                    displayName: true,
+                    avatarUrl: true,
+                },
+            });
+
+            const list = rooms.map((room) => {
+                const roomUsers = room.users.map((ru) => {
+                    const user: RoomUser & { displayName?: string; avatarUrl?: string } = { ...ru };
+
+                    const { displayName, avatarUrl } = users.find((u) => u.id === ru.userId) || {};
+
+                    if (displayName) {
+                        user.displayName = displayName;
+                    }
+
+                    if (displayName) {
+                        user.avatarUrl = avatarUrl;
+                    }
+
+                    return user;
+                });
+
+                return sanitize({ ...room, users: roomUsers }).room();
+            });
+
             res.send(
                 successResponse(
                     {
-                        list: rooms.map((room) => sanitize(room).room()),
+                        list,
                         count,
                         limit: Constants.PAGING_LIMIT,
                     },
@@ -334,7 +369,36 @@ export default (): Router => {
         }
     });
 
-    router.get("/:id", auth, validate(postRoomSchema), async (req: Request, res: Response) => {
+    router.get("/users/:userId", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+
+        try {
+            const userId = parseInt((req.params.userId as string) || "");
+
+            const room = await prisma.room.findFirst({
+                where: {
+                    type: "private",
+                    users: {
+                        every: { userId: { in: [userId, userReq.user.id] } },
+                    },
+                },
+                include: {
+                    users: true,
+                },
+            });
+
+            if (!room) {
+                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+            }
+
+            res.send(successResponse({ room: sanitize(room).room() }, userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.get("/:id", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
 
         try {
@@ -358,7 +422,37 @@ export default (): Router => {
                 return res.status(404).send(errorResponse("Room not found", userReq.lang));
             }
 
-            res.send(successResponse({ room: sanitize(room).room() }, userReq.lang));
+            const users = await prisma.user.findMany({
+                where: { id: { in: room.users.map((ru) => ru.userId) } },
+                select: {
+                    id: true,
+                    displayName: true,
+                    avatarUrl: true,
+                },
+            });
+
+            const roomUsers = room.users.map((ru) => {
+                const user: RoomUser & { displayName?: string; avatarUrl?: string } = { ...ru };
+
+                const { displayName, avatarUrl } = users.find((u) => u.id === ru.userId) || {};
+
+                if (displayName) {
+                    user.displayName = displayName;
+                }
+
+                if (displayName) {
+                    user.avatarUrl = avatarUrl;
+                }
+
+                return user;
+            });
+
+            res.send(
+                successResponse(
+                    { room: sanitize({ ...room, users: roomUsers }).room() },
+                    userReq.lang
+                )
+            );
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

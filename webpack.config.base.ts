@@ -90,6 +90,13 @@ const config: Configuration = {
             CONFCALL_HOST: JSON.stringify(process.env.CONFCALL_HOST),
             CONFCALL_PORT: JSON.stringify(process.env.CONFCALL_PORT),
             ENV: JSON.stringify(process.env.ENV),
+            FCM_PROJECT_ID: JSON.stringify(process.env.FCM_PROJECT_ID),
+            FCM_API_KEY: JSON.stringify(process.env.FCM_API_KEY),
+            FCM_AUTH_DOMAIN: JSON.stringify(process.env.FCM_AUTH_DOMAIN),
+            FCM_STORAGE_BUCKET: JSON.stringify(process.env.FCM_STORAGE_BUCKET),
+            FCM_SENDER_ID: JSON.stringify(process.env.FCM_SENDER_ID),
+            FCM_APP_ID: JSON.stringify(process.env.FCM_APP_ID),
+            FCM_VAPID_KEY: JSON.stringify(process.env.FCM_VAPID_KEY),
         }),
     ],
 };

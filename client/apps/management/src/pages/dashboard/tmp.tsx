@@ -1,5 +1,5 @@
 import React from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
     Avatar,
     Button,
@@ -42,7 +42,7 @@ import {
 } from "@mui/icons-material/";
 import { styled, createTheme, ThemeProvider } from "@mui/material/styles";
 
-const drawerWidth: number = 240;
+const drawerWidth = 240;
 
 const AppBar = styled(MuiAppBar, {
     shouldForwardProp: (prop) => prop !== "open",
@@ -69,7 +69,7 @@ interface AppBarProps extends MuiAppBarProps {
 export default function () {
     const token = useSelector((state: RootState) => state.auth.token);
     const dispatch = useDispatch();
-    const history = useHistory();
+    const navigate = useNavigate();
 
     const [open, setOpen] = React.useState(true);
     const toggleDrawer = () => {
