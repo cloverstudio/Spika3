@@ -7,11 +7,12 @@ import type { RootState } from "../../../store/store";
 interface ChatState {
     activeRoomId: number;
     messages: Message[];
+    count: { roomId: number; count: number }[];
 }
 
 export const chatSlice = createSlice({
     name: <string>"chat",
-    initialState: <ChatState>{ activeRoomId: null, messages: [] },
+    initialState: <ChatState>{ activeRoomId: null, messages: [], count: [] },
     reducers: {
         setActiveRoomId: (state, { payload }: { payload: number }) => {
             state.activeRoomId = payload;
@@ -33,6 +34,20 @@ export const chatSlice = createSlice({
                 };
 
                 state.messages = [...state.messages, message];
+            }
+        );
+        builder.addMatcher(
+            messageApi.endpoints.getMessagesByRoomId.matchFulfilled,
+            (state, { payload, meta }) => {
+                const messagesIds = state.messages.map((m) => m.id);
+                const notAdded = payload.list.filter(
+                    (m: { id: number }) => !messagesIds.includes(m.id)
+                );
+
+                if (state.count.findIndex((c) => c.roomId === meta.arg.originalArgs) < 0) {
+                    state.count.push({ roomId: meta.arg.originalArgs, count: payload.count });
+                }
+                state.messages = [...state.messages, ...notAdded];
             }
         );
     },

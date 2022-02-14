@@ -6,7 +6,7 @@ import { Call, Search, Videocam } from "@mui/icons-material";
 import CheckIcon from "@mui/icons-material/Check";
 
 import { useGetRoomQuery } from "./api/room";
-import { useSendMessageMutation } from "./api/message";
+import { useGetMessagesByRoomIdQuery, useSendMessageMutation } from "./api/message";
 
 import { selectRoomMessages, setActiveRoomId } from "./slice/chatSlice";
 import { selectUser } from "../../store/userSlice";
@@ -21,6 +21,7 @@ export default function Chat(): React.ReactElement {
     const dispatch = useDispatch();
     const [sendMessage] = useSendMessageMutation();
     const { data, isLoading } = useGetRoomQuery(roomId);
+    const { isFetching } = useGetMessagesByRoomIdQuery(roomId);
     const messages = useSelector(selectRoomMessages(roomId));
     const room = data?.room;
     const onSend = (message: string) => {
@@ -35,7 +36,7 @@ export default function Chat(): React.ReactElement {
         };
     }, [dispatch, roomId]);
 
-    if (isLoading) {
+    if (isLoading || isFetching) {
         return <Loader />;
     }
 

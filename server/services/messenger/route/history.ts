@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, RoomUser } from "@prisma/client";
 
 import { error as le } from "../../../components/logger";
 import validate from "../../../components/validateMiddleware";
@@ -19,18 +19,11 @@ export default (): Router => {
         const userReq: UserRequest = req as UserRequest;
         const userId = userReq.user.id;
         const deviceId = userReq.device.id;
-        const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
+        const page = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
         try {
             const roomUsers = await prisma.roomUser.findMany({
                 where: {
                     userId,
-                    room: {
-                        messages: {
-                            every: {
-                                id: { gt: 0 }, // hack to get only rooms with messages
-                            },
-                        },
-                    },
                 },
 
                 select: { room: true },
@@ -38,14 +31,18 @@ export default (): Router => {
 
             const roomsIds = roomUsers.map((r) => r.room.id);
 
+            const count = await prisma.room.count({
+                where: {
+                    id: { in: roomsIds },
+                    messages: {
+                        some: {},
+                    },
+                },
+            });
+
             const messages = await prisma.message.findMany({
                 where: {
                     roomId: { in: roomsIds },
-                    deviceMessages: {
-                        some: {
-                            deviceId,
-                        },
-                    },
                 },
                 distinct: ["roomId"],
                 orderBy: {
@@ -79,20 +76,50 @@ export default (): Router => {
                 },
             });
 
-            const rooms = messages.map((m) => {
+            const users = await prisma.user.findMany({
+                where: {
+                    id: {
+                        in: messages
+                            .reduce((users, message) => [...users, ...message.room.users], [])
+                            .map((ru) => ru.userId),
+                    },
+                },
+                select: {
+                    id: true,
+                    displayName: true,
+                    avatarUrl: true,
+                },
+            });
+
+            const list = messages.map((m) => {
                 const { room, ...message } = m;
                 const messageBody = deviceMessages.find((dm) => dm.messageId === m.id)?.messageBody;
+                const roomUsers = room.users.map((ru) => {
+                    const user: RoomUser & { displayName?: string; avatarUrl?: string } = { ...ru };
 
+                    const { displayName, avatarUrl } = users.find((u) => u.id === ru.userId) || {};
+
+                    if (displayName) {
+                        user.displayName = displayName;
+                    }
+
+                    if (displayName) {
+                        user.avatarUrl = avatarUrl;
+                    }
+
+                    return user;
+                });
                 return {
                     ...room,
+                    users: roomUsers,
                     lastMessage: { ...message, ...(messageBody && { messageBody }) },
                 };
             });
 
             res.send(
                 successResponse({
-                    list: rooms,
-                    count: roomsIds.length,
+                    list,
+                    count,
                     limit: Constants.PAGING_LIMIT,
                 })
             );

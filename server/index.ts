@@ -9,7 +9,7 @@ import SMSService from "./services/sms";
 import UploadService from "./services/upload";
 import PushService from "./services/push";
 import SSEService from "./services/sse";
-//import ConfcallService from "./services/confcall";
+import ConfcallService from "./services/confcall";
 import amqp from "amqplib";
 
 import l, { error as e } from "./components/logger";
@@ -99,7 +99,7 @@ const app: express.Express = express();
         app.use("/api/sse", sseService.getRoutes());
     }
 
-    /*    if (process.env["USE_CONFCALL"]) {
+    if (process.env["USE_CONFCALL"]) {
         const confcallService: ConfcallService = new ConfcallService();
         confcallService.start({
             rabbitMQChannel,
@@ -107,7 +107,7 @@ const app: express.Express = express();
         });
 
         app.use("/api/confcall", confcallService.getRoutes());
-    } */
+    }
 
     // test
     app.get("/api/test", (req: express.Request, res: express.Response) => {

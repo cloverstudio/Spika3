@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { Avatar, Badge, Box, Typography } from "@mui/material";
 
-import { useGetRoomsQuery } from "../api/room";
+import { useGetHistoryQuery } from "../api/room";
 
 import { selectUser } from "../../../store/userSlice";
 import { selectActiveRoomId } from "../slice/chatSlice";
@@ -12,11 +12,16 @@ import { selectHistory } from "../slice/roomSlice";
 import useIsInViewport from "../../../hooks/useIsInViewport";
 
 import formatRoomInfo from "../lib/formatRoomInfo";
+import { LastMessage } from "../../../types/Rooms";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+
+dayjs.extend(relativeTime);
 
 export default function SidebarContactList(): React.ReactElement {
     const { list, count } = useSelector(selectHistory);
     const [page, setPage] = useState(1);
-    const { isFetching } = useGetRoomsQuery(page);
+    const { isFetching } = useGetHistoryQuery(page);
     const { isInViewPort, elementRef } = useIsInViewport();
     const activeRoomId = useSelector(selectActiveRoomId);
     const user = useSelector(selectUser);
@@ -50,10 +55,11 @@ type RoomRowProps = {
     id: number;
     name: string;
     isActive: boolean;
+    lastMessage?: LastMessage;
     avatarUrl?: string;
 };
 
-function RoomRow({ id, isActive, name, avatarUrl }: RoomRowProps) {
+function RoomRow({ id, isActive, name, avatarUrl, lastMessage }: RoomRowProps) {
     return (
         <Link to={`/rooms/${id}`} style={{ textDecoration: "none" }}>
             <Box bgcolor={isActive ? "#E5F4FF" : "#fff"} px={2.5} py={1.5} display="flex">
@@ -75,7 +81,7 @@ function RoomRow({ id, isActive, name, avatarUrl }: RoomRowProps) {
                             {name}
                         </Typography>
                         <Typography color="#4A4A4A" fontSize="0.875rem" lineHeight="1.0625rem">
-                            Last message here
+                            {lastMessage.messageBody?.text || "No messages"}
                         </Typography>
                     </Box>
                     <Box textAlign="right">
@@ -86,7 +92,7 @@ function RoomRow({ id, isActive, name, avatarUrl }: RoomRowProps) {
                             fontSize="0.75rem"
                             lineHeight="1rem"
                         >
-                            X min ago
+                            {dayjs(lastMessage.createdAt).fromNow()}
                         </Typography>
                         <Badge
                             sx={{
