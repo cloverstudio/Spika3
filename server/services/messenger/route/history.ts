@@ -65,6 +65,7 @@ export default (): Router => {
                             type: true,
                             name: true,
                             avatarUrl: true,
+                            users: true,
                         },
                     },
                 },
