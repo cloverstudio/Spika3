@@ -23,19 +23,5 @@ describe("API", () => {
             expect(response.body.data.list).to.be.an("array");
             expect(response.body.data.list.filter((r: any) => r.lastMessage)).to.have.length(0);
         });
-
-        it("returns room list with lastMessage obj", async () => {
-            const response = await supertest(app)
-                .get("/api/messenger/rooms")
-                .set({ accesstoken: globals.userToken });
-            console.log(response.body.data);
-            expect(response.status).to.eqls(200);
-            expect(response.body).to.has.property("data");
-            expect(response.body.data).to.has.property("list");
-            expect(response.body.data.list).to.be.an("array");
-            expect(response.body.data.list.filter((r: any) => r.lastMessage)).to.have.length.above(
-                0
-            );
-        });
     });
 });
