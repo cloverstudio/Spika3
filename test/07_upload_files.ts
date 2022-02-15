@@ -9,6 +9,7 @@ import utils from "../server/components/utils";
 import createFakeFile from "./fixtures/file";
 import faker from "faker";
 import { after, beforeEach } from "mocha";
+import crypto from "crypto";
 
 const readDir = util.promisify(fs.readdir);
 const readFile = util.promisify(fs.readFile);
@@ -361,7 +362,8 @@ describe("API", () => {
             const fileName = "test.png";
             const filePath = path.join(__dirname, `fixtures/files/${fileName}`);
             const { size } = await getFileStat(filePath);
-            const chunkSize = 8; // in bytes
+            const fileHash = await createFileHash(filePath);
+            const chunkSize = 64; // in bytes
             const readable = fs.createReadStream(filePath, { highWaterMark: chunkSize });
             const total = Math.ceil(size / chunkSize);
 
@@ -379,7 +381,7 @@ describe("API", () => {
                         offset,
                         total,
                         size,
-                        fileHash: undefined,
+                        fileHash,
                     });
             });
 
@@ -402,5 +404,76 @@ describe("API", () => {
             });
             expect(createdFile.fileName).to.eqls(fileName);
         });
+
+        it("Checks file hash", async () => {
+            const fileName = "test.png";
+            const filePath = path.join(__dirname, `fixtures/files/${fileName}`);
+            const { size } = await getFileStat(filePath);
+            const chunkSize = 8; // in bytes
+            const readable = fs.createReadStream(filePath, { highWaterMark: chunkSize });
+            const total = Math.ceil(size / chunkSize);
+            const clientId = Math.random().toString();
+            let offset = -1;
+
+            readable.on("data", async function (chunk) {
+                offset++;
+                await supertest(app)
+                    .post("/api/upload/files")
+                    .set({ accesstoken: globals.userToken })
+                    .send({
+                        ...validParams,
+                        fileName,
+                        clientId,
+                        chunk: chunk.toString("base64"),
+                        offset,
+                        total,
+                        size,
+                        fileHash: "WRONG_WRONG_WRONG",
+                    });
+            });
+
+            await utils.wait(1);
+
+            const filesDir = path.join(process.env["UPLOAD_FOLDER"], `files`);
+            const filesDirExists = fs.existsSync(filesDir);
+
+            expect(filesDirExists).to.eqls(true);
+
+            const files = await readDir(filesDir);
+            expect(files).to.be.an("array").that.does.not.include(clientId);
+        });
     });
 });
+
+async function createFileHash(filePath: string) {
+    return new Promise((resolve, reject) => {
+        try {
+            const readable = fs.createReadStream(filePath);
+
+            const hash = crypto.createHash("sha256");
+            hash.setEncoding("hex");
+
+            readable.on("end", function () {
+                hash.end();
+
+                const result = hash.read().toString("hex");
+
+                if (!result) {
+                    return reject("Hash create failed");
+                }
+
+                return resolve(result);
+            });
+
+            readable.on("error", function (error) {
+                hash.end();
+                return reject(error);
+            });
+
+            readable.pipe(hash);
+        } catch (error) {
+            console.log({ error });
+            reject(error);
+        }
+    });
+}
