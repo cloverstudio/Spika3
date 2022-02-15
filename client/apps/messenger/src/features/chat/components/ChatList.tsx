@@ -40,12 +40,18 @@ export default function SidebarContactList(): React.ReactElement {
 
     return (
         <Box sx={{ overflowY: "auto" }}>
-            {list.map((room) => {
-                const formattedRoom = formatRoomInfo(room, user.id);
-                return (
-                    <RoomRow key={room.id} {...formattedRoom} isActive={room.id === activeRoomId} />
-                );
-            })}
+            {[...list]
+                .sort((a, b) => (a.lastMessage.modifiedAt > b.lastMessage.modifiedAt ? -1 : 1))
+                .map((room) => {
+                    const formattedRoom = formatRoomInfo(room, user.id);
+                    return (
+                        <RoomRow
+                            key={room.id}
+                            {...formattedRoom}
+                            isActive={room.id === activeRoomId}
+                        />
+                    );
+                })}
             <div ref={elementRef}></div>
         </Box>
     );

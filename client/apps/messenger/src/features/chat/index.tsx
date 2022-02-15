@@ -14,6 +14,7 @@ import { selectUser } from "../../store/userSlice";
 import Loader from "../../components/Loader";
 
 import formatRoomInfo from "./lib/formatRoomInfo";
+import useIsInViewport from "../../hooks/useIsInViewport";
 
 export default function Chat(): React.ReactElement {
     const roomId = +useParams().id;
@@ -21,9 +22,8 @@ export default function Chat(): React.ReactElement {
     const dispatch = useDispatch();
     const [sendMessage] = useSendMessageMutation();
     const { data, isLoading } = useGetRoomQuery(roomId);
-    const { isFetching } = useGetMessagesByRoomIdQuery(roomId);
-    const messages = useSelector(selectRoomMessages(roomId));
     const room = data?.room;
+
     const onSend = (message: string) => {
         sendMessage({ message: { text: message }, roomId: room.id, type: "text" });
     };
@@ -36,7 +36,7 @@ export default function Chat(): React.ReactElement {
         };
     }, [dispatch, roomId]);
 
-    if (isLoading || isFetching) {
+    if (isLoading) {
         return <Loader />;
     }
 
@@ -47,7 +47,7 @@ export default function Chat(): React.ReactElement {
     return (
         <Box display="flex" flexDirection="column" height="100vh">
             <ChatHeader {...formatRoomInfo(room, user.id)} />
-            <ChatMessages messages={messages} />
+            <ChatMessages roomId={roomId} />
             <ChatInput handleSend={onSend} />
         </Box>
     );
@@ -104,11 +104,31 @@ function ChatHeader({ name, avatarUrl }: ChatHeaderProps): React.ReactElement {
 }
 
 type ChatMessagesProps = {
-    messages?: any[];
+    roomId: number;
 };
 
-function ChatMessages({ messages }: ChatMessagesProps): React.ReactElement {
+function ChatMessages({ roomId }: ChatMessagesProps): React.ReactElement {
     const user = useSelector(selectUser);
+    const { messages, count } = useSelector(selectRoomMessages(roomId));
+    const [page, setPage] = useState(1);
+    const { isFetching } = useGetMessagesByRoomIdQuery({ roomId, page });
+
+    const hasMoreContactsToLoad = count > messages.length;
+
+    const { isInViewPort, elementRef } = useIsInViewport();
+
+    useEffect(() => {
+        if (isInViewPort && !isFetching && hasMoreContactsToLoad) {
+            setPage((page) => page + 1);
+        }
+    }, [isInViewPort, isFetching, hasMoreContactsToLoad]);
+
+    useEffect(() => {
+        return () => {
+            setPage(1);
+        };
+    }, [roomId]);
+
     return (
         <Box
             flexGrow={1}
@@ -118,47 +138,50 @@ function ChatMessages({ messages }: ChatMessagesProps): React.ReactElement {
             sx={{ overflowY: "hidden" }}
         >
             <Box px={4} sx={{ overflowY: "auto" }}>
-                {messages.map((m) => {
-                    const isUsersMessage = user?.id === m.fromUserId;
-                    return (
-                        <Box
-                            key={m.id}
-                            display="flex"
-                            flexDirection="column"
-                            alignItems={isUsersMessage ? "end" : "start"}
-                            textAlign={isUsersMessage ? "right" : "left"}
-                        >
+                <div ref={elementRef} />
+                {messages
+                    .sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))
+                    .map((m) => {
+                        const isUsersMessage = user?.id === m.fromUserId;
+                        return (
                             <Box
-                                maxWidth="35rem"
-                                bgcolor={isUsersMessage ? "#C8EBFE" : "#F2F2F2"}
-                                borderRadius="0.625rem"
-                                p="0.625rem"
-                                pb="0.8125"
-                                mb="0.375rem"
+                                key={m.id}
+                                display="flex"
+                                flexDirection="column"
+                                alignItems={isUsersMessage ? "end" : "start"}
+                                textAlign={isUsersMessage ? "right" : "left"}
                             >
-                                <Typography
-                                    fontWeight={500}
-                                    fontSize="0.875rem"
-                                    color="#131940"
-                                    lineHeight="1,0625rem"
+                                <Box
+                                    maxWidth="35rem"
+                                    bgcolor={isUsersMessage ? "#C8EBFE" : "#F2F2F2"}
+                                    borderRadius="0.625rem"
+                                    p="0.625rem"
+                                    pb="0.8125"
+                                    mb="0.375rem"
                                 >
-                                    {m.messageBody.text}
-                                </Typography>
+                                    <Typography
+                                        fontWeight={500}
+                                        fontSize="0.875rem"
+                                        color="#131940"
+                                        lineHeight="1,0625rem"
+                                    >
+                                        {m.messageBody.text}
+                                    </Typography>
+                                </Box>
+                                {isUsersMessage && (
+                                    <CheckIcon
+                                        sx={{
+                                            width: "0.75rem",
+                                            height: "auto",
+                                            color: "#5F6368",
+                                            mb: "0.375rem",
+                                            mr: "0.125rem",
+                                        }}
+                                    />
+                                )}
                             </Box>
-                            {isUsersMessage && (
-                                <CheckIcon
-                                    sx={{
-                                        width: "0.75rem",
-                                        height: "auto",
-                                        color: "#5F6368",
-                                        mb: "0.375rem",
-                                        mr: "0.125rem",
-                                    }}
-                                />
-                            )}
-                        </Box>
-                    );
-                })}
+                        );
+                    })}
             </Box>
         </Box>
     );

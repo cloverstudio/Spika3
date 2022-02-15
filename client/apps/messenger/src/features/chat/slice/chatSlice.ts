@@ -44,8 +44,11 @@ export const chatSlice = createSlice({
                     (m: { id: number }) => !messagesIds.includes(m.id)
                 );
 
-                if (state.count.findIndex((c) => c.roomId === meta.arg.originalArgs) < 0) {
-                    state.count.push({ roomId: meta.arg.originalArgs, count: payload.count });
+                if (state.count.findIndex((c) => c.roomId === meta.arg.originalArgs.roomId) < 0) {
+                    state.count.push({
+                        roomId: meta.arg.originalArgs.roomId,
+                        count: payload.count,
+                    });
                 }
                 state.messages = [...state.messages, ...notAdded];
             }
@@ -58,7 +61,11 @@ export const { setActiveRoomId, addMessage } = chatSlice.actions;
 export const selectActiveRoomId = (state: RootState): number => state.chat.activeRoomId;
 export const selectRoomMessages =
     (roomId: number) =>
-    (state: RootState): Message[] =>
-        state.chat.messages.filter((m) => m.roomId === roomId);
+    (state: RootState): { messages: Message[]; count: number } => {
+        const messages = state.chat.messages.filter((m) => m.roomId === roomId);
+        const count = state.chat.count.find((c) => c.roomId === roomId)?.count || 0;
+
+        return { messages, count };
+    };
 
 export default chatSlice.reducer;

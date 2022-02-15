@@ -132,7 +132,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     },
                 },
                 orderBy: {
-                    modifiedAt: "asc",
+                    modifiedAt: "desc",
                 },
                 skip: Constants.PAGING_LIMIT * (page - 1),
                 take: Constants.PAGING_LIMIT,

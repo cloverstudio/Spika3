@@ -18,8 +18,8 @@ export type LastMessage = {
     id: number;
     fromUserId: number;
     type: string;
-    createdAt: number;
-    modifiedAt: number;
+    createdAt: string;
+    modifiedAt: string;
     messageBody: { text: string };
 };
 

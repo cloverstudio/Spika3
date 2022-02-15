@@ -4,6 +4,7 @@ import { RoomHistory } from "../../../types/Rooms";
 
 import type { RootState } from "../../../store/store";
 import messageApi from "../api/message";
+import Message from "../../../types/Message";
 
 interface RoomState {
     list: RoomHistory[];
@@ -13,7 +14,13 @@ interface RoomState {
 export const roomSlice = createSlice({
     name: <string>"room",
     initialState: <RoomState>{ list: [], count: null },
-    reducers: {},
+    reducers: {
+        setRoomLastMessage: (state, { payload }: { payload: Message }) => {
+            const index = state.list.findIndex((r) => r.id === payload.roomId);
+
+            state.list.splice(index, 1, { ...state.list[index], lastMessage: payload });
+        },
+    },
     extraReducers: (builder) => {
         builder.addMatcher(roomApi.endpoints.getHistory.matchFulfilled, (state, { payload }) => {
             const roomsIds = state.list.map((r) => r.id);
@@ -37,6 +44,8 @@ export const roomSlice = createSlice({
         );
     },
 });
+
+export const { setRoomLastMessage } = roomSlice.actions;
 
 export const selectRoomById =
     (id: number) =>

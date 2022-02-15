@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef, MutableRefObject, useContext } from "react";
-import { useHistory } from "react-router-dom";
 import { Button, Container } from "@mui/material";
 import { Box, Typography } from "@mui/material";
 import { ContactPageOutlined as ContactPageOutlinedIcon } from "@mui/icons-material";
@@ -15,7 +14,6 @@ const theme = createTheme({
 });
 
 export default function () {
-    let history = useHistory();
     const [showConfcall, setShowConfcall] = useState<boolean>(false);
 
     return (

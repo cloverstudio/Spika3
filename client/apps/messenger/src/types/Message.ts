@@ -2,9 +2,10 @@ type Message = {
     id: number;
     fromUserId: number;
     roomId: number;
-    messageBody: string;
+    messageBody: { text: string };
     deviceId: number;
     userId: number;
+    type: string;
     createdAt: string;
     modifiedAt: string;
 };
