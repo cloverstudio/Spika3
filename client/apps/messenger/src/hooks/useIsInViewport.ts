@@ -16,7 +16,7 @@ export default function useIsInViewport(): useIsInViewportProps {
             setIsInViewPort(isInViewPort);
         });
 
-        observer.observe(elementRef.current);
+        elementRef.current && observer.observe(elementRef.current);
 
         return () => observer.disconnect();
     }, []);
