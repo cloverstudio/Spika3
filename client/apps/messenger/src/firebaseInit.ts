@@ -11,6 +11,7 @@ declare const FCM_STORAGE_BUCKET: string;
 declare const FCM_SENDER_ID: string;
 declare const FCM_APP_ID: string;
 declare const FCM_VAPID_KEY: string;
+declare const ENV: string;
 
 const firebaseConfig = {
     apiKey: FCM_API_KEY,
@@ -29,7 +30,7 @@ const vapidKey = FCM_VAPID_KEY;
 
 export const requestForToken = async (update: any) => {
     const swRegistration = await navigator.serviceWorker.register(
-        "/public/firebase-messaging-sw.js"
+        `${ENV === "development" ? "/public" : ""}/firebase-messaging-sw.js`
     );
     return getToken(messaging, { vapidKey, serviceWorkerRegistration: swRegistration })
         .then((pushToken) => {
