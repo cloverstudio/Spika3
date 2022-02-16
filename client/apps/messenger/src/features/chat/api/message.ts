@@ -10,8 +10,8 @@ const messageApi = api.injectEndpoints({
             },
         }),
         getMessagesByRoomId: build.query({
-            query: (roomId) => {
-                return `/messenger/messages/roomId/${roomId}`;
+            query: ({ roomId, page }) => {
+                return `/messenger/messages/roomId/${roomId}?page=${page}`;
             },
         }),
     }),

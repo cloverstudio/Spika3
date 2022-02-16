@@ -4,14 +4,15 @@ import spies from "chai-spies";
 import amqp from "amqplib";
 import globals from "./global";
 
-before(async () => {
+before(function (done) {
+    this.timeout(10000);
     chai.use(spies);
 
-    const rabbitMQConnection = await amqp.connect(
-        process.env["RABBITMQ_URL"] || "amqp://localhost"
-    );
+    (async () => {
+        const rabbitMQConnection = await amqp.connect(
+            process.env["RABBITMQ_URL"] || "amqp://localhost"
+        );
 
-    globals.rabbitMQChannel = await rabbitMQConnection.createChannel();
-
-    return Promise.resolve();
+        globals.rabbitMQChannel = await rabbitMQConnection.createChannel();
+    })().then(done);
 });

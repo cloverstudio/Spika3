@@ -14,6 +14,30 @@ export type Room = {
     createdAt: string;
 };
 
+export type LastMessage = {
+    id: number;
+    fromUserId: number;
+    type: string;
+    createdAt: string;
+    modifiedAt: string;
+    messageBody: { text: string };
+};
+
+export type RoomHistory = {
+    id: number;
+    type: string;
+    name: string;
+    avatarUrl: string;
+    users: RoomUser[];
+    lastMessage: LastMessage;
+};
+
+export type History = {
+    list: RoomHistory[];
+    count: number;
+    limit: number;
+};
+
 type Rooms = {
     list: Room[];
     count: number;

@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
 import { addMessage } from "./features/chat/slice/chatSlice";
+import { setRoomLastMessage } from "./features/chat/slice/roomSlice";
 import { store } from "./store/store";
 
 declare const FCM_API_KEY: string;
@@ -45,7 +46,7 @@ export const requestForToken = async (update: any) => {
 };
 
 onMessage(messaging, (payload) => {
-    console.log("payload", payload);
     const message = JSON.parse(payload.data.message);
     store.dispatch(addMessage(message));
+    store.dispatch(setRoomLastMessage(message));
 });

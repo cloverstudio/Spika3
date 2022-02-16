@@ -1,6 +1,9 @@
-import { Room } from "../../../types/Rooms";
+import { Room, RoomHistory } from "../../../types/Rooms";
 
-export default function formatRoomInfo(room: Room, currentUserId: number): Room {
+export default function formatRoomInfo(
+    room: Room | RoomHistory,
+    currentUserId: number
+): Room | RoomHistory {
     if (room.type !== "private") {
         return room;
     }

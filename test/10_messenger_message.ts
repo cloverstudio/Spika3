@@ -122,7 +122,7 @@ describe("API", () => {
             expect(response.body).to.has.property("data");
             expect(response.body.data).to.has.property("message");
 
-            const messageFromResponse = response.body.data.message;
+            const { messageBody: _, ...messageFromResponse } = response.body.data.message;
             const messageFromDb = await globals.prisma.message.findUnique({
                 where: { id: messageFromResponse.id },
             });

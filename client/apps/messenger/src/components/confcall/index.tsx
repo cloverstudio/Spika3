@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, MutableRefObject, useContext } from "react";
 import * as mediasoupClient from "mediasoup-client";
-import { Link, useHistory, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import SpikaBroadcastClient, {
     Participant,
     getCameras,
@@ -24,8 +24,6 @@ interface ModalState {
 }
 
 function Conference({ onClose }: { onClose: Function }) {
-    let history = useHistory();
-
     const myVideoElm: MutableRefObject<HTMLVideoElement | null> = useRef<HTMLVideoElement>(null);
 
     const [participants, setParticipants] = useState<Array<Participant>>(null);

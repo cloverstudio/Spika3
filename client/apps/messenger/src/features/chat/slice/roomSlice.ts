@@ -1,39 +1,55 @@
 import { createSlice } from "@reduxjs/toolkit";
 import roomApi from "../api/room";
-import { Room } from "../../../types/Rooms";
+import { RoomHistory } from "../../../types/Rooms";
 
 import type { RootState } from "../../../store/store";
+import messageApi from "../api/message";
+import Message from "../../../types/Message";
 
 interface RoomState {
-    list: Room[];
+    list: RoomHistory[];
     count: number;
 }
 
 export const roomSlice = createSlice({
     name: <string>"room",
     initialState: <RoomState>{ list: [], count: null },
-    reducers: {},
+    reducers: {
+        setRoomLastMessage: (state, { payload }: { payload: Message }) => {
+            const index = state.list.findIndex((r) => r.id === payload.roomId);
+
+            state.list.splice(index, 1, { ...state.list[index], lastMessage: payload });
+        },
+    },
     extraReducers: (builder) => {
-        builder.addMatcher(roomApi.endpoints.getRooms.matchFulfilled, (state, { payload }) => {
+        builder.addMatcher(roomApi.endpoints.getHistory.matchFulfilled, (state, { payload }) => {
             const roomsIds = state.list.map((r) => r.id);
             const notAdded = payload.list.filter((u) => !roomsIds.includes(u.id));
 
             state.list = [...state.list, ...notAdded];
             state.count = payload.count;
         });
+        builder.addMatcher(
+            messageApi.endpoints.sendMessage.matchFulfilled,
+            (state, { payload, meta }) => {
+                const lastMessage = {
+                    ...payload.message,
+                    messageBody: meta.arg.originalArgs.message,
+                };
+
+                const index = state.list.findIndex((r) => r.id === payload.message.roomId);
+
+                state.list.splice(index, 1, { ...state.list[index], lastMessage });
+            }
+        );
     },
 });
 
-export const selectRoomByUserId =
-    (userId: number) =>
-    (state: RootState): Room =>
-        state.room.list.find(
-            (r) => r.type === "private" && r.users.map((u) => u.userId).includes(userId)
-        );
+export const { setRoomLastMessage } = roomSlice.actions;
 
 export const selectRoomById =
     (id: number) =>
-    (state: RootState): Room =>
+    (state: RootState): RoomHistory =>
         state.room.list.find((r) => r.id === id);
 
 export const selectHistory = (state: RootState): RoomState => state.room;
