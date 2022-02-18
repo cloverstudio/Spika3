@@ -20,7 +20,7 @@ export function errorResponse(message: string, lang?: string): errorResponseType
         : null;
 
     return {
-        status: "fail",
+        status: "error",
         message: translation || message,
     };
 }

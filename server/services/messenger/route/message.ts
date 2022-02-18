@@ -12,6 +12,7 @@ import { MESSAGE_ACTION_NEW_MESSAGE } from "../../../components/consts";
 import * as Constants from "../../../components/consts";
 
 import { InitRouterParams } from "../../types/serviceInterface";
+import sanitize from "../../../components/sanitize";
 
 const prisma = new PrismaClient();
 
@@ -70,7 +71,12 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 },
             });
 
-            res.send(successResponse({ message: { ...message, messageBody } }, userReq.lang));
+            res.send(
+                successResponse(
+                    { message: sanitize({ ...message, messageBody }).message() },
+                    userReq.lang
+                )
+            );
 
             while (deviceMessages.length) {
                 await Promise.all(
@@ -148,7 +154,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             const list = messages.map((m) => {
                 const messageBody = deviceMessages.find((dm) => dm.messageId === m.id)?.messageBody;
-                return { ...m, messageBody };
+                return sanitize({ ...m, messageBody }).message();
             });
 
             res.send(successResponse({ list, count, limit: Constants.PAGING_LIMIT }, userReq.lang));

@@ -6,6 +6,7 @@ import createFakeRoom from "./fixtures/room";
 import { beforeEach } from "mocha";
 import createFakeUser, { createManyFakeUsers } from "./fixtures/user";
 import { RoomUser, Room } from ".prisma/client";
+import sanitize from "../server/components/sanitize";
 
 describe("API", () => {
     describe("/api/messenger/rooms POST", () => {
@@ -177,7 +178,6 @@ describe("API", () => {
             expect(responseWithName.status).to.eqls(200);
             expect(responseWithName.body).to.has.property("data");
             expect(responseWithName.body.data).to.has.property("room");
-
             const roomFromRes = responseWithName.body.data.room;
             expect(roomFromRes.name).to.eqls(name);
         });
@@ -336,10 +336,20 @@ describe("API", () => {
 
             const room = await globals.prisma.room.findFirst({
                 where: { id: response.body.data.room.id },
-                include: { users: true },
+                include: {
+                    users: {
+                        include: {
+                            user: true,
+                        },
+                    },
+                },
             });
 
-            expect(JSON.stringify(response.body.data.room)).to.eqls(JSON.stringify(room));
+            const users = room.users.map((ru) => ({ ...ru, user: sanitize(ru.user).user() }));
+
+            expect(JSON.stringify(response.body.data.room)).to.eqls(
+                JSON.stringify(sanitize({ ...room, users }).room())
+            );
         });
 
         it("Two users can't have more than one private room", async () => {
@@ -603,21 +613,6 @@ describe("API", () => {
         });
 
         it("flags room as deleted", async () => {
-            const room = await createFakeRoom([{ userId: globals.userId, isAdmin: true }]);
-
-            const response = await supertest(app)
-                .delete("/api/messenger/rooms/" + room.id)
-                .set({ accesstoken: globals.userToken });
-
-            expect(response.status).to.eqls(200);
-            expect(response.body).to.has.property("data");
-            expect(response.body.data).to.has.property("room");
-
-            const roomFromRes = response.body.data.room;
-            expect(roomFromRes.deleted).to.eqls(true);
-        });
-
-        it("deletion is saved in db", async () => {
             const room = await createFakeRoom([{ userId: globals.userId, isAdmin: true }]);
 
             const response = await supertest(app)

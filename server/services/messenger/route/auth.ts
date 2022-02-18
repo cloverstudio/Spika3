@@ -17,7 +17,6 @@ const prisma = new PrismaClient();
 const authSchema = yup.object().shape({
     body: yup.object().shape({
         telephoneNumber: yup.string().required(),
-        telephoneNumberHashed: yup.string().required(),
         deviceId: yup.string().required(),
     }),
 });
@@ -44,7 +43,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
     router.post("/", validate(authSchema), async (req: Request, res: Response) => {
         try {
             const telephoneNumber = req.body.telephoneNumber as string;
-            const telephoneNumberHashed = req.body.telephoneNumberHashed as string;
+            const telephoneNumberHashed = Utils.sha256(telephoneNumber);
             const deviceId = req.body.deviceId as string;
             const osName = (req.headers["os-name"] || "") as string;
 
@@ -123,9 +122,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 successResponse({
                     isNewUser,
                     user: sanitize(requestUser).user(),
-                    device: {
-                        id: requestDevice.id,
-                    },
+                    device: sanitize(requestDevice).device(),
                 })
             );
         } catch (e: any) {
@@ -187,7 +184,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             res.send(
                 successResponse({
                     user: sanitize(requestUser).user(),
-                    device: requestDevice,
+                    device: sanitize(requestDevice).device(),
                 })
             );
         } catch (e: any) {

@@ -37,15 +37,6 @@ describe("API", () => {
             expect(response.status).to.eqls(400);
         });
 
-        it("Hash is missing", async () => {
-            const response = await supertest(app).post("/api/messenger/auth").send({
-                telephoneNumber,
-                deviceId,
-            });
-
-            expect(response.status).to.eqls(400);
-        });
-
         it("New user", async () => {
             const response = await supertest(app).post("/api/messenger/auth").send({
                 telephoneNumber,

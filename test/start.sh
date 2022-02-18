@@ -18,7 +18,7 @@ export LOG_INFO=1
 export LOG_WARN=0
 export LOG_ERROR=1
 
-#npx prisma migrate dev --name init --preview-feature
+npx prisma migrate dev --name init --preview-feature
 
 export TS_NODE_COMPILER_OPTIONS='{"module": "commonjs" , "noUnusedLocals": false}' 
 mocha -r ts-node/register --file 'test/setup.ts' 'test/**/*.ts' 

@@ -84,35 +84,23 @@ export default (): Router => {
                             .map((ru) => ru.userId),
                     },
                 },
-                select: {
-                    id: true,
-                    displayName: true,
-                    avatarUrl: true,
-                },
             });
 
             const list = messages.map((m) => {
                 const { room, ...message } = m;
                 const messageBody = deviceMessages.find((dm) => dm.messageId === m.id)?.messageBody;
                 const roomUsers = room.users.map((ru) => {
-                    const user: RoomUser & { displayName?: string; avatarUrl?: string } = { ...ru };
+                    const user = users.find((u) => u.id === ru.userId);
 
-                    const { displayName, avatarUrl } = users.find((u) => u.id === ru.userId) || {};
-
-                    if (displayName) {
-                        user.displayName = displayName;
-                    }
-
-                    if (displayName) {
-                        user.avatarUrl = avatarUrl;
-                    }
-
-                    return user;
+                    return user && sanitize(user).user();
                 });
                 return {
                     ...room,
                     users: roomUsers,
-                    lastMessage: { ...message, ...(messageBody && { messageBody }) },
+                    lastMessage: sanitize({
+                        ...message,
+                        ...(messageBody && { messageBody }),
+                    }).message(),
                 };
             });
 

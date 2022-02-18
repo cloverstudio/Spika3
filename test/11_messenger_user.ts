@@ -42,18 +42,6 @@ describe("User API", () => {
             expect(response.status).to.eqls(400);
         });
 
-        it("Requires telephoneNumberHashed to be unique", async () => {
-            const fakeUser = await createFakeUser();
-            const response = await supertest(app)
-                .put("/api/messenger/me/")
-                .send({
-                    telephoneNumberHashed: fakeUser.telephoneNumberHashed,
-                })
-                .set({ accesstoken: globals.userToken });
-
-            expect(response.status).to.eqls(400);
-        });
-
         it("Updates user", async () => {
             const displayName = "John";
             const avatarUrl = "/new/avatar/url";

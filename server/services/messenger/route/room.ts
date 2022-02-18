@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { PrismaClient, RoomUser, Room } from "@prisma/client";
+import { PrismaClient, RoomUser, Room, User } from "@prisma/client";
 
 import { UserRequest } from "../lib/types";
 import { error as le } from "../../../components/logger";
@@ -98,11 +98,27 @@ export default (): Router => {
                     },
                 },
                 include: {
-                    users: true,
+                    users: {
+                        include: {
+                            user: true,
+                        },
+                    },
                 },
             });
 
-            res.send(successResponse({ room }, userReq.lang));
+            const roomUsers = room.users.map((ru) => ({ ...ru, user: sanitize(ru.user).user() }));
+
+            res.send(
+                successResponse(
+                    {
+                        room: sanitize({
+                            ...room,
+                            users: roomUsers,
+                        }).room(),
+                    },
+                    userReq.lang
+                )
+            );
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -152,10 +168,20 @@ export default (): Router => {
             const updated = await prisma.room.update({
                 where: { id },
                 data: update,
-                include: { users: true },
+                include: {
+                    users: {
+                        include: {
+                            user: true,
+                        },
+                    },
+                },
             });
 
-            res.send(successResponse({ room: updated }, userReq.lang));
+            const users = updated.users.map((ru) => ({ ...ru, user: sanitize(ru.user).user() }));
+
+            res.send(
+                successResponse({ room: sanitize({ ...updated, users }).room() }, userReq.lang)
+            );
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -181,10 +207,20 @@ export default (): Router => {
             const updated = await prisma.room.update({
                 where: { id },
                 data: { deleted: true },
-                include: { users: true },
+                include: {
+                    users: {
+                        include: {
+                            user: true,
+                        },
+                    },
+                },
             });
 
-            res.send(successResponse({ room: updated }, userReq.lang));
+            const users = updated.users.map((ru) => ({ ...ru, user: sanitize(ru.user).user() }));
+
+            res.send(
+                successResponse({ room: sanitize({ ...updated, users }).room() }, userReq.lang)
+            );
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -220,61 +256,85 @@ export default (): Router => {
                 const canLeaveRoom = canLeaveRoomCheck(userReq.user.id, room.users);
                 const roomUserId = room.users.find((u) => u.userId === userReq.user.id)?.id;
 
+                let updated: Room & {
+                    users: (RoomUser & {
+                        user: User;
+                    })[];
+                };
+
                 if (canLeaveRoom) {
-                    const updated = await prisma.room.update({
+                    updated = await prisma.room.update({
                         where: { id },
                         data: {
                             users: {
                                 deleteMany: [{ id: roomUserId }],
                             },
                         },
-                        include: { users: true },
-                    });
-
-                    return res.send(successResponse({ room: updated }, userReq.lang));
-                }
-
-                if (!adminUserIds) {
-                    return res
-                        .status(400)
-                        .send(errorResponse(`New admin(s) must be defined`, userReq.lang));
-                }
-
-                const foundUsers = await prisma.user.findMany({
-                    where: { id: { in: adminUserIds } },
-                });
-
-                if (!foundUsers.length) {
-                    return res
-                        .status(400)
-                        .send(errorResponse(`New admin(s) must be defined`, userReq.lang));
-                }
-
-                const foundUsersIds = foundUsers.map((u) => u.id);
-
-                const roomUsersToPromote = room.users.filter((u) =>
-                    foundUsersIds.includes(u.userId)
-                );
-
-                const updated = await prisma.room.update({
-                    where: { id },
-                    data: {
-                        users: {
-                            deleteMany: [
-                                { id: roomUserId },
-                                ...roomUsersToPromote.map((u) => ({ id: u.id })),
-                            ],
-                            createMany: {
-                                data: foundUsersIds.map((userId) => ({
-                                    userId,
-                                    isAdmin: true,
-                                })),
+                        include: {
+                            users: {
+                                include: {
+                                    user: true,
+                                },
                             },
                         },
-                    },
-                    include: { users: true },
-                });
-                res.send(successResponse({ room: updated }, userReq.lang));
+                    });
+                } else {
+                    if (!adminUserIds) {
+                        return res
+                            .status(400)
+                            .send(errorResponse(`New admin(s) must be defined`, userReq.lang));
+                    }
+
+                    const foundUsers = await prisma.user.findMany({
+                        where: { id: { in: adminUserIds } },
+                    });
+
+                    if (!foundUsers.length) {
+                        return res
+                            .status(400)
+                            .send(errorResponse(`New admin(s) must be defined`, userReq.lang));
+                    }
+
+                    const foundUsersIds = foundUsers.map((u) => u.id);
+
+                    const roomUsersToPromote = room.users.filter((u) =>
+                        foundUsersIds.includes(u.userId)
+                    );
+
+                    updated = await prisma.room.update({
+                        where: { id },
+                        data: {
+                            users: {
+                                deleteMany: [
+                                    { id: roomUserId },
+                                    ...roomUsersToPromote.map((u) => ({ id: u.id })),
+                                ],
+                                createMany: {
+                                    data: foundUsersIds.map((userId) => ({
+                                        userId,
+                                        isAdmin: true,
+                                    })),
+                                },
+                            },
+                        },
+                        include: {
+                            users: {
+                                include: {
+                                    user: true,
+                                },
+                            },
+                        },
+                    });
+                }
+
+                const users = updated.users.map((ru) => ({
+                    ...ru,
+                    user: sanitize(ru.user).user(),
+                }));
+
+                res.send(
+                    successResponse({ room: sanitize({ ...updated, users }).room() }, userReq.lang)
+                );
             } catch (e: any) {
                 le(e);
                 res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -297,7 +357,11 @@ export default (): Router => {
                     },
                 },
                 include: {
-                    users: true,
+                    users: {
+                        include: {
+                            user: true,
+                        },
+                    },
                 },
                 orderBy: [
                     {
@@ -318,39 +382,10 @@ export default (): Router => {
                 },
             });
 
-            const users = await prisma.user.findMany({
-                where: {
-                    id: {
-                        in: rooms
-                            .reduce((users, room) => [...users, ...room.users], [])
-                            .map((ru) => ru.userId),
-                    },
-                },
-                select: {
-                    id: true,
-                    displayName: true,
-                    avatarUrl: true,
-                },
-            });
-
             const list = rooms.map((room) => {
-                const roomUsers = room.users.map((ru) => {
-                    const user: RoomUser & { displayName?: string; avatarUrl?: string } = { ...ru };
+                const users = room.users.map((ru) => ({ ...ru, user: sanitize(ru.user).user() }));
 
-                    const { displayName, avatarUrl } = users.find((u) => u.id === ru.userId) || {};
-
-                    if (displayName) {
-                        user.displayName = displayName;
-                    }
-
-                    if (displayName) {
-                        user.avatarUrl = avatarUrl;
-                    }
-
-                    return user;
-                });
-
-                return sanitize({ ...room, users: roomUsers }).room();
+                return sanitize({ ...room, users }).room();
             });
 
             res.send(
@@ -383,7 +418,11 @@ export default (): Router => {
                     },
                 },
                 include: {
-                    users: true,
+                    users: {
+                        include: {
+                            user: true,
+                        },
+                    },
                 },
             });
 
@@ -391,7 +430,9 @@ export default (): Router => {
                 return res.status(404).send(errorResponse("Room not found", userReq.lang));
             }
 
-            res.send(successResponse({ room: sanitize(room).room() }, userReq.lang));
+            const users = room.users.map((ru) => ({ ...ru, user: sanitize(ru.user).user() }));
+
+            res.send(successResponse({ room: sanitize({ ...room, users }).room() }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -414,7 +455,11 @@ export default (): Router => {
                     },
                 },
                 include: {
-                    users: true,
+                    users: {
+                        include: {
+                            user: true,
+                        },
+                    },
                 },
             });
 
@@ -422,37 +467,9 @@ export default (): Router => {
                 return res.status(404).send(errorResponse("Room not found", userReq.lang));
             }
 
-            const users = await prisma.user.findMany({
-                where: { id: { in: room.users.map((ru) => ru.userId) } },
-                select: {
-                    id: true,
-                    displayName: true,
-                    avatarUrl: true,
-                },
-            });
+            const users = room.users.map((ru) => ({ ...ru, user: sanitize(ru.user).user() }));
 
-            const roomUsers = room.users.map((ru) => {
-                const user: RoomUser & { displayName?: string; avatarUrl?: string } = { ...ru };
-
-                const { displayName, avatarUrl } = users.find((u) => u.id === ru.userId) || {};
-
-                if (displayName) {
-                    user.displayName = displayName;
-                }
-
-                if (displayName) {
-                    user.avatarUrl = avatarUrl;
-                }
-
-                return user;
-            });
-
-            res.send(
-                successResponse(
-                    { room: sanitize({ ...room, users: roomUsers }).room() },
-                    userReq.lang
-                )
-            );
+            res.send(successResponse({ room: sanitize({ ...room, users }).room() }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
