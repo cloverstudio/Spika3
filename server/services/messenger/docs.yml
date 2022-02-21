@@ -920,7 +920,16 @@ definitions:
             users:
                 type: "array"
                 items:
-                    $ref: "#/definitions/User"
+                    type: "object"
+                    properties:
+                        userId:
+                            type: "integer"
+                            format: "int32"
+                        isAdmin:
+                            type: boolean
+                        user:
+                            type: "object"
+                            $ref: "#/definitions/User"
             avatarUrl:
                 type: "string"
             type:
