@@ -106,15 +106,10 @@ export default (): Router => {
                 },
             });
 
-            const roomUsers = room.users.map((ru) => ({ ...ru, user: sanitize(ru.user).user() }));
-
             res.send(
                 successResponse(
                     {
-                        room: sanitize({
-                            ...room,
-                            users: roomUsers,
-                        }).room(),
+                        room: sanitize(room).room(),
                     },
                     userReq.lang
                 )
@@ -177,11 +172,7 @@ export default (): Router => {
                 },
             });
 
-            const users = updated.users.map((ru) => ({ ...ru, user: sanitize(ru.user).user() }));
-
-            res.send(
-                successResponse({ room: sanitize({ ...updated, users }).room() }, userReq.lang)
-            );
+            res.send(successResponse({ room: sanitize(updated).room() }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -216,11 +207,7 @@ export default (): Router => {
                 },
             });
 
-            const users = updated.users.map((ru) => ({ ...ru, user: sanitize(ru.user).user() }));
-
-            res.send(
-                successResponse({ room: sanitize({ ...updated, users }).room() }, userReq.lang)
-            );
+            res.send(successResponse({ room: sanitize(updated).room() }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -327,14 +314,7 @@ export default (): Router => {
                     });
                 }
 
-                const users = updated.users.map((ru) => ({
-                    ...ru,
-                    user: sanitize(ru.user).user(),
-                }));
-
-                res.send(
-                    successResponse({ room: sanitize({ ...updated, users }).room() }, userReq.lang)
-                );
+                res.send(successResponse({ room: sanitize(updated).room() }, userReq.lang));
             } catch (e: any) {
                 le(e);
                 res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -382,11 +362,7 @@ export default (): Router => {
                 },
             });
 
-            const list = rooms.map((room) => {
-                const users = room.users.map((ru) => ({ ...ru, user: sanitize(ru.user).user() }));
-
-                return sanitize({ ...room, users }).room();
-            });
+            const list = rooms.map((room) => sanitize(room).room());
 
             res.send(
                 successResponse(
@@ -430,9 +406,7 @@ export default (): Router => {
                 return res.status(404).send(errorResponse("Room not found", userReq.lang));
             }
 
-            const users = room.users.map((ru) => ({ ...ru, user: sanitize(ru.user).user() }));
-
-            res.send(successResponse({ room: sanitize({ ...room, users }).room() }, userReq.lang));
+            res.send(successResponse({ room: sanitize(room).room() }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -467,9 +441,7 @@ export default (): Router => {
                 return res.status(404).send(errorResponse("Room not found", userReq.lang));
             }
 
-            const users = room.users.map((ru) => ({ ...ru, user: sanitize(ru.user).user() }));
-
-            res.send(successResponse({ room: sanitize({ ...room, users }).room() }, userReq.lang));
+            res.send(successResponse({ room: sanitize(room).room() }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

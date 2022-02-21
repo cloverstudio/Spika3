@@ -76,27 +76,12 @@ export default (): Router => {
                 },
             });
 
-            const users = await prisma.user.findMany({
-                where: {
-                    id: {
-                        in: messages
-                            .reduce((users, message) => [...users, ...message.room.users], [])
-                            .map((ru) => ru.userId),
-                    },
-                },
-            });
-
             const list = messages.map((m) => {
                 const { room, ...message } = m;
                 const messageBody = deviceMessages.find((dm) => dm.messageId === m.id)?.messageBody;
-                const roomUsers = room.users.map((ru) => {
-                    const user = users.find((u) => u.id === ru.userId);
 
-                    return user && sanitize(user).user();
-                });
                 return {
-                    ...room,
-                    users: roomUsers,
+                    ...sanitize(room).room(),
                     lastMessage: sanitize({
                         ...message,
                         ...(messageBody && { messageBody }),

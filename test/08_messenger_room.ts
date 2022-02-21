@@ -345,10 +345,8 @@ describe("API", () => {
                 },
             });
 
-            const users = room.users.map((ru) => ({ ...ru, user: sanitize(ru.user).user() }));
-
             expect(JSON.stringify(response.body.data.room)).to.eqls(
-                JSON.stringify(sanitize({ ...room, users }).room())
+                JSON.stringify(sanitize(room).room())
             );
         });
 
