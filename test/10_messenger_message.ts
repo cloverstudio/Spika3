@@ -11,6 +11,7 @@ import { createFakeDevices } from "./fixtures/device";
 import { createManyFakeUsers } from "./fixtures/user";
 import sendPush from "../server/services/push/worker/sendPush";
 import { wait } from "../client/lib/utils";
+import sanitize from "../server/components/sanitize";
 
 describe("API", () => {
     describe("/api/messenger/messages POST", () => {
@@ -127,7 +128,9 @@ describe("API", () => {
                 where: { id: messageFromResponse.id },
             });
 
-            expect(JSON.stringify(messageFromResponse)).to.eqls(JSON.stringify(messageFromDb));
+            expect(JSON.stringify(messageFromResponse)).to.eqls(
+                JSON.stringify(sanitize(messageFromDb).message())
+            );
         });
 
         it("creates deviceMessage for every users device", async () => {

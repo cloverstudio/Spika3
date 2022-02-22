@@ -8,6 +8,7 @@ import { successResponse, errorResponse } from "../../../components/response";
 import auth from "../lib/auth";
 import { UserRequest } from "../lib/types";
 import sanitize from "../../../components/sanitize";
+import Utils from "../../../components/utils";
 
 const prisma = new PrismaClient();
 
@@ -40,8 +41,7 @@ export default (): Router => {
         const id = userReq.user.id;
 
         try {
-            const { telephoneNumber, telephoneNumberHashed, emailAddress, displayName, avatarUrl } =
-                req.body;
+            const { telephoneNumber, emailAddress, displayName, avatarUrl } = req.body;
 
             const userWithSameEmailAddress =
                 emailAddress &&
@@ -65,27 +65,16 @@ export default (): Router => {
                     .send(errorResponse("User with that telephoneNumber exists", userReq.lang));
             }
 
-            const userWithSameTelephoneNumberHashed =
-                telephoneNumberHashed &&
-                (await prisma.user.findFirst({
-                    where: { telephoneNumberHashed, id: { not: id } },
-                }));
-            if (userWithSameTelephoneNumberHashed) {
-                return res
-                    .status(400)
-                    .send(
-                        errorResponse("User with that telephoneNumberHashed exists", userReq.lang)
-                    );
-            }
-
             const user = await prisma.user.update({
                 where: { id },
                 data: {
                     telephoneNumber,
-                    telephoneNumberHashed,
                     emailAddress,
                     displayName,
                     avatarUrl,
+                    ...(telephoneNumber && {
+                        telephoneNumberHashed: Utils.sha256(telephoneNumber),
+                    }),
                 },
             });
 
