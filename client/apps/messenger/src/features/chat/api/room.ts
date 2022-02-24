@@ -1,4 +1,4 @@
-import Rooms, { Room, History } from "../../../types/Rooms";
+import Rooms, { RoomType, HistoryType } from "../../../types/Rooms";
 import api from "../../../api/api";
 
 const roomApi = api.injectEndpoints({
@@ -7,21 +7,20 @@ const roomApi = api.injectEndpoints({
             query: (page) => `/messenger/rooms?page=${page}`,
             providesTags: [{ type: "Rooms", id: "LIST" }],
         }),
-        getHistory: build.query<History, number>({
+        getHistory: build.query<HistoryType, number>({
             query: (page) => `/messenger/history?page=${page}`,
             providesTags: [{ type: "Rooms", id: "HISTORY" }],
         }),
-        getRoom: build.query<{ room: Room }, number>({
+        getRoom: build.query<{ room: RoomType }, number>({
             query: (id) => `/messenger/rooms/${id}`,
             providesTags: (res) => res && res.room?.id && [{ type: "Rooms", id: res.room.id }],
         }),
-        createRoom: build.mutation<{ room: Room }, any>({
+        createRoom: build.mutation<{ room: RoomType }, any>({
             query: (data) => {
                 return { url: "/messenger/rooms", data, method: "POST" };
             },
-            invalidatesTags: (res) => res && res.room?.id && [{ type: "Rooms", id: "LIST" }],
         }),
-        getRoomByUserId: build.query<{ room: Room }, number>({
+        getRoomByUserId: build.query<{ room: RoomType }, number>({
             query: (userId) => `/messenger/rooms/users/${userId}`,
             providesTags: (res) => res && res.room?.id && [{ type: "Rooms", id: res.room.id }],
         }),

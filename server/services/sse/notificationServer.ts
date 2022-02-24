@@ -61,9 +61,8 @@ class NotificationServer {
                 this.channel.ack(msg);
                 const payload = JSON.parse(msg?.content.toString() as string);
 
-                const channelId = payload.channelId;
+                const channelId = String(payload.channelId);
                 const data = payload.data;
-
                 this.notify(channelId, data);
             },
             { exclusive: true }

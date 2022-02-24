@@ -1,11 +1,7 @@
-type User = {
-    id: number;
-    telephoneNumber: string;
-    telephoneNumberHashed: string;
-    createdAt: number;
-    displayName?: string;
-    avatarUrl?: string;
-    emailAddress?: string;
-};
+import { User } from ".prisma/client";
 
-export default User;
+type UserType = Partial<
+    Omit<User, "createdAt" | "modifiedAt"> & { createdAt: number; modifiedAt: number }
+>;
+
+export default UserType;

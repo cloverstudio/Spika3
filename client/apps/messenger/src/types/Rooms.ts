@@ -1,47 +1,28 @@
-export type RoomUser = {
-    userId: number;
+import { Room } from ".prisma/client";
+import UserType from "./User";
+import MessageType from "./Message";
+
+type RoomUserType = {
     isAdmin: boolean;
-    displayName?: string;
-    avatarUrl?: string;
+    userId: number;
+    user: UserType;
 };
 
-export type Room = {
-    id: number;
-    type: string;
-    name: string;
-    avatarUrl: string;
-    users: RoomUser[];
-    createdAt: string;
+export type RoomType = Omit<Room, "users" | "createdAt"> & {
+    createdAt: number;
+    users: RoomUserType[];
 };
 
-export type LastMessage = {
-    id: number;
-    fromUserId: number;
-    type: string;
-    createdAt: string;
-    modifiedAt: string;
-    messageBody: { text: string };
-};
-
-export type RoomHistory = {
-    id: number;
-    type: string;
-    name: string;
-    avatarUrl: string;
-    users: RoomUser[];
-    lastMessage: LastMessage;
-};
-
-export type History = {
-    list: RoomHistory[];
+export type HistoryType = {
+    list: (RoomType & { lastMessage: MessageType })[];
     count: number;
     limit: number;
 };
 
-type Rooms = {
-    list: Room[];
+type RoomsListType = {
+    list: RoomType[];
     count: number;
     limit: number;
 };
 
-export default Rooms;
+export default RoomsListType;

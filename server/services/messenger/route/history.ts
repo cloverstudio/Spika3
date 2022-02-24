@@ -26,7 +26,7 @@ export default (): Router => {
                     userId,
                 },
 
-                select: { room: true },
+                include: { room: true },
             });
 
             const roomsIds = roomUsers.map((r) => r.room.id);
@@ -50,19 +50,12 @@ export default (): Router => {
                 },
                 skip: Constants.PAGING_LIMIT * (page - 1),
                 take: Constants.PAGING_LIMIT,
-                select: {
-                    id: true,
-                    fromUserId: true,
-                    type: true,
-                    createdAt: true,
-                    modifiedAt: true,
+                include: {
                     room: {
-                        select: {
-                            id: true,
-                            type: true,
-                            name: true,
-                            avatarUrl: true,
-                            users: true,
+                        include: {
+                            users: {
+                                include: { user: true },
+                            },
                         },
                     },
                 },

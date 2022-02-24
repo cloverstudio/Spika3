@@ -1,20 +1,17 @@
-import { Room, RoomHistory } from "../../../types/Rooms";
+import { RoomType } from "../../../types/Rooms";
 
-export default function formatRoomInfo(
-    room: Room | RoomHistory,
-    currentUserId: number
-): Room | RoomHistory {
+export default function formatRoomInfo(room: RoomType, currentUserId: number): RoomType {
     if (room.type !== "private") {
         return room;
     }
 
-    const formatedRoom = { ...room };
+    const formattedRoom = { ...room };
     const otherUser = room.users.find((u) => u.userId !== currentUserId);
 
     if (otherUser) {
-        formatedRoom.name = otherUser?.displayName || "";
-        formatedRoom.avatarUrl = otherUser?.avatarUrl || "";
+        formattedRoom.name = otherUser?.user.displayName || "";
+        formattedRoom.avatarUrl = otherUser?.user.avatarUrl || "";
     }
 
-    return formatedRoom;
+    return formattedRoom;
 }

@@ -1,13 +1,11 @@
-type Message = {
-    id: number;
-    fromUserId: number;
-    roomId: number;
-    messageBody: { text: string };
-    deviceId: number;
-    userId: number;
-    type: string;
-    createdAt: string;
-    modifiedAt: string;
+import { Message } from ".prisma/client";
+
+type MessageType = Omit<Message, "createdAt"> & { createdAt: number; messageBody: any };
+
+export type MessageListType = {
+    list: MessageType[];
+    count: number;
+    limit: number;
 };
 
-export default Message;
+export default MessageType;

@@ -12,7 +12,7 @@ import { selectHistory } from "../slice/roomSlice";
 import useIsInViewport from "../../../hooks/useIsInViewport";
 
 import formatRoomInfo from "../lib/formatRoomInfo";
-import { LastMessage } from "../../../types/Rooms";
+import MessageType from "../../../types/Message";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 
@@ -41,7 +41,7 @@ export default function SidebarContactList(): React.ReactElement {
     return (
         <Box sx={{ overflowY: "auto" }}>
             {[...list]
-                .sort((a, b) => (a.lastMessage.modifiedAt > b.lastMessage.modifiedAt ? -1 : 1))
+                .sort((a, b) => (a.lastMessage?.createdAt > b.lastMessage?.createdAt ? -1 : 1))
                 .map((room) => {
                     const formattedRoom = formatRoomInfo(room, user.id);
                     return (
@@ -61,7 +61,7 @@ type RoomRowProps = {
     id: number;
     name: string;
     isActive: boolean;
-    lastMessage?: LastMessage;
+    lastMessage?: MessageType;
     avatarUrl?: string;
 };
 
@@ -87,7 +87,7 @@ function RoomRow({ id, isActive, name, avatarUrl, lastMessage }: RoomRowProps) {
                             {name}
                         </Typography>
                         <Typography color="#4A4A4A" fontSize="0.875rem" lineHeight="1.0625rem">
-                            {lastMessage.messageBody?.text || "No messages"}
+                            {lastMessage?.messageBody?.text || "No messages"}
                         </Typography>
                     </Box>
                     <Box textAlign="right">
@@ -98,7 +98,7 @@ function RoomRow({ id, isActive, name, avatarUrl, lastMessage }: RoomRowProps) {
                             fontSize="0.75rem"
                             lineHeight="1rem"
                         >
-                            {dayjs(lastMessage.createdAt).fromNow()}
+                            {lastMessage?.createdAt && dayjs(lastMessage?.createdAt).fromNow()}
                         </Typography>
                         <Badge
                             sx={{
