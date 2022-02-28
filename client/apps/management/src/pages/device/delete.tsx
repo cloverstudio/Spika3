@@ -27,7 +27,7 @@ export default function Page() {
         (async () => {
             try {
                 const serverResponse: successResponseType = await get(
-                    `/api/management/device/${urlParams.id}`
+                    `/management/device/${urlParams.id}`
                 );
                 const response: Device = serverResponse.data.device;
                 setDetail(response);
@@ -108,7 +108,7 @@ export default function Page() {
                             onClick={(e) => {
                                 showBasicDialog({ text: "Please confirm delete." }, async () => {
                                     try {
-                                        await callDelete(`/api/management/device/${urlParams.id}`);
+                                        await callDelete(`/management/device/${urlParams.id}`);
                                         navigate("/device");
                                     } catch (e) {
                                         console.error(e);

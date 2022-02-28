@@ -18,9 +18,7 @@ export default function Page() {
     useEffect(() => {
         (async () => {
             try {
-                const response: successResponseType = await get(
-                    `/api/management/room/${urlParams.id}`
-                );
+                const response: successResponseType = await get(`/management/room/${urlParams.id}`);
                 const room: Room = response.data.room;
                 setDetail(room);
             } catch (e) {

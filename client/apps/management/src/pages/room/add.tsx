@@ -34,7 +34,7 @@ export default function RoomAdd() {
 
     const validateAndAdd = async () => {
         try {
-            const result = await post("/api/management/room", {
+            const result = await post("/management/room", {
                 name: formik.values.name,
                 type: formik.values.type,
                 avatarUrl: formik.values.avatarUrl,

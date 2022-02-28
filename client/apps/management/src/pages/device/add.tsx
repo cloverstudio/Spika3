@@ -41,7 +41,7 @@ export default function Dashboard() {
 
     const validateAndAdd = async () => {
         try {
-            const result = await post("/api/management/device", {
+            const result = await post("/management/device", {
                 userId: formik.values.userId,
                 deviceId: formik.values.deviceId,
                 type: formik.values.type,

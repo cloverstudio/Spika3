@@ -18,9 +18,7 @@ export default function Page() {
     useEffect(() => {
         (async () => {
             try {
-                const response: successResponseType = await get(
-                    `/api/management/user/${urlParams.id}`
-                );
+                const response: successResponseType = await get(`/management/user/${urlParams.id}`);
                 const user: User = response.data.user;
                 setDetail(user);
             } catch (e) {

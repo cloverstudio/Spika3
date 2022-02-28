@@ -19,7 +19,7 @@ export default function Page() {
         (async () => {
             try {
                 const serverResponse: successResponseType = await get(
-                    `/api/management/device/${urlParams.id}`
+                    `/management/device/${urlParams.id}`
                 );
                 const response: Device = serverResponse.data;
                 setDetail(response);

@@ -25,7 +25,7 @@ interface AdminSigninParams {
 export const callAdminAuthApi = createAsyncThunk(
     "adminAuth/callAdminAuthApi",
     async (adminAuthCredentials: AdminSigninParams, thunkAPI) => {
-        const response = await API.post("/api/management/auth", {
+        const response = await API.post("/management/auth", {
             username: adminAuthCredentials.username,
             password: adminAuthCredentials.password,
         });

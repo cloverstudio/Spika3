@@ -62,7 +62,7 @@ export default function Page() {
         (async () => {
             try {
                 const serverResponse: successResponseType = await get(
-                    `/api/management/device/${urlParams.id}`
+                    `/management/device/${urlParams.id}`
                 );
                 const response: Device = serverResponse.data.device;
                 const checkUId = response.userId == null ? "" : response.userId;
@@ -103,7 +103,7 @@ export default function Page() {
 
     const validateAndUpdate = async () => {
         try {
-            const result = await put(`/api/management/device/${urlParams.id}`, {
+            const result = await put(`/management/device/${urlParams.id}`, {
                 id: serverDevice.values.id,
                 userId: formik.values.userId,
                 deviceId: formik.values.deviceId,

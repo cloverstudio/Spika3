@@ -20,9 +20,7 @@ export default function Page() {
     useEffect(() => {
         (async () => {
             try {
-                const response: successResponseType = await get(
-                    `/api/management/user/${urlParams.id}`
-                );
+                const response: successResponseType = await get(`/management/user/${urlParams.id}`);
                 const user: User = response.data;
                 setDetail(user);
             } catch (e) {
@@ -100,7 +98,7 @@ export default function Page() {
                             onClick={(e) => {
                                 showBasicDialog({ text: "Please confirm delete." }, async () => {
                                     try {
-                                        await callDelete(`/api/management/user/${urlParams.id}`);
+                                        await callDelete(`/management/user/${urlParams.id}`);
                                         navigate("/user");
                                     } catch (e) {
                                         console.error(e);

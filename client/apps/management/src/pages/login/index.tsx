@@ -47,7 +47,7 @@ export default function () {
 
     const checkToken = async () => {
         try {
-            const response: string = await get(`/api/management/auth/check`);
+            const response: string = await get(`/management/auth/check`);
             const check: boolean = JSON.parse(response);
             const authToken = localStorage.getItem(localToken);
             if (check && authToken != null && authToken.length != 0) {
@@ -70,7 +70,7 @@ export default function () {
         const username: string = formdata.username.value;
         const password: string = formdata.password.value;
         try {
-            const loginResult: any = await post(`/api/management/auth`, {
+            const loginResult: any = await post(`/management/auth`, {
                 username: username,
                 password: password,
             });

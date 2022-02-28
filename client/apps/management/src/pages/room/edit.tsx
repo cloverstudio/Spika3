@@ -49,7 +49,7 @@ export default function RoomEdit() {
         (async () => {
             try {
                 const serverResponse: successResponseType = await get(
-                    `/api/management/room/${urlParams.id}`
+                    `/management/room/${urlParams.id}`
                 );
                 const response: Room = serverResponse.data.room;
                 const checkName = response.name == null ? "" : response.name;
@@ -74,7 +74,7 @@ export default function RoomEdit() {
 
     const validateAndUpdate = async () => {
         try {
-            const result = await put(`/api/management/room/${urlParams.id}`, {
+            const result = await put(`/management/room/${urlParams.id}`, {
                 name: formik.values.name,
                 type: formik.values.type,
                 avatarUrl: formik.values.avatarUrl,

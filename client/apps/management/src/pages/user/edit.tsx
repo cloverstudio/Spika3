@@ -67,7 +67,7 @@ export default function Page() {
         (async () => {
             try {
                 const serverResponse: successResponseType = await get(
-                    `/api/management/user/${urlParams.id}`
+                    `/management/user/${urlParams.id}`
                 );
                 const response: User = serverResponse.data.user;
                 const checkName = response.displayName == null ? "" : response.displayName;
@@ -105,7 +105,7 @@ export default function Page() {
 
     const validateAndUpdate = async () => {
         try {
-            const result = await put(`/api/management/user/${urlParams.id}`, {
+            const result = await put(`/management/user/${urlParams.id}`, {
                 displayName: formik.values.displayName,
                 emailAddress: formik.values.email,
                 telephoneNumber: formik.values.telephoneNumber,

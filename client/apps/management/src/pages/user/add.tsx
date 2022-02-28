@@ -56,7 +56,7 @@ export default function Dashboard() {
 
     const validateAndAdd = async () => {
         try {
-            const result = await post("/api/management/user", {
+            const result = await post("/management/user", {
                 displayName: formik.values.displayName,
                 emailAddress: formik.values.email,
                 telephoneNumber: formik.values.telephoneNumber,

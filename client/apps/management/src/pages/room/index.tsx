@@ -82,13 +82,13 @@ export default function Room() {
             if (!deleteFilter) {
                 url =
                     urlParams.userId == null
-                        ? `/api/management/room?page=${page}`
-                        : `/api/management/room?page=${page}&userId=${urlParams.userId}`;
+                        ? `/management/room?page=${page}`
+                        : `/management/room?page=${page}&userId=${urlParams.userId}`;
             } else {
                 url =
                     urlParams.userId == null
-                        ? `/api/management/room?page=${page}&deleted=${deleteFilter}`
-                        : `/api/management/room?page=${page}&userId=${urlParams.userId}&deleted=${deleteFilter}`;
+                        ? `/management/room?page=${page}&deleted=${deleteFilter}`
+                        : `/management/room?page=${page}&userId=${urlParams.userId}&deleted=${deleteFilter}`;
             }
             const response: successResponseType = await get(url);
             const data: ListResponseType<Room> = response.data;

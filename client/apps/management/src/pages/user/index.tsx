@@ -39,7 +39,7 @@ export default function Dashboard() {
         setLoading(true);
 
         try {
-            const response: successResponseType = await get(`/api/management/user?page=${page}`);
+            const response: successResponseType = await get(`/management/user?page=${page}`);
             const data: ListResponseType<User> = response.data;
             setList(data.list);
             setPageSize(data.limit);

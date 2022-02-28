@@ -37,8 +37,8 @@ export default function Dashboard() {
         try {
             const url: string =
                 urlParams.id == null
-                    ? `/api/management/device?page=${page}`
-                    : `/api/management/device?page=${page}&userId=${urlParams.id}`;
+                    ? `/management/device?page=${page}`
+                    : `/management/device?page=${page}&userId=${urlParams.id}`;
             const serverResponse: successResponseType = await get(url);
             const response: ListResponseType<Device> = serverResponse.data;
             setList(response.list);
