@@ -1,12 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
-import Message from "../../../types/Message";
+import MessageType from "../../../types/Message";
 import messageApi from "../api/message";
 
 import type { RootState } from "../../../store/store";
 
 interface ChatState {
     activeRoomId: number;
-    messages: Message[];
+    messages: MessageType[];
     count: { roomId: number; count: number }[];
 }
 
@@ -18,7 +18,7 @@ export const chatSlice = createSlice({
             state.activeRoomId = payload;
         },
 
-        addMessage: (state, { payload }: { payload: Message }) => {
+        addMessage: (state, { payload }: { payload: MessageType }) => {
             if (state.messages.findIndex((m) => m.id === payload.id) === -1) {
                 state.messages = [...state.messages, payload];
             }
@@ -61,7 +61,7 @@ export const { setActiveRoomId, addMessage } = chatSlice.actions;
 export const selectActiveRoomId = (state: RootState): number => state.chat.activeRoomId;
 export const selectRoomMessages =
     (roomId: number) =>
-    (state: RootState): { messages: Message[]; count: number } => {
+    (state: RootState): { messages: MessageType[]; count: number } => {
         const messages = state.chat.messages.filter((m) => m.roomId === roomId);
         const count = state.chat.count.find((c) => c.roomId === roomId)?.count || 0;
 

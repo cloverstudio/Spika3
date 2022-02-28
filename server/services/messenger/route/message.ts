@@ -94,7 +94,21 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                                         ?.pushToken,
                                     data: {
                                         deviceMessage,
-                                        message: { ...message, messageBody },
+                                        message: sanitize({ ...message, messageBody }).message(),
+                                    },
+                                })
+                            )
+                        );
+
+                        rabbitMQChannel.sendToQueue(
+                            Constants.QUEUE_SSE,
+                            Buffer.from(
+                                JSON.stringify({
+                                    channelId: deviceMessage.deviceId,
+                                    data: {
+                                        type: Constants.PUSH_TYPE_NEW_MESSAGE,
+                                        deviceMessage,
+                                        message: sanitize({ ...message, messageBody }).message(),
                                     },
                                 })
                             )

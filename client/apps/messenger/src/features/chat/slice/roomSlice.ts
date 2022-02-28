@@ -1,13 +1,13 @@
 import { createSlice } from "@reduxjs/toolkit";
 import roomApi from "../api/room";
-import { RoomHistory } from "../../../types/Rooms";
+import { RoomType } from "../../../types/Rooms";
 
 import type { RootState } from "../../../store/store";
 import messageApi from "../api/message";
-import Message from "../../../types/Message";
+import MessageType from "../../../types/Message";
 
 interface RoomState {
-    list: RoomHistory[];
+    list: (RoomType & { lastMessage: MessageType })[];
     count: number;
 }
 
@@ -15,7 +15,7 @@ export const roomSlice = createSlice({
     name: <string>"room",
     initialState: <RoomState>{ list: [], count: null },
     reducers: {
-        setRoomLastMessage: (state, { payload }: { payload: Message }) => {
+        setRoomLastMessage: (state, { payload }: { payload: MessageType }) => {
             const index = state.list.findIndex((r) => r.id === payload.roomId);
 
             state.list.splice(index, 1, { ...state.list[index], lastMessage: payload });
@@ -42,6 +42,15 @@ export const roomSlice = createSlice({
                 state.list.splice(index, 1, { ...state.list[index], lastMessage });
             }
         );
+        builder.addMatcher(roomApi.endpoints.createRoom.matchFulfilled, (state, { payload }) => {
+            const roomsIds = state.list.map((r) => r.id);
+            const notAdded = roomsIds.includes(payload.room.id);
+
+            if (!notAdded) {
+                state.list = [{ ...payload.room, lastMessage: null }, ...state.list];
+                state.count += 1;
+            }
+        });
     },
 });
 
@@ -49,7 +58,7 @@ export const { setRoomLastMessage } = roomSlice.actions;
 
 export const selectRoomById =
     (id: number) =>
-    (state: RootState): RoomHistory =>
+    (state: RootState): RoomType & { lastMessage: MessageType } =>
         state.room.list.find((r) => r.id === id);
 
 export const selectHistory = (state: RootState): RoomState => state.room;

@@ -1,8 +1,9 @@
+import DeviceType from "../types/Device";
 import api from "./api";
 
 const deviceApi = api.injectEndpoints({
     endpoints: (build) => ({
-        getDevice: build.query<any, void>({
+        getDevice: build.query<{ device: DeviceType }, void>({
             query: () => "/messenger/device",
             providesTags: [{ type: "Device" }],
         }),

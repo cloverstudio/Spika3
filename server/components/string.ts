@@ -4,7 +4,7 @@ type verificationCodeSMSType = {
 };
 
 export function verificationCodeSMS({ verificationCode, osName }: verificationCodeSMSType): string {
-    let message = `Thank you for your signup request.Your verification code is ${verificationCode}.`;
+    let message = `Thank you for your signup request.Your verification code is ${verificationCode}`;
 
     if (osName === "android") {
         message += `\n\n${process.env.ANDROID_SMS_VERIFICATION_HASH}`;
