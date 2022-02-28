@@ -104,7 +104,7 @@ dist
 .tern-port
 
 .docker
-./docker-compose.yml
+docker-compose.yml
 
 public/management
 public/messenger
