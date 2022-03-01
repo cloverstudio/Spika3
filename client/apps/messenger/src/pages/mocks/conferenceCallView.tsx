@@ -419,6 +419,7 @@ function ConferenceCallView() {
                             ) : (
                                 <Videocam style={{ fill: "white" }} />
                             )}
+                            Test
                         </IconButton>
                         <IconButton sx={{ padding: 0 }} onClick={chooseVideoOutput}>
                             <KeyboardArrowUp fontSize="small" style={{ fill: "white" }} />
