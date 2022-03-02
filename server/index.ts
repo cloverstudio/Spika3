@@ -11,8 +11,9 @@ import PushService from "./services/push";
 import SSEService from "./services/sse";
 import ConfcallService from "./services/confcall";
 import amqp from "amqplib";
+import path from "path";
 
-import l, { error as e } from "./components/logger";
+import { error as e } from "./components/logger";
 
 const app: express.Express = express();
 
@@ -43,6 +44,7 @@ const app: express.Express = express();
     });
 
     app.use(express.static("public"));
+    app.use("/uploads", express.static("uploads"));
 
     const rabbitMQConnection = await amqp.connect(
         process.env["RABBITMQ_URL"] || "amqp://localhost"
@@ -113,8 +115,16 @@ const app: express.Express = express();
         res.send("test");
     });
 
+    app.all("/messenger/*", function (req, res) {
+        res.sendFile(path.join(__dirname, "..", "public", "messenger/index.html"));
+    });
+
+    app.all("/management/*", function (req, res) {
+        res.sendFile(path.join(__dirname, "..", "public", "management/index.html"));
+    });
+
     // general error
-    app.use(async (err: Error, req: express.Request, res: express.Response, next: Function) => {
+    app.use(async (err: Error, req: express.Request, res: express.Response, next: () => void) => {
         e(err);
         return res.status(500).send(`Server Error ${err.message}`);
     });

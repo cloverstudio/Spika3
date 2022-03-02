@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import Layout from "../layout";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { DataGrid, GridActionsCellItem, GridRenderCellParams } from "@mui/x-data-grid";
 import { Paper, Fab, Avatar } from "@mui/material";
 import {
@@ -26,7 +26,7 @@ export default function Dashboard() {
     const [totalCount, setTotalCount] = React.useState<number>(0);
 
     const showSnackBar = useShowSnackBar();
-    const history = useHistory();
+    const navigate = useNavigate();
     const get = useGet();
 
     useEffect(() => {
@@ -39,7 +39,7 @@ export default function Dashboard() {
         setLoading(true);
 
         try {
-            const response: successResponseType = await get(`/api/management/user?page=${page}`);
+            const response: successResponseType = await get(`/management/user?page=${page}`);
             const data: ListResponseType<User> = response.data;
             setList(data.list);
             setPageSize(data.limit);
@@ -139,31 +139,31 @@ export default function Dashboard() {
                 <GridActionsCellItem
                     icon={<DescriptionIcon />}
                     label="Detail"
-                    onClick={() => history.push(`/user/detail/${params.id}`)}
+                    onClick={() => navigate(`/user/detail/${params.id}`)}
                     showInMenu
                 />,
                 <GridActionsCellItem
                     icon={<DevicesOther />}
                     label="Devices"
-                    onClick={() => history.push(`/user/${params.id}/devices`)}
+                    onClick={() => navigate(`/user/${params.id}/devices`)}
                     showInMenu
                 />,
                 <GridActionsCellItem
                     icon={<RoomIcon />}
                     label="Rooms"
-                    onClick={() => history.push(`/user/${params.id}/room`)}
+                    onClick={() => navigate(`/user/${params.id}/room`)}
                     showInMenu
                 />,
                 <GridActionsCellItem
                     icon={<EditIcon />}
                     label="Edit"
-                    onClick={() => history.push(`/user/edit/${params.id}`)}
+                    onClick={() => navigate(`/user/edit/${params.id}`)}
                     showInMenu
                 />,
                 <GridActionsCellItem
                     icon={<DeleteIcon />}
                     label="Delete"
-                    onClick={() => history.push(`/user/delete/${params.id}`)}
+                    onClick={() => navigate(`/user/delete/${params.id}`)}
                     showInMenu
                 />,
             ],
@@ -198,7 +198,7 @@ export default function Dashboard() {
                 aria-label="add"
                 sx={{ position: "absolute", right: 64, bottom: 128, zIndex: 100 }}
                 onClick={(e) => {
-                    history.push("/user/add");
+                    navigate("/user/add");
                 }}
             >
                 <AddIcon />

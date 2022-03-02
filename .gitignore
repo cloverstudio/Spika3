@@ -104,6 +104,7 @@ dist
 .tern-port
 
 .docker
+docker-compose.yml
 
 public/management
 public/messenger
@@ -111,3 +112,4 @@ uploads
 test/upload
 test-uploads
 server/certificates
+

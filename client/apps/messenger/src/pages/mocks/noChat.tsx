@@ -1,11 +1,6 @@
 import React from "react";
-import { useHistory } from "react-router-dom";
-import { Grid, Box, Container } from "@mui/material";
-
-import Screenshot from "../../../../../../documents/pages/nochat.png";
-
+import { Grid, Box } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { width } from "@mui/system";
 
 const theme = createTheme({
     palette: {

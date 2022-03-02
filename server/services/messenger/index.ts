@@ -7,6 +7,8 @@ import contactRouter from "./route/contact";
 import roomRouter from "./route/room";
 import messageRouter from "./route/message";
 import meRouter from "./route/me";
+import deviceRouter from "./route/device";
+import historyRouter from "./route/history";
 
 import * as Constants from "../../components/consts";
 import Service, { ServiceStartParams } from "../types/serviceInterface";
@@ -42,6 +44,8 @@ export default class Messenger implements Service {
         messengerRouter.use("/rooms", roomRouter());
         messengerRouter.use("/messages", messageRouter({ rabbitMQChannel: this.rabbitMQChannel }));
         messengerRouter.use("/me", meRouter());
+        messengerRouter.use("/device", deviceRouter());
+        messengerRouter.use("/history", historyRouter());
         return messengerRouter;
     }
 

@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import Layout from "../layout";
-import { useHistory, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useGet, usePut } from "../../lib/useApi";
 import {
     TextField,
@@ -26,8 +26,8 @@ const roomModelSchema = yup.object({
 });
 
 export default function RoomEdit() {
-    const urlParams: { id: string } = useParams();
-    const history = useHistory();
+    const urlParams = useParams();
+    const navigate = useNavigate();
     const showSnackBar = useShowSnackBar();
     const get = useGet();
     const put = usePut();
@@ -49,7 +49,7 @@ export default function RoomEdit() {
         (async () => {
             try {
                 const serverResponse: successResponseType = await get(
-                    `/api/management/room/${urlParams.id}`
+                    `/management/room/${urlParams.id}`
                 );
                 const response: Room = serverResponse.data.room;
                 const checkName = response.name == null ? "" : response.name;
@@ -74,7 +74,7 @@ export default function RoomEdit() {
 
     const validateAndUpdate = async () => {
         try {
-            const result = await put(`/api/management/room/${urlParams.id}`, {
+            const result = await put(`/management/room/${urlParams.id}`, {
                 name: formik.values.name,
                 type: formik.values.type,
                 avatarUrl: formik.values.avatarUrl,
@@ -82,7 +82,7 @@ export default function RoomEdit() {
             });
 
             showSnackBar({ severity: "success", text: "Room updated" });
-            history.push("/room");
+            navigate("/room");
         } catch (e: any) {
             showSnackBar({
                 severity: "error",

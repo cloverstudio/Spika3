@@ -1,5 +1,5 @@
 import React from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
     ListSubheader,
     List,
@@ -20,7 +20,7 @@ const theme = createTheme({
 });
 
 export default function () {
-    let history = useHistory();
+    let navigate = useNavigate();
 
     return (
         <ThemeProvider theme={theme}>
@@ -35,67 +35,67 @@ export default function () {
                         </ListSubheader>
                     }
                 >
-                    <ListItemButton onClick={(e) => history.push("/mock/chat")}>
+                    <ListItemButton onClick={(e) => navigate("/mock/chat")}>
                         <ListItemIcon>
                             <ContactPageOutlinedIcon />
                         </ListItemIcon>
                         <ListItemText primary="Chat" />
                     </ListItemButton>
-                    <ListItemButton onClick={(e) => history.push("/mock/chat_nomessage_userlist")}>
+                    <ListItemButton onClick={(e) => navigate("/mock/chat_nomessage_userlist")}>
                         <ListItemIcon>
                             <ContactPageOutlinedIcon />
                         </ListItemIcon>
                         <ListItemText primary="Userlist" />
                     </ListItemButton>
-                    <ListItemButton onClick={(e) => history.push("/mock/chat_medialist")}>
+                    <ListItemButton onClick={(e) => navigate("/mock/chat_medialist")}>
                         <ListItemIcon>
                             <ContactPageOutlinedIcon />
                         </ListItemIcon>
                         <ListItemText primary="Chat Media" />
                     </ListItemButton>
-                    <ListItemButton onClick={(e) => history.push("/mock/nochat")}>
+                    <ListItemButton onClick={(e) => navigate("/mock/nochat")}>
                         <ListItemIcon>
                             <ContactPageOutlinedIcon />
                         </ListItemIcon>
                         <ListItemText primary="No Chat" />
                     </ListItemButton>
-                    <ListItemButton onClick={(e) => history.push("/mock/chat_medialist")}>
+                    <ListItemButton onClick={(e) => navigate("/mock/chat_medialist")}>
                         <ListItemIcon>
                             <ContactPageOutlinedIcon />
                         </ListItemIcon>
                         <ListItemText primary="Chat Media List" />
                     </ListItemButton>
-                    <ListItemButton onClick={(e) => history.push("/mock/chat_nomessage_userlist")}>
+                    <ListItemButton onClick={(e) => navigate("/mock/chat_nomessage_userlist")}>
                         <ListItemIcon>
                             <ContactPageOutlinedIcon />
                         </ListItemIcon>
                         <ListItemText primary="Chat No messages User list" />
                     </ListItemButton>
-                    <ListItemButton onClick={(e) => history.push("/mock/chat_small_sidebar")}>
+                    <ListItemButton onClick={(e) => navigate("/mock/chat_small_sidebar")}>
                         <ListItemIcon>
                             <ContactPageOutlinedIcon />
                         </ListItemIcon>
                         <ListItemText primary="Chat Small Sidebar" />
                     </ListItemButton>
-                    <ListItemButton onClick={(e) => history.push("/mock/chat_nomessage")}>
+                    <ListItemButton onClick={(e) => navigate("/mock/chat_nomessage")}>
                         <ListItemIcon>
                             <ContactPageOutlinedIcon />
                         </ListItemIcon>
                         <ListItemText primary="No Messages" />
                     </ListItemButton>
-                    <ListItemButton onClick={(e) => history.push("/mock/nochat")}>
+                    <ListItemButton onClick={(e) => navigate("/mock/nochat")}>
                         <ListItemIcon>
                             <ContactPageOutlinedIcon />
                         </ListItemIcon>
                         <ListItemText primary="No Chat" />
                     </ListItemButton>
-                    <ListItemButton onClick={(e) => history.push("/mock/conferenceCallView")}>
+                    <ListItemButton onClick={(e) => navigate("/mock/conferenceCallView")}>
                         <ListItemIcon>
                             <ContactPageOutlinedIcon />
                         </ListItemIcon>
                         <ListItemText primary="Conference call (Vedran)" />
                     </ListItemButton>
-                    <ListItemButton onClick={(e) => history.push("/mock/confcall")}>
+                    <ListItemButton onClick={(e) => navigate("/mock/confcall")}>
                         <ListItemIcon>
                             <ContactPageOutlinedIcon />
                         </ListItemIcon>

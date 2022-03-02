@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import Layout from "../layout";
-import { useHistory, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useGet, usePut } from "../../lib/useApi";
 import { TextField, Paper, Grid, Button } from "@mui/material";
 import { useShowSnackBar } from "../../components/useUI";
@@ -20,8 +20,8 @@ const deviceModelSchema = yup.object({
 });
 
 export default function Page() {
-    const urlParams: { id: string } = useParams();
-    const history = useHistory();
+    const urlParams = useParams();
+    const navigate = useNavigate();
     const showSnackBar = useShowSnackBar();
 
     const get = useGet();
@@ -62,7 +62,7 @@ export default function Page() {
         (async () => {
             try {
                 const serverResponse: successResponseType = await get(
-                    `/api/management/device/${urlParams.id}`
+                    `/management/device/${urlParams.id}`
                 );
                 const response: Device = serverResponse.data.device;
                 const checkUId = response.userId == null ? "" : response.userId;
@@ -103,7 +103,7 @@ export default function Page() {
 
     const validateAndUpdate = async () => {
         try {
-            const result = await put(`/api/management/device/${urlParams.id}`, {
+            const result = await put(`/management/device/${urlParams.id}`, {
                 id: serverDevice.values.id,
                 userId: formik.values.userId,
                 deviceId: formik.values.deviceId,
@@ -115,7 +115,7 @@ export default function Page() {
             });
 
             showSnackBar({ severity: "success", text: "Device updated" });
-            history.push("/device");
+            navigate("/device");
         } catch (e: any) {
             console.error(e);
             showSnackBar({

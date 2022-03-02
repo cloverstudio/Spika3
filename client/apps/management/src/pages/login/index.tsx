@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
     Avatar,
     Button,
@@ -33,7 +33,7 @@ export default function () {
     const showSnackBar = useShowSnackBar();
     const localToken = "localToken";
 
-    let history = useHistory();
+    const navigate = useNavigate();
 
     const [rememberMe, setRememberMe] = React.useState(true);
 
@@ -47,11 +47,11 @@ export default function () {
 
     const checkToken = async () => {
         try {
-            const response: string = await get(`/api/management/auth/check`);
+            const response: string = await get(`/management/auth/check`);
             const check: boolean = JSON.parse(response);
             const authToken = localStorage.getItem(localToken);
             if (check && authToken != null && authToken.length != 0) {
-                history.push("/dashboard");
+                navigate("/dashboard");
             }
         } catch (e) {
             console.error(e);
@@ -70,7 +70,7 @@ export default function () {
         const username: string = formdata.username.value;
         const password: string = formdata.password.value;
         try {
-            const loginResult: any = await post(`/api/management/auth`, {
+            const loginResult: any = await post(`/management/auth`, {
                 username: username,
                 password: password,
             });
@@ -88,7 +88,7 @@ export default function () {
 
                 showSnackBar({ severity: "success", text: "Signed In" });
 
-                history.push("/dashboard");
+                navigate("/dashboard");
             } else {
                 showSnackBar({ severity: "error", text: "Failed to signin" });
             }

@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import MockTop from "./pages/mocks";
 import MockChat from "./pages/mocks/chat";
@@ -14,66 +14,45 @@ import MockUserLIst from "./pages/mocks/userLIst";
 import MockConferenceCall from "./pages/mocks/conferenceCallView";
 import MockConfcall from "./pages/mocks/confcall";
 import AuthPage from "./pages/auth";
-import AppTop from "./pages/app";
+import HomePage from "./pages/home";
+import RoomPage from "./pages/room";
 import Conftest from "./pages/app/confcall";
 
 declare const BASE_URL: string;
 
-function App() {
-    console.log("BASE_URL", BASE_URL);
+export default function App(): React.ReactElement {
     return (
         <>
             <Router basename={BASE_URL}>
-                <Switch>
-                    <Route exact path="/">
-                        <MockTop />
+                <Routes>
+                    <Route path="/" element={<AuthPage />} />
+                    <Route path="app" element={<HomePage />} />
+
+                    <Route path="rooms" element={<HomePage />}>
+                        <Route path=":id" element={<RoomPage />} />
                     </Route>
-                    <Route exact path="/mock/chat">
-                        <MockChat />
+                  
+                    <Route path="conftest" element={<Conftest />} />
+
+                    <Route path="mock">
+                        <Route index element={<MockTop />} />
+                        <Route path="chat" element={<MockChat />} />
+                        <Route path="chat_medialist" element={<MockChatMedialist />} />
+                        <Route
+                            path="chat_nomessage_userlist"
+                            element={<MockChatNomessageUserList />}
+                        />
+                        <Route path="chat_nomessage" element={<MockChatNomessage />} />
+                        <Route path="chat_small_sidebar" element={<MockChatSmallSidebar />} />
+                        <Route path="groupdetail" element={<MockGroupDetail />} />
+                        <Route path="message_media" element={<MockMessageMedia />} />
+                        <Route path="nochat" element={<MockNoChat />} />
+                        <Route path="userlist" element={<MockUserLIst />} />
+                        <Route path="conferenceCallView" element={<MockConferenceCall />} />
+                        <Route path="confcall" element={<MockConfcall />} />
                     </Route>
-                    <Route exact path="/mock/chat_medialist">
-                        <MockChatMedialist />
-                    </Route>
-                    <Route exact path="/mock/chat_nomessage_userlist">
-                        <MockChatNomessageUserList />
-                    </Route>
-                    <Route exact path="/mock/chat_nomessage">
-                        <MockChatNomessage />
-                    </Route>
-                    <Route exact path="/mock/chat_small_sidebar">
-                        <MockChatSmallSidebar />
-                    </Route>
-                    <Route exact path="/mock/groupdetail">
-                        <MockGroupDetail />
-                    </Route>
-                    <Route exact path="/mock/message_media">
-                        <MockMessageMedia />
-                    </Route>
-                    <Route exact path="/mock/nochat">
-                        <MockNoChat />
-                    </Route>
-                    <Route exact path="/mock/userlist">
-                        <MockUserLIst />
-                    </Route>
-                    <Route exact path="/mock/conferenceCallView">
-                        <MockConferenceCall />
-                    </Route>
-                    <Route exact path="/auth">
-                        <AuthPage />
-                    </Route>
-                    <Route exact path="/mock/confcall">
-                        <MockConfcall />
-                    </Route>
-                    <Route exact path="/app">
-                        <AppTop />
-                    </Route>
-                    <Route exact path="/conftest">
-                        <Conftest />
-                    </Route>
-                </Switch>
+                </Routes>
             </Router>
         </>
     );
 }
-
-export default App;

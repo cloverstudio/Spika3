@@ -11,6 +11,7 @@ import { createFakeDevices } from "./fixtures/device";
 import { createManyFakeUsers } from "./fixtures/user";
 import sendPush from "../server/services/push/worker/sendPush";
 import { wait } from "../client/lib/utils";
+import sanitize from "../server/components/sanitize";
 
 describe("API", () => {
     describe("/api/messenger/messages POST", () => {
@@ -122,12 +123,14 @@ describe("API", () => {
             expect(response.body).to.has.property("data");
             expect(response.body.data).to.has.property("message");
 
-            const messageFromResponse = response.body.data.message;
+            const { messageBody: _, ...messageFromResponse } = response.body.data.message;
             const messageFromDb = await globals.prisma.message.findUnique({
                 where: { id: messageFromResponse.id },
             });
 
-            expect(JSON.stringify(messageFromResponse)).to.eqls(JSON.stringify(messageFromDb));
+            expect(JSON.stringify(messageFromResponse)).to.eqls(
+                JSON.stringify(sanitize(messageFromDb).message())
+            );
         });
 
         it("creates deviceMessage for every users device", async () => {

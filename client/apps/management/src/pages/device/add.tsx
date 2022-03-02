@@ -1,6 +1,6 @@
 import React from "react";
 import Layout from "../layout";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useGet, usePost } from "../../lib/useApi";
 import { TextField, Paper, Grid, Button } from "@mui/material";
 import { useShowSnackBar } from "../../components/useUI";
@@ -18,7 +18,7 @@ const deviceModelSchema = yup.object({
 });
 
 export default function Dashboard() {
-    const history = useHistory();
+    const navigate = useNavigate();
     const showSnackBar = useShowSnackBar();
     const post = usePost();
     const get = useGet();
@@ -41,7 +41,7 @@ export default function Dashboard() {
 
     const validateAndAdd = async () => {
         try {
-            const result = await post("/api/management/device", {
+            const result = await post("/management/device", {
                 userId: formik.values.userId,
                 deviceId: formik.values.deviceId,
                 type: formik.values.type,
@@ -52,7 +52,7 @@ export default function Dashboard() {
             });
 
             showSnackBar({ severity: "success", text: "Device added" });
-            history.push("/device");
+            navigate("/device");
         } catch (e: any) {
             console.error(e);
             showSnackBar({

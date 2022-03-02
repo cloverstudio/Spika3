@@ -12,6 +12,7 @@ import { MESSAGE_ACTION_NEW_MESSAGE } from "../../../components/consts";
 import * as Constants from "../../../components/consts";
 
 import { InitRouterParams } from "../../types/serviceInterface";
+import sanitize from "../../../components/sanitize";
 
 const prisma = new PrismaClient();
 
@@ -30,7 +31,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         const userReq: UserRequest = req as UserRequest;
 
         try {
-            const roomId = parseInt((req.body.roomId as string) || "0");
+            const roomId = parseInt(req.body.roomId as string);
             const type = req.body.type;
             const messageBody = req.body.message;
             const fromUserId = userReq.user.id;
@@ -70,7 +71,12 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 },
             });
 
-            res.send(successResponse({ message }, userReq.lang));
+            res.send(
+                successResponse(
+                    { message: sanitize({ ...message, messageBody }).message() },
+                    userReq.lang
+                )
+            );
 
             while (deviceMessages.length) {
                 await Promise.all(
@@ -88,6 +94,21 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                                         ?.pushToken,
                                     data: {
                                         deviceMessage,
+                                        message: sanitize({ ...message, messageBody }).message(),
+                                    },
+                                })
+                            )
+                        );
+
+                        rabbitMQChannel.sendToQueue(
+                            Constants.QUEUE_SSE,
+                            Buffer.from(
+                                JSON.stringify({
+                                    channelId: deviceMessage.deviceId,
+                                    data: {
+                                        type: Constants.PUSH_TYPE_NEW_MESSAGE,
+                                        deviceMessage,
+                                        message: sanitize({ ...message, messageBody }).message(),
                                     },
                                 })
                             )
@@ -95,6 +116,62 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     })
                 );
             }
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.get("/roomId/:roomId", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        const userId = userReq.user.id;
+        const deviceId = userReq.device.id;
+        const page = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
+
+        try {
+            const roomId = parseInt(req.params.roomId as string);
+
+            const count = await prisma.message.count({
+                where: {
+                    roomId,
+                    deviceMessages: {
+                        some: {
+                            deviceId,
+                        },
+                    },
+                },
+            });
+
+            const messages = await prisma.message.findMany({
+                where: {
+                    roomId,
+                    deviceMessages: {
+                        some: {
+                            deviceId,
+                        },
+                    },
+                },
+                orderBy: {
+                    modifiedAt: "desc",
+                },
+                skip: Constants.PAGING_LIMIT * (page - 1),
+                take: Constants.PAGING_LIMIT,
+            });
+
+            const deviceMessages = await prisma.deviceMessage.findMany({
+                where: { userId, deviceId, messageId: { in: messages.map((m) => m.id) } },
+                select: {
+                    messageId: true,
+                    messageBody: true,
+                },
+            });
+
+            const list = messages.map((m) => {
+                const messageBody = deviceMessages.find((dm) => dm.messageId === m.id)?.messageBody;
+                return sanitize({ ...m, messageBody }).message();
+            });
+
+            res.send(successResponse({ list, count, limit: Constants.PAGING_LIMIT }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

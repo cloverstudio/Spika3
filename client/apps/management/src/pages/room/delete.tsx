@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import Layout from "../layout";
-import { useHistory, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useGet, usePut } from "../../lib/useApi";
 import { Typography, Paper, Grid, Button, Avatar, Checkbox } from "@mui/material";
 import { useShowBasicDialog, useShowSnackBar } from "../../components/useUI";
@@ -8,8 +8,8 @@ import { Room } from "@prisma/client";
 import { successResponseType } from "../../../../../../server/components/response";
 
 export default function Page() {
-    const urlParams: { id: string } = useParams();
-    const history = useHistory();
+    const urlParams = useParams();
+    const navigate = useNavigate();
     const showSnackBar = useShowSnackBar();
     const showBasicDialog = useShowBasicDialog();
     const [detail, setDetail] = React.useState<Room>();
@@ -20,9 +20,7 @@ export default function Page() {
     useEffect(() => {
         (async () => {
             try {
-                const response: successResponseType = await get(
-                    `/api/management/room/${urlParams.id}`
-                );
+                const response: successResponseType = await get(`/management/room/${urlParams.id}`);
                 const room: Room = response.data.room;
                 setDetail(room);
             } catch (e) {
@@ -92,7 +90,7 @@ export default function Page() {
                                         async () => {
                                             try {
                                                 const result = await put(
-                                                    `/api/management/room/${urlParams.id}`,
+                                                    `/management/room/${urlParams.id}`,
                                                     {
                                                         name: detail.name,
                                                         type: detail.type,
@@ -100,7 +98,7 @@ export default function Page() {
                                                         deleted: true,
                                                     }
                                                 );
-                                                history.push("/room");
+                                                navigate("/room");
                                             } catch (e) {
                                                 console.error(e);
                                                 showSnackBar({

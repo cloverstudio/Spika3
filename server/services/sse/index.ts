@@ -14,6 +14,8 @@ export default class SSEService implements Service {
         const SSERouter = Router();
 
         SSERouter.get("/:channelId", auth, (req, res) => {
+            req.setTimeout(60 * 60 * 1000);
+
             const headers = {
                 "Content-Type": "text/event-stream",
                 Connection: "keep-alive",
@@ -24,13 +26,14 @@ export default class SSEService implements Service {
             const channelId = req.params.channelId;
 
             const connectionId = this.notificationServer.subscribe(channelId, (data) => {
-                const eventData = `data: ${JSON.stringify(data)}\n\n`;
+                const eventData = `"data: ${JSON.stringify(data)}\n\n"`;
 
                 res.write(eventData);
             });
 
             req.on("close", () => {
                 this.notificationServer.unsubscribe(connectionId);
+                res.end();
                 console.log(`${channelId} Connection closed`);
             });
         });

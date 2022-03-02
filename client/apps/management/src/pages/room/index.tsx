@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import Layout from "../layout";
-import { useHistory, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { DataGrid, GridActionsCellItem, GridRenderCellParams } from "@mui/x-data-grid";
 import { Paper, Fab, Avatar, Checkbox, FormGroup, FormControlLabel } from "@mui/material";
 import {
@@ -62,10 +62,10 @@ export default function Room() {
     const [pageSize, setPageSize] = React.useState<number>(30);
     const [totalCount, setTotalCount] = React.useState<number>(0);
     const [deleteFilter, setDeleteFilter] = React.useState<boolean>(false);
-    const urlParams: { userId: string } = useParams();
+    const urlParams = useParams();
 
     const showSnackBar = useShowSnackBar();
-    const history = useHistory();
+    const navigate = useNavigate();
     const get = useGet();
     const classes = useStyles();
 
@@ -78,17 +78,17 @@ export default function Room() {
     const fetchData = async (page: number) => {
         setLoading(true);
         try {
-            var url: string = "";
+            let url = "";
             if (!deleteFilter) {
                 url =
                     urlParams.userId == null
-                        ? `/api/management/room?page=${page}`
-                        : `/api/management/room?page=${page}&userId=${urlParams.userId}`;
+                        ? `/management/room?page=${page}`
+                        : `/management/room?page=${page}&userId=${urlParams.userId}`;
             } else {
                 url =
                     urlParams.userId == null
-                        ? `/api/management/room?page=${page}&deleted=${deleteFilter}`
-                        : `/api/management/room?page=${page}&userId=${urlParams.userId}&deleted=${deleteFilter}`;
+                        ? `/management/room?page=${page}&deleted=${deleteFilter}`
+                        : `/management/room?page=${page}&userId=${urlParams.userId}&deleted=${deleteFilter}`;
             }
             const response: successResponseType = await get(url);
             const data: ListResponseType<Room> = response.data;
@@ -172,19 +172,19 @@ export default function Room() {
                 <GridActionsCellItem
                     icon={<DescriptionIcon />}
                     label="Detail"
-                    onClick={() => history.push(`/room/detail/${params.id}`)}
+                    onClick={() => navigate(`/room/detail/${params.id}`)}
                     showInMenu
                 />,
                 <GridActionsCellItem
                     icon={<EditIcon />}
                     label="Edit"
-                    onClick={() => history.push(`/room/edit/${params.id}`)}
+                    onClick={() => navigate(`/room/edit/${params.id}`)}
                     showInMenu
                 />,
                 <GridActionsCellItem
                     icon={<DeleteIcon />}
                     label="Delete"
-                    onClick={() => history.push(`/room/delete/${params.id}`)}
+                    onClick={() => navigate(`/room/delete/${params.id}`)}
                     showInMenu
                 />,
             ],
@@ -238,7 +238,7 @@ export default function Room() {
                 aria-label="add"
                 sx={{ position: "absolute", right: 64, bottom: 128, zIndex: 100 }}
                 onClick={(e) => {
-                    history.push("/room/add");
+                    navigate("/room/add");
                 }}
             >
                 <AddIcon />

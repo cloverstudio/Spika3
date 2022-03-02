@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import Layout from "../layout";
-import { useHistory, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useGet, usePut } from "../../lib/useApi";
 import {
     TextField,
@@ -29,8 +29,8 @@ const userModelSchema = yup.object({
 });
 
 export default function Page() {
-    const urlParams: { id: string } = useParams();
-    const history = useHistory();
+    const urlParams = useParams();
+    const navigate = useNavigate();
     const showSnackBar = useShowSnackBar();
     const get = useGet();
     const put = usePut();
@@ -67,7 +67,7 @@ export default function Page() {
         (async () => {
             try {
                 const serverResponse: successResponseType = await get(
-                    `/api/management/user/${urlParams.id}`
+                    `/management/user/${urlParams.id}`
                 );
                 const response: User = serverResponse.data.user;
                 const checkName = response.displayName == null ? "" : response.displayName;
@@ -105,7 +105,7 @@ export default function Page() {
 
     const validateAndUpdate = async () => {
         try {
-            const result = await put(`/api/management/user/${urlParams.id}`, {
+            const result = await put(`/management/user/${urlParams.id}`, {
                 displayName: formik.values.displayName,
                 emailAddress: formik.values.email,
                 telephoneNumber: formik.values.telephoneNumber,
@@ -115,7 +115,7 @@ export default function Page() {
             });
 
             showSnackBar({ severity: "success", text: "User updated" });
-            history.push("/user");
+            navigate("/user");
         } catch (e: any) {
             showSnackBar({
                 severity: "error",

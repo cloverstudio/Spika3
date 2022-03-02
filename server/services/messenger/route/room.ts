@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { PrismaClient, RoomUser, Room } from "@prisma/client";
+import { PrismaClient, RoomUser, Room, User } from "@prisma/client";
 
 import { UserRequest } from "../lib/types";
 import { error as le } from "../../../components/logger";
@@ -98,11 +98,22 @@ export default (): Router => {
                     },
                 },
                 include: {
-                    users: true,
+                    users: {
+                        include: {
+                            user: true,
+                        },
+                    },
                 },
             });
 
-            res.send(successResponse({ room }, userReq.lang));
+            res.send(
+                successResponse(
+                    {
+                        room: sanitize(room).room(),
+                    },
+                    userReq.lang
+                )
+            );
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -152,10 +163,16 @@ export default (): Router => {
             const updated = await prisma.room.update({
                 where: { id },
                 data: update,
-                include: { users: true },
+                include: {
+                    users: {
+                        include: {
+                            user: true,
+                        },
+                    },
+                },
             });
 
-            res.send(successResponse({ room: updated }, userReq.lang));
+            res.send(successResponse({ room: sanitize(updated).room() }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -181,10 +198,16 @@ export default (): Router => {
             const updated = await prisma.room.update({
                 where: { id },
                 data: { deleted: true },
-                include: { users: true },
+                include: {
+                    users: {
+                        include: {
+                            user: true,
+                        },
+                    },
+                },
             });
 
-            res.send(successResponse({ room: updated }, userReq.lang));
+            res.send(successResponse({ room: sanitize(updated).room() }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -220,61 +243,78 @@ export default (): Router => {
                 const canLeaveRoom = canLeaveRoomCheck(userReq.user.id, room.users);
                 const roomUserId = room.users.find((u) => u.userId === userReq.user.id)?.id;
 
+                let updated: Room & {
+                    users: (RoomUser & {
+                        user: User;
+                    })[];
+                };
+
                 if (canLeaveRoom) {
-                    const updated = await prisma.room.update({
+                    updated = await prisma.room.update({
                         where: { id },
                         data: {
                             users: {
                                 deleteMany: [{ id: roomUserId }],
                             },
                         },
-                        include: { users: true },
-                    });
-
-                    return res.send(successResponse({ room: updated }, userReq.lang));
-                }
-
-                if (!adminUserIds) {
-                    return res
-                        .status(400)
-                        .send(errorResponse(`New admin(s) must be defined`, userReq.lang));
-                }
-
-                const foundUsers = await prisma.user.findMany({
-                    where: { id: { in: adminUserIds } },
-                });
-
-                if (!foundUsers.length) {
-                    return res
-                        .status(400)
-                        .send(errorResponse(`New admin(s) must be defined`, userReq.lang));
-                }
-
-                const foundUsersIds = foundUsers.map((u) => u.id);
-
-                const roomUsersToPromote = room.users.filter((u) =>
-                    foundUsersIds.includes(u.userId)
-                );
-
-                const updated = await prisma.room.update({
-                    where: { id },
-                    data: {
-                        users: {
-                            deleteMany: [
-                                { id: roomUserId },
-                                ...roomUsersToPromote.map((u) => ({ id: u.id })),
-                            ],
-                            createMany: {
-                                data: foundUsersIds.map((userId) => ({
-                                    userId,
-                                    isAdmin: true,
-                                })),
+                        include: {
+                            users: {
+                                include: {
+                                    user: true,
+                                },
                             },
                         },
-                    },
-                    include: { users: true },
-                });
-                res.send(successResponse({ room: updated }, userReq.lang));
+                    });
+                } else {
+                    if (!adminUserIds) {
+                        return res
+                            .status(400)
+                            .send(errorResponse(`New admin(s) must be defined`, userReq.lang));
+                    }
+
+                    const foundUsers = await prisma.user.findMany({
+                        where: { id: { in: adminUserIds } },
+                    });
+
+                    if (!foundUsers.length) {
+                        return res
+                            .status(400)
+                            .send(errorResponse(`New admin(s) must be defined`, userReq.lang));
+                    }
+
+                    const foundUsersIds = foundUsers.map((u) => u.id);
+
+                    const roomUsersToPromote = room.users.filter((u) =>
+                        foundUsersIds.includes(u.userId)
+                    );
+
+                    updated = await prisma.room.update({
+                        where: { id },
+                        data: {
+                            users: {
+                                deleteMany: [
+                                    { id: roomUserId },
+                                    ...roomUsersToPromote.map((u) => ({ id: u.id })),
+                                ],
+                                createMany: {
+                                    data: foundUsersIds.map((userId) => ({
+                                        userId,
+                                        isAdmin: true,
+                                    })),
+                                },
+                            },
+                        },
+                        include: {
+                            users: {
+                                include: {
+                                    user: true,
+                                },
+                            },
+                        },
+                    });
+                }
+
+                res.send(successResponse({ room: sanitize(updated).room() }, userReq.lang));
             } catch (e: any) {
                 le(e);
                 res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -282,7 +322,7 @@ export default (): Router => {
         }
     );
 
-    router.get("/", auth, validate(postRoomSchema), async (req: Request, res: Response) => {
+    router.get("/", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
 
         try {
@@ -297,7 +337,11 @@ export default (): Router => {
                     },
                 },
                 include: {
-                    users: true,
+                    users: {
+                        include: {
+                            user: true,
+                        },
+                    },
                 },
                 orderBy: [
                     {
@@ -318,10 +362,12 @@ export default (): Router => {
                 },
             });
 
+            const list = rooms.map((room) => sanitize(room).room());
+
             res.send(
                 successResponse(
                     {
-                        list: rooms.map((room) => sanitize(room).room()),
+                        list,
                         count,
                         limit: Constants.PAGING_LIMIT,
                     },
@@ -334,7 +380,40 @@ export default (): Router => {
         }
     });
 
-    router.get("/:id", auth, validate(postRoomSchema), async (req: Request, res: Response) => {
+    router.get("/users/:userId", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+
+        try {
+            const userId = parseInt((req.params.userId as string) || "");
+
+            const room = await prisma.room.findFirst({
+                where: {
+                    type: "private",
+                    users: {
+                        every: { userId: { in: [userId, userReq.user.id] } },
+                    },
+                },
+                include: {
+                    users: {
+                        include: {
+                            user: true,
+                        },
+                    },
+                },
+            });
+
+            if (!room) {
+                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+            }
+
+            res.send(successResponse({ room: sanitize(room).room() }, userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.get("/:id", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
 
         try {
@@ -350,7 +429,11 @@ export default (): Router => {
                     },
                 },
                 include: {
-                    users: true,
+                    users: {
+                        include: {
+                            user: true,
+                        },
+                    },
                 },
             });
 
