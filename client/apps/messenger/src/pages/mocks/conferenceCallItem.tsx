@@ -23,6 +23,7 @@ export default ({ participant, myVideo, myAudio }: Props) => {
     const [videoMute, setVideoMute] = useState<boolean>(participant.muteAudio);
 
     useEffect(() => {
+        console.log("Tu udje");
         if (participant.audioTrack || myAudio) {
             const stream = new MediaStream();
             stream.addTrack(participant.isMe ? myAudio.track : participant.audioTrack);
@@ -123,6 +124,7 @@ export default ({ participant, myVideo, myAudio }: Props) => {
                 "&:hover .overlay": {
                     display: "block",
                 },
+                margin: "0px",
             }}
         >
             {videoElm ? (
@@ -145,7 +147,7 @@ export default ({ participant, myVideo, myAudio }: Props) => {
                 muted={participant.muteAudio}
             />
             {!participant.isMe && false ? <div className="consumer-info"></div> : null}
-            <Typography color="white">{participant.displayName}</Typography>
+            {/* <Typography color="white">{participant.displayName}</Typography> */}
             <Box
                 sx={{
                     bottom: 0,
@@ -194,46 +196,54 @@ export default ({ participant, myVideo, myAudio }: Props) => {
                     >
                         <Typography color="white">{participant.displayName}</Typography>
                     </Box>
-                    <Box
-                        sx={{
-                            bottom: 0,
-                            position: "absolute",
-                            width: "20%",
-                            height: "10%",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            display: "flex",
-                            left: "73%",
-                            transform: "translate(-50%, 0%)",
-                            zIndex: 10,
-                        }}
-                    >
-                        <Stack
-                            direction="row"
-                            alignItems="right"
-                            spacing={1}
-                            sx={{ display: "flex", flexDirection: "row", justifyContent: "right" }}
+                    {participant.isMe ? (
+                        <Box
+                            sx={{
+                                bottom: 0,
+                                position: "absolute",
+                                width: "20%",
+                                height: "10%",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                display: "flex",
+                                left: "73%",
+                                transform: "translate(-50%, 0%)",
+                                zIndex: 10,
+                            }}
                         >
-                            <Tooltip title="No Video">
-                                <IconButton sx={{ padding: 0 }} onClick={handleCamera}>
-                                    {participant.muteVideo ? (
-                                        <VideocamOff style={{ fill: "white" }} />
-                                    ) : (
-                                        <Videocam style={{ fill: "white" }} />
-                                    )}
-                                </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Mute">
-                                <IconButton sx={{ padding: 0 }} onClick={handleMic}>
-                                    {participant.muteAudio ? (
-                                        <MicOff style={{ fill: "white" }} />
-                                    ) : (
-                                        <Mic style={{ fill: "white" }} />
-                                    )}
-                                </IconButton>
-                            </Tooltip>
-                        </Stack>
-                    </Box>
+                            <Stack
+                                direction="row"
+                                alignItems="right"
+                                spacing={1}
+                                sx={{
+                                    display: "flex",
+                                    flexDirection: "row",
+                                    justifyContent: "right",
+                                }}
+                            >
+                                <Tooltip title="No Video">
+                                    <IconButton sx={{ padding: 0 }} onClick={handleCamera}>
+                                        {participant.muteVideo ? (
+                                            <VideocamOff style={{ fill: "white" }} />
+                                        ) : (
+                                            <Videocam style={{ fill: "white" }} />
+                                        )}
+                                    </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Mute">
+                                    <IconButton sx={{ padding: 0 }} onClick={handleMic}>
+                                        {participant.muteAudio ? (
+                                            <MicOff style={{ fill: "white" }} />
+                                        ) : (
+                                            <Mic style={{ fill: "white" }} />
+                                        )}
+                                    </IconButton>
+                                </Tooltip>
+                            </Stack>
+                        </Box>
+                    ) : (
+                        <Box></Box>
+                    )}
                 </Box>
             </Box>
         </Box>
