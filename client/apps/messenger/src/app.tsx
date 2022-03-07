@@ -17,6 +17,7 @@ import AuthPage from "./pages/auth";
 import HomePage from "./pages/home";
 import RoomPage from "./pages/room";
 import Conftest from "./pages/app/confcall";
+import Playground from "./pages/playground";
 
 declare const BASE_URL: string;
 
@@ -31,7 +32,7 @@ export default function App(): React.ReactElement {
                     <Route path="rooms" element={<HomePage />}>
                         <Route path=":id" element={<RoomPage />} />
                     </Route>
-                  
+
                     <Route path="conftest" element={<Conftest />} />
 
                     <Route path="mock">
@@ -51,6 +52,8 @@ export default function App(): React.ReactElement {
                         <Route path="conferenceCallView" element={<MockConferenceCall />} />
                         <Route path="confcall" element={<MockConfcall />} />
                     </Route>
+
+                    <Route path="/playground" element={<Playground />} />
                 </Routes>
             </Router>
         </>
