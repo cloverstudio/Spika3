@@ -28,7 +28,7 @@ export default function () {
                         height="100vh"
                         overflow="hidden"
                     >
-                        <ConfcallTest
+                        <Confcall
                             onClose={() => {
                                 setShowConfcall(false);
                             }}
