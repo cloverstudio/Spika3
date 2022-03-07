@@ -1,1 +1,0 @@
-{"version":3,"file":"reducer.js","sourceRoot":"","sources":["../../../../../../client/apps/messenger/src/store/reducer.ts"],"names":[],"mappings":";;;;;;AAAA,4CAAmD;AACnD,mDAA6B;AAE7B,gEAA4C;AAC5C,oEAAgD;AAEhD,IAAM,WAAW,GAAG,IAAA,yBAAe;QAC/B,OAAO,EAAE,sBAAc;QACvB,IAAI,EAAE,wBAAgB;;IACtB,GAAC,aAAG,CAAC,WAAW,IAAG,aAAG,CAAC,OAAO;QAChC,CAAC;AAEH,kBAAe,WAAW,CAAC"}
