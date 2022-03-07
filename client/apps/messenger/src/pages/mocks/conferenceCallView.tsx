@@ -75,9 +75,33 @@ function ConferenceCallView() {
         setOpen(false);
     };
 
+    const convertParticipantToCallMember = (participants: Participant[]) => {
+        callMemberArray = [];
+        participants.forEach((element) => {
+            const audioConsumer = element.consumers.find(
+                (consumer) => consumer.track.kind === "audio"
+            );
+            const videoConsumer = element.consumers.find(
+                (consumer) => consumer.track.kind === "video"
+            );
+            var member: CallParticipant = {
+                participant: {
+                    isMe: false,
+                    displayName: element.displayName,
+                    audioTrack: audioConsumer?.track,
+                    videoTrack: videoConsumer?.track,
+                    muteAudio: false,
+                    muteVideo: false,
+                },
+            };
+            callMemberArray.push(member);
+        });
+        calculateLayoutByParticipantNumber();
+    };
+
     const calculateLayoutByParticipantNumber = () => {
-        dataArray[0] = member;
-        let numberOfParticipants: number = dataArray.length + 1;
+        let numberOfParticipants: number = callMemberArray.length + 1;
+        console.log("Number of participants:" + numberOfParticipants);
         var indexForOwnData = 0;
         if (numberOfParticipants > 2 && numberOfParticipants < 5) {
             if (!screenShare) {
@@ -95,7 +119,6 @@ function ConferenceCallView() {
             if (!screenShare) {
                 setGridSize(3);
                 let numberOfRows = Math.floor(dataArray.length / 4);
-                console.log(numberOfParticipants);
                 indexForOwnData = numberOfRows * 4;
             }
         }
@@ -103,11 +126,15 @@ function ConferenceCallView() {
             setGridSize(12);
             indexForOwnData = dataArray.length;
         }
-        setCombinedArray(dataArray);
-        setParticipantCount(dataArray.length);
+
+        callMemberArray.splice(indexForOwnData, 0, member);
+
+        setCombinedArray(callMemberArray);
+        setParticipantCount(callMemberArray.length);
     };
 
     useEffect(() => {}, [screenShare]);
+    useEffect(() => {}, [gridSize]);
 
     const [participants, setParticipants] = React.useState<Array<Participant>>(null);
     const [cameraEnabled, setCameraEnabled] = React.useState<boolean>(
@@ -134,7 +161,8 @@ function ConferenceCallView() {
     const [selectedCamera, setSelectedCamera] = React.useState<MediaDeviceInfo>(null);
     const [selectedMicrophone, setSelectedMicrophone] = React.useState<MediaDeviceInfo>(null);
 
-    var participant: CallMember = {
+    var callMemberArray: CallParticipant[] = [];
+    var me: CallMember = {
         isMe: true,
         displayName: "vedran",
         audioTrack: microphoneProducer?.track,
@@ -142,7 +170,7 @@ function ConferenceCallView() {
         muteAudio: false,
         muteVideo: false,
     };
-    var member: CallParticipant = { participant: participant };
+    var member: CallParticipant = { participant: me };
     const dataArray: CallParticipant[] = [member];
     const [combinedArray, setCombinedArray] = React.useState<CallParticipant[]>(dataArray);
     const [videoDevices, setVideoDevices] = React.useState<MediaDeviceInfo[]>(null);
@@ -232,6 +260,7 @@ function ConferenceCallView() {
                             participants,
                             ([key, val]) => val
                         );
+                        convertParticipantToCallMember(participantsAry);
                         setParticipants(participantsAry);
                     },
                     onMicrophoneStateChanged: (state) => {
@@ -270,12 +299,11 @@ function ConferenceCallView() {
 
         // save roomid
         localStorage.setItem(Constants.LSKEY_LASTROOM, roomId);
-        calculateLayoutByParticipantNumber();
     }, []);
 
     useEffect(() => {
         if (!participants) return;
-
+        // console.log("Number of participants:" + participants.length);
         const participantCount = participants.length;
         if (participantCount <= 1) setPeerContainerClass("type1");
         else if (participantCount <= 3) setPeerContainerClass("type2");
@@ -292,7 +320,6 @@ function ConferenceCallView() {
             console.log("going to disable screenshare");
             spikabroadcastClient.toggleScreenShare();
         }
-
         setScreenShareMode(newScreenShareMode);
     }, [participants]);
 
