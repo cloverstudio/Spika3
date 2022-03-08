@@ -112,4 +112,6 @@ uploads
 test/upload
 test-uploads
 server/certificates
+docker
+tmp
 

@@ -363,15 +363,19 @@ paths:
                 - name: "avatarUrl"
                   in: body
                   schema:
-                      type: string
+                      type: array
                 - name: "userIds"
                   in: body
                   schema:
-                      type: string
+                      type: array
                 - name: "adminUserIds"
                   in: body
                   schema:
                       type: array
+                - name: "type"
+                  in: body
+                  schema:
+                      type: string
 
             responses:
                 "200":
@@ -597,7 +601,12 @@ paths:
                   in: body
                   required: true
                   schema:
-                      type: string
+                      type: object
+                      properties:
+                          type:
+                              type: string
+                          text:
+                              type: string
 
             responses:
                 "200":
@@ -773,6 +782,33 @@ paths:
                   in: body
                   schema:
                       type: string
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: object
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    user:
+                                        type: "object"
+                                        $ref: "#/definitions/User"
+                "400":
+                    description: "invalid param"
+    /messenger/user/{id}:
+        get:
+            tags:
+                - "User"
+            summary: "Get use detail"
+            description: "Returns user model"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
             responses:
                 "200":
                     description: "successful operation"
@@ -972,4 +1008,4 @@ definitions:
 
 externalDocs:
     description: "Find out more about Swagger"
-    url: "http://swagger.io"
+    url: "http://swagger.io/terms/"

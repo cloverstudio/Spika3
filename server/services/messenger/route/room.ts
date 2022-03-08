@@ -386,6 +386,12 @@ export default (): Router => {
         try {
             const userId = parseInt((req.params.userId as string) || "");
 
+            const user = await prisma.user.findFirst({ where: { id: userId } });
+
+            if (!user) {
+                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+            }
+
             const room = await prisma.room.findFirst({
                 where: {
                     type: "private",
@@ -402,7 +408,7 @@ export default (): Router => {
                 },
             });
 
-            if (!room) {
+            if (!room || room.users.length < 2) {
                 return res.status(404).send(errorResponse("Room not found", userReq.lang));
             }
 

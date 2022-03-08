@@ -141,6 +141,23 @@ const CountryPicker = (props: any) => {
                             placeholder="Eg. 98334234"
                             InputProps={{
                                 classes: { notchedOutline: classes.noBorder },
+                                type: "number",
+                            }}
+                            sx={{
+                                input: {
+                                    "&::-webkit-outer-spin-button": {
+                                        margin: "0",
+                                        WebkitAppearance: "none",
+                                    },
+                                    "&::-webkit-inner-spin-button": {
+                                        margin: "0",
+                                        WebkitAppearance: "none",
+                                    },
+                                    "&[type=number]": {
+                                        margin: "0",
+                                        WebkitAppearance: "textfield",
+                                    },
+                                },
                             }}
                             onChange={handlePhoneNumber}
                         />
