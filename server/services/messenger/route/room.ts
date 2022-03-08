@@ -127,7 +127,10 @@ export default (): Router => {
             const id = parseInt((req.params.id as string) || "");
             const { userIds, adminUserIds, name, avatarUrl } = req.body;
 
-            const room = await prisma.room.findFirst({ where: { id }, include: { users: true } });
+            const room = await prisma.room.findFirst({
+                where: { id, deleted: false },
+                include: { users: true },
+            });
             if (!room) {
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
@@ -335,6 +338,7 @@ export default (): Router => {
                             userId: userReq.user.id,
                         },
                     },
+                    deleted: false,
                 },
                 include: {
                     users: {
@@ -395,6 +399,7 @@ export default (): Router => {
             const room = await prisma.room.findFirst({
                 where: {
                     type: "private",
+                    deleted: false,
                     users: {
                         every: { userId: { in: [userId, userReq.user.id] } },
                     },
@@ -433,6 +438,7 @@ export default (): Router => {
                             userId: userReq.user.id,
                         },
                     },
+                    deleted: false,
                 },
                 include: {
                     users: {
