@@ -14,7 +14,7 @@ import { requestForToken } from "../firebaseInit";
 import { useGetDeviceQuery, useUpdateDeviceMutation } from "../api/device";
 import { useDispatch } from "react-redux";
 import { addMessage } from "../features/chat/slice/chatSlice";
-import { setRoomLastMessage } from "../features/chat/slice/roomSlice";
+import roomApi from "../features/chat/api/room";
 
 import { SnackbarState, SnackbarTypes } from "../types/UI";
 declare const API_BASE_URL: string;
@@ -149,8 +149,8 @@ export default function AuthBase({ children }: Props): React.ReactElement {
             source.onmessage = function (event) {
                 const data = JSON.parse(event.data || {});
                 if (data && data.message) {
+                    dispatch(roomApi.endpoints.getHistory.initiate(1));
                     dispatch(addMessage(data.message));
-                    dispatch(setRoomLastMessage(data.message));
                 }
             };
         }

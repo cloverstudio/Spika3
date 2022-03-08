@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Avatar, Box, Input, Typography } from "@mui/material";
+import { Avatar, Box, Input, Typography, useMediaQuery } from "@mui/material";
 import { Call, Search, Videocam } from "@mui/icons-material";
+import { useTheme } from "@mui/material/styles";
 import CheckIcon from "@mui/icons-material/Check";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 
 import { useGetRoomQuery } from "./api/room";
 import { useGetMessagesByRoomIdQuery, useSendMessageMutation } from "./api/message";
@@ -15,6 +17,7 @@ import Loader from "../../components/Loader";
 
 import formatRoomInfo from "./lib/formatRoomInfo";
 import useIsInViewport from "../../hooks/useIsInViewport";
+import { setLeftSidebar } from "./slice/sidebarSlice";
 
 export default function Chat(): React.ReactElement {
     const roomId = +useParams().id;
@@ -22,6 +25,9 @@ export default function Chat(): React.ReactElement {
     const dispatch = useDispatch();
     const [sendMessage] = useSendMessageMutation();
     const { data, isLoading } = useGetRoomQuery(roomId);
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
     const room = data?.room;
 
     const onSend = (message: string) => {
@@ -44,8 +50,20 @@ export default function Chat(): React.ReactElement {
         return null;
     }
 
+    const mobileProps = {
+        position: "absolute" as const,
+        bottom: "0",
+        top: "0",
+        left: "0",
+        right: "0",
+    };
+
+    const desktopProps = {
+        height: "100vh",
+    };
+
     return (
-        <Box display="flex" flexDirection="column" height="100vh">
+        <Box display="flex" flexDirection="column" sx={isMobile ? mobileProps : desktopProps}>
             <ChatHeader {...formatRoomInfo(room, user.id)} />
             <ChatMessages roomId={roomId} />
             <ChatInput handleSend={onSend} />
@@ -59,10 +77,21 @@ type ChatHeaderProps = {
 };
 
 function ChatHeader({ name, avatarUrl }: ChatHeaderProps): React.ReactElement {
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+    const dispatch = useDispatch();
+
     return (
         <Box px={2} borderBottom="0.5px solid #C9C9CA">
             <Box display="flex" justifyContent="space-between" height="80px">
                 <Box display="flex" alignItems="center">
+                    {isMobile && (
+                        <ChevronLeftIcon
+                            sx={{ mr: 0.5 }}
+                            onClick={() => dispatch(setLeftSidebar(true))}
+                            fontSize="large"
+                        />
+                    )}
                     <Avatar alt={name} src={avatarUrl} />
 
                     <Typography fontWeight="500" fontSize="1rem" ml={1.5}>
@@ -109,19 +138,64 @@ type ChatMessagesProps = {
 
 function ChatMessages({ roomId }: ChatMessagesProps): React.ReactElement {
     const user = useSelector(selectUser);
+    const ref = useRef<HTMLBaseElement>();
     const { messages, count } = useSelector(selectRoomMessages(roomId));
     const [page, setPage] = useState(1);
+    const [scrollTop, setScrollTop] = useState(null);
+    const [scrollListenerSet, setScrollListener] = useState(false);
+    const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
     const { isFetching } = useGetMessagesByRoomIdQuery({ roomId, page });
-
     const hasMoreContactsToLoad = count > messages.length;
 
     const { isInViewPort, elementRef } = useIsInViewport();
 
     useEffect(() => {
-        if (isInViewPort && !isFetching && hasMoreContactsToLoad) {
+        if (scrollListenerSet && isInViewPort && !isFetching && hasMoreContactsToLoad) {
             setPage((page) => page + 1);
+            if (shouldAutoScroll) {
+                const elem = ref.current;
+                elem.scroll({
+                    top: elem.scrollHeight,
+                });
+            }
         }
-    }, [isInViewPort, isFetching, hasMoreContactsToLoad]);
+    }, [isInViewPort, isFetching, hasMoreContactsToLoad, scrollListenerSet, shouldAutoScroll]);
+
+    useEffect(() => {
+        const handleScroll = (e: HTMLBaseElement) => {
+            setScrollTop((scrollTop: any) => {
+                if (e.scrollTop < scrollTop) {
+                    setShouldAutoScroll(false);
+                }
+
+                if (e.offsetHeight + e.scrollTop === e.scrollHeight) {
+                    setShouldAutoScroll(true);
+                }
+
+                return e.scrollTop;
+            });
+        };
+
+        if (ref && ref.current && !scrollListenerSet) {
+            const elem = ref.current;
+
+            elem.addEventListener("scroll", () => handleScroll(elem));
+            setScrollListener(true);
+            return () => {
+                elem.removeEventListener("scroll", () => handleScroll(elem));
+            };
+        }
+    }, [scrollTop, scrollListenerSet]);
+
+    useEffect(() => {
+        const elem = ref.current;
+        if (messages.length && shouldAutoScroll && scrollListenerSet && ref && ref.current) {
+            elem.scroll({
+                top: elem.scrollHeight,
+                behavior: "smooth",
+            });
+        }
+    }, [messages.length, shouldAutoScroll, scrollListenerSet]);
 
     useEffect(() => {
         return () => {
@@ -137,7 +211,7 @@ function ChatMessages({ roomId }: ChatMessagesProps): React.ReactElement {
             justifyContent="end"
             sx={{ overflowY: "hidden" }}
         >
-            <Box px={4} sx={{ overflowY: "auto" }}>
+            <Box px={4} sx={{ overflowY: "auto" }} ref={ref}>
                 <div ref={elementRef} />
                 {messages
                     .sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))

@@ -19,6 +19,7 @@ const prisma = new PrismaClient();
 import { error as le } from "../../../components/logger";
 import * as yup from "yup";
 import validate from "../../../components/validateMiddleware";
+import sanitize from "../../../components/sanitize";
 
 const postFilesSchema = yup.object().shape({
     body: yup.object().shape({
@@ -123,7 +124,9 @@ export default (): Router => {
                 },
             });
 
-            res.send(successResponse({ uploadedChunks, file }, userReq.lang));
+            res.send(
+                successResponse({ uploadedChunks, file: sanitize(file).file() }, userReq.lang)
+            );
 
             try {
                 for (const fileName of await readDir(tempFileDir)) {

@@ -14,19 +14,20 @@ interface RoomState {
 export const roomSlice = createSlice({
     name: <string>"room",
     initialState: <RoomState>{ list: [], count: null },
-    reducers: {
-        setRoomLastMessage: (state, { payload }: { payload: MessageType }) => {
-            const index = state.list.findIndex((r) => r.id === payload.roomId);
-
-            state.list.splice(index, 1, { ...state.list[index], lastMessage: payload });
-        },
-    },
+    reducers: {},
     extraReducers: (builder) => {
         builder.addMatcher(roomApi.endpoints.getHistory.matchFulfilled, (state, { payload }) => {
             const roomsIds = state.list.map((r) => r.id);
             const notAdded = payload.list.filter((u) => !roomsIds.includes(u.id));
+            const list = state.list.map((room) => {
+                const id = room.id;
 
-            state.list = [...state.list, ...notAdded];
+                const newRoomInfo = payload.list.find((nr) => nr.id === id);
+
+                return newRoomInfo || room;
+            });
+
+            state.list = [...list, ...notAdded];
             state.count = payload.count;
         });
         builder.addMatcher(
@@ -53,8 +54,6 @@ export const roomSlice = createSlice({
         });
     },
 });
-
-export const { setRoomLastMessage } = roomSlice.actions;
 
 export const selectRoomById =
     (id: number) =>

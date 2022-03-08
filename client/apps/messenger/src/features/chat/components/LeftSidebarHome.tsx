@@ -9,6 +9,8 @@ import {
     AccountCircle as ContactIcon,
 } from "@mui/icons-material";
 import { OverridableComponent } from "@mui/material/OverridableComponent";
+import { useTheme } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 import { selectActiveTab, setActiveTab } from "../slice/sidebarSlice";
 
@@ -43,6 +45,9 @@ export default function LeftSidebarHome({
     const dispatch = useDispatch();
     const activeTab = useSelector(selectActiveTab);
     const user = useSelector(selectUser);
+    const theme = useTheme();
+
+    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
     const handleChangeTab = (value: "call" | "chat" | "contact"): void => {
         dispatch(setActiveTab(value));
@@ -72,7 +77,7 @@ export default function LeftSidebarHome({
                     </Box>
                 </Box>
             </Box>
-            <Box px={5} pt={2} pb={3}>
+            <Box order={isMobile ? 2 : 0} px={5} pt={2} mb={3}>
                 <Box display="flex" justifyContent="space-between">
                     {navigation.map((item) => (
                         <ActionIcon
@@ -84,8 +89,12 @@ export default function LeftSidebarHome({
                     ))}
                 </Box>
             </Box>
-            <SearchBox />
-            <ActiveElement />
+            <Box mt={3}>
+                <SearchBox />
+            </Box>
+            <Box flex={1}>
+                <ActiveElement />
+            </Box>
         </LeftSidebarLayout>
     );
 }
