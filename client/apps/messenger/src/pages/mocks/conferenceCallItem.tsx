@@ -23,7 +23,6 @@ export default ({ participant, myVideo, myAudio }: Props) => {
     const [videoMute, setVideoMute] = useState<boolean>(participant.muteAudio);
 
     useEffect(() => {
-        console.log("Tu udje");
         if (participant.audioTrack || myAudio) {
             const stream = new MediaStream();
             stream.addTrack(participant.isMe ? myAudio.track : participant.audioTrack);
@@ -107,6 +106,7 @@ export default ({ participant, myVideo, myAudio }: Props) => {
         setVideoMute(!videoMute);
     };
     const handleMic = () => {
+        console.log("ovdje udje");
         setAudioMute(!audioMute);
     };
 
@@ -196,7 +196,7 @@ export default ({ participant, myVideo, myAudio }: Props) => {
                     >
                         <Typography color="white">{participant.displayName}</Typography>
                     </Box>
-                    {participant.isMe ? (
+                    {/* {participant.isMe ? (
                         <Box
                             sx={{
                                 bottom: 0,
@@ -243,7 +243,7 @@ export default ({ participant, myVideo, myAudio }: Props) => {
                         </Box>
                     ) : (
                         <Box></Box>
-                    )}
+                    )} */}
                 </Box>
             </Box>
         </Box>
