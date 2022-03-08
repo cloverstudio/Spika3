@@ -1,5 +1,5 @@
 import React from "react";
-import { useHistory } from "react-router-dom";
+
 import {
     ListSubheader,
     List,
@@ -20,8 +20,6 @@ const theme = createTheme({
 });
 
 export default function () {
-    let history = useHistory();
-
     return (
         <ThemeProvider theme={theme}>
             <Container component="main" maxWidth="xs">
