@@ -71,7 +71,7 @@ services:
                 npx prisma generate
                 npm run start:server
         volumes:
-            - ".:/app"
+            - "./uploads:/app/uploads"
         ports:
             - 3000:3000
 volumes:
