@@ -5,16 +5,19 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN apt-get update
 RUN apt-get upgrade -y
 RUN apt-get install software-properties-common curl build-essential python3-pip git -y
-RUN curl -sL  https://deb.nodesource.com/setup_14.x  | bash
+RUN curl -sL  https://deb.nodesource.com/setup_12.x  | bash
 RUN apt-get install nodejs -y
 
 WORKDIR /app
 
-RUN ls
-RUN npm install
-RUN npx prisma migrate deploy
+COPY . ./
+
+RUN npm install 
+RUN npm install prisma -g 
+RUN npm install typescript ts-node -g
+
 RUN npx prisma generate
 RUN npm run build:messenger
 RUN npm run build:management
 
-CMD [ "npm", "run", "start:server" ]
+CMD ["npm","run","start:server"]
