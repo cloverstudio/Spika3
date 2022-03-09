@@ -3,21 +3,26 @@ import supertest from "supertest";
 import app from "../server";
 import globals from "./global";
 import createFakeRoom from "./fixtures/room";
-import { beforeEach } from "mocha";
+import { beforeEach, before } from "mocha";
 import createFakeUser, { createManyFakeUsers } from "./fixtures/user";
-import { RoomUser, Room } from ".prisma/client";
+import { RoomUser, Room, User } from ".prisma/client";
 import sanitize from "../server/components/sanitize";
 
 describe("API", () => {
     describe("/api/messenger/rooms POST", () => {
         let validParams: any = {};
+        let users: User[];
+
+        before(async () => {
+            users = await createManyFakeUsers(4);
+        });
 
         beforeEach(() => {
             validParams = {
                 name: "string",
                 type: "type",
-                userIds: [1, 2, 3],
-                adminUserIds: [1, 2, 3],
+                userIds: [users.map((u) => u.id)],
+                adminUserIds: [users.map((u) => u.id)],
                 avatarUrl: "/url/avatar",
             };
         });
@@ -57,7 +62,7 @@ describe("API", () => {
             const responseValid = await supertest(app)
                 .post("/api/messenger/rooms")
                 .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, userIds: [1] });
+                .send({ ...validParams, userIds: [globals.userId] });
             expect(response.status).to.eqls(200);
             expect(responseInvalidNotArray.status).to.eqls(400);
             expect(responseValid.status).to.eqls(200);
@@ -77,7 +82,28 @@ describe("API", () => {
             const responseValid = await supertest(app)
                 .post("/api/messenger/rooms")
                 .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, userIds: [1] });
+                .send({ ...validParams, userIds: [globals.userId] });
+
+            expect(responseInvalid.status).to.eqls(400);
+            expect(responseInvalidTwo.status).to.eqls(400);
+            expect(responseValid.status).to.eqls(200);
+        });
+
+        it("Requires userIds array to contain valid user ids", async () => {
+            const responseInvalid = await supertest(app)
+                .post("/api/messenger/rooms")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, userIds: [525651651515] });
+
+            const responseInvalidTwo = await supertest(app)
+                .post("/api/messenger/rooms")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, userIds: [525651651515, globals.userId] });
+
+            const responseValid = await supertest(app)
+                .post("/api/messenger/rooms")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, userIds: [globals.userId] });
 
             expect(responseInvalid.status).to.eqls(400);
             expect(responseInvalidTwo.status).to.eqls(400);
@@ -98,7 +124,7 @@ describe("API", () => {
             const responseValid = await supertest(app)
                 .post("/api/messenger/rooms")
                 .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, adminUserIds: [1] });
+                .send({ ...validParams, adminUserIds: [globals.userId] });
 
             expect(response.status).to.eqls(200);
             expect(responseInvalidNotArray.status).to.eqls(400);
@@ -119,7 +145,28 @@ describe("API", () => {
             const responseValid = await supertest(app)
                 .post("/api/messenger/rooms")
                 .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, adminUserIds: [1] });
+                .send({ ...validParams, adminUserIds: [globals.userId] });
+
+            expect(responseInvalid.status).to.eqls(400);
+            expect(responseInvalidTwo.status).to.eqls(400);
+            expect(responseValid.status).to.eqls(200);
+        });
+
+        it("Requires adminUserIds array to contain valid user ids", async () => {
+            const responseInvalid = await supertest(app)
+                .post("/api/messenger/rooms")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, adminUserIds: [525651651515] });
+
+            const responseInvalidTwo = await supertest(app)
+                .post("/api/messenger/rooms")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, adminUserIds: [525651651515, globals.userId] });
+
+            const responseValid = await supertest(app)
+                .post("/api/messenger/rooms")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, adminUserIds: [globals.userId] });
 
             expect(responseInvalid.status).to.eqls(400);
             expect(responseInvalidTwo.status).to.eqls(400);
@@ -182,20 +229,6 @@ describe("API", () => {
             expect(roomFromRes.name).to.eqls(name);
         });
 
-        it("sets name to 'Private room' when only one user", async () => {
-            const response = await supertest(app)
-                .post("/api/messenger/rooms")
-                .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, name: undefined, userIds: [], adminUserIds: [] });
-
-            expect(response.status).to.eqls(200);
-            expect(response.body).to.has.property("data");
-            expect(response.body.data).to.has.property("room");
-
-            const roomFromRes = response.body.data.room;
-            expect(roomFromRes.name).to.eqls("Private room");
-        });
-
         it("sets name to empty string when only two users", async () => {
             const user = await createFakeUser();
 
@@ -233,33 +266,11 @@ describe("API", () => {
             expect(roomFromRes.name).to.eqls("United room");
         });
 
-        it("ignores users that doesn't exist", async () => {
-            const userIds = [99999, 8585588];
-            const adminUserIds = [991999, 85785588];
-
-            const responseWithFakeUsers = await supertest(app)
-                .post("/api/messenger/rooms")
-                .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, userIds, adminUserIds });
-
-            expect(responseWithFakeUsers.status).to.eqls(200);
-            expect(responseWithFakeUsers.body).to.has.property("data");
-            expect(responseWithFakeUsers.body.data).to.has.property("room");
-
-            const roomFromRes = responseWithFakeUsers.body.data.room;
-            expect(roomFromRes.users).to.be.an("array");
-            expect(
-                roomFromRes.users.some((u: { id: number }) =>
-                    [...userIds, ...adminUserIds].includes(u.id)
-                )
-            ).to.eqls(false);
-        });
-
         it("adds user as admin", async () => {
             const responseWithFakeUsers = await supertest(app)
                 .post("/api/messenger/rooms")
                 .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, userIds: [], adminUserIds: [] });
+                .send({ ...validParams, userIds: [users[1].id], adminUserIds: [] });
 
             expect(responseWithFakeUsers.status).to.eqls(200);
             expect(responseWithFakeUsers.body).to.has.property("data");
@@ -291,26 +302,16 @@ describe("API", () => {
         });
 
         it("sets type as private when appropriate", async () => {
+            const user = await createFakeUser();
             const responseOne = await supertest(app)
                 .post("/api/messenger/rooms")
                 .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, type: undefined, userIds: [] });
+                .send({ ...validParams, type: undefined, userIds: [user.id], adminUserIds: [] });
 
             expect(responseOne.status).to.eqls(200);
             expect(responseOne.body).to.has.property("data");
             expect(responseOne.body.data).to.has.property("room");
             expect(responseOne.body.data.room.type).to.eqls("private");
-
-            const user = await createFakeUser();
-            const responseTwo = await supertest(app)
-                .post("/api/messenger/rooms")
-                .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, type: undefined, userIds: [user.id] });
-
-            expect(responseTwo.status).to.eqls(200);
-            expect(responseTwo.body).to.has.property("data");
-            expect(responseTwo.body.data).to.has.property("room");
-            expect(responseTwo.body.data.room.type).to.eqls("private");
 
             const type = "defined";
             const responseThree = await supertest(app)
