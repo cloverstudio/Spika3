@@ -102,7 +102,9 @@ export default (): Router => {
             }));
 
             if (users.length < 2) {
-                return res.status(400).send(errorResponse("", userReq.lang));
+                return res
+                    .status(400)
+                    .send(errorResponse("Can't creat room with only one user", userReq.lang));
             }
 
             const type = userDefinedType || (users.length < 3 ? "private" : "group");
