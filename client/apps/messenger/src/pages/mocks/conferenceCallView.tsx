@@ -46,6 +46,7 @@ function ConferenceCallView() {
     const [cameraOff, setCameraOff] = React.useState<boolean>(false);
     const [screenShare, setScreenShare] = React.useState<boolean>(false);
     const handleCamera = () => {
+        spikabroadcastClient.toggleCamera();
         setCameraOff(!cameraOff);
     };
     const chooseVideoOutput = async () => {
@@ -53,6 +54,7 @@ function ConferenceCallView() {
         setOpenModal(true);
     };
     const handleMic = () => {
+        spikabroadcastClient.toggleMicrophone();
         setMute(!mute);
     };
     const chooseAudioOutput = async () => {
@@ -167,8 +169,8 @@ function ConferenceCallView() {
         displayName: "vedran",
         audioTrack: microphoneProducer?.track,
         videoTrack: webcamProducer?.track,
-        muteAudio: false,
-        muteVideo: false,
+        muteAudio: true,
+        muteVideo: true,
     };
     var member: CallParticipant = { participant: me };
     const dataArray: CallParticipant[] = [member];
@@ -373,9 +375,9 @@ function ConferenceCallView() {
                                 <Box width="100%" height="91vh" position="relative">
                                     <Box width="100%" height="100%">
                                         <ConferenceCallItem
-                                            participant={combinedArray[0].participant}
-                                            myVideo={webcamProducer}
-                                            myAudio={microphoneProducer}
+                                            participant={combinedArray[1].participant}
+                                            myVideo={null}
+                                            myAudio={null}
                                         />
                                     </Box>
                                     <Box
@@ -386,9 +388,9 @@ function ConferenceCallView() {
                                         left="0"
                                     >
                                         <ConferenceCallItem
-                                            participant={combinedArray[1].participant}
-                                            myVideo={null}
-                                            myAudio={null}
+                                            participant={combinedArray[0].participant}
+                                            myVideo={webcamProducer}
+                                            myAudio={microphoneProducer}
                                         />
                                     </Box>
                                 </Box>

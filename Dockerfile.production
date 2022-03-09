@@ -7,8 +7,17 @@ RUN apt-get upgrade -y
 RUN apt-get install software-properties-common curl build-essential python3-pip git -y
 RUN curl -sL  https://deb.nodesource.com/setup_12.x  | bash
 RUN apt-get install nodejs -y
-RUN mkdir /app
 
 WORKDIR /app
 
-RUN pwd 
+COPY . ./
+
+RUN npm install 
+RUN npm install prisma -g 
+RUN npm install typescript ts-node -g
+
+RUN npx prisma generate
+RUN npm run build:messenger
+RUN npm run build:management
+
+CMD ["npm","run","start:server"]

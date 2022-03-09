@@ -115,11 +115,11 @@ const app: express.Express = express();
         res.send("test");
     });
 
-    app.all("/messenger/*", function (req, res) {
+    app.all("/messenger/*", (req: express.Request, res: express.Response) => {
         res.sendFile(path.join(__dirname, "..", "public", "messenger/index.html"));
     });
 
-    app.all("/management/*", function (req, res) {
+    app.all("/management/*", (req: express.Request, res: express.Response) => {
         res.sendFile(path.join(__dirname, "..", "public", "management/index.html"));
     });
 
