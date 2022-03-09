@@ -12,6 +12,12 @@ WORKDIR /app
 
 COPY . ./
 
+RUN echo 'Build environment----------------------------------'
+RUN ls -la
+RUN echo '---------------------------------------------------'
+RUN cat .env
+RUN echo '---------------------------------------------------'
+
 RUN npm install 
 RUN npm install prisma -g 
 RUN npm install typescript ts-node -g
