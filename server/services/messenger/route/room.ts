@@ -58,16 +58,56 @@ export default (): Router => {
                 adminUserIds.push(userReq.user.id);
             }
 
+            if (!userIds.includes(userReq.user.id)) {
+                userIds.push(userReq.user.id);
+            }
+
             const foundUsers = await prisma.user.findMany({
                 where: { id: { in: [...userIds, ...adminUserIds] } },
             });
+
+            const notAddedUsers = userIds.filter(
+                (id: number) => !foundUsers.map((fu) => fu.id).includes(id)
+            );
+
+            if (notAddedUsers.length) {
+                return res
+                    .status(400)
+                    .send(
+                        errorResponse(
+                            `Users doesn't exist, ids: ${notAddedUsers.join(",")}`,
+                            userReq.lang
+                        )
+                    );
+            }
+
+            const notAddedAdminUsers = adminUserIds.filter(
+                (id: number) => !foundUsers.map((fu) => fu.id).includes(id)
+            );
+
+            if (notAddedAdminUsers.length) {
+                return res
+                    .status(400)
+                    .send(
+                        errorResponse(
+                            `Admin users doesn't exist, ids: ${notAddedAdminUsers.join(",")}`,
+                            userReq.lang
+                        )
+                    );
+            }
 
             const users = foundUsers.map((user) => ({
                 userId: user.id,
                 isAdmin: adminUserIds.includes(user.id) || false,
             }));
 
-            const type = userDefinedType || (userIds.length < 3 ? "private" : "group");
+            if (users.length < 2) {
+                return res
+                    .status(400)
+                    .send(errorResponse("Can't creat room with only one user", userReq.lang));
+            }
+
+            const type = userDefinedType || (users.length < 3 ? "private" : "group");
             const name = getRoomName(userDefinedName, users.length);
 
             if (users.length === 2 && type === "private") {
@@ -77,6 +117,7 @@ export default (): Router => {
                             every: { userId: { in: users.map((u) => u.userId) } },
                         },
                         type,
+                        deleted: false,
                     },
                     include: {
                         users: true,

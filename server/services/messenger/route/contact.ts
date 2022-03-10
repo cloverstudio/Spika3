@@ -129,7 +129,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         }
     });
 
-    if (process.env["TEAM_MODE"]) {
+    if (+process.env["TEAM_MODE"]) {
         router.get(
             "/all",
             auth,
