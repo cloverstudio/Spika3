@@ -20,7 +20,7 @@ export default (): Router => {
 
             let user: User;
 
-            if (process.env["TEAM_MODE"]) {
+            if (+process.env["TEAM_MODE"]) {
                 user = await prisma.user.findFirst({
                     where: {
                         id,
