@@ -35,7 +35,7 @@ interface ModalState {
 
 function ConferenceCallView() {
     const [open, setOpen] = React.useState(false);
-    const [participantCount, setParticipantCount] = React.useState<number>(0);
+    const [myIndes, setMyIndex] = React.useState<number>(0);
     const [gridSize, setGridSize] = React.useState<GridSize>(6);
     const [audioDevices, setAudioDevices] = React.useState<MediaDeviceInfo[]>(null);
     const [selectedVideoDevice, setSelectedVideoDevice] = React.useState<MediaDeviceInfo>(null);
@@ -132,7 +132,7 @@ function ConferenceCallView() {
         callMemberArray.splice(indexForOwnData, 0, member);
 
         setCombinedArray(callMemberArray);
-        setParticipantCount(callMemberArray.length);
+        setMyIndex(indexForOwnData);
     };
 
     useEffect(() => {}, [screenShare]);
@@ -344,8 +344,13 @@ function ConferenceCallView() {
                         Screen share
                     </Box>
                     <Box width="20vw" height="91vh" my={1} display="flex" justifyContent="center">
-                        <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 1, md: 1 }}>
-                            {combinedArray.map((row) => (
+                        <Grid
+                            container
+                            sx={{ padding: "1em" }}
+                            rowSpacing={1}
+                            columnSpacing={{ xs: 1, sm: 1, md: 1 }}
+                        >
+                            {combinedArray.map((row, index) => (
                                 <Grid item xs={gridSize} lg={gridSize} xl={gridSize}>
                                     <ConferenceCallItem
                                         participant={row.participant}
@@ -404,7 +409,12 @@ function ConferenceCallView() {
                             display="flex"
                             justifyContent="center"
                         >
-                            <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 1, md: 1 }}>
+                            <Grid
+                                container
+                                sx={{ padding: "1em" }}
+                                rowSpacing={1}
+                                columnSpacing={{ xs: 1, sm: 1, md: 1 }}
+                            >
                                 {combinedArray.map((row) => (
                                     <Grid item xs={gridSize} lg={gridSize} xl={gridSize}>
                                         <ConferenceCallItem

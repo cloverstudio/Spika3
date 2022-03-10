@@ -129,6 +129,12 @@ export default ({ participant, myVideo, myAudio }: Props) => {
         >
             {videoElm ? (
                 <video
+                    style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
+                        borderRadius: "1em",
+                    }}
                     ref={videoElm}
                     autoPlay
                     playsInline
@@ -145,6 +151,7 @@ export default ({ participant, myVideo, myAudio }: Props) => {
                 playsInline
                 controls={false}
                 muted={participant.muteAudio}
+                style={{ width: "100%", height: "100%", objectFit: "contain", borderRadius: "1em" }}
             />
             {!participant.isMe && false ? <div className="consumer-info"></div> : null}
             {/* <Typography color="white">{participant.displayName}</Typography> */}
