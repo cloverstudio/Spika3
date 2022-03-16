@@ -1,7 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { useSignUpMutation, useVerifyMutation, useUpdateMutation } from "./api/auth";
+import {
+    useSignUpMutation,
+    useVerifyMutation,
+    useUpdateMutation,
+    useGetUserQuery,
+} from "./api/auth";
 
 import AuthLayout from "./components/AuthLayout";
 import VerificationCodeForm from "./components/VerificationCodeForm";
@@ -11,11 +16,14 @@ import UpdateUserForm from "./components/UpdateUserForm";
 import useDeviceId from "./hooks/useDeviceId";
 import { sha256 } from "../../../../../lib/utils";
 import useCountdownTimer from "./hooks/useCountdownTimer";
+import uploadFile from "../../utils/uploadFile";
 
 export default function Auth(): React.ReactElement {
     const navigate = useNavigate();
     const deviceId = useDeviceId();
     const [step, setStep] = useState(0);
+    const [loading, setLoading] = useState(false);
+    const { data: userData } = useGetUserQuery();
     const [signUp, signUpMutation] = useSignUpMutation();
     const [verify, verifyMutation] = useVerifyMutation();
     const [update, updateMutation] = useUpdateMutation();
@@ -55,17 +63,28 @@ export default function Auth(): React.ReactElement {
         }
     };
 
-    const handleSetUsername = async (username: string) => {
+    const handleUpdateUser = async ({ username, file }: { username: string; file: File }) => {
         try {
-            await update({ displayName: username }).unwrap();
+            setLoading(true);
+            const uploadedFile = await uploadFile({
+                file,
+                type: "avatar",
+                relationId: userData.user?.id,
+            });
+
+            await update({ displayName: username, avatarUrl: uploadedFile.path }).unwrap();
+            setLoading(false);
+
             navigate("/app");
         } catch (error) {
+            setLoading(false);
+
             console.error("Update failed ", error);
         }
     };
 
     return (
-        <AuthLayout loading={signUpMutation.isLoading || verifyMutation.isLoading}>
+        <AuthLayout loading={signUpMutation.isLoading || verifyMutation.isLoading || loading}>
             {step === 0 && <TelephoneNumberForm onSubmit={handleSignUp} />}
 
             {step === 1 && (
@@ -79,7 +98,7 @@ export default function Auth(): React.ReactElement {
             )}
 
             {step === 2 && (
-                <UpdateUserForm onSubmit={handleSetUsername} error={updateMutation.error as any} />
+                <UpdateUserForm onSubmit={handleUpdateUser} error={updateMutation.error as any} />
             )}
         </AuthLayout>
     );
