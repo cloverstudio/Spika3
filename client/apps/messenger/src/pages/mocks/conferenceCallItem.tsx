@@ -203,7 +203,7 @@ export default ({ participant, myVideo, myAudio }: Props) => {
                     >
                         <Typography color="white">{participant.displayName}</Typography>
                     </Box>
-                    {/* {participant.isMe ? (
+                    {!participant.isMe ? (
                         <Box
                             sx={{
                                 bottom: 0,
@@ -229,28 +229,24 @@ export default ({ participant, myVideo, myAudio }: Props) => {
                                 }}
                             >
                                 <Tooltip title="No Video">
-                                    <IconButton sx={{ padding: 0 }} onClick={handleCamera}>
-                                        {participant.muteVideo ? (
-                                            <VideocamOff style={{ fill: "white" }} />
-                                        ) : (
-                                            <Videocam style={{ fill: "white" }} />
-                                        )}
-                                    </IconButton>
+                                    {participant.muteVideo ? (
+                                        <VideocamOff style={{ fill: "white" }} />
+                                    ) : (
+                                        <Videocam style={{ fill: "white" }} />
+                                    )}
                                 </Tooltip>
                                 <Tooltip title="Mute">
-                                    <IconButton sx={{ padding: 0 }} onClick={handleMic}>
-                                        {participant.muteAudio ? (
-                                            <MicOff style={{ fill: "white" }} />
-                                        ) : (
-                                            <Mic style={{ fill: "white" }} />
-                                        )}
-                                    </IconButton>
+                                    {participant.muteAudio ? (
+                                        <MicOff style={{ fill: "white" }} />
+                                    ) : (
+                                        <Mic style={{ fill: "white" }} />
+                                    )}
                                 </Tooltip>
                             </Stack>
                         </Box>
                     ) : (
                         <Box></Box>
-                    )} */}
+                    )}
                 </Box>
             </Box>
         </Box>

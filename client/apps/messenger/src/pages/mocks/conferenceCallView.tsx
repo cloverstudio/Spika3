@@ -23,6 +23,7 @@ import { useParams } from "react-router-dom";
 import Utils from "../../components/confcalldummy/lib/Utils";
 import dayjs from "dayjs";
 import { CallMember, CallParticipant } from "../mocks/CallMember";
+import ScreenShareView from "../../components/confcalldummy/ScreenShareView";
 
 declare var CONFCALL_HOST: string;
 declare var CONFCALL_PORT: number;
@@ -63,7 +64,9 @@ function ConferenceCallView() {
     };
     const handleGroup = () => {};
     const handleShare = () => {
+        console.log("Change screenShare state");
         setScreenShare(!screenShare);
+        spikabroadcastClient.toggleScreenShare();
     };
 
     const closeConference = () => {};
@@ -79,31 +82,37 @@ function ConferenceCallView() {
 
     const convertParticipantToCallMember = (participants: Participant[]) => {
         callMemberArray = [];
-        participants.forEach((element) => {
-            const audioConsumer = element.consumers.find(
-                (consumer) => consumer.track.kind === "audio"
-            );
-            const videoConsumer = element.consumers.find(
-                (consumer) => consumer.track.kind === "video"
-            );
-            var member: CallParticipant = {
-                participant: {
-                    isMe: false,
-                    displayName: element.displayName,
-                    audioTrack: audioConsumer?.track,
-                    videoTrack: videoConsumer?.track,
-                    muteAudio: false,
-                    muteVideo: false,
-                },
-            };
-            callMemberArray.push(member);
-        });
+        console.log("Sharescreen in spika client convertParticipantToCallMember" + screenShare);
+        if (participants != null) {
+            participants.forEach((element) => {
+                const audioConsumer = element.consumers.find(
+                    (consumer) => consumer.track.kind === "audio"
+                );
+                const videoConsumer = element.consumers.find(
+                    (consumer) => consumer.track.kind === "video"
+                );
+                var member: CallParticipant = {
+                    participant: {
+                        isMe: false,
+                        displayName: element.displayName,
+                        audioTrack: audioConsumer?.track,
+                        videoTrack: videoConsumer?.track,
+                        muteAudio: false,
+                        muteVideo: false,
+                        consumers: element.consumers,
+                    },
+                };
+                callMemberArray.push(member);
+            });
+        }
+
         calculateLayoutByParticipantNumber();
     };
 
     const calculateLayoutByParticipantNumber = () => {
         let numberOfParticipants: number = callMemberArray.length + 1;
-        console.log("Number of participants:" + numberOfParticipants);
+
+        console.log("Sharescreen in spika client calculateLayoutByParticipantNumber" + screenShare);
         var indexForOwnData = 0;
         if (numberOfParticipants > 2 && numberOfParticipants < 5) {
             if (!screenShare) {
@@ -135,7 +144,10 @@ function ConferenceCallView() {
         setMyIndex(indexForOwnData);
     };
 
-    useEffect(() => {}, [screenShare]);
+    useEffect(() => {
+        console.log("Promjeni se screenshare" + screenShare);
+        convertParticipantToCallMember(participants);
+    }, [screenShare]);
     useEffect(() => {}, [gridSize]);
 
     const [participants, setParticipants] = React.useState<Array<Participant>>(null);
@@ -171,6 +183,7 @@ function ConferenceCallView() {
         videoTrack: webcamProducer?.track,
         muteAudio: true,
         muteVideo: true,
+        consumers: null,
     };
     var member: CallParticipant = { participant: me };
     const dataArray: CallParticipant[] = [member];
@@ -262,7 +275,10 @@ function ConferenceCallView() {
                             participants,
                             ([key, val]) => val
                         );
-                        convertParticipantToCallMember(participantsAry);
+                        console.log(
+                            "Sharescreen in spika client onParticipantUpdate" + screenShare
+                        );
+                        // convertParticipantToCallMember(participantsAry);
                         setParticipants(participantsAry);
                     },
                     onMicrophoneStateChanged: (state) => {
@@ -304,32 +320,17 @@ function ConferenceCallView() {
     }, []);
 
     useEffect(() => {
-        if (!participants) return;
-        // console.log("Number of participants:" + participants.length);
-        const participantCount = participants.length;
-        if (participantCount <= 1) setPeerContainerClass("type1");
-        else if (participantCount <= 3) setPeerContainerClass("type2");
-        else if (participantCount <= 5) setPeerContainerClass("type3");
-        else setPeerContainerClass("type4");
-
-        // handle screenshare logic
-        const screenShareparticipant: Participant | undefined = participants.find((participant) =>
-            participant.consumers.find((consumer) => consumer.appData.share)
-        );
-        const newScreenShareMode = screenShareparticipant !== undefined;
-
-        if (screenShareMode !== newScreenShareMode && newScreenShareMode && screenShareEnabled) {
-            console.log("going to disable screenshare");
-            spikabroadcastClient.toggleScreenShare();
+        if (participants?.length) {
+            convertParticipantToCallMember(participants);
         }
-        setScreenShareMode(newScreenShareMode);
-    }, [participants]);
+    }, [participants?.length]);
 
     useEffect(() => {
+        console.log("GridSize:" + gridSize);
         if (spikabroadcastClient) spikabroadcastClient.changeDisplayName(displayName);
         setEditNameEnabled(false);
         localStorage.setItem(Constants.LSKEY_USERNAME, displayName);
-    }, [displayName, webcamProducer]);
+    }, [displayName, webcamProducer, gridSize]);
 
     return (
         <Box sx={{ display: "flex", backgroundColor: "lightgray" }} position="relative">
@@ -341,9 +342,36 @@ function ConferenceCallView() {
                     sx={{ display: "flex", flexDirection: "row", justifyContent: "right" }}
                 >
                     <Box width="80vw" height="91vh" my={1} display="flex" justifyContent="center">
-                        Screen share
+                        {participants
+                            ? participants.map((participant, i) => {
+                                  if (
+                                      participant.consumers.find((consumer) => {
+                                          return consumer.appData.share;
+                                      })
+                                  ) {
+                                      const videoTrackConsumer: mediasoupClient.types.Consumer =
+                                          participant.consumers.find((consumer) => {
+                                              return consumer.appData.share;
+                                          });
+                                      return (
+                                          <ScreenShareView videoTrack={videoTrackConsumer.track} />
+                                      );
+                                  }
+                              })
+                            : null}
+
+                        {screenShareEnabled ? (
+                            <ScreenShareView videoTrack={screenShareProducer.track} />
+                        ) : null}
                     </Box>
-                    <Box width="20vw" height="91vh" my={1} display="flex" justifyContent="center">
+                    <Box
+                        width="20vw"
+                        height="91vh"
+                        my={1}
+                        display="flex"
+                        justifyContent="center"
+                        overflow="auto"
+                    >
                         <Grid
                             container
                             sx={{ padding: "1em" }}
