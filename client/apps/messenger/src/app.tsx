@@ -17,10 +17,12 @@ import AuthPage from "./pages/auth";
 import HomePage from "./pages/home";
 import RoomPage from "./pages/room";
 import Conftest from "./pages/app/confcall";
+import ComponentTest from "./pages/mocks/componentConfCall";
 
 declare const BASE_URL: string;
 
 export default function App(): React.ReactElement {
+    const handleClose = () => {};
     return (
         <>
             <Router basename={BASE_URL}>
@@ -31,7 +33,7 @@ export default function App(): React.ReactElement {
                     <Route path="rooms" element={<HomePage />}>
                         <Route path=":id" element={<RoomPage />} />
                     </Route>
-                  
+
                     <Route path="conftest" element={<Conftest />} />
 
                     <Route path="mock">
@@ -48,8 +50,19 @@ export default function App(): React.ReactElement {
                         <Route path="message_media" element={<MockMessageMedia />} />
                         <Route path="nochat" element={<MockNoChat />} />
                         <Route path="userlist" element={<MockUserLIst />} />
-                        <Route path="conferenceCallView" element={<MockConferenceCall />} />
+                        <Route
+                            path="conferenceCallView"
+                            element={
+                                <MockConferenceCall
+                                    roomId="1"
+                                    userId="1"
+                                    userName="testko"
+                                    onClose={handleClose}
+                                />
+                            }
+                        />
                         <Route path="confcall" element={<MockConfcall />} />
+                        <Route path="componentConfCall" element={<ComponentTest />} />
                     </Route>
                 </Routes>
             </Router>

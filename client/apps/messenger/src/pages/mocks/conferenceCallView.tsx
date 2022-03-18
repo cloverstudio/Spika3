@@ -34,7 +34,14 @@ interface ModalState {
     showName: boolean;
 }
 
-function ConferenceCallView() {
+interface ConferenceCallProps {
+    roomId: String;
+    userId: String;
+    userName: String;
+    onClose: Function;
+}
+
+export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
     const [open, setOpen] = React.useState(false);
     const [myIndes, setMyIndex] = React.useState<number>(0);
     const [gridSize, setGridSize] = React.useState<GridSize>(6);
@@ -78,6 +85,11 @@ function ConferenceCallView() {
 
     const handleDrawerClose = () => {
         setOpen(false);
+    };
+
+    const close = async () => {
+        await spikabroadcastClient.disconnect();
+        if (onClose) onClose();
     };
 
     const convertParticipantToCallMember = (participants: Participant[]) => {
@@ -170,7 +182,7 @@ function ConferenceCallView() {
     const [log, setLog] = React.useState<Array<any>>([]);
     const [peerContainerClass, setPeerContainerClass] = React.useState<string>("type1");
     const [screenShareMode, setScreenShareMode] = React.useState<boolean>(false);
-    let { roomId }: { roomId?: string } = useParams();
+    let { conferenceRoomId }: { conferenceRoomId?: string } = useParams();
 
     const [selectedCamera, setSelectedCamera] = React.useState<MediaDeviceInfo>(null);
     const [selectedMicrophone, setSelectedMicrophone] = React.useState<MediaDeviceInfo>(null);
@@ -316,7 +328,7 @@ function ConferenceCallView() {
         })();
 
         // save roomid
-        localStorage.setItem(Constants.LSKEY_LASTROOM, roomId);
+        localStorage.setItem(Constants.LSKEY_LASTROOM, conferenceRoomId);
     }, []);
 
     useEffect(() => {
@@ -324,6 +336,22 @@ function ConferenceCallView() {
             convertParticipantToCallMember(participants);
         }
     }, [participants?.length]);
+
+    useEffect(() => {
+        if (!participants) return;
+
+        const screenShareparticipant: Participant | undefined = participants.find((participant) =>
+            participant.consumers.find((consumer) => consumer.appData.share)
+        );
+        const newScreenShareMode = screenShareparticipant !== undefined;
+
+        if (screenShareMode !== newScreenShareMode && newScreenShareMode && screenShareEnabled) {
+            console.log("going to disable screenshare");
+            spikabroadcastClient.toggleScreenShare();
+        }
+
+        setScreenShareMode(newScreenShareMode);
+    }, [participants]);
 
     useEffect(() => {
         console.log("GridSize:" + gridSize);
@@ -509,7 +537,7 @@ function ConferenceCallView() {
                     <IconButton onClick={handleShare}>
                         <Monitor style={{ fill: "white" }} />
                     </IconButton>
-                    <IconButton onClick={closeConference}>
+                    <IconButton onClick={close}>
                         <Close style={{ fill: "red" }} />
                     </IconButton>
                 </Stack>
@@ -527,6 +555,4 @@ function ConferenceCallView() {
             )}
         </Box>
     );
-}
-
-export default ConferenceCallView;
+};
