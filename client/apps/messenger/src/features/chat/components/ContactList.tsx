@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Avatar, Box, Typography } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
@@ -12,6 +12,7 @@ import { selectContacts } from "../slice/contactsSlice";
 import User from "../../../types/User";
 
 import useIsInViewport from "../../../hooks/useIsInViewport";
+import { setLeftSidebar } from "../slice/sidebarSlice";
 
 export default function SidebarContactList({
     handleUserClick,
@@ -20,12 +21,14 @@ export default function SidebarContactList({
     handleUserClick?: (user: User) => void;
     selectedUsersIds?: number[];
 }): React.ReactElement {
+    const dispatch = useDispatch();
     const { list, count, sortedByDisplayName } = useSelector(selectContacts);
     const [page, setPage] = useState(1);
     const { isFetching } = useGetContactsQuery(page);
     const { isInViewPort, elementRef } = useIsInViewport();
     const navigate = useNavigate();
     const [createRoom] = useCreateRoomMutation();
+    const onChatClick = () => dispatch(setLeftSidebar(false));
 
     const hasMoreContactsToLoad = count > list.length;
 
@@ -36,7 +39,7 @@ export default function SidebarContactList({
     }, [isInViewPort, isFetching, hasMoreContactsToLoad]);
 
     if (!list.length && !isFetching) {
-        return <Typography>No contacts</Typography>;
+        return <Typography align="center">No contacts</Typography>;
     }
 
     const defaultHandleUserClick = async (user: User) => {
@@ -57,6 +60,7 @@ export default function SidebarContactList({
                 navigate(`/rooms/${created.room.id}`);
             }
         }
+        onChatClick();
     };
 
     const onUserClick = handleUserClick || defaultHandleUserClick;

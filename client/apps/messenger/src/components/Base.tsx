@@ -1,16 +1,22 @@
-import React, { createContext, useEffect } from "react";
+import React, { createContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import { CssBaseline } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+
+import SnackBar from "./snackBar";
+import BasicDialog from "./basicDialog";
+
 import { useGetUserQuery } from "../api/auth";
-import { useNavigate } from "react-router-dom";
 import Loader from "./Loader";
 
 import { requestForToken } from "../firebaseInit";
 import { useGetDeviceQuery, useUpdateDeviceMutation } from "../api/device";
 import { useDispatch } from "react-redux";
 import { addMessage } from "../features/chat/slice/chatSlice";
-import { setRoomLastMessage } from "../features/chat/slice/roomSlice";
+import roomApi from "../features/chat/api/room";
 
+import { SnackbarState, SnackbarTypes } from "../types/UI";
 declare const API_BASE_URL: string;
 
 let theme = createTheme({
@@ -143,8 +149,8 @@ export default function AuthBase({ children }: Props): React.ReactElement {
             source.onmessage = function (event) {
                 const data = JSON.parse(event.data || {});
                 if (data && data.message) {
+                    dispatch(roomApi.endpoints.getHistory.initiate(1));
                     dispatch(addMessage(data.message));
-                    dispatch(setRoomLastMessage(data.message));
                 }
             };
         }
@@ -165,11 +171,19 @@ export default function AuthBase({ children }: Props): React.ReactElement {
 }
 
 export function Base({ children }: Props): React.ReactElement {
+    const [snackbarState, setSnackbarState] = useState<SnackbarState>({
+        show: false,
+        message: "",
+        type: SnackbarTypes.info,
+    });
+
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
-
             {children}
+
+            <SnackBar />
+            <BasicDialog />
         </ThemeProvider>
     );
 }

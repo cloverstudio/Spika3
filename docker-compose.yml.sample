@@ -1,13 +1,5 @@
 version: "2.0"
 services:
-    app:
-        build: .
-        environment:
-            NODE_ENV: production
-        volumes:
-            - "./:/home/node/app"
-        ports:
-            - 3000:3000
     mysql:
         image: "mysql:8.0"
         restart: always
@@ -61,6 +53,27 @@ services:
             - "6379:6379"
         environment:
             - REDIS_AOF_ENABLED=no
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile.production
+        env_file: .env
+        environment:
+            NODE_ENV: production
+            DATABASE_URL: ${DATABASE_URL}
+        command:
+            - /bin/sh
+            - -c
+            - |
+                sleep 5
+                cd /app
+                npx prisma migrate deploy 
+                npx prisma generate
+                npm run start:server
+        volumes:
+            - "./uploads:/app/uploads"
+        ports:
+            - 3000:3000
 volumes:
     spika3-db: null
     spika3-db-test: null

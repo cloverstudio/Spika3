@@ -144,7 +144,7 @@ export default class SpikaBroadcastClient {
         enableCamera,
         enableMicrophone,
     }: SpikaBroadcastClientConstructorInterface) {
-        this.socketUrl = `ws://${host}:${port}/?roomId=${roomId}&peerId=${peerId}`;
+        this.socketUrl = `wss://${host}:${port}/?roomId=${roomId}&peerId=${peerId}`;
         this.logger = new Logger("SpikaBroadcast", debug);
         this.logger.addListener(listener.onLogging);
 

@@ -193,11 +193,53 @@ paths:
                     description: "invalid param"
                 "403":
                     description: "invalid access token"
+    /messenger/contacts/all:
+        get:
+            tags:
+                - "Contact"
+            summary: "Get all contacts"
+            description: "Get all contacts for team mode"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - in: query
+                  name: keyword
+                  type: "string"
+                - in: query
+                  name: page
+                  type: "number"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    list:
+                                        type: "array"
+                                        items:
+                                            type: "object"
+                                            $ref: "#/definitions/User"
+                                    count:
+                                        type: "number"
+                                    limit:
+                                        type: "number"
+                "400":
+                    description: "invalid param"
+                "403":
+                    description: "invalid access token"
     /upload/files:
         post:
             tags:
                 - "File"
-            summary: "Upload file"
+            summary: "Upload file chunk"
             description: "Upload file by chunks"
             consumes:
                 - "application/json"
@@ -216,57 +258,15 @@ paths:
                   schema:
                       type: number
                   description: "The position of the chunk in the entire file"
-                - name: "total"
-                  in: body
-                  required: true
-                  schema:
-                      type: number
-                  description: "Total number of chunks"
-                - name: "size"
-                  in: body
-                  required: true
-                  schema:
-                      type: number
-                  description: "File size in bytes"
-                - name: "mimeType"
-                  in: body
-                  required: true
-                  schema:
-                      type: string
-                  description: "mimeType"
-                - name: "fileName"
-                  in: body
-                  required: true
-                  schema:
-                      type: string
-                  description: "File name"
                 - name: "clientId"
                   in: body
                   required: true
                   schema:
                       type: string
                   description: "The random string to identifiy upload."
-                - name: "fileHash"
-                  in: body
-                  schema:
-                      type: string
-                  description: "sha256 hash of the file"
-                - name: "type"
-                  in: body
-                  required: true
-                  schema:
-                      type: string
-                  description: "The name of the another model which the file refers ex) avatar, message, group avatar"
-                - name: "relationId"
-                  in: body
-                  required: true
-                  schema:
-                      type: number
-                  description: "The id of model the file refers to."
-
             responses:
                 "200":
-                    description: "Returns list of chunks uploaded and if whole file is uploaded returns file object"
+                    description: "Returns list of chunks uploaded"
                     schema:
                         type: "object"
                         properties:
@@ -275,9 +275,6 @@ paths:
                             data:
                                 type: "object"
                                 properties:
-                                    file:
-                                        type: "object"
-                                        $ref: "#/definitions/File"
                                     uploadedChunks:
                                         type: "array"
                                         items:
@@ -308,6 +305,84 @@ paths:
                     description: "invalid param"
                 "403":
                     description: "invalid access token"
+    /upload/files/verify:
+        post:
+            tags:
+                - "File"
+            summary: "Verify file"
+            description: "Creates file if all chunks are uploaded and fileHash matches"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "total"
+                  in: body
+                  required: true
+                  schema:
+                      type: number
+                  description: "Total number of chunks"
+                - name: "size"
+                  in: body
+                  required: true
+                  schema:
+                      type: number
+                  description: "File size in bytes"
+                - name: "mimeType"
+                  in: body
+                  required: true
+                  schema:
+                      type: string
+                  description: "mimeType"
+                - name: "fileName"
+                  in: body
+                  required: true
+                  schema:
+                      type: string
+                  description: "File name"
+                - name: "clientId"
+                  in: body
+                  required: true
+                  schema:
+                      type: string
+                  description: "The random string to identify upload."
+                - name: "fileHash"
+                  in: body
+                  schema:
+                      type: string
+                  description: "sha256 hash of the file"
+                - name: "type"
+                  in: body
+                  required: true
+                  schema:
+                      type: string
+                  description: "The name of the another model which the file refers ex) avatar, message, group avatar"
+                - name: "relationId"
+                  in: body
+                  required: true
+                  schema:
+                      type: number
+                  description: "The id of model the file refers to."
+
+            responses:
+                "200":
+                    description: "Returns file object"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                            data:
+                                type: "object"
+                                properties:
+                                    file:
+                                        type: "object"
+                                        $ref: "#/definitions/File"
+                "400":
+                    description: "invalid param"
+                "403":
+                    description: "invalid access token"
+
     /messenger/rooms:
         get:
             tags:
@@ -363,15 +438,19 @@ paths:
                 - name: "avatarUrl"
                   in: body
                   schema:
-                      type: string
+                      type: array
                 - name: "userIds"
                   in: body
                   schema:
-                      type: string
+                      type: array
                 - name: "adminUserIds"
                   in: body
                   schema:
                       type: array
+                - name: "type"
+                  in: body
+                  schema:
+                      type: string
 
             responses:
                 "200":
@@ -597,7 +676,12 @@ paths:
                   in: body
                   required: true
                   schema:
-                      type: string
+                      type: object
+                      properties:
+                          type:
+                              type: string
+                          text:
+                              type: string
 
             responses:
                 "200":
@@ -773,6 +857,33 @@ paths:
                   in: body
                   schema:
                       type: string
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: object
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    user:
+                                        type: "object"
+                                        $ref: "#/definitions/User"
+                "400":
+                    description: "invalid param"
+    /messenger/user/{id}:
+        get:
+            tags:
+                - "User"
+            summary: "Get use detail"
+            description: "Returns user model"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
             responses:
                 "200":
                     description: "successful operation"
@@ -972,4 +1083,4 @@ definitions:
 
 externalDocs:
     description: "Find out more about Swagger"
-    url: "http://swagger.io"
+    url: "http://swagger.io/terms/"

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Avatar, Badge, Box, Typography } from "@mui/material";
 
 import { useGetHistoryQuery } from "../api/room";
@@ -15,16 +15,19 @@ import formatRoomInfo from "../lib/formatRoomInfo";
 import MessageType from "../../../types/Message";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { setLeftSidebar } from "../slice/sidebarSlice";
 
 dayjs.extend(relativeTime);
 
 export default function SidebarContactList(): React.ReactElement {
+    const dispatch = useDispatch();
     const { list, count } = useSelector(selectHistory);
     const [page, setPage] = useState(1);
     const { isFetching } = useGetHistoryQuery(page);
     const { isInViewPort, elementRef } = useIsInViewport();
     const activeRoomId = useSelector(selectActiveRoomId);
     const user = useSelector(selectUser);
+    const onChatClick = () => dispatch(setLeftSidebar(false));
 
     const hasMoreContactsToLoad = count > list.length;
 
@@ -35,7 +38,7 @@ export default function SidebarContactList(): React.ReactElement {
     }, [isInViewPort, isFetching, hasMoreContactsToLoad]);
 
     if (!list.length && !isFetching) {
-        return <Typography>No rooms</Typography>;
+        return <Typography align="center">No rooms</Typography>;
     }
 
     return (
@@ -49,6 +52,7 @@ export default function SidebarContactList(): React.ReactElement {
                             key={room.id}
                             {...formattedRoom}
                             isActive={room.id === activeRoomId}
+                            handleClick={onChatClick}
                         />
                     );
                 })}
@@ -61,13 +65,19 @@ type RoomRowProps = {
     id: number;
     name: string;
     isActive: boolean;
+    handleClick: () => void;
     lastMessage?: MessageType;
     avatarUrl?: string;
 };
 
-function RoomRow({ id, isActive, name, avatarUrl, lastMessage }: RoomRowProps) {
+function RoomRow({ id, isActive, name, avatarUrl, lastMessage, handleClick }: RoomRowProps) {
+    let lastMessageText = lastMessage?.messageBody?.text || "No messages";
+
+    if (lastMessageText.length > 25) {
+        lastMessageText = lastMessageText.slice(0, 25) + "...";
+    }
     return (
-        <Link to={`/rooms/${id}`} style={{ textDecoration: "none" }}>
+        <Link to={`/rooms/${id}`} onClick={handleClick} style={{ textDecoration: "none" }}>
             <Box bgcolor={isActive ? "#E5F4FF" : "#fff"} px={2.5} py={1.5} display="flex">
                 <Avatar alt={name} sx={{ width: 50, height: 50 }} src={avatarUrl} />
                 <Box
@@ -87,10 +97,10 @@ function RoomRow({ id, isActive, name, avatarUrl, lastMessage }: RoomRowProps) {
                             {name}
                         </Typography>
                         <Typography color="#4A4A4A" fontSize="0.875rem" lineHeight="1.0625rem">
-                            {lastMessage?.messageBody?.text || "No messages"}
+                            {lastMessageText}
                         </Typography>
                     </Box>
-                    <Box textAlign="right">
+                    <Box minWidth="90px" textAlign="right">
                         <Typography
                             mb={1}
                             color="#9AA0A6"

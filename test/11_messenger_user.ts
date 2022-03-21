@@ -66,5 +66,24 @@ describe("User API", () => {
             expect(userFromDb.displayName).to.eqls(displayName);
             expect(userFromDb.avatarUrl).to.eqls(avatarUrl);
         });
+
+        it("Gets user details", async () => {
+            const response = await supertest(app)
+                .get("/api/messenger/users/" + globals.userId)
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(200);
+            expect(response.body).to.has.property("data");
+            expect(response.body.data).to.has.property("user");
+
+            const userFromRes = response.body.data.user;
+
+            const userFromDb = await globals.prisma.user.findUnique({
+                where: { id: globals.userId },
+            });
+
+            expect(userFromDb.displayName).to.eqls(userFromRes.displayName);
+            expect(userFromDb.avatarUrl).to.eqls(userFromRes.avatarUrl);
+        });
     });
 });

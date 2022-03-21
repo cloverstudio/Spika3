@@ -58,16 +58,56 @@ export default (): Router => {
                 adminUserIds.push(userReq.user.id);
             }
 
+            if (!userIds.includes(userReq.user.id)) {
+                userIds.push(userReq.user.id);
+            }
+
             const foundUsers = await prisma.user.findMany({
                 where: { id: { in: [...userIds, ...adminUserIds] } },
             });
+
+            const notAddedUsers = userIds.filter(
+                (id: number) => !foundUsers.map((fu) => fu.id).includes(id)
+            );
+
+            if (notAddedUsers.length) {
+                return res
+                    .status(400)
+                    .send(
+                        errorResponse(
+                            `Users doesn't exist, ids: ${notAddedUsers.join(",")}`,
+                            userReq.lang
+                        )
+                    );
+            }
+
+            const notAddedAdminUsers = adminUserIds.filter(
+                (id: number) => !foundUsers.map((fu) => fu.id).includes(id)
+            );
+
+            if (notAddedAdminUsers.length) {
+                return res
+                    .status(400)
+                    .send(
+                        errorResponse(
+                            `Admin users doesn't exist, ids: ${notAddedAdminUsers.join(",")}`,
+                            userReq.lang
+                        )
+                    );
+            }
 
             const users = foundUsers.map((user) => ({
                 userId: user.id,
                 isAdmin: adminUserIds.includes(user.id) || false,
             }));
 
-            const type = userDefinedType || (userIds.length < 3 ? "private" : "group");
+            if (users.length < 2) {
+                return res
+                    .status(400)
+                    .send(errorResponse("Can't creat room with only one user", userReq.lang));
+            }
+
+            const type = userDefinedType || (users.length < 3 ? "private" : "group");
             const name = getRoomName(userDefinedName, users.length);
 
             if (users.length === 2 && type === "private") {
@@ -77,6 +117,7 @@ export default (): Router => {
                             every: { userId: { in: users.map((u) => u.userId) } },
                         },
                         type,
+                        deleted: false,
                     },
                     include: {
                         users: true,
@@ -127,7 +168,10 @@ export default (): Router => {
             const id = parseInt((req.params.id as string) || "");
             const { userIds, adminUserIds, name, avatarUrl } = req.body;
 
-            const room = await prisma.room.findFirst({ where: { id }, include: { users: true } });
+            const room = await prisma.room.findFirst({
+                where: { id, deleted: false },
+                include: { users: true },
+            });
             if (!room) {
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
@@ -335,6 +379,7 @@ export default (): Router => {
                             userId: userReq.user.id,
                         },
                     },
+                    deleted: false,
                 },
                 include: {
                     users: {
@@ -386,9 +431,16 @@ export default (): Router => {
         try {
             const userId = parseInt((req.params.userId as string) || "");
 
+            const user = await prisma.user.findFirst({ where: { id: userId } });
+
+            if (!user) {
+                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+            }
+
             const room = await prisma.room.findFirst({
                 where: {
                     type: "private",
+                    deleted: false,
                     users: {
                         every: { userId: { in: [userId, userReq.user.id] } },
                     },
@@ -402,7 +454,7 @@ export default (): Router => {
                 },
             });
 
-            if (!room) {
+            if (!room || room.users.length < 2) {
                 return res.status(404).send(errorResponse("Room not found", userReq.lang));
             }
 
@@ -427,6 +479,7 @@ export default (): Router => {
                             userId: userReq.user.id,
                         },
                     },
+                    deleted: false,
                 },
                 include: {
                     users: {

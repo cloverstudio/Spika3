@@ -13,6 +13,7 @@ export default function LeftSidebarLayout({
             overflow="hidden"
             display="flex"
             flexDirection="column"
+            sx={{ width: { xs: "100vw", md: "auto" } }}
         >
             {children}
         </Box>

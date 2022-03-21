@@ -129,5 +129,55 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         }
     });
 
+    if (+process.env["TEAM_MODE"]) {
+        router.get(
+            "/all",
+            auth,
+            validate(getContactsSchema),
+            async (req: Request, res: Response) => {
+                const userReq: UserRequest = req as UserRequest;
+                try {
+                    const keyword = req.query.keyword;
+
+                    const page: number =
+                        parseInt(req.query.page ? (req.query.page as string) : "") || 1;
+
+                    const condition: any = {};
+                    if (keyword && keyword.length > 0)
+                        condition.displayName = {
+                            startsWith: keyword,
+                        };
+
+                    const users = await prisma.user.findMany({
+                        where: condition,
+                        orderBy: [
+                            {
+                                displayName: "asc",
+                            },
+                        ],
+                        skip: Constants.PAGING_LIMIT * (page - 1),
+                        take: Constants.PAGING_LIMIT,
+                    });
+
+                    const count = await prisma.user.count();
+
+                    res.send(
+                        successResponse(
+                            {
+                                list: users.map((c) => sanitize(c).user()),
+                                count,
+                                limit: Constants.PAGING_LIMIT,
+                            },
+                            userReq.lang
+                        )
+                    );
+                } catch (e: any) {
+                    le(e);
+                    res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+                }
+            }
+        );
+    }
+
     return router;
 };

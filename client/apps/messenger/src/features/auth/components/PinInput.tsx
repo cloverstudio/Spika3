@@ -83,6 +83,7 @@ function NumberInput({
                 inputProps={{
                     ref: inputRef,
                     pattern: "[1-9]",
+                    type: "number",
                 }}
                 value={value}
                 onChange={({ target }) => {

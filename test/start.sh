@@ -17,6 +17,7 @@ export UPLOAD_FOLDER=./test/upload
 export LOG_INFO=1
 export LOG_WARN=0
 export LOG_ERROR=1
+export TEAM_MODE=1
 
 npx prisma migrate dev --name init --preview-feature
 

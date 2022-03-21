@@ -172,5 +172,54 @@ describe("API", () => {
                 true
             );
         });
+
+        describe("/api/messenger/contacts/all GET", () => {
+            it("Works without any params", async () => {
+                const response = await supertest(app)
+                    .get("/api/messenger/contacts/all")
+                    .set({ accesstoken: globals.userToken });
+
+                expect(response.status).to.eqls(200);
+                expect(response.body).to.has.property("data");
+                expect(response.body.data).to.has.property("list");
+                expect(response.body.data).to.has.property("count");
+                expect(response.body.data).to.has.property("limit");
+            });
+
+            it("Accepts page query", async () => {
+                const contacts = await createFakeContacts({
+                    userId: globals.userId,
+                    contacts: users,
+                });
+
+                const response = await supertest(app)
+                    .get("/api/messenger/contacts/all?page=2")
+                    .set({ accesstoken: globals.userToken });
+
+                expect(response.status).to.eqls(200);
+                expect(response.body).to.has.property("data");
+                expect(response.body.data).to.has.property("list");
+                expect(response.body.data).to.has.property("count");
+                expect(response.body.data).to.has.property("limit");
+            });
+
+            it("filter by keyword works", async () => {
+                const contacts = await createFakeContacts({
+                    userId: globals.userId,
+                    contacts: users,
+                });
+
+                const response = await supertest(app)
+                    .get("/api/messenger/contacts/all?keyword=randomkeyword")
+                    .set({ accesstoken: globals.userToken });
+
+                expect(response.status).to.eqls(200);
+                expect(response.body).to.has.property("data");
+                expect(response.body.data).to.has.property("list");
+                expect(response.body.data).to.has.property("count");
+                expect(response.body.data).to.has.property("limit");
+                expect(response.body.data.list.length).to.eqls(0);
+            });
+        });
     });
 });
