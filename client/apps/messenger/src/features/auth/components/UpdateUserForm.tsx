@@ -4,7 +4,7 @@ import { Button, TextField, FormLabel, Box, Alert, AlertTitle } from "@mui/mater
 import uploadImage from "../../../assets/upload-image.svg";
 
 type UpdateUserFormProps = {
-    onSubmit: (username: string) => void;
+    onSubmit: ({ username, file }: { username: string; file: File }) => void;
     error?: any;
 };
 
@@ -13,11 +13,36 @@ export default function UpdateUserForm({
     error,
 }: UpdateUserFormProps): React.ReactElement {
     const [username, setUsername] = useState("");
+    const [file, setFile] = useState<File>();
+    const uploadFileRef = React.useRef(null);
+
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const uploadedFile = e.target.files && e.target.files[0];
+
+        setFile(uploadedFile);
+    };
+
+    const handleSubmit = async () => {
+        onSubmit({ username, file });
+    };
 
     return (
         <>
             <Box minWidth="320px" textAlign="center" mb={error ? 2 : 7}>
-                <img src={uploadImage} />
+                <img
+                    width="100px"
+                    height="100px"
+                    style={{ objectFit: "cover", borderRadius: "50%" }}
+                    src={file ? URL.createObjectURL(file) : uploadImage}
+                    onClick={() => uploadFileRef.current?.click()}
+                />
+                <input
+                    onChange={handleFileUpload}
+                    type="file"
+                    style={{ display: "none" }}
+                    ref={uploadFileRef}
+                    accept="image/*"
+                />
             </Box>
             {error && (
                 <Alert sx={{ mb: 4 }} severity="error">
@@ -39,7 +64,7 @@ export default function UpdateUserForm({
                     onChange={({ target }) => setUsername(target.value)}
                 />
                 <Button
-                    onClick={() => onSubmit(username)}
+                    onClick={handleSubmit}
                     disabled={username.length === 0}
                     fullWidth
                     variant="contained"
