@@ -225,6 +225,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
     useEffect(() => {
         // load cameara and microphones
         (async () => {
+            console.log("tu udje");
             let defaultCamera: MediaDeviceInfo = null;
             let defaultMicrophone: MediaDeviceInfo = null;
 

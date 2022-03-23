@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef, MutableRefObject } from "react";
-import { Participant } from "../../components/confcalldummy/lib/SpikaBroadcastClient";
 import { Box, Typography, Stack, IconButton, Tooltip } from "@mui/material";
 import { Videocam, VideocamOff, Mic, MicOff } from "@mui/icons-material";
 import * as mediasoupClient from "mediasoup-client";
