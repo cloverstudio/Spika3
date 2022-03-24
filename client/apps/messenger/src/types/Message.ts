@@ -1,6 +1,6 @@
 import { Message } from ".prisma/client";
 
-type MessageType = Omit<Message, "createdAt"> & { createdAt: number; messageBody: any };
+type MessageType = Omit<Message, "createdAt"> & { createdAt: number; body: any };
 
 export type MessageListType = {
     list: MessageType[];

@@ -631,26 +631,7 @@ paths:
                                         $ref: "#/definitions/Room"
                 "400":
                     description: "invalid param"
-    /messenger/rooms/open:
-        post:
-            tags:
-                - "Room"
-            summary: "User open the room"
-            description: "User open the room"
-            consumes:
-                - "application/json"
-            produces:
-                - "application/json"
-            parameters:
-                - name: "roomId"
-                  in: body
-                  schema:
-                      type: integer
-            responses:
-                "200":
-                    description: "successful operation"
-                "400":
-                    description: "invalid param"
+
     /messenger/messages:
         post:
             tags:
@@ -745,7 +726,7 @@ paths:
         get:
             tags:
                 - "Message"
-            summary: "Get all messages received after the timestamp"
+            summary: "Get all messages received after the timestamp, marks returned messages as delivered"
             description: "Get all messages received after the timestamp"
             consumes:
                 - "application/json"
@@ -763,7 +744,7 @@ paths:
                         type: "array"
                         items:
                             $ref: "#/definitions/Message"
-    /messenger/messages/delivered:
+    /messenger/messages/{messageId}/delivered:
         post:
             tags:
                 - "Message"
@@ -773,34 +754,25 @@ paths:
                 - "application/json"
             produces:
                 - "application/json"
-            parameters:
-                - name: "messages"
-                  in: body
-                  required: true
-                  schema:
-                      type: array
-                      items:
-                          type: object
-                          properties:
-                              id:
-                                  type: number
-                                  description: Message id
-                              isDeleted:
-                                  type: boolean
-                                  description: Delete the message from devive_message table
-                              isFirst:
-                                  type: boolean
-                                  description: Send true if the client receives the message first time
-
             responses:
                 "200":
                     description: "successful operation"
-                    schema:
-                        type: object
-                        properties:
-                            room:
-                                type: "object"
-                                $ref: "#/definitions/Message"
+                "400":
+                    description: "invalid param"
+
+    /messenger/messages/{roomId}/seen:
+        post:
+            tags:
+                - "Message"
+            summary: "Notify backend when message are shown in the client side first time."
+            description: "Notify backend when message are shown in the client side first time."
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            responses:
+                "200":
+                    description: "successful operation"
                 "400":
                     description: "invalid param"
     /messenger/me:
@@ -1054,6 +1026,9 @@ definitions:
             id:
                 type: "integer"
                 format: "int32"
+            roomId:
+                type: "integer"
+                format: "int32"
             fromUserId:
                 type: "integer"
                 format: "int32"
@@ -1063,19 +1038,19 @@ definitions:
             totalDeviceCount:
                 type: "integer"
                 format: "int32"
+            totalUserCount:
+                type: "integer"
+                format: "int32"
             receivedCount:
                 type: "integer"
                 format: "int32"
             seenCount:
                 type: "integer"
                 format: "int32"
-            roomId:
-                type: "integer"
-                format: "int32"
             type:
                 type: "integer"
                 format: "int32"
-            messageBody:
+            body:
                 type: "object"
             createdAt:
                 type: "integer"
@@ -1083,4 +1058,5 @@ definitions:
 
 externalDocs:
     description: "Find out more about Swagger"
-    url: "http://swagger.io/terms/"
+    url: "http://swagger.io/terms"
+    test: 11231231231231231231231231231231312312123123123

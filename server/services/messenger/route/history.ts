@@ -1,9 +1,7 @@
 import { Router, Request, Response } from "express";
-import { PrismaClient, RoomUser } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
 import { error as le } from "../../../components/logger";
-import validate from "../../../components/validateMiddleware";
-import * as yup from "yup";
 import { successResponse, errorResponse } from "../../../components/response";
 import auth from "../lib/auth";
 import { UserRequest } from "../lib/types";
@@ -65,19 +63,19 @@ export default (): Router => {
                 where: { userId, deviceId, messageId: { in: messages.map((m) => m.id) } },
                 select: {
                     messageId: true,
-                    messageBody: true,
+                    body: true,
                 },
             });
 
             const list = messages.map((m) => {
                 const { room, ...message } = m;
-                const messageBody = deviceMessages.find((dm) => dm.messageId === m.id)?.messageBody;
+                const body = deviceMessages.find((dm) => dm.messageId === m.id)?.body;
 
                 return {
                     ...sanitize(room).room(),
                     lastMessage: sanitize({
                         ...message,
-                        ...(messageBody && { messageBody }),
+                        ...(body && { body }),
                     }).message(),
                 };
             });

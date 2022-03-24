@@ -68,6 +68,7 @@ describe("API", () => {
             expect(response.status).to.eqls(200);
             expect(response.body.data.device).to.have.property("token");
             globals.userToken = response.body.data.device.token;
+            globals.deviceId = response.body.data.device.id;
         });
 
         it("Verify verification code fail", async () => {
