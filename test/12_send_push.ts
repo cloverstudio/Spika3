@@ -19,7 +19,7 @@ describe("Send Push Worker", () => {
             token: "dummy_token",
             data: {
                 deviceMessage: {
-                    messageBody: {
+                    body: {
                         text: "testing",
                     },
                 },

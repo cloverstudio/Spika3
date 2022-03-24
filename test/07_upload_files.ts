@@ -13,7 +13,6 @@ import crypto from "crypto";
 
 const readDir = util.promisify(fs.readdir);
 const readFile = util.promisify(fs.readFile);
-const getFileStat = util.promisify(fs.stat);
 
 describe("API", () => {
     describe("/api/upload/files/:id GET", () => {
@@ -40,7 +39,7 @@ describe("API", () => {
             validParams = {
                 chunk: "string",
                 offset: 0,
-                clientId: String(faker.datatype.number({ min: 1, max: 100000 })),
+                clientId: encodeURIComponent(faker.datatype.string(52)),
             };
         });
 
@@ -104,7 +103,7 @@ describe("API", () => {
             const responseValid = await supertest(app)
                 .post("/api/upload/files")
                 .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, clientId: "string" });
+                .send(validParams);
 
             expect(responseInvalid.status).to.eqls(400);
             expect(responseInvalidNotString.status).to.eqls(400);
@@ -166,17 +165,21 @@ describe("API", () => {
         beforeEach(async () => {
             const chunk = Buffer.from("101").toString("base64");
             const offset = 0;
-            const clientId = String(faker.datatype.number({ min: 1, max: 100000 }));
+            const clientId = encodeURIComponent(faker.datatype.string(52));
             const hash = utils.sha256("101");
 
-            await supertest(app)
-                .post("/api/upload/files")
-                .set({ accesstoken: globals.userToken })
-                .send({
-                    chunk,
-                    offset,
-                    clientId,
-                });
+            try {
+                await supertest(app)
+                    .post("/api/upload/files")
+                    .set({ accesstoken: globals.userToken })
+                    .send({
+                        chunk,
+                        offset,
+                        clientId,
+                    });
+            } catch (error) {
+                console.log({ "beforeEach upload chunk error": error });
+            }
 
             validParams = {
                 clientId,
@@ -359,173 +362,10 @@ describe("API", () => {
                 .set({ accesstoken: globals.userToken })
                 .send({ ...validParams, relationId: 5 });
 
-            console.log({ responseNoParam });
-
             expect(responseInvalidNotNumber.status).to.eqls(400);
             expect(responseNoParam.status).to.eqls(400);
             expect(responseValid.status).to.eqls(200);
         });
-
-        /* it("Returns error if hash is not matching", async () => {
-            const fileName = "test.png";
-            const filePath = path.join(__dirname, `fixtures/files/${fileName}`);
-            const fileHash = "wrong hash";
-            const { size } = await getFileStat(filePath);
-            const chunkSize = 8; // in bytes
-            const readable = fs.createReadStream(filePath, { highWaterMark: chunkSize });
-            const total = Math.ceil(size / chunkSize);
-
-            let offset = -1;
-
-            readable.on("data", async function (chunk) {
-                offset++;
-                await supertest(app)
-                    .post("/api/upload/files")
-                    .set({ accesstoken: globals.userToken })
-                    .send({
-                        ...validParams,
-                        fileName,
-                        chunk: chunk.toString("base64"),
-                        offset,
-                        total,
-                        size,
-                        fileHash,
-                    });
-            });
-
-            await utils.wait(1);
-
-            const filesDir = path.join(process.env["UPLOAD_FOLDER"], `files`);
-            const files = await readDir(filesDir);
-            expect(files).to.be.an("array").that.does.not.include(validParams.clientId);
-
-            const fileFromDb = await globals.prisma.file.findFirst({
-                where: { clientId: validParams.clientId },
-            });
-            expect(fileFromDb).to.eqls(null);
-        });
-
-        it("Uploads chunk of file", async () => {
-            const fileName = "test File";
-            const chunk = Buffer.from("101").toString("base64");
-            const offset = 0;
-
-            const responseValid = await supertest(app)
-                .post("/api/upload/files")
-                .set({ accesstoken: globals.userToken })
-                .send({
-                    ...validParams,
-                    fileName,
-                    chunk,
-                    offset,
-                    total: 2,
-                });
-
-            expect(responseValid.status).to.eqls(200);
-            expect(responseValid.body).to.has.property("data");
-            expect(responseValid.body.data).to.has.property("uploadedChunks");
-            expect(responseValid.body.data.uploadedChunks).to.be.an("array").that.does.include(0);
-            expect(responseValid.body.data.uploadedChunks).to.have.lengthOf(1);
-
-            const tempFileDir = path.join(
-                process.env["UPLOAD_FOLDER"],
-                `.temp/${validParams.clientId}`
-            );
-            const tempFileDirExists = fs.existsSync(tempFileDir);
-
-            expect(tempFileDirExists).to.eqls(true);
-
-            const files = await readDir(tempFileDir);
-            expect(files).to.be.an("array").that.does.include(`${offset}-chunk`);
-
-            const content = await readFile(tempFileDir + `/${offset}-chunk`);
-            expect(content.toString()).to.eqls("101");
-        });
-
-        it("Uploads file", async () => {
-            const fileName = "test.png";
-            const filePath = path.join(__dirname, `fixtures/files/${fileName}`);
-            const { size } = await getFileStat(filePath);
-            const fileHash = await createFileHash(filePath);
-            const chunkSize = 64; // in bytes
-            const readable = fs.createReadStream(filePath, { highWaterMark: chunkSize });
-            const total = Math.ceil(size / chunkSize);
-
-            let offset = -1;
-
-            readable.on("data", async function (chunk) {
-                offset++;
-                await supertest(app)
-                    .post("/api/upload/files")
-                    .set({ accesstoken: globals.userToken })
-                    .send({
-                        ...validParams,
-                        fileName,
-                        chunk: chunk.toString("base64"),
-                        offset,
-                        total,
-                        size,
-                        fileHash,
-                    });
-            });
-
-            await utils.wait(1);
-
-            const filesDir = path.join(process.env["UPLOAD_FOLDER"], `files`);
-            const filesDirExists = fs.existsSync(filesDir);
-
-            expect(filesDirExists).to.eqls(true);
-
-            const files = await readDir(filesDir);
-            expect(files).to.be.an("array").that.does.include(validParams.clientId);
-
-            const originalFile = await readFile(filePath);
-            const content = await readFile(filesDir + `/${validParams.clientId}`);
-            expect(content.toString()).to.eqls(originalFile.toString());
-
-            const createdFile = await globals.prisma.file.findFirst({
-                where: { clientId: validParams.clientId },
-            });
-            expect(createdFile.fileName).to.eqls(fileName);
-        });
-
-        it("Checks file hash", async () => {
-            const fileName = "test.png";
-            const filePath = path.join(__dirname, `fixtures/files/${fileName}`);
-            const { size } = await getFileStat(filePath);
-            const chunkSize = 8; // in bytes
-            const readable = fs.createReadStream(filePath, { highWaterMark: chunkSize });
-            const total = Math.ceil(size / chunkSize);
-            const clientId = Math.random().toString();
-            let offset = -1;
-
-            readable.on("data", async function (chunk) {
-                offset++;
-                await supertest(app)
-                    .post("/api/upload/files")
-                    .set({ accesstoken: globals.userToken })
-                    .send({
-                        ...validParams,
-                        fileName,
-                        clientId,
-                        chunk: chunk.toString("base64"),
-                        offset,
-                        total,
-                        size,
-                        fileHash: "WRONG_WRONG_WRONG",
-                    });
-            });
-
-            await utils.wait(1);
-
-            const filesDir = path.join(process.env["UPLOAD_FOLDER"], `files`);
-            const filesDirExists = fs.existsSync(filesDir);
-
-            expect(filesDirExists).to.eqls(true);
-
-            const files = await readDir(filesDir);
-            expect(files).to.be.an("array").that.does.not.include(clientId);
-        }); */
     });
 });
 
