@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useRef, MutableRefObject } from "react";
-import { Participant } from "../../components/confcalldummy/lib/SpikaBroadcastClient";
+import { Participant } from "./lib/SpikaBroadcastClient";
 import { Box, Typography, Stack, IconButton, Tooltip } from "@mui/material";
 import { Videocam, VideocamOff, Mic, MicOff } from "@mui/icons-material";
 import * as mediasoupClient from "mediasoup-client";
 import hark from "hark";
-import { CallMember } from "../mocks/CallMember";
+import { CallMember } from "./CallMember";
 
 interface Props {
     participant: CallMember;
@@ -129,6 +129,12 @@ export default ({ participant, myVideo, myAudio }: Props) => {
         >
             {videoElm ? (
                 <video
+                    style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
+                        borderRadius: "1em",
+                    }}
                     ref={videoElm}
                     autoPlay
                     playsInline
@@ -145,6 +151,7 @@ export default ({ participant, myVideo, myAudio }: Props) => {
                 playsInline
                 controls={false}
                 muted={participant.muteAudio}
+                style={{ width: "100%", height: "100%", objectFit: "contain", borderRadius: "1em" }}
             />
             {!participant.isMe && false ? <div className="consumer-info"></div> : null}
             {/* <Typography color="white">{participant.displayName}</Typography> */}
@@ -196,7 +203,7 @@ export default ({ participant, myVideo, myAudio }: Props) => {
                     >
                         <Typography color="white">{participant.displayName}</Typography>
                     </Box>
-                    {/* {participant.isMe ? (
+                    {!participant.isMe ? (
                         <Box
                             sx={{
                                 bottom: 0,
@@ -222,28 +229,24 @@ export default ({ participant, myVideo, myAudio }: Props) => {
                                 }}
                             >
                                 <Tooltip title="No Video">
-                                    <IconButton sx={{ padding: 0 }} onClick={handleCamera}>
-                                        {participant.muteVideo ? (
-                                            <VideocamOff style={{ fill: "white" }} />
-                                        ) : (
-                                            <Videocam style={{ fill: "white" }} />
-                                        )}
-                                    </IconButton>
+                                    {participant.muteVideo ? (
+                                        <VideocamOff style={{ fill: "white" }} />
+                                    ) : (
+                                        <Videocam style={{ fill: "white" }} />
+                                    )}
                                 </Tooltip>
                                 <Tooltip title="Mute">
-                                    <IconButton sx={{ padding: 0 }} onClick={handleMic}>
-                                        {participant.muteAudio ? (
-                                            <MicOff style={{ fill: "white" }} />
-                                        ) : (
-                                            <Mic style={{ fill: "white" }} />
-                                        )}
-                                    </IconButton>
+                                    {participant.muteAudio ? (
+                                        <MicOff style={{ fill: "white" }} />
+                                    ) : (
+                                        <Mic style={{ fill: "white" }} />
+                                    )}
                                 </Tooltip>
                             </Stack>
                         </Box>
                     ) : (
                         <Box></Box>
-                    )} */}
+                    )}
                 </Box>
             </Box>
         </Box>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Box } from "@mui/material";
 import Button from "@mui/material/Button";
 
@@ -8,7 +8,10 @@ import { Outlet } from "react-router-dom";
 
 import { useShowSnackBar, useShowBasicDialog } from "../hooks/useModal";
 
+import Confcall from "../components/confcall";
+
 export default function Home(): React.ReactElement {
+    const [showConfcall, setShowConfcall] = useState<boolean>(false);
     const showSnackbar = useShowSnackBar();
     const showBasicDialog = useShowBasicDialog();
 
@@ -104,6 +107,37 @@ export default function Home(): React.ReactElement {
                     Dialog with listener
                 </Button>
             </Box>
+            <Box>
+                <Button
+                    variant="text"
+                    onClick={(e) => {
+                        setShowConfcall(true);
+                    }}
+                >
+                    Show conference call
+                </Button>
+            </Box>
+
+            {showConfcall ? (
+                <Box
+                    style={{
+                        position: "absolute",
+                        width: "100vw",
+                        height: "100vh",
+                        left: "0px",
+                        top: "0px",
+                    }}
+                >
+                    <Confcall
+                        roomId="test"
+                        userId="test"
+                        userName="test"
+                        onClose={() => {
+                            setShowConfcall(false);
+                        }}
+                    />
+                </Box>
+            ) : null}
         </Base>
     );
 }

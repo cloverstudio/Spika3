@@ -80,8 +80,7 @@ export interface Participant {
 
 export interface SpikaBroadcastClientConstructorInterface {
     debug: boolean;
-    host: string;
-    port: number;
+    hostUrl: string;
     roomId: string;
     peerId?: string;
     displayName: string;
@@ -132,8 +131,7 @@ export default class SpikaBroadcastClient {
     // constructor
     constructor({
         debug,
-        host,
-        port,
+        hostUrl,
         roomId,
         peerId,
         listener,
@@ -144,7 +142,7 @@ export default class SpikaBroadcastClient {
         enableCamera,
         enableMicrophone,
     }: SpikaBroadcastClientConstructorInterface) {
-        this.socketUrl = `ws://${host}:${port}/?roomId=${roomId}&peerId=${peerId}`;
+        this.socketUrl = `${hostUrl}/?roomId=${roomId}&peerId=${peerId}`;
         this.logger = new Logger("SpikaBroadcast", debug);
         this.logger.addListener(listener.onLogging);
 
