@@ -25,8 +25,7 @@ import dayjs from "dayjs";
 import { CallMember, CallParticipant } from "./CallMember";
 import ScreenShareView from "./ScreenShareView";
 
-declare var CONFCALL_HOST: string;
-declare var CONFCALL_PORT: number;
+declare var CONFCALL_HOST_URL: string;
 
 interface ModalState {
     showVideo: boolean;
@@ -264,8 +263,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
 
             const spikaBroadcastClientLocal = new SpikaBroadcastClient({
                 debug: true,
-                host: CONFCALL_HOST,
-                port: CONFCALL_PORT,
+                hostUrl: CONFCALL_HOST_URL,
                 roomId: "test",
                 peerId: Utils.randomStr(8),
                 displayName: localStorage.getItem(Constants.LSKEY_USERNAME) || "No name",
