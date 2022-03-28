@@ -12,9 +12,7 @@ type SanitizedRoomUserType = {
 type SanitizedRoomType = Partial<
     Omit<Room, "users" | "createdAt"> & { createdAt: number; users: SanitizedRoomUserType[] }
 >;
-type SanitizedMessageType = Partial<
-    Omit<Message, "createdAt"> & { createdAt: number; messageBody: any }
->;
+type SanitizedMessageType = Partial<Omit<Message, "createdAt"> & { createdAt: number; body: any }>;
 type SanitizedFileType = Partial<Omit<File, "createdAt"> & { createdAt: number }>;
 
 interface sanitizeTypes {
@@ -50,24 +48,26 @@ export default function sanitize(data: any): sanitizeTypes {
                 fromDeviceId,
                 fromUserId,
                 totalDeviceCount,
+                totalUserCount,
                 receivedCount,
                 seenCount,
                 roomId,
                 type,
-                messageBody,
+                body,
                 createdAt,
-            } = data as Message & { messageBody: any };
+            } = data as Message & { body: any };
 
             return {
                 id,
                 fromDeviceId,
                 fromUserId,
                 totalDeviceCount,
+                totalUserCount,
                 receivedCount,
                 seenCount,
                 roomId,
                 type,
-                messageBody,
+                body,
                 createdAt: +new Date(createdAt),
             };
         },

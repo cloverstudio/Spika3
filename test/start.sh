@@ -19,7 +19,9 @@ export LOG_WARN=0
 export LOG_ERROR=1
 export TEAM_MODE=1
 
-npx prisma migrate dev --name init --preview-feature
+
+npx prisma migrate reset --force && prisma migrate dev --name init --preview-feature
+rm -rf ./test/upload
 
 export TS_NODE_COMPILER_OPTIONS='{"module": "commonjs" , "noUnusedLocals": false}' 
-mocha -r ts-node/register --file 'test/setup.ts' 'test/**/*.ts' 
+mocha -r ts-node/register --file 'test/setup.ts' 'test/**/*.ts'

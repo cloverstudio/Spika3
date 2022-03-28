@@ -239,7 +239,7 @@ function ChatMessages({ roomId }: ChatMessagesProps): React.ReactElement {
                                         color="#131940"
                                         lineHeight="1,0625rem"
                                     >
-                                        {m.messageBody.text}
+                                        {m.body.text}
                                     </Typography>
                                 </Box>
                                 {isUsersMessage && (
