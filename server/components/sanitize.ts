@@ -1,4 +1,4 @@
-import { Room, User, Device, Message, RoomUser, File } from ".prisma/client";
+import { Room, User, Device, Message, RoomUser, File, MessageRecord } from ".prisma/client";
 
 type SanitizedUserType = Partial<
     Omit<User, "createdAt" | "modifiedAt"> & { createdAt: number; modifiedAt: number }
@@ -14,6 +14,7 @@ type SanitizedRoomType = Partial<
 >;
 type SanitizedMessageType = Partial<Omit<Message, "createdAt"> & { createdAt: number; body: any }>;
 type SanitizedFileType = Partial<Omit<File, "createdAt"> & { createdAt: number }>;
+type SanitizedMessageRecord = Partial<Omit<MessageRecord, "createdAt"> & { createdAt: number }>;
 
 interface sanitizeTypes {
     user: () => SanitizedUserType;
@@ -21,6 +22,7 @@ interface sanitizeTypes {
     room: () => SanitizedRoomType;
     message: () => SanitizedMessageType;
     file: () => SanitizedFileType;
+    messageRecord: () => SanitizedMessageRecord;
 }
 
 export default function sanitize(data: any): sanitizeTypes {
@@ -49,7 +51,7 @@ export default function sanitize(data: any): sanitizeTypes {
                 fromUserId,
                 totalDeviceCount,
                 totalUserCount,
-                receivedCount,
+                deliveredCount,
                 seenCount,
                 roomId,
                 type,
@@ -63,7 +65,7 @@ export default function sanitize(data: any): sanitizeTypes {
                 fromUserId,
                 totalDeviceCount,
                 totalUserCount,
-                receivedCount,
+                deliveredCount,
                 seenCount,
                 roomId,
                 type,
@@ -84,6 +86,17 @@ export default function sanitize(data: any): sanitizeTypes {
                 relationId,
                 clientId,
                 path,
+                createdAt: +new Date(createdAt),
+            };
+        },
+        messageRecord: () => {
+            const { id, type, messageId, userId, createdAt } = data as MessageRecord;
+
+            return {
+                id,
+                type,
+                messageId,
+                userId,
                 createdAt: +new Date(createdAt),
             };
         },
