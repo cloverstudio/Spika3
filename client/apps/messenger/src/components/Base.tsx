@@ -17,6 +17,7 @@ import { addMessage } from "../features/chat/slice/chatSlice";
 import roomApi from "../features/chat/api/room";
 
 import { SnackbarState, SnackbarTypes } from "../types/UI";
+import { dynamicBaseQuery } from "../api/api";
 declare const API_BASE_URL: string;
 
 let theme = createTheme({
@@ -151,6 +152,11 @@ export default function AuthBase({ children }: Props): React.ReactElement {
                 if (data && data.message) {
                     dispatch(roomApi.endpoints.getHistory.initiate(1));
                     dispatch(addMessage(data.message));
+                    dynamicBaseQuery({
+                        url: "/messenger/messages/delivered",
+                        method: "POST",
+                        data: { messagesIds: [data.message.id] },
+                    });
                 }
             };
         }

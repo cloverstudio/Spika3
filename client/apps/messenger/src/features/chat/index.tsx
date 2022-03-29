@@ -8,7 +8,11 @@ import CheckIcon from "@mui/icons-material/Check";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 
 import { useGetRoomQuery } from "./api/room";
-import { useGetMessagesByRoomIdQuery, useSendMessageMutation } from "./api/message";
+import {
+    useGetMessagesByRoomIdQuery,
+    useMarkRoomMessagesAsSeenMutation,
+    useSendMessageMutation,
+} from "./api/message";
 
 import { selectRoomMessages, setActiveRoomId } from "./slice/chatSlice";
 import { selectUser } from "../../store/userSlice";
@@ -25,6 +29,7 @@ export default function Chat(): React.ReactElement {
     const dispatch = useDispatch();
     const [sendMessage] = useSendMessageMutation();
     const { data, isLoading } = useGetRoomQuery(roomId);
+    const [markRoomMessagesAsSeen] = useMarkRoomMessagesAsSeenMutation();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -36,11 +41,12 @@ export default function Chat(): React.ReactElement {
 
     useEffect(() => {
         dispatch(setActiveRoomId(roomId));
+        markRoomMessagesAsSeen(roomId);
 
         return () => {
             dispatch(setActiveRoomId(null));
         };
-    }, [dispatch, roomId]);
+    }, [dispatch, roomId, markRoomMessagesAsSeen]);
 
     if (isLoading) {
         return <Loader />;

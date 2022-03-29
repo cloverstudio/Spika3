@@ -14,9 +14,18 @@ const messageApi = api.injectEndpoints({
                 return `/messenger/messages/roomId/${roomId}?page=${page}`;
             },
         }),
+        markRoomMessagesAsSeen: build.mutation<any, number>({
+            query: (roomId) => {
+                return { url: `/messenger/messages/${roomId}/seen`, method: "POST" };
+            },
+        }),
     }),
     overrideExisting: true,
 });
 
-export const { useGetMessagesByRoomIdQuery, useSendMessageMutation } = messageApi;
+export const {
+    useGetMessagesByRoomIdQuery,
+    useSendMessageMutation,
+    useMarkRoomMessagesAsSeenMutation,
+} = messageApi;
 export default messageApi;
