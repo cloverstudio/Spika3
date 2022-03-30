@@ -71,7 +71,7 @@ type RoomRowProps = {
 };
 
 function RoomRow({ id, isActive, name, avatarUrl, lastMessage, handleClick }: RoomRowProps) {
-    let lastMessageText = lastMessage?.messageBody?.text || "No messages";
+    let lastMessageText = lastMessage?.body?.text || "No messages";
 
     if (lastMessageText.length > 25) {
         lastMessageText = lastMessageText.slice(0, 25) + "...";

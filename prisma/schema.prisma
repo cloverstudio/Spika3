@@ -28,6 +28,7 @@ model User {
   contacts  Contact[] @relation("user")
   contactee Contact[] @relation("contact")
   messages Message[]
+  messagesRecords MessageRecord[]
   @@map(name: "user")
 }
 
@@ -122,12 +123,14 @@ model Message {
   seenCount Int @default(0) @map(name: "seen_count")
   receivedCount Int @default(0) @map(name: "received_count")
   totalDeviceCount Int @map(name: "total_device_count")
+  totalUserCount Int @map(name: "total_user_count")
 
   createdAt  DateTime @default(now()) @map(name: "created_at")
   modifiedAt DateTime @default(now()) @map(name: "modified_at")
   deleted Boolean @default(false) @map(name: "deleted")
 
   deviceMessages DeviceMessage[]
+  messageRecords MessageRecord[]
 
   @@map(name: "message")
 }
@@ -142,7 +145,7 @@ model DeviceMessage {
   messageId Int @map(name: "message_id")
   message Message @relation(fields: [messageId], references: [id])
 
-  messageBody Json @map(name: "message_body")
+  body Json @map(name: "body")
   action String @map(name: "action")
 
   createdAt  DateTime @default(now()) @map(name: "created_at")
@@ -151,3 +154,19 @@ model DeviceMessage {
   @@map(name: "message_device")
 }
 
+model MessageRecord {
+  id Int @id @default(autoincrement()) @map(name: "id")
+  messageId Int @map(name: "message_id")
+  message Message @relation(fields: [messageId], references: [id])
+
+  userId Int @map(name: "user_id")
+  user User @relation(fields: [userId], references: [id])
+
+  type String @map("string")
+
+  createdAt  DateTime @default(now()) @map(name: "created_at")
+  modifiedAt DateTime @default(now()) @map(name: "modified_at")
+
+  @@unique([messageId, userId, type], name: "messageId_userId_type_unique_constraint")
+  @@map(name: "message_record")
+}
