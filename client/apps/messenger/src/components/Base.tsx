@@ -147,16 +147,18 @@ export default function AuthBase({ children }: Props): React.ReactElement {
                 `${API_BASE_URL}/sse/${device.data.device.id}?accesstoken=${device.data.device.token}`
             );
 
-            source.onmessage = function (event) {
+            source.onmessage = async function (event) {
                 const data = JSON.parse(event.data || {});
                 if (data && data.message) {
-                    dispatch(roomApi.endpoints.getHistory.initiate(1));
-                    dispatch(addMessage(data.message));
-                    dynamicBaseQuery({
+                    await dynamicBaseQuery({
                         url: "/messenger/messages/delivered",
                         method: "POST",
                         data: { messagesIds: [data.message.id] },
                     });
+
+                    dispatch(addMessage(data.message));
+
+                    setTimeout(() => dispatch(roomApi.endpoints.getHistory.initiate(1)), 500);
                 }
             };
         }

@@ -18,6 +18,7 @@ const messageApi = api.injectEndpoints({
             query: (roomId) => {
                 return { url: `/messenger/messages/${roomId}/seen`, method: "POST" };
             },
+            invalidatesTags: (res) => res && [{ type: "Rooms", id: "HISTORY" }],
         }),
     }),
     overrideExisting: true,

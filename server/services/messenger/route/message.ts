@@ -302,9 +302,15 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 const messageRecords: MessageRecord[] = [];
 
                 for (const message of messages) {
-                    let record = message.messageRecords.find(
-                        (mr) => mr.type === "delivered" && mr.userId === userId
-                    );
+                    let record = await prisma.messageRecord.findUnique({
+                        where: {
+                            messageId_userId_type_unique_constraint: {
+                                messageId: message.id,
+                                type: "delivered",
+                                userId,
+                            },
+                        },
+                    });
 
                     if (!record) {
                         record = await prisma.messageRecord.create({
@@ -409,15 +415,20 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     createdAt: { gte: roomUser.createdAt },
                     messageRecords: { none: { userId, type: "seen" } },
                 },
-                include: { messageRecords: true },
             });
 
             const messageRecords: MessageRecord[] = [];
 
             for (const message of messages) {
-                let record = message.messageRecords.find(
-                    (mr) => mr.type === "seen" && mr.userId === userId
-                );
+                let record = await prisma.messageRecord.findUnique({
+                    where: {
+                        messageId_userId_type_unique_constraint: {
+                            messageId: message.id,
+                            type: "seen",
+                            userId,
+                        },
+                    },
+                });
 
                 if (!record) {
                     record = await prisma.messageRecord.create({
@@ -434,9 +445,15 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
                 messageRecords.push(record);
 
-                const deliveredMessageRecord = message.messageRecords.find(
-                    (mr) => mr.type === "delivered" && mr.userId === userId
-                );
+                const deliveredMessageRecord = await prisma.messageRecord.findUnique({
+                    where: {
+                        messageId_userId_type_unique_constraint: {
+                            messageId: message.id,
+                            type: "delivered",
+                            userId,
+                        },
+                    },
+                });
 
                 if (!deliveredMessageRecord) {
                     await prisma.messageRecord.create({

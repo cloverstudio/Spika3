@@ -66,11 +66,20 @@ type RoomRowProps = {
     name: string;
     isActive: boolean;
     handleClick: () => void;
+    unreadCount?: number;
     lastMessage?: MessageType;
     avatarUrl?: string;
 };
 
-function RoomRow({ id, isActive, name, avatarUrl, lastMessage, handleClick }: RoomRowProps) {
+function RoomRow({
+    id,
+    isActive,
+    name,
+    avatarUrl,
+    lastMessage,
+    handleClick,
+    unreadCount,
+}: RoomRowProps) {
     let lastMessageText = lastMessage?.body?.text || "No messages";
 
     if (lastMessageText.length > 25) {
@@ -110,17 +119,19 @@ function RoomRow({ id, isActive, name, avatarUrl, lastMessage, handleClick }: Ro
                         >
                             {lastMessage?.createdAt && dayjs(lastMessage?.createdAt).fromNow()}
                         </Typography>
-                        <Badge
-                            sx={{
-                                "& .MuiBadge-badge": {
-                                    position: "relative",
-                                    transform: "none",
-                                },
-                            }}
-                            color="primary"
-                            badgeContent={999}
-                            max={99}
-                        />
+                        {unreadCount ? (
+                            <Badge
+                                sx={{
+                                    "& .MuiBadge-badge": {
+                                        position: "relative",
+                                        transform: "none",
+                                    },
+                                }}
+                                color="primary"
+                                badgeContent={unreadCount}
+                                max={99}
+                            />
+                        ) : null}
                     </Box>
                 </Box>
             </Box>

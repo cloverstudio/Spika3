@@ -38,6 +38,26 @@ export default (): Router => {
                 },
             });
 
+            const unreadMessages = await prisma.message.findMany({
+                where: {
+                    roomId: { in: roomsIds },
+                    deviceMessages: {
+                        some: {
+                            deviceId,
+                        },
+                    },
+                    messageRecords: {
+                        none: {
+                            userId,
+                            type: "seen",
+                        },
+                    },
+                    NOT: {
+                        fromUserId: userId,
+                    },
+                },
+            });
+
             const messages = await prisma.message.findMany({
                 where: {
                     roomId: { in: roomsIds },
@@ -70,13 +90,14 @@ export default (): Router => {
             const list = messages.map((m) => {
                 const { room, ...message } = m;
                 const body = deviceMessages.find((dm) => dm.messageId === m.id)?.body;
-
+                const unreadCount = unreadMessages.filter((m) => m.roomId === m.roomId).length;
                 return {
                     ...sanitize(room).room(),
                     lastMessage: sanitize({
                         ...message,
                         ...(body && { body }),
                     }).message(),
+                    unreadCount,
                 };
             });
 
