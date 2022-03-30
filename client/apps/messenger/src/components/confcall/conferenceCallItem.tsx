@@ -124,7 +124,6 @@ export default ({ participant, myVideo, myAudio }: Props) => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                borderRadius: "1em",
                 position: "relative",
                 // "&:hover .overlay": {
                 //     display: "block",
@@ -138,7 +137,6 @@ export default ({ participant, myVideo, myAudio }: Props) => {
                         width: "100%",
                         height: "100%",
                         objectFit: "contain",
-                        borderRadius: "1em",
                     }}
                     ref={videoElm}
                     autoPlay
@@ -156,7 +154,7 @@ export default ({ participant, myVideo, myAudio }: Props) => {
                 playsInline
                 controls={false}
                 muted={participant.muteAudio}
-                style={{ width: "100%", height: "100%", objectFit: "contain", borderRadius: "1em" }}
+                style={{ width: "100%", height: "100%", objectFit: "contain" }}
             />
             {!participant.isMe && false ? <div className="consumer-info"></div> : null}
             {/* <Typography color="white">{participant.displayName}</Typography> */}
