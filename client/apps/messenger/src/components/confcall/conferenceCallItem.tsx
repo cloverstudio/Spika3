@@ -23,6 +23,9 @@ export default ({ participant, myVideo, myAudio }: Props) => {
 
     useEffect(() => {
         if (participant.audioTrack || myAudio) {
+            console.log("AudioTrack: " + participant.audioTrack);
+            console.log("MyAudio: " + myAudio);
+            console.log("MuteAudio: " + participant.muteAudio);
             const stream = new MediaStream();
             stream.addTrack(participant.isMe ? myAudio.track : participant.audioTrack);
             audioElm.current.srcObject = stream;
@@ -52,12 +55,15 @@ export default ({ participant, myVideo, myAudio }: Props) => {
     }, [participant.audioTrack, myAudio]);
 
     useEffect(() => {
-        console.log("Video track:" + participant.videoTrack);
-        console.log("Video track:" + myVideo);
+        // console.log("VideoTrack: " + participant.videoTrack);
+        // console.log("MyVideo: " + myVideo);
+        // console.log("MuteVideo: " + participant.muteVideo);
         if (participant.videoTrack || myVideo) {
             const stream = new MediaStream();
-
-            stream.addTrack(participant.isMe ? myVideo.track : participant.videoTrack);
+            console.log("IsItMe: " + participant.isMe);
+            var track = participant.isMe ? myVideo.track : participant.videoTrack;
+            console.log(track);
+            stream.addTrack(track);
             videoElm.current.srcObject = stream;
             videoElm.current.oncanplay = () => {};
             videoElm.current.onplay = () => {
@@ -65,7 +71,7 @@ export default ({ participant, myVideo, myAudio }: Props) => {
             };
 
             videoElm.current.onpause = () => {};
-
+            console.log("video notnull:");
             videoElm.current
                 .play()
                 .catch((error) => console.error("videoElem.play() failed:%o", error));
@@ -73,6 +79,7 @@ export default ({ participant, myVideo, myAudio }: Props) => {
             _startVideoResolution();
         } else {
             videoElm.current.srcObject = null;
+            console.log("video null: ");
         }
     }, [participant.videoTrack, myVideo]);
 
@@ -105,7 +112,6 @@ export default ({ participant, myVideo, myAudio }: Props) => {
         setVideoMute(!videoMute);
     };
     const handleMic = () => {
-        console.log("ovdje udje");
         setAudioMute(!audioMute);
     };
 
@@ -120,9 +126,9 @@ export default ({ participant, myVideo, myAudio }: Props) => {
                 justifyContent: "center",
                 borderRadius: "1em",
                 position: "relative",
-                "&:hover .overlay": {
-                    display: "block",
-                },
+                // "&:hover .overlay": {
+                //     display: "block",
+                // },
                 margin: "0px",
             }}
         >
@@ -161,9 +167,9 @@ export default ({ participant, myVideo, myAudio }: Props) => {
                     position: "absolute",
                     width: "100%",
                     height: "100%",
-                    display: "none",
+                    display: "block",
                 }}
-                className="overlay"
+                // className="overlay"
             >
                 <Box
                     sx={{
@@ -228,7 +234,7 @@ export default ({ participant, myVideo, myAudio }: Props) => {
                                 }}
                             >
                                 <Tooltip title="No Video">
-                                    {participant.muteVideo ? (
+                                    {!participant.muteVideo ? (
                                         <VideocamOff style={{ fill: "white" }} />
                                     ) : (
                                         <Videocam style={{ fill: "white" }} />

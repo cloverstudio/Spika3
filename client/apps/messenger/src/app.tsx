@@ -21,19 +21,6 @@ export default function App(): React.ReactElement {
                     <Route path="rooms" element={<HomePage />}>
                         <Route path=":id" element={<RoomPage />} />
                     </Route>
-
-                    <Route
-                        path="confcall"
-                        element={
-                            <Confcall
-                                roomId="test"
-                                userId="test"
-                                userName="test"
-                                onClose={() => {}}
-                            />
-                        }
-                    />
-
                     <Route path="/playground" element={<Playground />} />
                 </Routes>
             </Router>
