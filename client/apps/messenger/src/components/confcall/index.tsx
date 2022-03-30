@@ -110,7 +110,6 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                 );
                 console.log("Consumer: " + element.consumers);
                 console.log("VideoConsumer: " + videoConsumer);
-                console.log("AudioConsumerPaused : " + audioConsumer.paused);
                 var member: CallParticipant = {
                     participant: {
                         isMe: false,
