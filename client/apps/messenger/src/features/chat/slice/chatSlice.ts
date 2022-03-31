@@ -30,7 +30,7 @@ export const chatSlice = createSlice({
             (state, { payload, meta }) => {
                 const message = {
                     ...payload.message,
-                    messageBody: meta.arg.originalArgs.message,
+                    body: meta.arg.originalArgs.message,
                 };
 
                 state.messages = [...state.messages, message];
