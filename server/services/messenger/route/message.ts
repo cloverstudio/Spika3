@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import { MessageRecord, PrismaClient } from "@prisma/client";
 
 import { UserRequest } from "../lib/types";
 import { error as le } from "../../../components/logger";
@@ -21,6 +21,12 @@ const postMessageSchema = yup.object().shape({
         roomId: yup.number().strict().min(1).required(),
         type: yup.string().strict().required(),
         message: yup.object().required(),
+    }),
+});
+
+const deliveredMessagesSchema = yup.object().shape({
+    body: yup.object().shape({
+        messagesIds: yup.array().default([]).of(yup.number().strict().moreThan(0)).required(),
     }),
 });
 
@@ -120,6 +126,47 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         }
     });
 
+    router.get("/:id/message-records", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        const userId = userReq.user.id;
+
+        try {
+            const id = parseInt(req.params.id as string);
+
+            const message = await prisma.message.findUnique({
+                where: { id },
+                include: { messageRecords: true },
+            });
+
+            if (!message) {
+                return res.status(404).send(errorResponse("No message found", userReq.lang));
+            }
+
+            const roomUser = await prisma.roomUser.findFirst({
+                where: { roomId: message.roomId, userId },
+            });
+
+            if (!roomUser) {
+                return res.status(404).send(errorResponse("No message found", userReq.lang));
+            }
+
+            res.send(
+                successResponse(
+                    {
+                        messageRecords: message.messageRecords.map((record) =>
+                            sanitize(record).messageRecord()
+                        ),
+                    },
+                    userReq.lang
+                )
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    // only web should call this route
     router.get("/roomId/:roomId", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         const userId = userReq.user.id;
@@ -149,6 +196,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         },
                     },
                 },
+                include: {
+                    deviceMessages: true,
+                    messageRecords: true,
+                },
                 orderBy: {
                     modifiedAt: "desc",
                 },
@@ -156,16 +207,29 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 take: Constants.PAGING_LIMIT,
             });
 
-            const deviceMessages = await prisma.deviceMessage.findMany({
-                where: { userId, deviceId, messageId: { in: messages.map((m) => m.id) } },
-                select: {
-                    messageId: true,
-                    body: true,
-                },
-            });
+            for (const message of messages) {
+                const record = message.messageRecords.find(
+                    (mr) => mr.type === "delivered" && mr.userId === userId
+                );
+
+                if (!record) {
+                    await prisma.messageRecord.create({
+                        data: { type: "delivered", userId, messageId: message.id },
+                    });
+
+                    await prisma.message.update({
+                        where: { id: message.id },
+                        data: {
+                            deliveredCount: { increment: 1 },
+                        },
+                    });
+                }
+            }
 
             const list = messages.map((m) => {
-                const body = deviceMessages.find((dm) => dm.messageId === m.id)?.body;
+                const body = m.deviceMessages.find(
+                    (dm) => dm.messageId === m.id && dm.deviceId === deviceId
+                )?.body;
                 return sanitize({ ...m, body }).message();
             });
 
@@ -175,6 +239,102 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
         }
     });
+
+    router.post(
+        "/delivered",
+        auth,
+        validate(deliveredMessagesSchema),
+        async (req: Request, res: Response) => {
+            const userReq: UserRequest = req as UserRequest;
+            const userId = userReq.user.id;
+            const messagesIds = req.body.messagesIds as number[];
+
+            try {
+                const messages = await prisma.message.findMany({
+                    where: { id: { in: messagesIds } },
+                    include: { messageRecords: true },
+                });
+
+                if (!messages.length) {
+                    return res
+                        .status(400)
+                        .send(errorResponse("No messages with given ids found", userReq.lang));
+                }
+
+                const notFoundMessagesIds = messagesIds.filter(
+                    (id) => !messages.find((m) => m.id === id)
+                );
+
+                if (notFoundMessagesIds.length) {
+                    return res
+                        .status(400)
+                        .send(
+                            errorResponse(
+                                `Messages with ids: ${notFoundMessagesIds.join(",")} not found`,
+                                userReq.lang
+                            )
+                        );
+                }
+
+                const roomsIds = messages
+                    .map((m) => m.roomId)
+                    .filter((item, index, self) => self.indexOf(item) === index);
+
+                const roomsUser = await prisma.roomUser.findMany({
+                    where: { roomId: { in: roomsIds }, userId },
+                });
+
+                const notFoundRomsUser = roomsIds.filter(
+                    (roomId) => !roomsUser.find((m) => m.roomId === roomId)
+                );
+
+                if (notFoundRomsUser.length) {
+                    return res
+                        .status(400)
+                        .send(
+                            errorResponse(
+                                "One or more message is from room that user is not part of",
+                                userReq.lang
+                            )
+                        );
+                }
+
+                const messageRecords: MessageRecord[] = [];
+
+                for (const message of messages) {
+                    let record = await prisma.messageRecord.findUnique({
+                        where: {
+                            messageId_userId_type_unique_constraint: {
+                                messageId: message.id,
+                                type: "delivered",
+                                userId,
+                            },
+                        },
+                    });
+
+                    if (!record) {
+                        record = await prisma.messageRecord.create({
+                            data: { type: "delivered", userId, messageId: message.id },
+                        });
+
+                        await prisma.message.update({
+                            where: { id: message.id },
+                            data: {
+                                deliveredCount: { increment: 1 },
+                            },
+                        });
+                    }
+
+                    messageRecords.push(record);
+                }
+
+                res.send(successResponse({ messageRecords }, userReq.lang));
+            } catch (e: any) {
+                le(e);
+                res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+            }
+        }
+    );
 
     router.get("/:timestamp", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
@@ -219,20 +379,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 take: Constants.PAGING_LIMIT,
             });
 
-            for (const message of messages) {
-                const query = { messageId: message.id, type: "delivered", userId };
-
-                const exists = await prisma.messageRecord.findFirst({
-                    where: query,
-                });
-
-                if (!exists) {
-                    await prisma.messageRecord.create({
-                        data: query,
-                    });
-                }
-            }
-
             const list = messages.map((m) => {
                 const body = m.deviceMessages.find((dm) => dm.deviceId === deviceId)?.body;
                 return sanitize({ ...m, body }).message();
@@ -269,62 +415,61 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     createdAt: { gte: roomUser.createdAt },
                     messageRecords: { none: { userId, type: "seen" } },
                 },
-                select: { id: true },
             });
 
-            const messagesIds = messages.map((m) => m.id);
+            const messageRecords: MessageRecord[] = [];
 
-            const messageRecords = await prisma.messageRecord.createMany({
-                data: messagesIds.map((messageId) => ({ messageId, userId, type: "seen" })),
-            });
+            for (const message of messages) {
+                let record = await prisma.messageRecord.findUnique({
+                    where: {
+                        messageId_userId_type_unique_constraint: {
+                            messageId: message.id,
+                            type: "seen",
+                            userId,
+                        },
+                    },
+                });
+
+                if (!record) {
+                    record = await prisma.messageRecord.create({
+                        data: { type: "seen", userId, messageId: message.id },
+                    });
+
+                    await prisma.message.update({
+                        where: { id: message.id },
+                        data: {
+                            seenCount: { increment: 1 },
+                        },
+                    });
+                }
+
+                messageRecords.push(record);
+
+                const deliveredMessageRecord = await prisma.messageRecord.findUnique({
+                    where: {
+                        messageId_userId_type_unique_constraint: {
+                            messageId: message.id,
+                            type: "delivered",
+                            userId,
+                        },
+                    },
+                });
+
+                if (!deliveredMessageRecord) {
+                    await prisma.messageRecord.create({
+                        data: { type: "delivered", userId, messageId: message.id },
+                    });
+
+                    await prisma.message.update({
+                        where: { id: message.id },
+                        data: {
+                            deliveredCount: { increment: 1 },
+                        },
+                    });
+                }
+            }
 
             res.send(successResponse({ messageRecords }, userReq.lang));
-        } catch (e: any) {
-            le(e);
-            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
-        }
-    });
-
-    router.post("/:messageId/delivered", auth, async (req: Request, res: Response) => {
-        const userReq: UserRequest = req as UserRequest;
-        const userId = userReq.user.id;
-        const messageId = parseInt(req.params.messageId as string);
-
-        try {
-            if (isNaN(messageId)) {
-                return res
-                    .status(400)
-                    .send(errorResponse("messageId must be number", userReq.lang));
-            }
-
-            const message = await prisma.message.findUnique({
-                where: { id: messageId },
-                include: { messageRecords: true },
-            });
-
-            if (!message) {
-                return res.status(404).send(errorResponse("message not found", userReq.lang));
-            }
-
-            const roomUser = await prisma.roomUser.findFirst({
-                where: { roomId: message.roomId, userId },
-            });
-
-            if (!roomUser) {
-                return res.status(404).send(errorResponse("message not found", userReq.lang));
-            }
-
-            let record = message.messageRecords.find(
-                (mr) => mr.type === "delivered" && mr.userId === userId
-            );
-
-            if (!record) {
-                record = await prisma.messageRecord.create({
-                    data: { type: "delivered", userId, messageId },
-                });
-            }
-
-            res.send(successResponse({ record }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

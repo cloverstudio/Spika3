@@ -7,7 +7,7 @@ import * as Constants from "../server/components/consts";
 import createFakeRoom from "./fixtures/room";
 import createFakeMessage from "./fixtures/message";
 import { before, beforeEach, afterEach } from "mocha";
-import { Room, Message } from ".prisma/client";
+import { Room, Message, MessageRecord } from ".prisma/client";
 import createFakeDevice, { createFakeDevices } from "./fixtures/device";
 import createFakeUser, { createManyFakeUsers } from "./fixtures/user";
 import sendPush from "../server/services/push/worker/sendPush";
@@ -397,7 +397,36 @@ describe("API", () => {
                 },
             });
 
-            expect(messageRecords.every((mr) => mr.type === "seen")).to.be.true;
+            expect(messageRecords.filter((mr) => mr.type === "seen")).to.have.lengthOf(2);
+        });
+
+        it("marks all messages in room as delivered", async () => {
+            const messageOne = await createFakeMessage({
+                fromUserId: globals.userId,
+                room,
+                fromDeviceId: globals.deviceId,
+            });
+
+            const messageTwo = await createFakeMessage({
+                fromUserId: globals.userId,
+                room,
+                fromDeviceId: globals.deviceId,
+            });
+
+            const response = await supertest(app)
+                .post(`/api/messenger/messages/${room.id}/seen`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(200);
+
+            const messageRecords = await globals.prisma.messageRecord.findMany({
+                where: {
+                    messageId: { in: [messageOne.id, messageTwo.id] },
+                    userId: globals.userId,
+                },
+            });
+
+            expect(messageRecords.filter((mr) => mr.type === "delivered")).to.have.lengthOf(2);
         });
 
         it("doesn't mark messages that are created before user joined room", async () => {
@@ -445,41 +474,49 @@ describe("API", () => {
         });
     });
 
-    describe("/api/messenger/messages/:messageId/delivered POST", () => {
-        let message: Message | undefined;
+    describe("/api/messenger/messages/delivered POST", () => {
+        let messages: Message[];
 
         before(async () => {
             const room = await createFakeRoom([{ userId: globals.userId, isAdmin: true }]);
-            message = await createFakeMessage({
-                fromUserId: globals.userId,
-                room,
-                fromDeviceId: globals.deviceId,
-            });
+            messages = await Promise.all(
+                new Array(6).fill(true).map(() =>
+                    createFakeMessage({
+                        fromUserId: globals.userId,
+                        room,
+                        fromDeviceId: globals.deviceId,
+                    })
+                )
+            );
         });
 
-        it("messageId param must be number", async () => {
+        it("messagesIds param must be array", async () => {
             const responseInvalid = await supertest(app)
-                .post("/api/messenger/messages/invalid/delivered")
-                .set({ accesstoken: globals.userToken });
+                .post("/api/messenger/messages/delivered")
+                .set({ accesstoken: globals.userToken })
+                .send({ messagesIds: undefined });
 
             const response = await supertest(app)
-                .post(`/api/messenger/messages/${message.id}/delivered`)
-                .set({ accesstoken: globals.userToken });
+                .post("/api/messenger/messages/delivered")
+                .set({ accesstoken: globals.userToken })
+                .send({ messagesIds: messages.map((m) => m.id) });
 
             expect(responseInvalid.status).to.eqls(400);
             expect(response.status).to.eqls(200);
         });
 
-        it("message must exist with given messageId", async () => {
+        it("messages must exist with given id", async () => {
             const responseInvalid = await supertest(app)
-                .post("/api/messenger/messages/456464368/delivered")
-                .set({ accesstoken: globals.userToken });
+                .post("/api/messenger/messages/delivered")
+                .set({ accesstoken: globals.userToken })
+                .send({ messagesIds: [256874] });
 
             const response = await supertest(app)
-                .post(`/api/messenger/messages/${message.id}/delivered`)
-                .set({ accesstoken: globals.userToken });
+                .post("/api/messenger/messages/delivered")
+                .set({ accesstoken: globals.userToken })
+                .send({ messagesIds: messages.map((m) => m.id) });
 
-            expect(responseInvalid.status).to.eqls(404);
+            expect(responseInvalid.status).to.eqls(400);
             expect(response.status).to.eqls(200);
         });
 
@@ -492,51 +529,122 @@ describe("API", () => {
             });
 
             const responseInvalid = await supertest(app)
-                .post(`/api/messenger/messages/${messageTwo.id}/delivered`)
+                .post(`/api/messenger/messages/delivered`)
+                .set({ accesstoken: globals.userToken })
+                .send({ messagesIds: [messageTwo.id] });
+
+            const response = await supertest(app)
+                .post("/api/messenger/messages/delivered")
+                .set({ accesstoken: globals.userToken })
+                .send({ messagesIds: messages.map((m) => m.id) });
+
+            expect(responseInvalid.status).to.eqls(400);
+            expect(response.status).to.eqls(200);
+        });
+
+        it("marks messages as delivered", async () => {
+            const response = await supertest(app)
+                .post("/api/messenger/messages/delivered")
+                .set({ accesstoken: globals.userToken })
+                .send({ messagesIds: messages.map((m) => m.id) });
+
+            expect(response.status).to.eqls(200);
+
+            const messageRecords = await globals.prisma.messageRecord.findMany({
+                where: {
+                    messageId: { in: messages.map((m) => m.id) },
+                    userId: globals.userId,
+                    type: "delivered",
+                },
+            });
+
+            expect(messageRecords).to.be.lengthOf(messages.length);
+        });
+
+        it("updates message deliveredCount", async () => {
+            const response = await supertest(app)
+                .post("/api/messenger/messages/delivered")
+                .set({ accesstoken: globals.userToken })
+                .send({ messagesIds: messages.map((m) => m.id) });
+
+            expect(response.status).to.eqls(200);
+
+            const updatedMessages = await globals.prisma.message.findMany({
+                where: { id: { in: messages.map((m) => m.id) } },
+            });
+
+            expect(updatedMessages.every((m) => m.deliveredCount === 1)).to.be.true;
+        });
+    });
+
+    describe("/api/messenger/messages/:id/message-records GET", () => {
+        let messages: Message[];
+
+        before(async () => {
+            const room = await createFakeRoom([{ userId: globals.userId, isAdmin: true }]);
+            messages = await Promise.all(
+                new Array(6).fill(true).map(() =>
+                    createFakeMessage({
+                        fromUserId: globals.userId,
+                        room,
+                        fromDeviceId: globals.deviceId,
+                    })
+                )
+            );
+        });
+
+        it("return 404 if message doesn't exists", async () => {
+            const responseInvalid = await supertest(app)
+                .get("/api/messenger/messages/2568752/message-records")
                 .set({ accesstoken: globals.userToken });
 
             const response = await supertest(app)
-                .post(`/api/messenger/messages/${message.id}/delivered`)
+                .get(`/api/messenger/messages/${messages[0].id}/message-records`)
                 .set({ accesstoken: globals.userToken });
 
             expect(responseInvalid.status).to.eqls(404);
             expect(response.status).to.eqls(200);
         });
 
-        it("marks message as delivered", async () => {
-            const response = await supertest(app)
-                .post(`/api/messenger/messages/${message.id}/delivered`)
-                .set({ accesstoken: globals.userToken });
-
-            expect(response.status).to.eqls(200);
-
-            const messageRecords = await globals.prisma.messageRecord.findMany({
-                where: {
-                    message: message,
-                    userId: globals.userId,
-                    type: "delivered",
-                },
+        it("return 404 if user is not in messages room", async () => {
+            const room = await createFakeRoom([]);
+            const message = await createFakeMessage({
+                fromUserId: globals.userId,
+                room,
+                fromDeviceId: globals.deviceId,
             });
 
-            expect(messageRecords).to.be.lengthOf(1);
+            const responseInvalid = await supertest(app)
+                .get(`/api/messenger/messages/${message.id}/message-records`)
+                .set({ accesstoken: globals.userToken });
+
+            const response = await supertest(app)
+                .get(`/api/messenger/messages/${messages[0].id}/message-records`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseInvalid.status).to.eqls(404);
+            expect(response.status).to.eqls(200);
         });
 
-        it("is idempotent", async () => {
+        it("returns messages records", async () => {
+            const record = await globals.prisma.messageRecord.create({
+                data: {
+                    messageId: messages[0].id,
+                    userId: globals.userId,
+                    type: "seen",
+                },
+            });
             const response = await supertest(app)
-                .post(`/api/messenger/messages/${message.id}/delivered`)
+                .get(`/api/messenger/messages/${messages[0].id}/message-records`)
                 .set({ accesstoken: globals.userToken });
 
             expect(response.status).to.eqls(200);
-
-            const messageRecords = await globals.prisma.messageRecord.findMany({
-                where: {
-                    message: message,
-                    userId: globals.userId,
-                    type: "delivered",
-                },
-            });
-
-            expect(messageRecords).to.be.lengthOf(1);
+            expect(response.body).to.has.property("data");
+            expect(response.body.data).to.has.property("messageRecords");
+            expect(response.body.data.messageRecords).to.be.an("array");
+            expect(
+                response.body.data.messageRecords.filter((r: MessageRecord) => r.id === record.id)
+            ).to.have.lengthOf(1);
         });
     });
 
@@ -595,45 +703,6 @@ describe("API", () => {
             expect(responseTwo.body.data).to.has.property("count");
             expect(responseTwo.body.data.list).to.have.lengthOf(Constants.PAGING_LIMIT);
             expect(responseTwo.body.data.count).to.eqls(messages.length);
-        });
-
-        it("flags sent messages as delivered", async () => {
-            const user = await createFakeUser();
-            const device = await createFakeDevice(user.id);
-            const room = await createFakeRoom([
-                { userId: globals.userId, isAdmin: true },
-                { userId: user.id },
-            ]);
-
-            const timestamp = +new Date();
-
-            const messages = await Promise.all(
-                new Array(18).fill(true).map(() =>
-                    createFakeMessage({
-                        fromUserId: user.id,
-                        room,
-                        fromDeviceId: device.id,
-                    })
-                )
-            );
-
-            const response = await supertest(app)
-                .get(`/api/messenger/messages/${timestamp}`)
-                .set({ accesstoken: globals.userToken });
-
-            expect(response.status).to.eqls(200);
-
-            const responseMessages = response.body.data.list as Message[];
-
-            const messageRecords = await globals.prisma.messageRecord.findMany({
-                where: {
-                    userId: globals.userId,
-                    type: "delivered",
-                    messageId: { in: responseMessages.map((m) => m.id) },
-                },
-            });
-
-            expect(messageRecords).to.have.lengthOf(responseMessages.length);
         });
     });
 });
