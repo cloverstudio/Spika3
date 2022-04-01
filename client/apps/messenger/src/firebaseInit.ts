@@ -1,8 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getMessaging, getToken, onMessage } from "firebase/messaging";
-import roomApi from "./features/chat/api/room";
-import { addMessage } from "./features/chat/slice/chatSlice";
-import { store } from "./store/store";
+import { getMessaging, getToken } from "firebase/messaging";
 
 declare const FCM_API_KEY: string;
 declare const FCM_AUTH_DOMAIN: string;
@@ -45,9 +42,3 @@ export const requestForToken = async (update: any) => {
             console.log("An error occurred while retrieving token. ", err);
         });
 };
-
-onMessage(messaging, (payload) => {
-    const message = JSON.parse(payload.data.message);
-    store.dispatch(roomApi.endpoints.getHistory.initiate(1));
-    store.dispatch(addMessage(message));
-});

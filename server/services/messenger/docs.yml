@@ -726,7 +726,7 @@ paths:
         get:
             tags:
                 - "Message"
-            summary: "Get all messages received after the timestamp, marks returned messages as delivered"
+            summary: "Get all messages received after the timestamp"
             description: "Get all messages received after the timestamp"
             consumes:
                 - "application/json"
@@ -744,7 +744,29 @@ paths:
                         type: "array"
                         items:
                             $ref: "#/definitions/Message"
-    /messenger/messages/{messageId}/delivered:
+    /messenger/messages/{messageId}/message-records:
+        get:
+            tags:
+                - "Message"
+            summary: "Get all message records for specific message"
+            description: "Get all message records for specific message"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - in: path
+                  name: messageId
+                  type: "string"
+                  required: true
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: "array"
+                        items:
+                            $ref: "#/definitions/MessageRecord"
+    /messenger/messages/delivered:
         post:
             tags:
                 - "Message"
@@ -754,6 +776,15 @@ paths:
                 - "application/json"
             produces:
                 - "application/json"
+            parameters:
+                - name: "messagesIds"
+                  in: body
+                  required: true
+                  schema:
+                      type: array
+                      items:
+                          type: number
+                      minItems: 1
             responses:
                 "200":
                     description: "successful operation"
@@ -1041,7 +1072,7 @@ definitions:
             totalUserCount:
                 type: "integer"
                 format: "int32"
-            receivedCount:
+            deliveredCount:
                 type: "integer"
                 format: "int32"
             seenCount:
@@ -1052,6 +1083,24 @@ definitions:
                 format: "int32"
             body:
                 type: "object"
+            createdAt:
+                type: "integer"
+                format: "int32"
+
+    MessageRecord:
+        type: "object"
+        properties:
+            id:
+                type: "integer"
+                format: "int32"
+            messageId:
+                type: "integer"
+                format: "int32"
+            userId:
+                type: "integer"
+                format: "int32"
+            type:
+                type: "string"
             createdAt:
                 type: "integer"
                 format: "int32"

@@ -35,7 +35,7 @@ export const roomSlice = createSlice({
             (state, { payload, meta }) => {
                 const lastMessage = {
                     ...payload.message,
-                    messageBody: meta.arg.originalArgs.message,
+                    body: meta.arg.originalArgs.message,
                 };
 
                 const index = state.list.findIndex((r) => r.id === payload.message.roomId);

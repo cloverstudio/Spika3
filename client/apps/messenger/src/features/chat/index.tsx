@@ -8,7 +8,11 @@ import CheckIcon from "@mui/icons-material/Check";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 
 import { useGetRoomQuery } from "./api/room";
-import { useGetMessagesByRoomIdQuery, useSendMessageMutation } from "./api/message";
+import {
+    useGetMessagesByRoomIdQuery,
+    useMarkRoomMessagesAsSeenMutation,
+    useSendMessageMutation,
+} from "./api/message";
 
 import { selectRoomMessages, setActiveRoomId } from "./slice/chatSlice";
 import { selectUser } from "../../store/userSlice";
@@ -18,6 +22,7 @@ import Loader from "../../components/Loader";
 import formatRoomInfo from "./lib/formatRoomInfo";
 import useIsInViewport from "../../hooks/useIsInViewport";
 import { setLeftSidebar } from "./slice/sidebarSlice";
+import MessageStatusIcon from "./components/MessageStatusIcon";
 
 export default function Chat(): React.ReactElement {
     const roomId = +useParams().id;
@@ -25,8 +30,10 @@ export default function Chat(): React.ReactElement {
     const dispatch = useDispatch();
     const [sendMessage] = useSendMessageMutation();
     const { data, isLoading } = useGetRoomQuery(roomId);
+    const [markRoomMessagesAsSeen] = useMarkRoomMessagesAsSeenMutation();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+    const { messages } = useSelector(selectRoomMessages(roomId));
 
     const room = data?.room;
 
@@ -41,6 +48,10 @@ export default function Chat(): React.ReactElement {
             dispatch(setActiveRoomId(null));
         };
     }, [dispatch, roomId]);
+
+    useEffect(() => {
+        markRoomMessagesAsSeen(roomId);
+    }, [dispatch, roomId, markRoomMessagesAsSeen, messages.length]);
 
     if (isLoading) {
         return <Loader />;
@@ -217,6 +228,18 @@ function ChatMessages({ roomId }: ChatMessagesProps): React.ReactElement {
                     .sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))
                     .map((m) => {
                         const isUsersMessage = user?.id === m.fromUserId;
+
+                        const getStatusIcon = () => {
+                            if (m.seenCount === m.totalUserCount) {
+                                return "seen";
+                            }
+
+                            if (m.deliveredCount === m.totalUserCount) {
+                                return "delivered";
+                            }
+
+                            return "sent";
+                        };
                         return (
                             <Box
                                 key={m.id}
@@ -242,17 +265,7 @@ function ChatMessages({ roomId }: ChatMessagesProps): React.ReactElement {
                                         {m.body.text}
                                     </Typography>
                                 </Box>
-                                {isUsersMessage && (
-                                    <CheckIcon
-                                        sx={{
-                                            width: "0.75rem",
-                                            height: "auto",
-                                            color: "#5F6368",
-                                            mb: "0.375rem",
-                                            mr: "0.125rem",
-                                        }}
-                                    />
-                                )}
+                                {isUsersMessage && <MessageStatusIcon status={getStatusIcon()} />}
                             </Box>
                         );
                     })}
