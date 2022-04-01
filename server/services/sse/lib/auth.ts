@@ -38,12 +38,12 @@ export default async (req: Request, res: Response, next: Function) => {
         if (now - tokenExpiredAtTS > constants.TOKEN_EXPIRED)
             return res.status(403).send("Token is expired");
 
-        const userRequset: UserRequest = req as UserRequest;
+        const userRequest: UserRequest = req as UserRequest;
 
-        userRequset.user = device.user;
+        userRequest.user = device.user;
         delete device.user;
-        userRequset.device = device;
-        userRequset.lang = lang;
+        userRequest.device = device;
+        userRequest.lang = lang;
 
         // update device is there is a change
         if (
@@ -64,7 +64,7 @@ export default async (req: Request, res: Response, next: Function) => {
                     data: updateData,
                 });
 
-                userRequset.device = newDevice;
+                userRequest.device = newDevice;
             }
         }
 
