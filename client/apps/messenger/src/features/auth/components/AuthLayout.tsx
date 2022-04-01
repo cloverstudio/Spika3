@@ -1,10 +1,13 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Box, Typography } from "@mui/material";
 
 import logo from "../../../assets/logo.svg";
 import loginBg from "../../../assets/login-bg.svg";
 
 import { Base } from "../../../components/Base";
+import useIsLoggedIn from "../../../hooks/useIsLoggedIn";
+import Loader from "../../../components/Loader";
+import { useNavigate } from "react-router-dom";
 
 type AuthLayoutProps = {
     children: React.ReactElement | React.ReactElement[];
@@ -15,6 +18,19 @@ export default function AuthLayout({
     children,
     loading = false,
 }: AuthLayoutProps): React.ReactElement {
+    const { loading: isLoggedInLoading, isLoggedIn } = useIsLoggedIn();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (isLoggedIn) {
+            navigate("/app");
+        }
+    }, [isLoggedIn, navigate]);
+
+    if (isLoggedInLoading) {
+        return <Loader />;
+    }
+
     return (
         <Base>
             <Box
