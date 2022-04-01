@@ -119,6 +119,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                         muteAudio: audioConsumer && audioConsumer.paused ? true : false,
                         muteVideo: videoConsumer ? true : false,
                         consumers: element.consumers,
+                        id: element.id,
                     },
                 };
                 callMemberArray.push(member);
@@ -203,6 +204,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
         muteAudio: true,
         muteVideo: true,
         consumers: null,
+        id: "0",
     };
     var member: CallParticipant = { participant: me };
     const dataArray: CallParticipant[] = [member];
@@ -429,6 +431,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                                         participant={row.participant}
                                         myVideo={row.participant.isMe ? webcamProducer : null}
                                         myAudio={row.participant.isMe ? microphoneProducer : null}
+                                        oneParticipant={combinedArray.length == 1}
                                     />
                                 </Grid>
                             ))}
@@ -440,12 +443,13 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                     combinedArray.length < 3 ? (
                         [
                             combinedArray.length < 2 ? (
-                                <Box width="100%" height="91vh" position="relative">
+                                <Box width="100%" height="100vh" position="relative">
                                     <Box width="100%" height="100%">
                                         <ConferenceCallItem
                                             participant={combinedArray[0].participant}
                                             myVideo={webcamProducer}
                                             myAudio={microphoneProducer}
+                                            oneParticipant={combinedArray.length == 1}
                                         />
                                     </Box>
                                 </Box>
@@ -456,6 +460,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                                             participant={combinedArray[1].participant}
                                             myVideo={null}
                                             myAudio={null}
+                                            oneParticipant={combinedArray.length == 1}
                                         />
                                     </Box>
                                     <Box
@@ -469,6 +474,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                                             participant={combinedArray[0].participant}
                                             myVideo={webcamProducer}
                                             myAudio={microphoneProducer}
+                                            oneParticipant={combinedArray.length == 1}
                                         />
                                     </Box>
                                 </Box>
@@ -497,6 +503,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                                             myAudio={
                                                 row.participant.isMe ? microphoneProducer : null
                                             }
+                                            oneParticipant={combinedArray.length == 1}
                                         />
                                     </Grid>
                                 ))}
