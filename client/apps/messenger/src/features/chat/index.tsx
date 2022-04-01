@@ -1,10 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Avatar, Box, Input, Typography, useMediaQuery } from "@mui/material";
+import { Avatar, Box, Typography, useMediaQuery } from "@mui/material";
 import { Call, Search, Videocam } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
-import CheckIcon from "@mui/icons-material/Check";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 
 import { useGetRoomQuery } from "./api/room";
@@ -23,6 +22,7 @@ import formatRoomInfo from "./lib/formatRoomInfo";
 import useIsInViewport from "../../hooks/useIsInViewport";
 import { setLeftSidebar } from "./slice/sidebarSlice";
 import MessageStatusIcon from "./components/MessageStatusIcon";
+import ChatInput from "./components/ChatInput";
 
 export default function Chat(): React.ReactElement {
     const roomId = +useParams().id;
@@ -270,46 +270,6 @@ function ChatMessages({ roomId }: ChatMessagesProps): React.ReactElement {
                         );
                     })}
             </Box>
-        </Box>
-    );
-}
-
-type ChatInputProps = {
-    handleSend: (message: string) => void;
-};
-
-function ChatInput({ handleSend }: ChatInputProps): React.ReactElement {
-    const [message, setMessage] = useState("");
-
-    return (
-        <Box
-            minHeight="80px"
-            borderTop="0.5px solid #C9C9CA"
-            display="flex"
-            alignItems="center"
-            px={2}
-        >
-            <Input
-                disableUnderline={true}
-                fullWidth
-                value={message}
-                onChange={({ target }) => setMessage(target.value)}
-                onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                        handleSend(message);
-                        setMessage("");
-                    }
-                }}
-                placeholder="Type here..."
-                sx={{
-                    backgroundColor: "#fff",
-                    border: "1px solid #C9C9CA",
-                    input: {
-                        py: 2,
-                        px: 1.5,
-                    },
-                }}
-            />
         </Box>
     );
 }
