@@ -16,6 +16,10 @@ import {
 
 import { selectRoomMessages, setActiveRoomId } from "./slice/chatSlice";
 import { selectUser } from "../../store/userSlice";
+import rightSidebarSlice, {
+    show as showRightSidebar,
+    hide as hideRightSidebar,
+} from "./slice/rightSidebarSlice";
 
 import Loader from "../../components/Loader";
 
@@ -23,6 +27,7 @@ import formatRoomInfo from "./lib/formatRoomInfo";
 import useIsInViewport from "../../hooks/useIsInViewport";
 import { setLeftSidebar } from "./slice/sidebarSlice";
 import MessageStatusIcon from "./components/MessageStatusIcon";
+import { RootState } from "../../store/store";
 
 export default function Chat(): React.ReactElement {
     const roomId = +useParams().id;
@@ -91,11 +96,20 @@ function ChatHeader({ name, avatarUrl }: ChatHeaderProps): React.ReactElement {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
     const dispatch = useDispatch();
+    const rightSidebarState = useSelector((state: RootState) => state.rightSidebar);
 
     return (
         <Box px={2} borderBottom="0.5px solid #C9C9CA">
             <Box display="flex" justifyContent="space-between" height="80px">
-                <Box display="flex" alignItems="center">
+                <Box
+                    display="flex"
+                    alignItems="center"
+                    sx={{ cursor: "pointer" }}
+                    onClick={(e) => {
+                        if (!rightSidebarState.isOpened) dispatch(showRightSidebar());
+                        else dispatch(hideRightSidebar());
+                    }}
+                >
                     {isMobile && (
                         <ChevronLeftIcon
                             sx={{ mr: 0.5 }}

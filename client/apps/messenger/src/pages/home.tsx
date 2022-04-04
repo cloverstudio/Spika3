@@ -7,7 +7,14 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 
 import Base from "../components/Base";
 import LeftSidebar from "../features/chat/LeftSidebar";
+import RightSidebar from "../features/chat/RightSidebar";
 import { selectLeftSidebarOpen, setLeftSidebar } from "../features/chat/slice/sidebarSlice";
+
+import rightSidebarSlice, {
+    selectRightSidebarOpen,
+    show as showRightSidebar,
+    hide as hideRightSidebar,
+} from "../features/chat/slice/rightSidebarSlice";
 
 export default function Home(): React.ReactElement {
     const { id } = useParams();
@@ -16,6 +23,7 @@ export default function Home(): React.ReactElement {
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
     const dispatch = useDispatch();
     const open = useSelector(selectLeftSidebarOpen);
+    const rightSidebarOpen = useSelector(selectRightSidebarOpen);
 
     useEffect(() => {
         if (isMobile) {
@@ -33,7 +41,9 @@ export default function Home(): React.ReactElement {
                 sx={{
                     gridTemplateColumns: {
                         xs: "1fr",
-                        md: "minmax(320px, 420px) minmax(580px, 1fr)",
+                        md: rightSidebarOpen
+                            ? "minmax(320px, 420px) minmax(580px, 1fr) minmax(320px, 420px)"
+                            : "minmax(320px, 420px) minmax(580px, 1fr) ",
                     },
                 }}
             >
@@ -61,6 +71,7 @@ export default function Home(): React.ReactElement {
                         Select or create room
                     </Box>
                 )}
+                {rightSidebarOpen ? <RightSidebar /> : null}
             </Box>
         </Base>
     );
