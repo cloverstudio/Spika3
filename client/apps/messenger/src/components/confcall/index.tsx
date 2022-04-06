@@ -108,8 +108,8 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                 const videoConsumer = element.consumers.find(
                     (consumer) => consumer.track.kind === "video"
                 );
-                console.log("Consumer: " + element.consumers);
-                console.log("VideoConsumer: " + videoConsumer);
+                let participant: Participant = element;
+                console.log("Element: " + participant);
                 var member: CallParticipant = {
                     participant: {
                         isMe: false,
