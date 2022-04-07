@@ -142,10 +142,8 @@ export default function AuthBase({ children }: Props): React.ReactElement {
 
     useEffect(() => {
         let source: EventSource;
-        if (device.data?.device?.token && device.data?.device?.id && !source) {
-            source = new EventSource(
-                `${API_BASE_URL}/sse/${device.data.device.id}?accesstoken=${device.data.device.token}`
-            );
+        if (device.data?.device?.token && !source) {
+            source = new EventSource(`${API_BASE_URL}/sse?accesstoken=${device.data.device.token}`);
 
             source.onmessage = async function (event) {
                 const data = JSON.parse(event.data || {});
@@ -165,10 +163,14 @@ export default function AuthBase({ children }: Props): React.ReactElement {
         return () => {
             source && source.close();
         };
-    }, [device.data?.device?.token, device.data?.device?.id]);
+    }, [device.data?.device?.token, dispatch]);
 
     if (isFetching) {
         return <Loader />;
+    }
+
+    if (!user) {
+        return null;
     }
 
     return (
