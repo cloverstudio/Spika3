@@ -97,7 +97,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                                     token: devices.find((d) => d.id == deviceMessage.deviceId)
                                         ?.pushToken,
                                     data: {
-                                        deviceMessage,
                                         message: sanitize({ ...message, body }).message(),
                                     },
                                 })
@@ -111,7 +110,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                                     channelId: deviceMessage.deviceId,
                                     data: {
                                         type: Constants.PUSH_TYPE_NEW_MESSAGE,
-                                        deviceMessage,
                                         message: sanitize({ ...message, body }).message(),
                                     },
                                 })

@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import Service, { ServiceStartParams } from "../types/serviceInterface";
 import auth from "./lib/auth";
+import { UserRequest } from "./lib/types";
 import NotificationServer from "./notificationServer";
 
 export default class SSEService implements Service {
@@ -13,7 +14,8 @@ export default class SSEService implements Service {
     getRoutes(): Router {
         const SSERouter = Router();
 
-        SSERouter.get("/:channelId", auth, (req, res) => {
+        SSERouter.get("/", auth, (req, res) => {
+            const userReq: UserRequest = req as UserRequest;
             req.setTimeout(60 * 60 * 1000);
 
             const headers = {
@@ -23,7 +25,7 @@ export default class SSEService implements Service {
             };
             res.writeHead(200, headers);
 
-            const channelId = req.params.channelId;
+            const channelId = String(userReq.device.id);
 
             const connectionId = this.notificationServer.subscribe(channelId, (data) => {
                 const eventData = "data: " + JSON.stringify(data) + "\n\n";
