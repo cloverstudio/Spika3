@@ -70,7 +70,6 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
     };
     const handleGroup = () => {};
     const handleShare = () => {
-        console.log("Change screenShare state");
         setScreenShare(!screenShare);
         spikabroadcastClient.toggleScreenShare();
     };
@@ -85,7 +84,6 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
     const closeConference = () => {};
 
     const handleDrawerOpen = () => {
-        console.log("click");
         setOpen(true);
     };
 
@@ -109,7 +107,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                     (consumer) => consumer.track.kind === "video"
                 );
                 let participant: Participant = element;
-                console.log("Element: " + participant);
+                console.log("Element: " + JSON.stringify(element));
                 var member: CallParticipant = {
                     participant: {
                         isMe: false,
@@ -122,6 +120,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                         id: element.id,
                     },
                 };
+                console.log("MuteVideo: " + member.participant.muteVideo);
                 callMemberArray.push(member);
             });
         }
@@ -296,12 +295,10 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                 enableMicrophone: micEnabled,
                 listener: {
                     onStartVideo: (producer) => {
-                        console.log("start video0000000000000000000", producer);
                         me.videoTrack = producer.track;
                         setWebcamProducer(producer);
                     },
                     onStartAudio: (producer) => {
-                        console.log("start audi0000000000000000000", producer);
                         me.audioTrack = producer.track;
                         setMicrophoneProducer(producer);
                     },
@@ -310,7 +307,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                             participants,
                             ([key, val]) => val
                         );
-                        console.log("onParticipantUpdate");
+                        console.log("onParticipantUpdate: " + participantsAry);
                         // convertParticipantToCallMember(participantsAry);
                         setParticipants(participantsAry);
                     },
@@ -373,7 +370,6 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
     }, [participants]);
 
     useEffect(() => {
-        console.log("GridSize:" + gridSize);
         if (spikabroadcastClient) spikabroadcastClient.changeDisplayName(displayName);
         setEditNameEnabled(false);
         localStorage.setItem(Constants.LSKEY_USERNAME, displayName);

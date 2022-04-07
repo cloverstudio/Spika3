@@ -29,7 +29,6 @@ export default ({ participant, myVideo, myAudio, oneParticipant }: Props) => {
             // console.log("AudioTrack: " + participant.audioTrack);
             // console.log("MyAudio: " + myAudio);
             // console.log("MuteAudio: " + participant.muteAudio);
-            console.log("PrintBool: " + oneParticipant);
             const stream = new MediaStream();
             if (participant.isMe) {
                 if (myAudio != null) {
@@ -61,7 +60,6 @@ export default ({ participant, myVideo, myAudio, oneParticipant }: Props) => {
                 if (participant.audioTrack != null) {
                     stream.addTrack(participant.audioTrack);
                     audioElm.current.srcObject = stream;
-
                     audioElm.current.play().catch((error) => console.error(error));
 
                     if (!stream.getAudioTracks()[0]) return;
@@ -85,7 +83,7 @@ export default ({ participant, myVideo, myAudio, oneParticipant }: Props) => {
         } else {
             audioElm.current.srcObject = null;
         }
-    }, [participant.audioTrack, myAudio]);
+    }, [participant, myAudio]);
 
     useEffect(() => {
         // console.log("VideoTrack: " + participant.videoTrack);
@@ -93,7 +91,7 @@ export default ({ participant, myVideo, myAudio, oneParticipant }: Props) => {
         // console.log("MuteVideo: " + participant.muteVideo);
         if (participant.videoTrack || myVideo) {
             const stream = new MediaStream();
-            console.log("IsItMe: " + participant.isMe);
+            // console.log("IsItMe: " + participant.isMe);
             if (participant.isMe) {
                 if (myVideo != null) {
                     if (myVideo.track != null) {
@@ -112,7 +110,7 @@ export default ({ participant, myVideo, myAudio, oneParticipant }: Props) => {
             };
 
             videoElm.current.onpause = () => {};
-            console.log("video notnull:");
+            // console.log("video notnull:");
             var playPromise = videoElm.current.play();
 
             if (playPromise !== undefined) {
@@ -134,9 +132,9 @@ export default ({ participant, myVideo, myAudio, oneParticipant }: Props) => {
             _startVideoResolution();
         } else {
             videoElm.current.srcObject = null;
-            console.log("video null: ");
+            // console.log("video null: ");
         }
-    }, [participant.videoTrack, myVideo]);
+    }, [participant, myVideo]);
 
     const _startVideoResolution = () => {
         const videoResolutionPeriodicTimer = setInterval(() => {
