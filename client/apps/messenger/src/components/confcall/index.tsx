@@ -34,9 +34,9 @@ interface ModalState {
 }
 
 interface ConferenceCallProps {
-    roomId: String;
-    userId: String;
-    userName: String;
+    roomId: string;
+    userId: string;
+    userName: string;
     onClose: Function;
 }
 
@@ -285,7 +285,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
             const spikaBroadcastClientLocal = new SpikaBroadcastClient({
                 debug: true,
                 hostUrl: CONFCALL_HOST_URL,
-                roomId: "test",
+                roomId: roomId,
                 peerId: Utils.randomStr(8),
                 displayName: localStorage.getItem(Constants.LSKEY_USERNAME) || "No name",
                 avatarUrl: "",

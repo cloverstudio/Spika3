@@ -177,12 +177,7 @@ export default ({ participant, myVideo, myAudio, oneParticipant }: Props) => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                borderRadius: cornerRadius,
-
                 position: "relative",
-                // "&:hover .overlay": {
-                //     display: "block",
-                // },
                 margin: "0px",
             }}
         >
