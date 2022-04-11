@@ -34,9 +34,9 @@ interface ModalState {
 }
 
 interface ConferenceCallProps {
-    roomId: String;
-    userId: String;
-    userName: String;
+    roomId: string;
+    userId: string;
+    userName: string;
     onClose: Function;
 }
 
@@ -70,15 +70,20 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
     };
     const handleGroup = () => {};
     const handleShare = () => {
-        console.log("Change screenShare state");
         setScreenShare(!screenShare);
         spikabroadcastClient.toggleScreenShare();
+    };
+
+    const handleChangeVideo = (video: MediaDeviceInfo) => {
+        updateDevice(video, null);
+    };
+    const handleChangeAudio = (audio: MediaDeviceInfo) => {
+        updateDevice(null, audio);
     };
 
     const closeConference = () => {};
 
     const handleDrawerOpen = () => {
-        console.log("click");
         setOpen(true);
     };
 
@@ -93,7 +98,6 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
 
     const convertParticipantToCallMember = (participants: Participant[]) => {
         callMemberArray = [];
-        console.log("Sharescreen in spika client convertParticipantToCallMember" + screenShare);
         if (participants != null) {
             participants.forEach((element) => {
                 const audioConsumer = element.consumers.find(
@@ -102,17 +106,21 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                 const videoConsumer = element.consumers.find(
                     (consumer) => consumer.track.kind === "video"
                 );
+                let participant: Participant = element;
+                console.log("Element: " + JSON.stringify(element));
                 var member: CallParticipant = {
                     participant: {
                         isMe: false,
                         displayName: element.displayName,
                         audioTrack: audioConsumer?.track,
                         videoTrack: videoConsumer?.track,
-                        muteAudio: false,
-                        muteVideo: false,
+                        muteAudio: audioConsumer && audioConsumer.paused ? true : false,
+                        muteVideo: videoConsumer ? true : false,
                         consumers: element.consumers,
+                        id: element.id,
                     },
                 };
+                console.log("MuteVideo: " + member.participant.muteVideo);
                 callMemberArray.push(member);
             });
         }
@@ -123,7 +131,6 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
     const calculateLayoutByParticipantNumber = () => {
         let numberOfParticipants: number = callMemberArray.length + 1;
 
-        console.log("Sharescreen in spika client calculateLayoutByParticipantNumber" + screenShare);
         var indexForOwnData = 0;
         if (numberOfParticipants > 2 && numberOfParticipants < 5) {
             if (!screenShare) {
@@ -156,9 +163,10 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
     };
 
     useEffect(() => {
-        console.log("Promjeni se screenshare" + screenShare);
         convertParticipantToCallMember(participants);
     }, [screenShare]);
+    useEffect(() => {}, [gridSize]);
+
     useEffect(() => {}, [gridSize]);
 
     const [participants, setParticipants] = React.useState<Array<Participant>>(null);
@@ -195,6 +203,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
         muteAudio: true,
         muteVideo: true,
         consumers: null,
+        id: "0",
     };
     var member: CallParticipant = { participant: me };
     const dataArray: CallParticipant[] = [member];
@@ -220,6 +229,18 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
         : Utils.randomStr(8);
     if (!localStorage.getItem(Constants.LSKEY_PEERID))
         localStorage.setItem(Constants.LSKEY_PEERID, peerId);
+
+    const updateDevice = async (camera: MediaDeviceInfo, mic: MediaDeviceInfo) => {
+        if (camera) {
+            await spikabroadcastClient.updateCamera(camera);
+            localStorage.setItem(Constants.LSKEY_SELECTEDCAM, camera.deviceId);
+        }
+
+        if (mic) {
+            await spikabroadcastClient.updateMicrophone(mic);
+            localStorage.setItem(Constants.LSKEY_SELECTEDMIC, mic.deviceId);
+        }
+    };
 
     useEffect(() => {
         // load cameara and microphones
@@ -264,7 +285,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
             const spikaBroadcastClientLocal = new SpikaBroadcastClient({
                 debug: true,
                 hostUrl: CONFCALL_HOST_URL,
-                roomId: "test",
+                roomId: roomId,
                 peerId: Utils.randomStr(8),
                 displayName: localStorage.getItem(Constants.LSKEY_USERNAME) || "No name",
                 avatarUrl: "",
@@ -274,10 +295,11 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                 enableMicrophone: micEnabled,
                 listener: {
                     onStartVideo: (producer) => {
-                        console.log("start video", producer);
+                        me.videoTrack = producer.track;
                         setWebcamProducer(producer);
                     },
                     onStartAudio: (producer) => {
+                        me.audioTrack = producer.track;
                         setMicrophoneProducer(producer);
                     },
                     onParticipantUpdate: (participants) => {
@@ -285,9 +307,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                             participants,
                             ([key, val]) => val
                         );
-                        console.log(
-                            "Sharescreen in spika client onParticipantUpdate" + screenShare
-                        );
+                        console.log("onParticipantUpdate: " + participantsAry);
                         // convertParticipantToCallMember(participantsAry);
                         setParticipants(participantsAry);
                     },
@@ -330,10 +350,8 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
     }, []);
 
     useEffect(() => {
-        if (participants?.length) {
-            convertParticipantToCallMember(participants);
-        }
-    }, [participants?.length]);
+        convertParticipantToCallMember(participants);
+    }, [participants]);
 
     useEffect(() => {
         if (!participants) return;
@@ -352,14 +370,13 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
     }, [participants]);
 
     useEffect(() => {
-        console.log("GridSize:" + gridSize);
         if (spikabroadcastClient) spikabroadcastClient.changeDisplayName(displayName);
         setEditNameEnabled(false);
         localStorage.setItem(Constants.LSKEY_USERNAME, displayName);
     }, [displayName, webcamProducer, gridSize]);
 
     return (
-        <Box sx={{ display: "flex", backgroundColor: "lightgray" }} position="relative">
+        <Box sx={{ display: "flex", backgroundColor: "dimgrey" }} position="relative">
             {screenShare ? (
                 <Stack
                     direction="row"
@@ -410,6 +427,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                                         participant={row.participant}
                                         myVideo={row.participant.isMe ? webcamProducer : null}
                                         myAudio={row.participant.isMe ? microphoneProducer : null}
+                                        oneParticipant={combinedArray.length == 1}
                                     />
                                 </Grid>
                             ))}
@@ -421,12 +439,13 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                     combinedArray.length < 3 ? (
                         [
                             combinedArray.length < 2 ? (
-                                <Box width="100%" height="91vh" position="relative">
+                                <Box width="100%" height="100vh" position="relative">
                                     <Box width="100%" height="100%">
                                         <ConferenceCallItem
                                             participant={combinedArray[0].participant}
                                             myVideo={webcamProducer}
                                             myAudio={microphoneProducer}
+                                            oneParticipant={combinedArray.length == 1}
                                         />
                                     </Box>
                                 </Box>
@@ -437,6 +456,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                                             participant={combinedArray[1].participant}
                                             myVideo={null}
                                             myAudio={null}
+                                            oneParticipant={combinedArray.length == 1}
                                         />
                                     </Box>
                                     <Box
@@ -450,6 +470,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                                             participant={combinedArray[0].participant}
                                             myVideo={webcamProducer}
                                             myAudio={microphoneProducer}
+                                            oneParticipant={combinedArray.length == 1}
                                         />
                                     </Box>
                                 </Box>
@@ -462,6 +483,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                             my={1}
                             display="flex"
                             justifyContent="center"
+                            overflow="auto"
                         >
                             <Grid
                                 container
@@ -477,6 +499,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                                             myAudio={
                                                 row.participant.isMe ? microphoneProducer : null
                                             }
+                                            oneParticipant={combinedArray.length == 1}
                                         />
                                     </Grid>
                                 ))}
@@ -495,8 +518,8 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "center",
-
-                    background: "linear-gradient(rgba(255,255,255,.2) 40%, rgba(150,150,150,.8))",
+                    backgroundColor: "dimgrey",
+                    // background: "linear-gradient(rgba(255,255,255,.2) 40%, rgba(150,150,150,.8))",
                 }}
             >
                 <Stack
@@ -508,9 +531,9 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                     <Box>
                         <IconButton sx={{ padding: 0 }} onClick={handleCamera}>
                             {cameraOff ? (
-                                <VideocamOff style={{ fill: "white" }} />
+                                <VideocamOff fontSize="large" style={{ fill: "white" }} />
                             ) : (
-                                <Videocam style={{ fill: "white" }} />
+                                <Videocam fontSize="large" style={{ fill: "white" }} />
                             )}
                         </IconButton>
                         <IconButton sx={{ padding: 0 }} onClick={chooseVideoOutput}>
@@ -520,9 +543,9 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                     <Box>
                         <IconButton sx={{ padding: 0 }} onClick={handleMic}>
                             {mute ? (
-                                <MicOff style={{ fill: "white" }} />
+                                <MicOff fontSize="large" style={{ fill: "white" }} />
                             ) : (
-                                <Mic style={{ fill: "white" }} />
+                                <Mic fontSize="large" style={{ fill: "white" }} />
                             )}
                         </IconButton>
                         <IconButton sx={{ padding: 0 }} onClick={chooseAudioOutput}>
@@ -530,13 +553,13 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                         </IconButton>
                     </Box>
                     <IconButton onClick={handleGroup}>
-                        <Groups style={{ fill: "white" }} />
+                        <Groups fontSize="large" style={{ fill: "white" }} />
                     </IconButton>
                     <IconButton onClick={handleShare}>
-                        <Monitor style={{ fill: "white" }} />
+                        <Monitor fontSize="large" style={{ fill: "white" }} />
                     </IconButton>
                     <IconButton onClick={close}>
-                        <Close style={{ fill: "red" }} />
+                        <Close fontSize="large" style={{ fill: "red" }} />
                     </IconButton>
                 </Stack>
             </Box>
@@ -545,8 +568,8 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                     isItAudio={isItAudio}
                     openModal={openModal}
                     setOpenModal={setOpenModal}
-                    selectedAudioOutput={setSelectedAudioDevice}
-                    selectedVideoOutput={setSelectedVideoDevice}
+                    chosenAudio={handleChangeAudio}
+                    chosenVideo={handleChangeVideo}
                 />
             ) : (
                 <Box></Box>

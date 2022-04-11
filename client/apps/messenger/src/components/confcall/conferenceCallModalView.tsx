@@ -17,16 +17,16 @@ type Props = {
     openModal: boolean;
     setOpenModal: React.Dispatch<React.SetStateAction<boolean>>;
     isItAudio: boolean;
-    selectedVideoOutput: React.Dispatch<React.SetStateAction<MediaDeviceInfo>>;
-    selectedAudioOutput: React.Dispatch<React.SetStateAction<MediaDeviceInfo>>;
+    chosenVideo: Function;
+    chosenAudio: Function;
 };
 
 const MediaOutputModalView = ({
     openModal,
     setOpenModal,
     isItAudio,
-    selectedVideoOutput,
-    selectedAudioOutput,
+    chosenVideo,
+    chosenAudio,
 }: Props) => {
     const [videoDevices, setVideoDevices] = React.useState<MediaDeviceInfo[]>(null);
     const [audioDevices, setAudioDevices] = React.useState<MediaDeviceInfo[]>(null);
@@ -39,7 +39,18 @@ const MediaOutputModalView = ({
         setOpenModal(false);
     };
 
+    const handleChoose = () => {
+        if (isItAudio) {
+            chosenAudio(selectedAudioDevice);
+        } else {
+            chosenVideo(selectedVideoDevice);
+        }
+        setOpen(false);
+        setOpenModal(false);
+    };
+
     const handleOutputChange = (event: { target: { value: string } }) => {
+        console.log("ClickedValue: " + event.target.value);
         if (isItAudio) {
             const filter: MediaDeviceInfo[] = audioDevices.filter((device) =>
                 device.deviceId.includes(event.target.value)
@@ -47,10 +58,12 @@ const MediaOutputModalView = ({
             console.log(filter);
             setSelectedAudioDevice(filter[0]);
         } else {
+            let videoDevice: MediaDeviceInfo = videoDevices[1];
+            console.log("VideoDevices: " + videoDevice.deviceId);
             const filter: MediaDeviceInfo[] = videoDevices.filter((device) =>
-                device.deviceId.includes(event.target.value)
+                device.groupId.includes(event.target.value)
             );
-            console.log(filter);
+            console.log("Selected video: " + filter);
             setSelectedVideoDevice(filter[0]);
         }
     };
@@ -71,7 +84,9 @@ const MediaOutputModalView = ({
 
     return (
         <Dialog fullWidth={true} maxWidth={"sm"} open={open} onClose={handleClose}>
-            <DialogTitle>{isItAudio ? "Audio output options" : "Video output options"}</DialogTitle>
+            <DialogTitle sx={{ padding: "1em" }}>
+                {isItAudio ? "Audio output options" : "Video output options"}
+            </DialogTitle>
             <DialogContent>
                 <DialogContentText>Choose media output from the list</DialogContentText>
                 <Box
@@ -127,7 +142,8 @@ const MediaOutputModalView = ({
                     )}
                 </Box>
             </DialogContent>
-            <DialogActions>
+            <DialogActions sx={{ justifyContent: "space-evenly" }}>
+                <Button onClick={handleChoose}>Choose</Button>
                 <Button onClick={handleClose}>Close</Button>
             </DialogActions>
         </Dialog>
