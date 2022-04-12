@@ -10,7 +10,9 @@ export const store = configureStore({
     // preloadedState: load(),
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
-            serializableCheck: { ignoredPaths: ["store.api"] },
+            serializableCheck: {
+                ignoredPaths: ["store.api"],
+            },
         }).concat(api.middleware),
     //.concat(save({ ignoreStates: ["api"] })),
 });

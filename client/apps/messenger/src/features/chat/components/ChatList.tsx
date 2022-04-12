@@ -18,6 +18,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { setLeftSidebar } from "../slice/sidebarSlice";
 
 dayjs.extend(relativeTime);
+declare const UPLOADS_BASE_URL: string;
 
 export default function SidebarContactList(): React.ReactElement {
     const dispatch = useDispatch();
@@ -88,7 +89,11 @@ function RoomRow({
     return (
         <Link to={`/rooms/${id}`} onClick={handleClick} style={{ textDecoration: "none" }}>
             <Box bgcolor={isActive ? "#E5F4FF" : "#fff"} px={2.5} py={1.5} display="flex">
-                <Avatar alt={name} sx={{ width: 50, height: 50 }} src={avatarUrl} />
+                <Avatar
+                    alt={name}
+                    sx={{ width: 50, height: 50 }}
+                    src={`${UPLOADS_BASE_URL}${avatarUrl}`}
+                />
                 <Box
                     display="flex"
                     justifyContent="space-between"

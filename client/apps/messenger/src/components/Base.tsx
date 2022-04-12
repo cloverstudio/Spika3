@@ -50,7 +50,7 @@ theme = createTheme(theme, {
             styleOverrides: {
                 root: {
                     padding: "16px 24px",
-                    borderRadius: "10px",
+                    borderRadius: "0.625rem",
                     boxShadow: "none",
                     textTransform: "none",
                     fontSize: "1rem",
@@ -70,7 +70,7 @@ theme = createTheme(theme, {
             styleOverrides: {
                 root: {
                     "& .MuiOutlinedInput-notchedOutline": {
-                        borderRadius: "10px",
+                        borderRadius: "0.625rem",
                         borderColor: "#9AA0A6",
                     },
                     input: {
@@ -88,7 +88,7 @@ theme = createTheme(theme, {
         MuiInput: {
             styleOverrides: {
                 root: {
-                    borderRadius: "10px",
+                    borderRadius: "0.625rem",
                     input: {
                         "&::placeholder": {
                             color: "#9AA0A6",
@@ -153,7 +153,6 @@ export default function AuthBase({ children }: Props): React.ReactElement {
                         method: "POST",
                         data: { messagesIds: [data.message.id] },
                     });
-
                     dispatch(addMessage(data.message));
 
                     setTimeout(() => dispatch(roomApi.endpoints.getHistory.initiate(1)), 500);

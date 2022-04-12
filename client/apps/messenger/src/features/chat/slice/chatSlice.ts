@@ -7,12 +7,20 @@ import type { RootState } from "../../../store/store";
 interface ChatState {
     activeRoomId: number;
     messages: MessageType[];
+    sendFiles: { roomId: number; files: File[] }[];
+    sendImages: { roomId: number; images: File[] }[];
     count: { roomId: number; count: number }[];
 }
 
 export const chatSlice = createSlice({
     name: <string>"chat",
-    initialState: <ChatState>{ activeRoomId: null, messages: [], count: [] },
+    initialState: <ChatState>{
+        activeRoomId: null,
+        messages: [],
+        count: [],
+        sendFiles: [],
+        sendImages: [],
+    },
     reducers: {
         setActiveRoomId: (state, { payload }: { payload: number }) => {
             state.activeRoomId = payload;
@@ -23,19 +31,30 @@ export const chatSlice = createSlice({
                 state.messages = [...state.messages, payload];
             }
         },
+
+        addFiles: (state, { payload }: { payload: { roomId: number; files: File[] } }) => {
+            const indx = state.sendFiles.findIndex((m) => m.roomId === payload.roomId);
+
+            if (indx === -1) {
+                state.sendFiles.push(payload);
+                return;
+            }
+
+            state.sendFiles.splice(indx, 1, payload);
+        },
+
+        addImages: (state, { payload }: { payload: { roomId: number; images: File[] } }) => {
+            const indx = state.sendImages.findIndex((m) => m.roomId === payload.roomId);
+
+            if (indx === -1) {
+                state.sendImages.push(payload);
+                return;
+            }
+
+            state.sendImages.splice(indx, 1, payload);
+        },
     },
     extraReducers: (builder) => {
-        builder.addMatcher(
-            messageApi.endpoints.sendMessage.matchFulfilled,
-            (state, { payload, meta }) => {
-                const message = {
-                    ...payload.message,
-                    body: meta.arg.originalArgs.message,
-                };
-
-                state.messages = [...state.messages, message];
-            }
-        );
         builder.addMatcher(
             messageApi.endpoints.getMessagesByRoomId.matchFulfilled,
             (state, { payload, meta }) => {
@@ -56,7 +75,7 @@ export const chatSlice = createSlice({
     },
 });
 
-export const { setActiveRoomId, addMessage } = chatSlice.actions;
+export const { setActiveRoomId, addMessage, addFiles, addImages } = chatSlice.actions;
 
 export const selectActiveRoomId = (state: RootState): number => state.chat.activeRoomId;
 export const selectRoomMessages =
@@ -66,6 +85,13 @@ export const selectRoomMessages =
         const count = state.chat.count.find((c) => c.roomId === roomId)?.count || 0;
 
         return { messages, count };
+    };
+export const selectSendImages =
+    (roomId: number) =>
+    (state: RootState): File[] => {
+        const sendImages = state.chat.sendImages.find((s) => s.roomId === roomId);
+
+        return sendImages?.images || [];
     };
 
 export default chatSlice.reducer;

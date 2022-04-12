@@ -37,6 +37,8 @@ const navigation: NavigationType[] = [
     { name: "contact", icon: ContactIcon, Element: SidebarContactList },
 ];
 
+declare const UPLOADS_BASE_URL: string;
+
 export default function LeftSidebarHome({
     setSidebar,
 }: {
@@ -63,7 +65,10 @@ export default function LeftSidebarHome({
                     </Box>
                     <Box display="flex" alignItems="center">
                         <Box mr={3}>
-                            <Avatar alt={user.displayName} src={user.avatarUrl} />
+                            <Avatar
+                                alt={user.displayName}
+                                src={`${UPLOADS_BASE_URL}${user.avatarUrl}`}
+                            />
                         </Box>
                         <Box mr={3}>
                             <Settings sx={{ width: "25px", color: "#9BB4CF", cursor: "pointer" }} />
