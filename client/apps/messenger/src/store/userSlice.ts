@@ -15,8 +15,9 @@ export const userSlice = createSlice({
 export const {} = userSlice.actions;
 
 export const selectUser = (state: RootState): User => {
+    console.log("Tu udje");
     const data = state.api.queries["getUser(undefined)"]?.data as any;
-
+    console.log("Data: " + data);
     return data.user as User;
 };
 
