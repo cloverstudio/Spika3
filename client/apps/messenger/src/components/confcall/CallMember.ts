@@ -7,6 +7,7 @@ export interface CallMember {
     muteAudio: boolean;
     muteVideo: boolean;
     consumers: Array<mediasoupClient.types.Consumer>;
+    id: string;
 }
 
 export interface CallParticipant {

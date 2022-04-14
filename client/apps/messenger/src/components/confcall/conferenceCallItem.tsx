@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef, MutableRefObject } from "react";
-import { Participant } from "./lib/SpikaBroadcastClient";
 import { Box, Typography, Stack, IconButton, Tooltip } from "@mui/material";
 import { Videocam, VideocamOff, Mic, MicOff } from "@mui/icons-material";
 import * as mediasoupClient from "mediasoup-client";
@@ -10,9 +9,10 @@ interface Props {
     participant: CallMember;
     myVideo: mediasoupClient.types.Producer;
     myAudio: mediasoupClient.types.Producer;
+    oneParticipant: boolean;
 }
 
-export default ({ participant, myVideo, myAudio }: Props) => {
+export default ({ participant, myVideo, myAudio, oneParticipant }: Props) => {
     const videoElm: MutableRefObject<HTMLVideoElement | null> = useRef<HTMLVideoElement>(null);
     const audioElm: MutableRefObject<HTMLAudioElement | null> = useRef<HTMLAudioElement>(null);
 
@@ -22,43 +22,87 @@ export default ({ participant, myVideo, myAudio }: Props) => {
     const [audioMute, setAudioMute] = useState<boolean>(participant.muteAudio);
     const [videoMute, setVideoMute] = useState<boolean>(participant.muteAudio);
 
+    const cornerRadius = oneParticipant ? "0" : "1em";
+
     useEffect(() => {
-        if (participant.audioTrack || myAudio) {
+        if (participant.audioTrack != null || myAudio != null) {
+            // console.log("AudioTrack: " + participant.audioTrack);
+            // console.log("MyAudio: " + myAudio);
+            // console.log("MuteAudio: " + participant.muteAudio);
             const stream = new MediaStream();
-            stream.addTrack(participant.isMe ? myAudio.track : participant.audioTrack);
-            audioElm.current.srcObject = stream;
+            if (participant.isMe) {
+                if (myAudio != null) {
+                    if (myAudio.track != null) {
+                        stream.addTrack(myAudio.track);
+                        audioElm.current.srcObject = stream;
 
-            audioElm.current.play().catch((error) => console.error(error));
+                        audioElm.current.play().catch((error) => console.error(error));
 
-            if (!stream.getAudioTracks()[0]) return;
+                        if (!stream.getAudioTracks()[0]) return;
+                        const _hark = hark(stream, { play: false });
 
-            const _hark = hark(stream, { play: false });
+                        _stopVideoResolution();
 
-            _stopVideoResolution();
+                        // eslint-disable-next-line no-unused-vars
+                        _hark.on("volume_change", (dBs: number, threshold: number) => {
+                            let audioVolume = Math.round(Math.pow(10, dBs / 85) * 10);
 
-            // eslint-disable-next-line no-unused-vars
-            _hark.on("volume_change", (dBs: number, threshold: number) => {
-                let audioVolume = Math.round(Math.pow(10, dBs / 85) * 10);
+                            /*
+                    if (audioVolume === 1) audioVolume = 0;
+            
+                    if (audioVolume !== this.state.audioVolume)
+                      this.setState({ audioVolume });
+                    */
+                        });
+                    }
+                }
+            } else {
+                if (participant.audioTrack != null) {
+                    stream.addTrack(participant.audioTrack);
+                    audioElm.current.srcObject = stream;
+                    audioElm.current.play().catch((error) => console.error(error));
 
-                /*
-        if (audioVolume === 1) audioVolume = 0;
+                    if (!stream.getAudioTracks()[0]) return;
+                    const _hark = hark(stream, { play: false });
 
-        if (audioVolume !== this.state.audioVolume)
-          this.setState({ audioVolume });
-        */
-            });
+                    _stopVideoResolution();
+
+                    // eslint-disable-next-line no-unused-vars
+                    _hark.on("volume_change", (dBs: number, threshold: number) => {
+                        let audioVolume = Math.round(Math.pow(10, dBs / 85) * 10);
+
+                        /*
+                if (audioVolume === 1) audioVolume = 0;
+        
+                if (audioVolume !== this.state.audioVolume)
+                  this.setState({ audioVolume });
+                */
+                    });
+                }
+            }
         } else {
             audioElm.current.srcObject = null;
         }
-    }, [participant.audioTrack, myAudio]);
+    }, [participant, myAudio]);
 
     useEffect(() => {
-        console.log("Video track:" + participant.videoTrack);
-        console.log("Video track:" + myVideo);
+        // console.log("VideoTrack: " + participant.videoTrack);
+        // console.log("MyVideo: " + myVideo);
+        // console.log("MuteVideo: " + participant.muteVideo);
         if (participant.videoTrack || myVideo) {
             const stream = new MediaStream();
-
-            stream.addTrack(participant.isMe ? myVideo.track : participant.videoTrack);
+            // console.log("IsItMe: " + participant.isMe);
+            if (participant.isMe) {
+                if (myVideo != null) {
+                    if (myVideo.track != null) {
+                        stream.addTrack(myVideo.track);
+                    }
+                }
+            } else {
+                if (participant.videoTrack != null) {
+                    stream.addTrack(participant.videoTrack);
+                }
+            }
             videoElm.current.srcObject = stream;
             videoElm.current.oncanplay = () => {};
             videoElm.current.onplay = () => {
@@ -66,16 +110,31 @@ export default ({ participant, myVideo, myAudio }: Props) => {
             };
 
             videoElm.current.onpause = () => {};
+            // console.log("video notnull:");
+            var playPromise = videoElm.current.play();
 
-            videoElm.current
-                .play()
-                .catch((error) => console.error("videoElem.play() failed:%o", error));
+            if (playPromise !== undefined) {
+                playPromise
+                    .then((_) => {
+                        // Automatic playback started!
+                        // Show playing UI.
+                        // We can now safely pause video...
+                        // videoElm.current.pause();
+                    })
+                    .catch((error) => {
+                        console.error("videoElem.play() failed:%o", error);
+                    });
+            }
+            // videoElm.current
+            //     .play()
+            //     .catch((error) => console.error("videoElem.play() failed:%o", error));
 
             _startVideoResolution();
         } else {
             videoElm.current.srcObject = null;
+            // console.log("video null: ");
         }
-    }, [participant.videoTrack, myVideo]);
+    }, [participant, myVideo]);
 
     const _startVideoResolution = () => {
         const videoResolutionPeriodicTimer = setInterval(() => {
@@ -106,7 +165,6 @@ export default ({ participant, myVideo, myAudio }: Props) => {
         setVideoMute(!videoMute);
     };
     const handleMic = () => {
-        console.log("ovdje udje");
         setAudioMute(!audioMute);
     };
 
@@ -119,11 +177,7 @@ export default ({ participant, myVideo, myAudio }: Props) => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                borderRadius: "1em",
                 position: "relative",
-                "&:hover .overlay": {
-                    display: "block",
-                },
                 margin: "0px",
             }}
         >
@@ -133,7 +187,7 @@ export default ({ participant, myVideo, myAudio }: Props) => {
                         width: "100%",
                         height: "100%",
                         objectFit: "contain",
-                        borderRadius: "1em",
+                        borderRadius: cornerRadius,
                     }}
                     ref={videoElm}
                     autoPlay
@@ -151,104 +205,113 @@ export default ({ participant, myVideo, myAudio }: Props) => {
                 playsInline
                 controls={false}
                 muted={participant.muteAudio}
-                style={{ width: "100%", height: "100%", objectFit: "contain", borderRadius: "1em" }}
+                style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "contain",
+                    borderRadius: cornerRadius,
+                }}
             />
             {!participant.isMe && false ? <div className="consumer-info"></div> : null}
             {/* <Typography color="white">{participant.displayName}</Typography> */}
-            <Box
-                sx={{
-                    bottom: 0,
-                    left: 0,
-                    position: "absolute",
-                    width: "100%",
-                    height: "100%",
-                    display: "none",
-                }}
-                className="overlay"
-            >
+            {!oneParticipant ? (
                 <Box
                     sx={{
+                        bottom: 0,
+                        left: 0,
+                        position: "absolute",
                         width: "100%",
                         height: "100%",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        position: "relative",
+                        display: "block",
                     }}
+                    // className="overlay"
                 >
                     <Box
                         sx={{
-                            bottom: 0,
-                            position: "absolute",
-                            width: "60%",
-                            height: "10%",
-                            backgroundColor: "white",
-                            opacity: 0.3,
-                            left: "50%",
-                            transform: "translate(-50%, 0%)",
-                        }}
-                    ></Box>
-                    <Box
-                        sx={{
-                            bottom: 0,
-                            position: "absolute",
-                            width: "60%",
-                            height: "10%",
+                            width: "100%",
+                            height: "100%",
                             alignItems: "center",
                             justifyContent: "center",
-                            display: "flex",
-                            left: "50%",
-                            transform: "translate(-50%, 0%)",
-                            zIndex: 10,
+                            position: "relative",
                         }}
                     >
-                        <Typography color="white">{participant.displayName}</Typography>
-                    </Box>
-                    {!participant.isMe ? (
                         <Box
                             sx={{
                                 bottom: 0,
                                 position: "absolute",
-                                width: "20%",
+                                width: "60%",
+                                height: "10%",
+                                backgroundColor: "white",
+                                opacity: 0.3,
+                                left: "50%",
+                                transform: "translate(-50%, 0%)",
+                            }}
+                        ></Box>
+                        <Box
+                            sx={{
+                                bottom: 0,
+                                position: "absolute",
+                                width: "60%",
                                 height: "10%",
                                 alignItems: "center",
                                 justifyContent: "center",
                                 display: "flex",
-                                left: "73%",
+                                left: "50%",
                                 transform: "translate(-50%, 0%)",
                                 zIndex: 10,
                             }}
                         >
-                            <Stack
-                                direction="row"
-                                alignItems="right"
-                                spacing={1}
+                            <Typography color="white">{participant.displayName}</Typography>
+                        </Box>
+                        {!participant.isMe ? (
+                            <Box
                                 sx={{
+                                    bottom: 0,
+                                    position: "absolute",
+                                    width: "20%",
+                                    height: "10%",
+                                    alignItems: "center",
+                                    justifyContent: "center",
                                     display: "flex",
-                                    flexDirection: "row",
-                                    justifyContent: "right",
+                                    left: "73%",
+                                    transform: "translate(-50%, 0%)",
+                                    zIndex: 10,
                                 }}
                             >
-                                <Tooltip title="No Video">
-                                    {participant.muteVideo ? (
-                                        <VideocamOff style={{ fill: "white" }} />
-                                    ) : (
-                                        <Videocam style={{ fill: "white" }} />
-                                    )}
-                                </Tooltip>
-                                <Tooltip title="Mute">
-                                    {participant.muteAudio ? (
-                                        <MicOff style={{ fill: "white" }} />
-                                    ) : (
-                                        <Mic style={{ fill: "white" }} />
-                                    )}
-                                </Tooltip>
-                            </Stack>
-                        </Box>
-                    ) : (
-                        <Box></Box>
-                    )}
+                                <Stack
+                                    direction="row"
+                                    alignItems="right"
+                                    spacing={1}
+                                    sx={{
+                                        display: "flex",
+                                        flexDirection: "row",
+                                        justifyContent: "right",
+                                    }}
+                                >
+                                    <Tooltip title="No Video">
+                                        {!participant.muteVideo ? (
+                                            <VideocamOff style={{ fill: "white" }} />
+                                        ) : (
+                                            <Videocam style={{ fill: "white" }} />
+                                        )}
+                                    </Tooltip>
+                                    <Tooltip title="Mute">
+                                        {participant.muteAudio ? (
+                                            <MicOff style={{ fill: "white" }} />
+                                        ) : (
+                                            <Mic style={{ fill: "white" }} />
+                                        )}
+                                    </Tooltip>
+                                </Stack>
+                            </Box>
+                        ) : (
+                            <Box></Box>
+                        )}
+                    </Box>
                 </Box>
-            </Box>
+            ) : (
+                <Box></Box>
+            )}
         </Box>
     );
 };
