@@ -21,6 +21,7 @@ import ImageIcon from "@mui/icons-material/Image";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import SendIcon from "@mui/icons-material/Send";
 import getFileIcon from "../lib/getFileIcon";
+import { useShowBasicDialog } from "../../../hooks/useModal";
 
 export default function ChatInput(): React.ReactElement {
     const roomId = +useParams().id;
@@ -29,6 +30,8 @@ export default function ChatInput(): React.ReactElement {
     const [loading, setLoading] = useState(false);
     const [filesSent, setFilesSent] = useState(0);
     const [files, setFiles] = useState(AttachmentManager.getFiles(roomId) || []);
+    const [failedToUploadFiles, setFailedToUploadFiles] = useState<File[]>([]);
+    const showBasicDialog = useShowBasicDialog();
 
     const messageType = files.length > 0 ? "files" : "text";
 
@@ -46,7 +49,6 @@ export default function ChatInput(): React.ReactElement {
                     });
 
                     const fileType = getFileType(file.type);
-
                     await sendMessage({
                         roomId,
                         type: fileType,
@@ -55,6 +57,7 @@ export default function ChatInput(): React.ReactElement {
 
                     setFilesSent((filesSent) => filesSent + 1);
                 } catch (error) {
+                    showBasicDialog({ text: "Some files are not sent!", title: "Upload error" });
                     failed.push(file);
                     console.log({ failed: file, error });
                 }
@@ -64,6 +67,7 @@ export default function ChatInput(): React.ReactElement {
         }
 
         AttachmentManager.setFiles({ roomId, files: failed });
+        setFailedToUploadFiles(failed);
         setLoading(false);
         setFilesSent(0);
     };
@@ -125,7 +129,10 @@ export default function ChatInput(): React.ReactElement {
                         </>
                     ) : (
                         <>
-                            <Attachments files={files} />
+                            <Attachments
+                                files={files}
+                                failedToUploadFileNames={failedToUploadFiles.map((f) => f.name)}
+                            />
 
                             {loading ? (
                                 <Box>
@@ -234,9 +241,10 @@ function AddAttachment() {
 
 type AttachmentsProps = {
     files: File[];
+    failedToUploadFileNames: string[];
 };
 
-function Attachments({ files }: AttachmentsProps): React.ReactElement {
+function Attachments({ files, failedToUploadFileNames }: AttachmentsProps): React.ReactElement {
     const roomId = +useParams().id;
 
     return (
@@ -252,6 +260,7 @@ function Attachments({ files }: AttachmentsProps): React.ReactElement {
             {files.length > 0 &&
                 files.map((file) => {
                     const Icon = getFileIcon(file.type);
+                    const isFailed = failedToUploadFileNames.includes(file.name);
                     return (
                         <Box key={file.name} position="relative">
                             <Box
@@ -264,12 +273,17 @@ function Attachments({ files }: AttachmentsProps): React.ReactElement {
                                 flexDirection="column"
                                 justifyContent="space-evenly"
                                 alignItems="center"
+                                sx={{
+                                    borderWidth: "2px",
+                                    borderColor: isFailed ? "red" : "transparent",
+                                    borderStyle: "solid",
+                                }}
                             >
                                 {file.type?.startsWith("image") ? (
                                     <Box
                                         component="img"
-                                        width="74px"
-                                        height="74px"
+                                        width="72px"
+                                        height="72px"
                                         borderRadius="0.625rem"
                                         sx={{ objectFit: "cover" }}
                                         src={URL.createObjectURL(file)}

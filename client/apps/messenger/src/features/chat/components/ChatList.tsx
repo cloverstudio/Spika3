@@ -81,7 +81,14 @@ function RoomRow({
     handleClick,
     unreadCount,
 }: RoomRowProps) {
-    let lastMessageText = lastMessage?.body?.text || "No messages";
+    const lastMessageType = lastMessage.type;
+
+    let lastMessageText = lastMessage?.body?.text;
+
+    if (lastMessageType !== "text") {
+        lastMessageText = (lastMessageType || "") + " shared";
+        lastMessageText = lastMessageText.charAt(0).toUpperCase() + lastMessageText.slice(1);
+    }
 
     if (lastMessageText.length > 25) {
         lastMessageText = lastMessageText.slice(0, 25) + "...";
