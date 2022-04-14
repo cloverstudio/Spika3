@@ -24,7 +24,7 @@ export default (): Router => {
         const userReq: UserRequest = req as UserRequest;
 
         try {
-            res.send(successResponse({ device: userReq.device }));
+            res.send(successResponse({ device: sanitize(userReq.device).device() }));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -38,14 +38,14 @@ export default (): Router => {
         try {
             const { pushToken } = req.body;
 
-            const user = await prisma.device.update({
+            const device = await prisma.device.update({
                 where: { id },
                 data: {
                     pushToken,
                 },
             });
 
-            res.send(successResponse({ user: sanitize(user).user() }));
+            res.send(successResponse({ device: sanitize(device).device() }));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
