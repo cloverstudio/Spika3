@@ -43,7 +43,6 @@ export default function Message({
 
         return "sent";
     };
-    console.log(body);
 
     return (
         <Box

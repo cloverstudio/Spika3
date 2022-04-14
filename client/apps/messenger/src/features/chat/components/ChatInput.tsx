@@ -64,6 +64,7 @@ export default function ChatInput(): React.ReactElement {
             }
         } else {
             sendMessage({ roomId, type: "text", body: { text: message } });
+            setMessage("");
         }
 
         AttachmentManager.setFiles({ roomId, files: failed });
@@ -162,7 +163,6 @@ function AddAttachment() {
 
     const handleFilesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const uploadedFiles = e.target.files;
-        console.log({ roomId, files: Array.from(uploadedFiles) });
         AttachmentManager.addFiles({ roomId, files: Array.from(uploadedFiles) });
         setAttachmentMenuOpen(false);
     };

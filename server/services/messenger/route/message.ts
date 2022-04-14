@@ -212,16 +212,20 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 );
 
                 if (!record) {
-                    await prisma.messageRecord.create({
-                        data: { type: "delivered", userId, messageId: message.id },
-                    });
+                    try {
+                        await prisma.messageRecord.create({
+                            data: { type: "delivered", userId, messageId: message.id },
+                        });
 
-                    await prisma.message.update({
-                        where: { id: message.id },
-                        data: {
-                            deliveredCount: { increment: 1 },
-                        },
-                    });
+                        await prisma.message.update({
+                            where: { id: message.id },
+                            data: {
+                                deliveredCount: { increment: 1 },
+                            },
+                        });
+                    } catch (error) {
+                        console.error({ error });
+                    }
                 }
             }
 
@@ -316,16 +320,20 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     });
 
                     if (!record) {
-                        record = await prisma.messageRecord.create({
-                            data: { type: "delivered", userId, messageId: message.id },
-                        });
+                        try {
+                            record = await prisma.messageRecord.create({
+                                data: { type: "delivered", userId, messageId: message.id },
+                            });
 
-                        await prisma.message.update({
-                            where: { id: message.id },
-                            data: {
-                                deliveredCount: { increment: 1 },
-                            },
-                        });
+                            await prisma.message.update({
+                                where: { id: message.id },
+                                data: {
+                                    deliveredCount: { increment: 1 },
+                                },
+                            });
+                        } catch (error) {
+                            console.error({ error });
+                        }
                     }
 
                     messageRecords.push(record);
@@ -434,16 +442,20 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 });
 
                 if (!record) {
-                    record = await prisma.messageRecord.create({
-                        data: { type: "seen", userId, messageId: message.id },
-                    });
+                    try {
+                        record = await prisma.messageRecord.create({
+                            data: { type: "seen", userId, messageId: message.id },
+                        });
 
-                    await prisma.message.update({
-                        where: { id: message.id },
-                        data: {
-                            seenCount: { increment: 1 },
-                        },
-                    });
+                        await prisma.message.update({
+                            where: { id: message.id },
+                            data: {
+                                seenCount: { increment: 1 },
+                            },
+                        });
+                    } catch (error) {
+                        console.error({ error });
+                    }
                 }
 
                 messageRecords.push(record);
@@ -459,16 +471,20 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 });
 
                 if (!deliveredMessageRecord) {
-                    await prisma.messageRecord.create({
-                        data: { type: "delivered", userId, messageId: message.id },
-                    });
+                    try {
+                        await prisma.messageRecord.create({
+                            data: { type: "delivered", userId, messageId: message.id },
+                        });
 
-                    await prisma.message.update({
-                        where: { id: message.id },
-                        data: {
-                            deliveredCount: { increment: 1 },
-                        },
-                    });
+                        await prisma.message.update({
+                            where: { id: message.id },
+                            data: {
+                                deliveredCount: { increment: 1 },
+                            },
+                        });
+                    } catch (error) {
+                        console.error({ error });
+                    }
                 }
             }
 

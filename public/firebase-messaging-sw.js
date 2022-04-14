@@ -2,12 +2,12 @@ importScripts('https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js');
 importScripts('https://www.gstatic.com/firebasejs/8.2.0/firebase-messaging.js');
 
 const firebaseConfig = {
-    apiKey: "AIzaSyDNQgYDHpopQJGrPue5nJaJeBNwuA_mlGo",
-    authDomain: "spika3-6a9ec.firebaseapp.com",
-    projectId: "spika3-6a9ec",
-    storageBucket: "spika3-6a9ec.appspot.com",
-    messagingSenderId: "1032957133774",
-    appId: "1:1032957133774:web:9f97c2e8be2b308750219f",
+    apiKey: "AIzaSyD1EJGP17dwcRe4fKC0QaSbfxNglDelLNc",
+    authDomain: "spika-ultimate.firebaseapp.com",
+    projectId: "spika-ultimate",
+    storageBucket: "spika-ultimate.appspot.com",
+    messagingSenderId: "545730644006",
+    appId: "1:545730644006:web:385d470311a4d7fb0d3ee7",
 };
 
 firebase.initializeApp(firebaseConfig);

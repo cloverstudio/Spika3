@@ -90,7 +90,7 @@ function RoomRow({
         lastMessageText = lastMessageText.charAt(0).toUpperCase() + lastMessageText.slice(1);
     }
 
-    if (lastMessageText.length > 25) {
+    if (lastMessageText?.length > 25) {
         lastMessageText = lastMessageText.slice(0, 25) + "...";
     }
     return (
