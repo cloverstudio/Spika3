@@ -5,7 +5,7 @@ import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import * as dotenv from "dotenv";
 dotenv.config({ path: __dirname + "/.env" });
 
-const config: Configuration = {
+const config: Configuration & { devServer: any } = {
     mode: "development",
     entry: "./client/apps/management/index.tsx",
     output: {
@@ -87,6 +87,7 @@ const config: Configuration = {
         }),
         new DefinePlugin({
             API_BASE_URL: JSON.stringify(process.env.API_BASE_URL),
+            UPLOADS_BASE_URL: JSON.stringify(process.env.UPLOADS_BASE_URL),
             CONFCALL_HOST_URL: JSON.stringify(process.env.CONFCALL_HOST_URL),
             ENV: JSON.stringify(process.env.ENV),
             FCM_PROJECT_ID: JSON.stringify(process.env.FCM_PROJECT_ID),
