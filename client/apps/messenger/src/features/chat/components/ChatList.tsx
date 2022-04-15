@@ -81,7 +81,7 @@ function RoomRow({
     handleClick,
     unreadCount,
 }: RoomRowProps) {
-    const lastMessageType = lastMessage.type;
+    const lastMessageType = lastMessage?.type;
 
     let lastMessageText = lastMessage?.body?.text;
 

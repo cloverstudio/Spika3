@@ -1,11 +1,13 @@
 import React from "react";
-import { Box, Typography } from "@mui/material";
+import { Avatar, Box, Typography } from "@mui/material";
 
 import MessageStatusIcon from "./MessageStatusIcon";
 import { useSelector } from "react-redux";
 import { selectUser } from "../../../store/userSlice";
 import getFileIcon from "../lib/getFileIcon";
 import DownloadIcon from "@mui/icons-material/Download";
+import { useGetRoomQuery } from "../api/room";
+import { useParams } from "react-router-dom";
 
 type MessageProps = {
     id: number;
@@ -28,7 +30,12 @@ export default function Message({
     type,
     body,
 }: MessageProps): React.ReactElement {
+    const roomId = +useParams().id;
+
     const user = useSelector(selectUser);
+    const { data } = useGetRoomQuery(roomId);
+    const users = data?.room?.users;
+    const sender = users?.find((u) => u.userId === fromUserId)?.user;
 
     const isUsersMessage = user?.id === fromUserId;
 
@@ -52,13 +59,22 @@ export default function Message({
             alignItems={isUsersMessage ? "end" : "start"}
             textAlign={isUsersMessage ? "right" : "left"}
         >
-            {type === "text" && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
-            {type === "image" && <ImageMessage body={body} isUsersMessage={isUsersMessage} />}
-            {type === "video" && <VideoMessage body={body} isUsersMessage={isUsersMessage} />}
-            {type === "audio" && <AudioMessage body={body} isUsersMessage={isUsersMessage} />}
-            {(type === "file" || type === "unknown") && (
-                <FileMessage body={body} isUsersMessage={isUsersMessage} />
-            )}
+            <Box display="flex" alignItems="end">
+                {!isUsersMessage && (
+                    <Avatar
+                        sx={{ width: 26, height: 26, mr: 1, mb: "0.375rem" }}
+                        alt={sender?.displayName}
+                        src={`${UPLOADS_BASE_URL}${sender?.avatarUrl}`}
+                    />
+                )}
+                {type === "text" && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
+                {type === "image" && <ImageMessage body={body} isUsersMessage={isUsersMessage} />}
+                {type === "video" && <VideoMessage body={body} isUsersMessage={isUsersMessage} />}
+                {type === "audio" && <AudioMessage body={body} isUsersMessage={isUsersMessage} />}
+                {(type === "file" || type === "unknown") && (
+                    <FileMessage body={body} isUsersMessage={isUsersMessage} />
+                )}
+            </Box>
             {isUsersMessage && <MessageStatusIcon status={getStatusIcon()} />}
         </Box>
     );
