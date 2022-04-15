@@ -146,7 +146,7 @@ export default function AuthBase({ children }: Props): React.ReactElement {
             source = new EventSource(`${API_BASE_URL}/sse?accesstoken=${device.data.device.token}`);
 
             source.onmessage = async function (event) {
-                const data = JSON.parse(event.data || {});
+                const data = event.data ? JSON.parse(event.data) : {};
                 if (data && data.message) {
                     await dynamicBaseQuery({
                         url: "/messenger/messages/delivered",
