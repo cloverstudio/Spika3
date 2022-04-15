@@ -15,9 +15,6 @@ import rightSidebarSlice, {
     show as showRightSidebar,
     hide as hideRightSidebar,
 } from "../features/chat/slice/rightSidebarSlice";
-import { useGetRoomQuery } from "../features/chat/api/room";
-import { selectUser } from "../store/userSlice";
-import formatRoomInfo from "../features/chat/lib/formatRoomInfo";
 
 export default function Home(): React.ReactElement {
     const { id } = useParams();
@@ -27,10 +24,6 @@ export default function Home(): React.ReactElement {
     const dispatch = useDispatch();
     const open = useSelector(selectLeftSidebarOpen);
     const rightSidebarOpen = useSelector(selectRightSidebarOpen);
-    // const roomId = +useParams().id;
-    // const { data, isLoading } = useGetRoomQuery(roomId);
-    // const room = data?.room;
-    // const user = useSelector(selectUser);
 
     useEffect(() => {
         if (isMobile) {
