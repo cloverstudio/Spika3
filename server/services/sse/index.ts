@@ -15,7 +15,6 @@ export default class SSEService implements Service {
         const SSERouter = Router();
 
         SSERouter.get("/", auth, (req, res) => {
-            console.log("-----------------------------------");
             const userReq: UserRequest = req as UserRequest;
             req.setTimeout(24 * 60 * 60 * 1000);
 
@@ -32,11 +31,10 @@ export default class SSEService implements Service {
                 res.write("data: \n\n");
             }, 5000);
 
-            const channelId = String(userReq.device.id);
+            const channelId = String(req.query?.channelId) || String(userReq.device.id);
 
             const connectionId = this.notificationServer.subscribe(channelId, (data) => {
                 const eventData = "data: " + JSON.stringify(data) + "\n\n";
-
                 res.write(eventData);
             });
             console.log(`Device id: ${channelId} - Connection open`);
