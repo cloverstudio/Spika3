@@ -31,7 +31,7 @@ describe("API", () => {
             validParams = {
                 roomId: room.id,
                 type: "type",
-                message: {
+                body: {
                     text: "text",
                     mediaUrl: "url",
                 },
@@ -258,8 +258,7 @@ describe("API", () => {
             expect(
                 messageBodies.every(
                     (m: any) =>
-                        m.text === validParams.message.text &&
-                        m.mediaUrl === validParams.message.mediaUrl
+                        m.text === validParams.body.text && m.mediaUrl === validParams.body.mediaUrl
                 )
             ).to.eqls(true);
         });

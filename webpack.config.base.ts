@@ -97,6 +97,7 @@ const config: Configuration & { devServer: any } = {
             FCM_SENDER_ID: JSON.stringify(process.env.FCM_SENDER_ID),
             FCM_APP_ID: JSON.stringify(process.env.FCM_APP_ID),
             FCM_VAPID_KEY: JSON.stringify(process.env.FCM_VAPID_KEY),
+            TEAM_MODE: JSON.stringify(process.env.TEAM_MODE),
         }),
     ],
 };

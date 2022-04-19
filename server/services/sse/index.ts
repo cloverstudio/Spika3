@@ -15,6 +15,7 @@ export default class SSEService implements Service {
         const SSERouter = Router();
 
         SSERouter.get("/", auth, (req, res) => {
+            console.log("-----------------------------------");
             const userReq: UserRequest = req as UserRequest;
             req.setTimeout(24 * 60 * 60 * 1000);
 
