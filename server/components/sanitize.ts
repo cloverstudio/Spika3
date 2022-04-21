@@ -47,9 +47,7 @@ export default function sanitize(data: any): sanitizeTypes {
         message: () => {
             const {
                 id,
-                fromDeviceId,
                 fromUserId,
-                totalDeviceCount,
                 totalUserCount,
                 deliveredCount,
                 seenCount,
@@ -61,9 +59,7 @@ export default function sanitize(data: any): sanitizeTypes {
 
             return {
                 id,
-                fromDeviceId,
                 fromUserId,
-                totalDeviceCount,
                 totalUserCount,
                 deliveredCount,
                 seenCount,

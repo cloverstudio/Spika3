@@ -167,7 +167,6 @@ describe("API", () => {
             const deviceMessageIds = deviceMessages.map((d) => d.deviceId);
 
             expect(deviceMessageIds).to.include.members(deviceIds);
-            expect(message.totalDeviceCount).to.eqls(devices.length);
         });
 
         it("generates totalUserCount that is equal to number of users", async () => {

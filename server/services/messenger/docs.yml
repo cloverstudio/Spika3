@@ -1148,12 +1148,6 @@ definitions:
             fromUserId:
                 type: "integer"
                 format: "int32"
-            fromDeviceId:
-                type: "integer"
-                format: "int32"
-            totalDeviceCount:
-                type: "integer"
-                format: "int32"
             totalUserCount:
                 type: "integer"
                 format: "int32"
