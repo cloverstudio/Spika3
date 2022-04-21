@@ -741,9 +741,24 @@ paths:
                 "200":
                     description: "successful operation"
                     schema:
-                        type: "array"
-                        items:
-                            $ref: "#/definitions/Message"
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    list:
+                                        type: "array"
+                                        items:
+                                            type: "object"
+                                            $ref: "#/definitions/Message"
+                                    count:
+                                        type: "number"
+                                    limit:
+                                        type: "number"
+
     /messenger/messages/{messageId}/message-records:
         get:
             tags:
@@ -763,9 +778,19 @@ paths:
                 "200":
                     description: "successful operation"
                     schema:
-                        type: "array"
-                        items:
-                            $ref: "#/definitions/MessageRecord"
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    messageRecords:
+                                        type: "array"
+                                        items:
+                                            type: "object"
+                                            $ref: "#/definitions/MessageRecord"
     /messenger/messages/delivered:
         post:
             tags:
