@@ -653,16 +653,18 @@ paths:
                   required: true
                   schema:
                       type: string
-                - name: "message"
+                - name: "body"
                   in: body
                   required: true
                   schema:
                       type: object
                       properties:
-                          type:
-                              type: string
                           text:
                               type: string
+                          fileId:
+                              type: number
+                          thumbId:
+                              type: number
 
             responses:
                 "200":
@@ -1191,4 +1193,4 @@ definitions:
 externalDocs:
     description: "Find out more about Swagger"
     url: "http://swagger.io/terms"
-    test: 11231231231231231231231231231231312312123123123
+    test: 1123123123123123123123123123123131231212312312
