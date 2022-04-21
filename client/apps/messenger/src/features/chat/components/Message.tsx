@@ -17,6 +17,8 @@ type MessageProps = {
     deliveredCount: number;
     type: string;
     body: any;
+    nextMessageSenderId?: number;
+    previousMessageSenderId?: number;
 };
 
 declare const UPLOADS_BASE_URL: string;
@@ -29,6 +31,8 @@ export default function Message({
     deliveredCount,
     type,
     body,
+    nextMessageSenderId,
+    previousMessageSenderId,
 }: MessageProps): React.ReactElement {
     const roomId = +useParams().id;
 
@@ -39,6 +43,8 @@ export default function Message({
     const sender = users?.find((u) => u.userId === fromUserId)?.user;
 
     const isUsersMessage = user?.id === fromUserId;
+    const isFirstMessage = fromUserId !== previousMessageSenderId;
+    const isLastMessage = fromUserId !== nextMessageSenderId;
 
     const getStatusIcon = () => {
         if (seenCount === totalUserCount) {
@@ -60,13 +66,20 @@ export default function Message({
             alignItems={isUsersMessage ? "end" : "start"}
             textAlign={isUsersMessage ? "right" : "left"}
         >
+            {roomType === "group" && !isUsersMessage && isFirstMessage && (
+                <Typography color="#9AA0A6" fontWeight={600} fontSize="0.75rem" pl="26px" ml={2}>
+                    {sender?.displayName}
+                </Typography>
+            )}
             <Box display="flex" alignItems="end">
-                {roomType === "group" && !isUsersMessage && (
+                {roomType === "group" && !isUsersMessage && isLastMessage ? (
                     <Avatar
                         sx={{ width: 26, height: 26, mr: 1, mb: "0.375rem" }}
                         alt={sender?.displayName}
                         src={`${UPLOADS_BASE_URL}${sender?.avatarUrl}`}
                     />
+                ) : (
+                    <Box width="26px" mr={1}></Box>
                 )}
                 {type === "text" && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
                 {type === "image" && <ImageMessage body={body} isUsersMessage={isUsersMessage} />}

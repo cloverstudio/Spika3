@@ -218,6 +218,8 @@ function ChatMessages({ roomId }: ChatMessagesProps): React.ReactElement {
         };
     }, [roomId]);
 
+    const messagesSorted = messages.sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1));
+
     return (
         <Box
             flexGrow={1}
@@ -226,13 +228,16 @@ function ChatMessages({ roomId }: ChatMessagesProps): React.ReactElement {
             justifyContent="end"
             sx={{ overflowY: "hidden" }}
         >
-            <Box px={4} sx={{ overflowY: "auto" }} ref={ref}>
+            <Box px={1} sx={{ overflowY: "auto" }} ref={ref}>
                 <div ref={elementRef} />
-                {messages
-                    .sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))
-                    .map((m) => (
-                        <Message key={m.id} {...m} />
-                    ))}
+                {messagesSorted.map((m, i) => (
+                    <Message
+                        key={m.id}
+                        {...m}
+                        nextMessageSenderId={messagesSorted[i + 1]?.fromUserId}
+                        previousMessageSenderId={messagesSorted[i - 1]?.fromUserId}
+                    />
+                ))}
             </Box>
         </Box>
     );
