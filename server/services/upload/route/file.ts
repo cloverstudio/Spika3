@@ -147,7 +147,7 @@ export default (): Router => {
                     type,
                     relationId,
                     clientId,
-                    path: "/" + filePath,
+                    path: "/uploads/files/" + clientId,
                 },
             });
 
