@@ -35,6 +35,7 @@ export default function Message({
     const user = useSelector(selectUser);
     const { data } = useGetRoomQuery(roomId);
     const users = data?.room?.users;
+    const roomType = data?.room?.type;
     const sender = users?.find((u) => u.userId === fromUserId)?.user;
 
     const isUsersMessage = user?.id === fromUserId;
@@ -60,7 +61,7 @@ export default function Message({
             textAlign={isUsersMessage ? "right" : "left"}
         >
             <Box display="flex" alignItems="end">
-                {!isUsersMessage && (
+                {roomType === "group" && !isUsersMessage && (
                     <Avatar
                         sx={{ width: 26, height: 26, mr: 1, mb: "0.375rem" }}
                         alt={sender?.displayName}
