@@ -23,7 +23,11 @@ describe("Send Push Worker", () => {
                         text: "testing",
                     },
                 },
-                message: { foo: "bar" },
+                message: {
+                    body: {
+                        text: "testing",
+                    },
+                },
             },
         });
 
@@ -36,7 +40,7 @@ describe("Send Push Worker", () => {
                     body: "testing",
                 },
                 data: {
-                    message: JSON.stringify({ foo: "bar" }),
+                    message: JSON.stringify({ body: { text: "testing" } }),
                 },
             },
         });

@@ -150,11 +150,11 @@ describe("SSE Service", () => {
             const eventSpy = chai.spy((_: any) => true);
 
             const source = new EventSource(
-                `http://localhost:3020/api/sse/${channelId}?accesstoken=${globals.userToken}`
+                `http://localhost:3020/api/sse/?channelId=${channelId}&accesstoken=${globals.userToken}`
             );
 
             source.onmessage = function (event) {
-                eventSpy(event.data);
+                if (event.data.length > 0) eventSpy(event.data);
             };
 
             await wait(0.2);
@@ -170,7 +170,7 @@ describe("SSE Service", () => {
                 )
             );
 
-            await wait(0.1);
+            await wait(0.2);
 
             expect(eventSpy).to.have.been.called.once;
             expect(eventSpy).to.have.been.called.with(JSON.stringify(data));

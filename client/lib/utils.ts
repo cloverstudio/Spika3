@@ -21,3 +21,7 @@ export function generateRandomString(length: number): string {
 export function sha256(original: string): string {
     return hash(original).toString();
 }
+
+export function formatDate(date: Date): string {
+    return date.toLocaleString();
+}

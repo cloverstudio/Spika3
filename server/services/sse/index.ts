@@ -31,11 +31,10 @@ export default class SSEService implements Service {
                 res.write("data: \n\n");
             }, 5000);
 
-            const channelId = String(userReq.device.id);
+            const channelId = String(req.query?.channelId) || String(userReq.device.id);
 
             const connectionId = this.notificationServer.subscribe(channelId, (data) => {
                 const eventData = "data: " + JSON.stringify(data) + "\n\n";
-
                 res.write(eventData);
             });
             console.log(`Device id: ${channelId} - Connection open`);

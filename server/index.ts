@@ -115,6 +115,10 @@ const app: express.Express = express();
         res.send("test");
     });
 
+    app.all("/", (req: express.Request, res: express.Response) => {
+        res.redirect("/messenger");
+    });
+
     app.all("/messenger/*", (req: express.Request, res: express.Response) => {
         res.sendFile(path.join(__dirname, "..", "public", "messenger/index.html"));
     });
