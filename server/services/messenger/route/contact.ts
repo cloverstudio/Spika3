@@ -80,7 +80,9 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     take: Constants.PAGING_LIMIT,
                 });
 
-                const count = await prisma.user.count();
+                const count = await prisma.user.count({
+                    where: condition,
+                });
 
                 res.send(
                     successResponse(
