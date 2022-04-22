@@ -19,18 +19,18 @@ export default ({ participant, myVideo, myAudio, oneParticipant }: Props) => {
     const [videoResolutionHeight, setVideoResolutionHegith] = useState<number>(0);
     const [videoResolutionWidth, setVideoResolutionWidth] = useState<number>(0);
     const [videoResolutionTimer, setVideoResolutionTimer] = useState<NodeJS.Timeout>(null);
-    const [audioMute, setAudioMute] = useState<boolean>(participant.muteAudio);
-    const [videoMute, setVideoMute] = useState<boolean>(participant.muteAudio);
+    const [audioMute, setAudioMute] = useState<boolean>(participant?.muteAudio);
+    const [videoMute, setVideoMute] = useState<boolean>(participant?.muteAudio);
 
     const cornerRadius = oneParticipant ? "0" : "1em";
 
     useEffect(() => {
-        if (participant.audioTrack != null || myAudio != null) {
-            // console.log("AudioTrack: " + participant.audioTrack);
+        if (participant?.audioTrack != null || myAudio != null) {
+            // console.log("AudioTrack: " + participant?.audioTrack);
             // console.log("MyAudio: " + myAudio);
-            // console.log("MuteAudio: " + participant.muteAudio);
+            // console.log("MuteAudio: " + participant?.muteAudio);
             const stream = new MediaStream();
-            if (participant.isMe) {
+            if (participant?.isMe) {
                 if (myAudio != null) {
                     if (myAudio.track != null) {
                         stream.addTrack(myAudio.track);
@@ -57,8 +57,8 @@ export default ({ participant, myVideo, myAudio, oneParticipant }: Props) => {
                     }
                 }
             } else {
-                if (participant.audioTrack != null) {
-                    stream.addTrack(participant.audioTrack);
+                if (participant?.audioTrack != null) {
+                    stream.addTrack(participant?.audioTrack);
                     audioElm.current.srcObject = stream;
                     audioElm.current.play().catch((error) => console.error(error));
 
@@ -86,21 +86,21 @@ export default ({ participant, myVideo, myAudio, oneParticipant }: Props) => {
     }, [participant, myAudio]);
 
     useEffect(() => {
-        // console.log("VideoTrack: " + participant.videoTrack);
+        // console.log("VideoTrack: " + participant?.videoTrack);
         // console.log("MyVideo: " + myVideo);
-        // console.log("MuteVideo: " + participant.muteVideo);
-        if (participant.videoTrack || myVideo) {
+        // console.log("MuteVideo: " + participant?.muteVideo);
+        if (participant?.videoTrack || myVideo) {
             const stream = new MediaStream();
-            // console.log("IsItMe: " + participant.isMe);
-            if (participant.isMe) {
+            // console.log("IsItMe: " + participant?.isMe);
+            if (participant?.isMe) {
                 if (myVideo != null) {
                     if (myVideo.track != null) {
                         stream.addTrack(myVideo.track);
                     }
                 }
             } else {
-                if (participant.videoTrack != null) {
-                    stream.addTrack(participant.videoTrack);
+                if (participant?.videoTrack != null) {
+                    stream.addTrack(participant?.videoTrack);
                 }
             }
             videoElm.current.srcObject = stream;
@@ -193,10 +193,10 @@ export default ({ participant, myVideo, myAudio, oneParticipant }: Props) => {
                     autoPlay
                     playsInline
                     controls={false}
-                    muted={participant.muteVideo}
+                    muted={participant?.muteVideo}
                 />
             ) : (
-                <video autoPlay playsInline controls={false} muted={participant.muteVideo} />
+                <video autoPlay playsInline controls={false} muted={participant?.muteVideo} />
             )}
 
             <audio
@@ -204,7 +204,7 @@ export default ({ participant, myVideo, myAudio, oneParticipant }: Props) => {
                 autoPlay
                 playsInline
                 controls={false}
-                muted={participant.muteAudio}
+                muted={participant?.muteAudio}
                 style={{
                     width: "100%",
                     height: "100%",
@@ -212,8 +212,8 @@ export default ({ participant, myVideo, myAudio, oneParticipant }: Props) => {
                     borderRadius: cornerRadius,
                 }}
             />
-            {!participant.isMe && false ? <div className="consumer-info"></div> : null}
-            {/* <Typography color="white">{participant.displayName}</Typography> */}
+            {!participant?.isMe && false ? <div className="consumer-info"></div> : null}
+            {/* <Typography color="white">{participant?.displayName}</Typography> */}
             {!oneParticipant ? (
                 <Box
                     sx={{
@@ -261,9 +261,9 @@ export default ({ participant, myVideo, myAudio, oneParticipant }: Props) => {
                                 zIndex: 10,
                             }}
                         >
-                            <Typography color="white">{participant.displayName}</Typography>
+                            <Typography color="white">{participant?.displayName}</Typography>
                         </Box>
-                        {!participant.isMe ? (
+                        {!participant?.isMe ? (
                             <Box
                                 sx={{
                                     bottom: 0,
@@ -289,14 +289,14 @@ export default ({ participant, myVideo, myAudio, oneParticipant }: Props) => {
                                     }}
                                 >
                                     <Tooltip title="No Video">
-                                        {!participant.muteVideo ? (
+                                        {!participant?.muteVideo ? (
                                             <VideocamOff style={{ fill: "white" }} />
                                         ) : (
                                             <Videocam style={{ fill: "white" }} />
                                         )}
                                     </Tooltip>
                                     <Tooltip title="Mute">
-                                        {participant.muteAudio ? (
+                                        {participant?.muteAudio ? (
                                             <MicOff style={{ fill: "white" }} />
                                         ) : (
                                             <Mic style={{ fill: "white" }} />
