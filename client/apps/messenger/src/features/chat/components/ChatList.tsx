@@ -43,7 +43,7 @@ export default function SidebarContactList(): React.ReactElement {
     }
 
     return (
-        <Box sx={{ overflowY: "auto" }}>
+        <Box sx={{ overflowY: "auto", maxHeight: "100%" }}>
             {[...list]
                 .sort((a, b) => (a.lastMessage?.createdAt > b.lastMessage?.createdAt ? -1 : 1))
                 .map((room) => {

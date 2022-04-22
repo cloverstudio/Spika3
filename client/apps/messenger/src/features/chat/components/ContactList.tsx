@@ -68,7 +68,7 @@ export default function SidebarContactList({
     const onUserClick = handleUserClick || defaultHandleUserClick;
 
     return (
-        <Box sx={{ overflowY: "auto" }}>
+        <Box sx={{ overflowY: "auto", maxHeight: "100%" }}>
             {sortedByDisplayName.map(([letter, contactList]) => {
                 return (
                     <Box key={letter} mb={2}>
