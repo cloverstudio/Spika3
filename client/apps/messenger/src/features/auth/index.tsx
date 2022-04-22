@@ -60,13 +60,18 @@ export default function Auth(): React.ReactElement {
     const handleUpdateUser = async ({ username, file }: { username: string; file: File }) => {
         try {
             setLoading(true);
-            const uploadedFile = await uploadFile({
-                file,
-                type: "avatar",
-                relationId: signUpMutation.data?.user.id,
-            });
+            const uploadedFile =
+                file &&
+                (await uploadFile({
+                    file,
+                    type: "avatar",
+                    relationId: signUpMutation.data?.user.id,
+                }));
 
-            await update({ displayName: username, avatarUrl: uploadedFile.path }).unwrap();
+            await update({
+                displayName: username,
+                avatarUrl: uploadedFile?.path || "",
+            }).unwrap();
             setLoading(false);
 
             navigate("/app");

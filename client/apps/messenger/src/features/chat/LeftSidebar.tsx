@@ -14,6 +14,7 @@ import SidebarNavigationHeader from "./components/SidebarNavigationHeader";
 import SearchBox from "./components/SearchBox";
 
 import uploadImage from "../../assets/upload-image.svg";
+declare const UPLOADS_BASE_URL: string;
 
 export default function LeftSidebar(): React.ReactElement {
     const [sidebar, setSidebar] = useState("");
@@ -81,7 +82,6 @@ function LeftSidebarNewGroup({
         if (step === "select_members") {
             setStep("edit_group_info");
         } else {
-            console.log({ room: { userIds: selectedUsers.map((u) => u.id), name, type: "group" } });
             try {
                 const res = await createRoom({
                     userIds: selectedUsers.map((u) => u.id),
@@ -137,7 +137,7 @@ function LeftSidebarNewGroup({
                                     >
                                         <Avatar
                                             alt={user.displayName}
-                                            src={user.avatarUrl}
+                                            src={`${UPLOADS_BASE_URL}${user.avatarUrl}`}
                                             sx={{ width: 48, height: 48 }}
                                         />
                                     </Badge>

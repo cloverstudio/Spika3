@@ -122,7 +122,6 @@ model Message {
   type String @map(name: "type")
   seenCount Int @default(0) @map(name: "seen_count")
   deliveredCount Int @default(0) @map(name: "delivered_count")
-  totalDeviceCount Int @map(name: "total_device_count")
   totalUserCount Int @map(name: "total_user_count")
 
   createdAt  DateTime @default(now()) @map(name: "created_at")

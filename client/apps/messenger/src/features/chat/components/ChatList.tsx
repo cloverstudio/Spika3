@@ -81,7 +81,7 @@ function RoomRow({
     handleClick,
     unreadCount,
 }: RoomRowProps) {
-    const lastMessageType = lastMessage.type;
+    const lastMessageType = lastMessage?.type;
 
     let lastMessageText = lastMessage?.body?.text;
 
@@ -90,8 +90,8 @@ function RoomRow({
         lastMessageText = lastMessageText.charAt(0).toUpperCase() + lastMessageText.slice(1);
     }
 
-    if (lastMessageText?.length > 25) {
-        lastMessageText = lastMessageText.slice(0, 25) + "...";
+    if (lastMessageText?.length > 17) {
+        lastMessageText = lastMessageText.slice(0, 17) + "...";
     }
     return (
         <Link to={`/rooms/${id}`} onClick={handleClick} style={{ textDecoration: "none" }}>
