@@ -665,6 +665,10 @@ paths:
                               type: number
                           thumbId:
                               type: number
+                - name: "localId"
+                  in: body
+                  schema:
+                      type: integer
 
             responses:
                 "200":
@@ -815,6 +819,20 @@ paths:
             responses:
                 "200":
                     description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    messageRecords:
+                                        type: "array"
+                                        items:
+                                            type: "object"
+                                            $ref: "#/definitions/MessageRecord"
                 "400":
                     description: "invalid param"
 
@@ -831,6 +849,20 @@ paths:
             responses:
                 "200":
                     description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    messageRecords:
+                                        type: "array"
+                                        items:
+                                            type: "object"
+                                            $ref: "#/definitions/MessageRecord"
                 "400":
                     description: "invalid param"
     /messenger/me:
@@ -1163,6 +1195,9 @@ definitions:
             body:
                 type: "object"
             createdAt:
+                type: "integer"
+                format: "int32"
+            localId:
                 type: "integer"
                 format: "int32"
 

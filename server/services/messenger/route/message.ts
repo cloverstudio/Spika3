@@ -21,6 +21,7 @@ const postMessageSchema = yup.object().shape({
         roomId: yup.number().strict().min(1).required(),
         type: yup.string().strict().required(),
         body: yup.object().required(),
+        localId: yup.number().strict().min(1),
     }),
 });
 
@@ -40,6 +41,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             const roomId = parseInt(req.body.roomId as string);
             const type = req.body.type;
             const body = req.body.body;
+            const localId = req.body.localId;
             const fromUserId = userReq.user.id;
             const fromDeviceId = userReq.device.id;
 
@@ -74,6 +76,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     fromUserId: userReq.user.id,
                     fromDeviceId: userReq.device.id,
                     totalUserCount: room.users.length,
+                    localId,
                 },
             });
 
@@ -305,7 +308,11 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         );
                 }
 
-                const messageRecords: MessageRecord[] = [];
+                const messageRecords: Partial<
+                    Omit<MessageRecord, "createdAt" | "modifiedAt"> & {
+                        createdAt: number;
+                    }
+                >[] = [];
 
                 for (const message of messages) {
                     let record = await prisma.messageRecord.findUnique({
@@ -335,7 +342,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         }
                     }
 
-                    messageRecords.push(record);
+                    messageRecords.push(sanitize(record).messageRecord());
                 }
 
                 res.send(successResponse({ messageRecords }, userReq.lang));
@@ -427,7 +434,11 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 },
             });
 
-            const messageRecords: MessageRecord[] = [];
+            const messageRecords: Partial<
+                Omit<MessageRecord, "createdAt" | "modifiedAt"> & {
+                    createdAt: number;
+                }
+            >[] = [];
 
             for (const message of messages) {
                 let record = await prisma.messageRecord.findUnique({
@@ -457,7 +468,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     }
                 }
 
-                messageRecords.push(record);
+                messageRecords.push(sanitize(record).messageRecord());
 
                 const deliveredMessageRecord = await prisma.messageRecord.findUnique({
                     where: {

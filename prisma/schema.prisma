@@ -10,7 +10,6 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// List of users managed by own
 model User {
   id                    Int      @id @default(autoincrement()) @map(name: "id")
   emailAddress          String?  @unique @map(name: "email_address")
@@ -130,6 +129,8 @@ model Message {
 
   deviceMessages DeviceMessage[]
   messageRecords MessageRecord[]
+
+  localId Int? @map(name: "local_id")
 
   @@map(name: "message")
 }
