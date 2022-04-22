@@ -29,7 +29,14 @@ export default ({ videoTrack, sx }: ComponentInterface) => {
 
     return (
         <Box
-            sx={{ width: "100%", height: "100%", objectFit: "cover", ...sx }}
+            sx={{
+                border: "1px solid #fff",
+                borderRadius: "2px",
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                ...sx,
+            }}
             component="video"
             ref={videoElm}
             autoPlay

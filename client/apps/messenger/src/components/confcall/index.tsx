@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Stack, IconButton, Grid, GridSize, SxProps } from "@mui/material";
+import { Box, Select, MenuItem, SxProps } from "@mui/material";
 import {
     Videocam,
     VideocamOff,
@@ -22,8 +22,7 @@ import * as mediasoupClient from "mediasoup-client";
 import { useParams } from "react-router-dom";
 import Utils from "./lib/Utils";
 import dayjs from "dayjs";
-import { CallMember, CallParticipant } from "./CallMember";
-import ScreenShareView from "./ScreenShareView";
+import SelectBoxDialog from "../SelectBoxDialog";
 
 declare var CONFCALL_HOST_URL: string;
 
@@ -41,19 +40,22 @@ interface ConferenceCallProps {
 }
 
 export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
+    const [showCameraSelectDialog, setShowCameraSelectDialog] = useState<boolean>(false);
+    const [showMicSelectDialog, setShowMicSelectDialog] = useState<boolean>(false);
     const [participants, setParticipants] = useState<Array<Participant>>(null);
-
     const [cameraEnabled, setCameraEnabled] = useState<boolean>(
         localStorage.getItem(Constants.LSKEY_MUTECAM) === "0" ? false : true
     );
     const [micEnabled, setMicEnabled] = useState<boolean>(
         localStorage.getItem(Constants.LSKEY_MUTEMIC) === "0" ? false : true
     );
-
+    const [spikabroadcastClient, setSpikabroadcastClient] = useState<SpikaBroadcastClient>(null);
     const [selectedCamera, setSelectedCamera] = useState<MediaDeviceInfo>(null);
     const [selectedMicrophone, setSelectedMicrophone] = useState<MediaDeviceInfo>(null);
     const [myVideTrack, setMyVideoTrack] = useState<MediaStreamTrack>(null);
     const [videoLayoutStyle, setVieoLayoutStyle] = useState<SxProps>({});
+    const [microphones, setMicrophones] = useState<Array<MediaDeviceInfo>>([]);
+    const [cameras, setCameras] = useState<Array<MediaDeviceInfo>>([]);
 
     useEffect(() => {
         // load cameara and microphones
@@ -76,6 +78,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                     defaultCamera = cameras[0];
                     setSelectedCamera(cameras[0]);
                 }
+                setCameras(cameras);
             }
 
             const microphones = await getMicrophones();
@@ -90,9 +93,8 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                     defaultMicrophone = microphone;
                     setSelectedMicrophone(microphone);
                 } else {
-                    defaultMicrophone = microphones[0];
-                    setSelectedMicrophone(microphones[0]);
                 }
+                setMicrophones(microphones);
             }
 
             const spikaBroadcastClientLocal = new SpikaBroadcastClient({
@@ -116,11 +118,14 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                             participantsMap,
                             ([key, val]) => val
                         );
-                        console.log("onParticipantUpdate: " + participantsAry);
                         setParticipants(participantsAry);
                     },
-                    onMicrophoneStateChanged: (state) => {},
-                    onCameraStateChanged: (state) => {},
+                    onMicrophoneStateChanged: (state) => {
+                        setMicEnabled(state);
+                    },
+                    onCameraStateChanged: (state) => {
+                        setCameraEnabled(state);
+                    },
                     onScreenShareStateChanged: (state) => {},
                     onStartShare: (producer) => {},
                     onSpeakerStateChanged: () => {},
@@ -134,6 +139,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
             });
 
             spikaBroadcastClientLocal.connect();
+            setSpikabroadcastClient(spikaBroadcastClientLocal);
         })();
     }, []);
 
@@ -204,6 +210,23 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
         );
     };
 
+    const controlIconDefaultStyle: SxProps = {
+        "&:hover": {
+            backgroundColor: "#fff1",
+        },
+        padding: "10px",
+        fontSize: 40,
+        width: "60px",
+        height: "60px",
+    };
+
+    const controlArrowIconDefaultStyle: SxProps = {
+        "&:hover": {
+            backgroundColor: "#fff1",
+        },
+        fontSize: 24,
+    };
+
     return (
         <Box
             sx={{
@@ -238,13 +261,23 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                                 participant.consumers.find(
                                     (consumer) => consumer?.track.kind === "video"
                                 );
+                            const audioConsumer: mediasoupClient.types.Consumer =
+                                participant.consumers.find(
+                                    (consumer) => consumer?.track.kind === "audio"
+                                );
 
                             let sx: SxProps = {};
 
                             if (participants.length == 2 && index == 1)
                                 sx = { gridColumn: "1 / span 2", width: "48vw" };
-                            if (videoConsumer)
-                                return <ParticipantItem sx={sx} videoTrack={videoConsumer.track} />;
+
+                            return (
+                                <ParticipantItem
+                                    sx={sx}
+                                    videoTrack={videoConsumer?.track}
+                                    audioTrack={audioConsumer?.track}
+                                />
+                            );
                         })}
                     </>
                 )}
@@ -275,23 +308,105 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                 }}
             >
                 <ControllsBox>
-                    <Videocam sx={{ fontSize: 40 }} />
-                    <KeyboardArrowUp />
+                    {cameraEnabled ? (
+                        <Videocam
+                            sx={controlIconDefaultStyle}
+                            onClick={() => {
+                                spikabroadcastClient.toggleCamera();
+                            }}
+                        />
+                    ) : (
+                        <VideocamOff
+                            sx={controlIconDefaultStyle}
+                            onClick={() => {
+                                spikabroadcastClient.toggleCamera();
+                            }}
+                        />
+                    )}
+                    <KeyboardArrowUp
+                        sx={controlArrowIconDefaultStyle}
+                        onClick={() => {
+                            setShowCameraSelectDialog(true);
+                        }}
+                    />
                 </ControllsBox>
                 <ControllsBox>
-                    <Mic sx={{ fontSize: 40 }} />
-                    <KeyboardArrowUp />
+                    {micEnabled ? (
+                        <Mic
+                            sx={controlIconDefaultStyle}
+                            onClick={() => {
+                                spikabroadcastClient.toggleMicrophone();
+                            }}
+                        />
+                    ) : (
+                        <MicOff
+                            sx={controlIconDefaultStyle}
+                            onClick={() => {
+                                spikabroadcastClient.toggleMicrophone();
+                            }}
+                        />
+                    )}
+                    <KeyboardArrowUp
+                        sx={controlArrowIconDefaultStyle}
+                        onClick={() => {
+                            setShowMicSelectDialog(true);
+                        }}
+                    />
                 </ControllsBox>
                 <ControllsBox>
-                    <Groups sx={{ fontSize: 40 }} />
+                    <Groups sx={controlIconDefaultStyle} />
                 </ControllsBox>
                 <ControllsBox>
-                    <Monitor sx={{ fontSize: 40 }} />
+                    <Monitor sx={controlIconDefaultStyle} />
                 </ControllsBox>
                 <ControllsBox>
-                    <Close sx={{ fontSize: 40 }} />
+                    <Close sx={controlIconDefaultStyle} />
                 </ControllsBox>
             </Box>
+
+            <SelectBoxDialog
+                show={showCameraSelectDialog}
+                title="Select Camera"
+                allowButtonLabel="OK"
+                denyButtonLabel="Cancel"
+                onOk={async (deviceId: string) => {
+                    const camera: MediaDeviceInfo = cameras.find(
+                        (cam) => cam.deviceId === deviceId
+                    );
+                    console.log("find camera", camera);
+                    await spikabroadcastClient.updateCamera(camera);
+                    setShowCameraSelectDialog(false);
+                }}
+                onCancel={() => {
+                    setShowCameraSelectDialog(false);
+                }}
+                items={cameras.reduce((deviceMap, device) => {
+                    deviceMap.set(device.deviceId, device.label);
+                    return deviceMap;
+                }, new Map<string, string>())}
+            ></SelectBoxDialog>
+
+            <SelectBoxDialog
+                show={showMicSelectDialog}
+                title="Select microphone"
+                allowButtonLabel="OK"
+                denyButtonLabel="Cancel"
+                onOk={async (deviceId: string) => {
+                    const mic: MediaDeviceInfo = microphones.find(
+                        (mic) => mic.deviceId === deviceId
+                    );
+                    console.log("find mic", mic);
+                    await spikabroadcastClient.updateMicrophone(mic);
+                    setShowMicSelectDialog(false);
+                }}
+                onCancel={() => {
+                    setShowMicSelectDialog(false);
+                }}
+                items={microphones.reduce((deviceMap, device) => {
+                    deviceMap.set(device.deviceId, device.label);
+                    return deviceMap;
+                }, new Map<string, string>())}
+            ></SelectBoxDialog>
         </Box>
     );
 };
