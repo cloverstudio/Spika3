@@ -1,4 +1,4 @@
-import MessageType, { MessageListType } from "../../../types/Message";
+import MessageType, { MessageListType, MessageRecordListType } from "../../../types/Message";
 
 import api from "../../../api/api";
 
@@ -20,6 +20,11 @@ const messageApi = api.injectEndpoints({
             },
             invalidatesTags: (res) => res && [{ type: "Rooms", id: "HISTORY" }],
         }),
+        getMessageRecordsById: build.query<MessageRecordListType, number>({
+            query: (messageId) => {
+                return `/messenger/messages/${messageId}/message-records`;
+            },
+        }),
     }),
     overrideExisting: true,
 });
@@ -28,5 +33,6 @@ export const {
     useGetMessagesByRoomIdQuery,
     useSendMessageMutation,
     useMarkRoomMessagesAsSeenMutation,
+    useGetMessageRecordsByIdQuery,
 } = messageApi;
 export default messageApi;
