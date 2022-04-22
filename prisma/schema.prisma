@@ -55,7 +55,7 @@ model Device {
 model File {
   id         Int    @id @default(autoincrement()) @map(name: "id")
   type       String @map(name: "type")
-  relationId Int    @map(name: "relation_id")
+  relationId Int?    @map(name: "relation_id")
   path       String @map(name: "path")
   mimeType   String @map(name: "mime_type")
   fileName   String @map(name: "file_name")

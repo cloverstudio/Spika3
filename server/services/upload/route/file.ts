@@ -37,8 +37,8 @@ const verifyFilesSchema = yup.object().shape({
         type: yup.string().strict().required(),
         size: yup.number().strict().min(1).required(),
         total: yup.number().strict().min(1).required(),
-        relationId: yup.number().strict().required(),
         fileHash: yup.string().required(),
+        relationId: yup.number().strict(),
     }),
 });
 

@@ -348,6 +348,7 @@ paths:
                   description: "The random string to identify upload."
                 - name: "fileHash"
                   in: body
+                  required: true
                   schema:
                       type: string
                   description: "sha256 hash of the file"
@@ -359,7 +360,6 @@ paths:
                   description: "The name of the another model which the file refers ex) avatar, message, group avatar"
                 - name: "relationId"
                   in: body
-                  required: true
                   schema:
                       type: number
                   description: "The id of model the file refers to."

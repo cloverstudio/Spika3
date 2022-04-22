@@ -11,7 +11,7 @@ export default async function uploadFile({
 }: {
     file: File;
     type: string;
-    relationId: number;
+    relationId?: number;
 }): Promise<{ path: string; id: number }> {
     const total = Math.ceil(file.size / chunkSize);
 

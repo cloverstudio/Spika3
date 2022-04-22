@@ -85,7 +85,7 @@ function RoomRow({
 
     let lastMessageText = lastMessage?.body?.text;
 
-    if (lastMessageType !== "text") {
+    if (lastMessage && lastMessageType !== "text") {
         lastMessageText = (lastMessageType || "") + " shared";
         lastMessageText = lastMessageText.charAt(0).toUpperCase() + lastMessageText.slice(1);
     }

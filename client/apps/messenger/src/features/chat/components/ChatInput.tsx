@@ -45,7 +45,6 @@ export default function ChatInput(): React.ReactElement {
                     const uploaded = await uploadFile({
                         file,
                         type: file.type || "unknown",
-                        relationId: 999,
                     });
 
                     const fileType = getFileType(file.type);
@@ -81,9 +80,6 @@ export default function ChatInput(): React.ReactElement {
 
     return (
         <Box borderTop="0.5px solid #C9C9CA" px={2} py={1}>
-            {/* <Typography ml="4.75rem" mb={1}>
-                                Uploading... {`${filesSent}/${files.length}`}
-                            </Typography> */}
             {loading && (
                 <LinearProgress
                     sx={{ mb: 1 }}

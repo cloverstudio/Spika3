@@ -357,14 +357,8 @@ describe("API", () => {
                 .set({ accesstoken: globals.userToken })
                 .send({ ...validParams, relationId: "42" });
 
-            const responseValid = await supertest(app)
-                .post("/api/upload/files/verify")
-                .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, relationId: 5 });
-
             expect(responseInvalidNotNumber.status).to.eqls(400);
-            expect(responseNoParam.status).to.eqls(400);
-            expect(responseValid.status).to.eqls(200);
+            expect(responseNoParam.status).to.eqls(200);
         });
     });
 });
