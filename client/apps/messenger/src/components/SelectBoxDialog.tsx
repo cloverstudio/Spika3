@@ -58,6 +58,9 @@ export default function BasicDialog({
                 <DialogContentText id="alert-dialog-description">
                     {items ? (
                         <Select
+                            sx={{
+                                width: "300px",
+                            }}
                             value={selectedValue}
                             onChange={(e) => {
                                 setSelectedValue(e.target.value);
@@ -74,19 +77,19 @@ export default function BasicDialog({
                 <Button
                     onClick={(e) => {
                         dispatch(hideBasicDialog());
-                        if (onOk) onOk(selectedValue);
+                        if (onCancel) onCancel();
                     }}
                 >
-                    {allowButtonLabel}
+                    {denyButtonLabel}
                 </Button>
 
                 <Button
                     onClick={(e) => {
                         dispatch(hideBasicDialog());
-                        if (onCancel) onCancel();
+                        if (onOk) onOk(selectedValue);
                     }}
                 >
-                    {denyButtonLabel}
+                    {allowButtonLabel}
                 </Button>
             </DialogActions>
         </Dialog>

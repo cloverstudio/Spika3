@@ -10,6 +10,10 @@ import {
     Close,
     KeyboardArrowUp,
 } from "@mui/icons-material";
+import dayjs from "dayjs";
+import * as mediasoupClient from "mediasoup-client";
+import { useParams } from "react-router-dom";
+
 import * as Constants from "../../../../../lib/constants";
 import SpikaBroadcastClient, {
     Participant,
@@ -18,10 +22,8 @@ import SpikaBroadcastClient, {
 } from "./lib/SpikaBroadcastClient";
 import MeItem from "./MeItem";
 import ParticipantItem from "./ParticipantItem";
-import * as mediasoupClient from "mediasoup-client";
-import { useParams } from "react-router-dom";
+import ScreenShareItem from "./ScreenShareItem";
 import Utils from "./lib/Utils";
-import dayjs from "dayjs";
 import SelectBoxDialog from "../SelectBoxDialog";
 
 declare var CONFCALL_HOST_URL: string;
@@ -49,6 +51,8 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
     const [micEnabled, setMicEnabled] = useState<boolean>(
         localStorage.getItem(Constants.LSKEY_MUTEMIC) === "0" ? false : true
     );
+    const [screenShareEnabled, setScreenshareEnabled] = useState<boolean>(false);
+
     const [spikabroadcastClient, setSpikabroadcastClient] = useState<SpikaBroadcastClient>(null);
     const [selectedCamera, setSelectedCamera] = useState<MediaDeviceInfo>(null);
     const [selectedMicrophone, setSelectedMicrophone] = useState<MediaDeviceInfo>(null);
@@ -56,6 +60,8 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
     const [videoLayoutStyle, setVieoLayoutStyle] = useState<SxProps>({});
     const [microphones, setMicrophones] = useState<Array<MediaDeviceInfo>>([]);
     const [cameras, setCameras] = useState<Array<MediaDeviceInfo>>([]);
+    const [screenShareVideoTrack, setScreenShareVideoTrack] = useState<MediaStreamTrack>(null);
+    const [screenShareMode, setScreenShareMode] = useState<boolean>(false);
 
     useEffect(() => {
         // load cameara and microphones
@@ -126,10 +132,17 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                     onCameraStateChanged: (state) => {
                         setCameraEnabled(state);
                     },
-                    onScreenShareStateChanged: (state) => {},
-                    onStartShare: (producer) => {},
+                    onScreenShareStateChanged: (state) => {
+                        setScreenshareEnabled(state);
+                    },
+                    onStartShare: (producer) => {
+                        setScreenShareVideoTrack(producer.track);
+                        setScreenShareMode(true);
+                    },
                     onSpeakerStateChanged: () => {},
-                    onCallClosed: () => {},
+                    onCallClosed: () => {
+                        onClose();
+                    },
                     onUpdateCameraDevice: () => {},
                     onUpdateMicrophoneDevice: () => {},
                     onUpdateSpeakerDevice: () => {},
@@ -190,6 +203,24 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                 alignContent: "start",
                 gridGap: "20px",
             });
+
+        //screenshare handling
+
+        // handle screenshare logic, when another user enables
+        if (!screenShareEnabled) {
+            const screenShareparticipant: Participant | undefined = participants.find(
+                (participant) => participant.consumers.find((consumer) => consumer.appData.share)
+            );
+
+            if (screenShareparticipant) {
+                const videoTrackConsumer: mediasoupClient.types.Consumer =
+                    screenShareparticipant.consumers.find((consumer) => consumer.appData.share);
+                if (videoTrackConsumer) setScreenShareVideoTrack(videoTrackConsumer.track);
+            }
+
+            const newScreenShareMode = screenShareparticipant !== undefined;
+            setScreenShareMode(newScreenShareMode);
+        }
     }, [participants]);
 
     const ControllsBox = (props: any) => {
@@ -218,6 +249,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
         fontSize: 40,
         width: "60px",
         height: "60px",
+        cursor: "pointer",
     };
 
     const controlArrowIconDefaultStyle: SxProps = {
@@ -240,22 +272,39 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
             }}
         >
             {/* videos */}
-            <Box
-                sx={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    height: "100%",
-                    zIndex: 100,
-                    ...videoLayoutStyle,
-                }}
-            >
-                {!participants || participants.length == 0 ? (
-                    <MeItem videoTrack={myVideTrack} />
-                ) : (
-                    <>
-                        <MeItem sx={{}} videoTrack={myVideTrack} />
+
+            {screenShareMode ? (
+                <Box
+                    sx={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        zIndex: 100,
+                        display: "grid",
+                        gridTemplateRows: "100vh",
+                        gridTemplateColumns: "80vw 20vw",
+                        justifyItems: "start",
+                        justifyContent: "start",
+                        alignContent: "start",
+                    }}
+                >
+                    <Box>
+                        <ScreenShareItem videoTrack={screenShareVideoTrack} />
+                    </Box>
+                    <Box
+                        sx={{
+                            display: "grid",
+                            gridTemplateColumns: "20vw",
+                            gridAutoRows: "11.25vw",
+                            justifyItems: "start",
+                            justifyContent: "start",
+                            alignContent: "start",
+                        }}
+                    >
+                        {" "}
+                        <MeItem sx={{ border: "none" }} videoTrack={myVideTrack} />
                         {participants.map((participant, index) => {
                             const videoConsumer: mediasoupClient.types.Consumer =
                                 participant.consumers.find(
@@ -266,10 +315,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                                     (consumer) => consumer?.track.kind === "audio"
                                 );
 
-                            let sx: SxProps = {};
-
-                            if (participants.length == 2 && index == 1)
-                                sx = { gridColumn: "1 / span 2", width: "48vw" };
+                            let sx: SxProps = { border: "none" };
 
                             return (
                                 <ParticipantItem
@@ -279,9 +325,52 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                                 />
                             );
                         })}
-                    </>
-                )}
-            </Box>
+                    </Box>
+                </Box>
+            ) : (
+                <Box
+                    sx={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        zIndex: 100,
+                        ...videoLayoutStyle,
+                    }}
+                >
+                    {!participants || participants.length == 0 ? (
+                        <MeItem videoTrack={myVideTrack} />
+                    ) : (
+                        <>
+                            <MeItem sx={{}} videoTrack={myVideTrack} />
+                            {participants.map((participant, index) => {
+                                const videoConsumer: mediasoupClient.types.Consumer =
+                                    participant.consumers.find(
+                                        (consumer) => consumer?.track.kind === "video"
+                                    );
+                                const audioConsumer: mediasoupClient.types.Consumer =
+                                    participant.consumers.find(
+                                        (consumer) => consumer?.track.kind === "audio"
+                                    );
+
+                                let sx: SxProps = {};
+
+                                if (participants.length == 2 && index == 1)
+                                    sx = { gridColumn: "1 / span 2", width: "48vw" };
+
+                                return (
+                                    <ParticipantItem
+                                        sx={sx}
+                                        videoTrack={videoConsumer?.track}
+                                        audioTrack={audioConsumer?.track}
+                                    />
+                                );
+                            })}
+                        </>
+                    )}
+                </Box>
+            )}
 
             {/* controls */}
             <Box
@@ -300,7 +389,6 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                     justifyContent: "center",
                     alignContent: "start",
                     transition: "all 0.5s ease",
-                    cursor: "pointer",
                     opacity: "0",
                     "&:hover": {
                         opacity: "1.0",
@@ -354,13 +442,24 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                     />
                 </ControllsBox>
                 <ControllsBox>
-                    <Groups sx={controlIconDefaultStyle} />
+                    <Monitor
+                        sx={{
+                            ...controlIconDefaultStyle,
+                            color: screenShareEnabled ? "#900" : "#fff",
+                        }}
+                        onClick={async () => {
+                            await spikabroadcastClient.toggleScreenShare();
+                        }}
+                    />
                 </ControllsBox>
                 <ControllsBox>
-                    <Monitor sx={controlIconDefaultStyle} />
-                </ControllsBox>
-                <ControllsBox>
-                    <Close sx={controlIconDefaultStyle} />
+                    <Close
+                        sx={{ ...controlIconDefaultStyle, color: "#900" }}
+                        onClick={async () => {
+                            await spikabroadcastClient.disconnect();
+                            myVideTrack.stop();
+                        }}
+                    />
                 </ControllsBox>
             </Box>
 
