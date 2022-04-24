@@ -229,11 +229,14 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                 sx={{
                     textAlign: "center",
                     color: "#fff",
-                    fontSize: "48pt",
+                    fontSize: "24px",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     width: "100px",
+                    "&:hover": {
+                        backgroundColor: "#fff1",
+                    },
                 }}
             >
                 {props.children}
@@ -242,13 +245,9 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
     };
 
     const controlIconDefaultStyle: SxProps = {
-        "&:hover": {
-            backgroundColor: "#fff1",
-        },
         padding: "10px",
-        fontSize: 40,
-        width: "60px",
-        height: "60px",
+        width: "30px",
+        height: "30px",
         cursor: "pointer",
     };
 
@@ -256,7 +255,6 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
         "&:hover": {
             backgroundColor: "#fff1",
         },
-        fontSize: 24,
     };
 
     return (
@@ -304,7 +302,12 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                         }}
                     >
                         {" "}
-                        <MeItem sx={{ border: "none" }} videoTrack={myVideTrack} />
+                        <MeItem
+                            sx={{ border: "none" }}
+                            videoTrack={myVideTrack}
+                            videoEnabled={cameraEnabled}
+                            name={userName}
+                        />
                         {participants.map((participant, index) => {
                             const videoConsumer: mediasoupClient.types.Consumer =
                                 participant.consumers.find(
@@ -322,6 +325,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                                     sx={sx}
                                     videoTrack={videoConsumer?.track}
                                     audioTrack={audioConsumer?.track}
+                                    name={participant.displayName}
                                 />
                             );
                         })}
@@ -340,10 +344,19 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                     }}
                 >
                     {!participants || participants.length == 0 ? (
-                        <MeItem videoTrack={myVideTrack} />
+                        <MeItem
+                            videoTrack={myVideTrack}
+                            videoEnabled={cameraEnabled}
+                            name={userName}
+                        />
                     ) : (
                         <>
-                            <MeItem sx={{}} videoTrack={myVideTrack} />
+                            <MeItem
+                                sx={{}}
+                                videoTrack={myVideTrack}
+                                videoEnabled={cameraEnabled}
+                                name={userName}
+                            />
                             {participants.map((participant, index) => {
                                 const videoConsumer: mediasoupClient.types.Consumer =
                                     participant.consumers.find(
@@ -364,6 +377,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                                         sx={sx}
                                         videoTrack={videoConsumer?.track}
                                         audioTrack={audioConsumer?.track}
+                                        name={participant.displayName}
                                     />
                                 );
                             })}
@@ -380,7 +394,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                     left: 0,
                     width: "100%",
                     height: "100px",
-                    background: "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.5) 100%);",
+                    background: "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%);",
                     zIndex: 110,
                     display: "grid",
                     gridTemplateRows: "1fr",
