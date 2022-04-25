@@ -41,15 +41,22 @@ interface ConferenceCallProps {
     onClose: Function;
 }
 
+// register default values to localstorage
+console.log(localStorage.getItem(Constants.LSKEY_ENABLEMIC));
+if (localStorage.getItem(Constants.LSKEY_ENABLEMIC) === null)
+    localStorage.setItem(Constants.LSKEY_ENABLEMIC, "1");
+if (localStorage.getItem(Constants.LSKEY_ENABLECAM) === null)
+    localStorage.setItem(Constants.LSKEY_ENABLECAM, "1");
+
 export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
     const [showCameraSelectDialog, setShowCameraSelectDialog] = useState<boolean>(false);
     const [showMicSelectDialog, setShowMicSelectDialog] = useState<boolean>(false);
     const [participants, setParticipants] = useState<Array<Participant>>(null);
     const [cameraEnabled, setCameraEnabled] = useState<boolean>(
-        localStorage.getItem(Constants.LSKEY_ENABLECAM) === "0" ? true : false
+        localStorage.getItem(Constants.LSKEY_ENABLECAM) === "1" ? true : false
     );
     const [micEnabled, setMicEnabled] = useState<boolean>(
-        localStorage.getItem(Constants.LSKEY_ENABLEMIC) === "0" ? true : false
+        localStorage.getItem(Constants.LSKEY_ENABLEMIC) === "1" ? true : false
     );
     const [screenShareEnabled, setScreenshareEnabled] = useState<boolean>(false);
 
