@@ -89,7 +89,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 where: { deviceId },
             });
 
+            l(requestDevice);
+
             if (!requestDevice) {
+                l("create new device");
                 requestDevice = await prisma.device.create({
                     data: {
                         deviceId,
@@ -107,6 +110,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     },
                 });
             }
+
+            l(requestDevice);
 
             const SMSPayload: SendSMSPayload = {
                 telephoneNumber,
