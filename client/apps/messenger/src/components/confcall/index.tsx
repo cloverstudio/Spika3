@@ -38,7 +38,7 @@ interface ConferenceCallProps {
     roomId: string;
     userId: string;
     userName: string;
-    onClose: Function;
+    onClose: () => void;
 }
 
 // register default values to localstorage

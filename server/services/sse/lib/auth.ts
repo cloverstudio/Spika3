@@ -6,7 +6,7 @@ import { UserRequest } from "./types";
 import prisma from "../../../components/prisma";
 import { error as le } from "../../../components/logger";
 
-export default async (req: Request, res: Response, next: Function) => {
+export default async (req: Request, res: Response, next: () => void) => {
     try {
         if (!req.headers[constants.ACCESS_TOKEN] && !req.query[constants.ACCESS_TOKEN]) {
             return res.status(403).send("Invalid access token");
