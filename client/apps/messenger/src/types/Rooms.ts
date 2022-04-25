@@ -2,7 +2,7 @@ import { Room } from ".prisma/client";
 import UserType from "./User";
 import MessageType from "./Message";
 
-type RoomUserType = {
+export type RoomUserType = {
     isAdmin: boolean;
     userId: number;
     user: UserType;

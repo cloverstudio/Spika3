@@ -16,7 +16,6 @@ export const {} = userSlice.actions;
 
 export const selectUser = (state: RootState): User => {
     const data = state.api.queries["getUser(undefined)"]?.data as any;
-
     return data.user as User;
 };
 
