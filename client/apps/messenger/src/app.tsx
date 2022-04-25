@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import AuthPage from "./pages/auth";
 import HomePage from "./pages/home";
 import RoomPage from "./pages/room";
-import Confcall from "./components/confcall";
+import Confcall from "./pages/confcall";
 import Playground from "./pages/playground";
 
 declare const BASE_URL: string;
@@ -16,6 +16,7 @@ export default function App(): React.ReactElement {
             <Router basename={BASE_URL}>
                 <Routes>
                     <Route path="/" element={<AuthPage />} />
+                    <Route path="/confcall" element={<Confcall />} />
                     <Route path="app" element={<HomePage />} />
 
                     <Route path="rooms" element={<HomePage />}>
