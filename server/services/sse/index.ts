@@ -1,9 +1,15 @@
 import { Router } from "express";
+import { PrismaClient } from "@prisma/client";
 
 import Service, { ServiceStartParams } from "../types/serviceInterface";
 import auth from "./lib/auth";
 import { UserRequest } from "./lib/types";
 import NotificationServer from "./notificationServer";
+import { formatMessageBody } from "../../components/message";
+import sanitize from "../../components/sanitize";
+import * as Constants from "../../components/consts";
+
+const prisma = new PrismaClient();
 
 export default class SSEService implements Service {
     notificationServer: NotificationServer;
@@ -14,7 +20,7 @@ export default class SSEService implements Service {
     getRoutes(): Router {
         const SSERouter = Router();
 
-        SSERouter.get("/", auth, (req, res) => {
+        SSERouter.get("/", auth, async (req, res) => {
             const userReq: UserRequest = req as UserRequest;
             req.setTimeout(24 * 60 * 60 * 1000);
 
@@ -26,6 +32,43 @@ export default class SSEService implements Service {
             };
             res.writeHead(200, headers);
             res.write("data: \n\n");
+
+            const undeliveredMessages = await prisma.message.findMany({
+                where: {
+                    deviceMessages: {
+                        some: {
+                            deviceId: userReq.device.id,
+                        },
+                    },
+                    messageRecords: {
+                        none: {
+                            type: "delivered",
+                            userId: userReq.user.id,
+                        },
+                    },
+                },
+                include: {
+                    deviceMessages: true,
+                },
+            });
+
+            const sanitizedUndeliveredMessages = await Promise.all(
+                undeliveredMessages.map(async (message) =>
+                    sanitize({
+                        ...message,
+                        body: await formatMessageBody(message.deviceMessages[0].body, message.type),
+                    }).message()
+                )
+            );
+
+            console.log({ sanitizedUndeliveredMessages });
+
+            for (const message of sanitizedUndeliveredMessages) {
+                const jsonData = JSON.stringify({ type: Constants.PUSH_TYPE_NEW_MESSAGE, message });
+
+                const eventData = "data: " + jsonData + "\n\n";
+                res.write(eventData);
+            }
 
             const interval = setInterval(() => {
                 res.write("data: \n\n");

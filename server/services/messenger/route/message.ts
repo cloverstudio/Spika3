@@ -13,6 +13,7 @@ import * as Constants from "../../../components/consts";
 
 import { InitRouterParams } from "../../types/serviceInterface";
 import sanitize from "../../../components/sanitize";
+import { formatMessageBody } from "../../../components/message";
 
 const prisma = new PrismaClient();
 
@@ -337,12 +338,12 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                                     deliveredCount: { increment: 1 },
                                 },
                             });
+
+                            messageRecords.push(sanitize(record).messageRecord());
                         } catch (error) {
                             console.error({ error });
                         }
                     }
-
-                    messageRecords.push(sanitize(record).messageRecord());
                 }
 
                 res.send(successResponse({ messageRecords }, userReq.lang));
@@ -463,12 +464,12 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                                 seenCount: { increment: 1 },
                             },
                         });
+
+                        messageRecords.push(sanitize(record).messageRecord());
                     } catch (error) {
                         console.error({ error });
                     }
                 }
-
-                messageRecords.push(sanitize(record).messageRecord());
 
                 const deliveredMessageRecord = await prisma.messageRecord.findUnique({
                     where: {
@@ -507,34 +508,3 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
     return router;
 };
-
-async function formatMessageBody(body: any, messageType: string) {
-    if (messageType === "text") {
-        return body;
-    }
-
-    const file = await prisma.file.findFirst({
-        where: {
-            id: body.fileId,
-        },
-        select: {
-            fileName: true,
-            mimeType: true,
-            path: true,
-            size: true,
-        },
-    });
-
-    const thumb = await prisma.file.findFirst({
-        where: {
-            id: body.thumbId,
-        },
-        select: {
-            fileName: true,
-            mimeType: true,
-            path: true,
-            size: true,
-        },
-    });
-    return { ...body, file, thumb };
-}
