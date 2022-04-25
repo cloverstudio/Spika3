@@ -93,7 +93,7 @@ function NumberInput({
                 sx={{
                     input: {
                         border: "1px solid #9AA0A6",
-                        borderRadius: "10px",
+                        borderRadius: "0.625rem",
                         height: "100%",
                         padding: "5px",
                         textAlign: "center",

@@ -11,8 +11,8 @@ export default async function uploadFile({
 }: {
     file: File;
     type: string;
-    relationId: number;
-}): Promise<{ path: string }> {
+    relationId?: number;
+}): Promise<{ path: string; id: number }> {
     const total = Math.ceil(file.size / chunkSize);
 
     let lastOffset = 0;
@@ -43,7 +43,7 @@ export default async function uploadFile({
                     data: {
                         total,
                         size: file.size,
-                        mimeType: file.type,
+                        mimeType: file.type || "unknown",
                         fileName: file.name,
                         type,
                         fileHash: hash,
@@ -58,25 +58,35 @@ export default async function uploadFile({
             loading(
                 file,
                 (data) => {
-                    handleChunk(encode(data), chunkOffset).then((res) => {
-                        if (
-                            hash &&
-                            total === res.data.uploadedChunks.length &&
-                            !verificationStarted
-                        ) {
-                            verificationStarted = true;
-                            handleVerify(hash).then((res) => {
-                                if (res && res.data && res.data.file) {
-                                    resolve(res.data.file);
-                                } else {
-                                    reject("Upload error");
-                                }
+                    handleChunk(encode(data), chunkOffset)
+                        .then((res) => {
+                            if (
+                                hash &&
+                                total === res.data.uploadedChunks.length &&
+                                !verificationStarted
+                            ) {
+                                verificationStarted = true;
+                                handleVerify(hash)
+                                    .then((res) => {
+                                        if (res && res.data && res.data.file) {
+                                            resolve(res.data.file);
+                                        } else {
+                                            reject("Upload error");
+                                        }
 
-                                lastOffset = 0;
-                                previous = [];
-                            });
-                        }
-                    });
+                                        lastOffset = 0;
+                                        previous = [];
+                                    })
+                                    .catch((e) => {
+                                        console.log("verification error: ", { e });
+                                        reject(e);
+                                    });
+                            }
+                        })
+                        .catch((e) => {
+                            console.log("upload chunk error: ", { e });
+                            reject(e);
+                        });
 
                     SHA256.update(CryptoJS.lib.WordArray.create(data));
                     chunkOffset++;
@@ -86,6 +96,7 @@ export default async function uploadFile({
                 }
             );
         } catch (error) {
+            console.log("Upload file error: ", error);
             reject(error);
         }
     });

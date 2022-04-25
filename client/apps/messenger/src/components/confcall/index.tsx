@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Stack, IconButton, Grid, GridSize } from "@mui/material";
+import { Box, Select, MenuItem, SxProps } from "@mui/material";
 import {
     Videocam,
     VideocamOff,
@@ -10,20 +10,21 @@ import {
     Close,
     KeyboardArrowUp,
 } from "@mui/icons-material";
-import ConferenceCallItem from "./conferenceCallItem";
-import MediaOutputModalView from "./conferenceCallModalView";
+import dayjs from "dayjs";
+import * as mediasoupClient from "mediasoup-client";
+import { useParams } from "react-router-dom";
+
 import * as Constants from "../../../../../lib/constants";
 import SpikaBroadcastClient, {
     Participant,
     getCameras,
     getMicrophones,
 } from "./lib/SpikaBroadcastClient";
-import * as mediasoupClient from "mediasoup-client";
-import { useParams } from "react-router-dom";
+import MeItem from "./MeItem";
+import ParticipantItem from "./ParticipantItem";
+import ScreenShareItem from "./ScreenShareItem";
 import Utils from "./lib/Utils";
-import dayjs from "dayjs";
-import { CallMember, CallParticipant } from "./CallMember";
-import ScreenShareView from "./ScreenShareView";
+import SelectBoxDialog from "../SelectBoxDialog";
 
 declare var CONFCALL_HOST_URL: string;
 
@@ -34,192 +35,40 @@ interface ModalState {
 }
 
 interface ConferenceCallProps {
-    roomId: String;
-    userId: String;
-    userName: String;
+    roomId: string;
+    userId: string;
+    userName: string;
     onClose: Function;
 }
 
+// register default values to localstorage
+console.log(localStorage.getItem(Constants.LSKEY_ENABLEMIC));
+if (localStorage.getItem(Constants.LSKEY_ENABLEMIC) === null)
+    localStorage.setItem(Constants.LSKEY_ENABLEMIC, "1");
+if (localStorage.getItem(Constants.LSKEY_ENABLECAM) === null)
+    localStorage.setItem(Constants.LSKEY_ENABLECAM, "1");
+
 export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
-    const [open, setOpen] = React.useState(false);
-    const [myIndes, setMyIndex] = React.useState<number>(0);
-    const [gridSize, setGridSize] = React.useState<GridSize>(6);
-    const [audioDevices, setAudioDevices] = React.useState<MediaDeviceInfo[]>(null);
-    const [selectedVideoDevice, setSelectedVideoDevice] = React.useState<MediaDeviceInfo>(null);
-    const [selectedAudioDevice, setSelectedAudioDevice] = React.useState<MediaDeviceInfo>(null);
-    const [openModal, setOpenModal] = React.useState<boolean>(false);
-    const [isItAudio, setIsItAudio] = React.useState<boolean>(false);
-    const [mute, setMute] = React.useState<boolean>(false);
-    const [cameraOff, setCameraOff] = React.useState<boolean>(false);
-    const [screenShare, setScreenShare] = React.useState<boolean>(false);
-    const handleCamera = () => {
-        spikabroadcastClient.toggleCamera();
-        setCameraOff(!cameraOff);
-    };
-    const chooseVideoOutput = async () => {
-        setIsItAudio(false);
-        setOpenModal(true);
-    };
-    const handleMic = () => {
-        spikabroadcastClient.toggleMicrophone();
-        setMute(!mute);
-    };
-    const chooseAudioOutput = async () => {
-        setIsItAudio(true);
-        setOpenModal(true);
-    };
-    const handleGroup = () => {};
-    const handleShare = () => {
-        console.log("Change screenShare state");
-        setScreenShare(!screenShare);
-        spikabroadcastClient.toggleScreenShare();
-    };
-
-    const closeConference = () => {};
-
-    const handleDrawerOpen = () => {
-        console.log("click");
-        setOpen(true);
-    };
-
-    const handleDrawerClose = () => {
-        setOpen(false);
-    };
-
-    const close = async () => {
-        await spikabroadcastClient.disconnect();
-        if (onClose) onClose();
-    };
-
-    const convertParticipantToCallMember = (participants: Participant[]) => {
-        callMemberArray = [];
-        console.log("Sharescreen in spika client convertParticipantToCallMember" + screenShare);
-        if (participants != null) {
-            participants.forEach((element) => {
-                const audioConsumer = element.consumers.find(
-                    (consumer) => consumer.track.kind === "audio"
-                );
-                const videoConsumer = element.consumers.find(
-                    (consumer) => consumer.track.kind === "video"
-                );
-                var member: CallParticipant = {
-                    participant: {
-                        isMe: false,
-                        displayName: element.displayName,
-                        audioTrack: audioConsumer?.track,
-                        videoTrack: videoConsumer?.track,
-                        muteAudio: false,
-                        muteVideo: false,
-                        consumers: element.consumers,
-                    },
-                };
-                callMemberArray.push(member);
-            });
-        }
-
-        calculateLayoutByParticipantNumber();
-    };
-
-    const calculateLayoutByParticipantNumber = () => {
-        let numberOfParticipants: number = callMemberArray.length + 1;
-
-        console.log("Sharescreen in spika client calculateLayoutByParticipantNumber" + screenShare);
-        var indexForOwnData = 0;
-        if (numberOfParticipants > 2 && numberOfParticipants < 5) {
-            if (!screenShare) {
-                setGridSize(6);
-                indexForOwnData = 2;
-            }
-        }
-        if (numberOfParticipants > 4 && numberOfParticipants < 7) {
-            if (!screenShare) {
-                setGridSize(4);
-                indexForOwnData = 3;
-            }
-        }
-        if (numberOfParticipants > 6) {
-            if (!screenShare) {
-                setGridSize(3);
-                let numberOfRows = Math.floor(dataArray.length / 4);
-                indexForOwnData = numberOfRows * 4;
-            }
-        }
-        if (screenShare) {
-            setGridSize(12);
-            indexForOwnData = dataArray.length;
-        }
-
-        callMemberArray.splice(indexForOwnData, 0, member);
-
-        setCombinedArray(callMemberArray);
-        setMyIndex(indexForOwnData);
-    };
-
-    useEffect(() => {
-        console.log("Promjeni se screenshare" + screenShare);
-        convertParticipantToCallMember(participants);
-    }, [screenShare]);
-    useEffect(() => {}, [gridSize]);
-
-    const [participants, setParticipants] = React.useState<Array<Participant>>(null);
-    const [cameraEnabled, setCameraEnabled] = React.useState<boolean>(
-        localStorage.getItem(Constants.LSKEY_MUTECAM) === "0" ? false : true
+    const [showCameraSelectDialog, setShowCameraSelectDialog] = useState<boolean>(false);
+    const [showMicSelectDialog, setShowMicSelectDialog] = useState<boolean>(false);
+    const [participants, setParticipants] = useState<Array<Participant>>(null);
+    const [cameraEnabled, setCameraEnabled] = useState<boolean>(
+        localStorage.getItem(Constants.LSKEY_ENABLECAM) === "1" ? true : false
     );
-    const [screenShareEnabled, setScreenShareEnabled] = React.useState<boolean>(false);
-    ("");
-    const [micEnabled, setMicEnabled] = React.useState<boolean>(
-        localStorage.getItem(Constants.LSKEY_MUTEMIC) === "0" ? false : true
+    const [micEnabled, setMicEnabled] = useState<boolean>(
+        localStorage.getItem(Constants.LSKEY_ENABLEMIC) === "1" ? true : false
     );
-    const [spikabroadcastClient, setSpikabroadcastClient] =
-        React.useState<SpikaBroadcastClient>(null);
-    const [webcamProducer, setWebcamProducer] =
-        React.useState<mediasoupClient.types.Producer>(null);
-    const [microphoneProducer, setMicrophoneProducer] =
-        React.useState<mediasoupClient.types.Producer>(null);
-    const [screenShareProducer, setScreenshareProducer] =
-        React.useState<mediasoupClient.types.Producer>(null);
-    const [log, setLog] = React.useState<Array<any>>([]);
-    const [peerContainerClass, setPeerContainerClass] = React.useState<string>("type1");
-    const [screenShareMode, setScreenShareMode] = React.useState<boolean>(false);
-    let { conferenceRoomId }: { conferenceRoomId?: string } = useParams();
+    const [screenShareEnabled, setScreenshareEnabled] = useState<boolean>(false);
 
-    const [selectedCamera, setSelectedCamera] = React.useState<MediaDeviceInfo>(null);
-    const [selectedMicrophone, setSelectedMicrophone] = React.useState<MediaDeviceInfo>(null);
-
-    var callMemberArray: CallParticipant[] = [];
-    var me: CallMember = {
-        isMe: true,
-        displayName: "vedran",
-        audioTrack: microphoneProducer?.track,
-        videoTrack: webcamProducer?.track,
-        muteAudio: true,
-        muteVideo: true,
-        consumers: null,
-    };
-    var member: CallParticipant = { participant: me };
-    const dataArray: CallParticipant[] = [member];
-    const [combinedArray, setCombinedArray] = React.useState<CallParticipant[]>(dataArray);
-    const [videoDevices, setVideoDevices] = React.useState<MediaDeviceInfo[]>(null);
-    const [displayName, setDisplayName] = React.useState<string>(
-        localStorage.getItem(Constants.LSKEY_USERNAME) || "No name"
-    );
-    const [tmpDisplayName, setTmpDisplayName] = React.useState<string>(
-        localStorage.getItem(Constants.LSKEY_USERNAME) || "No name"
-    );
-    const [editNameEnabled, setEditNameEnabled] = React.useState<boolean>(false);
-    const [modalState, setModalState] = React.useState<ModalState>({
-        showVideo: false,
-        showMicrophone: false,
-        showName: false,
-    });
-
-    const [ready, setReady] = React.useState<boolean>(false);
-
-    const peerId = localStorage.getItem(Constants.LSKEY_PEERID)
-        ? localStorage.getItem(Constants.LSKEY_PEERID)
-        : Utils.randomStr(8);
-    if (!localStorage.getItem(Constants.LSKEY_PEERID))
-        localStorage.setItem(Constants.LSKEY_PEERID, peerId);
+    const [spikabroadcastClient, setSpikabroadcastClient] = useState<SpikaBroadcastClient>(null);
+    const [selectedCamera, setSelectedCamera] = useState<MediaDeviceInfo>(null);
+    const [selectedMicrophone, setSelectedMicrophone] = useState<MediaDeviceInfo>(null);
+    const [myVideTrack, setMyVideoTrack] = useState<MediaStreamTrack>(null);
+    const [videoLayoutStyle, setVieoLayoutStyle] = useState<SxProps>({});
+    const [microphones, setMicrophones] = useState<Array<MediaDeviceInfo>>([]);
+    const [cameras, setCameras] = useState<Array<MediaDeviceInfo>>([]);
+    const [screenShareVideoTrack, setScreenShareVideoTrack] = useState<MediaStreamTrack>(null);
+    const [screenShareMode, setScreenShareMode] = useState<boolean>(false);
 
     useEffect(() => {
         // load cameara and microphones
@@ -241,7 +90,9 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                 } else {
                     defaultCamera = cameras[0];
                     setSelectedCamera(cameras[0]);
+                    localStorage.setItem(Constants.LSKEY_SELECTEDCAM, cameras[0].deviceId);
                 }
+                setCameras(cameras);
             }
 
             const microphones = await getMicrophones();
@@ -258,15 +109,17 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                 } else {
                     defaultMicrophone = microphones[0];
                     setSelectedMicrophone(microphones[0]);
+                    localStorage.setItem(Constants.LSKEY_SELECTEDMIC, microphones[0].deviceId);
                 }
+                setMicrophones(microphones);
             }
 
             const spikaBroadcastClientLocal = new SpikaBroadcastClient({
-                debug: true,
+                debug: false,
                 hostUrl: CONFCALL_HOST_URL,
-                roomId: "test",
+                roomId: roomId,
                 peerId: Utils.randomStr(8),
-                displayName: localStorage.getItem(Constants.LSKEY_USERNAME) || "No name",
+                displayName: userName || "No name",
                 avatarUrl: "",
                 defaultCamera: defaultCamera,
                 defaultMicrophone: defaultMicrophone,
@@ -274,283 +127,420 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                 enableMicrophone: micEnabled,
                 listener: {
                     onStartVideo: (producer) => {
-                        console.log("start video", producer);
-                        setWebcamProducer(producer);
+                        setMyVideoTrack(producer.track);
                     },
-                    onStartAudio: (producer) => {
-                        setMicrophoneProducer(producer);
-                    },
-                    onParticipantUpdate: (participants) => {
+                    onStartAudio: (producer) => {},
+                    onParticipantUpdate: (participantsMap) => {
                         const participantsAry: Array<Participant> = Array.from(
-                            participants,
+                            participantsMap,
                             ([key, val]) => val
                         );
-                        console.log(
-                            "Sharescreen in spika client onParticipantUpdate" + screenShare
-                        );
-                        // convertParticipantToCallMember(participantsAry);
                         setParticipants(participantsAry);
                     },
                     onMicrophoneStateChanged: (state) => {
-                        localStorage.setItem(Constants.LSKEY_MUTEMIC, state ? "1" : "0");
                         setMicEnabled(state);
+                        localStorage.setItem(Constants.LSKEY_ENABLEMIC, state ? "0" : "1");
                     },
                     onCameraStateChanged: (state) => {
-                        localStorage.setItem(Constants.LSKEY_MUTECAM, state ? "1" : "0");
                         setCameraEnabled(state);
+                        localStorage.setItem(Constants.LSKEY_ENABLECAM, state ? "0" : "1");
                     },
                     onScreenShareStateChanged: (state) => {
-                        setScreenShareEnabled(state);
+                        setScreenshareEnabled(state);
                     },
                     onStartShare: (producer) => {
-                        setScreenshareProducer(producer);
+                        setScreenShareVideoTrack(producer.track);
+                        setScreenShareMode(true);
                     },
                     onSpeakerStateChanged: () => {},
-                    onCallClosed: () => {},
+                    onCallClosed: () => {
+                        onClose();
+                    },
                     onUpdateCameraDevice: () => {},
                     onUpdateMicrophoneDevice: () => {},
                     onUpdateSpeakerDevice: () => {},
-                    onLogging: (type, message) => {
-                        if (typeof message !== "string")
-                            message = `<span class="small">${Utils.printObj(message)}</span>`;
-                        log.push({ time: dayjs().format("HH:mm"), type, message });
-                    },
-                    onJoined: () => {
-                        setReady(true);
-                    },
+                    onLogging: (type, message) => {},
+                    onJoined: () => {},
                 },
             });
 
             spikaBroadcastClientLocal.connect();
             setSpikabroadcastClient(spikaBroadcastClientLocal);
         })();
-
-        // save roomid
-        localStorage.setItem(Constants.LSKEY_LASTROOM, conferenceRoomId);
     }, []);
-
-    useEffect(() => {
-        if (participants?.length) {
-            convertParticipantToCallMember(participants);
-        }
-    }, [participants?.length]);
 
     useEffect(() => {
         if (!participants) return;
 
-        const screenShareparticipant: Participant | undefined = participants.find((participant) =>
-            participant.consumers.find((consumer) => consumer.appData.share)
-        );
-        const newScreenShareMode = screenShareparticipant !== undefined;
+        if (participants.length == 0) {
+            setVieoLayoutStyle({
+                display: "block",
+            });
+        } else if (participants.length < 2)
+            setVieoLayoutStyle({
+                display: "grid",
+                gridTemplateRows: "48vh",
+                gridTemplateColumns: "48vw 48vw",
+                justifyItems: "center",
+                justifyContent: "center",
+                alignContent: "center",
+                gridGap: "20px",
+            });
+        else if (participants.length < 4)
+            setVieoLayoutStyle({
+                display: "grid",
+                gridTemplateRows: "48vh 48vh",
+                gridTemplateColumns: "48vw 48vw",
+                justifyItems: "center",
+                justifyContent: "center",
+                alignContent: "center",
+                gridGap: "20px",
+            });
+        else if (participants.length < 6)
+            setVieoLayoutStyle({
+                display: "grid",
+                gridTemplateRows: "48vh 48vh",
+                gridTemplateColumns: "30vw 30vw 30vw",
+                justifyItems: "center",
+                justifyContent: "center",
+                alignContent: "center",
+                gridGap: "20px",
+            });
+        else
+            setVieoLayoutStyle({
+                display: "grid",
+                gridAutoRow: "18vh",
+                gridTemplateColumns: "18vw 18vw 18vw 18vw 18vw",
+                justifyItems: "start",
+                justifyContent: "center",
+                alignContent: "start",
+                gridGap: "20px",
+            });
 
-        if (screenShareMode !== newScreenShareMode && newScreenShareMode && screenShareEnabled) {
-            console.log("going to disable screenshare");
-            spikabroadcastClient.toggleScreenShare();
+        //screenshare handling
+
+        // handle screenshare logic, when another user enables
+        if (!screenShareEnabled) {
+            const screenShareparticipant: Participant | undefined = participants.find(
+                (participant) => participant.consumers.find((consumer) => consumer.appData.share)
+            );
+
+            if (screenShareparticipant) {
+                const videoTrackConsumer: mediasoupClient.types.Consumer =
+                    screenShareparticipant.consumers.find((consumer) => consumer.appData.share);
+                if (videoTrackConsumer) setScreenShareVideoTrack(videoTrackConsumer.track);
+            }
+
+            const newScreenShareMode = screenShareparticipant !== undefined;
+            setScreenShareMode(newScreenShareMode);
         }
-
-        setScreenShareMode(newScreenShareMode);
     }, [participants]);
 
-    useEffect(() => {
-        console.log("GridSize:" + gridSize);
-        if (spikabroadcastClient) spikabroadcastClient.changeDisplayName(displayName);
-        setEditNameEnabled(false);
-        localStorage.setItem(Constants.LSKEY_USERNAME, displayName);
-    }, [displayName, webcamProducer, gridSize]);
-
-    return (
-        <Box sx={{ display: "flex", backgroundColor: "lightgray" }} position="relative">
-            {screenShare ? (
-                <Stack
-                    direction="row"
-                    alignItems="right"
-                    spacing={1}
-                    sx={{ display: "flex", flexDirection: "row", justifyContent: "right" }}
-                >
-                    <Box width="80vw" height="91vh" my={1} display="flex" justifyContent="center">
-                        {participants
-                            ? participants.map((participant, i) => {
-                                  if (
-                                      participant.consumers.find((consumer) => {
-                                          return consumer.appData.share;
-                                      })
-                                  ) {
-                                      const videoTrackConsumer: mediasoupClient.types.Consumer =
-                                          participant.consumers.find((consumer) => {
-                                              return consumer.appData.share;
-                                          });
-                                      return (
-                                          <ScreenShareView videoTrack={videoTrackConsumer.track} />
-                                      );
-                                  }
-                              })
-                            : null}
-
-                        {screenShareEnabled ? (
-                            <ScreenShareView videoTrack={screenShareProducer.track} />
-                        ) : null}
-                    </Box>
-                    <Box
-                        width="20vw"
-                        height="91vh"
-                        my={1}
-                        display="flex"
-                        justifyContent="center"
-                        overflow="auto"
-                    >
-                        <Grid
-                            container
-                            sx={{ padding: "1em" }}
-                            rowSpacing={1}
-                            columnSpacing={{ xs: 1, sm: 1, md: 1 }}
-                        >
-                            {combinedArray.map((row, index) => (
-                                <Grid item xs={gridSize} lg={gridSize} xl={gridSize}>
-                                    <ConferenceCallItem
-                                        participant={row.participant}
-                                        myVideo={row.participant.isMe ? webcamProducer : null}
-                                        myAudio={row.participant.isMe ? microphoneProducer : null}
-                                    />
-                                </Grid>
-                            ))}
-                        </Grid>
-                    </Box>
-                </Stack>
-            ) : (
-                [
-                    combinedArray.length < 3 ? (
-                        [
-                            combinedArray.length < 2 ? (
-                                <Box width="100%" height="91vh" position="relative">
-                                    <Box width="100%" height="100%">
-                                        <ConferenceCallItem
-                                            participant={combinedArray[0].participant}
-                                            myVideo={webcamProducer}
-                                            myAudio={microphoneProducer}
-                                        />
-                                    </Box>
-                                </Box>
-                            ) : (
-                                <Box width="100%" height="91vh" position="relative">
-                                    <Box width="100%" height="100%">
-                                        <ConferenceCallItem
-                                            participant={combinedArray[1].participant}
-                                            myVideo={null}
-                                            myAudio={null}
-                                        />
-                                    </Box>
-                                    <Box
-                                        width="30%"
-                                        height="30%"
-                                        position="absolute"
-                                        bottom="0"
-                                        left="0"
-                                    >
-                                        <ConferenceCallItem
-                                            participant={combinedArray[0].participant}
-                                            myVideo={webcamProducer}
-                                            myAudio={microphoneProducer}
-                                        />
-                                    </Box>
-                                </Box>
-                            ),
-                        ]
-                    ) : (
-                        <Box
-                            width="100%"
-                            height="91vh"
-                            my={1}
-                            display="flex"
-                            justifyContent="center"
-                        >
-                            <Grid
-                                container
-                                sx={{ padding: "1em" }}
-                                rowSpacing={1}
-                                columnSpacing={{ xs: 1, sm: 1, md: 1 }}
-                            >
-                                {combinedArray.map((row) => (
-                                    <Grid item xs={gridSize} lg={gridSize} xl={gridSize}>
-                                        <ConferenceCallItem
-                                            participant={row.participant}
-                                            myVideo={row.participant.isMe ? webcamProducer : null}
-                                            myAudio={
-                                                row.participant.isMe ? microphoneProducer : null
-                                            }
-                                        />
-                                    </Grid>
-                                ))}
-                            </Grid>
-                        </Box>
-                    ),
-                ]
-            )}
+    const ControllsBox = (props: any) => {
+        return (
             <Box
-                position="fixed"
-                bottom="0"
-                left="0"
-                height="8vh"
-                width="100%"
                 sx={{
+                    textAlign: "center",
+                    color: "#fff",
+                    fontSize: "24px",
                     display: "flex",
-                    flexDirection: "column",
+                    alignItems: "center",
                     justifyContent: "center",
-
-                    background: "linear-gradient(rgba(255,255,255,.2) 40%, rgba(150,150,150,.8))",
+                    width: "100px",
+                    "&:hover": {
+                        backgroundColor: "#fff1",
+                    },
                 }}
             >
-                <Stack
-                    direction="row"
-                    alignItems="center"
-                    spacing={2}
-                    sx={{ display: "flex", flexDirection: "row", justifyContent: "center" }}
+                {props.children}
+            </Box>
+        );
+    };
+
+    const controlIconDefaultStyle: SxProps = {
+        padding: "10px",
+        width: "30px",
+        height: "30px",
+        cursor: "pointer",
+    };
+
+    const controlArrowIconDefaultStyle: SxProps = {
+        "&:hover": {
+            backgroundColor: "#fff1",
+        },
+    };
+
+    return (
+        <Box
+            sx={{
+                position: "absolute",
+                width: "100%",
+                height: "100%",
+                top: 0,
+                left: 0,
+                backgroundColor: "#373737",
+                border: "none",
+            }}
+        >
+            {/* videos */}
+
+            {screenShareMode ? (
+                <Box
+                    sx={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        zIndex: 100,
+                        display: "grid",
+                        gridTemplateRows: "100vh",
+                        gridTemplateColumns: "80vw 20vw",
+                        justifyItems: "start",
+                        justifyContent: "start",
+                        alignContent: "start",
+                    }}
                 >
                     <Box>
-                        <IconButton sx={{ padding: 0 }} onClick={handleCamera}>
-                            {cameraOff ? (
-                                <VideocamOff style={{ fill: "white" }} />
-                            ) : (
-                                <Videocam style={{ fill: "white" }} />
-                            )}
-                        </IconButton>
-                        <IconButton sx={{ padding: 0 }} onClick={chooseVideoOutput}>
-                            <KeyboardArrowUp fontSize="small" style={{ fill: "white" }} />
-                        </IconButton>
+                        <ScreenShareItem videoTrack={screenShareVideoTrack} />
                     </Box>
-                    <Box>
-                        <IconButton sx={{ padding: 0 }} onClick={handleMic}>
-                            {mute ? (
-                                <MicOff style={{ fill: "white" }} />
-                            ) : (
-                                <Mic style={{ fill: "white" }} />
-                            )}
-                        </IconButton>
-                        <IconButton sx={{ padding: 0 }} onClick={chooseAudioOutput}>
-                            <KeyboardArrowUp fontSize="small" style={{ fill: "white" }} />
-                        </IconButton>
+                    <Box
+                        sx={{
+                            display: "grid",
+                            gridTemplateColumns: "20vw",
+                            gridAutoRows: "11.25vw",
+                            justifyItems: "start",
+                            justifyContent: "start",
+                            alignContent: "start",
+                        }}
+                    >
+                        {" "}
+                        <MeItem
+                            sx={{ border: "none" }}
+                            videoTrack={myVideTrack}
+                            videoEnabled={cameraEnabled}
+                            name={userName}
+                            audioEnabled={micEnabled}
+                        />
+                        {participants.map((participant, index) => {
+                            const videoConsumer: mediasoupClient.types.Consumer =
+                                participant.consumers.find(
+                                    (consumer) => consumer?.track.kind === "video"
+                                );
+                            const audioConsumer: mediasoupClient.types.Consumer =
+                                participant.consumers.find(
+                                    (consumer) => consumer?.track.kind === "audio"
+                                );
+
+                            let sx: SxProps = { border: "none" };
+
+                            return (
+                                <ParticipantItem
+                                    key={index}
+                                    sx={sx}
+                                    videoTrack={videoConsumer?.track}
+                                    audioTrack={audioConsumer?.track}
+                                    name={participant.displayName}
+                                    audioEnabled={audioConsumer ? !audioConsumer.paused : false}
+                                />
+                            );
+                        })}
                     </Box>
-                    <IconButton onClick={handleGroup}>
-                        <Groups style={{ fill: "white" }} />
-                    </IconButton>
-                    <IconButton onClick={handleShare}>
-                        <Monitor style={{ fill: "white" }} />
-                    </IconButton>
-                    <IconButton onClick={close}>
-                        <Close style={{ fill: "red" }} />
-                    </IconButton>
-                </Stack>
-            </Box>
-            {openModal ? (
-                <MediaOutputModalView
-                    isItAudio={isItAudio}
-                    openModal={openModal}
-                    setOpenModal={setOpenModal}
-                    selectedAudioOutput={setSelectedAudioDevice}
-                    selectedVideoOutput={setSelectedVideoDevice}
-                />
+                </Box>
             ) : (
-                <Box></Box>
+                <Box
+                    sx={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        zIndex: 100,
+                        ...videoLayoutStyle,
+                    }}
+                >
+                    {!participants || participants.length == 0 ? (
+                        <MeItem
+                            videoTrack={myVideTrack}
+                            videoEnabled={cameraEnabled}
+                            name={userName}
+                            audioEnabled={micEnabled}
+                        />
+                    ) : (
+                        <>
+                            <MeItem
+                                sx={{}}
+                                videoTrack={myVideTrack}
+                                videoEnabled={cameraEnabled}
+                                name={userName}
+                                audioEnabled={micEnabled}
+                            />
+                            {participants.map((participant, index) => {
+                                const videoConsumer: mediasoupClient.types.Consumer =
+                                    participant.consumers.find(
+                                        (consumer) => consumer?.track.kind === "video"
+                                    );
+                                const audioConsumer: mediasoupClient.types.Consumer =
+                                    participant.consumers.find(
+                                        (consumer) => consumer?.track.kind === "audio"
+                                    );
+
+                                let sx: SxProps = {};
+
+                                if (participants.length == 2 && index == 1)
+                                    sx = { gridColumn: "1 / span 2", width: "48vw" };
+
+                                return (
+                                    <ParticipantItem
+                                        key={index}
+                                        sx={sx}
+                                        videoTrack={videoConsumer?.track}
+                                        audioTrack={audioConsumer?.track}
+                                        name={participant.displayName}
+                                        audioEnabled={audioConsumer ? !audioConsumer.paused : false}
+                                    />
+                                );
+                            })}
+                        </>
+                    )}
+                </Box>
             )}
+
+            {/* controls */}
+            <Box
+                sx={{
+                    position: "absolute",
+                    bottom: 0,
+                    left: 0,
+                    width: "100%",
+                    height: "100px",
+                    background: "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%);",
+                    zIndex: 110,
+                    display: "grid",
+                    gridTemplateRows: "1fr",
+                    gridTemplateColumns: "auto auto auto auto auto",
+                    justifyItems: "center",
+                    justifyContent: "center",
+                    alignContent: "start",
+                    transition: "all 0.5s ease",
+                    opacity: "0",
+                    "&:hover": {
+                        opacity: "1.0",
+                    },
+                }}
+            >
+                <ControllsBox>
+                    {cameraEnabled ? (
+                        <Videocam
+                            sx={controlIconDefaultStyle}
+                            onClick={() => {
+                                spikabroadcastClient.toggleCamera();
+                            }}
+                        />
+                    ) : (
+                        <VideocamOff
+                            sx={controlIconDefaultStyle}
+                            onClick={() => {
+                                spikabroadcastClient.toggleCamera();
+                            }}
+                        />
+                    )}
+                    <KeyboardArrowUp
+                        sx={controlArrowIconDefaultStyle}
+                        onClick={() => {
+                            setShowCameraSelectDialog(true);
+                        }}
+                    />
+                </ControllsBox>
+                <ControllsBox>
+                    {micEnabled ? (
+                        <Mic
+                            sx={controlIconDefaultStyle}
+                            onClick={() => {
+                                spikabroadcastClient.toggleMicrophone();
+                            }}
+                        />
+                    ) : (
+                        <MicOff
+                            sx={controlIconDefaultStyle}
+                            onClick={() => {
+                                spikabroadcastClient.toggleMicrophone();
+                            }}
+                        />
+                    )}
+                    <KeyboardArrowUp
+                        sx={controlArrowIconDefaultStyle}
+                        onClick={() => {
+                            setShowMicSelectDialog(true);
+                        }}
+                    />
+                </ControllsBox>
+                <ControllsBox>
+                    <Monitor
+                        sx={{
+                            ...controlIconDefaultStyle,
+                            color: screenShareEnabled ? "#900" : "#fff",
+                        }}
+                        onClick={async () => {
+                            await spikabroadcastClient.toggleScreenShare();
+                        }}
+                    />
+                </ControllsBox>
+                <ControllsBox>
+                    <Close
+                        sx={{ ...controlIconDefaultStyle, color: "#900" }}
+                        onClick={async () => {
+                            await spikabroadcastClient.disconnect();
+                            myVideTrack.stop();
+                        }}
+                    />
+                </ControllsBox>
+            </Box>
+
+            <SelectBoxDialog
+                show={showCameraSelectDialog}
+                title="Select Camera"
+                allowButtonLabel="OK"
+                denyButtonLabel="Cancel"
+                onOk={async (deviceId: string) => {
+                    const camera: MediaDeviceInfo = cameras.find(
+                        (cam) => cam.deviceId === deviceId
+                    );
+                    await spikabroadcastClient.updateCamera(camera);
+                    localStorage.setItem(Constants.LSKEY_SELECTEDCAM, deviceId);
+                    setShowCameraSelectDialog(false);
+                }}
+                onCancel={() => {
+                    setShowCameraSelectDialog(false);
+                }}
+                items={cameras.reduce((deviceMap, device) => {
+                    deviceMap.set(device.deviceId, device.label);
+                    return deviceMap;
+                }, new Map<string, string>())}
+            ></SelectBoxDialog>
+
+            <SelectBoxDialog
+                show={showMicSelectDialog}
+                title="Select microphone"
+                allowButtonLabel="OK"
+                denyButtonLabel="Cancel"
+                onOk={async (deviceId: string) => {
+                    const mic: MediaDeviceInfo = microphones.find(
+                        (mic) => mic.deviceId === deviceId
+                    );
+
+                    localStorage.setItem(Constants.LSKEY_SELECTEDMIC, deviceId);
+                    await spikabroadcastClient.updateMicrophone(mic);
+                    setShowMicSelectDialog(false);
+                }}
+                onCancel={() => {
+                    setShowMicSelectDialog(false);
+                }}
+                items={microphones.reduce((deviceMap, device) => {
+                    deviceMap.set(device.deviceId, device.label);
+                    return deviceMap;
+                }, new Map<string, string>())}
+            ></SelectBoxDialog>
         </Box>
     );
 };

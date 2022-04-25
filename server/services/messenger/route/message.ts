@@ -20,7 +20,8 @@ const postMessageSchema = yup.object().shape({
     body: yup.object().shape({
         roomId: yup.number().strict().min(1).required(),
         type: yup.string().strict().required(),
-        message: yup.object().required(),
+        body: yup.object().required(),
+        localId: yup.number().strict().min(1),
     }),
 });
 
@@ -39,7 +40,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         try {
             const roomId = parseInt(req.body.roomId as string);
             const type = req.body.type;
-            const body = req.body.message;
+            const body = req.body.body;
+            const localId = req.body.localId;
             const fromUserId = userReq.user.id;
             const fromDeviceId = userReq.device.id;
 
@@ -73,14 +75,15 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     roomId,
                     fromUserId: userReq.user.id,
                     fromDeviceId: userReq.device.id,
-                    totalDeviceCount: deviceMessages.length,
                     totalUserCount: room.users.length,
+                    localId,
                 },
             });
 
-            res.send(
-                successResponse({ message: sanitize({ ...message, body }).message() }, userReq.lang)
-            );
+            const formattedBody = await formatMessageBody(body, type);
+            const sanitizedMessage = sanitize({ ...message, body: formattedBody }).message();
+
+            res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
 
             while (deviceMessages.length) {
                 await Promise.all(
@@ -97,7 +100,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                                     token: devices.find((d) => d.id == deviceMessage.deviceId)
                                         ?.pushToken,
                                     data: {
-                                        message: sanitize({ ...message, body }).message(),
+                                        message: sanitizedMessage,
                                     },
                                 })
                             )
@@ -110,7 +113,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                                     channelId: deviceMessage.deviceId,
                                     data: {
                                         type: Constants.PUSH_TYPE_NEW_MESSAGE,
-                                        message: sanitize({ ...message, body }).message(),
+                                        message: sanitizedMessage,
                                     },
                                 })
                             )
@@ -211,25 +214,33 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 );
 
                 if (!record) {
-                    await prisma.messageRecord.create({
-                        data: { type: "delivered", userId, messageId: message.id },
-                    });
+                    try {
+                        await prisma.messageRecord.create({
+                            data: { type: "delivered", userId, messageId: message.id },
+                        });
 
-                    await prisma.message.update({
-                        where: { id: message.id },
-                        data: {
-                            deliveredCount: { increment: 1 },
-                        },
-                    });
+                        await prisma.message.update({
+                            where: { id: message.id },
+                            data: {
+                                deliveredCount: { increment: 1 },
+                            },
+                        });
+                    } catch (error) {
+                        console.error({ error });
+                    }
                 }
             }
 
-            const list = messages.map((m) => {
-                const body = m.deviceMessages.find(
-                    (dm) => dm.messageId === m.id && dm.deviceId === deviceId
-                )?.body;
-                return sanitize({ ...m, body }).message();
-            });
+            const list = await Promise.all(
+                messages.map(async (m) => {
+                    const body = m.deviceMessages.find(
+                        (dm) => dm.messageId === m.id && dm.deviceId === deviceId
+                    )?.body;
+
+                    const formattedBody = await formatMessageBody(body, m.type);
+                    return sanitize({ ...m, body: formattedBody }).message();
+                })
+            );
 
             res.send(successResponse({ list, count, limit: Constants.PAGING_LIMIT }, userReq.lang));
         } catch (e: any) {
@@ -297,7 +308,11 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         );
                 }
 
-                const messageRecords: MessageRecord[] = [];
+                const messageRecords: Partial<
+                    Omit<MessageRecord, "createdAt" | "modifiedAt"> & {
+                        createdAt: number;
+                    }
+                >[] = [];
 
                 for (const message of messages) {
                     let record = await prisma.messageRecord.findUnique({
@@ -311,19 +326,23 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     });
 
                     if (!record) {
-                        record = await prisma.messageRecord.create({
-                            data: { type: "delivered", userId, messageId: message.id },
-                        });
+                        try {
+                            record = await prisma.messageRecord.create({
+                                data: { type: "delivered", userId, messageId: message.id },
+                            });
 
-                        await prisma.message.update({
-                            where: { id: message.id },
-                            data: {
-                                deliveredCount: { increment: 1 },
-                            },
-                        });
+                            await prisma.message.update({
+                                where: { id: message.id },
+                                data: {
+                                    deliveredCount: { increment: 1 },
+                                },
+                            });
+                        } catch (error) {
+                            console.error({ error });
+                        }
                     }
 
-                    messageRecords.push(record);
+                    messageRecords.push(sanitize(record).messageRecord());
                 }
 
                 res.send(successResponse({ messageRecords }, userReq.lang));
@@ -415,7 +434,11 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 },
             });
 
-            const messageRecords: MessageRecord[] = [];
+            const messageRecords: Partial<
+                Omit<MessageRecord, "createdAt" | "modifiedAt"> & {
+                    createdAt: number;
+                }
+            >[] = [];
 
             for (const message of messages) {
                 let record = await prisma.messageRecord.findUnique({
@@ -429,19 +452,23 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 });
 
                 if (!record) {
-                    record = await prisma.messageRecord.create({
-                        data: { type: "seen", userId, messageId: message.id },
-                    });
+                    try {
+                        record = await prisma.messageRecord.create({
+                            data: { type: "seen", userId, messageId: message.id },
+                        });
 
-                    await prisma.message.update({
-                        where: { id: message.id },
-                        data: {
-                            seenCount: { increment: 1 },
-                        },
-                    });
+                        await prisma.message.update({
+                            where: { id: message.id },
+                            data: {
+                                seenCount: { increment: 1 },
+                            },
+                        });
+                    } catch (error) {
+                        console.error({ error });
+                    }
                 }
 
-                messageRecords.push(record);
+                messageRecords.push(sanitize(record).messageRecord());
 
                 const deliveredMessageRecord = await prisma.messageRecord.findUnique({
                     where: {
@@ -454,16 +481,20 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 });
 
                 if (!deliveredMessageRecord) {
-                    await prisma.messageRecord.create({
-                        data: { type: "delivered", userId, messageId: message.id },
-                    });
+                    try {
+                        await prisma.messageRecord.create({
+                            data: { type: "delivered", userId, messageId: message.id },
+                        });
 
-                    await prisma.message.update({
-                        where: { id: message.id },
-                        data: {
-                            deliveredCount: { increment: 1 },
-                        },
-                    });
+                        await prisma.message.update({
+                            where: { id: message.id },
+                            data: {
+                                deliveredCount: { increment: 1 },
+                            },
+                        });
+                    } catch (error) {
+                        console.error({ error });
+                    }
                 }
             }
 
@@ -476,3 +507,34 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
     return router;
 };
+
+async function formatMessageBody(body: any, messageType: string) {
+    if (messageType === "text") {
+        return body;
+    }
+
+    const file = await prisma.file.findFirst({
+        where: {
+            id: body.fileId,
+        },
+        select: {
+            fileName: true,
+            mimeType: true,
+            path: true,
+            size: true,
+        },
+    });
+
+    const thumb = await prisma.file.findFirst({
+        where: {
+            id: body.thumbId,
+        },
+        select: {
+            fileName: true,
+            mimeType: true,
+            path: true,
+            size: true,
+        },
+    });
+    return { ...body, file, thumb };
+}

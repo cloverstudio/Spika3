@@ -49,43 +49,90 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
     router.get("/", auth, validate(getContactsSchema), async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
-        try {
-            const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
 
-            const contacts = await prisma.contact.findMany({
-                where: {
-                    user: userReq.user,
-                },
-                include: {
-                    contact: true,
-                },
-                orderBy: [
-                    {
-                        contact: {
+        try {
+            if (+process.env["TEAM_MODE"]) {
+                const keyword = req.query.keyword;
+
+                const page: number =
+                    parseInt(req.query.page ? (req.query.page as string) : "") || 1;
+
+                const condition: any = {
+                    verified: true,
+                    id: {
+                        not: userReq.user.id,
+                    },
+                };
+
+                if (keyword && keyword.length > 0)
+                    condition.displayName = {
+                        startsWith: keyword,
+                    };
+
+                const users = await prisma.user.findMany({
+                    where: condition,
+                    orderBy: [
+                        {
                             displayName: "asc",
                         },
-                    },
-                ],
-                skip: Constants.PAGING_LIMIT * (page - 1),
-                take: Constants.PAGING_LIMIT,
-            });
+                    ],
+                    skip: Constants.PAGING_LIMIT * (page - 1),
+                    take: Constants.PAGING_LIMIT,
+                });
 
-            const count = await prisma.contact.count({
-                where: {
-                    user: userReq.user,
-                },
-            });
+                const count = await prisma.user.count({
+                    where: condition,
+                });
 
-            res.send(
-                successResponse(
-                    {
-                        list: contacts.map((c) => sanitize(c.contact).user()),
-                        count,
-                        limit: Constants.PAGING_LIMIT,
+                res.send(
+                    successResponse(
+                        {
+                            list: users.map((c) => sanitize(c).user()),
+                            count,
+                            limit: Constants.PAGING_LIMIT,
+                        },
+                        userReq.lang
+                    )
+                );
+            } else {
+                const page: number =
+                    parseInt(req.query.page ? (req.query.page as string) : "") || 1;
+
+                const contacts = await prisma.contact.findMany({
+                    where: {
+                        user: userReq.user,
                     },
-                    userReq.lang
-                )
-            );
+                    include: {
+                        contact: true,
+                    },
+                    orderBy: [
+                        {
+                            contact: {
+                                displayName: "asc",
+                            },
+                        },
+                    ],
+                    skip: Constants.PAGING_LIMIT * (page - 1),
+                    take: Constants.PAGING_LIMIT,
+                });
+
+                const count = await prisma.contact.count({
+                    where: {
+                        user: userReq.user,
+                    },
+                });
+
+                res.send(
+                    successResponse(
+                        {
+                            list: contacts.map((c) => sanitize(c.contact).user()),
+                            count,
+                            limit: Constants.PAGING_LIMIT,
+                        },
+                        userReq.lang
+                    )
+                );
+            }
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -128,56 +175,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
         }
     });
-
-    if (+process.env["TEAM_MODE"]) {
-        router.get(
-            "/all",
-            auth,
-            validate(getContactsSchema),
-            async (req: Request, res: Response) => {
-                const userReq: UserRequest = req as UserRequest;
-                try {
-                    const keyword = req.query.keyword;
-
-                    const page: number =
-                        parseInt(req.query.page ? (req.query.page as string) : "") || 1;
-
-                    const condition: any = {};
-                    if (keyword && keyword.length > 0)
-                        condition.displayName = {
-                            startsWith: keyword,
-                        };
-
-                    const users = await prisma.user.findMany({
-                        where: condition,
-                        orderBy: [
-                            {
-                                displayName: "asc",
-                            },
-                        ],
-                        skip: Constants.PAGING_LIMIT * (page - 1),
-                        take: Constants.PAGING_LIMIT,
-                    });
-
-                    const count = await prisma.user.count();
-
-                    res.send(
-                        successResponse(
-                            {
-                                list: users.map((c) => sanitize(c).user()),
-                                count,
-                                limit: Constants.PAGING_LIMIT,
-                            },
-                            userReq.lang
-                        )
-                    );
-                } catch (e: any) {
-                    le(e);
-                    res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
-                }
-            }
-        );
-    }
 
     return router;
 };

@@ -14,7 +14,9 @@ type SanitizedRoomType = Partial<
 >;
 type SanitizedMessageType = Partial<Omit<Message, "createdAt"> & { createdAt: number; body: any }>;
 type SanitizedFileType = Partial<Omit<File, "createdAt"> & { createdAt: number }>;
-type SanitizedMessageRecord = Partial<Omit<MessageRecord, "createdAt"> & { createdAt: number }>;
+type SanitizedMessageRecord = Partial<
+    Omit<MessageRecord, "createdAt" | "modifiedAt"> & { createdAt: number }
+>;
 
 interface sanitizeTypes {
     user: () => SanitizedUserType;
@@ -47,9 +49,7 @@ export default function sanitize(data: any): sanitizeTypes {
         message: () => {
             const {
                 id,
-                fromDeviceId,
                 fromUserId,
-                totalDeviceCount,
                 totalUserCount,
                 deliveredCount,
                 seenCount,
@@ -57,13 +57,12 @@ export default function sanitize(data: any): sanitizeTypes {
                 type,
                 body,
                 createdAt,
+                localId,
             } = data as Message & { body: any };
 
             return {
                 id,
-                fromDeviceId,
                 fromUserId,
-                totalDeviceCount,
                 totalUserCount,
                 deliveredCount,
                 seenCount,
@@ -71,6 +70,7 @@ export default function sanitize(data: any): sanitizeTypes {
                 type,
                 body,
                 createdAt: +new Date(createdAt),
+                localId,
             };
         },
         file: () => {

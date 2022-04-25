@@ -119,15 +119,7 @@ export default function Home(): React.ReactElement {
             </Box>
 
             {showConfcall ? (
-                <Box
-                    style={{
-                        position: "absolute",
-                        width: "100vw",
-                        height: "100vh",
-                        left: "0px",
-                        top: "0px",
-                    }}
-                >
+                <>
                     <Confcall
                         roomId="test"
                         userId="test"
@@ -136,7 +128,7 @@ export default function Home(): React.ReactElement {
                             setShowConfcall(false);
                         }}
                     />
-                </Box>
+                </>
             ) : null}
         </Base>
     );

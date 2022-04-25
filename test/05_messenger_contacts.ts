@@ -35,9 +35,13 @@ describe("API", () => {
                 contacts: users,
             });
 
+            // force change env var
+            const teammode: string = process.env.TEAM_MODE;
+            process.env.TEAM_MODE = "0";
             const response = await supertest(app)
                 .get("/api/messenger/contacts?page=2")
                 .set({ accesstoken: globals.userToken });
+            process.env.TEAM_MODE = teammode;
 
             expect(response.status).to.eqls(200);
             expect(response.body).to.has.property("data");
@@ -173,10 +177,10 @@ describe("API", () => {
             );
         });
 
-        describe("/api/messenger/contacts/all GET", () => {
+        describe("/api/messenger/contacts GET", () => {
             it("Works without any params", async () => {
                 const response = await supertest(app)
-                    .get("/api/messenger/contacts/all")
+                    .get("/api/messenger/contacts")
                     .set({ accesstoken: globals.userToken });
 
                 expect(response.status).to.eqls(200);
@@ -193,7 +197,7 @@ describe("API", () => {
                 });
 
                 const response = await supertest(app)
-                    .get("/api/messenger/contacts/all?page=2")
+                    .get("/api/messenger/contacts?page=2")
                     .set({ accesstoken: globals.userToken });
 
                 expect(response.status).to.eqls(200);
@@ -210,7 +214,7 @@ describe("API", () => {
                 });
 
                 const response = await supertest(app)
-                    .get("/api/messenger/contacts/all?keyword=randomkeyword")
+                    .get("/api/messenger/contacts?keyword=randomkeyword")
                     .set({ accesstoken: globals.userToken });
 
                 expect(response.status).to.eqls(200);

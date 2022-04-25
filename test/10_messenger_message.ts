@@ -31,7 +31,7 @@ describe("API", () => {
             validParams = {
                 roomId: room.id,
                 type: "type",
-                message: {
+                body: {
                     text: "text",
                     mediaUrl: "url",
                 },
@@ -167,7 +167,6 @@ describe("API", () => {
             const deviceMessageIds = deviceMessages.map((d) => d.deviceId);
 
             expect(deviceMessageIds).to.include.members(deviceIds);
-            expect(message.totalDeviceCount).to.eqls(devices.length);
         });
 
         it("generates totalUserCount that is equal to number of users", async () => {
@@ -258,8 +257,7 @@ describe("API", () => {
             expect(
                 messageBodies.every(
                     (m: any) =>
-                        m.text === validParams.message.text &&
-                        m.mediaUrl === validParams.message.mediaUrl
+                        m.text === validParams.body.text && m.mediaUrl === validParams.body.mediaUrl
                 )
             ).to.eqls(true);
         });

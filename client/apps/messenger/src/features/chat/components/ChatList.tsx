@@ -18,6 +18,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { setLeftSidebar } from "../slice/sidebarSlice";
 
 dayjs.extend(relativeTime);
+declare const UPLOADS_BASE_URL: string;
 
 export default function SidebarContactList(): React.ReactElement {
     const dispatch = useDispatch();
@@ -42,7 +43,7 @@ export default function SidebarContactList(): React.ReactElement {
     }
 
     return (
-        <Box sx={{ overflowY: "auto" }}>
+        <Box sx={{ overflowY: "auto", maxHeight: "100%" }}>
             {[...list]
                 .sort((a, b) => (a.lastMessage?.createdAt > b.lastMessage?.createdAt ? -1 : 1))
                 .map((room) => {
@@ -80,15 +81,26 @@ function RoomRow({
     handleClick,
     unreadCount,
 }: RoomRowProps) {
-    let lastMessageText = lastMessage?.body?.text || "No messages";
+    const lastMessageType = lastMessage?.type;
 
-    if (lastMessageText.length > 25) {
-        lastMessageText = lastMessageText.slice(0, 25) + "...";
+    let lastMessageText = lastMessage?.body?.text;
+
+    if (lastMessage && lastMessageType !== "text") {
+        lastMessageText = (lastMessageType || "") + " shared";
+        lastMessageText = lastMessageText.charAt(0).toUpperCase() + lastMessageText.slice(1);
+    }
+
+    if (lastMessageText?.length > 17) {
+        lastMessageText = lastMessageText.slice(0, 17) + "...";
     }
     return (
         <Link to={`/rooms/${id}`} onClick={handleClick} style={{ textDecoration: "none" }}>
             <Box bgcolor={isActive ? "#E5F4FF" : "#fff"} px={2.5} py={1.5} display="flex">
-                <Avatar alt={name} sx={{ width: 50, height: 50 }} src={avatarUrl} />
+                <Avatar
+                    alt={name}
+                    sx={{ width: 50, height: 50 }}
+                    src={`${UPLOADS_BASE_URL}${avatarUrl}`}
+                />
                 <Box
                     display="flex"
                     justifyContent="space-between"
