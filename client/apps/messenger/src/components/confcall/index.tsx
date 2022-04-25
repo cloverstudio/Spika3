@@ -46,10 +46,10 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
     const [showMicSelectDialog, setShowMicSelectDialog] = useState<boolean>(false);
     const [participants, setParticipants] = useState<Array<Participant>>(null);
     const [cameraEnabled, setCameraEnabled] = useState<boolean>(
-        localStorage.getItem(Constants.LSKEY_MUTECAM) === "0" ? false : true
+        localStorage.getItem(Constants.LSKEY_ENABLECAM) === "0" ? true : false
     );
     const [micEnabled, setMicEnabled] = useState<boolean>(
-        localStorage.getItem(Constants.LSKEY_MUTEMIC) === "0" ? false : true
+        localStorage.getItem(Constants.LSKEY_ENABLEMIC) === "0" ? true : false
     );
     const [screenShareEnabled, setScreenshareEnabled] = useState<boolean>(false);
 
@@ -83,6 +83,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                 } else {
                     defaultCamera = cameras[0];
                     setSelectedCamera(cameras[0]);
+                    localStorage.setItem(Constants.LSKEY_SELECTEDCAM, cameras[0].deviceId);
                 }
                 setCameras(cameras);
             }
@@ -99,16 +100,19 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                     defaultMicrophone = microphone;
                     setSelectedMicrophone(microphone);
                 } else {
+                    defaultMicrophone = microphones[0];
+                    setSelectedMicrophone(microphones[0]);
+                    localStorage.setItem(Constants.LSKEY_SELECTEDMIC, microphones[0].deviceId);
                 }
                 setMicrophones(microphones);
             }
 
             const spikaBroadcastClientLocal = new SpikaBroadcastClient({
-                debug: true,
+                debug: false,
                 hostUrl: CONFCALL_HOST_URL,
                 roomId: roomId,
                 peerId: Utils.randomStr(8),
-                displayName: localStorage.getItem(Constants.LSKEY_USERNAME) || "No name",
+                displayName: userName || "No name",
                 avatarUrl: "",
                 defaultCamera: defaultCamera,
                 defaultMicrophone: defaultMicrophone,
@@ -128,9 +132,11 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                     },
                     onMicrophoneStateChanged: (state) => {
                         setMicEnabled(state);
+                        localStorage.setItem(Constants.LSKEY_ENABLEMIC, state ? "0" : "1");
                     },
                     onCameraStateChanged: (state) => {
                         setCameraEnabled(state);
+                        localStorage.setItem(Constants.LSKEY_ENABLECAM, state ? "0" : "1");
                     },
                     onScreenShareStateChanged: (state) => {
                         setScreenshareEnabled(state);
@@ -307,6 +313,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                             videoTrack={myVideTrack}
                             videoEnabled={cameraEnabled}
                             name={userName}
+                            audioEnabled={micEnabled}
                         />
                         {participants.map((participant, index) => {
                             const videoConsumer: mediasoupClient.types.Consumer =
@@ -322,10 +329,12 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
 
                             return (
                                 <ParticipantItem
+                                    key={index}
                                     sx={sx}
                                     videoTrack={videoConsumer?.track}
                                     audioTrack={audioConsumer?.track}
                                     name={participant.displayName}
+                                    audioEnabled={audioConsumer ? !audioConsumer.paused : false}
                                 />
                             );
                         })}
@@ -348,6 +357,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                             videoTrack={myVideTrack}
                             videoEnabled={cameraEnabled}
                             name={userName}
+                            audioEnabled={micEnabled}
                         />
                     ) : (
                         <>
@@ -356,6 +366,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                                 videoTrack={myVideTrack}
                                 videoEnabled={cameraEnabled}
                                 name={userName}
+                                audioEnabled={micEnabled}
                             />
                             {participants.map((participant, index) => {
                                 const videoConsumer: mediasoupClient.types.Consumer =
@@ -374,10 +385,12 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
 
                                 return (
                                     <ParticipantItem
+                                        key={index}
                                         sx={sx}
                                         videoTrack={videoConsumer?.track}
                                         audioTrack={audioConsumer?.track}
                                         name={participant.displayName}
+                                        audioEnabled={audioConsumer ? !audioConsumer.paused : false}
                                     />
                                 );
                             })}
@@ -486,8 +499,8 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                     const camera: MediaDeviceInfo = cameras.find(
                         (cam) => cam.deviceId === deviceId
                     );
-                    console.log("find camera", camera);
                     await spikabroadcastClient.updateCamera(camera);
+                    localStorage.setItem(Constants.LSKEY_SELECTEDCAM, deviceId);
                     setShowCameraSelectDialog(false);
                 }}
                 onCancel={() => {
@@ -508,7 +521,8 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                     const mic: MediaDeviceInfo = microphones.find(
                         (mic) => mic.deviceId === deviceId
                     );
-                    console.log("find mic", mic);
+
+                    localStorage.setItem(Constants.LSKEY_SELECTEDMIC, deviceId);
                     await spikabroadcastClient.updateMicrophone(mic);
                     setShowMicSelectDialog(false);
                 }}

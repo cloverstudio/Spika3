@@ -67,7 +67,11 @@ export default function BasicDialog({
                             }}
                         >
                             {[...items].map(([val, label]) => {
-                                return <MenuItem value={val}>{label}</MenuItem>;
+                                return (
+                                    <MenuItem value={val} key={val}>
+                                        {label}
+                                    </MenuItem>
+                                );
                             })}
                         </Select>
                     ) : null}

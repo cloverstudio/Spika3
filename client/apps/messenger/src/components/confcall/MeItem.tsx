@@ -1,6 +1,8 @@
 import * as mediasoupClient from "mediasoup-client";
 import React, { useEffect, useState, useRef, MutableRefObject } from "react";
 import { Box, SxProps } from "@mui/material";
+import { Videocam, VideocamOff, Mic, MicOff } from "@mui/icons-material";
+
 import { NAME_COLORS } from "./lib/Constants";
 
 export interface ComponentInterface {
@@ -8,9 +10,10 @@ export interface ComponentInterface {
     sx?: SxProps;
     videoEnabled: boolean;
     name: string;
+    audioEnabled: boolean;
 }
 
-export default ({ videoTrack, sx, videoEnabled, name }: ComponentInterface) => {
+export default ({ videoTrack, sx, videoEnabled, name, audioEnabled }: ComponentInterface) => {
     const videoElm: MutableRefObject<HTMLVideoElement | null> = useRef<HTMLVideoElement>(null);
 
     useEffect(() => {
@@ -32,9 +35,10 @@ export default ({ videoTrack, sx, videoEnabled, name }: ComponentInterface) => {
 
     const firstLetter = name.charAt(0);
     const letterCode = name.charCodeAt(0);
-    console.log("letterCode", letterCode);
-    console.log("color index", NAME_COLORS.length % letterCode);
-    console.log("color ", NAME_COLORS[letterCode % NAME_COLORS.length]);
+
+    const stateIconStyles: SxProps = {
+        marginLeft: "10px",
+    };
     return (
         <Box
             sx={{
@@ -74,19 +78,45 @@ export default ({ videoTrack, sx, videoEnabled, name }: ComponentInterface) => {
                         color: "#fff",
                         fontFamily: "'Roboto', sans-serif",
                         fontWeight: "bold",
-                        width: "150px",
-                        height: "150px",
-                        borderRadius: "75px 2px 75px 2px",
+                        width: "100px",
+                        height: "100px",
+                        borderRadius: "50px 2px 50px 2px",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         backgroundColor: NAME_COLORS[letterCode % NAME_COLORS.length],
                         zIndex: 120,
+                        textTransform: "uppercase",
                     }}
                 >
                     {firstLetter}
                 </Box>
             ) : null}
+            <Box
+                sx={{
+                    position: "absolute",
+                    left: "0px",
+                    bottom: "0px",
+                    width: "100%",
+                    lineHeight: "30px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#222",
+                    textAlign: "center",
+                    zIndex: 130,
+                    backgroundColor: "#fff9",
+                }}
+            >
+                {name}
+                {videoEnabled ? (
+                    <Videocam sx={stateIconStyles} />
+                ) : (
+                    <VideocamOff sx={stateIconStyles} />
+                )}
+
+                {audioEnabled ? <Mic sx={stateIconStyles} /> : <MicOff sx={stateIconStyles} />}
+            </Box>
         </Box>
     );
 };
