@@ -60,6 +60,7 @@ import { setLeftSidebar } from "./slice/sidebarSlice";
 import MessageStatusIcon from "./components/MessageStatusIcon";
 import { RootState } from "../../store/store";
 import { MessageRecordType } from "../../types/Message";
+import dayjs from "dayjs";
 
 export default function Chat(): React.ReactElement {
     const roomId = +useParams().id;
@@ -742,21 +743,35 @@ export interface MessageDetailsRowProps {
 }
 
 function MessageDetailRow({ record }: MessageDetailsRowProps) {
-    console.log("Tu udje");
     console.log("User: " + JSON.stringify(record));
     const { data, isLoading } = useGetUserByIdQuery(record.userId);
     return (
         <ListItem key={record.id}>
             {data ? (
                 <Box>
-                    <ListItemAvatar>
-                        <Avatar></Avatar>
-                    </ListItemAvatar>
-                    <ListItemText primary={record.id} />
+                    <Stack
+                        direction="row"
+                        alignItems="center"
+                        spacing={1}
+                        sx={{
+                            display: "flex",
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            width: "90%",
+                            margin: "10px",
+                        }}
+                    >
+                        <ListItemAvatar>
+                            <Avatar src={data.user.avatarUrl}></Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                            primary={data.user.displayName}
+                            secondary={dayjs(record.createdAt).fromNow()}
+                        />
+                    </Stack>
                 </Box>
             ) : (
                 <Box>
-                    {" "}
                     <Stack
                         direction="row"
                         alignItems="center"

@@ -5,7 +5,7 @@ const userApi = api.injectEndpoints({
     endpoints: (build) => ({
         getUserById: build.query<{ user: UserType }, number>({
             query: (userId) => {
-                return `/messenger/user/${userId}`;
+                return `/messenger/users/${userId}`;
             },
         }),
     }),
