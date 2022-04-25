@@ -16,8 +16,8 @@ interface useShowBasicDialogParams {
 }
 
 interface listeners {
-    onBasicDialogOK: Function | undefined;
-    onBasicDialogCancel: Function | undefined;
+    onBasicDialogOK: () => void | undefined;
+    onBasicDialogCancel: () => void | undefined;
 }
 
 // because we cannot store function in Redux
@@ -42,7 +42,7 @@ export function useShowSnackBar() {
 export function useShowBasicDialog() {
     const dispatch = useDispatch();
 
-    return (param: useShowBasicDialogParams, onOK?: Function, onCancel?: Function) => {
+    return (param: useShowBasicDialogParams, onOK?: () => void, onCancel?: () => void) => {
         uiListeners.onBasicDialogOK = onOK;
         uiListeners.onBasicDialogCancel = onCancel;
 

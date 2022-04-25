@@ -3,7 +3,7 @@ import { Router, Request, Response } from "express";
 import adminTokens from "./adminTokens";
 import * as constants from "../../../components/consts";
 
-export default (req: Request, res: Response, next: Function) => {
+export default (req: Request, res: Response, next: () => void) => {
     // check access token
 
     if (!req.headers[constants.ADMIN_ACCESS_TOKEN])
