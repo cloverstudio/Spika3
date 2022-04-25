@@ -20,8 +20,8 @@ type Props = {
     title: string;
     allowButtonLabel: string;
     denyButtonLabel: string;
-    onOk: Function;
-    onCancel: Function;
+    onOk: (deviceId: string) => void;
+    onCancel: () => void;
     items: Map<string, string>;
 };
 
