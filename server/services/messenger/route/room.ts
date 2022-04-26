@@ -124,7 +124,7 @@ export default (): Router => {
                     },
                 });
 
-                if (existingRoom) {
+                if (existingRoom && existingRoom.users.length === users.length) {
                     return res.status(409).send(errorResponse("Room already exists", userReq.lang));
                 }
             }

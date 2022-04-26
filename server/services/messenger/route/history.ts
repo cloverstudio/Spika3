@@ -90,7 +90,7 @@ export default (): Router => {
             const list = messages.map((m) => {
                 const { room, ...message } = m;
                 const body = deviceMessages.find((dm) => dm.messageId === m.id)?.body;
-                const unreadCount = unreadMessages.filter((m) => m.roomId === m.roomId).length;
+                const unreadCount = unreadMessages.filter((mc) => mc.roomId === m.roomId).length;
                 return {
                     ...sanitize(room).room(),
                     lastMessage: sanitize({

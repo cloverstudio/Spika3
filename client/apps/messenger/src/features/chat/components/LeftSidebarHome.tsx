@@ -91,7 +91,7 @@ export default function LeftSidebarHome({
                     </Box>
                 </Box>
             ) : (
-                <Box>
+                <>
                     <Box px={2.5} borderBottom="0.5px solid #C9C9CA">
                         <Box display="flex" height="80px" justifyContent="space-between">
                             <Box display="flex" flexDirection="column" justifyContent="center">
@@ -136,10 +136,10 @@ export default function LeftSidebarHome({
                     <Box mt={3}>
                         <SearchBox />
                     </Box>
-                    <Box flex={1}>
+                    <Box flex={1} overflow="hidden">
                         <ActiveElement />
                     </Box>
-                </Box>
+                </>
             )}
         </LeftSidebarLayout>
     );
