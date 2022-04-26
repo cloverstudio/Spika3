@@ -259,8 +259,8 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
 
     const controlIconDefaultStyle: SxProps = {
         padding: "10px",
-        width: "30px",
-        height: "30px",
+        width: "60px",
+        height: "60px",
         cursor: "pointer",
     };
 

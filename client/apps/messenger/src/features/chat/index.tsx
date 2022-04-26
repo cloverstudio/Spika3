@@ -24,6 +24,8 @@ import Message from "./components/Message";
 declare const UPLOADS_BASE_URL: string;
 import { RootState } from "../../store/store";
 
+import Confcall from "../../components/confcall";
+
 export default function Chat(): React.ReactElement {
     const roomId = +useParams().id;
     const user = useSelector(selectUser);
@@ -70,7 +72,7 @@ export default function Chat(): React.ReactElement {
 
     return (
         <Box display="flex" flexDirection="column" sx={isMobile ? mobileProps : desktopProps}>
-            <ChatHeader {...formatRoomInfo(room, user.id)} />
+            <ChatHeader {...formatRoomInfo(room, user.id)} roomId={roomId} />
             <ChatMessages roomId={roomId} />
             <ChatInput />
         </Box>
@@ -80,13 +82,15 @@ export default function Chat(): React.ReactElement {
 type ChatHeaderProps = {
     name: string;
     avatarUrl: string;
+    roomId: number;
 };
 
-function ChatHeader({ name, avatarUrl }: ChatHeaderProps): React.ReactElement {
+function ChatHeader({ name, avatarUrl, roomId }: ChatHeaderProps): React.ReactElement {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
     const dispatch = useDispatch();
     const rightSidebarState = useSelector((state: RootState) => state.rightSidebar);
+    const [showConfcall, setShowConfcall] = useState<boolean>(false);
 
     return (
         <Box px={2} borderBottom="0.5px solid #C9C9CA">
@@ -121,6 +125,9 @@ function ChatHeader({ name, avatarUrl }: ChatHeaderProps): React.ReactElement {
                                 color: "#4696F0",
                                 cursor: "pointer",
                             }}
+                            onClick={(e) => {
+                                setShowConfcall(true);
+                            }}
                         />
                     </Box>
                     <Box mr={3}>
@@ -129,6 +136,9 @@ function ChatHeader({ name, avatarUrl }: ChatHeaderProps): React.ReactElement {
                                 fontSize: "28px",
                                 color: "#4696F0",
                                 cursor: "pointer",
+                            }}
+                            onClick={(e) => {
+                                setShowConfcall(true);
                             }}
                         />
                     </Box>
@@ -143,6 +153,19 @@ function ChatHeader({ name, avatarUrl }: ChatHeaderProps): React.ReactElement {
                     </Box>
                 </Box>
             </Box>
+
+            {showConfcall ? (
+                <>
+                    <Confcall
+                        roomId={"" + roomId}
+                        userId="test"
+                        userName="test"
+                        onClose={() => {
+                            setShowConfcall(false);
+                        }}
+                    />
+                </>
+            ) : null}
         </Box>
     );
 }
