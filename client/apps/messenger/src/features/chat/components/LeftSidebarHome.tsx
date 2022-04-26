@@ -136,7 +136,7 @@ export default function LeftSidebarHome({
                     <Box mt={3}>
                         <SearchBox />
                     </Box>
-                    <Box flex={1}>
+                    <Box flex={1} overflow="hidden">
                         <ActiveElement />
                     </Box>
                 </Box>
