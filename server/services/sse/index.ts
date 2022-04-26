@@ -61,8 +61,6 @@ export default class SSEService implements Service {
                 )
             );
 
-            console.log({ sanitizedUndeliveredMessages });
-
             for (const message of sanitizedUndeliveredMessages) {
                 const jsonData = JSON.stringify({ type: Constants.PUSH_TYPE_NEW_MESSAGE, message });
 
