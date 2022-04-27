@@ -16,7 +16,6 @@ export default (): Router => {
         const userReq: UserRequest = req as UserRequest;
 
         try {
-            console.log("tu udje na serveru");
             const id = parseInt((req.params.id as string) || "");
             if (id === userReq.user.id) {
                 return res.send(
