@@ -22,7 +22,7 @@ const postMessageSchema = yup.object().shape({
         roomId: yup.number().strict().min(1).required(),
         type: yup.string().strict().required(),
         body: yup.object().required(),
-        localId: yup.number().strict().min(1),
+        localId: yup.string().strict(),
     }),
 });
 
