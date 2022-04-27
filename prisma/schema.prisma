@@ -130,7 +130,7 @@ model Message {
   deviceMessages DeviceMessage[]
   messageRecords MessageRecord[]
 
-  localId Int? @map(name: "local_id")
+  localId String? @map(name: "local_id")
 
   @@map(name: "message")
 }

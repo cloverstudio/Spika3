@@ -17,6 +17,8 @@ tags:
     - name: "File"
     - name: "Room"
     - name: "Message"
+    - name: "Settings"
+    - name: "Sync"
 schemes:
     - "https"
     - "http"
@@ -668,7 +670,7 @@ paths:
                 - name: "localId"
                   in: body
                   schema:
-                      type: integer
+                      type: string
 
             responses:
                 "200":
@@ -685,6 +687,79 @@ paths:
                                     message:
                                         type: "object"
                                         $ref: "#/definitions/Message"
+                "400":
+                    description: "invalid param"
+    /messenger/messages/{id}:
+        put:
+            tags:
+                - "Message"
+            summary: "Update message"
+            description: "Update messsage"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "id"
+                  in: path
+                  required: true
+                  type: number
+                - name: "roomId"
+                  in: body
+                  required: true
+                  schema:
+                      type: integer
+                - name: "type"
+                  in: body
+                  required: true
+                  schema:
+                      type: string
+                - name: "body"
+                  in: body
+                  required: true
+                  schema:
+                      type: object
+                      properties:
+                          text:
+                              type: string
+                          fileId:
+                              type: number
+                          thumbId:
+                              type: number
+                - name: "localId"
+                  in: body
+                  schema:
+                      type: string
+
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    message:
+                                        type: "object"
+                                        $ref: "#/definitions/Message"
+                "400":
+                    description: "invalid param"
+        delete:
+            tags:
+                - "Message"
+            summary: "delete message"
+            description: "delete messsage"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            responses:
+                "200":
+                    description: "successful operation"
                 "400":
                     description: "invalid param"
     /messenger/messages/roomId/{roomId}:
@@ -1092,6 +1167,47 @@ paths:
                                         $ref: "#/definitions/Device"
                 "400":
                     description: "invalid param"
+    /messenger/message-records/sync/{lastUpdate}:
+        get:
+            tags:
+                - "Sync"
+            summary: "Get all message recoreds updated and created since last update"
+            description: "Get all message recoreds updated and created since last update"
+            produces:
+                - "application/json"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "array"
+                                items:
+                                    type: "object"
+                                    $ref: "#/definitions/MessageRecord"
+    /messenger/settings:
+        get:
+            tags:
+                - "Settings"
+            summary: "Return server settings to client"
+            description: "Return server settings to client"
+            produces:
+                - "application/json"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            teamMode:
+                                type: "boolean"
+
+                "403":
+                    description: "invalid access token"
 securityDefinitions:
     api_key:
         type: "apiKey"
@@ -1226,8 +1342,7 @@ definitions:
                 type: "integer"
                 format: "int32"
             localId:
-                type: "integer"
-                format: "int32"
+                type: "string"
 
     MessageRecord:
         type: "object"
@@ -1243,6 +1358,11 @@ definitions:
                 format: "int32"
             type:
                 type: "string"
+            reaction:
+                type: "string"
+            modifiedAt:
+                type: "integer"
+                format: "int32"
             createdAt:
                 type: "integer"
                 format: "int32"
@@ -1250,4 +1370,4 @@ definitions:
 externalDocs:
     description: "Find out more about Swagger"
     url: "http://swagger.io/terms"
-    test: 1123123123123123123123123123123131231212312312
+    test: 112312312312312312312312312312313123121231212312312
