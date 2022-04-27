@@ -416,16 +416,17 @@ export default class SpikaBroadcastClient {
     async pause() {}
     async resume() {}
     async disconnect() {
-        // Close protoo Peer
-        this.protoo.close();
-
-        // Close mediasoup Transports.
-
         await this._disableWebcam();
         await this._disableMic();
 
+        // Close mediasoup Transports.
         if (this.sendTransport) this.sendTransport.close();
         if (this.recvTransport) this.recvTransport.close();
+
+        // Close protoo Peer
+        this.protoo.close();
+
+        if (this.listeners.onCallClosed) this.listeners.onCallClosed();
     }
     async setCameraDevice() {}
     async setMicrophoneDevice() {}
@@ -548,7 +549,7 @@ export default class SpikaBroadcastClient {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             const audioTrack = stream.getAudioTracks()[0];
             audioTrack.enabled = false;
-            setTimeout(() => audioTrack.stop(), 120000);
+            setTimeout(() => audioTrack.stop(), 5000);
         }
 
         const transportInfo = await this.protoo.request("createWebRtcTransport", {
@@ -727,8 +728,6 @@ export default class SpikaBroadcastClient {
                 producerId: this.micProducer.id,
             });
         }
-
-        console.log("10");
 
         if (this.cameraEnabled) await this._enableWebcam();
 
@@ -963,6 +962,7 @@ export default class SpikaBroadcastClient {
                 producerId: this.webcamProducer.id,
             });
         } catch (error) {
+            console.error(error);
             this.logger.error("closeProducer failed");
             return false;
         }

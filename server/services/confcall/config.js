@@ -11,19 +11,6 @@
 const os = require("os");
 
 module.exports = {
-    // Listening hostname (just for `gulp live` task).
-    domain: process.env.DOMAIN || "localhost",
-    // Signaling settings (protoo WebSocket server and HTTP API server).
-    https: {
-        listenIp: "0.0.0.0",
-        // NOTE: Don't change listenPort (client app assumes 4443).
-        listenPort: process.env.PROTOO_LISTEN_PORT || 4443,
-        // NOTE: Set your own valid certificate files.
-        tls: {
-            cert: process.env.HTTPS_CERT_FULLCHAIN || `${__dirname}/certs/fullchain.pem`,
-            key: process.env.HTTPS_CERT_PRIVKEY || `${__dirname}/certs/privkey.pem`,
-        },
-    },
     // mediasoup settings.
     mediasoup: {
         // Number of mediasoup workers to launch.
@@ -31,7 +18,7 @@ module.exports = {
         // mediasoup WorkerSettings.
         // See https://mediasoup.org/documentation/v3/mediasoup/api/#WorkerSettings
         workerSettings: {
-            logLevel: "warn",
+            logLevel: "error",
             logTags: [
                 "info",
                 "ice",

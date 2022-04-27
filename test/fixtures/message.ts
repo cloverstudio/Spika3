@@ -25,7 +25,6 @@ export default async function createFakeMessage({
             roomId: room.id,
             fromDeviceId,
             fromUserId,
-            totalDeviceCount: roomUsers.length,
             totalUserCount: roomUsers.length,
         },
     });

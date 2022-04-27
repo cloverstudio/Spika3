@@ -14,6 +14,8 @@ import SidebarNavigationHeader from "./components/SidebarNavigationHeader";
 import SearchBox from "./components/SearchBox";
 
 import uploadImage from "../../assets/upload-image.svg";
+import uploadFile from "../../utils/uploadFile";
+declare const UPLOADS_BASE_URL: string;
 
 export default function LeftSidebar(): React.ReactElement {
     const [sidebar, setSidebar] = useState("");
@@ -55,9 +57,17 @@ function LeftSidebarNewGroup({
     const [step, setStep] = useState<"select_members" | "edit_group_info">("select_members");
     const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
     const [name, setName] = useState("");
+    const [file, setFile] = useState<File>();
+    const uploadFileRef = React.useRef(null);
+
     const [createRoom] = useCreateRoomMutation();
     const navigate = useNavigate();
 
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const uploadedFile = e.target.files && e.target.files[0];
+
+        setFile(uploadedFile);
+    };
     const handleUserClick = (user: User): void => {
         const selectedUsersIds = selectedUsers.map((u) => u.id);
         const userIsSelected = selectedUsersIds.includes(user.id);
@@ -81,12 +91,18 @@ function LeftSidebarNewGroup({
         if (step === "select_members") {
             setStep("edit_group_info");
         } else {
-            console.log({ room: { userIds: selectedUsers.map((u) => u.id), name, type: "group" } });
             try {
+                const uploadedFile =
+                    file &&
+                    (await uploadFile({
+                        file,
+                        type: "avatar",
+                    }));
                 const res = await createRoom({
                     userIds: selectedUsers.map((u) => u.id),
                     name,
                     type: "group",
+                    avatarUrl: uploadedFile?.path || "",
                 }).unwrap();
                 console.log({ res });
                 if (res && res.room?.id) {
@@ -137,7 +153,7 @@ function LeftSidebarNewGroup({
                                     >
                                         <Avatar
                                             alt={user.displayName}
-                                            src={user.avatarUrl}
+                                            src={`${UPLOADS_BASE_URL}${user.avatarUrl}`}
                                             sx={{ width: 48, height: 48 }}
                                         />
                                     </Badge>
@@ -164,7 +180,20 @@ function LeftSidebarNewGroup({
             ) : (
                 <>
                     <Box textAlign="center" mt={3} mb={5}>
-                        <img width={100} height={100} src={uploadImage} />
+                        <img
+                            width={100}
+                            height={100}
+                            style={{ objectFit: "cover", borderRadius: "50%" }}
+                            src={file ? URL.createObjectURL(file) : uploadImage}
+                            onClick={() => uploadFileRef.current?.click()}
+                        />
+                        <input
+                            onChange={handleFileUpload}
+                            type="file"
+                            style={{ display: "none" }}
+                            ref={uploadFileRef}
+                            accept="image/*"
+                        />
                     </Box>
                     <TextField
                         sx={{ mb: 4, px: 2.5 }}

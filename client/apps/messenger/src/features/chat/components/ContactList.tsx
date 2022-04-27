@@ -14,6 +14,8 @@ import User from "../../../types/User";
 import useIsInViewport from "../../../hooks/useIsInViewport";
 import { setLeftSidebar } from "../slice/sidebarSlice";
 
+declare const UPLOADS_BASE_URL: string;
+
 export default function SidebarContactList({
     handleUserClick,
     selectedUsersIds,
@@ -66,7 +68,7 @@ export default function SidebarContactList({
     const onUserClick = handleUserClick || defaultHandleUserClick;
 
     return (
-        <Box sx={{ overflowY: "auto" }}>
+        <Box sx={{ overflowY: "auto", maxHeight: "100%" }}>
             {sortedByDisplayName.map(([letter, contactList]) => {
                 return (
                     <Box key={letter} mb={2}>
@@ -108,7 +110,11 @@ export function ContactRow({
 }: ContactRowProps): React.ReactElement {
     return (
         <Box px={2.5} display="flex" py={1.5} sx={{ cursor: "pointer" }} onClick={onClick || null}>
-            <Avatar sx={{ width: 50, height: 50 }} alt={name} src={avatarUrl} />
+            <Avatar
+                sx={{ width: 50, height: 50 }}
+                alt={name}
+                src={`${UPLOADS_BASE_URL}${avatarUrl}`}
+            />
             <Box
                 ml={2}
                 display="flex"

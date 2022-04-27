@@ -6,6 +6,7 @@ import { Typography, Paper, Grid, Button } from "@mui/material";
 import { useShowBasicDialog, useShowSnackBar } from "../../components/useUI";
 import { Device } from "@prisma/client";
 import { successResponseType } from "../../../../../../server/components/response";
+import { formatDate } from "../../../../../lib/utils";
 
 interface formItem {
     value: string;
@@ -96,7 +97,9 @@ export default function Page() {
                                     <Typography component="dt" variant="h6">
                                         Token Expired
                                     </Typography>
-                                    <Typography component="dd">{detail.tokenExpiredAt}</Typography>
+                                    <Typography component="dd">
+                                        {formatDate(detail.tokenExpiredAt)}
+                                    </Typography>
                                 </Grid>
                             </Grid>
                         ) : null}

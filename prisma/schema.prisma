@@ -10,7 +10,6 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// List of users managed by own
 model User {
   id                    Int      @id @default(autoincrement()) @map(name: "id")
   emailAddress          String?  @unique @map(name: "email_address")
@@ -55,7 +54,7 @@ model Device {
 model File {
   id         Int    @id @default(autoincrement()) @map(name: "id")
   type       String @map(name: "type")
-  relationId Int    @map(name: "relation_id")
+  relationId Int?    @map(name: "relation_id")
   path       String @map(name: "path")
   mimeType   String @map(name: "mime_type")
   fileName   String @map(name: "file_name")
@@ -122,7 +121,6 @@ model Message {
   type String @map(name: "type")
   seenCount Int @default(0) @map(name: "seen_count")
   deliveredCount Int @default(0) @map(name: "delivered_count")
-  totalDeviceCount Int @map(name: "total_device_count")
   totalUserCount Int @map(name: "total_user_count")
 
   createdAt  DateTime @default(now()) @map(name: "created_at")
@@ -131,6 +129,8 @@ model Message {
 
   deviceMessages DeviceMessage[]
   messageRecords MessageRecord[]
+
+  localId Int? @map(name: "local_id")
 
   @@map(name: "message")
 }

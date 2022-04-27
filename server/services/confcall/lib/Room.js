@@ -731,13 +731,15 @@ class Room extends EventEmitter {
 
                 for (const joinedPeer of joinedPeers) {
                     // Create Consumers for existing Producers.
-                    for (const producer of joinedPeer.data.producers.values()) {
-                        this._createConsumer({
-                            consumerPeer: peer,
-                            producerPeer: joinedPeer,
-                            producer,
+
+                    if (joinedPeer.data && joinedPeer.data.producers)
+                        joinedPeer.data.producers.forEach((producer, key) => {
+                            this._createConsumer({
+                                consumerPeer: peer,
+                                producerPeer: joinedPeer,
+                                producer,
+                            });
                         });
-                    }
 
                     // Create DataConsumers for existing DataProducers.
                     for (const dataProducer of joinedPeer.data.dataProducers.values()) {

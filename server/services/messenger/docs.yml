@@ -348,6 +348,7 @@ paths:
                   description: "The random string to identify upload."
                 - name: "fileHash"
                   in: body
+                  required: true
                   schema:
                       type: string
                   description: "sha256 hash of the file"
@@ -359,7 +360,6 @@ paths:
                   description: "The name of the another model which the file refers ex) avatar, message, group avatar"
                 - name: "relationId"
                   in: body
-                  required: true
                   schema:
                       type: number
                   description: "The id of model the file refers to."
@@ -653,16 +653,22 @@ paths:
                   required: true
                   schema:
                       type: string
-                - name: "message"
+                - name: "body"
                   in: body
                   required: true
                   schema:
                       type: object
                       properties:
-                          type:
-                              type: string
                           text:
                               type: string
+                          fileId:
+                              type: number
+                          thumbId:
+                              type: number
+                - name: "localId"
+                  in: body
+                  schema:
+                      type: integer
 
             responses:
                 "200":
@@ -741,9 +747,24 @@ paths:
                 "200":
                     description: "successful operation"
                     schema:
-                        type: "array"
-                        items:
-                            $ref: "#/definitions/Message"
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    list:
+                                        type: "array"
+                                        items:
+                                            type: "object"
+                                            $ref: "#/definitions/Message"
+                                    count:
+                                        type: "number"
+                                    limit:
+                                        type: "number"
+
     /messenger/messages/{messageId}/message-records:
         get:
             tags:
@@ -763,9 +784,19 @@ paths:
                 "200":
                     description: "successful operation"
                     schema:
-                        type: "array"
-                        items:
-                            $ref: "#/definitions/MessageRecord"
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    messageRecords:
+                                        type: "array"
+                                        items:
+                                            type: "object"
+                                            $ref: "#/definitions/MessageRecord"
     /messenger/messages/delivered:
         post:
             tags:
@@ -788,6 +819,20 @@ paths:
             responses:
                 "200":
                     description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    messageRecords:
+                                        type: "array"
+                                        items:
+                                            type: "object"
+                                            $ref: "#/definitions/MessageRecord"
                 "400":
                     description: "invalid param"
 
@@ -804,6 +849,20 @@ paths:
             responses:
                 "200":
                     description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    messageRecords:
+                                        type: "array"
+                                        items:
+                                            type: "object"
+                                            $ref: "#/definitions/MessageRecord"
                 "400":
                     description: "invalid param"
     /messenger/me:
@@ -947,6 +1006,64 @@ paths:
                 "400":
                     description: "invalid param"
 
+    /messenger/device:
+        get:
+            tags:
+                - "Device"
+            summary: "Get current device"
+            description: "Returns device tied to current access token"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    device:
+                                        type: "object"
+                                        $ref: "#/definitions/Device"
+                "400":
+                    description: "invalid param"
+
+        put:
+            tags:
+                - "Device"
+            summary: "Update push token"
+            description: "Returns device tied to current access token"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - in: body
+                  name: pushToken
+                  type: "string"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    device:
+                                        type: "object"
+                                        $ref: "#/definitions/Device"
+                "400":
+                    description: "invalid param"
 securityDefinitions:
     api_key:
         type: "apiKey"
@@ -1063,12 +1180,6 @@ definitions:
             fromUserId:
                 type: "integer"
                 format: "int32"
-            fromDeviceId:
-                type: "integer"
-                format: "int32"
-            totalDeviceCount:
-                type: "integer"
-                format: "int32"
             totalUserCount:
                 type: "integer"
                 format: "int32"
@@ -1084,6 +1195,9 @@ definitions:
             body:
                 type: "object"
             createdAt:
+                type: "integer"
+                format: "int32"
+            localId:
                 type: "integer"
                 format: "int32"
 
@@ -1108,4 +1222,4 @@ definitions:
 externalDocs:
     description: "Find out more about Swagger"
     url: "http://swagger.io/terms"
-    test: 11231231231231231231231231231231312312123123123
+    test: 1123123123123123123123123123123131231212312312

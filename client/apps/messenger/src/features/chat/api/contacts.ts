@@ -1,6 +1,8 @@
 import Contacts from "../../../types/Contacts";
 import api from "../../../api/api";
 
+declare var TEAM_MODE: string;
+
 const contactsApi = api.injectEndpoints({
     endpoints: (build) => ({
         getContacts: build.query<Contacts, number>({

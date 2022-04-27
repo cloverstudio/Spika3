@@ -88,7 +88,7 @@ export default class ConfcallService implements Service {
             setInterval(async () => {
                 const usage = await worker.getResourceUsage();
 
-                l("mediasoup Worker resource usage [pid:%d]: %o", worker.pid, usage);
+                //l("mediasoup Worker resource usage [pid:%d]: %o", worker.pid, usage);
             }, 120000);
         }
     }
@@ -126,9 +126,7 @@ export default class ConfcallService implements Service {
         confcallRouter.get("/rooms/:roomId", (reqOrig: Request, res: Response) => {
             const req: RoomRequest = reqOrig as RoomRequest;
 
-            l("1");
             const data = req.room.getRouterRtpCapabilities();
-            l("2");
 
             res.status(200).json(data);
         });

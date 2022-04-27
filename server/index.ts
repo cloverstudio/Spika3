@@ -33,7 +33,7 @@ const app: express.Express = express();
 
         // intercept OPTIONS method
         if ("OPTIONS" === req.method) {
-            res.send(200);
+            res.sendStatus(200);
         } else {
             next();
         }
@@ -44,7 +44,7 @@ const app: express.Express = express();
     });
 
     app.use(express.static("public"));
-    app.use("/uploads", express.static("uploads"));
+    app.use("/uploads", express.static(process.env["UPLOAD_FOLDER"]));
 
     const rabbitMQConnection = await amqp.connect(
         process.env["RABBITMQ_URL"] || "amqp://localhost"
@@ -113,6 +113,10 @@ const app: express.Express = express();
     // test
     app.get("/api/test", (req: express.Request, res: express.Response) => {
         res.send("test");
+    });
+
+    app.all("/", (req: express.Request, res: express.Response) => {
+        res.redirect("/messenger");
     });
 
     app.all("/messenger/*", (req: express.Request, res: express.Response) => {
