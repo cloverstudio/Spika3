@@ -52,6 +52,8 @@ import uploadFile from "../../../utils/uploadFile";
 
 import { useUpdateMutation } from "../../auth/api/auth";
 
+declare const UPLOADS_BASE_URL: string;
+
 type NavigationType = {
     name: "call" | "chat" | "contact";
     icon: OverridableComponent<SvgIconTypeMap<unknown, "svg">> & {
@@ -200,7 +202,7 @@ export default function LeftSidebarHome({
                             <Box sx={{ position: "relative" }}>
                                 <Avatar
                                     alt={user.displayName}
-                                    src={profileAvatarUrl}
+                                    src={`${UPLOADS_BASE_URL}${profileAvatarUrl}`}
                                     sx={{ width: 100, height: 100 }}
                                 />
                                 <IconButton
@@ -301,7 +303,10 @@ export default function LeftSidebarHome({
                                             setOpenEditor();
                                         }}
                                     >
-                                        <Avatar alt={user.displayName} src={profileAvatarUrl} />
+                                        <Avatar
+                                            alt={user.displayName}
+                                            src={`${UPLOADS_BASE_URL}${profileAvatarUrl}`}
+                                        />
                                     </IconButton>
                                 </Box>
                                 <Box mr={3}>
