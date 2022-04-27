@@ -24,7 +24,7 @@ import Message from "./components/Message";
 declare const UPLOADS_BASE_URL: string;
 import { RootState } from "../../store/store";
 
-import Confcall from "../../components/confcall";
+import Confcall from "../confcall";
 
 export default function Chat(): React.ReactElement {
     const roomId = +useParams().id;
@@ -91,6 +91,7 @@ function ChatHeader({ name, avatarUrl, roomId }: ChatHeaderProps): React.ReactEl
     const dispatch = useDispatch();
     const rightSidebarState = useSelector((state: RootState) => state.rightSidebar);
     const [showConfcall, setShowConfcall] = useState<boolean>(false);
+    const me = useSelector(selectUser);
 
     return (
         <Box px={2} borderBottom="0.5px solid #C9C9CA">
@@ -157,9 +158,9 @@ function ChatHeader({ name, avatarUrl, roomId }: ChatHeaderProps): React.ReactEl
             {showConfcall ? (
                 <>
                     <Confcall
-                        roomId={"" + roomId}
-                        userId="test"
-                        userName="test"
+                        roomId={`${roomId}`}
+                        userId={`${me.id}`}
+                        userName={me.displayName}
                         onClose={() => {
                             setShowConfcall(false);
                         }}

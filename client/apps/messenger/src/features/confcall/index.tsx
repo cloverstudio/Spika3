@@ -24,7 +24,7 @@ import MeItem from "./MeItem";
 import ParticipantItem from "./ParticipantItem";
 import ScreenShareItem from "./ScreenShareItem";
 import Utils from "./lib/Utils";
-import SelectBoxDialog from "../SelectBoxDialog";
+import SelectBoxDialog from "../../components/SelectBoxDialog";
 
 declare var CONFCALL_HOST_URL: string;
 
@@ -280,6 +280,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                 left: 0,
                 backgroundColor: "#373737",
                 border: "none",
+                zIndex: 200,
             }}
         >
             {/* videos */}
@@ -292,7 +293,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                         left: 0,
                         width: "100%",
                         height: "100%",
-                        zIndex: 100,
+                        zIndex: 210,
                         display: "grid",
                         gridTemplateRows: "100vh",
                         gridTemplateColumns: "80vw 20vw",
@@ -355,7 +356,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                         left: 0,
                         width: "100%",
                         height: "100%",
-                        zIndex: 100,
+                        zIndex: 210,
                         ...videoLayoutStyle,
                     }}
                 >
@@ -415,7 +416,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                     width: "100%",
                     height: "100px",
                     background: "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%);",
-                    zIndex: 110,
+                    zIndex: 220,
                     display: "grid",
                     gridTemplateRows: "1fr",
                     gridTemplateColumns: "auto auto auto auto auto",

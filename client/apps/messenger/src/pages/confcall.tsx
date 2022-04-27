@@ -13,7 +13,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 import { Link, useNavigate } from "react-router-dom";
 
-import Confcall from "../components/confcall";
+import Confcall from "../features/confcall";
 
 export interface UrlParams {
     roomId: string;

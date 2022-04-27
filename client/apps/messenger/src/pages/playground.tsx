@@ -8,7 +8,7 @@ import { Outlet } from "react-router-dom";
 
 import { useShowSnackBar, useShowBasicDialog } from "../hooks/useModal";
 
-import Confcall from "../components/confcall";
+import Confcall from "../features/confcall";
 
 export default function Home(): React.ReactElement {
     const [showConfcall, setShowConfcall] = useState<boolean>(false);
