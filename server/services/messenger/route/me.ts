@@ -77,6 +77,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     ...(telephoneNumber && {
                         telephoneNumberHashed: Utils.sha256(telephoneNumber),
                     }),
+                    modifiedAt: new Date(),
                 },
             });
 
@@ -85,8 +86,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             const contacts = +process.env["TEAM_MODE"]
                 ? await prisma.user.findMany({ include: { device: true } })
                 : await getUserContacts(userReq.user.id);
-
-            console.log({ contacts });
 
             for (const contact of contacts) {
                 for (const device of contact.device) {
