@@ -118,13 +118,16 @@ export default (): Router => {
                         },
                         type,
                         deleted: false,
+                        NOT: {
+                            users: {},
+                        },
                     },
                     include: {
                         users: true,
                     },
                 });
 
-                if (existingRoom && existingRoom.users.length === users.length) {
+                if (existingRoom) {
                     return res.status(409).send(errorResponse("Room already exists", userReq.lang));
                 }
             }
@@ -443,6 +446,11 @@ export default (): Router => {
                     deleted: false,
                     users: {
                         every: { userId: { in: [userId, userReq.user.id] } },
+                    },
+                    NOT: {
+                        users: {
+                            none: {},
+                        },
                     },
                 },
                 include: {
