@@ -134,6 +134,21 @@ export default function LeftSidebarHome({
         if (editAction === "upload") {
             showOpenFileDialog();
         } else {
+            removeProfilePhoto();
+        }
+    };
+
+    const removeProfilePhoto = async () => {
+        try {
+            setLoading(true);
+            await update({ displayName: proposedName, avatarUrl: "" }).unwrap();
+            setProfileAvatarUrl("");
+            setLoading(false);
+            closeEditName();
+        } catch (error) {
+            setLoading(false);
+
+            console.error("Update failed ", error);
         }
     };
 
