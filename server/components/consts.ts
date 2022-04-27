@@ -15,5 +15,6 @@ export const QUEUE_SSE = "QUEUE_SSE";
 
 export const MESSAGE_ACTION_NEW_MESSAGE = "NEW_MESSAGE";
 export const PUSH_TYPE_NEW_MESSAGE = "NEW_MESSAGE";
+export const PUSH_TYPE_USER_UPDATE = "USER_UPDATE";
 
 export const EXCHANGE_NAME = "NOTIFICATION";
