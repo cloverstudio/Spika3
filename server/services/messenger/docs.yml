@@ -936,7 +936,7 @@ paths:
                                         $ref: "#/definitions/User"
                 "400":
                     description: "invalid param"
-    /messenger/user/{id}:
+    /messenger/users/{id}:
         get:
             tags:
                 - "User"
@@ -961,6 +961,34 @@ paths:
                                     user:
                                         type: "object"
                                         $ref: "#/definitions/User"
+                "400":
+                    description: "invalid param"
+    /messenger/users/sync/{timestamp}:
+        get:
+            tags:
+                - "User"
+            summary: "Get updated users from specified time"
+            description: "Returns users models"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: object
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    users:
+                                        type: "array"
+                                        items:
+                                            $ref: "#/definitions/User"
                 "400":
                     description: "invalid param"
     /messenger/history:
