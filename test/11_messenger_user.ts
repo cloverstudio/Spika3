@@ -1,3 +1,4 @@
+import { User } from "@prisma/client";
 import { expect } from "chai";
 import supertest from "supertest";
 import app from "../server";
@@ -84,6 +85,39 @@ describe("User API", () => {
 
             expect(userFromDb.displayName).to.eqls(userFromRes.displayName);
             expect(userFromDb.avatarUrl).to.eqls(userFromRes.avatarUrl);
+        });
+    });
+
+    describe("/api/messenger/users/sync/:timestamp PUT", () => {
+        it("Timestamp must be number", async () => {
+            const response = await supertest(app)
+                .get("/api/messenger/users/sync/a54dsa5d4sa5d4as5")
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(400);
+        });
+
+        it("Gets users that are modified after timestamp", async () => {
+            const user = await createFakeUser();
+
+            const timestamp = +new Date();
+
+            await globals.prisma.user.update({
+                where: { id: user.id },
+                data: { modifiedAt: new Date() },
+            });
+
+            const response = await supertest(app)
+                .get("/api/messenger/users/sync/" + timestamp)
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(200);
+            expect(response.body).to.has.property("data");
+            expect(response.body.data).to.has.property("users");
+
+            const users = response.body.data.users as User[];
+
+            expect(users.some((u) => u.id === user.id)).to.eqls(true);
         });
     });
 });

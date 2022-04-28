@@ -174,7 +174,7 @@ describe("SSE Service", () => {
 
             source.close();
 
-            expect(eventSpy).to.have.been.called.once;
+            expect(eventSpy).to.have.been.called.min(1);
             expect(eventSpy).to.have.been.called.with(JSON.stringify(data));
         });
     });
