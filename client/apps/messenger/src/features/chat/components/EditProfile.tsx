@@ -70,7 +70,6 @@ export function EditProfileView(props: EditProfileProps) {
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const uploadedFile = e.target.files && e.target.files[0];
-        // setProfileAvatarUrl(URL.createObjectURL(uploadedFile));
         setFile(uploadedFile);
     };
 

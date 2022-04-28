@@ -58,6 +58,7 @@ export default function LeftSidebarHome({
     const [profileAvatarUrl, setProfileAvatarUrl] = React.useState(user.avatarUrl);
 
     const profileEditingOpen = useSelector(shouldShowProfileEditor);
+
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
     const handleChangeTab = (value: "call" | "chat" | "contact"): void => {
