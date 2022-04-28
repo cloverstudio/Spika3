@@ -111,23 +111,21 @@ export default (): Router => {
             const name = getRoomName(userDefinedName, users.length);
 
             if (users.length === 2 && type === "private") {
-                const existingRoom = await prisma.room.findFirst({
-                    where: {
-                        users: {
-                            every: { userId: { in: users.map((u) => u.userId) } },
-                        },
-                        type,
-                        deleted: false,
-                        NOT: {
-                            users: {},
-                        },
-                    },
-                    include: {
-                        users: true,
-                    },
-                });
+                const userIdsStr: string = users.map((u) => u.userId).join(",");
+                const query = `
+                    select * from room 
+                        where type = 'private' 
+                        and deleted = false 
+                        and id in ( 
+                            select room_id from room_user where user_id in 
+                                (
+                                    ${userIdsStr}
+                                ) group by room_id having count(*) > 1 
+                        )`;
 
-                if (existingRoom) {
+                const existingRoomResult: Room[] = await prisma.$queryRawUnsafe<Room[]>(query);
+
+                if (existingRoomResult.length > 0) {
                     return res.status(409).send(errorResponse("Room already exists", userReq.lang));
                 }
             }
