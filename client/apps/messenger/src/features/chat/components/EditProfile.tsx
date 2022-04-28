@@ -32,10 +32,8 @@ export interface EditProfileProps {
 
 export function EditProfileView(props: EditProfileProps) {
     const { onClose } = props;
-
-    var user = useSelector(selectUser);
+    const user = useSelector(selectUser);
     const imageRef = useRef(null);
-
     const [name, setName] = React.useState(user.displayName);
     const [proposedName, setProposedName] = React.useState(user.displayName);
     const [profileAvatarUrl, setProfileAvatarUrl] = React.useState(user.avatarUrl);

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Avatar, Box, SvgIconTypeMap, IconButton } from "@mui/material";
 
@@ -29,9 +29,6 @@ import { EditProfileView } from "./EditProfile";
 
 import logo from "../../../assets/logo.svg";
 import { selectUser } from "../../../store/userSlice";
-import uploadFile from "../../../utils/uploadFile";
-
-import { useUpdateMutation } from "../../auth/api/auth";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -56,19 +53,11 @@ export default function LeftSidebarHome({
 }): React.ReactElement {
     const dispatch = useDispatch();
     const activeTab = useSelector(selectActiveTab);
-    var user = useSelector(selectUser);
+    const user = useSelector(selectUser);
     const theme = useTheme();
-    const [loading, setLoading] = useState(false);
-    const [update, updateMutation] = useUpdateMutation();
-    const [name, setName] = React.useState(user.displayName);
-    const [proposedName, setProposedName] = React.useState(user.displayName);
     const [profileAvatarUrl, setProfileAvatarUrl] = React.useState(user.avatarUrl);
-    const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setProposedName(event.target.value);
-    };
 
     const profileEditingOpen = useSelector(shouldShowProfileEditor);
-
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
     const handleChangeTab = (value: "call" | "chat" | "contact"): void => {
@@ -77,87 +66,6 @@ export default function LeftSidebarHome({
     const setOpenEditor = () => dispatch(setOpenEditProfile(!profileEditingOpen));
     const closeEditor = () => dispatch(setOpenEditProfile(false));
     const ActiveElement = navigation.find((n) => n.name === activeTab)?.Element;
-
-    const [editProfileName, setEditProfileName] = useState(false);
-
-    const [file, setFile] = useState<File>();
-    const imageRef = useRef(null);
-
-    const showOpenFileDialog = () => {
-        imageRef.current.click();
-    };
-
-    const openEditName = () => {
-        setEditProfileName(true);
-    };
-    const closeEditName = () => {
-        setEditProfileName(false);
-    };
-    const [editProfilePicture, setEditProfilePicture] = useState(false);
-    const openEditPicture = () => {
-        setEditProfilePicture(true);
-    };
-    const closeEditPicture = () => {
-        setEditProfilePicture(false);
-    };
-
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const uploadedFile = e.target.files && e.target.files[0];
-        // setProfileAvatarUrl(URL.createObjectURL(uploadedFile));
-        setFile(uploadedFile);
-    };
-
-    useEffect(() => {
-        handleUpdateUser();
-    }, [file]);
-
-    const selectedEditAction = (editAction: string) => {
-        if (editAction === "upload") {
-            showOpenFileDialog();
-        } else {
-            removeProfilePhoto();
-        }
-    };
-
-    const removeProfilePhoto = async () => {
-        try {
-            setLoading(true);
-            await update({ displayName: proposedName, avatarUrl: "" }).unwrap();
-            setProfileAvatarUrl("");
-            setLoading(false);
-            closeEditName();
-        } catch (error) {
-            setLoading(false);
-
-            console.error("Update failed ", error);
-        }
-    };
-
-    const handleUpdateUser = async () => {
-        try {
-            setLoading(true);
-
-            if (file) {
-                const uploadedFile = await uploadFile({
-                    file,
-                    type: "avatar",
-                    relationId: user.id,
-                });
-                await update({ displayName: proposedName, avatarUrl: uploadedFile.path }).unwrap();
-                setProfileAvatarUrl(uploadedFile.path);
-            } else {
-                await update({ displayName: proposedName }).unwrap();
-            }
-
-            setName(proposedName);
-            setLoading(false);
-            closeEditName();
-        } catch (error) {
-            setLoading(false);
-
-            console.error("Update failed ", error);
-        }
-    };
 
     return (
         <LeftSidebarLayout>
