@@ -24,6 +24,8 @@ import uploadFile from "../../../utils/uploadFile";
 
 import { useUpdateMutation } from "../../auth/api/auth";
 
+import { crop } from "../../../utils/crop";
+
 declare const UPLOADS_BASE_URL: string;
 
 export interface EditProfileProps {
@@ -70,7 +72,11 @@ export function EditProfileView(props: EditProfileProps) {
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const uploadedFile = e.target.files && e.target.files[0];
-        setFile(uploadedFile);
+        const objectUrl = URL.createObjectURL(uploadedFile);
+        crop(objectUrl, 1, 512, 512).then((croppedImage) => {
+            const file = new File([croppedImage], "image.png");
+            setFile(file);
+        });
     };
 
     useEffect(() => {
@@ -109,6 +115,7 @@ export function EditProfileView(props: EditProfileProps) {
                     type: "avatar",
                     relationId: user.id,
                 });
+
                 await update({ displayName: proposedName, avatarUrl: uploadedFile.path }).unwrap();
                 setProfileAvatarUrl(uploadedFile.path);
             } else {
