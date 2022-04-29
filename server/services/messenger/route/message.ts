@@ -1,6 +1,5 @@
 import { Router, Request, Response } from "express";
 import { MessageRecord, PrismaClient } from "@prisma/client";
-import amqp from "amqplib";
 
 import { UserRequest } from "../lib/types";
 import { error as le } from "../../../components/logger";
@@ -15,6 +14,7 @@ import * as Constants from "../../../components/consts";
 import { InitRouterParams } from "../../types/serviceInterface";
 import sanitize from "../../../components/sanitize";
 import { formatMessageBody } from "../../../components/message";
+import sseMessageRecordsNotify from "../lib/sseMessageRecordsNotify";
 
 const prisma = new PrismaClient();
 
@@ -518,35 +518,3 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
     return router;
 };
-
-async function sseMessageRecordsNotify(
-    records: Partial<
-        Omit<MessageRecord, "createdAt" | "modifiedAt"> & {
-            createdAt: number;
-        }
-    >[],
-    rabbitMQChannel: amqp.Channel | undefined | null
-): Promise<void> {
-    for (const record of records) {
-        const devices = await prisma.deviceMessage.findMany({
-            where: { messageId: record.messageId },
-            select: { deviceId: true },
-        });
-        const deviceIds = devices.map((d) => d.deviceId);
-
-        for (const deviceId of deviceIds) {
-            rabbitMQChannel.sendToQueue(
-                Constants.QUEUE_SSE,
-                Buffer.from(
-                    JSON.stringify({
-                        channelId: deviceId,
-                        data: {
-                            type: Constants.PUSH_TYPE_NEW_MESSAGE,
-                            messageRecord: record,
-                        },
-                    })
-                )
-            );
-        }
-    }
-}

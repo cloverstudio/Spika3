@@ -940,6 +940,73 @@ paths:
                                             $ref: "#/definitions/MessageRecord"
                 "400":
                     description: "invalid param"
+    /messenger/message-records:
+        post:
+            tags:
+                - "MessageRecord"
+            summary: "Add message record"
+            description: "Add message record"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "messageId"
+                  in: body
+                  required: true
+                  schema:
+                      type: number
+                - name: "type"
+                  in: body
+                  required: true
+                  schema:
+                      type: string
+                - name: "reaction"
+                  in: body
+                  schema:
+                      type: string
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    messageRecord:
+                                        type: "object"
+                                        $ref: "#/definitions/MessageRecord"
+                "400":
+                    description: "invalid param"
+    /messenger/message-records/sync/{lastUpdate}:
+        get:
+            tags:
+                - "Sync"
+            summary: "Get all message records updated and created since last update"
+            description: "Get all message records updated and created since last update"
+            produces:
+                - "application/json"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    messageRecords:
+                                        type: "array"
+                                        items:
+                                            type: "object"
+                                            $ref: "#/definitions/MessageRecord"
     /messenger/me:
         get:
             tags:
@@ -1167,28 +1234,7 @@ paths:
                                         $ref: "#/definitions/Device"
                 "400":
                     description: "invalid param"
-    /messenger/message-records/sync/{lastUpdate}:
-        get:
-            tags:
-                - "Sync"
-            summary: "Get all message recoreds updated and created since last update"
-            description: "Get all message recoreds updated and created since last update"
-            produces:
-                - "application/json"
-            responses:
-                "200":
-                    description: "successful operation"
-                    schema:
-                        type: "object"
-                        properties:
-                            status:
-                                type: "string"
-                                enum: [success, error]
-                            data:
-                                type: "array"
-                                items:
-                                    type: "object"
-                                    $ref: "#/definitions/MessageRecord"
+
     /messenger/settings:
         get:
             tags:
