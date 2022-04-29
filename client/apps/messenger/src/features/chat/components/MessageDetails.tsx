@@ -293,7 +293,6 @@ export function MessageDetailDialog(props: MessageDetailsDialogProps) {
     const { data, isLoading } = useGetMessageRecordsByIdQuery(props.messageId);
     const filterUsers = () => {
         if (data == null) return;
-        console.log(JSON.stringify(data));
         const seen = data.messageRecords.filter(
             (record) => record.type === "seen" && record.userId != me.id
         );
@@ -398,7 +397,6 @@ export interface MessageDetailsRowProps {
 
 function MessageDetailRow({ record }: MessageDetailsRowProps) {
     const { data, isLoading } = useGetUserByIdQuery(record.userId);
-    console.log("Data: " + JSON.stringify(data));
     return (
         <ListItem key={record.id}>
             {data ? (

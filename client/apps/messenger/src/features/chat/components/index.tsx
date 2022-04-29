@@ -643,7 +643,6 @@ function MessageDetailDialog(props: MessageDetailsDialogProps) {
     const { data, isLoading } = useGetMessageRecordsByIdQuery(props.messageId);
     const filterUsers = () => {
         if (data == null) return;
-        console.log(JSON.stringify(data));
         const seen = data.messageRecords.filter(
             (record) => record.type === "seen" && record.userId != me.id
         );
