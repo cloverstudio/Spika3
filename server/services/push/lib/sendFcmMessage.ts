@@ -33,6 +33,7 @@ export type FcmMessagePayload = {
             title: string;
             body: string;
         };
+        data?: any;
     };
 };
 
@@ -46,7 +47,18 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
     const response: AxiosResponse<any> = await axios({
         method: "post",
         url: "https://" + process.env.FCM_HOST + PATH,
-        data: fcmMessage,
+        data: {
+            message: {
+                ...fcmMessage.message,
+                apns: {
+                    payload: {
+                        aps: {
+                            "mutable-content": 1,
+                        },
+                    },
+                },
+            },
+        },
         headers: {
             Authorization: "Bearer " + accessToken,
         },
