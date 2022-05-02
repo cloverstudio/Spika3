@@ -32,7 +32,7 @@ export default ({ videoTrack, sx }: ComponentInterface) => {
             sx={{
                 width: "100%",
                 height: "100%",
-                objectFit: "cover",
+                objectFit: "contain",
                 ...sx,
             }}
             component="video"
