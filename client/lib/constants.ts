@@ -5,3 +5,4 @@ export const LSKEY_SELECTEDMIC: string = "selectedmic";
 export const LSKEY_LASTROOM: string = "lastroom";
 export const LSKEY_ENABLECAM: string = "enablecam";
 export const LSKEY_ENABLEMIC: string = "enablemic";
+export const LSKEY_CROPSIZE: number = 512;

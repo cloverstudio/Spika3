@@ -8,6 +8,7 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 
 import { useGetRoomQuery } from "./api/room";
 import { useGetMessagesByRoomIdQuery, useMarkRoomMessagesAsSeenMutation } from "./api/message";
+import { MessageDetailOptions, MessageDetailDialog } from "./components/MessageDetails";
 
 import { selectRoomMessages, setActiveRoomId } from "./slice/chatSlice";
 import { selectUser } from "../../store/userSlice";
@@ -188,6 +189,26 @@ function ChatMessages({ roomId }: ChatMessagesProps): React.ReactElement {
 
     const { isInViewPort, elementRef } = useIsInViewport();
 
+    const [anchorEl, setAnchorEl] = React.useState<HTMLDivElement | null>(null);
+    const [openMessageDetails, setOpenMessageDetails] = React.useState(false);
+    const [selectedMessageId, setMessageId] = React.useState(null);
+    const open = Boolean(anchorEl);
+    const id = open ? "simple-popover" : undefined;
+
+    const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+    const handleClose = () => {
+        setAnchorEl(null);
+    };
+    const showModalMessageDetails = (messageId: number) => {
+        setOpenMessageDetails(true);
+        setMessageId(messageId);
+    };
+    const handleCloseMessageDetails = (value: string) => {
+        setOpenMessageDetails(false);
+    };
+
     useEffect(() => {
         if (scrollListenerSet && isInViewPort && !isFetching && hasMoreContactsToLoad) {
             setPage((page) => page + 1);
@@ -255,14 +276,30 @@ function ChatMessages({ roomId }: ChatMessagesProps): React.ReactElement {
             <Box px={1} sx={{ overflowY: "auto" }} ref={ref}>
                 <div ref={elementRef} />
                 {messagesSorted.map((m, i) => (
-                    <Message
-                        key={m.id}
-                        {...m}
-                        nextMessageSenderId={messagesSorted[i + 1]?.fromUserId}
-                        previousMessageSenderId={messagesSorted[i - 1]?.fromUserId}
-                    />
+                    <div key={m.id} onContextMenu={(e) => {}}>
+                        <Message
+                            {...m}
+                            nextMessageSenderId={messagesSorted[i + 1]?.fromUserId}
+                            previousMessageSenderId={messagesSorted[i - 1]?.fromUserId}
+                            clickedAnchor={handleClick}
+                        />
+                        <MessageDetailOptions
+                            open={open}
+                            onClose={handleClose}
+                            anchorElement={anchorEl}
+                            showMessageDetails={showModalMessageDetails}
+                            messageId={m.id}
+                        />
+                    </div>
                 ))}
             </Box>
+            {openMessageDetails ? (
+                <MessageDetailDialog
+                    open={openMessageDetails}
+                    onClose={handleCloseMessageDetails}
+                    messageId={selectedMessageId}
+                />
+            ) : null}
         </Box>
     );
 }
