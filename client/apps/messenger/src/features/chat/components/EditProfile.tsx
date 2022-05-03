@@ -25,6 +25,7 @@ import uploadFile from "../../../utils/uploadFile";
 import { useUpdateMutation } from "../../auth/api/auth";
 
 import { crop } from "../../../utils/crop";
+import * as Constants from "../../../../../../lib/constants";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -73,10 +74,18 @@ export function EditProfileView(props: EditProfileProps) {
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const uploadedFile = e.target.files && e.target.files[0];
         const objectUrl = URL.createObjectURL(uploadedFile);
-        crop(objectUrl, 1, 512, 512).then((croppedImage) => {
-            const file = new File([croppedImage], "image.png");
-            setFile(file);
-        });
+        cropAndResizeSelectedFile(objectUrl);
+    };
+
+    const cropAndResizeSelectedFile = async (selectedFileUrl: string) => {
+        let croppedImage = await crop(
+            selectedFileUrl,
+            1,
+            Constants.LSKEY_CROPSIZE,
+            Constants.LSKEY_CROPSIZE
+        );
+        const file = new File([croppedImage], "image.png");
+        setFile(file);
     };
 
     useEffect(() => {
