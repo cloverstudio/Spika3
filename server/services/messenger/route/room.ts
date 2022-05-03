@@ -431,25 +431,32 @@ export default (): Router => {
 
         try {
             const userId = parseInt((req.params.userId as string) || "");
-
             const user = await prisma.user.findFirst({ where: { id: userId } });
 
             if (!user) {
                 return res.status(404).send(errorResponse("Room not found", userReq.lang));
             }
 
+            // Get room id where two user belongs to.
+            const query = `
+                    select * from room 
+                        where type = 'private' 
+                        and deleted = false 
+                        and id in ( 
+                            select room_id from room_user where user_id in 
+                                (
+                                    ${userId},${userReq.user.id}
+                                ) group by room_id having count(*) > 1 
+                        )`;
+
+            const existingRoomResult: Room[] = await prisma.$queryRawUnsafe<Room[]>(query);
+
+            if (existingRoomResult.length === 0)
+                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+
             const room = await prisma.room.findFirst({
                 where: {
-                    type: "private",
-                    deleted: false,
-                    users: {
-                        every: { userId: { in: [userId, userReq.user.id] } },
-                    },
-                    NOT: {
-                        users: {
-                            none: {},
-                        },
-                    },
+                    id: existingRoomResult[0].id,
                 },
                 include: {
                     users: {

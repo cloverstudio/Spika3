@@ -9,7 +9,7 @@
     "scripts": {
         "test": "./test/start.sh",
         "dev:server": "nodemon server/index.ts",
-        "start:server": "npx ts-node server/index.ts",
+        "start:server": "npx ts-node --project tsconfig.json server/index.ts",
         "dev:management": "concurrently --kill-others \"nodemon server/index.ts\" \"webpack serve --mode development --config client/apps/management/webpack.config.ts\"",
         "build:management": "webpack --mode production --config client/apps/management/webpack.config.prod.ts",
         "dev:messenger": "webpack serve --mode development --config client/apps/messenger/webpack.config.ts --host 0.0.0.0",
