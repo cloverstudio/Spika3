@@ -14,6 +14,7 @@ import * as Constants from "../../../components/consts";
 import { InitRouterParams } from "../../types/serviceInterface";
 import sanitize from "../../../components/sanitize";
 import { formatMessageBody } from "../../../components/message";
+import sseMessageRecordsNotify from "../lib/sseMessageRecordsNotify";
 
 const prisma = new PrismaClient();
 
@@ -226,6 +227,11 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                                 deliveredCount: { increment: 1 },
                             },
                         });
+
+                        sseMessageRecordsNotify(
+                            [sanitize(record).messageRecord()],
+                            rabbitMQChannel
+                        );
                     } catch (error) {
                         console.error({ error });
                     }
@@ -345,6 +351,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         }
                     }
                 }
+
+                sseMessageRecordsNotify(messageRecords, rabbitMQChannel);
 
                 res.send(successResponse({ messageRecords }, userReq.lang));
             } catch (e: any) {
@@ -498,6 +506,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     }
                 }
             }
+
+            sseMessageRecordsNotify(messageRecords, rabbitMQChannel);
 
             res.send(successResponse({ messageRecords }, userReq.lang));
         } catch (e: any) {

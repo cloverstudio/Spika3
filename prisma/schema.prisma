@@ -163,6 +163,7 @@ model MessageRecord {
   user User @relation(fields: [userId], references: [id])
 
   type String @map("string")
+  reaction String? @map("reaction")
 
   createdAt  DateTime @default(now()) @map(name: "created_at")
   modifiedAt DateTime @default(now()) @map(name: "modified_at")
