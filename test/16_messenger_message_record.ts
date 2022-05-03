@@ -5,7 +5,8 @@ import app from "../server";
 import globals from "./global";
 import createFakeRoom from "./fixtures/room";
 import createFakeMessage from "./fixtures/message";
-import { Room } from ".prisma/client";
+import createFakeMessageRecord from "./fixtures/messageRecord";
+import { Room, MessageRecord } from ".prisma/client";
 
 describe("API", () => {
     describe("/api/messenger/message-record POST", () => {
@@ -92,6 +93,48 @@ describe("API", () => {
             expect(mrFromDb.type).to.eqls(validParams.type);
             expect(mrFromDb.userId).to.eqls(validParams.userId);
             expect(mrFromDb.messageId).to.eqls(validParams.messageId);
+        });
+    });
+
+    describe("/api/messenger/message-record/:id DELETE", () => {
+        let messageRecord: MessageRecord | undefined;
+
+        beforeEach(async () => {
+            const room = await createFakeRoom([{ userId: globals.userId, isAdmin: true }]);
+            const message = await createFakeMessage({
+                fromUserId: globals.userId,
+                fromDeviceId: globals.deviceId,
+                room,
+            });
+
+            messageRecord = await createFakeMessageRecord({
+                userId: globals.userId,
+                messageId: message.id,
+                type: "reaction",
+            });
+        });
+
+        it("Returns 404 if message doesn't exist", async () => {
+            const response = await supertest(app)
+                .delete("/api/messenger/message-records/165168485413514")
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(404);
+        });
+
+        it("Removes messageRecord from db", async () => {
+            const response = await supertest(app)
+                .delete("/api/messenger/message-records/" + messageRecord.id)
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(200);
+            expect(response.body.data).to.has.property("messageRecord");
+
+            const mrFromDb = await globals.prisma.messageRecord.findUnique({
+                where: { id: response.body.data.messageRecord.id },
+            });
+
+            expect(mrFromDb).to.eqls(null);
         });
     });
 

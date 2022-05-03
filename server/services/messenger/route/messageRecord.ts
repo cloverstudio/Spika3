@@ -91,9 +91,40 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         }
     );
 
+    router.delete("/:id", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        const userId = userReq.user.id;
+
+        try {
+            const id = parseInt(req.params.id as string);
+
+            const messageRecord = await prisma.messageRecord.findFirst({
+                where: { id, userId },
+            });
+
+            if (!messageRecord) {
+                return res.status(404).send(errorResponse("Not found", userReq.lang));
+            }
+
+            await prisma.messageRecord.delete({ where: { id } });
+
+            const messageRecordSanitized = sanitize(messageRecord).messageRecord();
+
+            sseMessageRecordsNotify(
+                [{ ...messageRecordSanitized, deleted: true }],
+                rabbitMQChannel
+            );
+
+            res.send(successResponse({ messageRecord: messageRecordSanitized }, userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
     router.get("/sync/:lastUpdate", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
-        const deviceId = userReq.device.id;
+        const userId = userReq.user.id;
         const lastUpdate = parseInt(req.params.lastUpdate as string);
 
         try {
@@ -103,32 +134,15 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     .send(errorResponse("lastUpdate must be number", userReq.lang));
             }
 
-            const messages = await prisma.message.findMany({
-                where: {
-                    createdAt: { gte: new Date(lastUpdate) },
-                    deviceMessages: {
-                        some: {
-                            deviceId,
-                        },
-                    },
-                },
-                orderBy: {
-                    createdAt: "desc",
-                },
-                select: {
-                    id: true,
-                },
-            });
-
-            const messagesIds = messages.map((m) => m.id);
-
-            if (!messagesIds.length) {
-                return res.send(successResponse({ messageRecords: [] }, userReq.lang));
-            }
+            const roomsUser = await prisma.roomUser.findMany({ where: { userId } });
+            const roomsIds = roomsUser.map((ru) => ru.roomId);
 
             const messageRecords = await prisma.messageRecord.findMany({
                 where: {
-                    messageId: { in: messagesIds },
+                    createdAt: { gte: new Date(lastUpdate) },
+                    message: {
+                        roomId: { in: roomsIds },
+                    },
                 },
             });
 

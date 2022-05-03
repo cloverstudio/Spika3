@@ -9,16 +9,13 @@ export default async function sseMessageRecordsNotify(
     records: Partial<
         Omit<MessageRecord, "createdAt" | "modifiedAt"> & {
             createdAt: number;
+            deleted?: boolean;
         }
     >[],
     rabbitMQChannel: amqp.Channel | undefined | null
 ): Promise<void> {
     for (const record of records) {
-        const devices = await prisma.deviceMessage.findMany({
-            where: { messageId: record.messageId },
-            select: { deviceId: true },
-        });
-        const deviceIds = devices.map((d) => d.deviceId);
+        const deviceIds = await getDeviceIdsFromMessageId(record.messageId);
 
         for (const deviceId of deviceIds) {
             rabbitMQChannel.sendToQueue(
@@ -27,7 +24,9 @@ export default async function sseMessageRecordsNotify(
                     JSON.stringify({
                         channelId: deviceId,
                         data: {
-                            type: Constants.PUSH_TYPE_NEW_MESSAGE,
+                            type: record.deleted
+                                ? Constants.PUSH_TYPE_DELETED_MESSAGE_RECORD
+                                : Constants.PUSH_TYPE_NEW_MESSAGE_RECORD,
                             messageRecord: record,
                         },
                     })
@@ -35,4 +34,22 @@ export default async function sseMessageRecordsNotify(
             );
         }
     }
+}
+
+async function getDeviceIdsFromMessageId(messageId: number): Promise<number[]> {
+    const message = await prisma.message.findUnique({
+        where: { id: messageId },
+        select: {
+            room: {
+                select: {
+                    users: { select: { user: { select: { device: { select: { id: true } } } } } },
+                },
+            },
+        },
+    });
+
+    return message.room.users.reduce(
+        (acc, curr) => [...acc, ...curr.user.device.map((d) => d.id)],
+        []
+    );
 }
