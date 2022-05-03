@@ -1,13 +1,13 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Avatar, Box, SvgIconTypeMap, IconButton, Typography, Stack } from "@mui/material";
+import { Avatar, Box, SvgIconTypeMap, IconButton } from "@mui/material";
+
 import {
     Settings,
     Edit,
     Chat as ChatIcon,
     Call as CallIcon,
     AccountCircle as ContactIcon,
-    ArrowBackIos,
 } from "@mui/icons-material";
 import { OverridableComponent } from "@mui/material/OverridableComponent";
 import { useTheme } from "@mui/material/styles";
@@ -25,9 +25,12 @@ import SidebarCallList from "./CallList";
 import SidebarChatList from "./ChatList";
 import LeftSidebarLayout from "./LeftSidebarLayout";
 import SearchBox from "./SearchBox";
+import { EditProfileView } from "./EditProfile";
 
 import logo from "../../../assets/logo.svg";
 import { selectUser } from "../../../store/userSlice";
+
+declare const UPLOADS_BASE_URL: string;
 
 type NavigationType = {
     name: "call" | "chat" | "contact";
@@ -52,6 +55,7 @@ export default function LeftSidebarHome({
     const activeTab = useSelector(selectActiveTab);
     const user = useSelector(selectUser);
     const theme = useTheme();
+    const [profileAvatarUrl, setProfileAvatarUrl] = React.useState(user.avatarUrl);
 
     const profileEditingOpen = useSelector(shouldShowProfileEditor);
 
@@ -63,33 +67,11 @@ export default function LeftSidebarHome({
     const setOpenEditor = () => dispatch(setOpenEditProfile(!profileEditingOpen));
     const closeEditor = () => dispatch(setOpenEditProfile(false));
     const ActiveElement = navigation.find((n) => n.name === activeTab)?.Element;
+
     return (
         <LeftSidebarLayout>
             {profileEditingOpen ? (
-                <Box px={2.5} borderBottom="0.5px solid #C9C9CA">
-                    <Box display="flex" height="80px" justifyContent="space-between">
-                        <Stack
-                            direction="row"
-                            alignItems="center"
-                            spacing={1}
-                            sx={{
-                                display: "flex",
-                                flexDirection: "row",
-                                justifyContent: "flex-start",
-                                width: "100%",
-                            }}
-                        >
-                            <IconButton
-                                onClick={(e) => {
-                                    closeEditor();
-                                }}
-                            >
-                                <ArrowBackIos />
-                            </IconButton>
-                            <Typography>Profile</Typography>
-                        </Stack>
-                    </Box>
-                </Box>
+                <EditProfileView onClose={closeEditor} />
             ) : (
                 <>
                     <Box px={2.5} borderBottom="0.5px solid #C9C9CA">
@@ -104,7 +86,10 @@ export default function LeftSidebarHome({
                                             setOpenEditor();
                                         }}
                                     >
-                                        <Avatar alt={user.displayName} src={user.avatarUrl} />
+                                        <Avatar
+                                            alt={user.displayName}
+                                            src={`${UPLOADS_BASE_URL}${profileAvatarUrl}`}
+                                        />
                                     </IconButton>
                                 </Box>
                                 <Box mr={3}>

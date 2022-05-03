@@ -17,6 +17,7 @@ const userApi = api.injectEndpoints({
             query: (data) => {
                 return { url: "/messenger/me", method: "PUT", data };
             },
+            invalidatesTags: [{ type: "Auth", id: "me" }],
         }),
         getUser: build.query<any, void>({
             query: () => "/messenger/me",

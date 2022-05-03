@@ -19,6 +19,7 @@ type MessageProps = {
     body: any;
     nextMessageSenderId?: number;
     previousMessageSenderId?: number;
+    clickedAnchor: Function;
 };
 
 declare const UPLOADS_BASE_URL: string;
@@ -33,6 +34,7 @@ export default function Message({
     body,
     nextMessageSenderId,
     previousMessageSenderId,
+    clickedAnchor,
 }: MessageProps): React.ReactElement {
     const roomId = +useParams().id;
 
@@ -72,22 +74,35 @@ export default function Message({
                 </Typography>
             )}
             <Box display="flex" alignItems="end">
-                {roomType === "group" && !isUsersMessage && isLastMessage ? (
-                    <Avatar
-                        sx={{ width: 26, height: 26, mr: 1, mb: "0.375rem" }}
-                        alt={sender?.displayName}
-                        src={`${UPLOADS_BASE_URL}${sender?.avatarUrl}`}
-                    />
-                ) : (
-                    <Box width="26px" mr={1}></Box>
-                )}
-                {type === "text" && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
-                {type === "image" && <ImageMessage body={body} isUsersMessage={isUsersMessage} />}
-                {type === "video" && <VideoMessage body={body} isUsersMessage={isUsersMessage} />}
-                {type === "audio" && <AudioMessage body={body} isUsersMessage={isUsersMessage} />}
-                {(type === "file" || type === "unknown") && (
-                    <FileMessage body={body} isUsersMessage={isUsersMessage} />
-                )}
+                <div
+                    onContextMenu={(e) => {
+                        e.preventDefault();
+                        clickedAnchor(e);
+                    }}
+                >
+                    {roomType === "group" && !isUsersMessage && isLastMessage ? (
+                        <Avatar
+                            sx={{ width: 26, height: 26, mr: 1, mb: "0.375rem" }}
+                            alt={sender?.displayName}
+                            src={`${UPLOADS_BASE_URL}${sender?.avatarUrl}`}
+                        />
+                    ) : (
+                        <Box width="26px" mr={1}></Box>
+                    )}
+                    {type === "text" && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
+                    {type === "image" && (
+                        <ImageMessage body={body} isUsersMessage={isUsersMessage} />
+                    )}
+                    {type === "video" && (
+                        <VideoMessage body={body} isUsersMessage={isUsersMessage} />
+                    )}
+                    {type === "audio" && (
+                        <AudioMessage body={body} isUsersMessage={isUsersMessage} />
+                    )}
+                    {(type === "file" || type === "unknown") && (
+                        <FileMessage body={body} isUsersMessage={isUsersMessage} />
+                    )}
+                </div>
             </Box>
             {isUsersMessage && <MessageStatusIcon status={getStatusIcon()} />}
         </Box>
