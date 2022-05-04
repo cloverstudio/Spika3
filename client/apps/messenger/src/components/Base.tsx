@@ -159,8 +159,18 @@ export default function AuthBase({ children }: Props): React.ReactElement {
                 }
             };
         }
+
+        const handleKeyDown = (ev: KeyboardEvent) => {
+            if (ev.altKey && ev.key === "o") {
+                window.localStorage.removeItem("access-token");
+                navigate("/");
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
         return () => {
             source && source.close();
+            window.removeEventListener("keydown", handleKeyDown);
         };
     }, [device.data?.device?.token, dispatch]);
 
