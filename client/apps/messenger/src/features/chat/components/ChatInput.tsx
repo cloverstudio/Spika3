@@ -142,8 +142,16 @@ export default function ChatInput(): React.ReactElement {
                                     sx={{ position: "absolute", top: "12px", right: "20px" }}
                                 />
                             </Box>
-
-                            <KeyboardVoiceIcon fontSize="large" color="primary" />
+                            {message.length ? (
+                                <SendIcon
+                                    onClick={() => handleSend()}
+                                    fontSize="large"
+                                    color="primary"
+                                    sx={{ cursor: "pointer" }}
+                                />
+                            ) : (
+                                <KeyboardVoiceIcon fontSize="large" color="primary" />
+                            )}
                         </>
                     ) : (
                         <>
