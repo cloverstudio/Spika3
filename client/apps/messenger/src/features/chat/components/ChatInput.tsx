@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 import {
     Box,
     CircularProgress,
@@ -22,8 +23,12 @@ import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import SendIcon from "@mui/icons-material/Send";
 import getFileIcon from "../lib/getFileIcon";
 import { useShowBasicDialog } from "../../../hooks/useModal";
+import { dynamicBaseQuery } from "../../../api/api";
+import { addMessage } from "../slice/chatSlice";
+import roomApi from "../api/room";
 
 export default function ChatInput(): React.ReactElement {
+    const dispatch = useDispatch();
     const roomId = +useParams().id;
     const [sendMessage] = useSendMessageMutation();
     const [message, setMessage] = useState("");
@@ -37,6 +42,7 @@ export default function ChatInput(): React.ReactElement {
 
     const handleSend = async () => {
         const failed: File[] = [];
+        let response;
 
         if (messageType !== "text") {
             setLoading(true);
@@ -48,12 +54,11 @@ export default function ChatInput(): React.ReactElement {
                     });
 
                     const fileType = getFileType(file.type);
-                    await sendMessage({
+                    response = await sendMessage({
                         roomId,
                         type: fileType,
                         body: { fileId: uploaded.id, thumbId: uploaded.id },
                     }).unwrap();
-
                     setFilesSent((filesSent) => filesSent + 1);
                 } catch (error) {
                     showBasicDialog({ text: "Some files are not sent!", title: "Upload error" });
@@ -62,8 +67,24 @@ export default function ChatInput(): React.ReactElement {
                 }
             }
         } else {
-            sendMessage({ roomId, type: "text", body: { text: message } });
+            response = await sendMessage({
+                roomId,
+                type: "text",
+                body: { text: message },
+            }).unwrap();
+
             setMessage("");
+        }
+
+        if (response && response.message) {
+            await dynamicBaseQuery({
+                url: "/messenger/messages/delivered",
+                method: "POST",
+                data: { messagesIds: [response.message.id] },
+            });
+            dispatch(addMessage(response.message));
+
+            setTimeout(() => dispatch(roomApi.endpoints.getHistory.initiate(1)), 100);
         }
 
         AttachmentManager.setFiles({ roomId, files: failed });
