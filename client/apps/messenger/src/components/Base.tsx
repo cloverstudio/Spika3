@@ -1,117 +1,26 @@
 import React, { createContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 
 import { CssBaseline } from "@mui/material";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { ThemeProvider } from "@mui/material/styles";
+import theme from "../theme";
 
-import SnackBar from "./snackBar";
-import BasicDialog from "./basicDialog";
+import SnackBar from "./SnackBar";
+import BasicDialog from "./BasicDialog";
+import Loader from "./Loader";
 
 import { useGetUserQuery } from "../api/auth";
-import Loader from "./Loader";
 
 import { requestForToken } from "../firebaseInit";
 import { useGetDeviceQuery, useUpdateDeviceMutation } from "../api/device";
-import { useDispatch } from "react-redux";
 import { addMessage } from "../features/chat/slice/chatSlice";
 import roomApi from "../features/chat/api/room";
 
 import { SnackbarState, SnackbarTypes } from "../types/UI";
 import { dynamicBaseQuery } from "../api/api";
+
 declare const API_BASE_URL: string;
-
-let theme = createTheme({
-    typography: {
-        fontFamily: `"Montserrat" , sans-serif`,
-        fontSize: 12,
-        fontWeightLight: 300,
-        fontWeightRegular: 400,
-        fontWeightMedium: 500,
-        fontWeightBold: 600,
-        body1: {
-            color: "#141414",
-        },
-    },
-    palette: {
-        primary: {
-            main: "#4696F0",
-        },
-        mode: "light",
-        action: {
-            disabled: "#fff",
-            disabledBackground: "#a3cbf8",
-        },
-    },
-});
-
-theme = createTheme(theme, {
-    components: {
-        MuiButton: {
-            styleOverrides: {
-                root: {
-                    padding: "16px 24px",
-                    borderRadius: "0.625rem",
-                    boxShadow: "none",
-                    textTransform: "none",
-                    fontSize: "1rem",
-                    fontWeight: theme.typography.fontWeightBold,
-                },
-            },
-        },
-        MuiFormLabel: {
-            styleOverrides: {
-                root: {
-                    color: "#9AA0A6",
-                    fontWeight: theme.typography.fontWeightMedium,
-                },
-            },
-        },
-        MuiOutlinedInput: {
-            styleOverrides: {
-                root: {
-                    "& .MuiOutlinedInput-notchedOutline": {
-                        borderRadius: "0.625rem",
-                        borderColor: "#9AA0A6",
-                    },
-                    input: {
-                        "&::placeholder": {
-                            color: "#9AA0A6",
-                            fontWeight: theme.typography.fontWeightMedium,
-                            opacity: "1",
-                        },
-                        color: theme.typography.body1.color,
-                        fontWeight: theme.typography.fontWeightMedium,
-                    },
-                },
-            },
-        },
-        MuiInput: {
-            styleOverrides: {
-                root: {
-                    borderRadius: "0.625rem",
-                    input: {
-                        "&::placeholder": {
-                            color: "#9AA0A6",
-                            fontWeight: theme.typography.fontWeightMedium,
-                            opacity: "1",
-                        },
-                        color: theme.typography.body1.color,
-                        fontWeight: theme.typography.fontWeightMedium,
-                    },
-                },
-            },
-        },
-        MuiAlertTitle: {
-            styleOverrides: {
-                root: {
-                    fontSize: "1rem",
-                    fontWeight: theme.typography.fontWeightBold,
-                    color: "#ef5350",
-                },
-            },
-        },
-    },
-});
 
 type Props = {
     children?: React.ReactNode;
@@ -121,10 +30,10 @@ export const AuthContext = createContext({ user: null });
 
 export default function AuthBase({ children }: Props): React.ReactElement {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { data: user, isFetching } = useGetUserQuery();
     const device = useGetDeviceQuery();
     const [updateDevice] = useUpdateDeviceMutation();
-    const navigate = useNavigate();
 
     const hasPushToken = device.data && device.data.device.pushToken;
 
@@ -160,6 +69,12 @@ export default function AuthBase({ children }: Props): React.ReactElement {
             };
         }
 
+        return () => {
+            source && source.close();
+        };
+    }, [device.data?.device?.token, dispatch]);
+
+    useEffect(() => {
         const handleKeyDown = (ev: KeyboardEvent) => {
             if (ev.altKey && ev.key === "o") {
                 window.localStorage.removeItem("access-token");
@@ -169,10 +84,9 @@ export default function AuthBase({ children }: Props): React.ReactElement {
 
         window.addEventListener("keydown", handleKeyDown);
         return () => {
-            source && source.close();
             window.removeEventListener("keydown", handleKeyDown);
         };
-    }, [device.data?.device?.token, dispatch]);
+    }, [navigate]);
 
     if (isFetching) {
         return <Loader />;
