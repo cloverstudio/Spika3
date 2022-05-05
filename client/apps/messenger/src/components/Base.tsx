@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 
@@ -10,7 +10,7 @@ import SnackBar from "./SnackBar";
 import BasicDialog from "./BasicDialog";
 import Loader from "./Loader";
 
-import { useGetUserQuery } from "../api/auth";
+import { useGetUserQuery } from "../features/auth/api/auth";
 
 import { requestForToken } from "../firebaseInit";
 import { useGetDeviceQuery, useUpdateDeviceMutation } from "../api/device";
@@ -26,17 +26,14 @@ type Props = {
     children?: React.ReactNode;
 };
 
-export const AuthContext = createContext({ user: null });
-
 export default function AuthBase({ children }: Props): React.ReactElement {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { data: user, isFetching } = useGetUserQuery();
+    const { data: user, isFetching, isLoading } = useGetUserQuery();
     const device = useGetDeviceQuery();
     const [updateDevice] = useUpdateDeviceMutation();
 
     const hasPushToken = device.data && device.data.device.pushToken;
-
     useEffect(() => {
         if (!isFetching && !user) {
             navigate("/");
@@ -88,7 +85,7 @@ export default function AuthBase({ children }: Props): React.ReactElement {
         };
     }, [navigate]);
 
-    if (isFetching) {
+    if (isLoading) {
         return <Loader />;
     }
 
@@ -96,11 +93,7 @@ export default function AuthBase({ children }: Props): React.ReactElement {
         return null;
     }
 
-    return (
-        <AuthContext.Provider value={{ user }}>
-            <Base>{children}</Base>
-        </AuthContext.Provider>
-    );
+    return <Base>{children}</Base>;
 }
 
 export function Base({ children }: Props): React.ReactElement {
