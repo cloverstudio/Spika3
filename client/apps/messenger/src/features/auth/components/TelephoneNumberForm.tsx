@@ -13,6 +13,14 @@ export default function TelephoneNumberForm({
     const [phoneNumber, setPhoneNumber] = React.useState<string>("");
     const [validPhoneNumber, setValidPhoneNumber] = React.useState<boolean>(false);
 
+    const handleSubmit = () => {
+        const formattedPhoneNumber = phoneNumber.startsWith("0")
+            ? phoneNumber.substring(1)
+            : phoneNumber;
+
+        onSubmit(`+${countryCode}${formattedPhoneNumber}`);
+    };
+
     return (
         <>
             <Typography
@@ -39,11 +47,12 @@ export default function TelephoneNumberForm({
                 <FormLabel sx={{ mb: 1.5, display: "block" }}>Phone number</FormLabel>
                 <CountryPicker
                     code={setCountryCode}
-                    phoneNum={setPhoneNumber}
+                    setPhoneNumber={setPhoneNumber}
+                    phoneNumber={phoneNumber}
                     validation={setValidPhoneNumber}
                 />
                 <Button
-                    onClick={() => onSubmit(`+${countryCode}${phoneNumber}`)}
+                    onClick={handleSubmit}
                     disabled={!validPhoneNumber}
                     fullWidth
                     variant="contained"
