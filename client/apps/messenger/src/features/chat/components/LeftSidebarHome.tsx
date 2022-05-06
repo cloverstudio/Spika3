@@ -28,7 +28,7 @@ import SearchBox from "./SearchBox";
 import { EditProfileView } from "./EditProfile";
 
 import logo from "../../../assets/logo.svg";
-import { selectUser } from "../../../store/userSlice";
+import { useGetUserQuery } from "../../auth/api/auth";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -53,9 +53,8 @@ export default function LeftSidebarHome({
 }): React.ReactElement {
     const dispatch = useDispatch();
     const activeTab = useSelector(selectActiveTab);
-    const user = useSelector(selectUser);
+    const { data: userData } = useGetUserQuery();
     const theme = useTheme();
-    const [profileAvatarUrl, setProfileAvatarUrl] = React.useState(user.avatarUrl);
 
     const profileEditingOpen = useSelector(shouldShowProfileEditor);
 
@@ -71,7 +70,7 @@ export default function LeftSidebarHome({
     return (
         <LeftSidebarLayout>
             {profileEditingOpen ? (
-                <EditProfileView onClose={closeEditor} />
+                <EditProfileView user={userData?.user} onClose={closeEditor} />
             ) : (
                 <>
                     <Box px={2.5} borderBottom="0.5px solid #C9C9CA">
@@ -87,8 +86,8 @@ export default function LeftSidebarHome({
                                         }}
                                     >
                                         <Avatar
-                                            alt={user.displayName}
-                                            src={`${UPLOADS_BASE_URL}${profileAvatarUrl}`}
+                                            alt={userData?.user.displayName}
+                                            src={`${UPLOADS_BASE_URL}${userData?.user.avatarUrl}`}
                                         />
                                     </IconButton>
                                 </Box>

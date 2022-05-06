@@ -19,7 +19,6 @@ import {
 } from "@mui/material";
 
 import { ArrowBackIos, CameraAlt, Close } from "@mui/icons-material";
-import { selectUser } from "../../../store/userSlice";
 import uploadFile from "../../../utils/uploadFile";
 
 import { useUpdateMutation } from "../../auth/api/auth";
@@ -30,12 +29,11 @@ import * as Constants from "../../../../../../lib/constants";
 declare const UPLOADS_BASE_URL: string;
 
 export interface EditProfileProps {
-    onClose: Function;
+    onClose: () => void;
+    user: any;
 }
 
-export function EditProfileView(props: EditProfileProps) {
-    const { onClose } = props;
-    const user = useSelector(selectUser);
+export function EditProfileView({ onClose, user }: EditProfileProps) {
     const imageRef = useRef(null);
     const [name, setName] = React.useState(user.displayName);
     const [proposedName, setProposedName] = React.useState(user.displayName);
@@ -43,7 +41,7 @@ export function EditProfileView(props: EditProfileProps) {
     const [file, setFile] = useState<File>();
     const [editProfileName, setEditProfileName] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [update, updateMutation] = useUpdateMutation();
+    const [update] = useUpdateMutation();
 
     const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setProposedName(event.target.value);
@@ -78,7 +76,7 @@ export function EditProfileView(props: EditProfileProps) {
     };
 
     const cropAndResizeSelectedFile = async (selectedFileUrl: string) => {
-        let croppedImage = await crop(
+        const croppedImage = await crop(
             selectedFileUrl,
             1,
             Constants.LSKEY_CROPSIZE,
@@ -89,7 +87,9 @@ export function EditProfileView(props: EditProfileProps) {
     };
 
     useEffect(() => {
-        handleUpdateUser();
+        if (file) {
+            handleUpdateUser();
+        }
     }, [file]);
 
     const selectedEditAction = (editAction: string) => {

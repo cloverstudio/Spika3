@@ -78,8 +78,13 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     fromUserId: userReq.user.id,
                     fromDeviceId: userReq.device.id,
                     totalUserCount: room.users.length,
+                    deliveredCount: 1,
                     localId,
                 },
+            });
+
+            await prisma.messageRecord.create({
+                data: { type: "delivered", userId: fromUserId, messageId: message.id },
             });
 
             const formattedBody = await formatMessageBody(body, type);
@@ -93,6 +98,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         await prisma.deviceMessage.create({
                             data: { ...deviceMessage, messageId: message.id },
                         });
+
+                        if (deviceMessage.deviceId === fromDeviceId) {
+                            return;
+                        }
 
                         rabbitMQChannel.sendToQueue(
                             Constants.QUEUE_PUSH,
