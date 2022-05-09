@@ -15,10 +15,10 @@ import { useGetUserQuery } from "../features/auth/api/auth";
 import { requestForToken } from "../firebaseInit";
 import { useGetDeviceQuery, useUpdateDeviceMutation } from "../api/device";
 import { addMessage } from "../features/chat/slice/chatSlice";
-import roomApi from "../features/chat/api/room";
 
 import { SnackbarState, SnackbarTypes } from "../types/UI";
 import { dynamicBaseQuery } from "../api/api";
+import { fetchHistory } from "../features/chat/slice/roomSlice";
 
 declare const API_BASE_URL: string;
 
@@ -30,10 +30,10 @@ export default function AuthBase({ children }: Props): React.ReactElement {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { data: user, isFetching, isLoading } = useGetUserQuery();
-    const device = useGetDeviceQuery();
+    const { data: deviceData, isLoading: deviceIsLoading } = useGetDeviceQuery();
     const [updateDevice] = useUpdateDeviceMutation();
 
-    const hasPushToken = device.data && device.data.device.pushToken;
+    const hasPushToken = deviceData && deviceData.device.pushToken;
     useEffect(() => {
         if (!isFetching && !user) {
             navigate("/");
@@ -41,15 +41,16 @@ export default function AuthBase({ children }: Props): React.ReactElement {
     }, [user, isFetching, navigate]);
 
     useEffect(() => {
-        if (!hasPushToken) {
+        if (!deviceIsLoading && !hasPushToken) {
+            console.log("should update device");
             requestForToken(updateDevice);
         }
-    }, [hasPushToken, updateDevice]);
+    }, [hasPushToken, updateDevice, deviceIsLoading]);
 
     useEffect(() => {
         let source: EventSource;
-        if (device.data?.device?.token && !source) {
-            source = new EventSource(`${API_BASE_URL}/sse?accesstoken=${device.data.device.token}`);
+        if (deviceData?.device?.token && !source) {
+            source = new EventSource(`${API_BASE_URL}/sse?accesstoken=${deviceData.device.token}`);
 
             source.onmessage = async function (event) {
                 const data = event.data ? JSON.parse(event.data) : {};
@@ -60,8 +61,7 @@ export default function AuthBase({ children }: Props): React.ReactElement {
                         data: { messagesIds: [data.message.id] },
                     });
                     dispatch(addMessage(data.message));
-
-                    setTimeout(() => dispatch(roomApi.endpoints.getHistory.initiate(1)), 500);
+                    dispatch(fetchHistory(1));
                 }
             };
         }
@@ -69,7 +69,7 @@ export default function AuthBase({ children }: Props): React.ReactElement {
         return () => {
             source && source.close();
         };
-    }, [device.data?.device?.token, dispatch]);
+    }, [deviceData?.device?.token, dispatch]);
 
     useEffect(() => {
         const handleKeyDown = (ev: KeyboardEvent) => {

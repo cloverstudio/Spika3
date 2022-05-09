@@ -45,7 +45,6 @@ export default createApi({
     reducerPath: "api",
     baseQuery: dynamicBaseQuery,
     tagTypes: ["User", "Auth", "Contacts", "Rooms", "Device"],
-    refetchOnMountOrArgChange: true,
 
     endpoints: () => ({}),
 });
