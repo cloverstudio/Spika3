@@ -25,7 +25,7 @@ import getFileIcon from "../lib/getFileIcon";
 import { useShowBasicDialog } from "../../../hooks/useModal";
 import { dynamicBaseQuery } from "../../../api/api";
 import { addMessage } from "../slice/chatSlice";
-import roomApi from "../api/room";
+import { fetchHistory } from "../slice/roomSlice";
 
 export default function ChatInput(): React.ReactElement {
     const dispatch = useDispatch();
@@ -83,6 +83,7 @@ export default function ChatInput(): React.ReactElement {
                 data: { messagesIds: [response.message.id] },
             });
             dispatch(addMessage(response.message));
+            dispatch(fetchHistory(1));
         }
 
         AttachmentManager.setFiles({ roomId, files: failed });

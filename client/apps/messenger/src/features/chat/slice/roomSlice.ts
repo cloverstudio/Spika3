@@ -44,18 +44,6 @@ export const roomSlice = createSlice({
         builder.addCase(fetchHistory.rejected, (state) => {
             state.loading = "failed";
         });
-        builder.addMatcher(
-            messageApi.endpoints.sendMessage.matchFulfilled,
-            (state, { payload }) => {
-                const index = state.list.findIndex((r) => r.id === payload.message.roomId);
-
-                state.list.splice(index, 1, {
-                    ...state.list[index],
-                    lastMessage: payload.message,
-                    unreadCount: 0,
-                });
-            }
-        );
         builder.addMatcher(roomApi.endpoints.createRoom.matchFulfilled, (state, { payload }) => {
             const roomsIds = state.list.map((r) => r.id);
             const notAdded = roomsIds.includes(payload.room.id);
@@ -70,10 +58,12 @@ export const roomSlice = createSlice({
             (state, { meta }) => {
                 const index = state.list.findIndex((r) => r.id === meta.arg.originalArgs);
 
-                state.list.splice(index, 1, {
-                    ...state.list[index],
-                    unreadCount: 0,
-                });
+                if (index > -1) {
+                    state.list.splice(index, 1, {
+                        ...state.list[index],
+                        unreadCount: 0,
+                    });
+                }
             }
         );
     },
