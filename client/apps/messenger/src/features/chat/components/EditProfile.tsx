@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useSelector } from "react-redux";
 import {
     Avatar,
     Box,
@@ -25,6 +24,7 @@ import { useUpdateMutation } from "../../auth/api/auth";
 
 import { crop } from "../../../utils/crop";
 import * as Constants from "../../../../../../lib/constants";
+import { useNavigate } from "react-router-dom";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -42,6 +42,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
     const [editProfileName, setEditProfileName] = useState(false);
     const [loading, setLoading] = useState(false);
     const [update] = useUpdateMutation();
+    const navigate = useNavigate();
 
     const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setProposedName(event.target.value);
@@ -163,7 +164,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                         >
                             <ArrowBackIos />
                         </IconButton>
-                        <Typography variant="h6">Profile</Typography>
+                        <Typography variant="h6">Settings</Typography>
                     </Stack>
                 </Box>
             </Box>
@@ -262,6 +263,21 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                     </Link>
                 )}
             </Stack>
+            <Box p={2} mt={2}>
+                <Link
+                    component="button"
+                    align="left"
+                    fontWeight="bold"
+                    variant="h6"
+                    underline="none"
+                    onClick={() => {
+                        window.localStorage.removeItem("access-token");
+                        navigate("/");
+                    }}
+                >
+                    Log out
+                </Link>
+            </Box>
             {editProfilePicture ? (
                 <EditPhotoDialog
                     open={editProfilePicture}
@@ -275,8 +291,8 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
 
 export interface EditPhotoDialogProps {
     open: boolean;
-    onClose: Function;
-    onConfirm: Function;
+    onClose: () => void;
+    onConfirm: (value: string) => void;
 }
 
 export function EditPhotoDialog(props: EditPhotoDialogProps) {

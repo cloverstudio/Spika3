@@ -80,27 +80,34 @@ export default function LeftSidebarHome({
                             </Box>
                             <Box display="flex" alignItems="center">
                                 <Box mr={3}>
-                                    <IconButton
-                                        onClick={(e) => {
-                                            setOpenEditor();
-                                        }}
-                                    >
-                                        <Avatar
-                                            alt={userData?.user.displayName}
-                                            src={`${UPLOADS_BASE_URL}${userData?.user.avatarUrl}`}
+                                    <Avatar
+                                        alt={userData?.user.displayName}
+                                        src={`${UPLOADS_BASE_URL}${userData?.user.avatarUrl}`}
+                                    />
+                                </Box>
+                                <Box mr={3}>
+                                    <IconButton onClick={() => setOpenEditor()}>
+                                        <Settings
+                                            sx={{
+                                                width: "20px",
+                                                height: "20px",
+                                                color: "#9BB4CF",
+                                                cursor: "pointer",
+                                            }}
                                         />
                                     </IconButton>
                                 </Box>
-                                <Box mr={3}>
-                                    <Settings
-                                        sx={{ width: "25px", color: "#9BB4CF", cursor: "pointer" }}
-                                    />
-                                </Box>
                                 <Box>
-                                    <Edit
-                                        sx={{ width: "25px", color: "#9BB4CF", cursor: "pointer" }}
-                                        onClick={() => setSidebar("new_chat")}
-                                    />
+                                    <IconButton onClick={() => setSidebar("new_chat")}>
+                                        <Edit
+                                            sx={{
+                                                width: "20px",
+                                                height: "20px",
+                                                color: "#9BB4CF",
+                                                cursor: "pointer",
+                                            }}
+                                        />
+                                    </IconButton>
                                 </Box>
                             </Box>
                         </Box>

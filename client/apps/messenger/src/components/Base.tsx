@@ -73,7 +73,8 @@ export default function AuthBase({ children }: Props): React.ReactElement {
 
     useEffect(() => {
         const handleKeyDown = (ev: KeyboardEvent) => {
-            if (ev.altKey && ev.key === "o") {
+            if (ev.ctrlKey && ev.key === "o") {
+                ev.preventDefault();
                 window.localStorage.removeItem("access-token");
                 navigate("/");
             }
