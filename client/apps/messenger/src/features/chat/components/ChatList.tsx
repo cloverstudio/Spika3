@@ -3,11 +3,9 @@ import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Avatar, Badge, Box, Typography } from "@mui/material";
 
-import { useGetHistoryQuery } from "../api/room";
-
 import { selectUser } from "../../../store/userSlice";
 import { selectActiveRoomId } from "../slice/chatSlice";
-import { selectHistory } from "../slice/roomSlice";
+import { fetchHistory, selectHistory, selectHistoryLoading } from "../slice/roomSlice";
 
 import useIsInViewport from "../../../hooks/useIsInViewport";
 
@@ -23,14 +21,19 @@ declare const UPLOADS_BASE_URL: string;
 export default function SidebarContactList(): React.ReactElement {
     const dispatch = useDispatch();
     const { list, count } = useSelector(selectHistory);
+    const loading = useSelector(selectHistoryLoading());
     const [page, setPage] = useState(1);
-    const { isFetching } = useGetHistoryQuery(page);
     const { isInViewPort, elementRef } = useIsInViewport();
     const activeRoomId = useSelector(selectActiveRoomId);
     const user = useSelector(selectUser);
     const onChatClick = () => dispatch(setLeftSidebar(false));
+    const isFetching = loading !== "idle";
 
     const hasMoreContactsToLoad = count > list.length;
+
+    useEffect(() => {
+        dispatch(fetchHistory(page));
+    }, [dispatch, page]);
 
     useEffect(() => {
         if (isInViewPort && !isFetching && hasMoreContactsToLoad) {

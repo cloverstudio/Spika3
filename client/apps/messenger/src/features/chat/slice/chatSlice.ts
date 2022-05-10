@@ -1,15 +1,26 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import MessageType from "../../../types/Message";
-import messageApi from "../api/message";
 
 import type { RootState } from "../../../store/store";
+import { dynamicBaseQuery } from "../../../api/api";
+
+export const fetchMessagesByRoomId = createAsyncThunk(
+    "messages/fetchByIdStatus",
+    async (page: number, thunkAPI) => {
+        const roomId = (thunkAPI.getState() as RootState).chat.activeRoomId;
+        console.log({ roomId, page });
+        const response = await dynamicBaseQuery(
+            `/messenger/messages/roomId/${roomId}?page=${page}`
+        );
+        return response.data;
+    }
+);
 
 interface ChatState {
     activeRoomId: number;
     messages: MessageType[];
-    sendFiles: { roomId: number; files: File[] }[];
-    sendImages: { roomId: number; images: File[] }[];
     count: { roomId: number; count: number }[];
+    loading: "idle" | "pending" | "succeeded" | "failed";
 }
 
 export const chatSlice = createSlice({
@@ -18,8 +29,7 @@ export const chatSlice = createSlice({
         activeRoomId: null,
         messages: [],
         count: [],
-        sendFiles: [],
-        sendImages: [],
+        loading: "idle",
     },
     reducers: {
         setActiveRoomId: (state, { payload }: { payload: number }) => {
@@ -31,51 +41,33 @@ export const chatSlice = createSlice({
                 state.messages = [...state.messages, payload];
             }
         },
-
-        addFiles: (state, { payload }: { payload: { roomId: number; files: File[] } }) => {
-            const indx = state.sendFiles.findIndex((m) => m.roomId === payload.roomId);
-
-            if (indx === -1) {
-                state.sendFiles.push(payload);
-                return;
-            }
-
-            state.sendFiles.splice(indx, 1, payload);
-        },
-
-        addImages: (state, { payload }: { payload: { roomId: number; images: File[] } }) => {
-            const indx = state.sendImages.findIndex((m) => m.roomId === payload.roomId);
-
-            if (indx === -1) {
-                state.sendImages.push(payload);
-                return;
-            }
-
-            state.sendImages.splice(indx, 1, payload);
-        },
     },
     extraReducers: (builder) => {
-        builder.addMatcher(
-            messageApi.endpoints.getMessagesByRoomId.matchFulfilled,
-            (state, { payload, meta }) => {
-                const messagesIds = state.messages.map((m) => m.id);
-                const notAdded = payload.list.filter(
-                    (m: { id: number }) => !messagesIds.includes(m.id)
-                );
+        builder.addCase(fetchMessagesByRoomId.fulfilled, (state, { payload }: any) => {
+            const messagesIds = state.messages.map((m) => m.id);
+            const notAdded = payload.list.filter(
+                (m: { id: number }) => !messagesIds.includes(m.id)
+            );
 
-                if (state.count.findIndex((c) => c.roomId === meta.arg.originalArgs.roomId) < 0) {
-                    state.count.push({
-                        roomId: meta.arg.originalArgs.roomId,
-                        count: payload.count,
-                    });
-                }
-                state.messages = [...state.messages, ...notAdded];
+            if (state.count.findIndex((c) => c.roomId === state.activeRoomId) < 0) {
+                state.count.push({
+                    roomId: state.activeRoomId,
+                    count: payload.count,
+                });
             }
-        );
+            state.messages = [...state.messages, ...notAdded];
+            state.loading = "idle";
+        });
+        builder.addCase(fetchMessagesByRoomId.pending, (state) => {
+            state.loading = "pending";
+        });
+        builder.addCase(fetchMessagesByRoomId.rejected, (state) => {
+            state.loading = "failed";
+        });
     },
 });
 
-export const { setActiveRoomId, addMessage, addFiles, addImages } = chatSlice.actions;
+export const { setActiveRoomId, addMessage } = chatSlice.actions;
 
 export const selectActiveRoomId = (state: RootState): number => state.chat.activeRoomId;
 export const selectRoomMessages =
@@ -86,12 +78,10 @@ export const selectRoomMessages =
 
         return { messages, count };
     };
-export const selectSendImages =
-    (roomId: number) =>
-    (state: RootState): File[] => {
-        const sendImages = state.chat.sendImages.find((s) => s.roomId === roomId);
-
-        return sendImages?.images || [];
+export const selectLoading =
+    () =>
+    (state: RootState): "idle" | "pending" | "succeeded" | "failed" => {
+        return state.chat.loading;
     };
 
 export default chatSlice.reducer;

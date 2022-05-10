@@ -1,10 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { Box } from "@mui/material";
 
-import { useGetMessagesByRoomIdQuery } from "../api/message";
-
-import { selectRoomMessages } from "../slice/chatSlice";
+import { selectRoomMessages, fetchMessagesByRoomId, selectLoading } from "../slice/chatSlice";
 
 import useIsInViewport from "../../../hooks/useIsInViewport";
 import Message from "../components/Message";
@@ -16,12 +14,14 @@ type RoomMessagesProps = {
 
 export default function RoomMessages({ roomId }: RoomMessagesProps): React.ReactElement {
     const ref = useRef<HTMLBaseElement>();
+    const dispatch = useDispatch();
     const { messages, count } = useSelector(selectRoomMessages(roomId));
+    const loading = useSelector(selectLoading());
     const [page, setPage] = useState(1);
     const [scrollTop, setScrollTop] = useState(null);
     const [scrollListenerSet, setScrollListener] = useState(false);
     const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
-    const { isFetching } = useGetMessagesByRoomIdQuery({ roomId, page });
+    const isFetching = loading !== "idle";
     const hasMoreContactsToLoad = count > messages.length;
 
     const { isInViewPort, elementRef } = useIsInViewport();
@@ -31,16 +31,23 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
     const [selectedMessageId, setMessageId] = React.useState(null);
     const open = Boolean(anchorEl);
 
+    useEffect(() => {
+        dispatch(fetchMessagesByRoomId(page));
+    }, [page, dispatch]);
+
     const handleClick = (event: React.MouseEvent<HTMLDivElement>, messageId: number) => {
         setMessageId(messageId);
         setAnchorEl(event.currentTarget);
     };
-    const handleClose = () => {
+
+    const handleCloseMessageMenu = () => {
         setAnchorEl(null);
     };
+
     const showModalMessageDetails = () => {
         setOpenMessageDetails(true);
     };
+
     const handleCloseMessageDetails = () => {
         setOpenMessageDetails(false);
     };
@@ -123,17 +130,17 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
             </Box>
             <MessageMenu
                 open={open}
-                onClose={handleClose}
+                onClose={handleCloseMessageMenu}
                 anchorElement={anchorEl}
                 showMessageDetails={showModalMessageDetails}
             />
-            {openMessageDetails ? (
+            {openMessageDetails && (
                 <MessageDetailDialog
                     open={openMessageDetails}
                     onClose={handleCloseMessageDetails}
                     messageId={selectedMessageId}
                 />
-            ) : null}
+            )}
         </Box>
     );
 }

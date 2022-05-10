@@ -83,8 +83,6 @@ export default function ChatInput(): React.ReactElement {
                 data: { messagesIds: [response.message.id] },
             });
             dispatch(addMessage(response.message));
-
-            setTimeout(() => dispatch(roomApi.endpoints.getHistory.initiate(1)), 100);
         }
 
         AttachmentManager.setFiles({ roomId, files: failed });
