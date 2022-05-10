@@ -42,6 +42,7 @@ export function EditProfileView(props: EditProfileProps) {
     const [profileAvatarUrl, setProfileAvatarUrl] = React.useState(user.avatarUrl);
     const [file, setFile] = useState<File>();
     const [editProfileName, setEditProfileName] = useState(false);
+    const [editProfilePicture, setEditProfilePicture] = useState(false);
     const [loading, setLoading] = useState(false);
     const [update, updateMutation] = useUpdateMutation();
 
@@ -63,7 +64,7 @@ export function EditProfileView(props: EditProfileProps) {
     const closeEditName = () => {
         setEditProfileName(false);
     };
-    const [editProfilePicture, setEditProfilePicture] = useState(false);
+
     const openEditPicture = () => {
         setEditProfilePicture(true);
     };
