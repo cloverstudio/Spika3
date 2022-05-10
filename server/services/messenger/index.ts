@@ -11,6 +11,7 @@ import deviceRouter from "./route/device";
 import historyRouter from "./route/history";
 import userRouter from "./route/user";
 import settingsRouter from "./route/settings";
+import messageRecordRouter from "./route/messageRecord";
 
 import * as Constants from "../../components/consts";
 import Service, { ServiceStartParams } from "../types/serviceInterface";
@@ -50,6 +51,10 @@ export default class Messenger implements Service {
         messengerRouter.use("/history", historyRouter());
         messengerRouter.use("/users", userRouter());
         messengerRouter.use("/settings", settingsRouter());
+        messengerRouter.use(
+            "/message-records",
+            messageRecordRouter({ rabbitMQChannel: this.rabbitMQChannel })
+        );
         return messengerRouter;
     }
 

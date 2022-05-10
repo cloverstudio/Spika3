@@ -1,4 +1,4 @@
-import MessageType, { MessageListType, MessageRecordListType } from "../../../types/Message";
+import MessageType, { MessageRecordListType } from "../../../types/Message";
 
 import api from "../../../api/api";
 
@@ -7,11 +7,6 @@ const messageApi = api.injectEndpoints({
         sendMessage: build.mutation<{ message: MessageType }, any>({
             query: (data) => {
                 return { url: "/messenger/messages", data, method: "POST" };
-            },
-        }),
-        getMessagesByRoomId: build.query<MessageListType, { roomId: number; page: number }>({
-            query: ({ roomId, page }) => {
-                return `/messenger/messages/roomId/${roomId}?page=${page}`;
             },
         }),
         markRoomMessagesAsSeen: build.mutation<any, number>({
@@ -30,7 +25,6 @@ const messageApi = api.injectEndpoints({
 });
 
 export const {
-    useGetMessagesByRoomIdQuery,
     useSendMessageMutation,
     useMarkRoomMessagesAsSeenMutation,
     useGetMessageRecordsByIdQuery,

@@ -1,133 +1,39 @@
-import React, { createContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 
 import { CssBaseline } from "@mui/material";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { ThemeProvider } from "@mui/material/styles";
+import theme from "../theme";
 
-import SnackBar from "./snackBar";
-import BasicDialog from "./basicDialog";
-
-import { useGetUserQuery } from "../api/auth";
+import SnackBar from "./SnackBar";
+import BasicDialog from "./BasicDialog";
 import Loader from "./Loader";
+
+import { useGetUserQuery } from "../features/auth/api/auth";
 
 import { requestForToken } from "../firebaseInit";
 import { useGetDeviceQuery, useUpdateDeviceMutation } from "../api/device";
-import { useDispatch } from "react-redux";
 import { addMessage } from "../features/chat/slice/chatSlice";
-import roomApi from "../features/chat/api/room";
 
 import { SnackbarState, SnackbarTypes } from "../types/UI";
 import { dynamicBaseQuery } from "../api/api";
+import { fetchHistory } from "../features/chat/slice/roomSlice";
+
 declare const API_BASE_URL: string;
-
-let theme = createTheme({
-    typography: {
-        fontFamily: `"Montserrat" , sans-serif`,
-        fontSize: 12,
-        fontWeightLight: 300,
-        fontWeightRegular: 400,
-        fontWeightMedium: 500,
-        fontWeightBold: 600,
-        body1: {
-            color: "#141414",
-        },
-    },
-    palette: {
-        primary: {
-            main: "#4696F0",
-        },
-        mode: "light",
-        action: {
-            disabled: "#fff",
-            disabledBackground: "#a3cbf8",
-        },
-    },
-});
-
-theme = createTheme(theme, {
-    components: {
-        MuiButton: {
-            styleOverrides: {
-                root: {
-                    padding: "16px 24px",
-                    borderRadius: "0.625rem",
-                    boxShadow: "none",
-                    textTransform: "none",
-                    fontSize: "1rem",
-                    fontWeight: theme.typography.fontWeightBold,
-                },
-            },
-        },
-        MuiFormLabel: {
-            styleOverrides: {
-                root: {
-                    color: "#9AA0A6",
-                    fontWeight: theme.typography.fontWeightMedium,
-                },
-            },
-        },
-        MuiOutlinedInput: {
-            styleOverrides: {
-                root: {
-                    "& .MuiOutlinedInput-notchedOutline": {
-                        borderRadius: "0.625rem",
-                        borderColor: "#9AA0A6",
-                    },
-                    input: {
-                        "&::placeholder": {
-                            color: "#9AA0A6",
-                            fontWeight: theme.typography.fontWeightMedium,
-                            opacity: "1",
-                        },
-                        color: theme.typography.body1.color,
-                        fontWeight: theme.typography.fontWeightMedium,
-                    },
-                },
-            },
-        },
-        MuiInput: {
-            styleOverrides: {
-                root: {
-                    borderRadius: "0.625rem",
-                    input: {
-                        "&::placeholder": {
-                            color: "#9AA0A6",
-                            fontWeight: theme.typography.fontWeightMedium,
-                            opacity: "1",
-                        },
-                        color: theme.typography.body1.color,
-                        fontWeight: theme.typography.fontWeightMedium,
-                    },
-                },
-            },
-        },
-        MuiAlertTitle: {
-            styleOverrides: {
-                root: {
-                    fontSize: "1rem",
-                    fontWeight: theme.typography.fontWeightBold,
-                    color: "#ef5350",
-                },
-            },
-        },
-    },
-});
 
 type Props = {
     children?: React.ReactNode;
 };
 
-export const AuthContext = createContext({ user: null });
-
 export default function AuthBase({ children }: Props): React.ReactElement {
     const dispatch = useDispatch();
-    const { data: user, isFetching } = useGetUserQuery();
-    const device = useGetDeviceQuery();
-    const [updateDevice] = useUpdateDeviceMutation();
     const navigate = useNavigate();
+    const { data: user, isFetching, isLoading } = useGetUserQuery();
+    const { data: deviceData, isLoading: deviceIsLoading } = useGetDeviceQuery();
+    const [updateDevice] = useUpdateDeviceMutation();
 
-    const hasPushToken = device.data && device.data.device.pushToken;
-
+    const hasPushToken = deviceData && deviceData.device.pushToken;
     useEffect(() => {
         if (!isFetching && !user) {
             navigate("/");
@@ -135,15 +41,16 @@ export default function AuthBase({ children }: Props): React.ReactElement {
     }, [user, isFetching, navigate]);
 
     useEffect(() => {
-        if (!hasPushToken) {
+        if (!deviceIsLoading && !hasPushToken) {
+            console.log("should update device");
             requestForToken(updateDevice);
         }
-    }, [hasPushToken, updateDevice]);
+    }, [hasPushToken, updateDevice, deviceIsLoading]);
 
     useEffect(() => {
         let source: EventSource;
-        if (device.data?.device?.token && !source) {
-            source = new EventSource(`${API_BASE_URL}/sse?accesstoken=${device.data.device.token}`);
+        if (deviceData?.device?.token && !source) {
+            source = new EventSource(`${API_BASE_URL}/sse?accesstoken=${deviceData.device.token}`);
 
             source.onmessage = async function (event) {
                 const data = event.data ? JSON.parse(event.data) : {};
@@ -154,17 +61,32 @@ export default function AuthBase({ children }: Props): React.ReactElement {
                         data: { messagesIds: [data.message.id] },
                     });
                     dispatch(addMessage(data.message));
-
-                    setTimeout(() => dispatch(roomApi.endpoints.getHistory.initiate(1)), 500);
+                    dispatch(fetchHistory(1));
                 }
             };
         }
+
         return () => {
             source && source.close();
         };
-    }, [device.data?.device?.token, dispatch]);
+    }, [deviceData?.device?.token, dispatch]);
 
-    if (isFetching) {
+    useEffect(() => {
+        const handleKeyDown = (ev: KeyboardEvent) => {
+            if (ev.ctrlKey && ev.key === "o") {
+                ev.preventDefault();
+                window.localStorage.removeItem("access-token");
+                navigate("/");
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [navigate]);
+
+    if (isLoading) {
         return <Loader />;
     }
 
@@ -172,11 +94,7 @@ export default function AuthBase({ children }: Props): React.ReactElement {
         return null;
     }
 
-    return (
-        <AuthContext.Provider value={{ user }}>
-            <Base>{children}</Base>
-        </AuthContext.Provider>
-    );
+    return <Base>{children}</Base>;
 }
 
 export function Base({ children }: Props): React.ReactElement {

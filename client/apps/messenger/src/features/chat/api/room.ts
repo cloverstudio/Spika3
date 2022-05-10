@@ -1,4 +1,4 @@
-import Rooms, { RoomType, HistoryType } from "../../../types/Rooms";
+import Rooms, { RoomType } from "../../../types/Rooms";
 import api from "../../../api/api";
 
 const roomApi = api.injectEndpoints({
@@ -6,10 +6,6 @@ const roomApi = api.injectEndpoints({
         getRooms: build.query<Rooms, number>({
             query: (page) => `/messenger/rooms?page=${page}`,
             providesTags: [{ type: "Rooms", id: "LIST" }],
-        }),
-        getHistory: build.query<HistoryType, number>({
-            query: (page) => `/messenger/history?page=${page}`,
-            providesTags: [{ type: "Rooms", id: "HISTORY" }],
         }),
         getRoom: build.query<{ room: RoomType }, number>({
             query: (id) => `/messenger/rooms/${id}`,
@@ -33,6 +29,7 @@ const roomApi = api.injectEndpoints({
     overrideExisting: true,
 });
 
+<<<<<<< HEAD
 export const {
     useGetHistoryQuery,
     useGetRoomsQuery,
@@ -41,4 +38,8 @@ export const {
     useCreateRoomMutation,
     useUpdateRoomMutation,
 } = roomApi;
+=======
+export const { useGetRoomsQuery, useGetRoomByUserIdQuery, useGetRoomQuery, useCreateRoomMutation } =
+    roomApi;
+>>>>>>> work/1.0.0/main
 export default roomApi;

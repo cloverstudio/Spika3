@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useSelector } from "react-redux";
 import {
     Avatar,
     Box,
@@ -19,23 +18,22 @@ import {
 } from "@mui/material";
 
 import { ArrowBackIos, CameraAlt, Close } from "@mui/icons-material";
-import { selectUser } from "../../../store/userSlice";
 import uploadFile from "../../../utils/uploadFile";
 
 import { useUpdateMutation } from "../../auth/api/auth";
 
 import { crop } from "../../../utils/crop";
 import * as Constants from "../../../../../../lib/constants";
+import { useNavigate } from "react-router-dom";
 
 declare const UPLOADS_BASE_URL: string;
 
 export interface EditProfileProps {
-    onClose: Function;
+    onClose: () => void;
+    user: any;
 }
 
-export function EditProfileView(props: EditProfileProps) {
-    const { onClose } = props;
-    const user = useSelector(selectUser);
+export function EditProfileView({ onClose, user }: EditProfileProps) {
     const imageRef = useRef(null);
     const [name, setName] = React.useState(user.displayName);
     const [proposedName, setProposedName] = React.useState(user.displayName);
@@ -44,7 +42,8 @@ export function EditProfileView(props: EditProfileProps) {
     const [editProfileName, setEditProfileName] = useState(false);
     const [editProfilePicture, setEditProfilePicture] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [update, updateMutation] = useUpdateMutation();
+    const [update] = useUpdateMutation();
+    const navigate = useNavigate();
 
     const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setProposedName(event.target.value);
@@ -79,7 +78,7 @@ export function EditProfileView(props: EditProfileProps) {
     };
 
     const cropAndResizeSelectedFile = async (selectedFileUrl: string) => {
-        let croppedImage = await crop(
+        const croppedImage = await crop(
             selectedFileUrl,
             1,
             Constants.LSKEY_CROPSIZE,
@@ -90,7 +89,9 @@ export function EditProfileView(props: EditProfileProps) {
     };
 
     useEffect(() => {
-        handleUpdateUser();
+        if (file) {
+            handleUpdateUser();
+        }
     }, [file]);
 
     const selectedEditAction = (editAction: string) => {
@@ -164,7 +165,7 @@ export function EditProfileView(props: EditProfileProps) {
                         >
                             <ArrowBackIos />
                         </IconButton>
-                        <Typography variant="h6">Profile</Typography>
+                        <Typography variant="h6">Settings</Typography>
                     </Stack>
                 </Box>
             </Box>
@@ -263,6 +264,21 @@ export function EditProfileView(props: EditProfileProps) {
                     </Link>
                 )}
             </Stack>
+            <Box p={2} mt={2}>
+                <Link
+                    component="button"
+                    align="left"
+                    fontWeight="bold"
+                    variant="h6"
+                    underline="none"
+                    onClick={() => {
+                        window.localStorage.removeItem("access-token");
+                        navigate("/");
+                    }}
+                >
+                    Log out
+                </Link>
+            </Box>
             {editProfilePicture ? (
                 <EditPhotoDialog
                     open={editProfilePicture}
@@ -276,8 +292,8 @@ export function EditProfileView(props: EditProfileProps) {
 
 export interface EditPhotoDialogProps {
     open: boolean;
-    onClose: Function;
-    onConfirm: Function;
+    onClose: () => void;
+    onConfirm: (value: string) => void;
 }
 
 export function EditPhotoDialog(props: EditPhotoDialogProps) {

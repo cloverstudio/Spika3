@@ -19,7 +19,7 @@ type MessageProps = {
     body: any;
     nextMessageSenderId?: number;
     previousMessageSenderId?: number;
-    clickedAnchor: Function;
+    clickedAnchor: (event: React.MouseEvent<HTMLDivElement>, messageId: number) => void;
 };
 
 declare const UPLOADS_BASE_URL: string;
@@ -73,36 +73,30 @@ export default function Message({
                     {sender?.displayName}
                 </Typography>
             )}
-            <Box display="flex" alignItems="end">
-                <div
-                    onContextMenu={(e) => {
-                        e.preventDefault();
-                        clickedAnchor(e);
-                    }}
-                >
-                    {roomType === "group" && !isUsersMessage && isLastMessage ? (
-                        <Avatar
-                            sx={{ width: 26, height: 26, mr: 1, mb: "0.375rem" }}
-                            alt={sender?.displayName}
-                            src={`${UPLOADS_BASE_URL}${sender?.avatarUrl}`}
-                        />
-                    ) : (
-                        <Box width="26px" mr={1}></Box>
-                    )}
-                    {type === "text" && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
-                    {type === "image" && (
-                        <ImageMessage body={body} isUsersMessage={isUsersMessage} />
-                    )}
-                    {type === "video" && (
-                        <VideoMessage body={body} isUsersMessage={isUsersMessage} />
-                    )}
-                    {type === "audio" && (
-                        <AudioMessage body={body} isUsersMessage={isUsersMessage} />
-                    )}
-                    {(type === "file" || type === "unknown") && (
-                        <FileMessage body={body} isUsersMessage={isUsersMessage} />
-                    )}
-                </div>
+            <Box
+                display="flex"
+                alignItems="end"
+                onContextMenu={(e) => {
+                    e.preventDefault();
+                    clickedAnchor(e, id);
+                }}
+            >
+                {roomType === "group" && !isUsersMessage && isLastMessage ? (
+                    <Avatar
+                        sx={{ width: 26, height: 26, mr: 1, mb: "0.375rem" }}
+                        alt={sender?.displayName}
+                        src={`${UPLOADS_BASE_URL}${sender?.avatarUrl}`}
+                    />
+                ) : (
+                    <Box width="26px" mr={1}></Box>
+                )}
+                {type === "text" && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
+                {type === "image" && <ImageMessage body={body} isUsersMessage={isUsersMessage} />}
+                {type === "video" && <VideoMessage body={body} isUsersMessage={isUsersMessage} />}
+                {type === "audio" && <AudioMessage body={body} isUsersMessage={isUsersMessage} />}
+                {(type === "file" || type === "unknown") && (
+                    <FileMessage body={body} isUsersMessage={isUsersMessage} />
+                )}
             </Box>
             {isUsersMessage && <MessageStatusIcon status={getStatusIcon()} />}
         </Box>
@@ -213,7 +207,7 @@ function AudioMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
     );
 }
 
-function TextMessage({ isUsersMessage, body }: { isUsersMessage: boolean; body: any }) {
+function TextMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boolean }) {
     return (
         <Box
             maxWidth="35rem"

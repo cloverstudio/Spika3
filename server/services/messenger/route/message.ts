@@ -14,6 +14,7 @@ import * as Constants from "../../../components/consts";
 import { InitRouterParams } from "../../types/serviceInterface";
 import sanitize from "../../../components/sanitize";
 import { formatMessageBody } from "../../../components/message";
+import sseMessageRecordsNotify from "../lib/sseMessageRecordsNotify";
 
 const prisma = new PrismaClient();
 
@@ -77,8 +78,13 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     fromUserId: userReq.user.id,
                     fromDeviceId: userReq.device.id,
                     totalUserCount: room.users.length,
+                    deliveredCount: 1,
                     localId,
                 },
+            });
+
+            await prisma.messageRecord.create({
+                data: { type: "delivered", userId: fromUserId, messageId: message.id },
             });
 
             const formattedBody = await formatMessageBody(body, type);
@@ -92,6 +98,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         await prisma.deviceMessage.create({
                             data: { ...deviceMessage, messageId: message.id },
                         });
+
+                        if (deviceMessage.deviceId === fromDeviceId) {
+                            return;
+                        }
 
                         rabbitMQChannel.sendToQueue(
                             Constants.QUEUE_PUSH,
@@ -226,6 +236,11 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                                 deliveredCount: { increment: 1 },
                             },
                         });
+
+                        sseMessageRecordsNotify(
+                            [sanitize(record).messageRecord()],
+                            rabbitMQChannel
+                        );
                     } catch (error) {
                         console.error({ error });
                     }
@@ -345,6 +360,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         }
                     }
                 }
+
+                sseMessageRecordsNotify(messageRecords, rabbitMQChannel);
 
                 res.send(successResponse({ messageRecords }, userReq.lang));
             } catch (e: any) {
@@ -498,6 +515,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     }
                 }
             }
+
+            sseMessageRecordsNotify(messageRecords, rabbitMQChannel);
 
             res.send(successResponse({ messageRecords }, userReq.lang));
         } catch (e: any) {

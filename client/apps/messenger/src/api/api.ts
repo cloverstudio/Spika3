@@ -1,11 +1,16 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import axios, { Method } from "axios";
+import { showSnackBar } from "../store/modalSlice";
 
 declare const API_BASE_URL: string;
 
 const axiosBaseQuery =
     ({ baseUrl } = { baseUrl: "" }) =>
-    async ({ url, method, data }: { url: string; method: Method; data: any }, token: string) => {
+    async (
+        { url, method, data }: { url: string; method: Method; data: any },
+        token: string,
+        dispatch?: any
+    ) => {
         try {
             const result = await axios({
                 url: baseUrl + url,
@@ -25,7 +30,15 @@ const axiosBaseQuery =
             return { data: result.data.data };
         } catch (error) {
             console.error({ [url]: error });
-
+            const text = (error as any)?.message || "Unexpected server error";
+            if (dispatch) {
+                dispatch(
+                    showSnackBar({
+                        severity: "error",
+                        text,
+                    })
+                );
+            }
             throw error;
         }
     };
@@ -34,18 +47,17 @@ const rawBaseQuery = axiosBaseQuery({
     baseUrl: API_BASE_URL,
 });
 
-export const dynamicBaseQuery = async (args: any) => {
+export const dynamicBaseQuery = async (args: any, options?: { dispatch: any }) => {
     const token = window.localStorage.getItem("access-token");
 
     const argsObj = typeof args === "string" ? { url: args } : await args;
-    return rawBaseQuery(argsObj, token);
+    return rawBaseQuery(argsObj, token, options?.dispatch);
 };
 
 export default createApi({
     reducerPath: "api",
     baseQuery: dynamicBaseQuery,
     tagTypes: ["User", "Auth", "Contacts", "Rooms", "Device"],
-    refetchOnMountOrArgChange: true,
 
     endpoints: () => ({}),
 });

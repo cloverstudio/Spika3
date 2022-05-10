@@ -42,7 +42,7 @@ const CountryPicker = (props: any) => {
         setSearchText(event.target.value);
     };
     const handlePhoneNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
-        props.phoneNum(event.target.value);
+        props.setPhoneNumber(event.target.value);
         const checkPhone = "+" + countryCode + event.target.value;
         props.validation(isValidPhoneNumber(checkPhone));
     };
@@ -52,6 +52,7 @@ const CountryPicker = (props: any) => {
     ) => {
         setCountryCode(tempCountries[index].phone);
         props.code(tempCountries[index].phone);
+        props.validation(isValidPhoneNumber("+" + tempCountries[index].phone + props.phoneNumber));
         setOpenMenu(!openMenu);
     };
 

@@ -1,18 +1,5 @@
-import {
-    createSlice,
-    PayloadAction,
-    Action,
-    PayloadActionCreator,
-    createAsyncThunk,
-} from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-import { SnackbarProps } from "@mui/material";
-
-import type { RootState } from "./store";
-
-import API from "../../../../lib/api";
-
-// Define a type for the slice state
 interface UIState {
     showSnackBar: boolean;
     snackBarInfo: snackBarInfo | null;
@@ -34,7 +21,6 @@ interface basicDialogInfo {
 
 export const uiSlice = createSlice({
     name: <string>"ui",
-    // `createSlice` will infer the state type from the `initialState` argument
     initialState: <UIState>{
         showSnackBar: false,
         snackBarInfo: null,
@@ -46,14 +32,14 @@ export const uiSlice = createSlice({
             state.showSnackBar = true;
             state.snackBarInfo = action.payload;
         },
-        hideSnackBar: (state, action: PayloadAction<snackBarInfo>) => {
+        hideSnackBar: (state) => {
             state.showSnackBar = false;
         },
         showBasicDialog: (state, action: PayloadAction<basicDialogInfo>) => {
             state.showBasicDialog = true;
             state.basicDialogInfo = action.payload;
         },
-        hideBasicDialog: (state, action: PayloadAction<snackBarInfo>) => {
+        hideBasicDialog: (state) => {
             state.showBasicDialog = false;
         },
     },

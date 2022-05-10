@@ -75,6 +75,8 @@ export default class SSEService implements Service {
             const channelId = String(userReq.device.id);
 
             const connectionId = this.notificationServer.subscribe(channelId, (data) => {
+                console.log(`Device id: ${channelId} - Event - ${data.type}`);
+
                 const eventData = "data: " + JSON.stringify(data) + "\n\n";
                 res.write(eventData);
             });
