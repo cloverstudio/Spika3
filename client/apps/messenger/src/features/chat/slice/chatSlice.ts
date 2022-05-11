@@ -6,9 +6,7 @@ import { dynamicBaseQuery } from "../../../api/api";
 
 export const fetchMessagesByRoomId = createAsyncThunk(
     "messages/fetchByIdStatus",
-    async (page: number, thunkAPI) => {
-        const roomId = (thunkAPI.getState() as RootState).chat.activeRoomId;
-
+    async ({ page, roomId }: { page: number; roomId: number }) => {
         const response = await dynamicBaseQuery(
             `/messenger/messages/roomId/${roomId}?page=${page}`
         );

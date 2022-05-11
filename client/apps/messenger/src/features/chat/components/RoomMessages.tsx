@@ -32,8 +32,8 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
     const open = Boolean(anchorEl);
 
     useEffect(() => {
-        dispatch(fetchMessagesByRoomId(page));
-    }, [page, dispatch]);
+        dispatch(fetchMessagesByRoomId({ roomId, page }));
+    }, [page, dispatch, roomId]);
 
     const handleClick = (event: React.MouseEvent<HTMLDivElement>, messageId: number) => {
         setMessageId(messageId);
