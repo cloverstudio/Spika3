@@ -67,6 +67,7 @@ export default function Message({
             flexDirection="column"
             alignItems={isUsersMessage ? "end" : "start"}
             textAlign={isUsersMessage ? "right" : "left"}
+            mb={"0.375rem"}
         >
             {roomType === "group" && !isUsersMessage && isFirstMessage && (
                 <Typography color="#9AA0A6" fontWeight={600} fontSize="0.75rem" pl="26px" ml={2}>
@@ -97,8 +98,8 @@ export default function Message({
                 {(type === "file" || type === "unknown") && (
                     <FileMessage body={body} isUsersMessage={isUsersMessage} />
                 )}
+                {isUsersMessage && <MessageStatusIcon status={getStatusIcon()} />}
             </Box>
-            {isUsersMessage && <MessageStatusIcon status={getStatusIcon()} />}
         </Box>
     );
 }
@@ -114,9 +115,10 @@ function ImageMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
                 component="img"
                 borderRadius="0.625rem"
                 maxWidth="35rem"
+                height="10rem"
+                width="auto"
                 src={`${UPLOADS_BASE_URL}${body.file.path}`}
                 pb="0.8125"
-                mb="0.375rem"
             />
         </Box>
     );
@@ -140,7 +142,6 @@ function FileMessage({ body, isUsersMessage }: { body: any; isUsersMessage: bool
                 borderRadius="0.625rem"
                 maxWidth="35rem"
                 p="1.25rem"
-                mb="0.375rem"
                 gap="1.25rem"
                 bgcolor={isUsersMessage ? "#C8EBFE" : "#F2F2F2"}
             >
@@ -180,7 +181,6 @@ function VideoMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
                 controls
                 src={`${UPLOADS_BASE_URL}${body.file.path}`}
                 pb="0.8125"
-                mb="0.375rem"
             />
         </Box>
     );
@@ -193,14 +193,7 @@ function AudioMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
     return (
         <Box display="flex" flexDirection="column" alignItems={isUsersMessage ? "end" : "start"}>
             {body.text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
-            <Box
-                component="audio"
-                controls
-                borderRadius="0.625rem"
-                maxWidth="35rem"
-                pb="0.8125"
-                mb="0.375rem"
-            >
+            <Box component="audio" controls borderRadius="0.625rem" maxWidth="35rem" pb="0.8125">
                 <source type={body.file.type} src={`${UPLOADS_BASE_URL}${body.file.path}`} />
             </Box>
         </Box>
@@ -214,7 +207,6 @@ function TextMessage({ isUsersMessage, body }: { body: any; isUsersMessage: bool
             bgcolor={isUsersMessage ? "#C8EBFE" : "#F2F2F2"}
             borderRadius="0.625rem"
             p="0.625rem"
-            mb="0.375rem"
             width="max-content"
         >
             <Typography fontWeight={500} fontSize="0.875rem" color="#131940" lineHeight="1.0625rem">
