@@ -60,13 +60,23 @@ export default function ChatInput(): React.ReactElement {
                         body: { fileId: uploaded.id, thumbId: uploaded.id },
                     }).unwrap();
                     setFilesSent((filesSent) => filesSent + 1);
+
+                    if (response && response.message) {
+                        dispatch(addMessage(response.message));
+                        dispatch(fetchHistory(1));
+                    }
                 } catch (error) {
                     showBasicDialog({ text: "Some files are not sent!", title: "Upload error" });
                     failed.push(file);
                     console.log({ failed: file, error });
                 }
             }
-        } else {
+
+            AttachmentManager.setFiles({ roomId, files: failed });
+            setFailedToUploadFiles(failed);
+            setLoading(false);
+            setFilesSent(0);
+        } else if (message.length) {
             response = await sendMessage({
                 roomId,
                 type: "text",
@@ -74,22 +84,11 @@ export default function ChatInput(): React.ReactElement {
             }).unwrap();
 
             setMessage("");
+            if (response && response.message) {
+                dispatch(addMessage(response.message));
+                dispatch(fetchHistory(1));
+            }
         }
-
-        if (response && response.message) {
-            await dynamicBaseQuery({
-                url: "/messenger/messages/delivered",
-                method: "POST",
-                data: { messagesIds: [response.message.id] },
-            });
-            dispatch(addMessage(response.message));
-            dispatch(fetchHistory(1));
-        }
-
-        AttachmentManager.setFiles({ roomId, files: failed });
-        setFailedToUploadFiles(failed);
-        setLoading(false);
-        setFilesSent(0);
     };
 
     useEffect(() => {
