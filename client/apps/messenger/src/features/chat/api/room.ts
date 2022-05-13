@@ -20,26 +20,22 @@ const roomApi = api.injectEndpoints({
             query: (userId) => `/messenger/rooms/users/${userId}`,
             providesTags: (res) => res && res.room?.id && [{ type: "Rooms", id: res.room.id }],
         }),
-        updateRoom: build.mutation<{ roomId: number; data: any }, any>({
+        updateRoom: build.mutation<{ roomId: number; data: RoomType }, any>({
             query: ({ roomId, data }) => {
                 return { url: `/messenger/rooms/${roomId}`, method: "PUT", data };
             },
+            invalidatesTags: (result, error, arg) => [{ type: "Rooms", id: arg.roomId }],
         }),
     }),
     overrideExisting: true,
 });
 
-<<<<<<< HEAD
 export const {
-    useGetHistoryQuery,
     useGetRoomsQuery,
     useGetRoomByUserIdQuery,
     useGetRoomQuery,
     useCreateRoomMutation,
     useUpdateRoomMutation,
 } = roomApi;
-=======
-export const { useGetRoomsQuery, useGetRoomByUserIdQuery, useGetRoomQuery, useCreateRoomMutation } =
-    roomApi;
->>>>>>> work/1.0.0/main
+
 export default roomApi;

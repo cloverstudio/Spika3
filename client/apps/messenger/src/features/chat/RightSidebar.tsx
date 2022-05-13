@@ -15,6 +15,8 @@ import {
     CircularProgress,
     Button,
     Link,
+    Dialog,
+    DialogTitle,
 } from "@mui/material";
 import {
     Close,
@@ -24,6 +26,7 @@ import {
     WarningAmber,
     DoDisturb,
     CameraAlt,
+    Check,
 } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { hide as hideRightSidebar } from "./slice/rightSidebarSlice";
@@ -36,6 +39,11 @@ import * as Constants from "../../../../../lib/constants";
 import uploadFile from "../../utils/uploadFile";
 import { EditPhotoDialog } from "../chat/components/EditProfile";
 import { useUpdateRoomMutation } from "../chat/api/room";
+import { useGetContactsQuery } from "../chat/api/contacts";
+import { selectContacts } from "../../features/chat/slice/contactsSlice";
+import User from "../../../src/types/User";
+import ContactRow from "../chat/components/ContactList";
+import { bool } from "yup";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -79,7 +87,7 @@ export default function RightSidebar(): React.ReactElement {
             </Box>
             <DetailsBasicInfoView roomData={data.room} />
             <DetailsAdditionalInfoView selectedInfo={handleDetailActions} />
-            {!isItPrivate ? <DetailsMemberView members={data.room.users} /> : null}
+            {!isItPrivate ? <DetailsMemberView members={data.room.users} roomId={roomId} /> : null}
             <DetailsDestructiveActionsView isItPrivateChat={isItPrivate} otherUser={otherUser} />
         </Box>
     );
@@ -157,7 +165,10 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
     const removeProfilePhoto = async () => {
         try {
             setLoading(true);
-            await update({ roomId: roomData.id, name: proposedName, avatarUrl: "" }).unwrap();
+            await update({
+                roomId: roomData.id,
+                data: { name: proposedName, avatarUrl: "" },
+            }).unwrap();
             setProfileAvatarUrl("");
             setLoading(false);
             closeEditName();
@@ -181,12 +192,11 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
 
                 await update({
                     roomId: roomData.id,
-                    name: proposedName,
-                    avatarUrl: uploadedFile.path,
+                    data: { name: proposedName, avatarUrl: uploadedFile.path },
                 }).unwrap();
                 setProfileAvatarUrl(uploadedFile.path);
             } else {
-                await update({ roomId: roomData.id, name: proposedName }).unwrap();
+                await update({ roomId: roomData.id, data: { name: proposedName } }).unwrap();
             }
 
             setName(proposedName);
@@ -200,7 +210,9 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
     };
 
     useEffect(() => {
-        handleUpdateGroup();
+        if (file) {
+            handleUpdateGroup();
+        }
     }, [file]);
 
     return (
@@ -498,24 +510,58 @@ export function DetailsAdditionalInfoView(props: DetailsAdditionalInfoProps) {
 
 export interface DetailsMembersProps {
     members: RoomUserType[];
+    roomId: number;
 }
 
 export function DetailsMemberView(props: DetailsMembersProps) {
-    const { members } = props;
+    const { members, roomId } = props;
     const me = useSelector(selectUser);
     var amIAdmin: boolean = false;
+    const [showMore, setShowMore] = useState(false);
+    const [update, updateMutation] = useUpdateRoomMutation();
+    const [openAddDialog, setOpenAddDialog] = useState(false);
 
     members
         .filter((person) => person.userId == me.id)
         .map((filteredPerson) => (amIAdmin = filteredPerson.isAdmin));
 
     var membersArray: RoomUserType[] = [];
+    var memberIdsArray: number[] = [];
 
-    if (members.length > 4) {
-        membersArray = members.slice(0, 4);
-    } else {
-        membersArray = members;
-    }
+    members.forEach((member) => {
+        memberIdsArray.push(member.userId);
+    });
+
+    const filterMembersArray = () => {
+        if (members.length > 4 && showMore) {
+            membersArray = members.slice(0, 4);
+        } else {
+            membersArray = members;
+        }
+    };
+
+    const removeMemberWithId = (memberId: number) => {
+        var membersArray: number[] = [];
+        members.forEach((participant) => {
+            if (participant.userId != memberId) {
+                membersArray.push(participant.userId);
+            }
+        });
+        handleUpdateGroup(membersArray);
+    };
+
+    const handleUpdateGroup = async (memberIds: number[]) => {
+        await update({ roomId: roomId, data: { userIds: memberIds } }).unwrap();
+    };
+
+    const closeAddMemberDialog = () => {
+        setOpenAddDialog(false);
+    };
+
+    useEffect(() => {
+        filterMembersArray();
+    }, [showMore]);
+
     return (
         <Box padding="12px">
             <Stack
@@ -530,9 +576,17 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                 }}
             >
                 <Typography variant="h6"> {members.length} Members</Typography>
-                <IconButton size="large" color="primary">
-                    <Add />
-                </IconButton>
+                {amIAdmin ? (
+                    <IconButton
+                        size="large"
+                        color="primary"
+                        onClick={(e) => {
+                            setOpenAddDialog(true);
+                        }}
+                    >
+                        <Add />
+                    </IconButton>
+                ) : null}
             </Stack>
             <List
                 dense
@@ -551,7 +605,13 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                                 value.isAdmin ? (
                                     <Typography>Admin</Typography>
                                 ) : amIAdmin ? (
-                                    <IconButton size="large" color="primary" onClick={(e) => {}}>
+                                    <IconButton
+                                        size="large"
+                                        color="primary"
+                                        onClick={(e) => {
+                                            removeMemberWithId(value.user.id);
+                                        }}
+                                    >
                                         <Close />
                                     </IconButton>
                                 ) : null
@@ -574,22 +634,35 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                     );
                 })}
             </List>
-            <IconButton
-                disableRipple
-                size="large"
-                color="primary"
-                sx={{
-                    ml: 1,
-                    "&.MuiButtonBase-root:hover": {
-                        bgcolor: "transparent",
-                    },
-                    width: "100%",
-                    margin: "0",
-                    padding: "0",
-                }}
-            >
-                <Typography variant="subtitle1">Show more</Typography>
-            </IconButton>
+            {members.length > 4 ? (
+                <IconButton
+                    disableRipple
+                    size="large"
+                    color="primary"
+                    sx={{
+                        ml: 1,
+                        "&.MuiButtonBase-root:hover": {
+                            bgcolor: "transparent",
+                        },
+                        width: "100%",
+                        margin: "0",
+                        padding: "0",
+                    }}
+                    onClick={(e) => {
+                        setShowMore(!showMore);
+                    }}
+                >
+                    <Typography variant="subtitle1">Show more</Typography>
+                </IconButton>
+            ) : null}
+            {openAddDialog ? (
+                <AddMembersDialog
+                    open={openAddDialog}
+                    onClose={closeAddMemberDialog}
+                    roomId={roomId}
+                    addedIds={memberIdsArray}
+                />
+            ) : null}
         </Box>
     );
 }
@@ -702,6 +775,139 @@ export function DetailsDestructiveActionsView(props: DetailsDestructiveActionsPr
                     )}
                 </Stack>
             </IconButton>
+        </Box>
+    );
+}
+
+export interface AddMembersDialogProps {
+    open: boolean;
+    onClose: () => void;
+    roomId: number;
+    addedIds: number[];
+}
+
+export function AddMembersDialog(props: AddMembersDialogProps) {
+    const { onClose, open, roomId, addedIds } = props;
+    const { data, isLoading } = useGetContactsQuery(1);
+    const { list, count, sortedByDisplayName } = useSelector(selectContacts);
+    var currentMembers = addedIds;
+    const [update, updateMutation] = useUpdateRoomMutation();
+
+    const handleRowClick = (userId: number) => {
+        if (addedIds.includes(userId)) {
+            const index = addedIds.indexOf(userId, 0);
+            if (index > -1) {
+                currentMembers.splice(index, 1);
+            }
+        } else {
+            currentMembers.push(userId);
+        }
+    };
+    const handleAddClick = async () => {
+        // try {
+        //     await update({
+        //         roomId: roomId,
+        //         data: { userIds: currentMembers },
+        //     }).unwrap();
+        //     onClose();
+        // } catch (error) {
+        //     console.error("Update failed ", error);
+        // }
+        onClose();
+    };
+
+    return (
+        <Dialog onClose={onClose} open={open}>
+            <DialogTitle sx={{ textAlign: "center" }}>Add Members</DialogTitle>
+            <IconButton
+                disableRipple
+                size="large"
+                sx={{
+                    ml: 1,
+                    "&.MuiButtonBase-root:hover": {
+                        bgcolor: "transparent",
+                    },
+                    margin: "0",
+                    padding: "5px",
+                    position: "absolute",
+                    right: "10px",
+                    top: "12px",
+                }}
+                onClick={onClose}
+            >
+                <Close />
+            </IconButton>
+            <Box width="300px" m="1rem">
+                <Box display="flex" justifyContent="space-between" width={"100%"}>
+                    {sortedByDisplayName.map(([letter, contactList]) => {
+                        return (
+                            <Box key={letter} width={"100%"}>
+                                {(contactList as User[]).map((u) => (
+                                    <AddMemberRow
+                                        user={u}
+                                        onClick={handleRowClick}
+                                        checked={addedIds.includes(u.id)}
+                                    />
+                                ))}
+                            </Box>
+                        );
+                    })}
+                </Box>
+            </Box>
+            <Button
+                variant="contained"
+                size="medium"
+                sx={{ margin: 2 }}
+                onClick={() => {
+                    handleAddClick();
+                }}
+            >
+                Add
+            </Button>
+        </Dialog>
+    );
+}
+
+export interface AddMembersRowProps {
+    user: User;
+    onClick: Function;
+    checked: boolean;
+}
+export function AddMemberRow({ user, onClick, checked }: AddMembersRowProps): React.ReactElement {
+    const [selected, setSelected] = useState(checked);
+    const handleRowClick = () => {
+        setSelected(!selected);
+    };
+
+    useEffect(() => {
+        onClick(user.id);
+    }, [selected]);
+
+    return (
+        <Box
+            px={2.5}
+            display="flex"
+            py={1.5}
+            sx={{ cursor: "pointer" }}
+            onClick={handleRowClick || null}
+        >
+            <Avatar
+                sx={{ width: 50, height: 50 }}
+                alt={user.displayName}
+                src={`${UPLOADS_BASE_URL}${user.avatarUrl}`}
+            />
+            <Box
+                ml={2}
+                display="flex"
+                flexGrow={1}
+                justifyContent="space-between"
+                alignItems="center"
+            >
+                <Typography fontWeight="500" fontSize="1rem">
+                    {user.displayName}
+                </Typography>
+                {selected && <Check />}
+            </Box>
         </Box>
     );
 }
