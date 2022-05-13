@@ -14,7 +14,6 @@ export const rightSidebarSlice = createSlice({
     },
     reducers: {
         show: (state, action: PayloadAction<null>) => {
-            console.log("show right side bar");
             state.isOpened = true;
         },
         hide: (state, action: PayloadAction<null>) => {
