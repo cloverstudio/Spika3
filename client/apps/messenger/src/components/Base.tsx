@@ -14,11 +14,8 @@ import { useGetUserQuery } from "../features/auth/api/auth";
 
 import { requestForToken } from "../firebaseInit";
 import { useGetDeviceQuery, useUpdateDeviceMutation } from "../api/device";
-import { addMessage } from "../features/chat/slice/chatSlice";
 
-import { SnackbarState, SnackbarTypes } from "../types/UI";
-import { dynamicBaseQuery } from "../api/api";
-import { fetchHistory } from "../features/chat/slice/roomSlice";
+import handleSSE from "../utils/handleSSE";
 
 declare const API_BASE_URL: string;
 
@@ -52,18 +49,7 @@ export default function AuthBase({ children }: Props): React.ReactElement {
         if (deviceData?.device?.token && !source) {
             source = new EventSource(`${API_BASE_URL}/sse?accesstoken=${deviceData.device.token}`);
 
-            source.onmessage = async function (event) {
-                const data = event.data ? JSON.parse(event.data) : {};
-                if (data && data.message) {
-                    await dynamicBaseQuery({
-                        url: "/messenger/messages/delivered",
-                        method: "POST",
-                        data: { messagesIds: [data.message.id] },
-                    });
-                    dispatch(addMessage(data.message));
-                    dispatch(fetchHistory(1));
-                }
-            };
+            source.onmessage = handleSSE;
         }
 
         return () => {
@@ -98,12 +84,6 @@ export default function AuthBase({ children }: Props): React.ReactElement {
 }
 
 export function Base({ children }: Props): React.ReactElement {
-    const [snackbarState, setSnackbarState] = useState<SnackbarState>({
-        show: false,
-        message: "",
-        type: SnackbarTypes.info,
-    });
-
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
