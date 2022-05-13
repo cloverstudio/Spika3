@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import MessageType from "../../../types/Message";
+import MessageType, { MessageRecordType } from "../../../types/Message";
 
 import type { RootState } from "../../../store/store";
 import { dynamicBaseQuery } from "../../../api/api";
@@ -17,6 +17,7 @@ export const fetchMessagesByRoomId = createAsyncThunk(
 interface ChatState {
     activeRoomId: number;
     messages: MessageType[];
+    messageRecords: MessageRecordType[];
     count: { roomId: number; count: number }[];
     loading: "idle" | "pending" | "succeeded" | "failed";
 }
@@ -26,6 +27,7 @@ export const chatSlice = createSlice({
     initialState: <ChatState>{
         activeRoomId: null,
         messages: [],
+        messageRecords: [],
         count: [],
         loading: "idle",
     },
@@ -38,6 +40,44 @@ export const chatSlice = createSlice({
             if (state.messages.findIndex((m) => m.id === payload.id) === -1) {
                 state.messages = [...state.messages, payload];
             }
+        },
+        addMessageRecord: (state, { payload }: { payload: MessageRecordType }) => {
+            // prevent updating seenCount or deliveredCount for the same user twice (ie. when user sends seen/delivered record from multiple devices)
+            const messageRecordHandled = state.messageRecords.some(
+                (mr) =>
+                    mr.messageId === payload.messageId &&
+                    mr.userId === payload.userId &&
+                    mr.type === payload.type
+            );
+            if (messageRecordHandled) {
+                return;
+            }
+
+            state.messageRecords.push(payload);
+
+            const messageIndex = state.messages.findIndex((m) => m.id === payload.messageId);
+            if (messageIndex === -1) {
+                return;
+            }
+
+            const updatedMessage = { ...state.messages[messageIndex] };
+
+            switch (payload.type) {
+                case "seen": {
+                    updatedMessage.seenCount += 1;
+                    break;
+                }
+                case "delivered": {
+                    updatedMessage.deliveredCount += 1;
+                    break;
+                }
+                default: {
+                    console.log(`Add message record type {${payload.type}) not implemented!`);
+                    break;
+                }
+            }
+
+            state.messages.splice(messageIndex, 1, updatedMessage);
         },
     },
     extraReducers: (builder) => {
@@ -65,7 +105,7 @@ export const chatSlice = createSlice({
     },
 });
 
-export const { setActiveRoomId, addMessage } = chatSlice.actions;
+export const { setActiveRoomId, addMessage, addMessageRecord } = chatSlice.actions;
 
 export const selectActiveRoomId = (state: RootState): number => state.chat.activeRoomId;
 export const selectRoomMessages =

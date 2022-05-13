@@ -139,7 +139,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             const messageRecords = await prisma.messageRecord.findMany({
                 where: {
-                    createdAt: { gte: new Date(lastUpdate) },
+                    createdAt: { gt: new Date(lastUpdate) },
                     message: {
                         roomId: { in: roomsIds },
                     },
