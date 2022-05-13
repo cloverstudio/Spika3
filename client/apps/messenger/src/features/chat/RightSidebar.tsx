@@ -114,6 +114,14 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
     const [file, setFile] = useState<File>();
     const [loading, setLoading] = useState(false);
     const [update, updateMutation] = useUpdateRoomMutation();
+    const me = useSelector(selectUser);
+    var amIAdmin: boolean = false;
+
+    roomData.users
+        .filter((person) => person.userId == me.id)
+        .map((filteredPerson) => (amIAdmin = filteredPerson.isAdmin));
+
+    console.log("Admin: " + amIAdmin);
 
     const openEditPicture = () => {
         setEditGroupPicture(true);
@@ -237,23 +245,29 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
                             src={`${UPLOADS_BASE_URL}${profileAvatarUrl}`}
                             sx={{ width: 100, height: 100 }}
                         />
-                        <IconButton
-                            color="primary"
-                            sx={{ position: "absolute", bottom: "0", right: "0" }}
-                            size="large"
-                            onClick={(e) => {
-                                openEditPicture();
-                            }}
-                        >
-                            <CameraAlt />
-                        </IconButton>
-                        <input
-                            ref={imageRef}
-                            type="file"
-                            style={{ display: "none" }}
-                            accept="image/*"
-                            onChange={handleFileUpload}
-                        />
+                        <>
+                            {amIAdmin ? (
+                                <Box>
+                                    <IconButton
+                                        color="primary"
+                                        sx={{ position: "absolute", bottom: "0", right: "0" }}
+                                        size="large"
+                                        onClick={(e) => {
+                                            openEditPicture();
+                                        }}
+                                    >
+                                        <CameraAlt />
+                                    </IconButton>
+                                    <input
+                                        ref={imageRef}
+                                        type="file"
+                                        style={{ display: "none" }}
+                                        accept="image/*"
+                                        onChange={handleFileUpload}
+                                    />
+                                </Box>
+                            ) : null}
+                        </>
                     </Box>
                 )}
                 {isItPrivateGroup ? (
@@ -304,16 +318,22 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
                                 </Stack>
                             </Box>
                         ) : (
-                            <Link
-                                component="button"
-                                variant="h6"
-                                underline="none"
-                                onClick={() => {
-                                    openEditName();
-                                }}
-                            >
-                                {name}
-                            </Link>
+                            <>
+                                {amIAdmin ? (
+                                    <Link
+                                        component="button"
+                                        variant="h6"
+                                        underline="none"
+                                        onClick={() => {
+                                            openEditName();
+                                        }}
+                                    >
+                                        {name}
+                                    </Link>
+                                ) : (
+                                    <Typography variant="h6">{name}</Typography>
+                                )}
+                            </>
                         )}
                     </>
                 )}
