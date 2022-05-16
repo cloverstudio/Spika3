@@ -20,7 +20,7 @@ const roomApi = api.injectEndpoints({
             query: (userId) => `/messenger/rooms/users/${userId}`,
             providesTags: (res) => res && res.room?.id && [{ type: "Rooms", id: res.room.id }],
         }),
-        updateRoom: build.mutation<{ roomId: number; data: RoomType }, any>({
+        updateRoom: build.mutation<{ room: RoomType }, { roomId: number; data: any }>({
             query: ({ roomId, data }) => {
                 return { url: `/messenger/rooms/${roomId}`, method: "PUT", data };
             },

@@ -21,7 +21,22 @@ export const fetchHistory = createAsyncThunk("room/fetchHistory", async (page: n
 export const roomSlice = createSlice({
     name: <string>"room",
     initialState: <RoomState>{ list: [], count: null, loading: "idle" },
-    reducers: {},
+    reducers: {
+        refreshOne(state, { payload: updatedRoom }: { payload: RoomType }) {
+            console.log("updatedRoom", updatedRoom);
+            const list = state.list.map((room) => {
+                if (updatedRoom.id === room.id) {
+                    room.avatarUrl = updatedRoom.avatarUrl;
+                    room.name = updatedRoom.name;
+                    room.users = updatedRoom.users;
+                }
+
+                return room;
+            });
+
+            state.list = [...list];
+        },
+    },
     extraReducers: (builder) => {
         builder.addCase(fetchHistory.fulfilled, (state, { payload }: any) => {
             const roomsIds = state.list.map((r) => r.id);
@@ -79,5 +94,7 @@ export const selectHistoryLoading =
     () =>
     (state: RootState): "idle" | "pending" | "succeeded" | "failed" =>
         state.room.loading;
+
+export const { refreshOne } = roomSlice.actions;
 
 export default roomSlice.reducer;

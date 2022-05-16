@@ -44,6 +44,7 @@ import { selectContacts } from "../../features/chat/slice/contactsSlice";
 import User from "../../../src/types/User";
 import ContactRow from "../chat/components/ContactList";
 import { bool } from "yup";
+import { refreshOne as refreshOneRoom } from "./slice/roomSlice";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -113,15 +114,15 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
     const imageRef = useRef(null);
     const [file, setFile] = useState<File>();
     const [loading, setLoading] = useState(false);
-    const [update, updateMutation] = useUpdateRoomMutation();
+    const [update] = useUpdateRoomMutation();
     const me = useSelector(selectUser);
+    const dispatch = useDispatch();
+
     var amIAdmin: boolean = false;
 
     roomData.users
         .filter((person) => person.userId == me.id)
         .map((filteredPerson) => (amIAdmin = filteredPerson.isAdmin));
-
-    console.log("Admin: " + amIAdmin);
 
     const openEditPicture = () => {
         setEditGroupPicture(true);
@@ -173,10 +174,13 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
     const removeProfilePhoto = async () => {
         try {
             setLoading(true);
-            await update({
+            const { room } = await update({
                 roomId: roomData.id,
                 data: { name: proposedName, avatarUrl: "" },
             }).unwrap();
+
+            dispatch(refreshOneRoom(room));
+
             setProfileAvatarUrl("");
             setLoading(false);
             closeEditName();
@@ -191,6 +195,8 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
         try {
             setLoading(true);
 
+            let updatedRoom: RoomType | null = null;
+
             if (file) {
                 const uploadedFile = await uploadFile({
                     file,
@@ -198,14 +204,24 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
                     relationId: roomData.id,
                 });
 
-                await update({
+                const { room } = await update({
                     roomId: roomData.id,
                     data: { name: proposedName, avatarUrl: uploadedFile.path },
                 }).unwrap();
+
+                updatedRoom = room;
+
                 setProfileAvatarUrl(uploadedFile.path);
             } else {
-                await update({ roomId: roomData.id, data: { name: proposedName } }).unwrap();
+                const { room } = await update({
+                    roomId: roomData.id,
+                    data: { name: proposedName },
+                }).unwrap();
+
+                updatedRoom = room;
             }
+
+            dispatch(refreshOneRoom(updatedRoom));
 
             setName(proposedName);
             setLoading(false);
@@ -540,6 +556,7 @@ export function DetailsMemberView(props: DetailsMembersProps) {
     const [showMore, setShowMore] = useState(false);
     const [update, updateMutation] = useUpdateRoomMutation();
     const [openAddDialog, setOpenAddDialog] = useState(false);
+    const dispatch = useDispatch();
 
     members
         .filter((person) => person.userId == me.id)
@@ -571,7 +588,8 @@ export function DetailsMemberView(props: DetailsMembersProps) {
     };
 
     const handleUpdateGroup = async (memberIds: number[]) => {
-        await update({ roomId: roomId, data: { userIds: memberIds } }).unwrap();
+        const { room } = await update({ roomId: roomId, data: { userIds: memberIds } }).unwrap();
+        dispatch(refreshOneRoom(room));
     };
 
     const closeAddMemberDialog = () => {
