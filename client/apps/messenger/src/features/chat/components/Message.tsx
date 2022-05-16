@@ -1,5 +1,5 @@
-import React from "react";
-import { Avatar, Box, Typography } from "@mui/material";
+import React, { useState } from "react";
+import { Avatar, Box, Modal, Typography } from "@mui/material";
 
 import MessageStatusIcon from "./MessageStatusIcon";
 import { useSelector } from "react-redux";
@@ -8,6 +8,7 @@ import getFileIcon from "../lib/getFileIcon";
 import DownloadIcon from "@mui/icons-material/Download";
 import { useGetRoomQuery } from "../api/room";
 import { useParams } from "react-router-dom";
+import { CloseOutlined } from "@mui/icons-material";
 
 type MessageProps = {
     id: number;
@@ -105,13 +106,29 @@ export default function Message({
 }
 
 function ImageMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boolean }) {
+    const [open, setOpen] = useState(false);
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => setOpen(false);
+
     if (!body.file) {
         return null;
     }
+
+    const style = {
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        bgcolor: "transparent",
+        outline: "none",
+        lineHeight: "1",
+    };
+
     return (
         <Box display="flex" flexDirection="column" alignItems={isUsersMessage ? "end" : "start"}>
             {body.text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
             <Box
+                onClick={handleOpen}
                 component="img"
                 borderRadius="0.625rem"
                 maxWidth="35rem"
@@ -119,7 +136,30 @@ function ImageMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
                 width="auto"
                 src={`${UPLOADS_BASE_URL}${body.file.path}`}
                 pb="0.8125"
+                sx={{ cursor: "pointer" }}
             />
+            <Modal open={open} onClose={handleClose}>
+                <>
+                    <Box textAlign="right" mr={2} mt={2}>
+                        <CloseOutlined
+                            onClick={handleClose}
+                            sx={{ color: "white", cursor: "pointer" }}
+                            fontSize="large"
+                        />
+                    </Box>
+
+                    <Box sx={style}>
+                        <Box
+                            onClick={handleOpen}
+                            component="img"
+                            maxWidth="92vw"
+                            maxHeight="92vh"
+                            height="auto"
+                            src={`${UPLOADS_BASE_URL}${body.file.path}`}
+                        />
+                    </Box>
+                </>
+            </Modal>
         </Box>
     );
 }
