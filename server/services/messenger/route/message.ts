@@ -14,7 +14,7 @@ import * as Constants from "../../../components/consts";
 import { InitRouterParams } from "../../types/serviceInterface";
 import sanitize from "../../../components/sanitize";
 import { formatMessageBody } from "../../../components/message";
-import sseMessageRecordsNotify from "../lib/sseMessageRecordsNotify";
+import createSSEMessageRecordsNotify from "../lib/sseMessageRecordsNotify";
 
 const prisma = new PrismaClient();
 
@@ -35,6 +35,7 @@ const deliveredMessagesSchema = yup.object().shape({
 
 export default ({ rabbitMQChannel }: InitRouterParams): Router => {
     const router = Router();
+    const sseMessageRecordsNotify = createSSEMessageRecordsNotify(rabbitMQChannel);
 
     router.post("/", auth, validate(postMessageSchema), async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
@@ -239,7 +240,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
                         sseMessageRecordsNotify(
                             [sanitize(record).messageRecord()],
-                            rabbitMQChannel
+                            Constants.PUSH_TYPE_NEW_MESSAGE_RECORD
                         );
                     } catch (error) {
                         console.error({ error });
@@ -363,7 +364,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     }
                 }
 
-                sseMessageRecordsNotify(messageRecords, rabbitMQChannel);
+                sseMessageRecordsNotify(messageRecords, Constants.PUSH_TYPE_NEW_MESSAGE_RECORD);
 
                 res.send(successResponse({ messageRecords }, userReq.lang));
             } catch (e: any) {
@@ -518,7 +519,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 }
             }
 
-            sseMessageRecordsNotify(messageRecords, rabbitMQChannel);
+            sseMessageRecordsNotify(messageRecords, Constants.PUSH_TYPE_NEW_MESSAGE_RECORD);
 
             res.send(successResponse({ messageRecords }, userReq.lang));
         } catch (e: any) {

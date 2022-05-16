@@ -8,11 +8,11 @@ import auth from "../lib/auth";
 import * as yup from "yup";
 import validate from "../../../components/validateMiddleware";
 import { successResponse, errorResponse } from "../../../components/response";
-import { MESSAGE_RECORD_VALID_TYPES } from "../../../components/consts";
+import * as Constants from "../../../components/consts";
 
 import { InitRouterParams } from "../../types/serviceInterface";
 import sanitize from "../../../components/sanitize";
-import sseMessageRecordsNotify from "../lib/sseMessageRecordsNotify";
+import createSSEMessageRecordsNotify from "../lib/sseMessageRecordsNotify";
 
 const prisma = new PrismaClient();
 
@@ -26,6 +26,7 @@ const postMessageRecordSchema = yup.object().shape({
 
 export default ({ rabbitMQChannel }: InitRouterParams): Router => {
     const router = Router();
+    const sseMessageRecordsNotify = createSSEMessageRecordsNotify(rabbitMQChannel);
 
     router.post(
         "/",
@@ -40,12 +41,14 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 const reaction = req.body.reaction;
                 const userId = userReq.user.id;
 
-                if (!MESSAGE_RECORD_VALID_TYPES.includes(type)) {
+                if (!Constants.MESSAGE_RECORD_VALID_TYPES.includes(type)) {
                     return res
                         .status(400)
                         .send(
                             errorResponse(
-                                `Invalid type, allowed: ${MESSAGE_RECORD_VALID_TYPES.join(",")}`,
+                                `Invalid type, allowed: ${Constants.MESSAGE_RECORD_VALID_TYPES.join(
+                                    ","
+                                )}`,
                                 userReq.lang
                             )
                         );
@@ -81,7 +84,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
                 const messageRecordSanitized = sanitize(messageRecord).messageRecord();
 
-                sseMessageRecordsNotify([messageRecordSanitized], rabbitMQChannel);
+                sseMessageRecordsNotify(
+                    [messageRecordSanitized],
+                    Constants.PUSH_TYPE_NEW_MESSAGE_RECORD
+                );
 
                 res.send(successResponse({ messageRecord: messageRecordSanitized }, userReq.lang));
             } catch (e: any) {
@@ -111,8 +117,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             const messageRecordSanitized = sanitize(messageRecord).messageRecord();
 
             sseMessageRecordsNotify(
-                [{ ...messageRecordSanitized, deleted: true }],
-                rabbitMQChannel
+                [messageRecordSanitized],
+                Constants.PUSH_TYPE_DELETED_MESSAGE_RECORD
             );
 
             res.send(successResponse({ messageRecord: messageRecordSanitized }, userReq.lang));

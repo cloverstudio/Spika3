@@ -79,7 +79,7 @@ export default (): Router => {
                     where: {
                         user: userReq.user,
                         contact: {
-                            modifiedAt: { gte: new Date(timestamp) },
+                            modifiedAt: { gt: new Date(timestamp) },
                         },
                     },
                     include: {

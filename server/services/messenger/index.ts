@@ -44,7 +44,7 @@ export default class Messenger implements Service {
         messengerRouter.use("/test", testRouter({}));
         messengerRouter.use("/auth", signupRouter({ rabbitMQChannel: this.rabbitMQChannel }));
         messengerRouter.use("/contacts", contactRouter({ rabbitMQChannel: this.rabbitMQChannel }));
-        messengerRouter.use("/rooms", roomRouter());
+        messengerRouter.use("/rooms", roomRouter({ rabbitMQChannel: this.rabbitMQChannel }));
         messengerRouter.use("/messages", messageRouter({ rabbitMQChannel: this.rabbitMQChannel }));
         messengerRouter.use("/me", meRouter({ rabbitMQChannel: this.rabbitMQChannel }));
         messengerRouter.use("/device", deviceRouter());

@@ -10,6 +10,8 @@ import validate from "../../../components/validateMiddleware";
 import { successResponse, errorResponse } from "../../../components/response";
 import * as Constants from "../../../components/consts";
 import sanitize from "../../../components/sanitize";
+import { InitRouterParams } from "../../types/serviceInterface";
+import createSSERoomsNotify from "../lib/sseRoomsNotify";
 
 const prisma = new PrismaClient();
 
@@ -39,8 +41,9 @@ const leaveRoomSchema = yup.object().shape({
     }),
 });
 
-export default (): Router => {
+export default ({ rabbitMQChannel }: InitRouterParams): Router => {
     const router = Router();
+    const sseRoomsNotify = createSSERoomsNotify(rabbitMQChannel);
 
     router.post("/", auth, validate(postRoomSchema), async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
@@ -148,10 +151,14 @@ export default (): Router => {
                 },
             });
 
+            const sanitizedRoom = sanitize(room).room();
+
+            sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_NEW_ROOM);
+
             res.send(
                 successResponse(
                     {
-                        room: sanitize(room).room(),
+                        room: sanitizedRoom,
                     },
                     userReq.lang
                 )
@@ -200,6 +207,7 @@ export default (): Router => {
             const userCount = await prisma.roomUser.count({ where: { roomId: id } });
 
             const update: Partial<Room> = {
+                modifiedAt: new Date(),
                 ...(name && { name }),
                 ...(avatarUrl && { avatarUrl }),
                 ...(userCount > 2 && { type: "group" }),
@@ -217,7 +225,10 @@ export default (): Router => {
                 },
             });
 
-            res.send(successResponse({ room: sanitize(updated).room() }, userReq.lang));
+            const sanitizedRoom = sanitize(updated).room();
+            sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_UPDATE_ROOM);
+
+            res.send(successResponse({ room: sanitizedRoom }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -242,7 +253,7 @@ export default (): Router => {
 
             const updated = await prisma.room.update({
                 where: { id },
-                data: { deleted: true },
+                data: { deleted: true, modifiedAt: new Date() },
                 include: {
                     users: {
                         include: {
@@ -252,7 +263,10 @@ export default (): Router => {
                 },
             });
 
-            res.send(successResponse({ room: sanitize(updated).room() }, userReq.lang));
+            const sanitizedRoom = sanitize(updated).room();
+            sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_DELETE_ROOM);
+
+            res.send(successResponse({ room: sanitizedRoom }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -348,6 +362,7 @@ export default (): Router => {
                                     })),
                                 },
                             },
+                            modifiedAt: new Date(),
                         },
                         include: {
                             users: {
@@ -359,7 +374,10 @@ export default (): Router => {
                     });
                 }
 
-                res.send(successResponse({ room: sanitize(updated).room() }, userReq.lang));
+                const sanitizedRoom = sanitize(updated).room();
+                sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_UPDATE_ROOM);
+
+                res.send(successResponse({ room: sanitizedRoom }, userReq.lang));
             } catch (e: any) {
                 le(e);
                 res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -508,6 +526,47 @@ export default (): Router => {
             }
 
             res.send(successResponse({ room: sanitize(room).room() }, userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.get("/sync/:lastUpdate", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        const userId = userReq.user.id;
+        const lastUpdate = parseInt(req.params.lastUpdate as string);
+
+        try {
+            if (isNaN(lastUpdate)) {
+                return res
+                    .status(400)
+                    .send(errorResponse("lastUpdate must be number", userReq.lang));
+            }
+
+            const roomsUser = await prisma.roomUser.findMany({
+                where: {
+                    userId,
+                    room: {
+                        modifiedAt: { gt: new Date(lastUpdate) },
+                    },
+                },
+                select: {
+                    room: {
+                        select: {
+                            users: {
+                                select: {
+                                    user: true,
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+
+            const roomsSanitized = roomsUser.map((ru) => sanitize(ru.room).room());
+
+            res.send(successResponse({ rooms: roomsSanitized }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
