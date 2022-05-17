@@ -138,7 +138,7 @@ describe("API", () => {
         });
     });
 
-    describe("/api/messenger/message-records/sync/:lastUpdate POST", () => {
+    describe("/api/messenger/message-records/sync/:lastUpdate GET", () => {
         it("Requires lastUpdate to be number", async () => {
             const response = await supertest(app)
                 .get("/api/messenger/message-records/sync/abc58")

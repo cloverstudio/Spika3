@@ -732,4 +732,44 @@ describe("API", () => {
             expect(response.status).to.eqls(400);
         });
     });
+
+    describe("/api/messenger/rooms/sync GET", () => {
+        it("Requires lastUpdate to be number", async () => {
+            const response = await supertest(app)
+                .get("/api/messenger/rooms/sync/abc58")
+                .set({ accesstoken: globals.userToken });
+            expect(response.status).to.eqls(400);
+        });
+
+        it("Returns new rooms from lastUpdate", async () => {
+            const lastUpdate = +new Date();
+
+            const room = await createFakeRoom([{ userId: globals.userId, isAdmin: true }]);
+
+            const response = await supertest(app)
+                .get("/api/messenger/rooms/sync/" + lastUpdate)
+                .set({ accesstoken: globals.userToken });
+            expect(response.status).to.eqls(200);
+            expect(response.body.data).to.has.property("rooms");
+            expect(response.body.data.rooms.some((m: any) => m.id === room.id)).to.be.true;
+        });
+
+        it("Returns updated rooms from lastUpdate", async () => {
+            const room = await createFakeRoom([{ userId: globals.userId, isAdmin: true }]);
+            const lastUpdate = +new Date();
+
+            const updatedRoom = await globals.prisma.room.update({
+                where: { id: room.id },
+                data: { name: "changed", modifiedAt: new Date() },
+            });
+
+            const response = await supertest(app)
+                .get("/api/messenger/rooms/sync/" + lastUpdate)
+                .set({ accesstoken: globals.userToken });
+            expect(response.status).to.eqls(200);
+            expect(response.body.data).to.has.property("rooms");
+            expect(response.body.data.rooms.some((m: any) => m.name === updatedRoom.name)).to.be
+                .true;
+        });
+    });
 });
