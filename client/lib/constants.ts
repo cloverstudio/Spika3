@@ -1,3 +1,6 @@
+export const APP_VERSION: number = 1;
+export const DEVICE_TYPE: string = "browser";
+
 export const LSKEY_USERNAME: string = "username";
 export const LSKEY_PEERID: string = "peerid";
 export const LSKEY_SELECTEDCAM: string = "selectedcam";

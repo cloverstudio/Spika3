@@ -1,6 +1,8 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import axios, { Method } from "axios";
 import { showSnackBar } from "../store/modalSlice";
+import platform from "platform";
+import * as constants from "../../../../lib/constants";
 
 declare const API_BASE_URL: string;
 
@@ -12,13 +14,26 @@ const axiosBaseQuery =
         dispatch?: any
     ) => {
         try {
+            const browserName = platform.name;
+            const browserVersion = platform.version;
+            const OS = platform.os;
+
+            const additionalHeaders: any = {
+                ...(token && { accesstoken: token }),
+            };
+
+            additionalHeaders["device-type"] = platform.name;
+            additionalHeaders["os-name"] = platform.name;
+            additionalHeaders["os-version"] = platform.version;
+            additionalHeaders["device-name"] = platform.description;
+            additionalHeaders["app-version"] = constants.APP_VERSION;
+            additionalHeaders["device-type"] = constants.DEVICE_TYPE;
+
             const result = await axios({
                 url: baseUrl + url,
                 method,
                 data,
-                headers: {
-                    ...(token && { accesstoken: token }),
-                },
+                headers: additionalHeaders,
                 validateStatus: (status) => status < 500,
             });
             console.log({ [url]: result.data });

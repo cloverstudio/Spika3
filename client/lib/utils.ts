@@ -25,3 +25,19 @@ export function sha256(original: string): string {
 export function formatDate(date: Date): string {
     return date.toLocaleString();
 }
+
+export type DeviceInfo = {
+    browser: string;
+    browser_ver: string;
+    OS: string;
+    OS_ver: string;
+};
+
+export function getBrowserOSinfo(): DeviceInfo {
+    return {
+        browser: "",
+        browser_ver: "",
+        OS: "",
+        OS_ver: "",
+    };
+}
