@@ -311,14 +311,15 @@ describe("API", () => {
             expect(response.body).to.has.property("data");
             expect(response.body.data).to.has.property("message");
 
-            await wait(0.05);
+            await wait(0.1);
 
             const message = response.body.data.message;
             const deviceMessagesCount = await globals.prisma.deviceMessage.count({
                 where: { messageId: message.id },
             });
 
-            expect(sendPush.run).to.have.been.called.min(deviceMessagesCount);
+            // -1 is because we don't send push to user who send the message
+            expect(sendPush.run).to.have.been.called.min(deviceMessagesCount - 1);
         });
     });
 
