@@ -27,10 +27,10 @@ function newMessageFormatter(payload: SendPushPayload) {
     return {
         message: {
             token: payload.token,
-            notification: {
-                title: "New message",
-                body: payload.data.message.body.text,
-            },
+            //notification: {
+            //    title: "New message",
+            //    body: payload.data.message.body.text,
+            //},
             data: {
                 message: JSON.stringify(payload.data.message),
             },
