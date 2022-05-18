@@ -11,15 +11,16 @@ export default function useIsInViewport(): useIsInViewportProps {
 
     useEffect(() => {
         const observer = new IntersectionObserver((entries) => {
-            const isInViewPort = !!entries[0]?.isIntersecting;
-
-            setIsInViewPort(isInViewPort);
+            const isInViewPortNew = !!entries[0]?.isIntersecting;
+            if (isInViewPortNew !== isInViewPort) {
+                setIsInViewPort(isInViewPortNew);
+            }
         });
 
         elementRef.current && observer.observe(elementRef.current);
 
         return () => observer.disconnect();
-    }, []);
+    }, [isInViewPort]);
 
     return { elementRef, isInViewPort };
 }

@@ -11,7 +11,7 @@ import {
     Link,
 } from "@mui/material";
 import { CameraAlt } from "@mui/icons-material";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { RoomType } from "../../../../types/Rooms";
 import { selectUser } from "../../../../store/userSlice";
 import { crop } from "../../../../utils/crop";
@@ -19,6 +19,8 @@ import * as Constants from "../../../../../../../lib/constants";
 import uploadFile from "../../../../utils/uploadFile";
 import { EditPhotoDialog } from "../../../chat/components/EditProfile";
 import { useUpdateRoomMutation } from "../../../chat/api/room";
+import { refreshOne as refreshOneRoom } from "../../../chat/slice/roomSlice";
+
 declare const UPLOADS_BASE_URL: string;
 
 export interface DetailsBasicInfoProps {
@@ -27,6 +29,7 @@ export interface DetailsBasicInfoProps {
 
 export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
     const { roomData } = props;
+    const dispatch = useDispatch();
     const isItPrivateGroup = roomData.type === "private";
     const otherUser = roomData.users[1];
     const [editGroupPicture, setEditGroupPicture] = useState(false);
@@ -99,10 +102,13 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
     const removeProfilePhoto = async () => {
         try {
             setLoading(true);
-            await update({
+            const { room } = await update({
                 roomId: roomData.id,
                 data: { name: proposedName, avatarUrl: "" },
             }).unwrap();
+
+            dispatch(refreshOneRoom(room));
+
             setProfileAvatarUrl("");
             setLoading(false);
             closeEditName();
@@ -117,6 +123,8 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
         try {
             setLoading(true);
 
+            let updatedRoom: RoomType | null = null;
+
             if (file) {
                 const uploadedFile = await uploadFile({
                     file,
@@ -124,14 +132,24 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
                     relationId: roomData.id,
                 });
 
-                await update({
+                const { room } = await update({
                     roomId: roomData.id,
                     data: { name: proposedName, avatarUrl: uploadedFile.path },
                 }).unwrap();
+
+                updatedRoom = room;
+
                 setProfileAvatarUrl(uploadedFile.path);
             } else {
-                await update({ roomId: roomData.id, data: { name: proposedName } }).unwrap();
+                const { room } = await update({
+                    roomId: roomData.id,
+                    data: { name: proposedName },
+                }).unwrap();
+
+                updatedRoom = room;
             }
+
+            dispatch(refreshOneRoom(updatedRoom));
 
             setName(proposedName);
             setLoading(false);

@@ -215,8 +215,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 orderBy: {
                     modifiedAt: "desc",
                 },
-                skip: Constants.PAGING_LIMIT * (page - 1),
-                take: Constants.PAGING_LIMIT,
+                skip: Constants.PAGING_LIMIT * 3 * (page - 1),
+                take: Constants.PAGING_LIMIT * 3,
             });
 
             for (const message of messages) {
@@ -258,7 +258,9 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 })
             );
 
-            res.send(successResponse({ list, count, limit: Constants.PAGING_LIMIT }, userReq.lang));
+            res.send(
+                successResponse({ list, count, limit: Constants.PAGING_LIMIT * 3 }, userReq.lang)
+            );
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

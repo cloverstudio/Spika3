@@ -201,7 +201,7 @@ export default (): Router => {
 
             const update: Partial<Room> = {
                 ...(name && { name }),
-                ...(avatarUrl && { avatarUrl }),
+                ...((avatarUrl || avatarUrl === "") && { avatarUrl }),
                 ...(userCount > 2 && { type: "group" }),
             };
 

@@ -35,5 +35,5 @@ export default function MessageStatusIcon({ status }: MessageStatusIconProps): R
 
     const Icon = getIcon(status);
 
-    return <img src={Icon} style={{ marginBottom: "0.375rem" }} />;
+    return <img src={Icon} style={{ marginLeft: "0.375rem", marginBottom: "0.375rem" }} />;
 }

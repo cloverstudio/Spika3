@@ -10,16 +10,6 @@ import { DetailsAdditionalInfoView } from "../chat/components/RightSidebarCompon
 import { DetailsMemberView } from "../chat/components/RightSidebarComponents/RightSidebarMembersView";
 import { DetailsDestructiveActionsView } from "../chat/components/RightSidebarComponents/RightSidebarDestructiveActionsView";
 
-declare const UPLOADS_BASE_URL: string;
-
-const debounce = (fn: any, delay: any) => {
-    let timerId: any;
-    return (...args: any[]) => {
-        clearTimeout(timerId);
-        timerId = setTimeout(() => fn(...args), delay);
-    };
-};
-
 export default function RightSidebar(): React.ReactElement {
     const dispatch = useDispatch();
     const roomId = +useParams().id;

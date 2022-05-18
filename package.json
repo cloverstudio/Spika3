@@ -52,7 +52,7 @@
         "hark": "^1.2.3",
         "i": "^0.3.7",
         "libphonenumber-js": "^1.9.52",
-        "mediasoup": "github:versatica/mediasoup#v3",
+        "mediasoup": "^3.9.13",
         "npm": "^8.9.0",
         "pidusage": "^2.0.21",
         "protoo-server": "^4.0.5",

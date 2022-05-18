@@ -16,7 +16,7 @@ import {
     DialogTitle,
 } from "@mui/material";
 import { Close, Add, Check } from "@mui/icons-material";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { RoomUserType } from "../../../../types/Rooms";
 import { selectUser } from "../../../../store/userSlice";
 import { useUpdateRoomMutation } from "../../api/room";
@@ -24,6 +24,7 @@ import { useGetContactsQuery, useGetContactsByKeywordQuery } from "../../api/con
 import { selectContacts } from "../../slice/contactsSlice";
 import User from "../../../../types/User";
 import Contacts from "../../../../types/Contacts";
+import { refreshOne as refreshOneRoom } from "../../../chat/slice/roomSlice";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -47,6 +48,7 @@ export function DetailsMemberView(props: DetailsMembersProps) {
     const [showMore, setShowMore] = useState(false);
     const [update, updateMutation] = useUpdateRoomMutation();
     const [openAddDialog, setOpenAddDialog] = useState(false);
+    const dispatch = useDispatch();
 
     members
         .filter((person) => person.userId == me.id)
@@ -78,7 +80,8 @@ export function DetailsMemberView(props: DetailsMembersProps) {
     };
 
     const handleUpdateGroup = async (memberIds: number[]) => {
-        await update({ roomId: roomId, data: { userIds: memberIds } }).unwrap();
+        const { room } = await update({ roomId: roomId, data: { userIds: memberIds } }).unwrap();
+        dispatch(refreshOneRoom(room));
     };
 
     const closeAddMemberDialog = () => {

@@ -4,36 +4,64 @@ import { Box } from "@mui/material";
 
 import { selectRoomMessages, fetchMessagesByRoomId, selectLoading } from "../slice/chatSlice";
 
-import useIsInViewport from "../../../hooks/useIsInViewport";
 import Message from "../components/Message";
 import { MessageMenu, MessageDetailDialog } from "../components/MessageMenu";
-
+import { ExpandMore } from "@mui/icons-material";
+import { useGetUserQuery } from "../../auth/api/auth";
 type RoomMessagesProps = {
     roomId: number;
 };
 
 export default function RoomMessages({ roomId }: RoomMessagesProps): React.ReactElement {
-    const ref = useRef<HTMLBaseElement>();
+    const scrollableConversation = useRef<HTMLBaseElement>();
+    const messagesLengthRef = useRef<number>(0);
+    const { data: userData } = useGetUserQuery();
     const dispatch = useDispatch();
     const { messages, count } = useSelector(selectRoomMessages(roomId));
     const loading = useSelector(selectLoading());
     const [page, setPage] = useState(1);
-    const [scrollTop, setScrollTop] = useState(null);
-    const [scrollListenerSet, setScrollListener] = useState(false);
-    const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+    const [newMessages, setNewMessages] = useState(0);
+    const [lastScrollHeight, setLastScrollHeight] = useState<number>(null);
+    const [lockedForScroll, setLockedForScroll] = useState(false);
     const isFetching = loading !== "idle";
     const hasMoreContactsToLoad = count > messages.length;
 
-    const { isInViewPort, elementRef } = useIsInViewport();
-
-    const [anchorEl, setAnchorEl] = React.useState<HTMLDivElement | null>(null);
-    const [openMessageDetails, setOpenMessageDetails] = React.useState(false);
-    const [selectedMessageId, setMessageId] = React.useState(null);
+    const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
+    const [openMessageDetails, setOpenMessageDetails] = useState(false);
+    const [selectedMessageId, setMessageId] = useState(null);
     const open = Boolean(anchorEl);
 
     useEffect(() => {
-        dispatch(fetchMessagesByRoomId(page));
-    }, [page, dispatch]);
+        dispatch(fetchMessagesByRoomId({ roomId, page }));
+    }, [page, dispatch, roomId]);
+
+    const messagesSorted = messages.sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1));
+    const lastMessageFromUserId = messagesSorted[messagesSorted.length - 1]?.fromUserId;
+    const isUsersLastMessage = lastMessageFromUserId === userData?.user?.id;
+
+    useEffect(() => {
+        if (lockedForScroll) {
+            if (
+                scrollableConversation.current.scrollHeight > lastScrollHeight &&
+                messages.length - messagesLengthRef.current > 1
+            ) {
+                scrollableConversation.current.scrollTop =
+                    scrollableConversation.current.scrollHeight - lastScrollHeight;
+            }
+
+            if (messages.length - messagesLengthRef.current === 1) {
+                if (!isUsersLastMessage) {
+                    setNewMessages((m) => m + 1);
+                }
+            }
+        } else {
+            if (scrollableConversation.current.scrollHeight !== lastScrollHeight) {
+                onScrollDown();
+            }
+        }
+
+        messagesLengthRef.current = messages.length;
+    }, [messagesSorted.length, isUsersLastMessage]);
 
     const handleClick = (event: React.MouseEvent<HTMLDivElement>, messageId: number) => {
         setMessageId(messageId);
@@ -53,60 +81,38 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
     };
 
     useEffect(() => {
-        if (scrollListenerSet && isInViewPort && !isFetching && hasMoreContactsToLoad) {
-            setPage((page) => page + 1);
-            if (shouldAutoScroll) {
-                const elem = ref.current;
-                elem.scroll({
-                    top: elem.scrollHeight,
-                });
-            }
-        }
-    }, [isInViewPort, isFetching, hasMoreContactsToLoad, scrollListenerSet, shouldAutoScroll]);
-
-    useEffect(() => {
-        const handleScroll = (e: HTMLBaseElement) => {
-            setScrollTop((scrollTop: any) => {
-                if (e.scrollTop < scrollTop) {
-                    setShouldAutoScroll(false);
-                }
-
-                if (e.offsetHeight + e.scrollTop === e.scrollHeight) {
-                    setShouldAutoScroll(true);
-                }
-
-                return e.scrollTop;
-            });
-        };
-
-        if (ref && ref.current && !scrollListenerSet) {
-            const elem = ref.current;
-
-            elem.addEventListener("scroll", () => handleScroll(elem));
-            setScrollListener(true);
-            return () => {
-                elem.removeEventListener("scroll", () => handleScroll(elem));
-            };
-        }
-    }, [scrollTop, scrollListenerSet]);
-
-    useEffect(() => {
-        const elem = ref.current;
-        if (messages.length && shouldAutoScroll && scrollListenerSet && ref && ref.current) {
-            elem.scroll({
-                top: elem.scrollHeight,
-                behavior: "smooth",
-            });
-        }
-    }, [messages.length, shouldAutoScroll, scrollListenerSet]);
-
-    useEffect(() => {
         return () => {
             setPage(1);
         };
     }, [roomId]);
 
-    const messagesSorted = messages.sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1));
+    const onWheel = () => {
+        const newLockedForScroll = getScrollBottom(scrollableConversation.current) > 800;
+        setLockedForScroll(newLockedForScroll);
+
+        if (getScrollBottom(scrollableConversation.current) < 500) {
+            setNewMessages(0);
+        }
+    };
+
+    const onScroll = (e: React.UIEvent<HTMLElement, UIEvent>) => {
+        const target = e.target as HTMLDivElement;
+
+        if (target.scrollTop === 0 && !isFetching && messages[0] && hasMoreContactsToLoad) {
+            setPage((page) => page + 1);
+            setLockedForScroll(true);
+        }
+        setLastScrollHeight(target.scrollHeight);
+
+        if (getScrollBottom(scrollableConversation.current) < 500) {
+            setNewMessages(0);
+        }
+    };
+
+    const onScrollDown = () => {
+        scrollElemBottom(scrollableConversation.current);
+        setLockedForScroll(false);
+    };
 
     return (
         <Box
@@ -114,10 +120,33 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
             display="flex"
             flexDirection="column"
             justifyContent="end"
+            position="relative"
             sx={{ overflowY: "hidden" }}
         >
-            <Box px={1} sx={{ overflowY: "auto" }} ref={ref}>
-                <div ref={elementRef} />
+            {newMessages > 0 && (
+                <Box position="absolute" width="100%" textAlign="center">
+                    <Box display="inline-block" onClick={onScrollDown}>
+                        <Box
+                            bgcolor="#C8EBFE"
+                            borderRadius="0.625rem"
+                            display="flex"
+                            m={0.5}
+                            p={1}
+                            sx={{ cursor: "pointer" }}
+                        >
+                            <Box>{`${newMessages} new message${newMessages > 1 ? "s" : ""}`}</Box>
+                            <ExpandMore />
+                        </Box>
+                    </Box>
+                </Box>
+            )}
+            <Box
+                px={1}
+                sx={{ overflowY: "auto" }}
+                ref={scrollableConversation}
+                onWheel={onWheel}
+                onScroll={onScroll}
+            >
                 {messagesSorted.map((m, i) => (
                     <Message
                         key={m.id}
@@ -143,4 +172,14 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
             )}
         </Box>
     );
+}
+
+function getScrollBottom(element: HTMLElement): number {
+    return element.scrollHeight - element.scrollTop - element.clientHeight;
+}
+
+function scrollElemBottom(element: HTMLElement): void {
+    if (element.scrollHeight > element.clientHeight) {
+        element.scrollTop = element.scrollHeight - element.clientHeight;
+    }
 }
