@@ -233,8 +233,9 @@ export function AddMembersDialog(props: AddMembersDialogProps) {
     }, [data]);
 
     useEffect(() => {
+        console.log(searchMembers.data);
         if (searchMembers.data) {
-            setMembers(searchMembers.data.contacts);
+            setMembers(searchMembers.data);
         }
     }, [searchMembers]);
 
@@ -303,22 +304,18 @@ export function AddMembersDialog(props: AddMembersDialogProps) {
             </Stack>
             <Box width="300px" m="1rem">
                 <Box display="flex" justifyContent="space-between" width={"100%"}>
-                    {sortedByDisplayName.map(([letter, contactList]) => {
-                        return (
-                            <Box key={letter} width={"100%"}>
-                                {members
-                                    ? members.list.map((u) => (
-                                          <AddMemberRow
-                                              key={u.id}
-                                              user={u}
-                                              onClick={handleRowClick}
-                                              checked={addedIds.includes(u.id)}
-                                          />
-                                      ))
-                                    : null}
-                            </Box>
-                        );
-                    })}
+                    <Box width={"100%"}>
+                        {members
+                            ? members.list.map((u) => (
+                                  <AddMemberRow
+                                      key={u.id}
+                                      user={u}
+                                      onClick={handleRowClick}
+                                      checked={addedIds.includes(u.id)}
+                                  />
+                              ))
+                            : null}
+                    </Box>
                 </Box>
             </Box>
             <Button
