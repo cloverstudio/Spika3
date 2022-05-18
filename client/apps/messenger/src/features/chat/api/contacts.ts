@@ -9,9 +9,13 @@ const contactsApi = api.injectEndpoints({
             query: (page) => `/messenger/contacts?page=${page}`,
             providesTags: [{ type: "Contacts", id: "LIST" }],
         }),
+        getContactsByKeyword: build.query<{ contacts: Contacts }, string>({
+            query: (keyword) => `/messenger/contacts?keyword=${keyword}`,
+            providesTags: [{ type: "Contacts", id: "LIST" }],
+        }),
     }),
     overrideExisting: true,
 });
 
-export const { useGetContactsQuery } = contactsApi;
+export const { useGetContactsQuery, useGetContactsByKeywordQuery } = contactsApi;
 export default contactsApi;
