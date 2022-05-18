@@ -9,3 +9,6 @@ export const LSKEY_LASTROOM: string = "lastroom";
 export const LSKEY_ENABLECAM: string = "enablecam";
 export const LSKEY_ENABLEMIC: string = "enablemic";
 export const LSKEY_CROPSIZE: number = 512;
+
+export const LSKEY_ACCESSTOKEN: string = "access-token";
+export const LSKEY_DEVICEID: string = "deviceId";

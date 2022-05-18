@@ -12,6 +12,7 @@ import useDeviceId from "./hooks/useDeviceId";
 import { sha256 } from "../../../../../lib/utils";
 import useCountdownTimer from "./hooks/useCountdownTimer";
 import uploadFile from "../../utils/uploadFile";
+import * as constants from "../../../../../lib/constants";
 
 export default function Auth(): React.ReactElement {
     const navigate = useNavigate();
@@ -42,7 +43,7 @@ export default function Auth(): React.ReactElement {
             const res = await verify({ code, deviceId }).unwrap();
 
             if (res.device?.token) {
-                window.localStorage.setItem("access-token", res.device.token);
+                window.localStorage.setItem(constants.LSKEY_ACCESSTOKEN, res.device.token);
 
                 if (signUpMutation.data.isNewUser) {
                     setStep(2);

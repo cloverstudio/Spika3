@@ -63,7 +63,7 @@ const rawBaseQuery = axiosBaseQuery({
 });
 
 export const dynamicBaseQuery = async (args: any, options?: { dispatch: any }) => {
-    const token = window.localStorage.getItem("access-token");
+    const token = window.localStorage.getItem(constants.LSKEY_ACCESSTOKEN);
 
     const argsObj = typeof args === "string" ? { url: args } : await args;
     return rawBaseQuery(argsObj, token, options?.dispatch);
