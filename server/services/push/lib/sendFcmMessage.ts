@@ -29,10 +29,10 @@ function getAccessToken() {
 export type FcmMessagePayload = {
     message: {
         token: string;
-        notification: {
-            title: string;
-            body: string;
-        };
+        //notification: {
+        //    title: string;
+        //    body: string;
+        //};
         data?: any;
     };
 };
