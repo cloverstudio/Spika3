@@ -8,15 +8,15 @@ import VerificationCodeForm from "./components/VerificationCodeForm";
 import TelephoneNumberForm from "./components/TelephoneNumberForm";
 import UpdateUserForm from "./components/UpdateUserForm";
 
-import useDeviceId from "./hooks/useDeviceId";
 import { sha256 } from "../../../../../lib/utils";
 import useCountdownTimer from "./hooks/useCountdownTimer";
 import uploadFile from "../../utils/uploadFile";
 import * as constants from "../../../../../lib/constants";
+import { getDeviceId } from "../../../../../lib/utils";
 
 export default function Auth(): React.ReactElement {
     const navigate = useNavigate();
-    const deviceId = useDeviceId();
+    const deviceId = getDeviceId();
     const [step, setStep] = useState(0);
     const [loading, setLoading] = useState(false);
     const [signUp, signUpMutation] = useSignUpMutation();
@@ -27,11 +27,17 @@ export default function Auth(): React.ReactElement {
     const handleSignUp = async (telephoneNumber: string) => {
         try {
             timer.start();
-            await signUp({
+            const signUpResponse = await signUp({
                 telephoneNumber,
                 telephoneNumberHashed: sha256(telephoneNumber),
                 deviceId,
-            });
+            }).unwrap();
+
+            if (signUpResponse.browserDeviceId) {
+                // override device id
+                localStorage.setItem(constants.LSKEY_DEVICEID, signUpResponse.browserDeviceId);
+            }
+
             setStep(1);
         } catch (error) {
             console.error("Sign up error", error);
