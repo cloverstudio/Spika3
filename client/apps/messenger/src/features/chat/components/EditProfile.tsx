@@ -274,6 +274,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                     underline="none"
                     onClick={() => {
                         window.localStorage.removeItem(Constants.LSKEY_ACCESSTOKEN);
+                        window.localStorage.removeItem(Constants.LSKEY_DEVICEID);
                         navigate("/");
                     }}
                 >
