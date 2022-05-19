@@ -21,6 +21,7 @@ export default async (
         const osVersion = req.headers["os-version"] as string;
         const deviceName = req.headers["device-name"] as string;
         const appVersion: number = parseInt(req.headers["app-version"] as string);
+        const deviceType: string = req.headers["device-type"] as string;
         const lang: string = (req.headers["lang"] as string) || "en";
 
         const accessToken: string = req.headers[constants.ACCESS_TOKEN] as string;
@@ -54,13 +55,15 @@ export default async (
             device.osName !== osName ||
             device.osVersion !== osVersion ||
             device.deviceName !== deviceName ||
-            device.appVersion !== appVersion
+            device.appVersion !== appVersion ||
+            device.type !== deviceType
         ) {
             const updateData: any = {};
             if (osName) updateData.osName = osName;
             if (osVersion) updateData.osVersion = osVersion;
             if (deviceName) updateData.deviceName = deviceName;
             if (appVersion) updateData.appVersion = appVersion;
+            if (deviceType) updateData.type = deviceType;
 
             if (Object.keys(updateData).length > 0) {
                 const newDevice = await prisma.device.update({

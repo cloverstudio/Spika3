@@ -23,6 +23,7 @@ import uploadFile from "../../../utils/uploadFile";
 import { useUpdateMutation } from "../../auth/api/auth";
 
 import { crop } from "../../../utils/crop";
+
 import * as Constants from "../../../../../../lib/constants";
 import { useNavigate } from "react-router-dom";
 
@@ -272,7 +273,8 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                     variant="h6"
                     underline="none"
                     onClick={() => {
-                        window.localStorage.removeItem("access-token");
+                        window.localStorage.removeItem(Constants.LSKEY_ACCESSTOKEN);
+                        window.localStorage.removeItem(Constants.LSKEY_DEVICEID);
                         navigate("/");
                     }}
                 >

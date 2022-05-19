@@ -1,4 +1,5 @@
 import hash from "crypto-js/sha256";
+import * as constants from "../lib/constants";
 
 export function wait(sec: number): Promise<void> {
     return new Promise<void>((res) => {
@@ -24,4 +25,28 @@ export function sha256(original: string): string {
 
 export function formatDate(date: Date): string {
     return date.toLocaleString();
+}
+
+export type DeviceInfo = {
+    browser: string;
+    browser_ver: string;
+    OS: string;
+    OS_ver: string;
+};
+
+export function getBrowserOSinfo(): DeviceInfo {
+    return {
+        browser: "",
+        browser_ver: "",
+        OS: "",
+        OS_ver: "",
+    };
+}
+
+export function getDeviceId(): string {
+    if (!window.localStorage.getItem(constants.LSKEY_DEVICEID)) {
+        window.localStorage.setItem(constants.LSKEY_DEVICEID, generateRandomString(14));
+    }
+
+    return window.localStorage.getItem(constants.LSKEY_DEVICEID);
 }

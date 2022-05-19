@@ -1,3 +1,6 @@
+export const APP_VERSION: number = 1;
+export const DEVICE_TYPE: string = "browser";
+
 export const LSKEY_USERNAME: string = "username";
 export const LSKEY_PEERID: string = "peerid";
 export const LSKEY_SELECTEDCAM: string = "selectedcam";
@@ -6,3 +9,6 @@ export const LSKEY_LASTROOM: string = "lastroom";
 export const LSKEY_ENABLECAM: string = "enablecam";
 export const LSKEY_ENABLEMIC: string = "enablemic";
 export const LSKEY_CROPSIZE: number = 512;
+
+export const LSKEY_ACCESSTOKEN: string = "access-token";
+export const LSKEY_DEVICEID: string = "deviceId";

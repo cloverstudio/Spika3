@@ -16,6 +16,7 @@ import { requestForToken } from "../firebaseInit";
 import { useGetDeviceQuery, useUpdateDeviceMutation } from "../api/device";
 
 import handleSSE from "../utils/handleSSE";
+import * as constants from "../../../../lib/constants";
 
 declare const API_BASE_URL: string;
 
@@ -61,7 +62,8 @@ export default function AuthBase({ children }: Props): React.ReactElement {
         const handleKeyDown = (ev: KeyboardEvent) => {
             if (ev.ctrlKey && ev.key === "o") {
                 ev.preventDefault();
-                window.localStorage.removeItem("access-token");
+                window.localStorage.removeItem(constants.LSKEY_ACCESSTOKEN);
+                window.localStorage.removeItem(constants.LSKEY_DEVICEID);
                 navigate("/");
             }
         };

@@ -1,8 +1,18 @@
+import { boolean } from "yup";
 import api from "../../../api/api";
+import UserType from "../../../types/User";
+import DeviceType from "../../../types/Device";
+
+type AuthResponseType = {
+    isNewUser: boolean;
+    user: UserType;
+    device: DeviceType;
+    browserDeviceId: string;
+};
 
 const userApi = api.injectEndpoints({
     endpoints: (build) => ({
-        signUp: build.mutation({
+        signUp: build.mutation<AuthResponseType, any>({
             query: (data) => {
                 return { url: "/messenger/auth", method: "POST", data };
             },

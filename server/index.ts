@@ -28,7 +28,7 @@ const app: express.Express = express();
         res.header("Access-Control-Allow-Headers", "*");
         res.header(
             "Access-Control-Allow-Headers",
-            "Content-Type, Authorization, access-token, admin-accesstoken, accesstoken"
+            "Content-Type, Authorization, access-token, admin-accesstoken, accesstoken, device-name, os-name, os-version, device-type, app-version"
         );
 
         // intercept OPTIONS method

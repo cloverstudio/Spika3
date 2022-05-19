@@ -11,6 +11,7 @@ import validate from "../../../components/validateMiddleware";
 import * as yup from "yup";
 import { successResponse, errorResponse } from "../../../components/response";
 import sanitize from "../../../components/sanitize";
+import * as constants from "../lib/constants";
 
 const prisma = new PrismaClient();
 
@@ -46,6 +47,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             const telephoneNumberHashed = Utils.sha256(telephoneNumber);
             const deviceId = req.body.deviceId as string;
             const osName = (req.headers["os-name"] || "") as string;
+            const deviceType: string = req.headers["device-type"] as string;
 
             let isNewUser = false;
             const verificationCode =
@@ -89,14 +91,30 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 where: { deviceId },
             });
 
+            // check the user already has browser device
+            if (deviceType === constants.DEVICE_TYPE_BROWSER) {
+                requestDevice = await prisma.device.findFirst({
+                    where: {
+                        userId: requestUser.id,
+                        type: constants.DEVICE_TYPE_BROWSER,
+                    },
+                });
+            }
+
             l(requestDevice);
 
             if (!requestDevice) {
                 l("create new device");
+
                 requestDevice = await prisma.device.create({
                     data: {
                         deviceId,
                         userId: requestUser.id,
+                        osName: req.headers["os-name"] as string,
+                        osVersion: req.headers["os-version"] as string,
+                        deviceName: req.headers["device-name"] as string,
+                        appVersion: parseInt(req.headers["app-version"] as string),
+                        type: deviceType,
                     },
                 });
             } else {
@@ -123,11 +141,16 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 Buffer.from(JSON.stringify(SMSPayload))
             );
 
+            // Browser device id is used to override device id in browser to support multiple browser
             res.send(
                 successResponse({
                     isNewUser,
                     user: sanitize(requestUser).user(),
                     device: sanitize(requestDevice).device(),
+                    browserDeviceId:
+                        requestDevice.type === constants.DEVICE_TYPE_BROWSER
+                            ? requestDevice.deviceId
+                            : undefined,
                 })
             );
         } catch (e: any) {
