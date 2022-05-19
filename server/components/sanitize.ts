@@ -9,12 +9,16 @@ type SanitizedRoomUserType = {
     userId: number;
     user: SanitizedUserType;
 };
-type SanitizedRoomType = Partial<
-    Omit<Room, "users" | "createdAt"> & { createdAt: number; users: SanitizedRoomUserType[] }
+export type SanitizedRoomType = Partial<
+    Omit<Room, "users" | "createdAt" | "modifiedAt"> & {
+        createdAt: number;
+        modifiedAt: number;
+        users: SanitizedRoomUserType[];
+    }
 >;
 type SanitizedMessageType = Partial<Omit<Message, "createdAt"> & { createdAt: number; body: any }>;
 type SanitizedFileType = Partial<Omit<File, "createdAt"> & { createdAt: number }>;
-type SanitizedMessageRecord = Partial<
+export type SanitizedMessageRecord = Partial<
     Omit<MessageRecord, "createdAt" | "modifiedAt"> & { createdAt: number }
 >;
 
@@ -111,6 +115,7 @@ function sanitizeUser({
     displayName,
     avatarUrl,
     createdAt,
+    modifiedAt,
 }: Partial<User>): SanitizedUserType {
     return {
         id,
@@ -120,6 +125,7 @@ function sanitizeUser({
         displayName,
         avatarUrl,
         createdAt: +new Date(createdAt),
+        modifiedAt: +new Date(modifiedAt),
     };
 }
 
@@ -130,6 +136,7 @@ function sanitizeRoom({
     avatarUrl,
     users,
     createdAt,
+    modifiedAt,
 }: Partial<Room & { users: (RoomUser & { user: User })[] }>): SanitizedRoomType {
     return {
         id,
@@ -138,6 +145,7 @@ function sanitizeRoom({
         avatarUrl,
         users: users.map(sanitizeRoomUser),
         createdAt: +new Date(createdAt),
+        modifiedAt: +new Date(modifiedAt),
     };
 }
 
@@ -145,10 +153,10 @@ function sanitizeRoomUser({
     userId,
     isAdmin,
     user,
-}: Partial<RoomUser & { user: User }>): SanitizedRoomUserType {
+}: Partial<RoomUser & { user?: User }>): SanitizedRoomUserType {
     return {
         userId,
         isAdmin,
-        user: sanitizeUser(user),
+        ...(user && { user: sanitizeUser(user) }),
     };
 }
