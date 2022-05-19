@@ -25,3 +25,4 @@ rm -rf ./test/upload
 
 export TS_NODE_COMPILER_OPTIONS='{"module": "commonjs" , "noUnusedLocals": false}' 
 mocha -r ts-node/register --file 'test/setup.ts' 'test/**/*.ts'
+

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, TextField, FormLabel, Box, Typography } from "@mui/material";
+import { Button, TextField, FormLabel, Box, Typography, Alert, AlertTitle } from "@mui/material";
 import CountryPicker from "./CountryPicker";
 
 type TelephoneNumberFormProps = {
@@ -43,6 +43,7 @@ export default function TelephoneNumberForm({
             >
                 Enter your phone number to start using Spika
             </Typography>
+
             <Box textAlign="left" mb={{ xs: 3, md: 6 }}>
                 <FormLabel sx={{ mb: 1.5, display: "block" }}>Phone number</FormLabel>
                 <CountryPicker

@@ -6,17 +6,21 @@ import CountdownTimer from "./CountdownTimer";
 type VerificationCodeFormProps = {
     onSubmit: (verificationCode: string) => void;
     onResend: () => void;
+    onBack: () => void;
     telephoneNumber: string;
     timeLeft: number;
     error?: any;
+    info?: string;
 };
 
 export default function VerificationCodeForm({
     onSubmit,
     onResend,
+    onBack,
     telephoneNumber,
     error,
     timeLeft,
+    info,
 }: VerificationCodeFormProps): React.ReactElement {
     const refs = [
         useRef(null),
@@ -31,7 +35,6 @@ export default function VerificationCodeForm({
             .fill(true)
             .map((_, i) => ({ ref: refs[i], value: "" }))
     );
-
     const tryToSubmit = () => {
         if (!timeLeft) {
             return;
@@ -79,26 +82,46 @@ export default function VerificationCodeForm({
             >
                 We sent you verification code on {telephoneNumber}!
             </Typography>
-            {error && !someCodeEntered && (
+            {error && !someCodeEntered && info.length === 0 && (
                 <Alert sx={{ mb: 4 }} severity="error">
                     <AlertTitle sx={{ mb: 0 }}>{error.message}</AlertTitle>
+                </Alert>
+            )}
+            {info.length > 0 && (
+                <Alert sx={{ mb: 4 }} severity="info">
+                    <Typography component="span" fontSize="1.0rem" color="inherit">
+                        {info}
+                    </Typography>
                 </Alert>
             )}
             <Box textAlign="left" mb={{ xs: 3, md: 6 }}>
                 <Box mb={2}>
                     <Box display="flex" justifyContent="space-between" mb={2}>
                         <CountdownTimer timeLeft={timeLeft} />
+                    </Box>
+                    <PinInput setCodeArr={setCodeArr} codeArr={codeArr} />
+                    <Box display="flex" justifyContent="space-between" mb={2}>
                         <Link
                             fontWeight="bold"
                             underline="hover"
                             sx={{ cursor: "pointer" }}
-                            onClick={onResend}
+                            onClick={onBack}
+                            variant="body1"
+                        >
+                            Back
+                        </Link>{" "}
+                        <Link
+                            fontWeight="bold"
+                            underline="hover"
+                            sx={{ cursor: "pointer" }}
+                            onClick={() => {
+                                onResend();
+                            }}
                             variant="body1"
                         >
                             Resend code
                         </Link>
                     </Box>
-                    <PinInput setCodeArr={setCodeArr} codeArr={codeArr} />
                 </Box>
                 <Button
                     onClick={tryToSubmit}

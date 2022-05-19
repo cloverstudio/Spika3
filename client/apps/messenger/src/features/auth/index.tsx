@@ -22,10 +22,15 @@ export default function Auth(): React.ReactElement {
     const [signUp, signUpMutation] = useSignUpMutation();
     const [verify, verifyMutation] = useVerifyMutation();
     const [update, updateMutation] = useUpdateMutation();
+    const [infoMsg, setInfoMsg] = useState<string>("");
+    const [sentCount, setSentCount] = useState<number>(0);
+
     const timer = useCountdownTimer(60);
 
     const handleSignUp = async (telephoneNumber: string) => {
         try {
+            setSentCount(sentCount + 1);
+
             timer.start();
             const signUpResponse = await signUp({
                 telephoneNumber,
@@ -37,6 +42,8 @@ export default function Auth(): React.ReactElement {
                 // override device id
                 localStorage.setItem(constants.LSKEY_DEVICEID, signUpResponse.browserDeviceId);
             }
+
+            if (sentCount === 1) setInfoMsg("Verification code resent");
 
             setStep(1);
         } catch (error) {
@@ -96,9 +103,11 @@ export default function Auth(): React.ReactElement {
             {step === 1 && (
                 <VerificationCodeForm
                     onSubmit={handleVerify}
+                    onBack={() => setStep(0)}
                     onResend={() => handleSignUp(signUpMutation.data?.user.telephoneNumber)}
                     telephoneNumber={signUpMutation.data?.user.telephoneNumber}
                     error={verifyMutation.error as any}
+                    info={infoMsg}
                     timeLeft={timer.left}
                 />
             )}
