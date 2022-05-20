@@ -631,7 +631,7 @@ async function updateRoomUsers({
     room,
     updatingAdmins = false,
 }: UpdateRoomUsersParams): Promise<void> {
-    const currentIds = room.users.filter((u) => u.isAdmin === updatingAdmins).map((u) => u.userId);
+    const currentIds = room.users.map((u) => u.userId);
 
     const foundUsers = await prisma.user.findMany({
         where: { id: { in: newIds } },

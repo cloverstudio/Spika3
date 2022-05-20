@@ -5,10 +5,10 @@ import { useDispatch } from "react-redux";
 import { hide as hideRightSidebar } from "./slice/rightSidebarSlice";
 import { useParams } from "react-router-dom";
 import { useGetRoomQuery } from "./api/room";
-import { DetailsBasicInfoView } from "../chat/components/RightSidebarComponents/RightSidebarBasicInfoView";
-import { DetailsAdditionalInfoView } from "../chat/components/RightSidebarComponents/RightSidebarAdditionalInfoView";
-import { DetailsMemberView } from "../chat/components/RightSidebarComponents/RightSidebarMembersView";
-import { DetailsDestructiveActionsView } from "../chat/components/RightSidebarComponents/RightSidebarDestructiveActionsView";
+import { DetailsBasicInfoView } from "./components/RightSidebarComponents/BasicInfoView";
+import { DetailsAdditionalInfoView } from "./components/RightSidebarComponents/AdditionalInfoView";
+import { DetailsMemberView } from "./components/RightSidebarComponents/MembersView";
+import { DetailsDestructiveActionsView } from "./components/RightSidebarComponents/DestructiveActionsView";
 
 export default function RightSidebar(): React.ReactElement {
     const dispatch = useDispatch();

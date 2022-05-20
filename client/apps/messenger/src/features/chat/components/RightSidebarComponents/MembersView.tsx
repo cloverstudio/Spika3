@@ -24,17 +24,9 @@ import { useGetContactsQuery, useGetContactsByKeywordQuery } from "../../api/con
 import { selectContacts } from "../../slice/contactsSlice";
 import User from "../../../../types/User";
 import Contacts from "../../../../types/Contacts";
-import { refreshOne as refreshOneRoom } from "../../../chat/slice/roomSlice";
+import { refreshOne as refreshOneRoom } from "../../slice/roomSlice";
 
 declare const UPLOADS_BASE_URL: string;
-
-const debounce = (fn: any, delay: any) => {
-    let timerId: any;
-    return (...args: any[]) => {
-        clearTimeout(timerId);
-        timerId = setTimeout(() => fn(...args), delay);
-    };
-};
 
 export interface DetailsMembersProps {
     members: RoomUserType[];
@@ -70,7 +62,7 @@ export function DetailsMemberView(props: DetailsMembersProps) {
     };
 
     const removeMemberWithId = (memberId: number) => {
-        var membersArray: number[] = [];
+        const membersArray: number[] = [];
         members.forEach((participant) => {
             if (participant.userId != memberId) {
                 membersArray.push(participant.userId);
@@ -84,7 +76,17 @@ export function DetailsMemberView(props: DetailsMembersProps) {
         dispatch(refreshOneRoom(room));
     };
 
-    const closeAddMemberDialog = () => {
+    const closeAddMemberDialog = (addIds?: Array<number>) => {
+        if (addIds && addIds.length > 0) {
+            const membersArray: number[] = [...addIds];
+
+            members.forEach((participant) => {
+                membersArray.push(participant.userId);
+            });
+
+            handleUpdateGroup(membersArray);
+        }
+
         setOpenAddDialog(false);
     };
 
@@ -127,10 +129,10 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                     paddingLeft: "0",
                 }}
             >
-                {members.map((value) => {
+                {members.map((value, index) => {
                     return (
                         <ListItem
-                            key={value.user.id}
+                            key={index}
                             secondaryAction={
                                 value.isAdmin ? (
                                     <Typography>Admin</Typography>
@@ -152,7 +154,7 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                                 <ListItemAvatar>
                                     <Avatar
                                         alt={value.user.displayName}
-                                        src={value.user.avatarUrl}
+                                        src={`${UPLOADS_BASE_URL}${value.user.avatarUrl}`}
                                     />
                                 </ListItemAvatar>
                                 <ListItemText
@@ -189,8 +191,10 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                 <AddMembersDialog
                     open={openAddDialog}
                     onClose={closeAddMemberDialog}
+                    onSave={closeAddMemberDialog}
                     roomId={roomId}
-                    addedIds={memberIdsArray}
+                    addedIds={[]}
+                    existedMembers={members}
                 />
             ) : null}
         </Box>
@@ -200,63 +204,47 @@ export function DetailsMemberView(props: DetailsMembersProps) {
 export interface AddMembersDialogProps {
     open: boolean;
     onClose: () => void;
+    onSave: (arg0: Array<number>) => void;
     roomId: number;
     addedIds: number[];
+    existedMembers: RoomUserType[];
 }
 
 export function AddMembersDialog(props: AddMembersDialogProps) {
     const [searchTerm, setSearchTerm] = React.useState("");
-    const [members, setMembers] = React.useState<Contacts>(null);
-    const searchMembers = useGetContactsByKeywordQuery(searchTerm);
+    const [searchTermDelay, setSearchTermDelay] = React.useState("");
+    const [contacts, setContacts] = React.useState<Contacts>(null);
+    const contactSearchResult = useGetContactsByKeywordQuery(searchTermDelay);
     const { onClose, open, roomId, addedIds } = props;
-    const { data, isLoading } = useGetContactsQuery(1);
+    const { data: contactData, isLoading } = useGetContactsQuery(1);
     const { list, count, sortedByDisplayName } = useSelector(selectContacts);
-    var currentMembers = addedIds;
-    const [update, updateMutation] = useUpdateRoomMutation();
-    const [searchName, setSearchName] = React.useState("");
+    const [selectedIds, setSelectedIds] = React.useState<Array<number>>([]);
+
+    useEffect(() => {
+        if (contactData) {
+            setContacts(contactData);
+        }
+    }, [contactData]);
 
     const handleRowClick = (userId: number) => {
-        if (addedIds.includes(userId)) {
-            const index = addedIds.indexOf(userId, 0);
-            if (index > -1) {
-                currentMembers.splice(index, 1);
-            }
+        if (selectedIds.indexOf(userId) === -1) {
+            setSelectedIds([...selectedIds, userId]);
         } else {
-            currentMembers.push(userId);
+            setSelectedIds(selectedIds.filter((selectedUserId) => selectedUserId !== userId));
         }
+    };
+
+    const handleSaveClick = async () => {
+        props.onSave(selectedIds);
     };
 
     useEffect(() => {
-        if (data) {
-            setMembers(data);
+        if (contactSearchResult.data) {
+            setContacts(contactSearchResult.data);
         }
-    }, [data]);
+    }, [contactSearchResult]);
 
-    useEffect(() => {
-        console.log(searchMembers.data);
-        if (searchMembers.data) {
-            setMembers(searchMembers.data);
-        }
-    }, [searchMembers]);
-
-    const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchTerm(String(event));
-    };
-
-    const debouncedHandler = useCallback(debounce(handleSearch, 500), []);
-
-    const handleAddClick = async () => {
-        try {
-            await update({
-                roomId: roomId,
-                data: { userIds: currentMembers },
-            }).unwrap();
-            onClose();
-        } catch (error) {
-            console.error("Update failed ", error);
-        }
-        onClose();
-    };
+    let timerId: NodeJS.Timeout;
 
     return (
         <Dialog onClose={onClose} open={open}>
@@ -295,23 +283,31 @@ export function AddMembersDialog(props: AddMembersDialogProps) {
                     label="Search user"
                     variant="outlined"
                     sx={{ width: "80%" }}
-                    value={searchName}
+                    value={searchTerm}
                     onChange={(e) => {
-                        setSearchName(e.target.value);
-                        debouncedHandler(e.target.value);
+                        setSearchTerm(e.target.value);
+                        clearTimeout(timerId);
+                        timerId = setTimeout(() => {
+                            setSearchTermDelay(e.target.value);
+                        }, 500);
                     }}
                 />
             </Stack>
             <Box width="300px" m="1rem">
                 <Box display="flex" justifyContent="space-between" width={"100%"}>
                     <Box width={"100%"}>
-                        {members
-                            ? members.list.map((u) => (
+                        {contacts
+                            ? contacts.list.map((u) => (
                                   <AddMemberRow
                                       key={u.id}
                                       user={u}
                                       onClick={handleRowClick}
-                                      checked={addedIds.includes(u.id)}
+                                      existed={
+                                          !!props.existedMembers.find(
+                                              (member) => member.userId === u.id
+                                          )
+                                      }
+                                      checked={selectedIds.includes(u.id)}
                                   />
                               ))
                             : null}
@@ -323,7 +319,7 @@ export function AddMembersDialog(props: AddMembersDialogProps) {
                 size="medium"
                 sx={{ margin: 2 }}
                 onClick={() => {
-                    handleAddClick();
+                    handleSaveClick();
                 }}
             >
                 Add
@@ -334,26 +330,27 @@ export function AddMembersDialog(props: AddMembersDialogProps) {
 
 export interface AddMembersRowProps {
     user: User;
-    onClick: Function;
+    onClick: (arg0: number) => void;
+    existed: boolean;
     checked: boolean;
 }
-export function AddMemberRow({ user, onClick, checked }: AddMembersRowProps): React.ReactElement {
+export function AddMemberRow({
+    user,
+    onClick,
+    existed,
+    checked,
+}: AddMembersRowProps): React.ReactElement {
     const [selected, setSelected] = useState(checked);
-    const handleRowClick = () => {
-        setSelected(!selected);
-    };
-
-    useEffect(() => {
-        onClick(user.id);
-    }, [selected]);
 
     return (
         <Box
             px={2.5}
             display="flex"
             py={1.5}
-            sx={{ cursor: "pointer" }}
-            onClick={handleRowClick || null}
+            sx={{ cursor: existed ? "" : "pointer", opacity: existed ? 0.3 : 1.0 }}
+            onClick={() => {
+                onClick(user.id);
+            }}
         >
             <Avatar
                 sx={{ width: 50, height: 50 }}
@@ -370,7 +367,8 @@ export function AddMemberRow({ user, onClick, checked }: AddMembersRowProps): Re
                 <Typography fontWeight="500" fontSize="1rem">
                     {user.displayName}
                 </Typography>
-                {selected && <Check />}
+
+                {checked ? <Check /> : null}
             </Box>
         </Box>
     );
