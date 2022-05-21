@@ -1,4 +1,4 @@
-export const APP_VERSION: number = 1;
+export const APP_VERSION: string = "1.0.0";
 export const DEVICE_TYPE: string = "browser";
 
 export const LSKEY_USERNAME: string = "username";

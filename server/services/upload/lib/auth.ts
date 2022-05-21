@@ -19,7 +19,7 @@ export default async (req: Request, res: Response, next: Function) => {
         const osName = req.headers["os-name"] as string;
         const osVersion = req.headers["os-version"] as string;
         const deviceName = req.headers["device-name"] as string;
-        const appVersion: number = parseInt(req.headers["app-version"] as string);
+        const appVersion: string = req.headers["app-version"] as string;
 
         const accessToken: string = req.headers[constants.ACCESS_TOKEN] as string;
 

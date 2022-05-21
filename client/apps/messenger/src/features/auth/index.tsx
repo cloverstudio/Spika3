@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { useSignUpMutation, useVerifyMutation, useUpdateMutation } from "./api/auth";
@@ -23,9 +23,15 @@ export default function Auth(): React.ReactElement {
     const [verify, verifyMutation] = useVerifyMutation();
     const [update, updateMutation] = useUpdateMutation();
     const [infoMsg, setInfoMsg] = useState<string>("");
+    const [errorMsg, setErrorMsg] = useState<string>("");
     const [sentCount, setSentCount] = useState<number>(0);
 
     const timer = useCountdownTimer(60);
+
+    useEffect(() => {
+        setInfoMsg("");
+        verifyMutation.error && setErrorMsg((verifyMutation.error as any).message);
+    }, [verifyMutation]);
 
     const handleSignUp = async (telephoneNumber: string) => {
         try {
@@ -43,7 +49,7 @@ export default function Auth(): React.ReactElement {
                 localStorage.setItem(constants.LSKEY_DEVICEID, signUpResponse.browserDeviceId);
             }
 
-            if (sentCount === 1) setInfoMsg("Verification code resent");
+            if (sentCount > 0) setInfoMsg("Verification code resent");
 
             setStep(1);
         } catch (error) {
@@ -103,10 +109,15 @@ export default function Auth(): React.ReactElement {
             {step === 1 && (
                 <VerificationCodeForm
                     onSubmit={handleVerify}
-                    onBack={() => setStep(0)}
+                    onBack={() => {
+                        setSentCount(0);
+                        setInfoMsg("");
+                        setErrorMsg("");
+                        setStep(0);
+                    }}
                     onResend={() => handleSignUp(signUpMutation.data?.user.telephoneNumber)}
                     telephoneNumber={signUpMutation.data?.user.telephoneNumber}
-                    error={verifyMutation.error as any}
+                    error={errorMsg}
                     info={infoMsg}
                     timeLeft={timer.left}
                 />

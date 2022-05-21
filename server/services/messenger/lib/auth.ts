@@ -20,7 +20,7 @@ export default async (
         const osName = req.headers["os-name"] as string;
         const osVersion = req.headers["os-version"] as string;
         const deviceName = req.headers["device-name"] as string;
-        const appVersion: number = parseInt(req.headers["app-version"] as string);
+        const appVersion: string = req.headers["app-version"] as string;
         const deviceType: string = req.headers["device-type"] as string;
         const lang: string = (req.headers["lang"] as string) || "en";
 

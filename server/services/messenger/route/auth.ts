@@ -113,7 +113,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         osName: req.headers["os-name"] as string,
                         osVersion: req.headers["os-version"] as string,
                         deviceName: req.headers["device-name"] as string,
-                        appVersion: parseInt(req.headers["app-version"] as string),
+                        appVersion: req.headers["app-version"] as string,
                         type: deviceType,
                     },
                 });

@@ -23,7 +23,7 @@ export default (params: InitRouterParams) => {
             const deviceId: string = req.body.deviceId;
             const type: string = req.body.type;
             const osName: string = req.body.osName;
-            const appVersion: number = req.body.appVersion ? parseInt(req.body.appVersion) : null;
+            const appVersion: string = req.body.appVersion;
             const token: string = req.body.token;
             const pushToken: string = req.body.pushToken;
 

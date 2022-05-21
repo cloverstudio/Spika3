@@ -82,9 +82,9 @@ export default function VerificationCodeForm({
             >
                 We sent you verification code on {telephoneNumber}!
             </Typography>
-            {error && !someCodeEntered && info.length === 0 && (
+            {error.length > 0 && !someCodeEntered && info.length === 0 && (
                 <Alert sx={{ mb: 4 }} severity="error">
-                    <AlertTitle sx={{ mb: 0 }}>{error.message}</AlertTitle>
+                    <AlertTitle sx={{ mb: 0 }}>{error}</AlertTitle>
                 </Alert>
             )}
             {info.length > 0 && (
@@ -109,7 +109,7 @@ export default function VerificationCodeForm({
                             variant="body1"
                         >
                             Back
-                        </Link>{" "}
+                        </Link>
                         <Link
                             fontWeight="bold"
                             underline="hover"

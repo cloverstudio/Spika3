@@ -40,7 +40,7 @@ model Device {
   deviceName     String?   @map(name: "device_name")
   osName         String?   @map(name: "os_name")
   osVersion      String?   @map(name: "os_version")
-  appVersion     Int?      @map(name: "app_version")
+  appVersion     String?   @map(name: "app_version")
   token          String?   @map(name: "token")
   pushToken      String?   @map(name: "push_token")
   tokenExpiredAt DateTime? @map(name: "token_expired_at")
