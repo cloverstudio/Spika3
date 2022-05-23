@@ -28,7 +28,7 @@ export default function validateMiddleware(schema: yup.AnySchema) {
             return next();
         } catch (err: any) {
             lw({ validationError: err });
-            return res.status(400).send(errorResponse(`Server error ${err}`, userReq.lang));
+            return res.status(400).send(errorResponse(`Invalid params ${err}`, userReq.lang));
         }
     };
 }
