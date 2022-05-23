@@ -760,12 +760,13 @@ describe("API", () => {
 
             const updatedRoom = await globals.prisma.room.update({
                 where: { id: room.id },
-                data: { name: "changed", modifiedAt: new Date() },
+                data: { name: "changed", modifiedAt: new Date(lastUpdate + 1000) },
             });
 
             const response = await supertest(app)
                 .get("/api/messenger/rooms/sync/" + lastUpdate)
                 .set({ accesstoken: globals.userToken });
+
             expect(response.status).to.eqls(200);
             expect(response.body.data).to.has.property("rooms");
             expect(response.body.data.rooms.some((m: any) => m.name === updatedRoom.name)).to.be

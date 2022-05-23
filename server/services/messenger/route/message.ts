@@ -374,55 +374,41 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         }
     );
 
-    router.get("/:timestamp", auth, async (req: Request, res: Response) => {
+    router.get("/sync", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         const deviceId = userReq.device.id;
         const userId = userReq.user.id;
 
-        const timestamp = parseInt(req.params.timestamp as string);
-        const page = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
-
         try {
-            if (isNaN(timestamp)) {
-                return res
-                    .status(400)
-                    .send(errorResponse("timestamp must be number", userReq.lang));
-            }
-
-            const count = await prisma.message.count({
+            const undeliveredMessages = await prisma.message.findMany({
                 where: {
-                    createdAt: { gte: new Date(timestamp) },
                     deviceMessages: {
                         some: {
                             deviceId,
                         },
                     },
-                },
-            });
-
-            const messages = await prisma.message.findMany({
-                where: {
-                    createdAt: { gte: new Date(timestamp) },
-                    deviceMessages: {
-                        some: {
-                            deviceId,
+                    messageRecords: {
+                        none: {
+                            type: "delivered",
+                            userId,
                         },
                     },
                 },
-                orderBy: {
-                    createdAt: "desc",
+                include: {
+                    deviceMessages: true,
                 },
-                include: { deviceMessages: true },
-                skip: Constants.PAGING_LIMIT * (page - 1),
-                take: Constants.PAGING_LIMIT,
             });
 
-            const list = messages.map((m) => {
-                const body = m.deviceMessages.find((dm) => dm.deviceId === deviceId)?.body;
-                return sanitize({ ...m, body }).message();
-            });
+            const sanitizedUndeliveredMessages = await Promise.all(
+                undeliveredMessages.map(async (message) =>
+                    sanitize({
+                        ...message,
+                        body: await formatMessageBody(message.deviceMessages[0].body, message.type),
+                    }).message()
+                )
+            );
 
-            res.send(successResponse({ list, count, limit: Constants.PAGING_LIMIT }, userReq.lang));
+            res.send(successResponse({ messages: sanitizedUndeliveredMessages }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
