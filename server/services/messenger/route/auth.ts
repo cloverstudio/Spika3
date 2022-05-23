@@ -12,6 +12,7 @@ import * as yup from "yup";
 import { successResponse, errorResponse } from "../../../components/response";
 import sanitize from "../../../components/sanitize";
 import * as constants from "../lib/constants";
+import device from "./device";
 
 const prisma = new PrismaClient();
 
@@ -50,6 +51,55 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             const deviceType: string = req.headers["device-type"] as string;
 
             let isNewUser = false;
+
+            // Handle irregular cases here
+
+            // The cases to handle
+            // 1. When user changes telephone number before success signup.
+            //     -> Delete the previous device and user
+            // 2. When user changes telephone number after signed up successfully
+            //     -> Return error.
+            // 3. When new device id comes from same telephone number
+            //     -> Is's ok. User can have multiple devices
+
+            // 1. When user changes telephone number before success signup.
+            let registeredDevice = await prisma.device.findFirst({
+                where: { deviceId },
+                include: {
+                    user: true,
+                },
+            });
+
+            if (
+                registeredDevice &&
+                registeredDevice.user &&
+                registeredDevice.user.telephoneNumber !== telephoneNumber &&
+                registeredDevice.user.verified === false
+            ) {
+                // delete both device and user related to the device id
+                await prisma.device.delete({
+                    where: { id: registeredDevice.id },
+                });
+
+                await prisma.user.delete({
+                    where: { id: registeredDevice.userId },
+                });
+            }
+
+            // 2. When user changes telephone number after signed up successfully
+            if (
+                registeredDevice &&
+                registeredDevice.user &&
+                registeredDevice.user.telephoneNumber !== telephoneNumber &&
+                registeredDevice.user.verified === true
+            ) {
+                // return error
+                return res
+                    .status(400)
+                    .send(errorResponse(`The device is alread registered to database.`));
+            }
+
+            // The main logic starts here.
             const verificationCode =
                 process.env.IS_TEST === "1"
                     ? Constants.BACKDOOR_VERIFICATION_CODE
@@ -100,8 +150,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     },
                 });
             }
-
-            l(requestDevice);
 
             if (!requestDevice) {
                 l("create new device");
