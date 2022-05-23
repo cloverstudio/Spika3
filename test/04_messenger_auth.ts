@@ -115,7 +115,6 @@ describe("API", () => {
 
             expect(response.status).to.eqls(200);
             expect(response.body.data.isNewUser).equals(true);
-            globals.userId = response.body.data.user.id;
 
             const response2 = await supertest(app).post("/api/messenger/auth").send({
                 telephoneNumber: telephoneNumber3,
@@ -164,19 +163,18 @@ describe("API", () => {
 
         it("Someone occasionally input existed telephone number, this case should contact to admin", async () => {
             const response = await supertest(app).post("/api/messenger/auth").send({
-                telephoneNumber: telephoneNumber,
-                telephoneNumberHashed: telephoneNumberHashed,
+                telephoneNumber: telephoneNumber3,
+                telephoneNumberHashed: telephoneNumber3,
                 deviceId: deviceId6,
             });
 
             expect(response.status).to.eqls(200);
             expect(response.body.data.isNewUser).equals(true);
-            globals.userId = response.body.data.user.id;
 
             // the existed user receives verification code and he can signin normally
             const response2 = await supertest(app).post("/api/messenger/auth/verify").send({
                 code: "eureka",
-                deviceId: deviceId,
+                deviceId: deviceId2,
             });
 
             expect(response2.status).to.eqls(200);
