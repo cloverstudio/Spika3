@@ -246,7 +246,6 @@ function TextMessage({ isUsersMessage, body }: { body: any; isUsersMessage: bool
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#39;");
 
-        text = text.replace("\n", "<br />");
         return text;
     };
 
@@ -258,7 +257,10 @@ function TextMessage({ isUsersMessage, body }: { body: any; isUsersMessage: bool
             p="10px"
         >
             <Typography fontWeight={500} fontSize="0.9rem" color="#131940" lineHeight="1.5rem">
-                <span dangerouslySetInnerHTML={{ __html: filterText(body.text) }} />
+                <pre
+                    style={{ padding: "0px", margin: "0px", whiteSpace: "pre-wrap" }}
+                    dangerouslySetInnerHTML={{ __html: filterText(body.text) }}
+                />
             </Typography>
         </Box>
     );
