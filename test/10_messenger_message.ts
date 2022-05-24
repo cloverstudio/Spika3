@@ -647,40 +647,14 @@ describe("API", () => {
         });
     });
 
-    describe("/api/messenger/messages/:timestamp GET", () => {
-        it("timestamp param must be number", async () => {
-            const responseInvalid = await supertest(app)
-                .get("/api/messenger/messages/invalid")
-                .set({ accesstoken: globals.userToken });
-
-            const response = await supertest(app)
-                .get(`/api/messenger/messages/${+Date.now()}`)
-                .set({ accesstoken: globals.userToken });
-
-            expect(responseInvalid.status).to.eqls(400);
-            expect(response.status).to.eqls(200);
-        });
-
-        it("gets messages that are created after timestamp", async () => {
-            const responseOne = await supertest(app)
-                .get(`/api/messenger/messages/${+Date.now()}`)
-                .set({ accesstoken: globals.userToken });
-
-            expect(responseOne.status).to.eqls(200);
-            expect(responseOne.body).to.has.property("data");
-            expect(responseOne.body.data).to.has.property("list");
-            expect(responseOne.body.data).to.has.property("count");
-            expect(responseOne.body.data.list).to.have.lengthOf(0);
-            expect(responseOne.body.data.count).to.eqls(0);
-
+    describe("/api/messenger/messages/sync GET", () => {
+        it("gets messages that are not delivered", async () => {
             const user = await createFakeUser();
             const device = await createFakeDevice(user.id);
             const room = await createFakeRoom([
                 { userId: globals.userId, isAdmin: true },
                 { userId: user.id },
             ]);
-
-            const timestamp = +new Date();
 
             const messages = await Promise.all(
                 new Array(18).fill(true).map(() =>
@@ -692,16 +666,33 @@ describe("API", () => {
                 )
             );
 
-            const responseTwo = await supertest(app)
-                .get(`/api/messenger/messages/${timestamp}`)
+            const deliveredMessage = await createFakeMessage({
+                fromUserId: user.id,
+                room,
+                fromDeviceId: device.id,
+            });
+
+            await globals.prisma.messageRecord.create({
+                data: {
+                    messageId: deliveredMessage.id,
+                    userId: globals.userId,
+                    type: "delivered",
+                },
+            });
+
+            const response = await supertest(app)
+                .get("/api/messenger/messages/sync")
                 .set({ accesstoken: globals.userToken });
 
-            expect(responseTwo.status).to.eqls(200);
-            expect(responseTwo.body).to.has.property("data");
-            expect(responseTwo.body.data).to.has.property("list");
-            expect(responseTwo.body.data).to.has.property("count");
-            expect(responseTwo.body.data.list).to.have.lengthOf(Constants.PAGING_LIMIT);
-            expect(responseTwo.body.data.count).to.eqls(messages.length);
+            expect(response.status).to.eqls(200);
+            expect(response.body).to.has.property("data");
+            expect(response.body.data).to.has.property("messages");
+            expect(
+                messages.every((m) => response.body.data.messages.find((bm: any) => bm.id === m.id))
+            ).to.be.true;
+            expect(
+                response.body.data.messages.filter((mb: any) => mb.id === deliveredMessage.id)
+            ).to.have.lengthOf(0);
         });
     });
 });
