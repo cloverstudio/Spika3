@@ -120,7 +120,8 @@ export default function ChatInput(): React.ReactElement {
                                     disabled={loading}
                                     onChange={({ target }) => setMessage(target.value)}
                                     onKeyDown={(e) => {
-                                        if (e.key === "Enter") {
+                                        if (e.key === "Enter" && e.shiftKey === true) {
+                                        } else if (e.key === "Enter") {
                                             handleSend();
                                         }
                                     }}
@@ -132,12 +133,15 @@ export default function ChatInput(): React.ReactElement {
                                             py: 2,
                                             px: 1.5,
                                         },
+                                        padding: "10px",
                                     }}
+                                    multiline={true}
+                                    maxRows={3}
                                 />
                                 <EmojiEmotionsIcon
                                     fontSize="large"
                                     color="primary"
-                                    sx={{ position: "absolute", top: "12px", right: "20px" }}
+                                    sx={{ position: "absolute", top: "6px", right: "20px" }}
                                 />
                             </Box>
                             {message.length ? (
