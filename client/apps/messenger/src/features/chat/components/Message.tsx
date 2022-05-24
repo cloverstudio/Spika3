@@ -256,9 +256,19 @@ function TextMessage({ isUsersMessage, body }: { body: any; isUsersMessage: bool
             borderRadius="1rem"
             p="10px"
         >
-            <Typography fontWeight={500} fontSize="0.9rem" color="#131940" lineHeight="1.5rem">
+            <Typography
+                fontWeight={500}
+                fontSize="0.9rem"
+                color="#131940"
+                lineHeight="1.5rem"
+                fontFamily="Roboto Mono, monospace;"
+            >
                 <pre
-                    style={{ padding: "0px", margin: "0px", whiteSpace: "pre-wrap" }}
+                    style={{
+                        padding: "0px",
+                        margin: "0px",
+                        whiteSpace: "pre-wrap",
+                    }}
                     dangerouslySetInnerHTML={{ __html: filterText(body.text) }}
                 />
             </Typography>
