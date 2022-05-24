@@ -65,42 +65,38 @@ export default function Message({
         <Box
             key={id}
             display="flex"
-            flexDirection="column"
-            alignItems={isUsersMessage ? "end" : "start"}
-            textAlign={isUsersMessage ? "right" : "left"}
+            flexDirection="row"
+            justifyContent={isUsersMessage ? "flex-end" : "flex-start"}
             mb={"0.375rem"}
+            alignItems="end"
+            onContextMenu={(e) => {
+                e.preventDefault();
+                clickedAnchor(e, id);
+            }}
         >
             {roomType === "group" && !isUsersMessage && isFirstMessage && (
                 <Typography color="#9AA0A6" fontWeight={600} fontSize="0.75rem" pl="26px" ml={2}>
                     {sender?.displayName}
                 </Typography>
             )}
-            <Box
-                display="flex"
-                alignItems="end"
-                onContextMenu={(e) => {
-                    e.preventDefault();
-                    clickedAnchor(e, id);
-                }}
-            >
-                {roomType === "group" && !isUsersMessage && isLastMessage ? (
-                    <Avatar
-                        sx={{ width: 26, height: 26, mr: 1, mb: "0.375rem" }}
-                        alt={sender?.displayName}
-                        src={`${UPLOADS_BASE_URL}${sender?.avatarUrl}`}
-                    />
-                ) : (
-                    <Box width="26px" mr={1}></Box>
-                )}
-                {type === "text" && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
-                {type === "image" && <ImageMessage body={body} isUsersMessage={isUsersMessage} />}
-                {type === "video" && <VideoMessage body={body} isUsersMessage={isUsersMessage} />}
-                {type === "audio" && <AudioMessage body={body} isUsersMessage={isUsersMessage} />}
-                {(type === "file" || type === "unknown") && (
-                    <FileMessage body={body} isUsersMessage={isUsersMessage} />
-                )}
-                {isUsersMessage && <MessageStatusIcon status={getStatusIcon()} />}
-            </Box>
+
+            {roomType === "group" && !isUsersMessage && isLastMessage ? (
+                <Avatar
+                    sx={{ width: 26, height: 26, mr: 1, mb: "0.375rem" }}
+                    alt={sender?.displayName}
+                    src={`${UPLOADS_BASE_URL}${sender?.avatarUrl}`}
+                />
+            ) : (
+                <Box width="26px" mr={1}></Box>
+            )}
+            {type === "text" && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
+            {type === "image" && <ImageMessage body={body} isUsersMessage={isUsersMessage} />}
+            {type === "video" && <VideoMessage body={body} isUsersMessage={isUsersMessage} />}
+            {type === "audio" && <AudioMessage body={body} isUsersMessage={isUsersMessage} />}
+            {(type === "file" || type === "unknown") && (
+                <FileMessage body={body} isUsersMessage={isUsersMessage} />
+            )}
+            {isUsersMessage && <MessageStatusIcon status={getStatusIcon()} />}
         </Box>
     );
 }
@@ -241,16 +237,28 @@ function AudioMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
 }
 
 function TextMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boolean }) {
+    const filterText = (text: string): string => {
+        // escape html
+        text = text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+
+        text = text.replace("\n", "<br />");
+        return text;
+    };
+
     return (
         <Box
-            maxWidth="35rem"
+            maxWidth="80%"
             bgcolor={isUsersMessage ? "#C8EBFE" : "#F2F2F2"}
-            borderRadius="0.625rem"
-            p="0.625rem"
-            width="max-content"
+            borderRadius="1rem"
+            p="1rem"
         >
-            <Typography fontWeight={500} fontSize="0.875rem" color="#131940" lineHeight="1.0625rem">
-                {body.text}
+            <Typography fontWeight={500} fontSize="1.0rem" color="#131940" lineHeight="1.5rem">
+                <span dangerouslySetInnerHTML={{ __html: filterText(body.text) }} />
             </Typography>
         </Box>
     );
