@@ -20,7 +20,13 @@ export default function RightSidebar(): React.ReactElement {
     const handleDetailActions = (action: string) => {};
 
     return (
-        <Box borderLeft="0.5px solid #C9C9CA" padding="0" margin="0">
+        <Box
+            borderLeft="0.5px solid #C9C9CA"
+            padding="0"
+            margin="0"
+            height="100vh"
+            style={{ overflowY: "auto", overflowX: "hidden" }}
+        >
             <Box height="80.5px" borderBottom="0.5px solid #C9C9CA">
                 <Stack
                     direction="row"

@@ -36,30 +36,23 @@ export interface DetailsMembersProps {
 export function DetailsMemberView(props: DetailsMembersProps) {
     const { members, roomId } = props;
     const me = useSelector(selectUser);
-    var amIAdmin: boolean = false;
+    const [amIAdmin, setAmIAdmin] = useState(false);
     const [showMore, setShowMore] = useState(false);
     const [update, updateMutation] = useUpdateRoomMutation();
     const [openAddDialog, setOpenAddDialog] = useState(false);
     const dispatch = useDispatch();
 
-    members
-        .filter((person) => person.userId == me.id)
-        .map((filteredPerson) => (amIAdmin = filteredPerson.isAdmin));
+    let membersArray: RoomUserType[] = [];
+    let memberIdsArray: number[] = [];
 
-    var membersArray: RoomUserType[] = [];
-    var memberIdsArray: number[] = [];
+    useEffect(() => {
+        const meInRoom: RoomUserType = members.find((person) => person.userId === me.id);
+        setAmIAdmin(meInRoom.isAdmin);
 
-    members.forEach((member) => {
-        memberIdsArray.push(member.userId);
-    });
-
-    const filterMembersArray = () => {
-        if (members.length > 4 && showMore) {
-            membersArray = members.slice(0, 4);
-        } else {
-            membersArray = members;
-        }
-    };
+        members.forEach((member) => {
+            memberIdsArray.push(member.userId);
+        });
+    }, []);
 
     const removeMemberWithId = (memberId: number) => {
         const membersArray: number[] = [];
@@ -88,6 +81,14 @@ export function DetailsMemberView(props: DetailsMembersProps) {
         }
 
         setOpenAddDialog(false);
+    };
+
+    const filterMembersArray = () => {
+        if (members.length > 4 && showMore) {
+            membersArray = members.slice(0, 4);
+        } else {
+            membersArray = members;
+        }
     };
 
     useEffect(() => {
