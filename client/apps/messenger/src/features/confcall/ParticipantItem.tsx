@@ -97,7 +97,6 @@ export default ({ videoTrack, audioTrack, sx, name, audioEnabled }: ComponentInt
             {!videoTrack ? (
                 <Box
                     sx={{
-                        fontSize: "40pt",
                         color: "#fff",
                         fontFamily: "'Roboto', sans-serif",
                         fontWeight: "bold",

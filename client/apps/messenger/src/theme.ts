@@ -3,7 +3,7 @@ import { createTheme } from "@mui/material/styles";
 let theme = createTheme({
     typography: {
         fontFamily: `"Montserrat" , sans-serif`,
-        fontSize: 12,
+        fontSize: 14,
         fontWeightLight: 300,
         fontWeightRegular: 400,
         fontWeightMedium: 500,
@@ -33,7 +33,6 @@ theme = createTheme(theme, {
                     borderRadius: "0.625rem",
                     boxShadow: "none",
                     textTransform: "none",
-                    fontSize: "1rem",
                     fontWeight: theme.typography.fontWeightBold,
                 },
             },
@@ -84,7 +83,6 @@ theme = createTheme(theme, {
         MuiAlertTitle: {
             styleOverrides: {
                 root: {
-                    fontSize: "1rem",
                     fontWeight: theme.typography.fontWeightBold,
                     color: "#ef5350",
                 },

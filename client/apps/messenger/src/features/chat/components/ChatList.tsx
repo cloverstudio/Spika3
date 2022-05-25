@@ -112,26 +112,15 @@ function RoomRow({
                     flexGrow={1}
                 >
                     <Box flexGrow={1}>
-                        <Typography
-                            mb={1}
-                            fontWeight="600"
-                            fontSize="0.875rem"
-                            lineHeight="1.0625rem"
-                        >
+                        <Typography mb={1} fontWeight="600">
                             {name}
                         </Typography>
-                        <Typography color="#4A4A4A" fontSize="0.875rem" lineHeight="1.0625rem">
+                        <Typography color="#4A4A4A" lineHeight="1.0625rem">
                             {lastMessageText}
                         </Typography>
                     </Box>
                     <Box minWidth="90px" textAlign="right">
-                        <Typography
-                            mb={1}
-                            color="#9AA0A6"
-                            fontWeight="500"
-                            fontSize="0.75rem"
-                            lineHeight="1rem"
-                        >
+                        <Typography mb={1} color="#9AA0A6" fontWeight="500" lineHeight="1rem">
                             {lastMessage?.createdAt && dayjs(lastMessage?.createdAt).fromNow()}
                         </Typography>
                         {unreadCount ? (

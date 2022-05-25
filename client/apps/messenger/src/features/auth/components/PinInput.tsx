@@ -99,7 +99,6 @@ function NumberInput({
                         textAlign: "center",
                         color: "#141414",
                         fontWeight: "bold",
-                        fontSize: "28px",
                         lineHeight: "34px",
                         "&::-webkit-outer-spin-button": {
                             margin: "0",

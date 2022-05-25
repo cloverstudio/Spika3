@@ -88,9 +88,10 @@ export default function LeftSidebarHome({
                                 <Box mr={3}>
                                     <IconButton onClick={() => setOpenEditor()}>
                                         <Settings
+                                            fontSize="large"
                                             sx={{
-                                                width: "20px",
-                                                height: "20px",
+                                                width: "25px",
+                                                height: "25px",
                                                 color: "#9BB4CF",
                                                 cursor: "pointer",
                                             }}
@@ -100,9 +101,10 @@ export default function LeftSidebarHome({
                                 <Box>
                                     <IconButton onClick={() => setSidebar("new_chat")}>
                                         <Edit
+                                            fontSize="large"
                                             sx={{
-                                                width: "20px",
-                                                height: "20px",
+                                                width: "25px",
+                                                height: "25px",
                                                 color: "#9BB4CF",
                                                 cursor: "pointer",
                                             }}
@@ -112,7 +114,7 @@ export default function LeftSidebarHome({
                             </Box>
                         </Box>
                     </Box>
-                    <Box order={isMobile ? 2 : 0} px={5} pt={2} mb={3}>
+                    <Box order={isMobile ? 2 : 0} px={5} pt={2}>
                         <Box display="flex" justifyContent="space-between">
                             {navigation.map((item) => (
                                 <ActionIcon
@@ -164,7 +166,7 @@ function ActionIcon({ Icon, isActive, handleClick }: ActionIconProps) {
                 },
             }}
         >
-            <Icon sx={{ width: "20px", color: isActive ? "#4696F0" : "#9BB4CF" }} />
+            <Icon sx={{ width: "25px", color: isActive ? "#4696F0" : "#9BB4CF" }} />
         </Box>
     );
 }

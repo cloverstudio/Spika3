@@ -121,8 +121,8 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                     </IconButton>
                 ) : null}
             </Stack>
-            <List
-                dense
+            <Box
+                component={"ul"}
                 sx={{
                     width: "100%",
                     maxWidth: 360,
@@ -132,11 +132,40 @@ export function DetailsMemberView(props: DetailsMembersProps) {
             >
                 {members.map((value, index) => {
                     return (
-                        <ListItem
+                        <Box
+                            component={"li"}
                             key={index}
-                            secondaryAction={
-                                value.isAdmin ? (
-                                    <Typography>Admin</Typography>
+                            sx={{
+                                marginBottom: "10px",
+                                listStyle: "none",
+                                display: "flex",
+                                flexDirection: "row",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                            }}
+                        >
+                            <Box
+                                sx={{
+                                    paddingLeft: "0",
+                                    paddingRight: "0",
+                                    display: "flex",
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                }}
+                            >
+                                <Avatar
+                                    alt={value.user.displayName}
+                                    src={`${UPLOADS_BASE_URL}${value.user.avatarUrl}`}
+                                    sx={{
+                                        marginRight: "5px",
+                                    }}
+                                />
+                                <Box>{value.user.displayName}</Box>
+                            </Box>
+
+                            <Box>
+                                {value.isAdmin ? (
+                                    <span>Admin</span>
                                 ) : amIAdmin ? (
                                     <IconButton
                                         size="large"
@@ -147,26 +176,12 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                                     >
                                         <Close />
                                     </IconButton>
-                                ) : null
-                            }
-                            disablePadding={true}
-                        >
-                            <ListItemButton sx={{ paddingLeft: "0", paddingRight: "0" }}>
-                                <ListItemAvatar>
-                                    <Avatar
-                                        alt={value.user.displayName}
-                                        src={`${UPLOADS_BASE_URL}${value.user.avatarUrl}`}
-                                    />
-                                </ListItemAvatar>
-                                <ListItemText
-                                    id={value.user.displayName}
-                                    primary={value.user.displayName}
-                                />
-                            </ListItemButton>
-                        </ListItem>
+                                ) : null}
+                            </Box>
+                        </Box>
                     );
                 })}
-            </List>
+            </Box>
             {members.length > 4 ? (
                 <IconButton
                     disableRipple
@@ -365,9 +380,7 @@ export function AddMemberRow({
                 justifyContent="space-between"
                 alignItems="center"
             >
-                <Typography fontWeight="500" fontSize="1rem">
-                    {user.displayName}
-                </Typography>
+                <Typography fontWeight="500">{user.displayName}</Typography>
 
                 {checked ? <Check /> : null}
             </Box>

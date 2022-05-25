@@ -138,7 +138,6 @@ function LeftSidebarNewGroup({
                                         badgeContent={
                                             <ClearIcon
                                                 sx={{
-                                                    fontSize: "small",
                                                     color: "white",
                                                     cursor: "pointer",
                                                 }}
@@ -161,7 +160,6 @@ function LeftSidebarNewGroup({
                                         textAlign="center"
                                         fontWeight="medium"
                                         color="#9AA0A6"
-                                        fontSize="0.875rem"
                                         lineHeight="1.25rem"
                                     >
                                         {user.displayName}
@@ -211,7 +209,6 @@ function LeftSidebarNewGroup({
                         textAlign="right"
                         color="#141414"
                         fontWeight="medium"
-                        fontSize="0.875rem"
                         lineHeight="1.25rem"
                         sx={{ px: 2.5, py: 2 }}
                     >

@@ -64,7 +64,7 @@ export default function Message({
     return (
         <Box key={id}>
             {roomType === "group" && !isUsersMessage && isFirstMessage && (
-                <Typography color="#9AA0A6" fontWeight={600} fontSize="0.75rem" pl="34px" mb="10px">
+                <Typography color="#9AA0A6" fontWeight={600} pl="34px" mb="10px">
                     {sender?.displayName}
                 </Typography>
             )}
@@ -258,7 +258,6 @@ function TextMessage({ isUsersMessage, body }: { body: any; isUsersMessage: bool
         >
             <Typography
                 fontWeight={500}
-                fontSize="0.9rem"
                 color="#131940"
                 lineHeight="1.5rem"
                 fontFamily="Roboto Mono, monospace;"

@@ -139,7 +139,6 @@ export default function ChatInput(): React.ReactElement {
                                     maxRows={3}
                                 />
                                 <EmojiEmotionsIcon
-                                    fontSize="large"
                                     color="primary"
                                     sx={{ position: "absolute", top: "6px", right: "20px" }}
                                 />
@@ -147,7 +146,6 @@ export default function ChatInput(): React.ReactElement {
                             {message.length ? (
                                 <SendIcon
                                     onClick={() => handleSend()}
-                                    fontSize="large"
                                     color="primary"
                                     sx={{ cursor: "pointer" }}
                                 />
