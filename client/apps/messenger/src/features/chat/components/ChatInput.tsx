@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import {
     Box,
@@ -23,7 +23,6 @@ import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import SendIcon from "@mui/icons-material/Send";
 import getFileIcon from "../lib/getFileIcon";
 import { useShowBasicDialog } from "../../../hooks/useModal";
-import { dynamicBaseQuery } from "../../../api/api";
 import { addMessage } from "../slice/chatSlice";
 import { fetchHistory } from "../slice/roomSlice";
 
@@ -37,6 +36,7 @@ export default function ChatInput(): React.ReactElement {
     const [files, setFiles] = useState(AttachmentManager.getFiles(roomId) || []);
     const [failedToUploadFiles, setFailedToUploadFiles] = useState<File[]>([]);
     const showBasicDialog = useShowBasicDialog();
+    const canvasRef = useRef<HTMLCanvasElement>();
 
     const messageType = files.length > 0 ? "files" : "text";
 
@@ -52,12 +52,53 @@ export default function ChatInput(): React.ReactElement {
                         file,
                         type: file.type || "unknown",
                     });
+                    let thumbFileUploaded: {
+                        path: string;
+                        id: number;
+                    };
 
                     const fileType = getFileType(file.type);
+                    console.log({ fileType });
+
+                    if (canvasRef?.current && fileType === "image") {
+                        const canvas = canvasRef.current;
+                        const ctx = canvas.getContext("2d");
+                        canvas.width = 256;
+                        const img = new Image();
+
+                        img.onload = function () {
+                            canvas.height = (img.height * 256) / img.width;
+                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                            canvas.toBlob(async (blob) => {
+                                const thumbFile = new File([blob], "fileName.jpg", {
+                                    type: "image/jpeg",
+                                });
+                                console.log({ thumbFile });
+                                thumbFileUploaded = await uploadFile({
+                                    file: thumbFile,
+                                    type: thumbFile.type || "unknown",
+                                });
+                            }, "image/jpeg");
+                            alert(
+                                JSON.stringify({
+                                    iw: img.width,
+                                    ih: img.height,
+                                    cw: canvas.width,
+                                    ch: canvas.height,
+                                })
+                            ); // image is loaded; sizes are available
+                        };
+
+                        img.src = URL.createObjectURL(file); // is the data URL because called with readAsDataURL
+                    }
+
                     response = await sendMessage({
                         roomId,
                         type: fileType,
-                        body: { fileId: uploaded.id, thumbId: uploaded.id },
+                        body: {
+                            fileId: uploaded.id,
+                            thumbId: thumbFileUploaded && thumbFileUploaded.id,
+                        },
                     }).unwrap();
                     setFilesSent((filesSent) => filesSent + 1);
 
@@ -100,6 +141,7 @@ export default function ChatInput(): React.ReactElement {
 
     return (
         <Box borderTop="1px solid #C9C9CA" px={2} py={1}>
+            <canvas ref={canvasRef} />
             {loading && (
                 <LinearProgress
                     sx={{ mb: 1 }}
