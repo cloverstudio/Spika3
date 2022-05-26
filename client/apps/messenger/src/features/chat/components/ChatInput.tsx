@@ -77,13 +77,14 @@ export default function ChatInput(): React.ReactElement {
             setLoading(false);
             setFilesSent(0);
         } else if (message.length) {
+            const messageTmp: string = message + "";
+            setMessage("");
             response = await sendMessage({
                 roomId,
                 type: "text",
-                body: { text: message },
+                body: { text: messageTmp },
             }).unwrap();
 
-            setMessage("");
             if (response && response.message) {
                 dispatch(addMessage(response.message));
                 dispatch(fetchHistory(1));
@@ -98,7 +99,7 @@ export default function ChatInput(): React.ReactElement {
     }, [roomId]);
 
     return (
-        <Box borderTop="0.5px solid #C9C9CA" px={2} py={1}>
+        <Box borderTop="1px solid #C9C9CA" px={2} py={1}>
             {loading && (
                 <LinearProgress
                     sx={{ mb: 1 }}
@@ -118,11 +119,16 @@ export default function ChatInput(): React.ReactElement {
                                     fullWidth
                                     value={message}
                                     disabled={loading}
-                                    onChange={({ target }) => setMessage(target.value)}
+                                    onChange={({ target }) => {
+                                        setMessage(target.value);
+                                    }}
                                     onKeyDown={(e) => {
                                         if (e.key === "Enter" && e.shiftKey === true) {
+                                            setMessage(e.currentTarget.value);
                                         } else if (e.key === "Enter") {
+                                            e.preventDefault();
                                             handleSend();
+                                        } else {
                                         }
                                     }}
                                     placeholder="Type here..."

@@ -246,31 +246,27 @@ function TextMessage({ isUsersMessage, body }: { body: any; isUsersMessage: bool
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#39;");
 
+        // fold multiple new line in one
+        text = text.replace(/\n{3,}/g, "\n");
+
         return text;
     };
 
     return (
         <Box
-            maxWidth="80%"
-            bgcolor={isUsersMessage ? "#C8EBFE" : "#F2F2F2"}
-            borderRadius="1rem"
-            p="10px"
-        >
-            <Typography
-                fontWeight={500}
-                color="#131940"
-                lineHeight="1.5rem"
-                fontFamily="Roboto Mono, monospace;"
-            >
-                <pre
-                    style={{
-                        padding: "0px",
-                        margin: "0px",
-                        whiteSpace: "pre-wrap",
-                    }}
-                    dangerouslySetInnerHTML={{ __html: filterText(body.text) }}
-                />
-            </Typography>
-        </Box>
+            component={"pre"}
+            sx={{
+                minWidth: "50px",
+                maxWidth: "80%",
+                backgroundColor: isUsersMessage ? "#C8EBFE" : "#F2F2F2",
+                borderRadius: "1rem",
+                padding: "10px",
+                color: "#131940",
+                lineHeight: "1.5rem",
+                whiteSpace: "pre-wrap",
+                margin: "0px",
+            }}
+            dangerouslySetInnerHTML={{ __html: filterText(body.text) }}
+        />
     );
 }
