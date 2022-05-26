@@ -1,17 +1,15 @@
 import { Router, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
-
 import adminAuth from "../lib/adminAuth";
 import Utils from "../../../components/utils";
 import * as consts from "../../../components/consts";
-
 import l, { error as le } from "../../../components/logger";
-
 import { InitRouterParams } from "../../types/serviceInterface";
 import { successResponse, errorResponse } from "../../../components/response";
 import { UserRequest } from "../../messenger/lib/types";
 import { User } from "@prisma/client";
+import sanitize from "../../../components/sanitize";
 
 export default (params: InitRouterParams) => {
     const router = Router();
@@ -118,7 +116,7 @@ export default (params: InitRouterParams) => {
 
             if (!user) return res.status(404).send(errorResponse(`Wrong user id`, userReq.lang));
 
-            return res.send(successResponse({ user }, userReq.lang));
+            return res.send(successResponse({ user: sanitize(user).user() }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));

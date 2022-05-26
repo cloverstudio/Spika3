@@ -12,3 +12,4 @@ export const LSKEY_CROPSIZE: number = 512;
 
 export const LSKEY_ACCESSTOKEN: string = "access-token";
 export const LSKEY_DEVICEID: string = "deviceId";
+export const ADMIN_ACCESS_TOKEN = "admin-accesstoken";

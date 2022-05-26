@@ -14,7 +14,7 @@ import API from "../../../../lib/api";
 interface AdminAuthState {
     username: string | null;
     token: string | null;
-    expireDate: Date | null;
+    expireDate: number | null;
 }
 
 interface AdminSigninParams {

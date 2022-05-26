@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import Layout from "../layout";
 import { useNavigate, useParams } from "react-router-dom";
-import { useGet, usePut } from "../../lib/useApi";
 import {
     TextField,
     Paper,
@@ -14,10 +13,10 @@ import {
     Checkbox,
 } from "@mui/material";
 import { useShowSnackBar } from "../../components/useUI";
-import { User } from "@prisma/client";
 import * as yup from "yup";
 import { useFormik } from "formik";
-import { successResponseType } from "../../../../../../server/components/response";
+import { useGetUserByIdQuery, useUpdateUserMutation } from "../../api/user";
+import UserType from "../../types/User";
 
 const userModelSchema = yup.object({
     displayName: yup.string().required("Display name is required"),
@@ -32,8 +31,8 @@ export default function Page() {
     const urlParams = useParams();
     const navigate = useNavigate();
     const showSnackBar = useShowSnackBar();
-    const get = useGet();
-    const put = usePut();
+    const { data, isLoading } = useGetUserByIdQuery(urlParams.id);
+    const [updateUser, updateUserMutation] = useUpdateUserMutation();
 
     const formik = useFormik({
         initialValues: {
@@ -65,11 +64,8 @@ export default function Page() {
 
     useEffect(() => {
         (async () => {
-            try {
-                const serverResponse: successResponseType = await get(
-                    `/management/user/${urlParams.id}`
-                );
-                const response: User = serverResponse.data.user;
+            if (!isLoading) {
+                const response: UserType = data.user;
                 const checkName = response.displayName == null ? "" : response.displayName;
                 const checkPhone = response.telephoneNumber == null ? "" : response.telephoneNumber;
                 const checkEmail = response.emailAddress == null ? "" : response.emailAddress;
@@ -93,27 +89,23 @@ export default function Page() {
                     verificationCode: checkVerCode,
                     verified: checkVer,
                 });
-            } catch (e) {
-                console.error(e);
-                showSnackBar({
-                    severity: "error",
-                    text: "Server error, please check browser console.",
-                });
             }
         })();
-    }, []);
+    }, [data]);
 
     const validateAndUpdate = async () => {
         try {
-            const result = await put(`/management/user/${urlParams.id}`, {
-                displayName: formik.values.displayName,
-                emailAddress: formik.values.email,
-                telephoneNumber: formik.values.telephoneNumber,
-                avatarUrl: formik.values.avatarUrl,
-                verified: formik.values.verified,
-                verificationCode: formik.values.verificationCode,
+            await updateUser({
+                userId: urlParams.id,
+                data: {
+                    displayName: formik.values.displayName,
+                    emailAddress: formik.values.email,
+                    telephoneNumber: formik.values.telephoneNumber,
+                    avatarUrl: formik.values.avatarUrl,
+                    verified: formik.values.verified,
+                    verificationCode: formik.values.verificationCode,
+                },
             });
-
             showSnackBar({ severity: "success", text: "User updated" });
             navigate("/user");
         } catch (e: any) {

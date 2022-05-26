@@ -16,6 +16,7 @@ import {
 import { useShowSnackBar } from "../../components/useUI";
 import * as yup from "yup";
 import { useFormik } from "formik";
+import { useCreateUserMutation } from "../../api/user";
 
 const userModelSchema = yup.object({
     displayName: yup.string().required("Display name is required"),
@@ -31,6 +32,7 @@ const userModelSchema = yup.object({
 export default function Dashboard() {
     const navigate = useNavigate();
     const showSnackBar = useShowSnackBar();
+    const [addUser, addUserMutation] = useCreateUserMutation();
 
     const formik = useFormik({
         initialValues: {
@@ -56,7 +58,7 @@ export default function Dashboard() {
 
     const validateAndAdd = async () => {
         try {
-            const result = await post("/management/user", {
+            await addUser({
                 displayName: formik.values.displayName,
                 emailAddress: formik.values.email,
                 telephoneNumber: formik.values.telephoneNumber,

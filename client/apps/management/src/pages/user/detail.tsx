@@ -1,35 +1,26 @@
 import React, { useEffect } from "react";
 import Layout from "../layout";
 import { useNavigate, useParams } from "react-router-dom";
-import { useGet } from "../../lib/useApi";
 import { Typography, Paper, Grid, Button, Avatar, Checkbox } from "@mui/material";
 import { useShowSnackBar } from "../../components/useUI";
-import { User } from "@prisma/client";
-import { successResponseType } from "../../../../../../server/components/response";
+import { useGetUserByIdQuery } from "../../api/user";
+import UserType from "../../types/User";
 
 export default function Page() {
     const urlParams = useParams();
     const navigate = useNavigate();
     const showSnackBar = useShowSnackBar();
-    const [detail, setDetail] = React.useState<User>();
-
-    const get = useGet();
+    const [detail, setDetail] = React.useState<UserType>();
+    const { data, isLoading } = useGetUserByIdQuery(urlParams.id);
 
     useEffect(() => {
         (async () => {
-            try {
-                const response: successResponseType = await get(`/management/user/${urlParams.id}`);
-                const user: User = response.data.user;
+            if (!isLoading) {
+                const user: UserType = data.user;
                 setDetail(user);
-            } catch (e) {
-                console.error(e);
-                showSnackBar({
-                    severity: "error",
-                    text: "Server error, please check browser console.",
-                });
             }
         })();
-    }, []);
+    }, [data]);
 
     return (
         <Layout subtitle={`User detail ( ${urlParams.id} )`} showBack={true}>

@@ -1,9 +1,9 @@
 import React from "react";
-
 import { styled, createTheme, ThemeProvider } from "@mui/material/styles";
 import MuiDrawer from "@mui/material/Drawer";
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
 import { useNavigate } from "react-router-dom";
+import * as constants from "../../../../lib/constants";
 
 import {
     CssBaseline,
@@ -88,7 +88,7 @@ const Drawer = styled(MuiDrawer, {
 }));
 
 const mdTheme = createTheme();
-const localToken = "localToken";
+
 type LayoutParams = {
     subtitle: string;
     children: React.ReactNode;
@@ -221,7 +221,7 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
                                         text: "Singed out",
                                     })
                                 );
-                                localStorage.removeItem(localToken);
+                                localStorage.removeItem(constants.ADMIN_ACCESS_TOKEN);
                                 navigate("/");
                             }}
                         >
