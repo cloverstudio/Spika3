@@ -19,7 +19,7 @@ export default function SidebarNavigationHeader({
                 >
                     <ArrowBackIosIcon sx={{ color: "#141414" }} />
                 </IconButton>
-                <Typography fontWeight={500} fontSize="1rem" lineHeight="">
+                <Typography fontWeight={500} lineHeight="">
                     {title}
                 </Typography>
             </Box>

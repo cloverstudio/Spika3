@@ -554,6 +554,12 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 select: {
                     room: {
                         select: {
+                            id: true,
+                            name: true,
+                            type: true,
+                            avatarUrl: true,
+                            createdAt: true,
+                            modifiedAt: true,
                             users: {
                                 select: {
                                     user: true,

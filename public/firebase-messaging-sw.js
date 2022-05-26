@@ -1,5 +1,5 @@
-importScripts('https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js');
-importScripts('https://www.gstatic.com/firebasejs/8.2.0/firebase-messaging.js');
+importScripts('https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js');
+importScripts('https://www.gstatic.com/firebasejs/8.10.0/firebase-messaging.js');
 
 const firebaseConfig = {
     apiKey: "AIzaSyD1EJGP17dwcRe4fKC0QaSbfxNglDelLNc",
@@ -16,11 +16,18 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage(function(payload) {
   console.log('Received background message ', payload);
-  const notificationTitle = payload.notification.title;
-  const notificationOptions = {
-    body: payload.notification.body,
-  };
+const message = payload?.data?.message ? JSON.parse(payload.data.message) : {};
 
+  if(!message){
+    return;
+  } 
+  
+  const notificationTitle = "New message";
+  const notificationOptions = {
+    body: message.type === "text" ? message.body.text : "Media",
+  };
+  
   self.registration.showNotification(notificationTitle,
     notificationOptions);
+
 });

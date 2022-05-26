@@ -23,142 +23,87 @@ export function DetailsAdditionalInfoView(props: DetailsAdditionalInfoProps) {
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "center",
+                    padding: "10px",
                     paddingTop: "15px",
                 }}
             >
-                <IconButton
-                    disableRipple
-                    size="large"
-                    sx={{
-                        ml: 1,
-                        "&.MuiButtonBase-root:hover": {
-                            bgcolor: "transparent",
-                        },
-                        width: "100%",
-                        margin: "0",
-                    }}
-                    onClick={(e) => {
-                        handleSelection("shared");
-                    }}
-                >
-                    <Stack
-                        direction="row"
-                        alignItems="center"
-                        spacing={1}
-                        sx={{
-                            display: "flex",
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            width: "100%",
-                        }}
-                    >
-                        <Typography variant="subtitle1">Shared Media, Links and Docs</Typography>
-                        <ChevronRight />
-                    </Stack>
-                </IconButton>
-                <IconButton
-                    disableRipple
-                    size="large"
-                    sx={{
-                        ml: 1,
-                        "&.MuiButtonBase-root:hover": {
-                            bgcolor: "transparent",
-                        },
-                        width: "100%",
-                        paddingTop: "0",
-                    }}
-                >
-                    <Stack
-                        direction="row"
-                        alignItems="center"
-                        spacing={1}
-                        sx={{
-                            display: "flex",
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            width: "100%",
-                        }}
-                    >
-                        <Typography variant="subtitle1">Call history</Typography>
-                        <ChevronRight />
-                    </Stack>
-                </IconButton>
-                <IconButton
-                    disableRipple
-                    size="large"
-                    sx={{
-                        ml: 1,
-                        "&.MuiButtonBase-root:hover": {
-                            bgcolor: "transparent",
-                        },
-                        width: "100%",
-                    }}
-                    onClick={(e) => {
-                        handleSelection("callHistory");
-                    }}
-                >
-                    <Stack
-                        direction="row"
-                        alignItems="center"
-                        spacing={1}
-                        sx={{
-                            display: "flex",
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            width: "100%",
-                        }}
-                    >
-                        <Typography variant="subtitle1">Notes</Typography>
-                        <ChevronRight />
-                    </Stack>
-                </IconButton>
-                <IconButton
-                    disableRipple
-                    size="large"
-                    sx={{
-                        ml: 1,
-                        "&.MuiButtonBase-root:hover": {
-                            bgcolor: "transparent",
-                        },
-                        width: "100%",
-                        paddingTop: "0",
-                        paddingBottom: "12px",
-                    }}
-                    onClick={(e) => {
-                        handleSelection("notes");
-                    }}
-                >
-                    <Stack
-                        direction="row"
-                        alignItems="center"
-                        spacing={1}
-                        sx={{
-                            display: "flex",
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            width: "100%",
-                        }}
-                    >
-                        <Typography variant="subtitle1">Favorite messages</Typography>
-                        <ChevronRight />
-                    </Stack>
-                </IconButton>
                 <Stack
                     direction="row"
                     alignItems="center"
                     spacing={1}
                     sx={{
+                        height: "40px",
                         display: "flex",
                         flexDirection: "row",
                         justifyContent: "space-between",
                         width: "100%",
-                        padding: "0px 12px",
+                    }}
+                >
+                    <Box component="span">Shared Media, Links and Docs</Box>
+                    <ChevronRight />
+                </Stack>
+
+                <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                    sx={{
+                        height: "40px",
+                        display: "flex",
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        width: "100%",
+                    }}
+                >
+                    <Box component="span">Call history</Box>
+                    <ChevronRight />
+                </Stack>
+                <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                    sx={{
+                        height: "40px",
+                        display: "flex",
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        width: "100%",
+                    }}
+                >
+                    <Box component="span">Notes</Box>
+                    <ChevronRight />
+                </Stack>
+                <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                    sx={{
+                        height: "40px",
+                        display: "flex",
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        width: "100%",
+                    }}
+                >
+                    <Box component="span">Favorite messages</Box>
+                    <ChevronRight />
+                </Stack>
+                <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                    sx={{
+                        height: "40px",
+                        display: "flex",
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        width: "100%",
                     }}
                     onClick={(e) => {
                         handleSelection("favoriteMessages");
                     }}
                 >
-                    <Typography variant="subtitle1">Pin chat</Typography>
+                    <Box component="span">Pin chat</Box>
                     <Switch />
                 </Stack>
                 <Stack
@@ -166,14 +111,14 @@ export function DetailsAdditionalInfoView(props: DetailsAdditionalInfoProps) {
                     alignItems="center"
                     spacing={1}
                     sx={{
+                        height: "40px",
                         display: "flex",
                         flexDirection: "row",
                         justifyContent: "space-between",
                         width: "100%",
-                        padding: "0px 12px 12px 12px",
                     }}
                 >
-                    <Typography variant="subtitle1">Mute notifications</Typography>
+                    <Box component="span">Mute notifications</Box>
                     <Switch />
                 </Stack>
             </Stack>

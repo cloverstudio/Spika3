@@ -35,10 +35,6 @@ describe("Send Push Worker", () => {
         expect(sendFcmMessage.default).to.have.been.called.with({
             message: {
                 token: "dummy_token",
-                notification: {
-                    title: "New message",
-                    body: "testing",
-                },
                 data: {
                     message: JSON.stringify({ body: { text: "testing" } }),
                 },

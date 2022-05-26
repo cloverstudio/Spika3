@@ -47,14 +47,17 @@ export default function RoomHeader({
                 >
                     {isMobile && (
                         <ChevronLeftIcon
-                            sx={{ mr: 0.5 }}
+                            sx={{
+                                width: "25px",
+                                height: "25px",
+                                mr: 0.5,
+                            }}
                             onClick={() => dispatch(setLeftSidebar(true))}
-                            fontSize="large"
                         />
                     )}
                     <Avatar alt={name} src={`${UPLOADS_BASE_URL}${avatarUrl}`} />
 
-                    <Typography fontWeight="500" fontSize="1rem" ml={1.5}>
+                    <Typography fontWeight="500" ml={1.5}>
                         {name}
                     </Typography>
                 </Box>
@@ -62,7 +65,8 @@ export default function RoomHeader({
                     <Box mr={3}>
                         <Videocam
                             sx={{
-                                fontSize: "28px",
+                                width: "25px",
+                                height: "25px",
                                 color: "#4696F0",
                                 cursor: "pointer",
                             }}
@@ -74,7 +78,8 @@ export default function RoomHeader({
                     <Box mr={3}>
                         <Call
                             sx={{
-                                fontSize: "28px",
+                                width: "25px",
+                                height: "25px",
                                 color: "#4696F0",
                                 cursor: "pointer",
                             }}
@@ -86,7 +91,8 @@ export default function RoomHeader({
                     <Box>
                         <Search
                             sx={{
-                                fontSize: "28px",
+                                width: "25px",
+                                height: "25px",
                                 color: "#4696F0",
                                 cursor: "pointer",
                             }}

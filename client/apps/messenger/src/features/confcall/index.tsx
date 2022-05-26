@@ -242,7 +242,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                 sx={{
                     textAlign: "center",
                     color: "#fff",
-                    fontSize: "24px",
+
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",

@@ -33,41 +33,6 @@ export default class SSEService implements Service {
             res.writeHead(200, headers);
             res.write("data: \n\n");
 
-            const undeliveredMessages = await prisma.message.findMany({
-                where: {
-                    deviceMessages: {
-                        some: {
-                            deviceId: userReq.device.id,
-                        },
-                    },
-                    messageRecords: {
-                        none: {
-                            type: "delivered",
-                            userId: userReq.user.id,
-                        },
-                    },
-                },
-                include: {
-                    deviceMessages: true,
-                },
-            });
-
-            const sanitizedUndeliveredMessages = await Promise.all(
-                undeliveredMessages.map(async (message) =>
-                    sanitize({
-                        ...message,
-                        body: await formatMessageBody(message.deviceMessages[0].body, message.type),
-                    }).message()
-                )
-            );
-
-            for (const message of sanitizedUndeliveredMessages) {
-                const jsonData = JSON.stringify({ type: Constants.PUSH_TYPE_NEW_MESSAGE, message });
-
-                const eventData = "data: " + jsonData + "\n\n";
-                res.write(eventData);
-            }
-
             const interval = setInterval(() => {
                 res.write("data: \n\n");
             }, 5000);

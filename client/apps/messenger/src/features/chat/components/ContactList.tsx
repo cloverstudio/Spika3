@@ -72,7 +72,7 @@ export default function SidebarContactList({
             {sortedByDisplayName.map(([letter, contactList]) => {
                 return (
                     <Box key={letter} mb={2}>
-                        <Typography ml={4.75} py={1.5} fontWeight="bold" fontSize="1.1rem">
+                        <Typography ml={4.75} py={1.5} fontWeight="bold">
                             {letter}
                         </Typography>
 
@@ -122,9 +122,7 @@ export function ContactRow({
                 justifyContent="space-between"
                 alignItems="center"
             >
-                <Typography fontWeight="500" fontSize="1rem">
-                    {name}
-                </Typography>
+                <Typography fontWeight="500">{name}</Typography>
                 {selected && <SelectedIcon />}
             </Box>
         </Box>
