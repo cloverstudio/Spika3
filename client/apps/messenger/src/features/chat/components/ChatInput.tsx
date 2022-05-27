@@ -63,7 +63,7 @@ export default function ChatInput(): React.ReactElement {
 
                     if (response && response.message) {
                         dispatch(addMessage(response.message));
-                        dispatch(fetchHistory(1));
+                        dispatch(fetchHistory({ page: 1, keyword: "" }));
                     }
                 } catch (error) {
                     showBasicDialog({ text: "Some files are not sent!", title: "Upload error" });
@@ -87,7 +87,7 @@ export default function ChatInput(): React.ReactElement {
 
             if (response && response.message) {
                 dispatch(addMessage(response.message));
-                dispatch(fetchHistory(1));
+                dispatch(fetchHistory({ page: 1, keyword: "" }));
             }
         }
     };

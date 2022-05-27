@@ -586,6 +586,17 @@ describe("API", () => {
                 roomsFromRes.every((r) => r.users.map((u) => u.userId).includes(globals.userId))
             ).to.eqls(true);
         });
+
+        it("Return 0 when keyword is ramdom", async () => {
+            const response = await supertest(app)
+                .get("/api/messenger/rooms?keyword=sssssss")
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(200);
+            expect(response.body).to.has.property("data");
+            expect(response.body.data).to.has.property("list");
+            expect(response.body.data.list.length).to.eqls(0);
+        });
     });
 
     describe("/api/messenger/rooms/:id GET", () => {

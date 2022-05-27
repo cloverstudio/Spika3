@@ -23,5 +23,18 @@ describe("API", () => {
             expect(response.body.data.list).to.be.an("array");
             expect(response.body.data.list.filter((r: any) => r.lastMessage)).to.have.length(0);
         });
+
+        it("Filter by keyword works", async () => {
+            const newDevice = await createFakeDevice(globals.userId);
+
+            const response = await supertest(app)
+                .get("/api/messenger/rooms?keyword=randomstring")
+                .set({ accesstoken: newDevice.token });
+
+            expect(response.status).to.eqls(200);
+            expect(response.body).to.has.property("data");
+            expect(response.body.data).to.has.property("list");
+            expect(response.body.data.list.length).to.eqls(0);
+        });
     });
 });

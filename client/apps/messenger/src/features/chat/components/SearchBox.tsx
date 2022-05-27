@@ -2,7 +2,13 @@ import React from "react";
 import { Box, Input, InputAdornment } from "@mui/material";
 import { Search } from "@mui/icons-material";
 
-export default function SearchBox(): React.ReactElement {
+type SearchBoxProos = {
+    onSearch?: (keyword: string) => void;
+};
+
+let timer: NodeJS.Timeout;
+
+export default function SearchBox({ onSearch }: SearchBoxProos): React.ReactElement {
     return (
         <Box px={2.5} mb={2}>
             <Input
@@ -21,6 +27,14 @@ export default function SearchBox(): React.ReactElement {
                     input: {
                         padding: 0,
                     },
+                }}
+                onChange={(e) => {
+                    if (timer) clearTimeout(timer);
+                    if (onSearch) {
+                        timer = setTimeout(() => {
+                            onSearch(e.target.value);
+                        }, 500);
+                    }
                 }}
             />
         </Box>
