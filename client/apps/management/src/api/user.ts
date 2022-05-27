@@ -21,13 +21,13 @@ const userApi = api.injectEndpoints({
             query: ({ userId, data }) => {
                 return { url: `/management/user/${userId}`, method: "PUT", data };
             },
-            invalidatesTags: (result, error, arg) => [{ type: "User", id: arg.userId }],
+            invalidatesTags: (res) => res && [{ type: "User", id: "LIST" }],
         }),
         deleteUser: build.mutation<{ userId: string }, any>({
             query: (userId) => {
                 return { url: `/management/user/${userId}`, method: "DELETE" };
             },
-            invalidatesTags: (result, error, arg) => [{ type: "User", id: arg.userId }],
+            invalidatesTags: (res) => res && [{ type: "User", id: "LIST" }],
         }),
     }),
     overrideExisting: true,

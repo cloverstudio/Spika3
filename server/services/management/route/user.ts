@@ -198,15 +198,55 @@ export default (params: InitRouterParams) => {
         const userReq: UserRequest = req as UserRequest;
         try {
             const userId: number = parseInt(req.params.userId);
-
+            console.log(JSON.stringify(req.params));
             // check existance
             const user = await prisma.user.findFirst({
                 where: {
                     id: userId,
                 },
             });
+            console.log(JSON.stringify(user));
 
             if (!user) return res.status(404).send(errorResponse(`Wrong user id`, userReq.lang));
+
+            const fromDevice = await prisma.device.findMany({ where: { userId: userId } });
+            const fromDeviceIds = fromDevice.map((ru) => ru.id);
+            const selectedMessages = await prisma.message.findMany({
+                where: {
+                    fromDeviceId: { in: fromDeviceIds },
+                },
+            });
+            const selectedMessagesIds = selectedMessages.map((ru) => ru.id);
+            const deleteMessageDevice = await prisma.deviceMessage.deleteMany({
+                where: { messageId: { in: selectedMessagesIds } },
+            });
+            const deleteMessageRecord = await prisma.messageRecord.deleteMany({
+                where: { messageId: { in: selectedMessagesIds } },
+            });
+
+            const deleteMessages = await prisma.message.deleteMany({
+                where: { fromDeviceId: { in: fromDeviceIds } },
+            });
+
+            const deleteDevice = await prisma.device.deleteMany({
+                where: { userId: userId },
+            });
+
+            const deleteContactByContactId = await prisma.contact.deleteMany({
+                where: { contactId: userId },
+            });
+
+            const deleteContactByUserId = await prisma.contact.deleteMany({
+                where: { userId: userId },
+            });
+
+            const deleteByMessageRecord = await prisma.messageRecord.deleteMany({
+                where: { userId: userId },
+            });
+
+            const deleteFromRoom = await prisma.roomUser.deleteMany({
+                where: { userId: userId },
+            });
 
             const deleteResult = await prisma.user.delete({
                 where: { id: userId },
