@@ -7,7 +7,7 @@ import auth from "../lib/auth";
 import { UserRequest } from "../lib/types";
 import sanitize from "../../../components/sanitize";
 import * as Constants from "../../../components/consts";
-
+6;
 const prisma = new PrismaClient();
 
 export default (): Router => {
@@ -18,14 +18,52 @@ export default (): Router => {
         const userId = userReq.user.id;
         const deviceId = userReq.device.id;
         const page = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
+        const keyword = req.query.keyword as string;
         try {
-            const roomUsers = await prisma.roomUser.findMany({
+            let roomUsers = await prisma.roomUser.findMany({
                 where: {
+                    room: {
+                        name: {
+                            startsWith: keyword,
+                        },
+                    },
                     userId,
                 },
 
-                include: { room: true },
+                include: { room: true, user: true },
             });
+
+            // find a display name of user who are in private room
+            if (keyword?.length > 0) {
+                const privateRooms = await prisma.roomUser.findMany({
+                    where: {
+                        room: {
+                            type: "private",
+                        },
+                        userId,
+                    },
+                    include: { room: true },
+                });
+                const privateRoomIds = privateRooms.map((r) => r.room.id);
+
+                const matchedRoomUsers = await prisma.roomUser.findMany({
+                    where: {
+                        roomId: { in: privateRoomIds },
+                        user: {
+                            displayName: {
+                                startsWith: keyword,
+                            },
+                        },
+                        userId: {
+                            not: userId,
+                        },
+                    },
+
+                    include: { room: true, user: true },
+                });
+
+                roomUsers = [...roomUsers, ...matchedRoomUsers];
+            }
 
             const roomsIds = roomUsers.map((r) => r.room.id);
 
@@ -34,6 +72,9 @@ export default (): Router => {
                     id: { in: roomsIds },
                     messages: {
                         some: {},
+                    },
+                    name: {
+                        startsWith: keyword,
                     },
                 },
             });

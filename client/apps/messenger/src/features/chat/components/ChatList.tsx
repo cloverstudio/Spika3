@@ -14,6 +14,7 @@ import MessageType from "../../../types/Message";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { setLeftSidebar } from "../slice/sidebarSlice";
+import SearchBox from "./SearchBox";
 
 dayjs.extend(relativeTime);
 declare const UPLOADS_BASE_URL: string;
@@ -28,12 +29,19 @@ export default function SidebarContactList(): React.ReactElement {
     const user = useSelector(selectUser);
     const onChatClick = () => dispatch(setLeftSidebar(false));
     const isFetching = loading !== "idle";
+    const [keyword, setKeyword] = useState<string>("");
 
     const hasMoreContactsToLoad = count > list.length;
 
     useEffect(() => {
-        dispatch(fetchHistory(page));
+        dispatch(fetchHistory({ page: page, keyword }));
     }, [dispatch, page]);
+
+    // user changes keyword => reset page to 1 => do search
+    useEffect(() => {
+        if (page === 1) dispatch(fetchHistory({ page: 1, keyword }));
+        else setPage(1);
+    }, [keyword]);
 
     useEffect(() => {
         if (isInViewPort && !isFetching && hasMoreContactsToLoad) {
@@ -41,25 +49,38 @@ export default function SidebarContactList(): React.ReactElement {
         }
     }, [isInViewPort, isFetching, hasMoreContactsToLoad]);
 
-    if (!list.length && !isFetching) {
-        return <Typography align="center">No rooms</Typography>;
-    }
-
     return (
         <Box sx={{ overflowY: "auto", maxHeight: "100%" }}>
-            {[...list]
-                .sort((a, b) => (a.lastMessage?.createdAt > b.lastMessage?.createdAt ? -1 : 1))
-                .map((room) => {
-                    const formattedRoom = formatRoomInfo(room, user.id);
-                    return (
-                        <RoomRow
-                            key={room.id}
-                            {...formattedRoom}
-                            isActive={room.id === activeRoomId}
-                            handleClick={onChatClick}
-                        />
-                    );
-                })}
+            <Box mt={3}>
+                <SearchBox
+                    onSearch={(keyword: string) => {
+                        setKeyword(keyword);
+                    }}
+                />
+            </Box>
+
+            {list.length === 0 && !isFetching ? (
+                <Typography align="center">No rooms</Typography>
+            ) : (
+                <>
+                    {[...list]
+                        .sort((a, b) =>
+                            a.lastMessage?.createdAt > b.lastMessage?.createdAt ? -1 : 1
+                        )
+                        .map((room) => {
+                            const formattedRoom = formatRoomInfo(room, user.id);
+                            return (
+                                <RoomRow
+                                    key={room.id}
+                                    {...formattedRoom}
+                                    isActive={room.id === activeRoomId}
+                                    handleClick={onChatClick}
+                                />
+                            );
+                        })}
+                </>
+            )}
+
             <div ref={elementRef}></div>
         </Box>
     );

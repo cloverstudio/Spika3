@@ -33,7 +33,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                 data: { messagesIds: [message.id] },
             });
             store.dispatch(addMessage(message));
-            store.dispatch(fetchHistory(1));
+            store.dispatch(fetchHistory({ page: 1, keyword: "" }));
 
             return;
         }
