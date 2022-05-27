@@ -130,7 +130,7 @@ function ImageMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
                 maxWidth="35rem"
                 height="10rem"
                 width="auto"
-                src={`${UPLOADS_BASE_URL}${body.file.path}`}
+                src={`${UPLOADS_BASE_URL}${body.thumb.path}`}
                 pb="0.8125"
                 sx={{ cursor: "pointer" }}
             />

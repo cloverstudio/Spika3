@@ -25,6 +25,7 @@ import getFileIcon from "../lib/getFileIcon";
 import { useShowBasicDialog } from "../../../hooks/useModal";
 import { addMessage } from "../slice/chatSlice";
 import { fetchHistory } from "../slice/roomSlice";
+import { THUMB_WIDTH } from "../../../../../../lib/constants";
 
 export default function ChatInput(): React.ReactElement {
     const dispatch = useDispatch();
@@ -60,36 +61,14 @@ export default function ChatInput(): React.ReactElement {
                     const fileType = getFileType(file.type);
                     console.log({ fileType });
 
-                    if (canvasRef?.current && fileType === "image") {
-                        const canvas = canvasRef.current;
-                        const ctx = canvas.getContext("2d");
-                        canvas.width = 256;
-                        const img = new Image();
-
-                        img.onload = function () {
-                            canvas.height = (img.height * 256) / img.width;
-                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                            canvas.toBlob(async (blob) => {
-                                const thumbFile = new File([blob], "fileName.jpg", {
-                                    type: "image/jpeg",
-                                });
-                                console.log({ thumbFile });
-                                thumbFileUploaded = await uploadFile({
-                                    file: thumbFile,
-                                    type: thumbFile.type || "unknown",
-                                });
-                            }, "image/jpeg");
-                            alert(
-                                JSON.stringify({
-                                    iw: img.width,
-                                    ih: img.height,
-                                    cw: canvas.width,
-                                    ch: canvas.height,
-                                })
-                            ); // image is loaded; sizes are available
-                        };
-
-                        img.src = URL.createObjectURL(file); // is the data URL because called with readAsDataURL
+                    if (fileType === "image") {
+                        const thumbFile = await generateThumbFile(file, canvasRef.current);
+                        if (thumbFile) {
+                            thumbFileUploaded = await uploadFile({
+                                file: thumbFile,
+                                type: thumbFile.type || "unknown",
+                            });
+                        }
                     }
 
                     response = await sendMessage({
@@ -97,7 +76,7 @@ export default function ChatInput(): React.ReactElement {
                         type: fileType,
                         body: {
                             fileId: uploaded.id,
-                            thumbId: thumbFileUploaded && thumbFileUploaded.id,
+                            thumbId: thumbFileUploaded ? thumbFileUploaded.id : uploaded.id,
                         },
                     }).unwrap();
                     setFilesSent((filesSent) => filesSent + 1);
@@ -141,7 +120,7 @@ export default function ChatInput(): React.ReactElement {
 
     return (
         <Box borderTop="1px solid #C9C9CA" px={2} py={1}>
-            <canvas ref={canvasRef} />
+            <canvas ref={canvasRef} style={{ display: "none" }} />
             {loading && (
                 <LinearProgress
                     sx={{ mb: 1 }}
@@ -414,4 +393,35 @@ function getFileType(htmlType: string): string {
     }
 
     return "file";
+}
+
+function generateThumbFile(originalFile: File, canvas: HTMLCanvasElement): Promise<File | null> {
+    return new Promise((res) => {
+        try {
+            if (!canvas) {
+                return res(null);
+            }
+
+            const ctx = canvas.getContext("2d");
+            canvas.width = THUMB_WIDTH;
+            const img = new Image();
+
+            img.onload = function () {
+                canvas.height = (img.height * THUMB_WIDTH) / img.width;
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                canvas.toBlob(async (blob) => {
+                    const thumbFile = new File([blob], "thumb - " + originalFile.name, {
+                        type: "image/jpeg",
+                    });
+
+                    res(thumbFile);
+                }, "image/jpeg");
+            };
+
+            img.src = URL.createObjectURL(originalFile);
+        } catch (error) {
+            console.error("Thumb creation failed: ", error);
+            res(null);
+        }
+    });
 }
