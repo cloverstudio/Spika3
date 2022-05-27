@@ -14,6 +14,8 @@ import User from "../../../types/User";
 import useIsInViewport from "../../../hooks/useIsInViewport";
 import { setLeftSidebar } from "../slice/sidebarSlice";
 
+import SearchBox from "./SearchBox";
+
 declare const UPLOADS_BASE_URL: string;
 
 export default function SidebarContactList({
@@ -69,6 +71,10 @@ export default function SidebarContactList({
 
     return (
         <Box sx={{ overflowY: "auto", maxHeight: "100%" }}>
+            <Box mt={3}>
+                <SearchBox />
+            </Box>
+
             {sortedByDisplayName.map(([letter, contactList]) => {
                 return (
                     <Box key={letter} mb={2}>

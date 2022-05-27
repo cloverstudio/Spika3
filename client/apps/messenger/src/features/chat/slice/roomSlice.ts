@@ -13,17 +13,25 @@ interface RoomState {
     loading: "idle" | "pending" | "succeeded" | "failed";
 }
 
-export const fetchHistory = createAsyncThunk("room/fetchHistory", async (page: number) => {
-    const response = await dynamicBaseQuery(`/messenger/history?page=${page}`);
-    return response.data;
-});
+export const fetchHistory = createAsyncThunk(
+    "room/fetchHistory",
+    async (args: { page: number; keyword: string }) => {
+        const response = await dynamicBaseQuery(
+            `/messenger/history?page=${args.page}&keyword=${args.keyword}`
+        );
+
+        return response.data;
+    }
+);
 
 export const roomSlice = createSlice({
     name: <string>"room",
     initialState: <RoomState>{ list: [], count: null, loading: "idle" },
     reducers: {
+        removeAll(state) {
+            state.list = [];
+        },
         refreshOne(state, { payload: updatedRoom }: { payload: RoomType }) {
-            console.log("updatedRoom", updatedRoom);
             const list = state.list.map((room) => {
                 if (updatedRoom.id === room.id) {
                     room.avatarUrl = updatedRoom.avatarUrl;
@@ -41,6 +49,7 @@ export const roomSlice = createSlice({
         builder.addCase(fetchHistory.fulfilled, (state, { payload }: any) => {
             const roomsIds = state.list.map((r) => r.id);
             const notAdded = payload.list.filter((u: any) => !roomsIds.includes(u.id));
+
             const list = state.list.map((room) => {
                 const id = room.id;
 
@@ -95,6 +104,6 @@ export const selectHistoryLoading =
     (state: RootState): "idle" | "pending" | "succeeded" | "failed" =>
         state.room.loading;
 
-export const { refreshOne } = roomSlice.actions;
+export const { refreshOne, removeAll } = roomSlice.actions;
 
 export default roomSlice.reducer;

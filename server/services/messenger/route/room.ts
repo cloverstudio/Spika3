@@ -390,6 +390,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
         try {
             const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
+            const keyword: string = req.query.keyword as string;
 
             const rooms = await prisma.room.findMany({
                 where: {
@@ -399,6 +400,9 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         },
                     },
                     deleted: false,
+                    name: {
+                        startsWith: keyword,
+                    },
                 },
                 include: {
                     users: {
@@ -422,6 +426,9 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         some: {
                             userId: userReq.user.id,
                         },
+                    },
+                    name: {
+                        startsWith: keyword,
                     },
                 },
             });
