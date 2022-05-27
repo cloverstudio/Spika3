@@ -11,6 +11,7 @@ interface RoomState {
     list: (RoomType & { lastMessage: MessageType })[];
     count: number;
     loading: "idle" | "pending" | "succeeded" | "failed";
+    keyword: string;
 }
 
 export const fetchHistory = createAsyncThunk(
@@ -20,17 +21,18 @@ export const fetchHistory = createAsyncThunk(
             `/messenger/history?page=${args.page}&keyword=${args.keyword}`
         );
 
-        return response.data;
+        return {
+            data: response.data,
+            keyword: args.keyword,
+            page: args.page,
+        };
     }
 );
 
 export const roomSlice = createSlice({
     name: <string>"room",
-    initialState: <RoomState>{ list: [], count: null, loading: "idle" },
+    initialState: <RoomState>{ list: [], count: null, loading: "idle", keyword: "" },
     reducers: {
-        removeAll(state) {
-            state.list = [];
-        },
         refreshOne(state, { payload: updatedRoom }: { payload: RoomType }) {
             const list = state.list.map((room) => {
                 if (updatedRoom.id === room.id) {
@@ -48,19 +50,25 @@ export const roomSlice = createSlice({
     extraReducers: (builder) => {
         builder.addCase(fetchHistory.fulfilled, (state, { payload }: any) => {
             const roomsIds = state.list.map((r) => r.id);
-            const notAdded = payload.list.filter((u: any) => !roomsIds.includes(u.id));
+            const notAdded = payload.data.list.filter((u: any) => !roomsIds.includes(u.id));
 
             const list = state.list.map((room) => {
                 const id = room.id;
 
-                const newRoomInfo = payload.list.find((nr: any) => nr.id === id);
+                const newRoomInfo = payload.data.list.find((nr: any) => nr.id === id);
 
                 return newRoomInfo || room;
             });
 
-            state.list = [...list, ...notAdded];
-            state.count = payload.count;
+            if (state.keyword !== payload.keyword && payload.page === 1) {
+                state.list = [...payload.data.list];
+            } else {
+                state.list = [...list, ...notAdded];
+            }
+
+            state.count = payload.data.count;
             state.loading = "idle";
+            state.keyword = `${payload.keyword}`;
         });
         builder.addCase(fetchHistory.pending, (state) => {
             state.loading = "pending";
@@ -104,6 +112,6 @@ export const selectHistoryLoading =
     (state: RootState): "idle" | "pending" | "succeeded" | "failed" =>
         state.room.loading;
 
-export const { refreshOne, removeAll } = roomSlice.actions;
+export const { refreshOne } = roomSlice.actions;
 
 export default roomSlice.reducer;

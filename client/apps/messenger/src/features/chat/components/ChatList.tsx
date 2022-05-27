@@ -5,7 +5,6 @@ import { Avatar, Badge, Box, Typography } from "@mui/material";
 
 import { selectUser } from "../../../store/userSlice";
 import { selectActiveRoomId } from "../slice/chatSlice";
-import { removeAll } from "../slice/roomSlice";
 import { fetchHistory, selectHistory, selectHistoryLoading } from "../slice/roomSlice";
 
 import useIsInViewport from "../../../hooks/useIsInViewport";
@@ -35,9 +34,14 @@ export default function SidebarContactList(): React.ReactElement {
     const hasMoreContactsToLoad = count > list.length;
 
     useEffect(() => {
-        dispatch(removeAll());
-        dispatch(fetchHistory({ page, keyword }));
-    }, [dispatch, page, keyword]);
+        dispatch(fetchHistory({ page: page, keyword }));
+    }, [dispatch, page]);
+
+    // user changes keyword => reset page to 1 => do search
+    useEffect(() => {
+        if (page === 1) dispatch(fetchHistory({ page: 1, keyword }));
+        else setPage(1);
+    }, [keyword]);
 
     useEffect(() => {
         if (isInViewPort && !isFetching && hasMoreContactsToLoad) {
