@@ -8,12 +8,13 @@ import Message from "../components/Message";
 import { MessageMenu, MessageDetailDialog } from "../components/MessageMenu";
 import { ExpandMore } from "@mui/icons-material";
 import { useGetUserQuery } from "../../auth/api/auth";
+import AttachmentManager from "../lib/AttachmentManager";
 type RoomMessagesProps = {
     roomId: number;
 };
 
 export default function RoomMessages({ roomId }: RoomMessagesProps): React.ReactElement {
-    const scrollableConversation = useRef<HTMLBaseElement>();
+    const scrollableConversation = useRef<HTMLDivElement>();
     const messagesLengthRef = useRef<number>(0);
     const { data: userData } = useGetUserQuery();
     const dispatch = useDispatch();
@@ -23,6 +24,8 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
     const [newMessages, setNewMessages] = useState(0);
     const [lastScrollHeight, setLastScrollHeight] = useState<number>(null);
     const [lockedForScroll, setLockedForScroll] = useState(false);
+    const [dragCounter, setDragCounter] = useState(0);
+
     const isFetching = loading !== "idle";
     const hasMoreContactsToLoad = count > messages.length;
 
@@ -114,6 +117,43 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
         setLockedForScroll(false);
     };
 
+    const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+
+        setDragCounter((c) => c + 1);
+    };
+
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+
+        setDragCounter((c) => c - 1);
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+
+        const transfer = e.nativeEvent.dataTransfer;
+
+        if (transfer.items) {
+            for (let i = 0; i < transfer.items.length; i++) {
+                if (transfer.items[i].kind === "file") {
+                    const file = transfer.items[i].getAsFile();
+                    AttachmentManager.addFiles({ roomId, files: [file] });
+                }
+            }
+        } else {
+            AttachmentManager.addFiles({
+                roomId,
+                files: Array.from(transfer.files),
+            });
+        }
+
+        setDragCounter(0);
+    };
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+    };
+
     return (
         <Box
             flexGrow={1}
@@ -146,7 +186,25 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
                 ref={scrollableConversation}
                 onWheel={onWheel}
                 onScroll={onScroll}
+                onDragEnter={handleDragEnter}
+                onDrop={handleDrop}
+                onDragLeave={handleDragLeave}
+                onDragOver={handleDragOver}
+                id="room-messages"
             >
+                <Box
+                    position="absolute"
+                    width="100%"
+                    display={dragCounter > 0 ? "flex" : "none"}
+                    height="100%"
+                    justifyContent="center"
+                    alignItems="center"
+                    bgcolor="#E5F4FF"
+                    zIndex={9999}
+                >
+                    <i className="fa fa-cloud-upload"></i>
+                    <p> Drop files now </p>
+                </Box>
                 {messagesSorted.map((m, i) => (
                     <Message
                         key={m.id}
