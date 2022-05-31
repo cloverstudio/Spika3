@@ -194,12 +194,14 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
             >
                 <Box
                     position="absolute"
-                    width="100%"
+                    left="0"
+                    right="0"
+                    top="0"
+                    bottom="0"
                     display={dragCounter > 0 ? "flex" : "none"}
-                    height="100%"
                     justifyContent="center"
                     alignItems="center"
-                    bgcolor="#E5F4FF"
+                    bgcolor="#e5f4ffa6"
                     zIndex={9999}
                 >
                     <i className="fa fa-cloud-upload"></i>
