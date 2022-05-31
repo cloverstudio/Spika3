@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import {
     Box,
@@ -23,9 +23,9 @@ import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import SendIcon from "@mui/icons-material/Send";
 import getFileIcon from "../lib/getFileIcon";
 import { useShowBasicDialog } from "../../../hooks/useModal";
-import { dynamicBaseQuery } from "../../../api/api";
 import { addMessage } from "../slice/chatSlice";
 import { fetchHistory } from "../slice/roomSlice";
+import { THUMB_WIDTH } from "../../../../../../lib/constants";
 
 export default function ChatInput(): React.ReactElement {
     const dispatch = useDispatch();
@@ -37,6 +37,7 @@ export default function ChatInput(): React.ReactElement {
     const [files, setFiles] = useState(AttachmentManager.getFiles(roomId) || []);
     const [failedToUploadFiles, setFailedToUploadFiles] = useState<File[]>([]);
     const showBasicDialog = useShowBasicDialog();
+    const canvasRef = useRef<HTMLCanvasElement>();
 
     const messageType = files.length > 0 ? "files" : "text";
 
@@ -52,12 +53,31 @@ export default function ChatInput(): React.ReactElement {
                         file,
                         type: file.type || "unknown",
                     });
+                    let thumbFileUploaded: {
+                        path: string;
+                        id: number;
+                    };
 
                     const fileType = getFileType(file.type);
+                    console.log({ fileType });
+
+                    if (fileType === "image") {
+                        const thumbFile = await generateThumbFile(file, canvasRef.current);
+                        if (thumbFile) {
+                            thumbFileUploaded = await uploadFile({
+                                file: thumbFile,
+                                type: thumbFile.type || "unknown",
+                            });
+                        }
+                    }
+
                     response = await sendMessage({
                         roomId,
                         type: fileType,
-                        body: { fileId: uploaded.id, thumbId: uploaded.id },
+                        body: {
+                            fileId: uploaded.id,
+                            thumbId: thumbFileUploaded ? thumbFileUploaded.id : uploaded.id,
+                        },
                     }).unwrap();
                     setFilesSent((filesSent) => filesSent + 1);
 
@@ -100,6 +120,7 @@ export default function ChatInput(): React.ReactElement {
 
     return (
         <Box borderTop="1px solid #C9C9CA" px={2} py={1}>
+            <canvas ref={canvasRef} style={{ display: "none" }} />
             {loading && (
                 <LinearProgress
                     sx={{ mb: 1 }}
@@ -372,4 +393,35 @@ function getFileType(htmlType: string): string {
     }
 
     return "file";
+}
+
+function generateThumbFile(originalFile: File, canvas: HTMLCanvasElement): Promise<File | null> {
+    return new Promise((res) => {
+        try {
+            if (!canvas) {
+                return res(null);
+            }
+
+            const ctx = canvas.getContext("2d");
+            canvas.width = THUMB_WIDTH;
+            const img = new Image();
+
+            img.onload = function () {
+                canvas.height = (img.height * THUMB_WIDTH) / img.width;
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                canvas.toBlob(async (blob) => {
+                    const thumbFile = new File([blob], "thumb - " + originalFile.name, {
+                        type: "image/jpeg",
+                    });
+
+                    res(thumbFile);
+                }, "image/jpeg");
+            };
+
+            img.src = URL.createObjectURL(originalFile);
+        } catch (error) {
+            console.error("Thumb creation failed: ", error);
+            res(null);
+        }
+    });
 }
