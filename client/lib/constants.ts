@@ -10,7 +10,7 @@ export const LSKEY_ENABLECAM = "enablecam";
 export const LSKEY_ENABLEMIC = "enablemic";
 export const LSKEY_CROPSIZE = 512;
 
-export const LSKEY_ACCESSTOKEN = "access-token";
-export const LSKEY_DEVICEID = "deviceId";
-
+export const LSKEY_ACCESSTOKEN: string = "access-token";
+export const LSKEY_DEVICEID: string = "deviceId";
+export const ADMIN_ACCESS_TOKEN = "admin-accesstoken";
 export const THUMB_WIDTH = 256;

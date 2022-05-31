@@ -7,8 +7,6 @@ import {
     TextField,
     FormControlLabel,
     Checkbox,
-    Link,
-    Grid,
     Box,
     Typography,
     Container,
@@ -20,22 +18,22 @@ import { useSelector, useDispatch } from "react-redux";
 import dayjs from "dayjs";
 
 import { RootState } from "../../store/store";
-import { login, callAdminAuthApi } from "../../store/adminAuthSlice";
-import { useGet, usePost } from "../../lib/useApi";
+import { login } from "../../store/adminAuthSlice";
 import SnackBar from "../../components/snackBar";
 import { useShowSnackBar } from "../../components/useUI";
+import { useCheckAccessTokenQuery, useAdminSigninMutation } from "../../api/auth";
+import * as constants from "../../../../../lib/constants";
 
 export default function () {
     const count = useSelector((state: RootState) => state.counter.value);
     const dispatch = useDispatch();
-    const get = useGet();
-    const post = usePost();
     const showSnackBar = useShowSnackBar();
-    const localToken = "localToken";
 
     const navigate = useNavigate();
 
     const [rememberMe, setRememberMe] = React.useState(true);
+    const { data } = useCheckAccessTokenQuery();
+    const [adminSignIn, adminSignInMutation] = useAdminSigninMutation();
 
     useEffect(() => {
         (async () => {
@@ -47,14 +45,13 @@ export default function () {
 
     const checkToken = async () => {
         try {
-            const response: string = await get(`/management/auth/check`);
+            const response: string = data;
             const check: boolean = JSON.parse(response);
-            const authToken = localStorage.getItem(localToken);
+            const authToken = localStorage.getItem(constants.ADMIN_ACCESS_TOKEN);
             if (check && authToken != null && authToken.length != 0) {
                 navigate("/dashboard");
             }
         } catch (e) {
-            console.error(e);
             showSnackBar({ severity: "error", text: "Token expired" });
         }
     };
@@ -70,19 +67,16 @@ export default function () {
         const username: string = formdata.username.value;
         const password: string = formdata.password.value;
         try {
-            const loginResult: any = await post(`/management/auth`, {
-                username: username,
-                password: password,
-            });
-            if (loginResult.token) {
+            const loginResult: any = await adminSignIn({ username: username, password: password });
+            if (loginResult.data.token) {
                 if (rememberMe) {
-                    localStorage.setItem(localToken, loginResult.token);
+                    localStorage.setItem(constants.ADMIN_ACCESS_TOKEN, loginResult.data.token);
                 }
                 dispatch(
                     login({
-                        token: loginResult.token,
+                        token: loginResult.data.token,
                         username: username,
-                        expireDate: dayjs.unix(loginResult.expireDate).toDate(),
+                        expireDate: dayjs.unix(loginResult.data.expireDate).unix(),
                     })
                 );
 

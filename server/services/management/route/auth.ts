@@ -1,18 +1,16 @@
 import { Router, Request, Response } from "express";
-
 import l, { error as le } from "../../../components/logger";
 import adminTokens, { Token } from "../lib/adminTokens";
-
 import { InitRouterParams } from "../../types/serviceInterface";
 import adminAuth from "../lib/adminAuth";
+import { successResponse, errorResponse } from "../../../components/response";
 
 export default (params: InitRouterParams) => {
     const router = Router();
-    const localToken = "localToken";
 
     router.get("/check", adminAuth, (req: Request, res: Response) => {
         try {
-            return res.send("true");
+            return res.send(successResponse("true"));
         } catch (e: any) {
             le(e);
             res.status(500).send(`Server error ${e}`);
@@ -36,7 +34,7 @@ export default (params: InitRouterParams) => {
                 return res.status(403).send("Invalid username or password");
 
             const newToken: Token = adminTokens.newToken();
-            res.send(newToken);
+            res.send(successResponse(newToken));
         } catch (e: any) {
             le(e);
             res.status(500).send(`Server error ${e}`);

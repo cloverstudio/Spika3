@@ -1,37 +1,28 @@
 import React, { useEffect } from "react";
 import Layout from "../layout";
 import { useNavigate, useParams } from "react-router-dom";
-import { useGet, useDelete } from "../../lib/useApi";
 import { Typography, Paper, Grid, Button, Avatar, Checkbox } from "@mui/material";
 import { useShowBasicDialog, useShowSnackBar } from "../../components/useUI";
-import { User } from "@prisma/client";
-import { successResponseType } from "../../../../../../server/components/response";
+import { useGetUserByIdQuery, useDeleteUserMutation } from "../../api/user";
+import UserType from "../../types/User";
 
 export default function Page() {
     const urlParams = useParams();
     const navigate = useNavigate();
     const showSnackBar = useShowSnackBar();
     const showBasicDialog = useShowBasicDialog();
-    const [detail, setDetail] = React.useState<User>();
-
-    const callDelete = useDelete();
-    const get = useGet();
+    const [detail, setDetail] = React.useState<UserType>();
+    const { data, isLoading } = useGetUserByIdQuery(urlParams.id);
+    const [deleteUser, deleteUserMutation] = useDeleteUserMutation();
 
     useEffect(() => {
         (async () => {
-            try {
-                const response: successResponseType = await get(`/management/user/${urlParams.id}`);
-                const user: User = response.data;
-                setDetail(user);
-            } catch (e) {
-                console.error(e);
-                showSnackBar({
-                    severity: "error",
-                    text: "Server error, please check browser console.",
-                });
+            if (!isLoading) {
+                const response: UserType = data.user;
+                setDetail(response);
             }
         })();
-    }, []);
+    }, [data]);
 
     return (
         <Layout subtitle={`Delete user ( ${urlParams.id} )`} showBack={true}>
@@ -98,7 +89,7 @@ export default function Page() {
                             onClick={(e) => {
                                 showBasicDialog({ text: "Please confirm delete." }, async () => {
                                     try {
-                                        await callDelete(`/management/user/${urlParams.id}`);
+                                        await deleteUser(urlParams.id);
                                         navigate("/user");
                                     } catch (e) {
                                         console.error(e);
