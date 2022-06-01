@@ -28,8 +28,7 @@ describe("Admin auth API", () => {
                 username: "admin",
                 password: "password",
             });
-
-            globals.adminToken = response.body.token;
+            globals.adminToken = response.body.data.token;
 
             expect(response.status).to.eqls(200);
         });
