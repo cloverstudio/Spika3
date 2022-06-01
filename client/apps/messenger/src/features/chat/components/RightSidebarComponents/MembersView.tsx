@@ -232,7 +232,7 @@ export function AddMembersDialog(props: AddMembersDialogProps) {
     const [contacts, setContacts] = React.useState<Contacts>(null);
     const contactSearchResult = useGetContactsByKeywordQuery(searchTermDelay);
     const { onClose, open, roomId, addedIds } = props;
-    const { data: contactData, isLoading } = useGetContactsQuery(1);
+    const { data: contactData, isLoading } = useGetContactsQuery({ page: 1, keyword: "" });
     const { list, count, sortedByDisplayName } = useSelector(selectContacts);
     const [selectedIds, setSelectedIds] = React.useState<Array<number>>([]);
 

@@ -132,7 +132,7 @@ function ImageMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
                 width="auto"
                 src={`${UPLOADS_BASE_URL}${body.thumb.path}`}
                 pb="0.8125"
-                sx={{ cursor: "pointer" }}
+                sx={{ cursor: "pointer", objectFit: "contain" }}
             />
             <Modal open={open} onClose={handleClose}>
                 <>
