@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Layout from "../layout";
 import { useNavigate, useParams } from "react-router-dom";
 import { DataGrid, GridActionsCellItem } from "@mui/x-data-grid";
@@ -10,50 +10,31 @@ import {
     Description as DescriptionIcon,
 } from "@mui/icons-material/";
 import { Device } from "@prisma/client";
-import { useGet } from "../../lib/useApi";
-import { useShowSnackBar } from "../../components/useUI";
-import { ListResponseType } from "../../lib/customTypes";
-import { successResponseType } from "../../../../../../server/components/response";
+import { useGetDevicesQuery, useGetDevicesForUserQuery } from "../../api/device";
+import DeviceType from "../../types/Device";
 
 export default function Dashboard() {
     const [loading, setLoading] = React.useState<boolean>(false);
-    const [list, setList] = React.useState<Array<Device>>([]);
+    const [list, setList] = React.useState<DeviceType[]>([]);
     const [pageSize, setPageSize] = React.useState<number>(30);
     const [totalCount, setTotalCount] = React.useState<number>(0);
     const urlParams = useParams();
-    const showSnackBar = useShowSnackBar();
     const navigate = useNavigate();
-    const get = useGet();
+    const [page, setPage] = useState(0);
+    const { data, isLoading } =
+        urlParams.id == null
+            ? useGetDevicesQuery(page)
+            : useGetDevicesForUserQuery({ page: page, userId: urlParams.id });
 
     useEffect(() => {
         (async () => {
-            await fetchData(0);
+            if (!isLoading) {
+                setList(data.list);
+                setPageSize(data.limit);
+                setTotalCount(data.count);
+            }
         })();
-    }, []);
-
-    const fetchData = async (page: number) => {
-        setLoading(true);
-
-        try {
-            const url: string =
-                urlParams.id == null
-                    ? `/management/device?page=${page}`
-                    : `/management/device?page=${page}&userId=${urlParams.id}`;
-            const serverResponse: successResponseType = await get(url);
-            const response: ListResponseType<Device> = serverResponse.data;
-            setList(response.list);
-            setPageSize(response.limit);
-            setTotalCount(response.count);
-        } catch (e) {
-            console.error(e);
-            showSnackBar({
-                severity: "error",
-                text: "Server error, please check browser console.",
-            });
-        }
-
-        setLoading(false);
-    };
+    }, [data]);
 
     const columns = [
         { field: "id", headerName: "ID", flex: 0.2, sortable: false, filterable: false },
@@ -157,7 +138,7 @@ export default function Dashboard() {
                         rowCount={totalCount}
                         pagination
                         paginationMode="server"
-                        onPageChange={(newPage) => fetchData(newPage)}
+                        onPageChange={(newPage) => setPage(newPage)}
                         loading={loading}
                     />
                 </div>

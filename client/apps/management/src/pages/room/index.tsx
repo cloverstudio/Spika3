@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Layout from "../layout";
 import { useNavigate, useParams } from "react-router-dom";
 import { DataGrid, GridActionsCellItem, GridRenderCellParams } from "@mui/x-data-grid";
@@ -11,13 +11,16 @@ import {
     CheckCircleOutlineOutlined,
 } from "@mui/icons-material/";
 import { Room } from "@prisma/client";
-import { useGet } from "../../lib/useApi";
-import { useShowSnackBar } from "../../components/useUI";
-import { ListResponseType } from "../../lib/customTypes";
-import { successResponseType } from "../../../../../../server/components/response";
 
 import { createTheme, darken, lighten } from "@mui/material/styles";
 import { makeStyles } from "@material-ui/styles";
+import {
+    useGetRoomsQuery,
+    useGetRoomsForUserQuery,
+    useGetDeletedRoomsQuery,
+    useGetDeletedRoomsForUserQuery,
+} from "../../api/room";
+import RoomType from "../../types/Room";
 
 const defaultTheme = createTheme();
 const useStyles = makeStyles(
@@ -58,53 +61,41 @@ const useStyles = makeStyles(
 
 export default function Room() {
     const [loading, setLoading] = React.useState<boolean>(false);
-    const [list, setList] = React.useState<Array<Room>>([]);
+    const [list, setList] = React.useState<RoomType[]>([]);
     const [pageSize, setPageSize] = React.useState<number>(30);
     const [totalCount, setTotalCount] = React.useState<number>(0);
     const [deleteFilter, setDeleteFilter] = React.useState<boolean>(false);
+    const [page, setPage] = useState(0);
     const urlParams = useParams();
 
-    const showSnackBar = useShowSnackBar();
     const navigate = useNavigate();
-    const get = useGet();
     const classes = useStyles();
+
+    const { data, isLoading } = !deleteFilter
+        ? urlParams.id == null
+            ? useGetRoomsQuery(page)
+            : useGetRoomsForUserQuery({ page: page, userId: urlParams.id })
+        : urlParams.id == null
+        ? useGetDeletedRoomsQuery({ page: page, deleted: deleteFilter })
+        : useGetDeletedRoomsForUserQuery({
+              page: page,
+              userId: urlParams.id,
+              deleted: deleteFilter,
+          });
 
     useEffect(() => {
         (async () => {
-            await fetchData(0);
-        })();
-    }, [deleteFilter]);
-
-    const fetchData = async (page: number) => {
-        setLoading(true);
-        try {
-            let url = "";
-            if (!deleteFilter) {
-                url =
-                    urlParams.userId == null
-                        ? `/management/room?page=${page}`
-                        : `/management/room?page=${page}&userId=${urlParams.userId}`;
-            } else {
-                url =
-                    urlParams.userId == null
-                        ? `/management/room?page=${page}&deleted=${deleteFilter}`
-                        : `/management/room?page=${page}&userId=${urlParams.userId}&deleted=${deleteFilter}`;
+            if (!isLoading) {
+                setList(data.list);
+                setPageSize(data.limit);
+                setTotalCount(data.count);
             }
-            const response: successResponseType = await get(url);
-            const data: ListResponseType<Room> = response.data;
-            setList(data.list);
-            setPageSize(data.limit);
-            setTotalCount(data.count);
-        } catch (e) {
-            console.error(e);
-            showSnackBar({
-                severity: "error",
-                text: "Server error, please check browser console.",
-            });
-        }
+        })();
+    }, [data]);
 
-        setLoading(false);
-    };
+    useEffect(() => {
+        (async () => {})();
+    }, [deleteFilter]);
 
     const columns = [
         { field: "id", headerName: "ID", flex: 0.2, sortable: false, filterable: false },
@@ -224,7 +215,7 @@ export default function Room() {
                         rowCount={totalCount}
                         pagination
                         paginationMode="server"
-                        onPageChange={(newPage) => fetchData(newPage)}
+                        onPageChange={(newPage) => setPage(newPage)}
                         loading={loading}
                         getRowClassName={(params) =>
                             `super-app-theme--${params.getValue(params.id, "deleted")}`

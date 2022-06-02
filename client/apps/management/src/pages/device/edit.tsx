@@ -1,13 +1,12 @@
 import React, { useEffect } from "react";
 import Layout from "../layout";
 import { useNavigate, useParams } from "react-router-dom";
-import { useGet, usePut } from "../../lib/useApi";
 import { TextField, Paper, Grid, Button } from "@mui/material";
 import { useShowSnackBar } from "../../components/useUI";
-import { Device } from "@prisma/client";
 import * as yup from "yup";
 import { useFormik } from "formik";
-import { successResponseType } from "../../../../../../server/components/response";
+import { useGetDeviceByIdQuery, useUpdateDeviceMutation } from "../../api/device";
+import DeviceType from "../../types/Device";
 
 const deviceModelSchema = yup.object({
     userId: yup.number().required("User id is required"),
@@ -23,9 +22,8 @@ export default function Page() {
     const urlParams = useParams();
     const navigate = useNavigate();
     const showSnackBar = useShowSnackBar();
-
-    const get = useGet();
-    const put = usePut();
+    const { data, isLoading } = useGetDeviceByIdQuery(urlParams.id);
+    const [updateDevice, updateDeviceMutation] = useUpdateDeviceMutation();
 
     const formik = useFormik({
         initialValues: {
@@ -60,11 +58,8 @@ export default function Page() {
 
     useEffect(() => {
         (async () => {
-            try {
-                const serverResponse: successResponseType = await get(
-                    `/management/device/${urlParams.id}`
-                );
-                const response: Device = serverResponse.data.device;
+            if (!isLoading) {
+                const response: DeviceType = data.device;
                 const checkUId = response.userId == null ? "" : response.userId;
                 const checkDId = response.deviceId == null ? "" : response.deviceId;
                 const checkType = response.type == null ? "" : response.type;
@@ -91,29 +86,25 @@ export default function Page() {
                     token: checkToken,
                     pushToken: checkPushToken,
                 });
-            } catch (e) {
-                console.error(e);
-                showSnackBar({
-                    severity: "error",
-                    text: "Server error, please check browser console.",
-                });
             }
         })();
-    }, []);
+    }, [data]);
 
     const validateAndUpdate = async () => {
         try {
-            const result = await put(`/management/device/${urlParams.id}`, {
-                id: serverDevice.values.id,
-                userId: formik.values.userId,
-                deviceId: formik.values.deviceId,
-                type: formik.values.type,
-                osName: formik.values.osName,
-                appVersion: formik.values.appVersion,
-                token: formik.values.token,
-                pushToken: formik.values.pushToken,
+            await updateDevice({
+                deviceId: urlParams.id,
+                data: {
+                    id: serverDevice.values.id,
+                    userId: formik.values.userId,
+                    deviceId: formik.values.deviceId,
+                    type: formik.values.type,
+                    osName: formik.values.osName,
+                    appVersion: formik.values.appVersion,
+                    token: formik.values.token,
+                    pushToken: formik.values.pushToken,
+                },
             });
-
             showSnackBar({ severity: "success", text: "Device updated" });
             navigate("/device");
         } catch (e: any) {

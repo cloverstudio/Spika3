@@ -122,13 +122,14 @@ export default (params: InitRouterParams) => {
 
     router.put("/:deviceId", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
+        console.log("do tu dodje");
         try {
             const idOfDevice: number = parseInt(req.params.deviceId);
             const userId: number = parseInt(req.body.userId);
             const deviceId: string = req.body.deviceId;
             const type: string = req.body.type;
             const osName: string = req.body.osName;
-            const appVersion: number = parseInt(req.body.appVersion);
+            const appVersion: string = req.body.appVersion;
             const token: string = req.body.token;
             const pushToken: string = req.body.pushToken;
             const device: Device = await prisma.device.findFirst({

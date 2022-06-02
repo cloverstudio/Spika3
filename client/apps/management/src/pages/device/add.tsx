@@ -1,11 +1,11 @@
 import React from "react";
 import Layout from "../layout";
 import { useNavigate } from "react-router-dom";
-import { useGet, usePost } from "../../lib/useApi";
 import { TextField, Paper, Grid, Button } from "@mui/material";
 import { useShowSnackBar } from "../../components/useUI";
 import * as yup from "yup";
 import { useFormik } from "formik";
+import { useCreateDeviceMutation } from "../../api/device";
 
 const deviceModelSchema = yup.object({
     userId: yup.number().required("User id is required"),
@@ -20,8 +20,7 @@ const deviceModelSchema = yup.object({
 export default function Dashboard() {
     const navigate = useNavigate();
     const showSnackBar = useShowSnackBar();
-    const post = usePost();
-    const get = useGet();
+    const [addDevice, addDeviceMutation] = useCreateDeviceMutation();
 
     const formik = useFormik({
         initialValues: {
@@ -41,7 +40,7 @@ export default function Dashboard() {
 
     const validateAndAdd = async () => {
         try {
-            const result = await post("/management/device", {
+            await addDevice({
                 userId: formik.values.userId,
                 deviceId: formik.values.deviceId,
                 type: formik.values.type,

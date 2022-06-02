@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import Layout from "../layout";
 import { useNavigate, useParams } from "react-router-dom";
-import { useGet, usePut } from "../../lib/useApi";
 import {
     TextField,
     Paper,
@@ -13,10 +12,10 @@ import {
     Checkbox,
 } from "@mui/material";
 import { useShowSnackBar } from "../../components/useUI";
-import { Room } from "@prisma/client";
 import * as yup from "yup";
 import { useFormik } from "formik";
-import { successResponseType } from "../../../../../../server/components/response";
+import { useGetRoomByIdQuery, useUpdateRoomMutation } from "../../api/room";
+import RoomType from "../../types/Room";
 
 const roomModelSchema = yup.object({
     name: yup.string().required("Name is required"),
@@ -29,8 +28,8 @@ export default function RoomEdit() {
     const urlParams = useParams();
     const navigate = useNavigate();
     const showSnackBar = useShowSnackBar();
-    const get = useGet();
-    const put = usePut();
+    const { data, isLoading } = useGetRoomByIdQuery(urlParams.id);
+    const [updateRoom, updateRoomMutation] = useUpdateRoomMutation();
 
     const formik = useFormik({
         initialValues: {
@@ -48,10 +47,7 @@ export default function RoomEdit() {
     useEffect(() => {
         (async () => {
             try {
-                const serverResponse: successResponseType = await get(
-                    `/management/room/${urlParams.id}`
-                );
-                const response: Room = serverResponse.data.room;
+                const response: RoomType = data.room;
                 const checkName = response.name == null ? "" : response.name;
                 const checkType = response.type == null ? "" : response.type;
                 const checkUrl = response.avatarUrl == null ? "" : response.avatarUrl;
@@ -74,11 +70,14 @@ export default function RoomEdit() {
 
     const validateAndUpdate = async () => {
         try {
-            const result = await put(`/management/room/${urlParams.id}`, {
-                name: formik.values.name,
-                type: formik.values.type,
-                avatarUrl: formik.values.avatarUrl,
-                deleted: formik.values.deleted,
+            await updateRoom({
+                roomId: urlParams.id,
+                data: {
+                    name: formik.values.name,
+                    type: formik.values.type,
+                    avatarUrl: formik.values.avatarUrl,
+                    deleted: formik.values.deleted,
+                },
             });
 
             showSnackBar({ severity: "success", text: "Room updated" });

@@ -1,11 +1,11 @@
 import React from "react";
 import Layout from "../layout";
 import { useNavigate } from "react-router-dom";
-import { usePost } from "../../lib/useApi";
 import { TextField, Paper, Grid, Button } from "@mui/material";
 import { useShowSnackBar } from "../../components/useUI";
 import * as yup from "yup";
 import { useFormik } from "formik";
+import { useCreateRoomMutation } from "../../api/room";
 
 const roomModelSchema = yup.object({
     name: yup.string().required("Name is required"),
@@ -17,7 +17,7 @@ const roomModelSchema = yup.object({
 export default function RoomAdd() {
     const navigate = useNavigate();
     const showSnackBar = useShowSnackBar();
-    const post = usePost();
+    const [addRoom, addRoomMutation] = useCreateRoomMutation();
 
     const formik = useFormik({
         initialValues: {
@@ -34,7 +34,7 @@ export default function RoomAdd() {
 
     const validateAndAdd = async () => {
         try {
-            const result = await post("/management/room", {
+            await addRoom({
                 name: formik.values.name,
                 type: formik.values.type,
                 avatarUrl: formik.values.avatarUrl,
