@@ -39,7 +39,6 @@ function LeftSidebarNewChat({
     return (
         <LeftSidebarLayout>
             <SidebarNavigationHeader handleBack={() => setSidebar("")} title="New chat" />
-            <SearchBox />
 
             <Box textAlign="center">
                 <Button onClick={() => setSidebar("new_group")}>New group chat</Button>
@@ -117,16 +116,13 @@ function LeftSidebarNewGroup({
 
     const title = step === "select_members" ? "Select members" : "Group members";
     const buttonText = step === "select_members" ? "Next" : "Create";
-    const buttonIsDisabled =
-        (step === "select_members" && selectedUsers.length < 1) ||
-        (step === "edit_group_info" && !name);
+    const buttonIsDisabled = step === "edit_group_info" && !name;
 
     return (
         <LeftSidebarLayout>
             <SidebarNavigationHeader handleBack={handleBack} title={title} />
             {step === "select_members" ? (
                 <>
-                    <SearchBox />
                     {selectedUsers.length > 0 ? (
                         <Box display="flex" px={2.5} mb={2}>
                             {selectedUsers.map((user) => (
