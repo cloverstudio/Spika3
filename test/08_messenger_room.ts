@@ -266,20 +266,6 @@ describe("API", () => {
             expect(roomFromRes.name).to.eqls("United room");
         });
 
-        it("Can't creat room with only one user", async () => {
-            const response = await supertest(app)
-                .post("/api/messenger/rooms")
-                .set({ accesstoken: globals.userToken })
-                .send({
-                    ...validParams,
-                    name: undefined,
-                    userIds: [globals.userId],
-                    adminUserIds: [],
-                });
-
-            expect(response.status).to.eqls(400);
-        });
-
         it("adds user as admin", async () => {
             const responseWithFakeUsers = await supertest(app)
                 .post("/api/messenger/rooms")
@@ -359,6 +345,8 @@ describe("API", () => {
                     },
                 },
             });
+
+            globals.roomId = response.body.data.room.id;
 
             expect(JSON.stringify(response.body.data.room)).to.eqls(
                 JSON.stringify(sanitize(room).room())
