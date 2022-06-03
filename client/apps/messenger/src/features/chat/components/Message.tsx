@@ -249,6 +249,10 @@ function TextMessage({ isUsersMessage, body }: { body: any; isUsersMessage: bool
         // fold multiple new line in one
         text = text.replace(/\n{3,}/g, "\n");
 
+        // auto link
+        const autolinkRegex = /(?![^<]*>|[^<>]*<\/)((https?:)\/\/[a-z0-9&#=.\/\-?_]+)/gi;
+        text = text.replace(autolinkRegex, '<a href="$1" target="_blank">$1</a>');
+
         return text;
     };
 
