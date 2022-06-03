@@ -61,6 +61,8 @@ export default function Message({
         return "sent";
     };
 
+    const isDeleted = body?.text === "Deleted message";
+
     return (
         <Box key={id}>
             {roomType === "group" && !isUsersMessage && isFirstMessage && (
@@ -88,11 +90,19 @@ export default function Message({
                 ) : (
                     <Box width="26px" mr={1}></Box>
                 )}
-                {type === "text" && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
-                {type === "image" && <ImageMessage body={body} isUsersMessage={isUsersMessage} />}
-                {type === "video" && <VideoMessage body={body} isUsersMessage={isUsersMessage} />}
-                {type === "audio" && <AudioMessage body={body} isUsersMessage={isUsersMessage} />}
-                {(type === "file" || type === "unknown") && (
+                {(type === "text" || isDeleted) && (
+                    <TextMessage body={body} isUsersMessage={isUsersMessage} />
+                )}
+                {type === "image" && !isDeleted && (
+                    <ImageMessage body={body} isUsersMessage={isUsersMessage} />
+                )}
+                {type === "video" && !isDeleted && (
+                    <VideoMessage body={body} isUsersMessage={isUsersMessage} />
+                )}
+                {type === "audio" && !isDeleted && (
+                    <AudioMessage body={body} isUsersMessage={isUsersMessage} />
+                )}
+                {(type === "file" || type === "unknown") && !isDeleted && (
                     <FileMessage body={body} isUsersMessage={isUsersMessage} />
                 )}
                 {isUsersMessage && <MessageStatusIcon status={getStatusIcon()} />}
@@ -164,6 +174,7 @@ function FileMessage({ body, isUsersMessage }: { body: any; isUsersMessage: bool
     if (!body.file) {
         return null;
     }
+
     const file = body.file;
     const sizeInMB = (file.size / 1024 / 1024).toFixed(2);
     const sizeInKB = (file.size / 1024).toFixed(2);
@@ -207,6 +218,7 @@ function VideoMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
     if (!body.file) {
         return null;
     }
+
     return (
         <Box display="flex" flexDirection="column" alignItems={isUsersMessage ? "end" : "start"}>
             {body.text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
@@ -226,6 +238,7 @@ function AudioMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
     if (!body.file) {
         return null;
     }
+
     return (
         <Box display="flex" flexDirection="column" alignItems={isUsersMessage ? "end" : "start"}>
             {body.text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}

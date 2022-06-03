@@ -1,9 +1,9 @@
 import { dynamicBaseQuery } from "../api/api";
-import { addMessage, addMessageRecord } from "../features/chat/slice/chatSlice";
+import { addMessage, addMessageRecord, deleteMessage } from "../features/chat/slice/chatSlice";
 import { fetchHistory } from "../features/chat/slice/roomSlice";
 import { store } from "../store/store";
 
-const VALID_SSE_EVENT_TYPES = ["NEW_MESSAGE", "NEW_MESSAGE_RECORD"];
+const VALID_SSE_EVENT_TYPES = ["NEW_MESSAGE", "NEW_MESSAGE_RECORD", "DELETE_MESSAGE"];
 
 export default async function handleSSE(event: MessageEvent): Promise<void> {
     const data = event.data ? JSON.parse(event.data) : {};
@@ -46,6 +46,18 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
             }
 
             store.dispatch(addMessageRecord(messageRecord));
+
+            return;
+        }
+
+        case "DELETE_MESSAGE": {
+            const message = data.message;
+            if (!message) {
+                console.log("Invalid DELETE_MESSAGE payload");
+                return;
+            }
+
+            store.dispatch(deleteMessage(message));
 
             return;
         }

@@ -695,4 +695,145 @@ describe("API", () => {
             ).to.have.lengthOf(0);
         });
     });
+
+    describe("/api/messenger/messages/:id DELETE", () => {
+        let room: Room;
+
+        before(async () => {
+            room = await createFakeRoom([{ userId: globals.userId, isAdmin: true }]);
+        });
+
+        it("requires target to be all or user", async () => {
+            const message = await createFakeMessage({
+                fromUserId: globals.userId,
+                room,
+                fromDeviceId: globals.deviceId,
+            });
+
+            const responseInvalidOne = await supertest(app)
+                .delete(`/api/messenger/messages/${message.id}`)
+                .set({ accesstoken: globals.userToken });
+
+            const responseInvalidTwo = await supertest(app)
+                .delete(`/api/messenger/messages/${message.id}?target=invalid`)
+                .set({ accesstoken: globals.userToken });
+
+            const responseValidOne = await supertest(app)
+                .delete(`/api/messenger/messages/${message.id}?target=all`)
+                .set({ accesstoken: globals.userToken });
+
+            const responseValidTwo = await supertest(app)
+                .delete(`/api/messenger/messages/${message.id}?target=all`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseInvalidOne.status).to.eqls(400);
+            expect(responseInvalidTwo.status).to.eqls(400);
+            expect(responseValidOne.status).to.eqls(200);
+            expect(responseValidTwo.status).to.eqls(200);
+        });
+
+        it("requires message to exist", async () => {
+            const responseInvalid = await supertest(app)
+                .delete("/api/messenger/messages/65415361531115131?target=all")
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseInvalid.status).to.eqls(404);
+        });
+
+        it("requires user to be owner of message if target is all", async () => {
+            const fakeUser = await createFakeUser();
+            const message = await createFakeMessage({
+                fromUserId: fakeUser.id,
+                room,
+                fromDeviceId: globals.deviceId,
+            });
+
+            const responseInvalid = await supertest(app)
+                .delete(`/api/messenger/messages/${message.id}?target=all`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseInvalid.status).to.eqls(403);
+        });
+
+        it("requires user to be in room if target is user", async () => {
+            const room = await createFakeRoom([]);
+            const message = await createFakeMessage({
+                fromUserId: globals.userId,
+                room,
+                fromDeviceId: globals.deviceId,
+            });
+
+            const responseInvalid = await supertest(app)
+                .delete(`/api/messenger/messages/${message.id}?target=all`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseInvalid.status).to.eqls(403);
+        });
+
+        it("updates users messageDevices if target is user", async () => {
+            const message = await createFakeMessage({
+                fromUserId: globals.userId,
+                room,
+                fromDeviceId: globals.deviceId,
+            });
+
+            const responseValid = await supertest(app)
+                .delete(`/api/messenger/messages/${message.id}?target=user`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseValid.status).to.eqls(200);
+
+            const deviceMessagesFromDb = await globals.prisma.deviceMessage.findMany({
+                where: { messageId: message.id, userId: globals.userId },
+            });
+            expect(
+                deviceMessagesFromDb.every(
+                    (dm) => (dm.body as { text: string }).text === "Deleted message"
+                )
+            ).to.eqls(true);
+        });
+
+        it("updates all messageDevices if target is all", async () => {
+            const message = await createFakeMessage({
+                fromUserId: globals.userId,
+                room,
+                fromDeviceId: globals.deviceId,
+            });
+
+            const responseValid = await supertest(app)
+                .delete(`/api/messenger/messages/${message.id}?target=user`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseValid.status).to.eqls(200);
+
+            const deviceMessagesFromDb = await globals.prisma.deviceMessage.findMany({
+                where: { messageId: message.id },
+            });
+            expect(
+                deviceMessagesFromDb.every(
+                    (dm) => (dm.body as { text: string }).text === "Deleted message"
+                )
+            ).to.eqls(true);
+        });
+
+        it("updates message if target is all", async () => {
+            const message = await createFakeMessage({
+                fromUserId: globals.userId,
+                room,
+                fromDeviceId: globals.deviceId,
+            });
+
+            const responseValid = await supertest(app)
+                .delete(`/api/messenger/messages/${message.id}?target=all`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseValid.status).to.eqls(200);
+
+            const messageFromDb = await globals.prisma.message.findUnique({
+                where: { id: message.id },
+            });
+            expect(messageFromDb.deleted).to.eqls(true);
+            expect(messageFromDb.type).to.eqls("text");
+        });
+    });
 });
