@@ -40,13 +40,19 @@ export interface MessageDetailsOptionsProps {
     onClose: () => void;
     anchorElement?: HTMLDivElement;
     showMessageDetails: () => void;
+    onDelete: () => void;
 }
 
 export function MessageMenu(props: MessageDetailsOptionsProps) {
-    const { open, onClose, anchorElement, showMessageDetails } = props;
+    const { open, onClose, anchorElement, showMessageDetails, onDelete } = props;
 
     const showModalMessageDetails = () => {
         showMessageDetails();
+        onClose();
+    };
+
+    const showDeleteModal = () => {
+        onDelete();
         onClose();
     };
 
@@ -90,7 +96,7 @@ export function MessageMenu(props: MessageDetailsOptionsProps) {
                     icon={<FavoriteBorder />}
                 />
                 <MessageOption
-                    onClick={onClose}
+                    onClick={showDeleteModal}
                     label="Delete"
                     icon={<DeleteOutline style={{ fill: "red" }} />}
                 />

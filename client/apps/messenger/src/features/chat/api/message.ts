@@ -20,6 +20,12 @@ const messageApi = api.injectEndpoints({
                 return `/messenger/messages/${messageId}/message-records`;
             },
         }),
+        deleteMessage: build.mutation<any, { id: number; target: "all" | "user" }>({
+            query: ({ id, target }) => {
+                return { url: `/messenger/messages/${id}?target=${target}`, method: "DELETE" };
+            },
+            invalidatesTags: (res) => res && [{ type: "Rooms", id: "HISTORY" }],
+        }),
     }),
     overrideExisting: true,
 });
@@ -28,5 +34,6 @@ export const {
     useSendMessageMutation,
     useMarkRoomMessagesAsSeenMutation,
     useGetMessageRecordsByIdQuery,
+    useDeleteMessageMutation,
 } = messageApi;
 export default messageApi;

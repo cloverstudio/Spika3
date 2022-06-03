@@ -79,6 +79,13 @@ export const chatSlice = createSlice({
 
             state.messages.splice(messageIndex, 1, updatedMessage);
         },
+        deleteMessage: (state, { payload }: { payload: MessageType }) => {
+            const messageIndex = state.messages.findIndex((m) => m.id === payload.id);
+
+            if (messageIndex > -1) {
+                state.messages.splice(messageIndex, 1, payload);
+            }
+        },
     },
     extraReducers: (builder) => {
         builder.addCase(fetchMessagesByRoomId.fulfilled, (state, { payload }: any) => {
@@ -105,7 +112,7 @@ export const chatSlice = createSlice({
     },
 });
 
-export const { setActiveRoomId, addMessage, addMessageRecord } = chatSlice.actions;
+export const { setActiveRoomId, addMessage, addMessageRecord, deleteMessage } = chatSlice.actions;
 
 export const selectActiveRoomId = (state: RootState): number => state.chat.activeRoomId;
 export const selectRoomMessages =

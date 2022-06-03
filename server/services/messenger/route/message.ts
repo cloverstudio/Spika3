@@ -581,13 +581,9 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
 
-            while (target === "all" && deviceMessagesToDelete.length) {
+            while (deviceMessagesToDelete.length) {
                 await Promise.all(
                     deviceMessagesToDelete.splice(0, 10).map((deviceMessage) => {
-                        if (deviceMessage.deviceId === deviceId) {
-                            return;
-                        }
-
                         rabbitMQChannel.sendToQueue(
                             Constants.QUEUE_SSE,
                             Buffer.from(
