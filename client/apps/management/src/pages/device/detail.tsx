@@ -1,38 +1,25 @@
 import React, { useEffect } from "react";
 import Layout from "../layout";
 import { useNavigate, useParams } from "react-router-dom";
-import { useGet } from "../../lib/useApi";
 import { Typography, Paper, Grid, Button } from "@mui/material";
-import { useShowSnackBar } from "../../components/useUI";
-import { Device } from "@prisma/client";
-import { successResponseType } from "../../../../../../server/components/response";
 import { formatDate } from "../../../../../lib/utils";
+import { useGetDeviceByIdQuery } from "../../api/device";
+import DeviceType from "../../types/Device";
 
 export default function Page() {
     const urlParams = useParams();
     const navigate = useNavigate();
-    const showSnackBar = useShowSnackBar();
-    const [detail, setDetail] = React.useState<Device>();
-
-    const get = useGet();
+    const [detail, setDetail] = React.useState<DeviceType>();
+    const { data, isLoading } = useGetDeviceByIdQuery(urlParams.id);
 
     useEffect(() => {
         (async () => {
-            try {
-                const serverResponse: successResponseType = await get(
-                    `/management/device/${urlParams.id}`
-                );
-                const response: Device = serverResponse.data;
-                setDetail(response);
-            } catch (e) {
-                console.error(e);
-                showSnackBar({
-                    severity: "error",
-                    text: "Server error, please check browser console.",
-                });
+            if (!isLoading) {
+                const user: DeviceType = data.device;
+                setDetail(user);
             }
         })();
-    }, []);
+    }, [data]);
 
     return (
         <Layout subtitle={`Device detail ( ${urlParams.id} )`} showBack={true}>
@@ -90,7 +77,9 @@ export default function Page() {
                                         Token Expired
                                     </Typography>
                                     <Typography component="dd">
-                                        {formatDate(detail.tokenExpiredAt)}
+                                        {detail.tokenExpiredAt != null
+                                            ? formatDate(detail.tokenExpiredAt)
+                                            : ""}
                                     </Typography>
                                 </Grid>
                             </Grid>

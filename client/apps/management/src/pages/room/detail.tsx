@@ -1,35 +1,26 @@
 import React, { useEffect } from "react";
 import Layout from "../layout";
 import { useNavigate, useParams } from "react-router-dom";
-import { useGet } from "../../lib/useApi";
 import { Typography, Paper, Grid, Button, Avatar, Checkbox } from "@mui/material";
 import { useShowSnackBar } from "../../components/useUI";
-import { Room } from "@prisma/client";
-import { successResponseType } from "../../../../../../server/components/response";
+import { useGetRoomByIdQuery } from "../../api/room";
+import RoomType from "../../types/Room";
 
 export default function Page() {
     const urlParams = useParams();
     const navigate = useNavigate();
     const showSnackBar = useShowSnackBar();
-    const [detail, setDetail] = React.useState<Room>();
-
-    const get = useGet();
+    const [detail, setDetail] = React.useState<RoomType>();
+    const { data, isLoading } = useGetRoomByIdQuery(urlParams.id);
 
     useEffect(() => {
         (async () => {
-            try {
-                const response: successResponseType = await get(`/management/room/${urlParams.id}`);
-                const room: Room = response.data.room;
-                setDetail(room);
-            } catch (e) {
-                console.error(e);
-                showSnackBar({
-                    severity: "error",
-                    text: "Server error, please check browser console.",
-                });
+            if (!isLoading) {
+                const user: RoomType = data.room;
+                setDetail(user);
             }
         })();
-    }, []);
+    }, [data]);
 
     return (
         <Layout subtitle={`Room detail ( ${urlParams.id} )`} showBack={true}>
