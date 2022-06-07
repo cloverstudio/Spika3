@@ -313,6 +313,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                             justifyItems: "start",
                             justifyContent: "start",
                             alignContent: "start",
+                            overflowY: "auto",
                         }}
                     >
                         {" "}

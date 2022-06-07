@@ -171,3 +171,16 @@ model MessageRecord {
   @@unique([messageId, userId, type], name: "messageId_userId_type_unique_constraint")
   @@map(name: "message_record")
 }
+
+
+model Note {
+  id Int @id @default(autoincrement()) @map(name: "id")
+  roomId Int @map(name: "room_id")
+  content String @map("string")
+
+  createdAt  DateTime @default(now()) @map(name: "created_at")
+  modifiedAt DateTime @default(now()) @map(name: "modified_at")
+
+  @@map(name: "note")
+}
+

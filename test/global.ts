@@ -11,6 +11,7 @@ export interface Globals {
     telephoneNumber: string | undefined;
     userToken: string | undefined;
     userId?: number | undefined;
+    roomId?: number | undefined;
     prisma: PrismaClient;
     createdRoom: Room;
     rabbitMQChannel?: amqp.Channel;

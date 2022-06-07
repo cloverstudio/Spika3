@@ -30,6 +30,8 @@ describe("Admin auth API", () => {
             });
             globals.adminToken = response.body.data.token;
 
+            globals.adminToken = response.body.data.token;
+
             expect(response.status).to.eqls(200);
         });
 

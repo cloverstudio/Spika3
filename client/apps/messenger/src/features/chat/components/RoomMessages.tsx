@@ -5,6 +5,7 @@ import { Box } from "@mui/material";
 import { selectRoomMessages, fetchMessagesByRoomId, selectLoading } from "../slice/chatSlice";
 
 import Message from "../components/Message";
+import DeleteMessageDialog from "./DeleteMessageDialog";
 import { MessageMenu, MessageDetailDialog } from "../components/MessageMenu";
 import { ExpandMore } from "@mui/icons-material";
 import { useGetUserQuery } from "../../auth/api/auth";
@@ -31,6 +32,7 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
 
     const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
     const [openMessageDetails, setOpenMessageDetails] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedMessageId, setMessageId] = useState(null);
     const open = Boolean(anchorEl);
 
@@ -222,12 +224,24 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
                 onClose={handleCloseMessageMenu}
                 anchorElement={anchorEl}
                 showMessageDetails={showModalMessageDetails}
+                onDelete={() => setShowDeleteModal(true)}
             />
             {openMessageDetails && (
                 <MessageDetailDialog
                     open={openMessageDetails}
                     onClose={handleCloseMessageDetails}
                     messageId={selectedMessageId}
+                />
+            )}
+            {showDeleteModal && (
+                <DeleteMessageDialog
+                    open={showDeleteModal}
+                    onClose={() => setShowDeleteModal(false)}
+                    messageId={selectedMessageId}
+                    isUserMessage={
+                        messagesSorted.find((m) => m.id === selectedMessageId)?.fromUserId ===
+                        userData.user.id
+                    }
                 />
             )}
         </Box>
