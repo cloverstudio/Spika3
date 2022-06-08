@@ -4,6 +4,7 @@ import MuiDrawer from "@mui/material/Drawer";
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
 import { useNavigate } from "react-router-dom";
 import * as constants from "../../../../lib/constants";
+import logo from "../assets/logo.svg";
 
 import {
     CssBaseline,
@@ -17,6 +18,7 @@ import {
     ListItem,
     ListItemIcon,
     ListItemText,
+    Stack,
 } from "@mui/material";
 
 import {
@@ -154,10 +156,23 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
                         sx={{
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "flex-end",
+                            justifyContent: "space-between",
                             px: [1],
                         }}
                     >
+                        <Stack
+                            justifyContent="center"
+                            alignItems="center"
+                            spacing={2}
+                            direction="row"
+                            marginLeft="1em"
+                        >
+                            <Box component="img" height="40px" width="40px" src={logo} />
+                            <Typography component="h1" variant="h6" color="inherit" noWrap>
+                                Spika
+                            </Typography>
+                        </Stack>
+
                         <IconButton onClick={toggleDrawer}>
                             <ChevronLeftIcon />
                         </IconButton>

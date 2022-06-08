@@ -10,12 +10,21 @@ import {
     Box,
     Typography,
     Container,
+    Stack,
+    Grid,
+    FormControl,
+    InputLabel,
+    OutlinedInput,
+    InputAdornment,
+    IconButton,
 } from "@mui/material";
 
 import { LockOutlined } from "@mui/icons-material/";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useSelector, useDispatch } from "react-redux";
 import dayjs from "dayjs";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 import { RootState } from "../../store/store";
 import { login } from "../../store/adminAuthSlice";
@@ -23,6 +32,7 @@ import SnackBar from "../../components/snackBar";
 import { useShowSnackBar } from "../../components/useUI";
 import { useCheckAccessTokenQuery, useAdminSigninMutation } from "../../api/auth";
 import * as constants from "../../../../../lib/constants";
+import loginBg from "../../assets/login-bg.svg";
 
 export default function () {
     const count = useSelector((state: RootState) => state.counter.value);
@@ -34,6 +44,16 @@ export default function () {
     const [rememberMe, setRememberMe] = React.useState(true);
     const { data } = useCheckAccessTokenQuery();
     const [adminSignIn, adminSignInMutation] = useAdminSigninMutation();
+
+    const [showPassword, setShowPassword] = React.useState(false);
+
+    const handleClickShowPassword = () => {
+        setShowPassword(!showPassword);
+    };
+
+    const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+    };
 
     useEffect(() => {
         (async () => {
@@ -98,56 +118,77 @@ export default function () {
     });
 
     return (
-        <ThemeProvider theme={theme}>
-            <Container component="main" maxWidth="xs">
-                <CssBaseline />
+        // <ThemeProvider theme={theme}>
+        //     <Container component="main" maxWidth="xs">
+        //         <CssBaseline />
+        <Stack direction="row" width="100%">
+            <Box width="70%">
                 <Box
+                    component="img"
                     sx={{
-                        marginTop: 8,
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
+                        height: "100%",
+                        width: "100%",
                     }}
-                >
-                    <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
-                        <LockOutlined />
-                    </Avatar>
-                    <Typography component="h1" variant="h5">
-                        Spika3 Admin
-                    </Typography>
-                    <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
-                        <TextField
-                            margin="normal"
-                            required
-                            fullWidth
-                            id="username"
-                            label="Admin User Name"
-                            name="username"
-                            autoComplete="username"
-                            autoFocus
-                        />
-                        <TextField
-                            margin="normal"
-                            required
-                            fullWidth
+                    alt="Img"
+                    src={loginBg}
+                />
+                {/* <img  src={loginBg}></img> */}
+            </Box>
+            <Grid
+                container
+                spacing={0}
+                direction="column"
+                alignItems="center"
+                justifyContent="center"
+                style={{ minHeight: "100vh" }}
+                width="30%"
+            >
+                <Box component="form" onSubmit={handleSubmit} noValidate sx={{ m: 3 }}>
+                    <TextField
+                        margin="normal"
+                        required
+                        fullWidth
+                        id="username"
+                        label="Admin User Name"
+                        name="username"
+                        autoComplete="username"
+                        autoFocus
+                    />
+                    <FormControl fullWidth required variant="outlined">
+                        <InputLabel htmlFor="outlined-adornment-password">Password</InputLabel>
+                        <OutlinedInput
+                            id="outlined-adornment-password"
+                            type={showPassword ? "text" : "password"}
+                            onChange={handleClickShowPassword}
                             name="password"
-                            label="Admin Password"
-                            type="password"
-                            id="password"
-                            autoComplete="current-password"
+                            endAdornment={
+                                <InputAdornment position="end">
+                                    <IconButton
+                                        aria-label="toggle password visibility"
+                                        onClick={handleClickShowPassword}
+                                        onMouseDown={handleMouseDownPassword}
+                                        edge="end"
+                                    >
+                                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                                    </IconButton>
+                                </InputAdornment>
+                            }
+                            label="Password"
                         />
-                        <FormControlLabel
-                            control={<Checkbox checked={rememberMe} onChange={handleChange} />}
-                            label="Remember me"
-                        />
-                        <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
-                            Sign In
-                        </Button>
-                    </Box>
+                    </FormControl>
+                    <FormControlLabel
+                        control={<Checkbox checked={rememberMe} onChange={handleChange} />}
+                        label="Remember me"
+                    />
+                    <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
+                        Sign In
+                    </Button>
                 </Box>
+            </Grid>
+        </Stack>
 
-                <SnackBar />
-            </Container>
-        </ThemeProvider>
+        //         <SnackBar />
+        //     </Container>
+        // </ThemeProvider>
     );
 }
