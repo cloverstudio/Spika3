@@ -19,7 +19,7 @@ import {
     Reply,
     Shortcut,
     ContentCopy,
-    FavoriteBorder,
+    Edit,
     DeleteOutline,
     InfoOutlined,
     Close,
@@ -41,10 +41,11 @@ export interface MessageDetailsOptionsProps {
     anchorElement?: HTMLDivElement;
     showMessageDetails: () => void;
     onDelete: () => void;
+    onEdit: () => void;
 }
 
 export function MessageMenu(props: MessageDetailsOptionsProps) {
-    const { open, onClose, anchorElement, showMessageDetails, onDelete } = props;
+    const { open, onClose, anchorElement, showMessageDetails, onDelete, onEdit } = props;
 
     const showModalMessageDetails = () => {
         showMessageDetails();
@@ -53,6 +54,11 @@ export function MessageMenu(props: MessageDetailsOptionsProps) {
 
     const showDeleteModal = () => {
         onDelete();
+        onClose();
+    };
+
+    const showEditModal = () => {
+        onEdit();
         onClose();
     };
 
@@ -82,18 +88,19 @@ export function MessageMenu(props: MessageDetailsOptionsProps) {
                     padding: "10px",
                 }}
             >
-                <MessageOption onClick={onClose} label="Reply" icon={<Reply />} />
+                {/*  <MessageOption onClick={onClose} label="Reply" icon={<Reply />} />
                 <MessageOption onClick={onClose} label="Forward message" icon={<Shortcut />} />
                 <MessageOption onClick={onClose} label="Copy" icon={<ContentCopy />} />
-                <MessageOption
-                    onClick={showModalMessageDetails}
-                    label="Details"
-                    icon={<InfoOutlined />}
-                />
                 <MessageOption
                     onClick={onClose}
                     label="Add to favorite"
                     icon={<FavoriteBorder />}
+                /> */}
+                {onEdit && <MessageOption onClick={showEditModal} label="Edit" icon={<Edit />} />}
+                <MessageOption
+                    onClick={showModalMessageDetails}
+                    label="Details"
+                    icon={<InfoOutlined />}
                 />
                 <MessageOption
                     onClick={showDeleteModal}
