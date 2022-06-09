@@ -20,7 +20,7 @@ import {
 } from "@mui/material";
 
 import { LockOutlined } from "@mui/icons-material/";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { styled, ThemeProvider } from "@mui/material/styles";
 import { useSelector, useDispatch } from "react-redux";
 import dayjs from "dayjs";
 import Visibility from "@mui/icons-material/Visibility";
@@ -33,6 +33,8 @@ import { useShowSnackBar } from "../../components/useUI";
 import { useCheckAccessTokenQuery, useAdminSigninMutation } from "../../api/auth";
 import * as constants from "../../../../../lib/constants";
 import loginBg from "../../assets/login-bg.svg";
+import logo from "../../assets/logo.svg";
+import theme from "../../theme";
 
 export default function () {
     const count = useSelector((state: RootState) => state.counter.value);
@@ -111,84 +113,102 @@ export default function () {
         }
     };
 
-    const theme = createTheme({
-        palette: {
-            mode: "light",
-        },
-    });
-
     return (
-        // <ThemeProvider theme={theme}>
-        //     <Container component="main" maxWidth="xs">
-        //         <CssBaseline />
-        <Stack direction="row" width="100%">
-            <Box width="70%">
+        <ThemeProvider theme={theme}>
+            {/* <Container component="main" maxWidth="xs">
+                 <CssBaseline /> */}
+            <Stack direction="row" height="100%">
                 <Box
-                    component="img"
+                    width="75%"
+                    height="auto"
                     sx={{
-                        height: "100%",
-                        width: "100%",
+                        overflow: "hidden",
+                        backgroundSize: "cover",
+                        backgroundRepeat: "no-repeat",
+                        backgroundImage: `url(${loginBg})`,
                     }}
-                    alt="Img"
-                    src={loginBg}
-                />
-                {/* <img  src={loginBg}></img> */}
-            </Box>
-            <Grid
-                container
-                spacing={0}
-                direction="column"
-                alignItems="center"
-                justifyContent="center"
-                style={{ minHeight: "100vh" }}
-                width="30%"
-            >
-                <Box component="form" onSubmit={handleSubmit} noValidate sx={{ m: 3 }}>
-                    <TextField
-                        margin="normal"
-                        required
-                        fullWidth
-                        id="username"
-                        label="Admin User Name"
-                        name="username"
-                        autoComplete="username"
-                        autoFocus
-                    />
-                    <FormControl fullWidth required variant="outlined">
-                        <InputLabel htmlFor="outlined-adornment-password">Password</InputLabel>
-                        <OutlinedInput
-                            id="outlined-adornment-password"
-                            type={showPassword ? "text" : "password"}
-                            onChange={handleClickShowPassword}
-                            name="password"
-                            endAdornment={
-                                <InputAdornment position="end">
-                                    <IconButton
-                                        aria-label="toggle password visibility"
-                                        onClick={handleClickShowPassword}
-                                        onMouseDown={handleMouseDownPassword}
-                                        edge="end"
-                                    >
-                                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                                    </IconButton>
-                                </InputAdornment>
-                            }
-                            label="Password"
-                        />
-                    </FormControl>
-                    <FormControlLabel
-                        control={<Checkbox checked={rememberMe} onChange={handleChange} />}
-                        label="Remember me"
-                    />
-                    <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
-                        Sign In
-                    </Button>
-                </Box>
-            </Grid>
-        </Stack>
+                ></Box>
+                <Grid
+                    container
+                    spacing={0}
+                    direction="column"
+                    alignItems="center"
+                    justifyContent="center"
+                    style={{ minHeight: "100vh" }}
+                    width="25%"
+                >
+                    <Stack
+                        justifyContent="center"
+                        alignItems="left"
+                        spacing={2}
+                        direction="row"
+                        marginLeft="1em"
+                    >
+                        <Typography component="h1" variant="h6" color="inherit" noWrap>
+                            Welcome to Spika
+                        </Typography>
+                        <Box component="img" height="30px" width="30px" src={logo} />
+                    </Stack>
 
-        //         <SnackBar />
-        //     </Container>
-        // </ThemeProvider>
+                    <Box component="form" onSubmit={handleSubmit} noValidate sx={{ m: 3 }}>
+                        <TextField
+                            margin="normal"
+                            required
+                            fullWidth
+                            id="username"
+                            label="Admin User Name"
+                            name="username"
+                            autoComplete="username"
+                            autoFocus
+                            variant="outlined"
+                        />
+                        <FormControl fullWidth required variant="outlined">
+                            <InputLabel htmlFor="outlined-adornment-password">Password</InputLabel>
+                            <OutlinedInput
+                                id="outlined-adornment-password"
+                                type={showPassword ? "text" : "password"}
+                                onChange={handleClickShowPassword}
+                                name="password"
+                                endAdornment={
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            aria-label="toggle password visibility"
+                                            onClick={handleClickShowPassword}
+                                            onMouseDown={handleMouseDownPassword}
+                                            edge="end"
+                                        >
+                                            {!showPassword ? <VisibilityOff /> : <Visibility />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                }
+                                label="Password"
+                            />
+                        </FormControl>
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    checked={rememberMe}
+                                    onChange={handleChange}
+                                    color="spikaButton"
+                                />
+                            }
+                            label="Remember me"
+                        />
+                        <Button
+                            type="submit"
+                            color="spikaButton"
+                            fullWidth
+                            variant="contained"
+                            sx={{ mt: 3, mb: 2 }}
+                        >
+                            Sign In
+                        </Button>
+                    </Box>
+                </Grid>
+            </Stack>
+            <SnackBar />
+
+            {/* </Container> */}
+        </ThemeProvider>
     );
 }
