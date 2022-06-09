@@ -77,10 +77,6 @@ export default function Message({
                 justifyContent={isUsersMessage ? "flex-end" : "flex-start"}
                 mb={"0.375rem"}
                 alignItems="end"
-                onContextMenu={(e) => {
-                    e.preventDefault();
-                    clickedAnchor(e, id);
-                }}
             >
                 {roomType === "group" && !isUsersMessage && isLastMessage ? (
                     <Avatar
@@ -92,19 +88,54 @@ export default function Message({
                     <Box width="26px" mr={1}></Box>
                 )}
                 {(type === "text" || isDeleted) && (
-                    <TextMessage body={body} isUsersMessage={isUsersMessage} />
+                    <TextMessage
+                        body={body}
+                        isUsersMessage={isUsersMessage}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            clickedAnchor(e, id);
+                        }}
+                    />
                 )}
                 {type === "image" && !isDeleted && (
-                    <ImageMessage body={body} isUsersMessage={isUsersMessage} />
+                    <ImageMessage
+                        body={body}
+                        isUsersMessage={isUsersMessage}
+                        onClickContextMenu={(e) => {
+                            e.preventDefault();
+                            clickedAnchor(e, id);
+                        }}
+                    />
                 )}
                 {type === "video" && !isDeleted && (
-                    <VideoMessage body={body} isUsersMessage={isUsersMessage} />
+                    <VideoMessage
+                        body={body}
+                        isUsersMessage={isUsersMessage}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            clickedAnchor(e, id);
+                        }}
+                    />
                 )}
                 {type === "audio" && !isDeleted && (
-                    <AudioMessage body={body} isUsersMessage={isUsersMessage} />
+                    <AudioMessage
+                        body={body}
+                        isUsersMessage={isUsersMessage}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            clickedAnchor(e, id);
+                        }}
+                    />
                 )}
                 {(type === "file" || type === "unknown") && !isDeleted && (
-                    <FileMessage body={body} isUsersMessage={isUsersMessage} />
+                    <FileMessage
+                        body={body}
+                        isUsersMessage={isUsersMessage}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            clickedAnchor(e, id);
+                        }}
+                    />
                 )}
                 {isUsersMessage && <MessageStatusIcon status={getStatusIcon()} />}
             </Box>
@@ -112,7 +143,15 @@ export default function Message({
     );
 }
 
-function ImageMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boolean }) {
+function ImageMessage({
+    body,
+    isUsersMessage,
+    onClickContextMenu,
+}: {
+    body: any;
+    isUsersMessage: boolean;
+    onClickContextMenu: (e: any) => void;
+}) {
     const [open, setOpen] = useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
@@ -133,7 +172,13 @@ function ImageMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
 
     return (
         <Box display="flex" flexDirection="column" alignItems={isUsersMessage ? "end" : "start"}>
-            {body.text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
+            {body.text && (
+                <TextMessage
+                    body={body}
+                    isUsersMessage={isUsersMessage}
+                    onClick={onClickContextMenu}
+                />
+            )}
             <Box
                 onClick={handleOpen}
                 component="img"
@@ -150,6 +195,11 @@ function ImageMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
                     <Box textAlign="right" mr={2} mt={2}>
                         <CloseOutlined
                             onClick={handleClose}
+                            sx={{ color: "white", cursor: "pointer" }}
+                            fontSize="large"
+                        />
+                        <Info
+                            onClick={onClickContextMenu}
                             sx={{ color: "white", cursor: "pointer" }}
                             fontSize="large"
                         />
@@ -171,7 +221,15 @@ function ImageMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
     );
 }
 
-function FileMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boolean }) {
+function FileMessage({
+    body,
+    isUsersMessage,
+    onClick,
+}: {
+    body: any;
+    isUsersMessage: boolean;
+    onClick: (e: any) => void;
+}) {
     if (!body.file) {
         return null;
     }
@@ -183,7 +241,9 @@ function FileMessage({ body, isUsersMessage }: { body: any; isUsersMessage: bool
     const Icon = getFileIcon(file.mimeType);
     return (
         <Box display="flex" flexDirection="column" alignItems={isUsersMessage ? "end" : "start"}>
-            {body.text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
+            {body.text && (
+                <TextMessage body={body} isUsersMessage={isUsersMessage} onClick={onClick} />
+            )}
             <Box
                 display="flex"
                 alignItems="center"
@@ -215,14 +275,24 @@ function FileMessage({ body, isUsersMessage }: { body: any; isUsersMessage: bool
     );
 }
 
-function VideoMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boolean }) {
+function VideoMessage({
+    body,
+    isUsersMessage,
+    onClick,
+}: {
+    body: any;
+    isUsersMessage: boolean;
+    onClick: (e: any) => void;
+}) {
     if (!body.file) {
         return null;
     }
 
     return (
         <Box display="flex" flexDirection="column" alignItems={isUsersMessage ? "end" : "start"}>
-            {body.text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
+            {body.text && (
+                <TextMessage body={body} isUsersMessage={isUsersMessage} onClick={onClick} />
+            )}
             <Box
                 component="video"
                 borderRadius="0.625rem"
@@ -235,14 +305,24 @@ function VideoMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
     );
 }
 
-function AudioMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boolean }) {
+function AudioMessage({
+    body,
+    isUsersMessage,
+    onClick,
+}: {
+    body: any;
+    isUsersMessage: boolean;
+    onClick: (e: any) => void;
+}) {
     if (!body.file) {
         return null;
     }
 
     return (
         <Box display="flex" flexDirection="column" alignItems={isUsersMessage ? "end" : "start"}>
-            {body.text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
+            {body.text && (
+                <TextMessage body={body} isUsersMessage={isUsersMessage} onClick={onClick} />
+            )}
             <Box component="audio" controls borderRadius="0.625rem" maxWidth="35rem" pb="0.8125">
                 <source type={body.file.type} src={`${UPLOADS_BASE_URL}${body.file.path}`} />
             </Box>
@@ -250,7 +330,15 @@ function AudioMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
     );
 }
 
-function TextMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boolean }) {
+function TextMessage({
+    isUsersMessage,
+    body,
+    onClick,
+}: {
+    body: any;
+    isUsersMessage: boolean;
+    onClick: (e: any) => void;
+}) {
     const filterText = (text: string): string => {
         // escape html
         text = text
@@ -283,8 +371,10 @@ function TextMessage({ isUsersMessage, body }: { body: any; isUsersMessage: bool
                 lineHeight: "1.5rem",
                 whiteSpace: "pre-wrap",
                 margin: "0px",
+                cursor: "pointer",
             }}
             dangerouslySetInnerHTML={{ __html: filterText(body.text) }}
+            onClick={onClick}
         />
     );
 }

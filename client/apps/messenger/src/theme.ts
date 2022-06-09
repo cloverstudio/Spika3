@@ -20,6 +20,7 @@ let theme = createTheme({
         action: {
             disabled: "#fff",
             disabledBackground: "#a3cbf8",
+            hover: "#E5F4FF",
         },
     },
 });

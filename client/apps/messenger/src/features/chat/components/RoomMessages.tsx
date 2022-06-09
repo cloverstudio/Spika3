@@ -242,6 +242,7 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
                     open={openMessageDetails}
                     onClose={handleCloseMessageDetails}
                     messageId={selectedMessageId}
+                    message={selectedMessage}
                 />
             )}
             {showDeleteModal && (
