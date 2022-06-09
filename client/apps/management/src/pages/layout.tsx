@@ -13,12 +13,13 @@ import {
     Toolbar,
     IconButton,
     Divider,
-    Badge,
     List,
     ListItem,
     ListItemIcon,
     ListItemText,
     Stack,
+    Menu,
+    MenuItem,
 } from "@mui/material";
 
 import {
@@ -31,6 +32,7 @@ import {
     Devices as DeviceIcon,
     MeetingRoom as RoomIcon,
     Logout as LogoutIcon,
+    AccountCircle,
 } from "@mui/icons-material/";
 
 import SnackBar from "../components/snackBar";
@@ -102,6 +104,16 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
     const navigate = useNavigate();
 
     const [open, setOpen] = React.useState(true);
+
+    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const openMenu = Boolean(anchorEl);
+    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        console.log("Tu udje");
+        setAnchorEl(event.currentTarget);
+    };
+    const handleClose = () => {
+        setAnchorEl(null);
+    };
     const toggleDrawer = () => {
         setOpen(!open);
     };
@@ -144,11 +156,39 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
                         >
                             {subtitle}
                         </Typography>
-                        <IconButton color="inherit">
-                            <Badge badgeContent={4} color="secondary">
-                                <NotificationsIcon />
-                            </Badge>
+                        <IconButton
+                            color="inherit"
+                            onClick={(e) => {
+                                handleClick(e);
+                            }}
+                        >
+                            <AccountCircle />
                         </IconButton>
+                        <Menu
+                            id="basic-menu"
+                            anchorEl={anchorEl}
+                            open={openMenu}
+                            onClose={handleClose}
+                            MenuListProps={{
+                                "aria-labelledby": "basic-button",
+                            }}
+                        >
+                            <MenuItem
+                                onClick={(e) => {
+                                    dispatch(logout());
+                                    dispatch(
+                                        showSnackBar({
+                                            severity: "success",
+                                            text: "Singed out",
+                                        })
+                                    );
+                                    localStorage.removeItem(constants.ADMIN_ACCESS_TOKEN);
+                                    navigate("/");
+                                }}
+                            >
+                                Logout
+                            </MenuItem>
+                        </Menu>
                     </Toolbar>
                 </AppBar>
                 <Drawer variant="permanent" open={open}>
@@ -224,28 +264,6 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
                             <ListItemText primary="Rooms" />
                         </ListItem>
                     </List>
-                    <Divider />
-                    <List>
-                        <ListItem
-                            button
-                            onClick={(e) => {
-                                dispatch(logout());
-                                dispatch(
-                                    showSnackBar({
-                                        severity: "success",
-                                        text: "Singed out",
-                                    })
-                                );
-                                localStorage.removeItem(constants.ADMIN_ACCESS_TOKEN);
-                                navigate("/");
-                            }}
-                        >
-                            <ListItemIcon>
-                                <LogoutIcon />
-                            </ListItemIcon>
-                            <ListItemText primary="Logout" />
-                        </ListItem>
-                    </List>
                 </Drawer>
                 <Box
                     component="main"
@@ -263,7 +281,6 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
                     {children}
                 </Box>
             </Box>
-
             <SnackBar />
             <BasicDialog />
         </ThemeProvider>
