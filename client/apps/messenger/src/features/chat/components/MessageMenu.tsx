@@ -102,11 +102,13 @@ export function MessageMenu(props: MessageDetailsOptionsProps) {
                     label="Details"
                     icon={<InfoOutlined />}
                 />
-                <MessageOption
-                    onClick={showDeleteModal}
-                    label="Delete"
-                    icon={<DeleteOutline style={{ fill: "red" }} />}
-                />
+                {onDelete && (
+                    <MessageOption
+                        onClick={showDeleteModal}
+                        label="Delete"
+                        icon={<DeleteOutline style={{ fill: "red" }} />}
+                    />
+                )}
             </Stack>
         </Popover>
     );

@@ -11,6 +11,7 @@ import { MessageMenu, MessageDetailDialog } from "../components/MessageMenu";
 import { ExpandMore } from "@mui/icons-material";
 import { useGetUserQuery } from "../../auth/api/auth";
 import AttachmentManager from "../lib/AttachmentManager";
+import { deletedMessageText } from "../lib/consts";
 type RoomMessagesProps = {
     roomId: number;
 };
@@ -161,6 +162,9 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
     const selectedMessage =
         selectedMessageId && messagesSorted.find((m) => m.id === selectedMessageId);
     const selectedUsersMessage = selectedMessage?.fromUserId === userData.user.id;
+    const deletedMessage =
+        selectedMessage?.deleted || selectedMessage?.body?.text === deletedMessageText;
+    const isEditable = selectedMessage?.type === "text" && selectedUsersMessage && !deletedMessage;
 
     return (
         <Box
@@ -230,8 +234,8 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
                 onClose={handleCloseMessageMenu}
                 anchorElement={anchorEl}
                 showMessageDetails={showModalMessageDetails}
-                onDelete={() => setShowDeleteModal(true)}
-                onEdit={selectedUsersMessage ? () => setShowEditModal(true) : null}
+                onDelete={!deletedMessage ? () => setShowDeleteModal(true) : null}
+                onEdit={isEditable ? () => setShowEditModal(true) : null}
             />
             {openMessageDetails && (
                 <MessageDetailDialog

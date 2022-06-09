@@ -5,9 +5,6 @@ import {
     Dialog,
     DialogTitle,
     FormControl,
-    RadioGroup,
-    FormControlLabel,
-    Radio,
     Button,
     TextField,
 } from "@mui/material";
@@ -53,11 +50,12 @@ export default function EditMessageDialog(props: EditMessageDialogProps) {
                 <Close />
             </IconButton>
             <Box width="320px" m="1rem">
-                <FormControl sx={{ mb: 4 }}>
+                <FormControl sx={{ mb: 4, width: "100%" }}>
                     <TextField
                         multiline
                         rows={2}
                         maxRows={4}
+                        fullWidth
                         value={text}
                         onChange={(e) => setText(e.target.value)}
                     />

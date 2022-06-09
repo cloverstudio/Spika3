@@ -9,6 +9,7 @@ import DownloadIcon from "@mui/icons-material/Download";
 import { useGetRoomQuery } from "../api/room";
 import { useParams } from "react-router-dom";
 import { CloseOutlined } from "@mui/icons-material";
+import { deletedMessageText } from "../lib/consts";
 
 type MessageProps = {
     id: number;
@@ -61,7 +62,7 @@ export default function Message({
         return "sent";
     };
 
-    const isDeleted = body?.text === "Deleted message";
+    const isDeleted = body?.text === deletedMessageText;
 
     return (
         <Box key={id}>
