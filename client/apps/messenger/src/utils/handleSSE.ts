@@ -1,9 +1,19 @@
 import { dynamicBaseQuery } from "../api/api";
-import { addMessage, addMessageRecord, deleteMessage } from "../features/chat/slice/chatSlice";
+import {
+    addMessage,
+    addMessageRecord,
+    deleteMessage,
+    editMessage,
+} from "../features/chat/slice/chatSlice";
 import { fetchHistory } from "../features/chat/slice/roomSlice";
 import { store } from "../store/store";
 
-const VALID_SSE_EVENT_TYPES = ["NEW_MESSAGE", "NEW_MESSAGE_RECORD", "DELETE_MESSAGE"];
+const VALID_SSE_EVENT_TYPES = [
+    "NEW_MESSAGE",
+    "NEW_MESSAGE_RECORD",
+    "DELETE_MESSAGE",
+    "UPDATE_MESSAGE",
+];
 
 export default async function handleSSE(event: MessageEvent): Promise<void> {
     const data = event.data ? JSON.parse(event.data) : {};
@@ -58,6 +68,18 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
             }
 
             store.dispatch(deleteMessage(message));
+
+            return;
+        }
+
+        case "UPDATE_MESSAGE": {
+            const message = data.message;
+            if (!message) {
+                console.log("Invalid UPDATE_MESSAGE payload");
+                return;
+            }
+
+            store.dispatch(editMessage(message));
 
             return;
         }

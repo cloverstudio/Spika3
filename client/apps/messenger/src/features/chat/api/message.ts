@@ -26,6 +26,12 @@ const messageApi = api.injectEndpoints({
             },
             invalidatesTags: (res) => res && [{ type: "Rooms", id: "HISTORY" }],
         }),
+        editMessage: build.mutation<any, { id: number; text: string }>({
+            query: ({ id, text }) => {
+                return { url: `/messenger/messages/${id}`, method: "PUT", data: { text } };
+            },
+            invalidatesTags: (res) => res && [{ type: "Rooms", id: "HISTORY" }],
+        }),
     }),
     overrideExisting: true,
 });
@@ -35,5 +41,6 @@ export const {
     useMarkRoomMessagesAsSeenMutation,
     useGetMessageRecordsByIdQuery,
     useDeleteMessageMutation,
+    useEditMessageMutation,
 } = messageApi;
 export default messageApi;

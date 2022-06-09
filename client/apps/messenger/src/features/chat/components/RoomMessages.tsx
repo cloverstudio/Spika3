@@ -6,6 +6,7 @@ import { selectRoomMessages, fetchMessagesByRoomId, selectLoading } from "../sli
 
 import Message from "../components/Message";
 import DeleteMessageDialog from "./DeleteMessageDialog";
+import EditMessageDialog from "./EditMessageDialog";
 import { MessageMenu, MessageDetailDialog } from "../components/MessageMenu";
 import { ExpandMore } from "@mui/icons-material";
 import { useGetUserQuery } from "../../auth/api/auth";
@@ -33,6 +34,7 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
     const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
     const [openMessageDetails, setOpenMessageDetails] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
     const [selectedMessageId, setMessageId] = useState(null);
     const open = Boolean(anchorEl);
 
@@ -156,6 +158,10 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
         e.preventDefault();
     };
 
+    const selectedMessage =
+        selectedMessageId && messagesSorted.find((m) => m.id === selectedMessageId);
+    const selectedUsersMessage = selectedMessage?.fromUserId === userData.user.id;
+
     return (
         <Box
             flexGrow={1}
@@ -225,6 +231,7 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
                 anchorElement={anchorEl}
                 showMessageDetails={showModalMessageDetails}
                 onDelete={() => setShowDeleteModal(true)}
+                onEdit={selectedUsersMessage ? () => setShowEditModal(true) : null}
             />
             {openMessageDetails && (
                 <MessageDetailDialog
@@ -238,10 +245,15 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
                     open={showDeleteModal}
                     onClose={() => setShowDeleteModal(false)}
                     messageId={selectedMessageId}
-                    isUserMessage={
-                        messagesSorted.find((m) => m.id === selectedMessageId)?.fromUserId ===
-                        userData.user.id
-                    }
+                    isUserMessage={selectedUsersMessage}
+                />
+            )}
+
+            {showEditModal && (
+                <EditMessageDialog
+                    open={showEditModal}
+                    onClose={() => setShowEditModal(false)}
+                    selectedMessage={selectedMessage}
                 />
             )}
         </Box>

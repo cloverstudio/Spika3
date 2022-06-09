@@ -833,7 +833,136 @@ describe("API", () => {
                 where: { id: message.id },
             });
             expect(messageFromDb.deleted).to.eqls(true);
+            expect(+messageFromDb.modifiedAt > +message.modifiedAt).to.eqls(true);
             expect(messageFromDb.type).to.eqls("text");
+        });
+    });
+
+    describe("/api/messenger/messages/:id PUT", () => {
+        let room: Room;
+
+        before(async () => {
+            room = await createFakeRoom([{ userId: globals.userId, isAdmin: true }]);
+        });
+
+        it("text is required", async () => {
+            const message = await createFakeMessage({
+                fromUserId: globals.userId,
+                room,
+                fromDeviceId: globals.deviceId,
+            });
+
+            const responseInvalid = await supertest(app)
+                .put(`/api/messenger/messages/${message.id}`)
+                .send({
+                    text: "",
+                })
+                .set({ accesstoken: globals.userToken });
+
+            const responseValid = await supertest(app)
+                .put(`/api/messenger/messages/${message.id}`)
+                .send({
+                    text: "la la la",
+                })
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseInvalid.status).to.eqls(400);
+            expect(responseValid.status).to.eqls(200);
+        });
+
+        it("requires message to exist", async () => {
+            const responseInvalid = await supertest(app)
+                .put("/api/messenger/messages/65415361531115131")
+                .send({
+                    text: "la la la",
+                })
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseInvalid.status).to.eqls(404);
+        });
+
+        it("can only update messages that have type text", async () => {
+            const message = await createFakeMessage({
+                fromUserId: globals.userId,
+                room,
+                type: "video",
+                fromDeviceId: globals.deviceId,
+            });
+
+            const responseInvalid = await supertest(app)
+                .put(`/api/messenger/messages/${message.id}`)
+                .send({
+                    text: "lal la",
+                })
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseInvalid.status).to.eqls(400);
+        });
+
+        it("requires user to be owner of message", async () => {
+            const fakeUser = await createFakeUser();
+            const message = await createFakeMessage({
+                fromUserId: fakeUser.id,
+                room,
+                fromDeviceId: globals.deviceId,
+            });
+
+            const responseInvalid = await supertest(app)
+                .put(`/api/messenger/messages/${message.id}`)
+                .send({
+                    text: "la la la",
+                })
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseInvalid.status).to.eqls(403);
+        });
+
+        it("updates all messageDevices", async () => {
+            const message = await createFakeMessage({
+                fromUserId: globals.userId,
+                room,
+                fromDeviceId: globals.deviceId,
+            });
+
+            const responseValid = await supertest(app)
+                .put(`/api/messenger/messages/${message.id}`)
+                .send({
+                    text: "la la la",
+                })
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseValid.status).to.eqls(200);
+
+            const deviceMessagesFromDb = await globals.prisma.deviceMessage.findMany({
+                where: { messageId: message.id },
+            });
+            expect(
+                deviceMessagesFromDb.every(
+                    (dm) => (dm.body as { text: string }).text === "la la la"
+                )
+            ).to.eqls(true);
+        });
+
+        it("updates messages modifiedAt", async () => {
+            const message = await createFakeMessage({
+                fromUserId: globals.userId,
+                room,
+                fromDeviceId: globals.deviceId,
+            });
+
+            const responseValid = await supertest(app)
+                .put(`/api/messenger/messages/${message.id}`)
+                .send({
+                    text: "la la la",
+                })
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseValid.status).to.eqls(200);
+
+            const messageFromDb = await globals.prisma.message.findUnique({
+                where: { id: message.id },
+            });
+            expect(+messageFromDb.modifiedAt > +message.modifiedAt).to.eqls(true);
         });
     });
 });
