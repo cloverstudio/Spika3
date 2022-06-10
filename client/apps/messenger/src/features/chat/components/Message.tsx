@@ -8,7 +8,7 @@ import getFileIcon from "../lib/getFileIcon";
 import DownloadIcon from "@mui/icons-material/Download";
 import { useGetRoomQuery } from "../api/room";
 import { useParams } from "react-router-dom";
-import { CloseOutlined } from "@mui/icons-material";
+import { CloseOutlined, Info } from "@mui/icons-material";
 import { deletedMessageText } from "../lib/consts";
 
 type MessageProps = {
