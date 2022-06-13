@@ -8,7 +8,7 @@ export default function LeftSidebarLayout({
 }): React.ReactElement {
     return (
         <Box
-            borderRight="0.5px solid #C9C9CA"
+            borderRight="1px solid #C9C9CA"
             height="100vh"
             overflow="hidden"
             display="flex"

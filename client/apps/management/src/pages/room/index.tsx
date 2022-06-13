@@ -59,7 +59,7 @@ const useStyles = makeStyles(
     { defaultTheme }
 );
 
-export default function Room() {
+export default function RoomIndex() {
     const [loading, setLoading] = React.useState<boolean>(false);
     const [list, setList] = React.useState<RoomType[]>([]);
     const [pageSize, setPageSize] = React.useState<number>(30);

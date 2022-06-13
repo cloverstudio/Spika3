@@ -1,6 +1,6 @@
 import axios, { AxiosResponse } from "axios";
 
-declare var API_BASE_URL: string;
+declare const API_BASE_URL: string;
 
 class API {
     async post(url: string, params: any) {
