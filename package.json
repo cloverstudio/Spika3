@@ -13,7 +13,7 @@
         "dev:management": "concurrently --kill-others \"nodemon server/index.ts\" \"vite --mode management\"",
         "build:management": "vite build --mode management --emptyOutDir",
         "dev:messenger": "vite --mode messenger",
-        "build:messenger": "vite build --mode management --emptyOutDir",
+        "build:messenger": "vite build --mode messenger --emptyOutDir",
         "dev:template": "vite --mode template",
         "build:template": "vite build --mode template",
         "format": "prettier --write --ignore-unknown ."
