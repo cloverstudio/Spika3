@@ -1,8 +1,9 @@
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 const spikaLightGray = "#dcdcdc";
-const hoverColor = "#0000ff";
+const spikaPurpleGrey = "#282a40";
 const spikaPurple = "#5b5fd8";
+const spikaMainBackgroundColor = "#f5f5f5";
 
 let theme = createTheme({
     typography: {
@@ -23,6 +24,14 @@ let theme = createTheme({
             main: spikaLightGray,
             contrastText: "#fff",
         },
+        spikaDrawer: {
+            main: spikaPurpleGrey,
+            contrastText: "#fff",
+        },
+        spikaMainBackgroundColor: {
+            main: spikaMainBackgroundColor,
+            contrastText: "#fff",
+        },
     },
 });
 
@@ -33,19 +42,42 @@ theme = createTheme(theme, {
                 root: {
                     "& .MuiOutlinedInput-notchedOutline": {
                         borderColor: theme.palette.spikaLightGrey.main,
-                        "&.Mui-focused": {
-                            borderColor: theme.palette.spikaLightGrey.main,
-                        },
                     },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                        borderColor: theme.palette.spikaButton.main,
+                    },
+
                     input: {
                         "&::placeholder": {
-                            color: theme.palette.spikaLightGrey.main,
+                            color: "grey",
                             fontWeight: theme.typography.fontWeightMedium,
                             opacity: "1",
                             fontFamily: theme.typography.fontFamily,
                         },
-                        color: theme.palette.spikaLightGrey.main,
+                        color: "grey",
                         fontWeight: theme.typography.fontWeightMedium,
+                        "&:-webkit-autofill": {
+                            "-webkit-box-shadow": "0 0 0 100px #fff inset",
+                            "-webkit-text-fill-color": "grey",
+                        },
+                    },
+                },
+            },
+        },
+        MuiDrawer: {
+            styleOverrides: {
+                root: {
+                    "& 	.MuiDrawer-paper": {
+                        backgroundColor: theme.palette.spikaDrawer.main,
+                    },
+                },
+            },
+        },
+        MuiInputLabel: {
+            styleOverrides: {
+                root: {
+                    "&.Mui-focused": {
+                        color: theme.palette.spikaButton.main,
                     },
                 },
             },
@@ -57,11 +89,15 @@ declare module "@mui/material/styles" {
     interface Palette {
         spikaButton: Palette["primary"];
         spikaLightGrey: Palette["primary"];
+        spikaDrawer: Palette["primary"];
+        spikaMainBackgroundColor: Palette["primary"];
     }
 
     interface PaletteOptions {
         spikaButton?: PaletteOptions["primary"];
         spikaLightGrey?: PaletteOptions["primary"];
+        spikaDrawer?: PaletteOptions["primary"];
+        spikaMainBackgroundColor?: PaletteOptions["primary"];
     }
 }
 declare module "@mui/material/Button" {
@@ -78,6 +114,12 @@ declare module "@mui/material/Checkbox" {
 declare module "@mui/material/TextField" {
     interface TextFieldPropsColorOverrides {
         spikaButton: true;
+    }
+}
+
+declare module "@mui/material/Typography" {
+    interface TypographyPropsColorOverrides {
+        spikaLightGrey: true;
     }
 }
 
