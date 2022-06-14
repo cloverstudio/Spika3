@@ -92,7 +92,7 @@ export default function LeftSidebarHome({
                                             sx={{
                                                 width: "25px",
                                                 height: "25px",
-                                                color: "#9BB4CF",
+                                                color: "text.navigation",
                                                 cursor: "pointer",
                                             }}
                                         />
@@ -105,7 +105,7 @@ export default function LeftSidebarHome({
                                             sx={{
                                                 width: "25px",
                                                 height: "25px",
-                                                color: "#9BB4CF",
+                                                color: "text.navigation",
                                                 cursor: "pointer",
                                             }}
                                         />
@@ -155,15 +155,15 @@ function ActionIcon({ Icon, isActive, handleClick }: ActionIconProps) {
             height="52px"
             borderRadius="50%"
             p={1}
-            bgcolor={isActive ? "#E5F4FF" : "transparent"}
+            bgcolor={isActive ? "action.hover" : "transparent"}
             sx={{
                 cursor: "pointer",
                 "&:hover": {
-                    bgcolor: "#E5F4FF",
+                    bgcolor: "action.hover",
                 },
             }}
         >
-            <Icon sx={{ width: "25px", color: isActive ? "#4696F0" : "#9BB4CF" }} />
+            <Icon sx={{ width: "25px", color: isActive ? "primary.main" : "text.navigation" }} />
         </Box>
     );
 }

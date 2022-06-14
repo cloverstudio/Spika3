@@ -44,13 +44,12 @@ export interface MessageDetailsOptionsProps {
     onClose: () => void;
     anchorElement?: HTMLDivElement;
     showMessageDetails: () => void;
-    onDelete: () => void;
-    onEdit: () => void;
+    onDelete?: () => void;
+    onEdit?: () => void;
 }
 
 export function MessageMenu(props: MessageDetailsOptionsProps) {
     const { open, onClose, anchorElement, showMessageDetails, onDelete, onEdit } = props;
-    const theme = useTheme();
 
     const showModalMessageDetails = () => {
         showMessageDetails();
@@ -58,13 +57,17 @@ export function MessageMenu(props: MessageDetailsOptionsProps) {
     };
 
     const showDeleteModal = () => {
-        onDelete();
-        onClose();
+        if (onDelete) {
+            onDelete();
+            onClose();
+        }
     };
 
     const showEditModal = () => {
-        onEdit();
-        onClose();
+        if (onEdit) {
+            onEdit();
+            onClose();
+        }
     };
 
     return (

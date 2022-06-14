@@ -20,13 +20,13 @@ import {
     blueGrey,
 } from "@mui/material/colors";
 
-export const LSKEY_USERNAME: string = "username";
-export const LSKEY_PEERID: string = "peerid";
-export const LSKEY_SELECTEDCAM: string = "selectedcam";
-export const LSKEY_SELECTEDMIC: string = "selectedmic";
-export const LSKEY_LASTROOM: string = "lastroom";
-export const LSKEY_ENABLECAM: string = "enablecam";
-export const LSKEY_ENABLEMIC: string = "enablemic";
+export const LSKEY_USERNAME = "username";
+export const LSKEY_PEERID = "peerid";
+export const LSKEY_SELECTEDCAM = "selectedcam";
+export const LSKEY_SELECTEDMIC = "selectedmic";
+export const LSKEY_LASTROOM = "lastroom";
+export const LSKEY_ENABLECAM = "enablecam";
+export const LSKEY_ENABLEMIC = "enablemic";
 
 const lightness = 700;
 export const NAME_COLORS: Array<string> = [

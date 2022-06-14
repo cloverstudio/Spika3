@@ -67,7 +67,7 @@ export default function Message({
     return (
         <Box key={id}>
             {roomType === "group" && !isUsersMessage && isFirstMessage && (
-                <Typography color="#9AA0A6" fontWeight={600} pl="34px" mb="10px">
+                <Typography color="text.tertiary" fontWeight={600} pl="34px" mb="10px">
                     {sender?.displayName}
                 </Typography>
             )}
@@ -251,7 +251,7 @@ function FileMessage({
                 maxWidth="35rem"
                 p="1.25rem"
                 gap="1.25rem"
-                bgcolor={isUsersMessage ? "#C8EBFE" : "#F2F2F2"}
+                bgcolor={isUsersMessage ? "common.myMessageBackground" : "common.chatBackground"}
             >
                 <Icon fontSize="large" />
                 <Box>
@@ -364,10 +364,12 @@ function TextMessage({
             sx={{
                 minWidth: "50px",
                 maxWidth: "80%",
-                backgroundColor: isUsersMessage ? "#C8EBFE" : "#F2F2F2",
+                backgroundColor: isUsersMessage
+                    ? "common.myMessageBackground"
+                    : "common.chatBackground",
                 borderRadius: "1rem",
                 padding: "10px",
-                color: "#131940",
+                color: "common.darkBlue",
                 lineHeight: "1.5rem",
                 whiteSpace: "pre-wrap",
                 margin: "0px",

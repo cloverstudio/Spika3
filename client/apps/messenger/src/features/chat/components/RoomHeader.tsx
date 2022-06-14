@@ -67,7 +67,7 @@ export default function RoomHeader({
                             sx={{
                                 width: "25px",
                                 height: "25px",
-                                color: "#4696F0",
+                                color: "primary.main",
                                 cursor: "pointer",
                             }}
                             onClick={(e) => {
@@ -80,7 +80,7 @@ export default function RoomHeader({
                             sx={{
                                 width: "25px",
                                 height: "25px",
-                                color: "#4696F0",
+                                color: "primary.main",
                                 cursor: "pointer",
                             }}
                             onClick={(e) => {
@@ -93,7 +93,7 @@ export default function RoomHeader({
                             sx={{
                                 width: "25px",
                                 height: "25px",
-                                color: "#4696F0",
+                                color: "primary.main",
                                 cursor: "pointer",
                             }}
                         />

@@ -154,7 +154,6 @@ export default function ChatInput(): React.ReactElement {
                                     }}
                                     placeholder="Type here..."
                                     sx={{
-                                        backgroundColor: "#fff",
                                         border: "1px solid #C9C9CA",
                                         input: {
                                             py: 2,
@@ -208,14 +207,16 @@ export default function ChatInput(): React.ReactElement {
 }
 
 function AddAttachment() {
-    const roomId = +useParams().id;
+    const roomId = parseInt(useParams().id || "");
     const [attachmentMenuOpen, setAttachmentMenuOpen] = useState(false);
     const uploadFilesRef = React.useRef(null);
     const uploadImagesRef = React.useRef(null);
 
     const handleFilesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const uploadedFiles = e.target.files;
-        AttachmentManager.addFiles({ roomId, files: Array.from(uploadedFiles) });
+        if (uploadedFiles) {
+            AttachmentManager.addFiles({ roomId, files: Array.from(uploadedFiles) });
+        }
         setAttachmentMenuOpen(false);
     };
 
@@ -297,7 +298,7 @@ type AttachmentsProps = {
 };
 
 function Attachments({ files, failedToUploadFileNames }: AttachmentsProps): React.ReactElement {
-    const roomId = +useParams().id;
+    const roomId = parseInt(useParams().id || "");
 
     return (
         <Box
@@ -319,7 +320,7 @@ function Attachments({ files, failedToUploadFileNames }: AttachmentsProps): Reac
                                 width="74px"
                                 height="74px"
                                 borderRadius="0.625rem"
-                                bgcolor="#F2F2F2"
+                                bgcolor="common.chatBackground"
                                 textAlign="center"
                                 display="flex"
                                 flexDirection="column"
