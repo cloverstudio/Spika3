@@ -564,6 +564,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                             users: {
                                 select: {
                                     user: true,
+                                    isAdmin: true,
+                                    userId: true,
                                 },
                             },
                         },

@@ -13,7 +13,13 @@ export interface ComponentInterface {
     audioEnabled: boolean;
 }
 
-export default ({ videoTrack, audioTrack, sx, name, audioEnabled }: ComponentInterface) => {
+export default function ParticipantItem({
+    videoTrack,
+    audioTrack,
+    sx,
+    name,
+    audioEnabled,
+}: ComponentInterface) {
     const videoElm: MutableRefObject<HTMLVideoElement | null> = useRef<HTMLVideoElement>(null);
     const audioElm: MutableRefObject<HTMLAudioElement | null> = useRef<HTMLAudioElement>(null);
 
@@ -67,7 +73,7 @@ export default ({ videoTrack, audioTrack, sx, name, audioEnabled }: ComponentInt
                 position: "relative",
                 width: "100%",
                 height: "100%",
-                backgroundColor: "#222",
+                backgroundColor: "common.videoBackground",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -97,7 +103,7 @@ export default ({ videoTrack, audioTrack, sx, name, audioEnabled }: ComponentInt
             {!videoTrack ? (
                 <Box
                     sx={{
-                        color: "#fff",
+                        color: "common.confCallFirstLetterColor",
                         fontFamily: "'Roboto', sans-serif",
                         fontWeight: "bold",
                         width: "100px",
@@ -124,10 +130,10 @@ export default ({ videoTrack, audioTrack, sx, name, audioEnabled }: ComponentInt
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    color: "#222",
+                    color: "common.videoBackground",
                     textAlign: "center",
                     zIndex: 130,
-                    backgroundColor: "#fff9",
+                    backgroundColor: "common.videoLabelBackground",
                 }}
             >
                 {name}
@@ -141,4 +147,4 @@ export default ({ videoTrack, audioTrack, sx, name, audioEnabled }: ComponentInt
             </Box>
         </Box>
     );
-};
+}

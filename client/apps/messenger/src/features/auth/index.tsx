@@ -64,7 +64,7 @@ export default function Auth(): React.ReactElement {
             if (res.device?.token) {
                 window.localStorage.setItem(constants.LSKEY_ACCESSTOKEN, res.device.token);
 
-                if (signUpMutation.data.isNewUser) {
+                if (signUpMutation?.data?.isNewUser) {
                     setStep(2);
                 } else {
                     navigate("/app");
@@ -104,28 +104,33 @@ export default function Auth(): React.ReactElement {
 
     return (
         <AuthLayout loading={signUpMutation.isLoading || verifyMutation.isLoading || loading}>
-            {step === 0 && <TelephoneNumberForm onSubmit={handleSignUp} />}
+            <>
+                {step === 0 && <TelephoneNumberForm onSubmit={handleSignUp} />}
 
-            {step === 1 && (
-                <VerificationCodeForm
-                    onSubmit={handleVerify}
-                    onBack={() => {
-                        setSentCount(0);
-                        setInfoMsg("");
-                        setErrorMsg("");
-                        setStep(0);
-                    }}
-                    onResend={() => handleSignUp(signUpMutation.data?.user.telephoneNumber)}
-                    telephoneNumber={signUpMutation.data?.user.telephoneNumber}
-                    error={errorMsg}
-                    info={infoMsg}
-                    timeLeft={timer.left}
-                />
-            )}
+                {step === 1 && (
+                    <VerificationCodeForm
+                        onSubmit={handleVerify}
+                        onBack={() => {
+                            setSentCount(0);
+                            setInfoMsg("");
+                            setErrorMsg("");
+                            setStep(0);
+                        }}
+                        onResend={() => handleSignUp(signUpMutation?.data?.user.telephoneNumber)}
+                        telephoneNumber={signUpMutation.data?.user.telephoneNumber}
+                        error={errorMsg}
+                        info={infoMsg}
+                        timeLeft={timer.left}
+                    />
+                )}
 
-            {step === 2 && (
-                <UpdateUserForm onSubmit={handleUpdateUser} error={updateMutation.error as any} />
-            )}
+                {step === 2 && (
+                    <UpdateUserForm
+                        onSubmit={handleUpdateUser}
+                        error={updateMutation.error as any}
+                    />
+                )}
+            </>
         </AuthLayout>
     );
 }

@@ -62,6 +62,7 @@ export default function sanitize(data: any): sanitizeTypes {
                 body,
                 createdAt,
                 localId,
+                deleted,
             } = data as Message & { body: any };
 
             return {
@@ -75,6 +76,7 @@ export default function sanitize(data: any): sanitizeTypes {
                 body,
                 createdAt: +new Date(createdAt),
                 localId,
+                deleted,
             };
         },
         file: () => {

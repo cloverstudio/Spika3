@@ -1,5 +1,31 @@
 import { createTheme } from "@mui/material/styles";
 
+declare module "@mui/material/styles" {
+    interface TypeText {
+        primary: string;
+        secondary: string;
+        disabled: string;
+        tertiary: string;
+        navigation: string;
+    }
+}
+
+declare module "@mui/material/styles/createPalette" {
+    interface CommonColors {
+        black: string;
+        white: string;
+        chatBackground: string;
+        myMessageBackground: string;
+        darkBlue: string;
+        confCallBackground: string;
+        videoBackground: string;
+        videoLabelBackground: string;
+        confCallControls: string;
+        confCallControlsHoverBackground: string;
+        confCallFirstLetterColor: string;
+    }
+}
+
 let theme = createTheme({
     typography: {
         fontFamily: `"Montserrat" , sans-serif`,
@@ -20,6 +46,24 @@ let theme = createTheme({
         action: {
             disabled: "#fff",
             disabledBackground: "#a3cbf8",
+            hover: "#E6F4FF",
+        },
+        text: {
+            primary: "#141414",
+            secondary: "#4A4A4A",
+            tertiary: "#9AA0A6",
+            navigation: "#9BB4CF",
+        },
+        common: {
+            darkBlue: "#131940",
+            chatBackground: "#F2F2F2",
+            myMessageBackground: "#C8EBFE",
+            videoBackground: "#222",
+            videoLabelBackground: "#fff9",
+            confCallControls: "#fff",
+            confCallControlsHoverBackground: "##fff1",
+            confCallBackground: "#373737",
+            confCallFirstLetterColor: "#fff",
         },
     },
 });
@@ -40,7 +84,7 @@ theme = createTheme(theme, {
         MuiFormLabel: {
             styleOverrides: {
                 root: {
-                    color: "#9AA0A6",
+                    color: theme.palette.text.tertiary,
                     fontWeight: theme.typography.fontWeightMedium,
                 },
             },
@@ -50,11 +94,11 @@ theme = createTheme(theme, {
                 root: {
                     "& .MuiOutlinedInput-notchedOutline": {
                         borderRadius: "0.625rem",
-                        borderColor: "#9AA0A6",
+                        borderColor: theme.palette.text.tertiary,
                     },
                     input: {
                         "&::placeholder": {
-                            color: "#9AA0A6",
+                            color: theme.palette.text.tertiary,
                             fontWeight: theme.typography.fontWeightMedium,
                             opacity: "1",
                         },
@@ -70,7 +114,7 @@ theme = createTheme(theme, {
                     borderRadius: "0.625rem",
                     input: {
                         "&::placeholder": {
-                            color: "#9AA0A6",
+                            color: theme.palette.text.tertiary,
                             fontWeight: theme.typography.fontWeightMedium,
                             opacity: "1",
                         },

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, TextField, FormLabel, Box, Typography, Alert, AlertTitle } from "@mui/material";
+import { Button, FormLabel, Box, Typography } from "@mui/material";
 import CountryPicker from "./CountryPicker";
 
 type TelephoneNumberFormProps = {
@@ -9,9 +9,9 @@ type TelephoneNumberFormProps = {
 export default function TelephoneNumberForm({
     onSubmit,
 }: TelephoneNumberFormProps): React.ReactElement {
-    const [countryCode, setCountryCode] = React.useState<string>("1");
-    const [phoneNumber, setPhoneNumber] = React.useState<string>("");
-    const [validPhoneNumber, setValidPhoneNumber] = React.useState<boolean>(false);
+    const [countryCode, setCountryCode] = useState("1");
+    const [phoneNumber, setPhoneNumber] = useState("");
+    const [validPhoneNumber, setValidPhoneNumber] = useState(false);
 
     const handleSubmit = () => {
         const formattedPhoneNumber = phoneNumber.startsWith("0")

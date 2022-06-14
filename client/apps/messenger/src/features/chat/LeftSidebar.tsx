@@ -155,7 +155,7 @@ function LeftSidebarNewGroup({
                                     <Typography
                                         textAlign="center"
                                         fontWeight="medium"
-                                        color="#9AA0A6"
+                                        color="text.tertiary"
                                         lineHeight="1.25rem"
                                     >
                                         {user.displayName}
@@ -203,7 +203,7 @@ function LeftSidebarNewGroup({
 
                     <Typography
                         textAlign="right"
-                        color="#141414"
+                        color="primary.main"
                         fontWeight="medium"
                         lineHeight="1.25rem"
                         sx={{ px: 2.5, py: 2 }}

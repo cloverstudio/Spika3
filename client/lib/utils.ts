@@ -1,5 +1,6 @@
 import hash from "crypto-js/sha256";
 import * as constants from "../lib/constants";
+import dayjs from "dayjs";
 
 export function wait(sec: number): Promise<void> {
     return new Promise<void>((res) => {
@@ -25,6 +26,10 @@ export function sha256(original: string): string {
 
 export function formatDate(date: Date): string {
     return date.toLocaleString();
+}
+
+export function showDetailDate(timestamp: number): string {
+    return dayjs.unix(timestamp / 1000).format("YYYY-MM-DD HH:mm:ss");
 }
 
 export type DeviceInfo = {

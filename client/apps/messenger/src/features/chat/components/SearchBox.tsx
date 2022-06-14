@@ -15,13 +15,13 @@ export default function SearchBox({ onSearch }: SearchBoxProos): React.ReactElem
                 disableUnderline={true}
                 startAdornment={
                     <InputAdornment sx={{ pr: 2 }} position="start">
-                        <Search sx={{ width: "18px", color: "#9AA0A6" }} />
+                        <Search sx={{ width: "18px", color: "text.tertiary" }} />
                     </InputAdornment>
                 }
                 fullWidth
                 placeholder="Search"
                 sx={{
-                    backgroundColor: "#F2F2F2",
+                    backgroundColor: "common.chatBackground",
                     px: "20px",
                     py: "9px",
                     input: {

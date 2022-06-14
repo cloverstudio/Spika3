@@ -6,10 +6,12 @@ import { selectRoomMessages, fetchMessagesByRoomId, selectLoading } from "../sli
 
 import Message from "../components/Message";
 import DeleteMessageDialog from "./DeleteMessageDialog";
+import EditMessageDialog from "./EditMessageDialog";
 import { MessageMenu, MessageDetailDialog } from "../components/MessageMenu";
 import { ExpandMore } from "@mui/icons-material";
 import { useGetUserQuery } from "../../auth/api/auth";
 import AttachmentManager from "../lib/AttachmentManager";
+import { deletedMessageText } from "../lib/consts";
 type RoomMessagesProps = {
     roomId: number;
 };
@@ -23,17 +25,18 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
     const loading = useSelector(selectLoading());
     const [page, setPage] = useState(1);
     const [newMessages, setNewMessages] = useState(0);
-    const [lastScrollHeight, setLastScrollHeight] = useState<number>(null);
+    const [lastScrollHeight, setLastScrollHeight] = useState<number>();
     const [lockedForScroll, setLockedForScroll] = useState(false);
     const [dragCounter, setDragCounter] = useState(0);
 
     const isFetching = loading !== "idle";
     const hasMoreContactsToLoad = count > messages.length;
 
-    const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
+    const [anchorEl, setAnchorEl] = useState<HTMLDivElement>();
     const [openMessageDetails, setOpenMessageDetails] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [selectedMessageId, setMessageId] = useState(null);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [selectedMessageId, setMessageId] = useState<number>();
     const open = Boolean(anchorEl);
 
     useEffect(() => {
@@ -45,6 +48,10 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
     const isUsersLastMessage = lastMessageFromUserId === userData?.user?.id;
 
     useEffect(() => {
+        if (!scrollableConversation.current) {
+            return;
+        }
+
         if (lockedForScroll) {
             if (
                 scrollableConversation.current.scrollHeight > lastScrollHeight &&
@@ -92,6 +99,10 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
     }, [roomId]);
 
     const onWheel = () => {
+        if (!scrollableConversation.current) {
+            return;
+        }
+
         const newLockedForScroll = getScrollBottom(scrollableConversation.current) > 800;
         setLockedForScroll(newLockedForScroll);
 
@@ -101,6 +112,10 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
     };
 
     const onScroll = (e: React.UIEvent<HTMLElement, UIEvent>) => {
+        if (!scrollableConversation.current) {
+            return;
+        }
+
         const target = e.target as HTMLDivElement;
 
         if (target.scrollTop === 0 && !isFetching && messages[0] && hasMoreContactsToLoad) {
@@ -115,6 +130,10 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
     };
 
     const onScrollDown = () => {
+        if (!scrollableConversation.current) {
+            return;
+        }
+
         scrollElemBottom(scrollableConversation.current);
         setLockedForScroll(false);
     };
@@ -136,14 +155,20 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
 
         const transfer = e.nativeEvent.dataTransfer;
 
+        if (!transfer) {
+            return;
+        }
+
         if (transfer.items) {
             for (let i = 0; i < transfer.items.length; i++) {
                 if (transfer.items[i].kind === "file") {
                     const file = transfer.items[i].getAsFile();
-                    AttachmentManager.addFiles({ roomId, files: [file] });
+                    if (file) {
+                        AttachmentManager.addFiles({ roomId, files: [file] });
+                    }
                 }
             }
-        } else {
+        } else if (transfer.files) {
             AttachmentManager.addFiles({
                 roomId,
                 files: Array.from(transfer.files),
@@ -155,6 +180,14 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
     };
+
+    const selectedMessage = selectedMessageId
+        ? messagesSorted.find((m) => m.id === selectedMessageId)
+        : null;
+    const selectedUsersMessage = selectedMessage?.fromUserId === userData.user.id;
+    const deletedMessage =
+        selectedMessage?.deleted || selectedMessage?.body?.text === deletedMessageText;
+    const isEditable = selectedMessage?.type === "text" && selectedUsersMessage && !deletedMessage;
 
     return (
         <Box
@@ -169,7 +202,7 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
                 <Box position="absolute" width="100%" textAlign="center">
                     <Box display="inline-block" onClick={onScrollDown}>
                         <Box
-                            bgcolor="#C8EBFE"
+                            bgcolor="common.myMessageBackground"
                             borderRadius="0.625rem"
                             display="flex"
                             m={0.5}
@@ -203,7 +236,7 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
                     display={dragCounter > 0 ? "flex" : "none"}
                     justifyContent="center"
                     alignItems="center"
-                    bgcolor="#e5f4ffa6"
+                    bgcolor="action.hover"
                     zIndex={9999}
                 >
                     <i className="fa fa-cloud-upload"></i>
@@ -224,13 +257,15 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
                 onClose={handleCloseMessageMenu}
                 anchorElement={anchorEl}
                 showMessageDetails={showModalMessageDetails}
-                onDelete={() => setShowDeleteModal(true)}
+                onDelete={!deletedMessage ? () => setShowDeleteModal(true) : undefined}
+                onEdit={isEditable ? () => setShowEditModal(true) : undefined}
             />
             {openMessageDetails && (
                 <MessageDetailDialog
                     open={openMessageDetails}
                     onClose={handleCloseMessageDetails}
                     messageId={selectedMessageId}
+                    message={selectedMessage}
                 />
             )}
             {showDeleteModal && (
@@ -238,10 +273,15 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
                     open={showDeleteModal}
                     onClose={() => setShowDeleteModal(false)}
                     messageId={selectedMessageId}
-                    isUserMessage={
-                        messagesSorted.find((m) => m.id === selectedMessageId)?.fromUserId ===
-                        userData.user.id
-                    }
+                    isUserMessage={selectedUsersMessage}
+                />
+            )}
+
+            {showEditModal && (
+                <EditMessageDialog
+                    open={showEditModal}
+                    onClose={() => setShowEditModal(false)}
+                    selectedMessage={selectedMessage}
                 />
             )}
         </Box>
