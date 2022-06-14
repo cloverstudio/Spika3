@@ -2,11 +2,15 @@ import React, { useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Box } from "@mui/material";
 
-import { selectRoomMessages, fetchMessagesByRoomId, selectLoading } from "../slice/chatSlice";
+import {
+    selectRoomMessages,
+    fetchMessagesByRoomId,
+    selectLoading,
+    setEditMessage,
+} from "../slice/chatSlice";
 
 import Message from "../components/Message";
 import DeleteMessageDialog from "./DeleteMessageDialog";
-import EditMessageDialog from "./EditMessageDialog";
 import { MessageMenu, MessageDetailDialog } from "../components/MessageMenu";
 import { ExpandMore } from "@mui/icons-material";
 import { useGetUserQuery } from "../../auth/api/auth";
@@ -32,10 +36,9 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
     const isFetching = loading !== "idle";
     const hasMoreContactsToLoad = count > messages.length;
 
-    const [anchorEl, setAnchorEl] = useState<HTMLDivElement>();
+    const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>();
     const [openMessageDetails, setOpenMessageDetails] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [showEditModal, setShowEditModal] = useState(false);
     const [selectedMessageId, setMessageId] = useState<number>();
     const open = Boolean(anchorEl);
 
@@ -189,6 +192,12 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
         selectedMessage?.deleted || selectedMessage?.body?.text === deletedMessageText;
     const isEditable = selectedMessage?.type === "text" && selectedUsersMessage && !deletedMessage;
 
+    const handleOnEdit = () => {
+        if (selectedMessage) {
+            dispatch(setEditMessage(selectedMessage));
+        }
+    };
+
     return (
         <Box
             flexGrow={1}
@@ -258,7 +267,7 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
                 anchorElement={anchorEl}
                 showMessageDetails={showModalMessageDetails}
                 onDelete={!deletedMessage ? () => setShowDeleteModal(true) : undefined}
-                onEdit={isEditable ? () => setShowEditModal(true) : undefined}
+                onEdit={isEditable ? handleOnEdit : undefined}
             />
             {openMessageDetails && (
                 <MessageDetailDialog
@@ -274,14 +283,6 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
                     onClose={() => setShowDeleteModal(false)}
                     messageId={selectedMessageId}
                     isUserMessage={selectedUsersMessage}
-                />
-            )}
-
-            {showEditModal && (
-                <EditMessageDialog
-                    open={showEditModal}
-                    onClose={() => setShowEditModal(false)}
-                    selectedMessage={selectedMessage}
                 />
             )}
         </Box>
