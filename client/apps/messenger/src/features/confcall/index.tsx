@@ -48,7 +48,7 @@ if (localStorage.getItem(Constants.LSKEY_ENABLEMIC) === null)
 if (localStorage.getItem(Constants.LSKEY_ENABLECAM) === null)
     localStorage.setItem(Constants.LSKEY_ENABLECAM, "1");
 
-export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
+export default function ConfCall({ roomId, userId, userName, onClose }: ConferenceCallProps) {
     const [showCameraSelectDialog, setShowCameraSelectDialog] = useState<boolean>(false);
     const [showMicSelectDialog, setShowMicSelectDialog] = useState<boolean>(false);
     const [participants, setParticipants] = useState<Array<Participant>>(null);
@@ -73,14 +73,12 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
     useEffect(() => {
         // load cameara and microphones
         (async () => {
-            let defaultCamera: MediaDeviceInfo = null;
-            let defaultMicrophone: MediaDeviceInfo = null;
+            let defaultCamera: MediaDeviceInfo;
+            let defaultMicrophone: MediaDeviceInfo;
 
             const cameras = await getCameras();
             if (cameras && cameras.length > 0) {
-                const selectedCameraDeviceId: string = localStorage.getItem(
-                    Constants.LSKEY_SELECTEDCAM
-                );
+                const selectedCameraDeviceId = localStorage.getItem(Constants.LSKEY_SELECTEDCAM);
                 if (selectedCameraDeviceId) {
                     const camera: MediaDeviceInfo = cameras.find(
                         (c) => c.deviceId === selectedCameraDeviceId
@@ -97,7 +95,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
 
             const microphones = await getMicrophones();
             if (microphones && microphones.length > 0) {
-                const selectedMicrophoneDeviceId: string = localStorage.getItem(
+                const selectedMicrophoneDeviceId = localStorage.getItem(
                     Constants.LSKEY_SELECTEDMIC
                 );
                 if (selectedMicrophoneDeviceId) {
@@ -236,19 +234,19 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
         }
     }, [participants]);
 
-    const ControllsBox = (props: any) => {
+    const ControlsBox = (props: any) => {
         return (
             <Box
                 sx={{
                     textAlign: "center",
-                    color: "#fff",
+                    color: "common.confCallControls",
 
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     width: "100px",
                     "&:hover": {
-                        backgroundColor: "#fff1",
+                        backgroundColor: "common.confCallControlsHoverBackground",
                     },
                 }}
             >
@@ -266,7 +264,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
 
     const controlArrowIconDefaultStyle: SxProps = {
         "&:hover": {
-            backgroundColor: "#fff1",
+            backgroundColor: "common.confCallControlsHoverBackground",
         },
     };
 
@@ -278,7 +276,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                 height: "100%",
                 top: 0,
                 left: 0,
-                backgroundColor: "#373737",
+                backgroundColor: "common.confCallBackground",
                 border: "none",
                 zIndex: 200,
             }}
@@ -431,7 +429,7 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                     },
                 }}
             >
-                <ControllsBox>
+                <ControlsBox>
                     {cameraEnabled ? (
                         <Videocam
                             sx={controlIconDefaultStyle}
@@ -453,8 +451,8 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                             setShowCameraSelectDialog(true);
                         }}
                     />
-                </ControllsBox>
-                <ControllsBox>
+                </ControlsBox>
+                <ControlsBox>
                     {micEnabled ? (
                         <Mic
                             sx={controlIconDefaultStyle}
@@ -476,27 +474,27 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
                             setShowMicSelectDialog(true);
                         }}
                     />
-                </ControllsBox>
-                <ControllsBox>
+                </ControlsBox>
+                <ControlsBox>
                     <Monitor
                         sx={{
                             ...controlIconDefaultStyle,
-                            color: screenShareEnabled ? "#900" : "#fff",
+                            color: screenShareEnabled ? "warning.main" : "common.confCallControls",
                         }}
                         onClick={async () => {
                             await spikabroadcastClient.toggleScreenShare();
                         }}
                     />
-                </ControllsBox>
-                <ControllsBox>
+                </ControlsBox>
+                <ControlsBox>
                     <Close
-                        sx={{ ...controlIconDefaultStyle, color: "#900" }}
+                        sx={{ ...controlIconDefaultStyle, color: "warning.main" }}
                         onClick={async () => {
                             await spikabroadcastClient.disconnect();
                             myVideTrack.stop();
                         }}
                     />
-                </ControllsBox>
+                </ControlsBox>
             </Box>
 
             <SelectBoxDialog
@@ -545,4 +543,4 @@ export default ({ roomId, userId, userName, onClose }: ConferenceCallProps) => {
             ></SelectBoxDialog>
         </Box>
     );
-};
+}

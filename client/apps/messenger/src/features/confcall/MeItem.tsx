@@ -45,7 +45,7 @@ export default ({ videoTrack, sx, videoEnabled, name, audioEnabled }: ComponentI
                 position: "relative",
                 width: "100%",
                 height: "100%",
-                backgroundColor: "#222",
+                backgroundColor: "common.videoBackground",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -74,7 +74,7 @@ export default ({ videoTrack, sx, videoEnabled, name, audioEnabled }: ComponentI
             {!videoEnabled ? (
                 <Box
                     sx={{
-                        color: "#fff",
+                        color: "common.confCallFirstLetterColor",
                         fontFamily: "'Roboto', sans-serif",
                         fontWeight: "bold",
                         width: "100px",
@@ -101,10 +101,10 @@ export default ({ videoTrack, sx, videoEnabled, name, audioEnabled }: ComponentI
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    color: "#222",
+                    color: "common.videoBackground",
                     textAlign: "center",
                     zIndex: 130,
-                    backgroundColor: "#fff9",
+                    backgroundColor: "common.videoLabelBackground",
                 }}
             >
                 {name}

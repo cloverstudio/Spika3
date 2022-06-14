@@ -119,7 +119,12 @@ function RoomRow({
     }
     return (
         <Link to={`/rooms/${id}`} onClick={handleClick} style={{ textDecoration: "none" }}>
-            <Box bgcolor={isActive ? "#E5F4FF" : "#fff"} px={2.5} py={1.5} display="flex">
+            <Box
+                bgcolor={isActive ? "action.hover" : "transparent"}
+                px={2.5}
+                py={1.5}
+                display="flex"
+            >
                 <Avatar
                     alt={name}
                     sx={{ width: 50, height: 50 }}
@@ -136,12 +141,12 @@ function RoomRow({
                         <Typography mb={1} fontWeight="600">
                             {name}
                         </Typography>
-                        <Typography color="#4A4A4A" lineHeight="1.0625rem">
+                        <Typography color="text.secondary" lineHeight="1.0625rem">
                             {lastMessageText}
                         </Typography>
                     </Box>
                     <Box minWidth="90px" textAlign="right">
-                        <Typography mb={1} color="#9AA0A6" fontWeight="500" lineHeight="1rem">
+                        <Typography mb={1} color="text.tertiary" fontWeight="500" lineHeight="1rem">
                             {lastMessage?.createdAt && dayjs(lastMessage?.createdAt).fromNow()}
                         </Typography>
                         {unreadCount ? (
