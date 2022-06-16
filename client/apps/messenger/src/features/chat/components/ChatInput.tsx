@@ -259,7 +259,7 @@ function ChatInput({
                     />
                     <EmojiEmotionsIcon
                         color="primary"
-                        sx={{ position: "absolute", top: "6px", right: "20px" }}
+                        sx={{ position: "absolute", top: "11px", right: "20px" }}
                     />
                 </Box>
                 {generateMessageTextButtons()}
