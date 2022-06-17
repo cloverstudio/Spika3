@@ -90,9 +90,9 @@ describe("API", () => {
                 where: { id: response.body.data.messageRecord.id },
             });
 
-            expect(mrFromDb.type).to.eqls(validParams.type);
-            expect(mrFromDb.userId).to.eqls(validParams.userId);
-            expect(mrFromDb.messageId).to.eqls(validParams.messageId);
+            expect(mrFromDb?.type).to.eqls(validParams.type);
+            expect(mrFromDb?.userId).to.eqls(validParams.userId);
+            expect(mrFromDb?.messageId).to.eqls(validParams.messageId);
         });
     });
 

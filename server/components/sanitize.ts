@@ -1,4 +1,4 @@
-import { Room, User, Device, Message, RoomUser, File, MessageRecord } from ".prisma/client";
+import { Room, User, Device, Message, RoomUser, File, MessageRecord, Note } from ".prisma/client";
 
 type SanitizedUserType = Partial<
     Omit<User, "createdAt" | "modifiedAt"> & { createdAt: number; modifiedAt: number }
@@ -21,6 +21,9 @@ type SanitizedFileType = Partial<Omit<File, "createdAt"> & { createdAt: number }
 export type SanitizedMessageRecord = Partial<
     Omit<MessageRecord, "createdAt" | "modifiedAt"> & { createdAt: number }
 >;
+type SanitizedNoteType = Partial<
+    Omit<Note, "createdAt" | "modifiedAt"> & { createdAt: number; modifiedAt: number }
+>;
 
 interface sanitizeTypes {
     user: () => SanitizedUserType;
@@ -29,6 +32,7 @@ interface sanitizeTypes {
     message: () => SanitizedMessageType;
     file: () => SanitizedFileType;
     messageRecord: () => SanitizedMessageRecord;
+    note: () => SanitizedNoteType;
 }
 
 export default function sanitize(data: any): sanitizeTypes {
@@ -104,6 +108,18 @@ export default function sanitize(data: any): sanitizeTypes {
                 messageId,
                 userId,
                 createdAt: +new Date(createdAt),
+            };
+        },
+        note: () => {
+            const { id, title, content, createdAt, modifiedAt, roomId } = data as Note;
+
+            return {
+                id,
+                title,
+                content,
+                roomId,
+                createdAt: +new Date(createdAt),
+                modifiedAt: +new Date(modifiedAt),
             };
         },
     };
