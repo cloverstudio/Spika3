@@ -152,22 +152,18 @@ export default function () {
 
                     <Box component="form" onSubmit={handleSubmit} noValidate sx={{ m: 3 }}>
                         <TextField
-                            margin="normal"
                             required
                             fullWidth
                             id="username"
                             label="Admin User Name"
                             name="username"
                             autoComplete="username"
-                            autoFocus
-                            variant="outlined"
                         />
-                        <FormControl fullWidth required variant="outlined">
+                        <FormControl fullWidth required variant="outlined" sx={{ mt: "1em" }}>
                             <InputLabel htmlFor="outlined-adornment-password">Password</InputLabel>
                             <OutlinedInput
                                 id="outlined-adornment-password"
                                 type={showPassword ? "text" : "password"}
-                                onChange={handleClickShowPassword}
                                 name="password"
                                 endAdornment={
                                     <InputAdornment position="end">
@@ -192,7 +188,14 @@ export default function () {
                                     color="spikaButton"
                                 />
                             }
-                            label="Remember me"
+                            label={
+                                <Typography
+                                    color={theme.palette.spikaLightGrey.main}
+                                    variant="body2"
+                                >
+                                    Remember Me
+                                </Typography>
+                            }
                         />
                         <Button
                             type="submit"
