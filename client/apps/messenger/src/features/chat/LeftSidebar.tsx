@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Button, Badge, Avatar, Typography, TextField } from "@mui/material";
-import ClearIcon from "@mui/icons-material/Clear";
 
 import { useCreateRoomMutation } from "./api/room";
 

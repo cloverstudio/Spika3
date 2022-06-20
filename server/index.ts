@@ -120,11 +120,11 @@ const app: express.Express = express();
     });
 
     app.all("/messenger/*", (req: express.Request, res: express.Response) => {
-        res.sendFile(path.join(__dirname, "..", "public", "messenger/index.html"));
+        res.sendFile(path.join(__dirname, "../..", "public/messenger/index.html"));
     });
 
     app.all("/management/*", (req: express.Request, res: express.Response) => {
-        res.sendFile(path.join(__dirname, "..", "public", "management/index.html"));
+        res.sendFile(path.join(__dirname, "../..", "public/management/index.html"));
     });
 
     // general error

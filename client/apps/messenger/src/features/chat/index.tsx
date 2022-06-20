@@ -16,6 +16,7 @@ import formatRoomInfo from "./lib/formatRoomInfo";
 import ChatInput from "./components/ChatInput";
 import RoomHeader from "./components/RoomHeader";
 import RoomMessages from "./components/RoomMessages";
+import ConfCall from "../confcall/lobby";
 
 export default function Chat(): React.ReactElement {
     const roomId = parseInt(useParams().id || "");
@@ -66,6 +67,7 @@ export default function Chat(): React.ReactElement {
             {user?.id && <RoomHeader {...formatRoomInfo(room, user.id)} roomId={roomId} />}
             <RoomMessages roomId={roomId} />
             <ChatInput />
+            <ConfCall />
         </Box>
     );
 }
