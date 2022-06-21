@@ -13,15 +13,15 @@ describe("API", () => {
         room = await createFakeRoom([{ userId: globals.userId, isAdmin: true }]);
     });
 
-    describe("/api/messenger/notes/:roomId POST", () => {
+    describe("/api/messenger/notes/roomId/:roomId POST", () => {
         it("Title is required", async () => {
             const invalidResponse = await supertest(app)
-                .post(`/api/messenger/notes/${room.id}`)
+                .post(`/api/messenger/notes/roomId/${room.id}`)
                 .set({ accesstoken: globals.userToken })
                 .send({ content: "lalal" });
 
             const validResponse = await supertest(app)
-                .post(`/api/messenger/notes/${room.id}`)
+                .post(`/api/messenger/notes/roomId/${room.id}`)
                 .set({ accesstoken: globals.userToken })
                 .send({ content: "lalal", title: "lala" });
 
@@ -31,12 +31,12 @@ describe("API", () => {
 
         it("Content is required", async () => {
             const invalidResponse = await supertest(app)
-                .post(`/api/messenger/notes/${room.id}`)
+                .post(`/api/messenger/notes/roomId/${room.id}`)
                 .set({ accesstoken: globals.userToken })
                 .send({ title: "lalal" });
 
             const validResponse = await supertest(app)
-                .post(`/api/messenger/notes/${room.id}`)
+                .post(`/api/messenger/notes/roomId/${room.id}`)
                 .set({ accesstoken: globals.userToken })
                 .send({ content: "lalal", title: "lala" });
 
@@ -48,7 +48,7 @@ describe("API", () => {
             const anotherRoom = await createFakeRoom([]);
 
             const response = await supertest(app)
-                .post(`/api/messenger/notes/${anotherRoom.id}`)
+                .post(`/api/messenger/notes/roomId/${anotherRoom.id}`)
                 .set({ accesstoken: globals.userToken })
                 .send({ content: "lalal", title: "lala" });
 
@@ -57,7 +57,7 @@ describe("API", () => {
 
         it("Note is stored in db", async () => {
             const response = await supertest(app)
-                .post(`/api/messenger/notes/${room.id}`)
+                .post(`/api/messenger/notes/roomId/${room.id}`)
                 .set({ accesstoken: globals.userToken })
                 .send({ content: "content", title: "title" });
 
@@ -73,12 +73,12 @@ describe("API", () => {
         });
     });
 
-    describe("/api/messenger/notes/:roomId GET", () => {
+    describe("/api/messenger/notes/roomId/:roomId GET", () => {
         it("User must be in room", async () => {
             const anotherRoom = await createFakeRoom([]);
 
             const response = await supertest(app)
-                .get(`/api/messenger/notes/${anotherRoom.id}`)
+                .get(`/api/messenger/notes/roomId/${anotherRoom.id}`)
                 .set({ accesstoken: globals.userToken });
 
             expect(response.status).to.eqls(403);
@@ -86,13 +86,38 @@ describe("API", () => {
 
         it("Return note list", async () => {
             const response = await supertest(app)
-                .get(`/api/messenger/notes/${room.id}`)
+                .get(`/api/messenger/notes/roomId/${room.id}`)
                 .set({ accesstoken: globals.userToken });
 
             expect(response.status).to.eqls(200);
             expect(response.body.data).to.has.property("notes");
             expect(response.body.data.notes).to.be.an("array");
             expect(response.body.data.notes.length).to.be.greaterThan(0);
+        });
+    });
+
+    describe("/api/messenger/notes/:id GET", () => {
+        it("User must be in room", async () => {
+            const anotherRoom = await createFakeRoom([]);
+            const anotherNote = await createFakeNote(anotherRoom.id);
+
+            const response = await supertest(app)
+                .get(`/api/messenger/notes/${anotherNote.id}`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(403);
+        });
+
+        it("Returns note", async () => {
+            const note = await createFakeNote(room.id);
+
+            const response = await supertest(app)
+                .get(`/api/messenger/notes/${note.id}`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(200);
+            expect(response.body.data).to.has.property("note");
+            expect(response.body.data.note.id).to.eqls(note.id);
         });
     });
 

@@ -1,25 +1,26 @@
-import React, { useRef, useState, useEffect } from "react";
-import {
-    Box,
-    Stack,
-    IconButton,
-    Typography,
-    Avatar,
-    TextField,
-    CircularProgress,
-    Button,
-    Link,
-} from "@mui/material";
 import { CameraAlt } from "@mui/icons-material";
-import { useSelector, useDispatch } from "react-redux";
-import { RoomType } from "../../../../types/Rooms";
-import { selectUser } from "../../../../store/userSlice";
-import { crop } from "../../../../utils/crop";
+import {
+    Avatar,
+    Box,
+    Button,
+    CircularProgress,
+    IconButton,
+    Link,
+    Stack,
+    TextField,
+    Typography,
+} from "@mui/material";
+import React, { useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+
 import * as Constants from "../../../../../../../lib/constants";
+import { selectUser } from "../../../../store/userSlice";
+import { RoomType } from "../../../../types/Rooms";
+import { crop } from "../../../../utils/crop";
 import uploadFile from "../../../../utils/uploadFile";
-import { EditPhotoDialog } from "../../../chat/components/EditProfile";
-import { useUpdateRoomMutation } from "../../../chat/api/room";
-import { refreshOne as refreshOneRoom } from "../../../chat/slice/roomSlice";
+import { useUpdateRoomMutation } from "../../api/room";
+import { refreshOne as refreshOneRoom } from "../../slice/roomSlice";
+import { EditPhotoDialog } from "../EditProfile";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -34,19 +35,23 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
     const otherUser = roomData.users[1];
     const [editGroupPicture, setEditGroupPicture] = useState(false);
     const [editGroupName, setEditGroupName] = useState(false);
-    const [profileAvatarUrl, setProfileAvatarUrl] = isItPrivateGroup
-        ? React.useState("")
-        : React.useState(roomData.avatarUrl);
-    const [proposedName, setProposedName] = isItPrivateGroup
-        ? React.useState("")
-        : React.useState(roomData.name);
-    const [name, setName] = isItPrivateGroup ? React.useState("") : React.useState(roomData.name);
+    const [profileAvatarUrl, setProfileAvatarUrl] = useState(roomData.avatarUrl);
+    const [proposedName, setProposedName] = useState(roomData.name);
+    const [name, setName] = useState(roomData.name);
     const imageRef = useRef(null);
     const [file, setFile] = useState<File>();
     const [loading, setLoading] = useState(false);
-    const [update, updateMutation] = useUpdateRoomMutation();
+    const [update] = useUpdateRoomMutation();
     const me = useSelector(selectUser);
-    var amIAdmin: boolean = false;
+    let amIAdmin = false;
+
+    useEffect(() => {
+        if (roomData) {
+            setProfileAvatarUrl(roomData.avatarUrl);
+            setProposedName(roomData.name);
+            setName(roomData.name);
+        }
+    }, [roomData]);
 
     roomData.users
         .filter((person) => person.userId == me.id)
@@ -89,7 +94,7 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
     };
 
     const cropAndResizeSelectedFile = async (selectedFileUrl: string) => {
-        let croppedImage = await crop(
+        const croppedImage = await crop(
             selectedFileUrl,
             1,
             Constants.LSKEY_CROPSIZE,

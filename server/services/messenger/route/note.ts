@@ -25,7 +25,7 @@ export default ({}: InitRouterParams): Router => {
     const router = Router();
 
     router.post(
-        "/:roomId",
+        "/roomId/:roomId",
         auth,
         validate(createNoteSchema),
         async (req: Request, res: Response) => {
@@ -55,7 +55,7 @@ export default ({}: InitRouterParams): Router => {
         }
     );
 
-    router.get("/:roomId", auth, async (req: Request, res: Response) => {
+    router.get("/roomId/:roomId", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
 
         try {
@@ -74,6 +74,33 @@ export default ({}: InitRouterParams): Router => {
             res.send(
                 successResponse({ notes: notes.map((n) => sanitize(n).note()) }, userReq.lang)
             );
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.get("/:id", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+
+        try {
+            const id = parseInt(req.params.id || "");
+
+            const note = await prisma.note.findUnique({ where: { id } });
+
+            if (!note) {
+                return res.status(404).send(errorResponse("Not found", userReq.lang));
+            }
+
+            const roomUser = await prisma.roomUser.findFirst({
+                where: { userId: userReq.user.id, roomId: note.roomId },
+            });
+
+            if (!roomUser) {
+                return res.status(403).send(errorResponse("User must be in room", userReq.lang));
+            }
+
+            res.send(successResponse({ note: sanitize(note).note() }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));

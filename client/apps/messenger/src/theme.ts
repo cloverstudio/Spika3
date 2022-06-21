@@ -105,6 +105,15 @@ theme = createTheme(theme, {
                         color: theme.typography.body1.color,
                         fontWeight: theme.typography.fontWeightMedium,
                     },
+                    textarea: {
+                        "&::placeholder": {
+                            color: theme.palette.text.tertiary,
+                            fontWeight: theme.typography.fontWeightMedium,
+                            opacity: "1",
+                        },
+                        color: theme.typography.body1.color,
+                        fontWeight: theme.typography.fontWeightMedium,
+                    },
                 },
             },
         },

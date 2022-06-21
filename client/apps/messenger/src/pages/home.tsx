@@ -10,11 +10,7 @@ import LeftSidebar from "../features/chat/LeftSidebar";
 import RightSidebar from "../features/chat/RightSidebar";
 import { selectLeftSidebarOpen, setLeftSidebar } from "../features/chat/slice/sidebarSlice";
 
-import rightSidebarSlice, {
-    selectRightSidebarOpen,
-    show as showRightSidebar,
-    hide as hideRightSidebar,
-} from "../features/chat/slice/rightSidebarSlice";
+import { selectRightSidebarOpen } from "../features/chat/slice/rightSidebarSlice";
 
 export default function Home(): React.ReactElement {
     const { id } = useParams();
