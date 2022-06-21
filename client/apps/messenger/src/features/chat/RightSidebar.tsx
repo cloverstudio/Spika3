@@ -2,6 +2,7 @@ import { Box } from "@mui/material";
 import React, { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
+import Loader from "../../components/Loader";
 
 import { useGetRoomQuery } from "./api/room";
 import RightSidebarContent from "./components/rightSidebarComponents/rightSidebarContent";
@@ -20,7 +21,7 @@ export default function RightSidebar(): React.ReactElement {
     }, [roomId, dispatch]);
 
     if (isLoading) {
-        return <Box>Loading...</Box>;
+        return <Loader />;
     }
 
     const { room } = data;
@@ -41,8 +42,6 @@ function RightSidebarContainer({ children }: RightSidebarContainerProps): React.
     return (
         <Box
             borderLeft="0.5px solid #C9C9CA"
-            padding="0"
-            margin="0"
             height="100vh"
             style={{ overflowY: "auto", overflowX: "hidden" }}
         >
