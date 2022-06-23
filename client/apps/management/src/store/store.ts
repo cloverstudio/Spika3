@@ -4,6 +4,8 @@ import { save, load } from "redux-localstorage-simple";
 import counterReducer from "./counterSlice";
 import adminAuthReducer from "./adminAuthSlice";
 import uiReducer from "./uiSlice";
+import filterReducer from "./filterSlice";
+import rightSideBarReducer from "./rightDrawerSlice";
 import api from "../api/api";
 
 export const store = configureStore({
@@ -11,6 +13,8 @@ export const store = configureStore({
         counter: counterReducer,
         auth: adminAuthReducer,
         ui: uiReducer,
+        filter: filterReducer,
+        rightSidebar: rightSideBarReducer,
         [api.reducerPath]: api.reducer,
     },
     preloadedState: load(),
