@@ -1,5 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { BooleanLiteral } from "typescript";
 import type { RootState } from "../../../store/store";
 
 interface SidebarState {
@@ -9,7 +8,7 @@ interface SidebarState {
 }
 
 export const sidebarSlice = createSlice({
-    name: <string>"sidebar",
+    name: "sidebar",
     initialState: <SidebarState>{ activeTab: "chat", leftSidebarOpen: false },
     reducers: {
         setActiveTab(state, action: { payload: "chat" | "call" | "contact" }) {

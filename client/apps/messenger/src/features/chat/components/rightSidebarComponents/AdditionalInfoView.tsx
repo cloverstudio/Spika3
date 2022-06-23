@@ -1,17 +1,11 @@
 import React from "react";
-import { Box, Stack, IconButton, Typography, Switch } from "@mui/material";
+import { Box, Stack, Switch } from "@mui/material";
 import { ChevronRight } from "@mui/icons-material";
+import { setActiveTab } from "../../slice/rightSidebarSlice";
+import { useDispatch } from "react-redux";
 
-export interface DetailsAdditionalInfoProps {
-    selectedInfo: Function;
-}
-
-export function DetailsAdditionalInfoView(props: DetailsAdditionalInfoProps) {
-    const { selectedInfo } = props;
-
-    const handleSelection = (action: String) => {
-        selectedInfo(action);
-    };
+export function DetailsAdditionalInfoView() {
+    const dispatch = useDispatch();
 
     return (
         <Box>
@@ -62,12 +56,14 @@ export function DetailsAdditionalInfoView(props: DetailsAdditionalInfoProps) {
                     direction="row"
                     alignItems="center"
                     spacing={1}
+                    onClick={() => dispatch(setActiveTab("notes"))}
                     sx={{
                         height: "40px",
                         display: "flex",
                         flexDirection: "row",
                         justifyContent: "space-between",
                         width: "100%",
+                        cursor: "pointer",
                     }}
                 >
                     <Box component="span">Notes</Box>
@@ -98,9 +94,6 @@ export function DetailsAdditionalInfoView(props: DetailsAdditionalInfoProps) {
                         flexDirection: "row",
                         justifyContent: "space-between",
                         width: "100%",
-                    }}
-                    onClick={(e) => {
-                        handleSelection("favoriteMessages");
                     }}
                 >
                     <Box component="span">Pin chat</Box>
