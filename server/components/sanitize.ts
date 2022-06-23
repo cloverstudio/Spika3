@@ -16,7 +16,9 @@ export type SanitizedRoomType = Partial<
         users: SanitizedRoomUserType[];
     }
 >;
-type SanitizedMessageType = Partial<Omit<Message, "createdAt"> & { createdAt: number; body: any }>;
+type SanitizedMessageType = Partial<
+    Omit<Message, "createdAt" | "modifiedAt"> & { createdAt: number; modifiedAt: number; body: any }
+>;
 type SanitizedFileType = Partial<Omit<File, "createdAt"> & { createdAt: number }>;
 export type SanitizedMessageRecord = Partial<
     Omit<MessageRecord, "createdAt" | "modifiedAt"> & { createdAt: number }
@@ -65,6 +67,7 @@ export default function sanitize(data: any): sanitizeTypes {
                 type,
                 body,
                 createdAt,
+                modifiedAt,
                 localId,
                 deleted,
             } = data as Message & { body: any };
@@ -79,6 +82,7 @@ export default function sanitize(data: any): sanitizeTypes {
                 type,
                 body,
                 createdAt: +new Date(createdAt),
+                modifiedAt: +new Date(modifiedAt),
                 localId,
                 deleted,
             };

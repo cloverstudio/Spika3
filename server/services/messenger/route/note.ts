@@ -6,9 +6,7 @@ import { UserRequest } from "../lib/types";
 import * as yup from "yup";
 import validate from "../../../components/validateMiddleware";
 
-import Utils from "../../../components/utils";
-import * as consts from "../../../components/consts";
-import l, { error as le } from "../../../components/logger";
+import { error as le } from "../../../components/logger";
 import auth from "../lib/auth";
 import { InitRouterParams } from "../../types/serviceInterface";
 import { successResponse, errorResponse } from "../../../components/response";
