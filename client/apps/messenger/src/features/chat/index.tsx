@@ -28,6 +28,8 @@ export default function Chat(): React.ReactElement {
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
     const { messages } = useSelector(selectRoomMessages(roomId));
 
+    const isCall = /^.+\/call\/.+$/.test(window.location.pathname);
+
     const room = data?.room;
 
     useEffect(() => {
@@ -67,7 +69,7 @@ export default function Chat(): React.ReactElement {
             {user?.id && <RoomHeader {...formatRoomInfo(room, user.id)} roomId={roomId} />}
             <RoomMessages roomId={roomId} />
             <ChatInput />
-            <ConfCall />
+            {isCall && <ConfCall />}
         </Box>
     );
 }
