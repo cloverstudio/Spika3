@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import Layout from "../layout";
 import { useNavigate } from "react-router-dom";
 import { DataGrid, GridActionsCellItem, GridRenderCellParams } from "@mui/x-data-grid";
-import { Paper, Avatar, Stack, Button, TextField } from "@mui/material";
+import { Paper, Avatar, Stack, Button, TextField, Drawer, Box } from "@mui/material";
 import {
     Add as AddIcon,
     Delete as DeleteIcon,
@@ -23,8 +23,13 @@ import {
 import UserType from "../../types/User";
 import theme from "../../theme";
 import { currentFilter } from "../../store/filterSlice";
-import { show as openCreateUser } from "../../store/rightDrawerSlice";
+import {
+    show as openCreateUser,
+    hide as hideCreateUser,
+    selectRightSidebarOpen,
+} from "../../store/rightDrawerSlice";
 import { useDispatch } from "react-redux";
+import UserAdd from "../../pages/user/add";
 
 export interface UserMainViewProps {
     onSelect: (value: string) => void;
@@ -45,6 +50,11 @@ export default function Dashboard() {
     const filterType = useSelector(currentFilter);
     const [isFilterOn, setIsFilterOn] = React.useState<boolean>(false);
     const dispatch = useDispatch();
+    const isRightDrawerOpen = useSelector(selectRightSidebarOpen);
+
+    const hideDrawer = () => {
+        dispatch(hideCreateUser());
+    };
 
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(event.target.value);
@@ -276,6 +286,21 @@ export default function Dashboard() {
                         sx={datagridSx}
                     />
                 </div>
+                <Drawer
+                    PaperProps={{
+                        sx: {
+                            backgroundColor: theme.palette.spikaMainBackgroundColor.main,
+                        },
+                    }}
+                    anchor="right"
+                    sx={{ zIndex: 1300 }}
+                    open={isRightDrawerOpen}
+                    onClose={hideDrawer}
+                >
+                    <Box width={400}>
+                        <UserAdd />
+                    </Box>
+                </Drawer>
             </Paper>
         </Layout>
     );

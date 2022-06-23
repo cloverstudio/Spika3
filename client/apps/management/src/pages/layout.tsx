@@ -14,9 +14,7 @@ import {
     Typography,
     Toolbar,
     IconButton,
-    Divider,
     List,
-    ListItem,
     ListItemIcon,
     ListItemText,
     ListItemButton,
@@ -43,7 +41,7 @@ import BasicDialog from "../components/basicDialog";
 import { logout } from "../store/adminAuthSlice";
 import { showSnackBar } from "../store/uiSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { selectRightSidebarOpen } from "../store/rightDrawerSlice";
+import { hide } from "../store/rightDrawerSlice";
 
 const drawerWidth = 240;
 
@@ -118,7 +116,6 @@ function DashboardContent({ subtitle, children, showBack = false, selectedFilter
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const [filterType, setFilterType] = React.useState<FilterType>(FilterType.None);
     const openMenu = Boolean(anchorEl);
-    const isRightDrawerOpen = useSelector(selectRightSidebarOpen);
 
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         setAnchorEl(event.currentTarget);
@@ -129,7 +126,9 @@ function DashboardContent({ subtitle, children, showBack = false, selectedFilter
     const toggleDrawer = () => {
         setOpen(!open);
     };
-
+    const hideDrawer = () => {
+        dispatch(hide());
+    };
     const handleListItemClick = (
         event: React.MouseEvent<HTMLDivElement, MouseEvent>,
         index: number
@@ -191,12 +190,6 @@ function DashboardContent({ subtitle, children, showBack = false, selectedFilter
             }
         })();
     }, []);
-
-    useEffect(() => {
-        (async () => {
-            console.log("RightDrawerOpen:" + isRightDrawerOpen);
-        })();
-    }, [isRightDrawerOpen]);
 
     return (
         <ThemeProvider theme={theme}>
@@ -270,7 +263,15 @@ function DashboardContent({ subtitle, children, showBack = false, selectedFilter
                         </Menu>
                     </Toolbar>
                 </AppBar>
-                <Drawer variant="permanent" open={open}>
+                <Drawer
+                    variant="permanent"
+                    open={open}
+                    PaperProps={{
+                        sx: {
+                            backgroundColor: theme.palette.spikaDrawer.main,
+                        },
+                    }}
+                >
                     <Toolbar
                         sx={{
                             display: "flex",
@@ -394,9 +395,6 @@ function DashboardContent({ subtitle, children, showBack = false, selectedFilter
             </Box>
             <SnackBar />
             <BasicDialog />
-            <Drawer anchor={"right"} open={isRightDrawerOpen}>
-                Bok
-            </Drawer>
         </ThemeProvider>
     );
 }

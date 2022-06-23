@@ -11,6 +11,7 @@ const userApi = api.injectEndpoints({
             query: (data) => {
                 return { url: "/management/user", data, method: "POST" };
             },
+            invalidatesTags: (res) => res && [{ type: "User", id: "LIST" }],
         }),
         getUserById: build.query<{ user: UserType }, string>({
             query: (userId) => {
