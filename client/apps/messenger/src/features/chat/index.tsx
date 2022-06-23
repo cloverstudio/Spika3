@@ -18,7 +18,7 @@ import RoomHeader from "./components/RoomHeader";
 import RoomMessages from "./components/RoomMessages";
 
 export default function Chat(): React.ReactElement {
-    const roomId = +useParams().id;
+    const roomId = parseInt(useParams().id || "");
     const user = useSelector(selectUser);
     const dispatch = useDispatch();
     const { data, isLoading } = useGetRoomQuery(roomId);
@@ -46,7 +46,7 @@ export default function Chat(): React.ReactElement {
     }
 
     if (!room) {
-        return null;
+        return <Box>Room not found</Box>;
     }
 
     const mobileProps = {
@@ -63,7 +63,7 @@ export default function Chat(): React.ReactElement {
 
     return (
         <Box display="flex" flexDirection="column" sx={isMobile ? mobileProps : desktopProps}>
-            <RoomHeader {...formatRoomInfo(room, user.id)} roomId={roomId} />
+            {user?.id && <RoomHeader {...formatRoomInfo(room, user.id)} roomId={roomId} />}
             <RoomMessages roomId={roomId} />
             <ChatInput />
         </Box>

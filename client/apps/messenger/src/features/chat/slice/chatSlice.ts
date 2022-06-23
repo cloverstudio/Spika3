@@ -15,11 +15,13 @@ export const fetchMessagesByRoomId = createAsyncThunk(
 );
 
 interface ChatState {
-    activeRoomId: number;
+    activeRoomId: number | null;
     messages: MessageType[];
     messageRecords: MessageRecordType[];
     count: { roomId: number; count: number }[];
     loading: "idle" | "pending" | "succeeded" | "failed";
+    messageText: string;
+    editMessage: MessageType | null;
 }
 
 export const chatSlice = createSlice({
@@ -30,10 +32,23 @@ export const chatSlice = createSlice({
         messageRecords: [],
         count: [],
         loading: "idle",
+        messageText: "",
+        editMessage: null,
     },
     reducers: {
-        setActiveRoomId: (state, { payload }: { payload: number }) => {
+        setActiveRoomId: (state, { payload }: { payload: number | null }) => {
             state.activeRoomId = payload;
+        },
+
+        setMessageText: (state, { payload }: { payload: string }) => {
+            state.messageText = payload;
+        },
+
+        setEditMessage: (state, { payload }: { payload: MessageType | null }) => {
+            state.editMessage = payload;
+            if (payload) {
+                state.messageText = payload.body.text;
+            }
         },
 
         addMessage: (state, { payload }: { payload: MessageType }) => {
@@ -102,7 +117,10 @@ export const chatSlice = createSlice({
                 (m: { id: number }) => !messagesIds.includes(m.id)
             );
 
-            if (state.count.findIndex((c) => c.roomId === state.activeRoomId) < 0) {
+            if (
+                state.activeRoomId &&
+                state.count.findIndex((c) => c.roomId === state.activeRoomId) < 0
+            ) {
                 state.count.push({
                     roomId: state.activeRoomId,
                     count: payload.count,
@@ -120,10 +138,19 @@ export const chatSlice = createSlice({
     },
 });
 
-export const { setActiveRoomId, addMessage, addMessageRecord, deleteMessage, editMessage } =
-    chatSlice.actions;
+export const {
+    setActiveRoomId,
+    addMessage,
+    addMessageRecord,
+    deleteMessage,
+    editMessage,
+    setMessageText,
+    setEditMessage,
+} = chatSlice.actions;
 
-export const selectActiveRoomId = (state: RootState): number => state.chat.activeRoomId;
+export const selectActiveRoomId = (state: RootState): number | null => state.chat.activeRoomId;
+export const selectMessageText = (state: RootState): string => state.chat.messageText;
+export const selectEditMessage = (state: RootState): MessageType | null => state.chat.editMessage;
 export const selectRoomMessages =
     (roomId: number) =>
     (state: RootState): { messages: MessageType[]; count: number } => {

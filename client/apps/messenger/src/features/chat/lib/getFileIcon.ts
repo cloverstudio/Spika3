@@ -54,14 +54,6 @@ export default function getFileIcon(type: string): OverridableComponent<SvgIconT
             return OndemandVideoIcon;
         }
 
-        case "video/mp4":
-        case "video/mpeg":
-        case "video/ogg":
-        case "video/mp2t":
-        case "video/webm": {
-            return OndemandVideoIcon;
-        }
-
         case "audio/aac":
         case "audio/midi":
         case "audio/x-midi":

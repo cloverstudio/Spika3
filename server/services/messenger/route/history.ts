@@ -105,7 +105,7 @@ export default (): Router => {
                 },
                 distinct: ["roomId"],
                 orderBy: {
-                    modifiedAt: "desc",
+                    createdAt: "desc",
                 },
                 skip: Constants.PAGING_LIMIT * (page - 1),
                 take: Constants.PAGING_LIMIT,

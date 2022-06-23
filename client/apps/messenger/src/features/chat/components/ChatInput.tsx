@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
     Box,
+    Button,
     CircularProgress,
     IconButton,
     Input,
@@ -14,7 +15,7 @@ import AddIcon from "@mui/icons-material/Add";
 import KeyboardVoiceIcon from "@mui/icons-material/KeyboardVoice";
 import CloseIcon from "@mui/icons-material/Close";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
-import { useSendMessageMutation } from "../api/message";
+import { useEditMessageMutation, useSendMessageMutation } from "../api/message";
 import { useParams } from "react-router-dom";
 import AttachmentManager from "../lib/AttachmentManager";
 import uploadFile from "../../../utils/uploadFile";
@@ -23,15 +24,21 @@ import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import SendIcon from "@mui/icons-material/Send";
 import getFileIcon from "../lib/getFileIcon";
 import { useShowBasicDialog } from "../../../hooks/useModal";
-import { addMessage } from "../slice/chatSlice";
+import {
+    addMessage,
+    selectEditMessage,
+    selectMessageText,
+    setEditMessage,
+    setMessageText,
+} from "../slice/chatSlice";
 import { fetchHistory } from "../slice/roomSlice";
 import { THUMB_WIDTH } from "../../../../../../lib/constants";
 
-export default function ChatInput(): React.ReactElement {
+export default function ChatInputContainer(): React.ReactElement {
     const dispatch = useDispatch();
-    const roomId = +useParams().id;
+    const roomId = parseInt(useParams().id || "");
     const [sendMessage] = useSendMessageMutation();
-    const [message, setMessage] = useState("");
+    const message = useSelector(selectMessageText);
     const [loading, setLoading] = useState(false);
     const [filesSent, setFilesSent] = useState(0);
     const [files, setFiles] = useState(AttachmentManager.getFiles(roomId) || []);
@@ -53,15 +60,16 @@ export default function ChatInput(): React.ReactElement {
                         file,
                         type: file.type || "unknown",
                     });
-                    let thumbFileUploaded: {
-                        path: string;
-                        id: number;
-                    };
+                    let thumbFileUploaded:
+                        | {
+                              path: string;
+                              id: number;
+                          }
+                        | undefined;
 
                     const fileType = getFileType(file.type);
-                    console.log({ fileType });
 
-                    if (fileType === "image") {
+                    if (fileType === "image" && canvasRef.current) {
                         const thumbFile = await generateThumbFile(file, canvasRef.current);
                         if (thumbFile) {
                             thumbFileUploaded = await uploadFile({
@@ -98,7 +106,7 @@ export default function ChatInput(): React.ReactElement {
             setFilesSent(0);
         } else if (message.length) {
             const messageTmp: string = message + "";
-            setMessage("");
+            handleSetMessageText("");
             response = await sendMessage({
                 roomId,
                 type: "text",
@@ -118,6 +126,9 @@ export default function ChatInput(): React.ReactElement {
         return () => AttachmentManager.removeEventListener(roomId);
     }, [roomId]);
 
+    const handleSetMessageText = (message: string) => {
+        dispatch(setMessageText(message));
+    };
     return (
         <Box borderTop="1px solid #C9C9CA" px={2} py={1}>
             <canvas ref={canvasRef} style={{ display: "none" }} />
@@ -132,77 +143,150 @@ export default function ChatInput(): React.ReactElement {
                 <Stack spacing={2} direction="row" alignItems="center" width="100%">
                     <AddAttachment />
 
-                    {messageType === "text" ? (
-                        <>
-                            <Box width="100%" position="relative">
-                                <Input
-                                    disableUnderline={true}
-                                    fullWidth
-                                    value={message}
-                                    disabled={loading}
-                                    onChange={({ target }) => {
-                                        setMessage(target.value);
-                                    }}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter" && e.shiftKey === true) {
-                                            setMessage(e.currentTarget.value);
-                                        } else if (e.key === "Enter") {
-                                            e.preventDefault();
-                                            handleSend();
-                                        } else {
-                                        }
-                                    }}
-                                    placeholder="Type here..."
-                                    sx={{
-                                        border: "1px solid #C9C9CA",
-                                        input: {
-                                            py: 2,
-                                            px: 1.5,
-                                        },
-                                        padding: "10px",
-                                    }}
-                                    multiline={true}
-                                    maxRows={3}
-                                />
-                                <EmojiEmotionsIcon
-                                    color="primary"
-                                    sx={{ position: "absolute", top: "6px", right: "20px" }}
-                                />
-                            </Box>
-                            {message.length ? (
-                                <SendIcon
-                                    onClick={() => handleSend()}
-                                    color="primary"
-                                    sx={{ cursor: "pointer" }}
-                                />
-                            ) : (
-                                <KeyboardVoiceIcon fontSize="large" color="primary" />
-                            )}
-                        </>
-                    ) : (
-                        <>
-                            <Attachments
-                                files={files}
-                                failedToUploadFileNames={failedToUploadFiles.map((f) => f.name)}
-                            />
-
-                            {loading ? (
-                                <Box>
-                                    <CircularProgress sx={{ ml: 0 }} />
-                                </Box>
-                            ) : (
-                                <SendIcon
-                                    onClick={() => handleSend()}
-                                    fontSize="large"
-                                    color="primary"
-                                    sx={{ cursor: "pointer" }}
-                                />
-                            )}
-                        </>
-                    )}
+                    <ChatInput
+                        messageType={messageType}
+                        loading={loading}
+                        message={message}
+                        handleSetMessageText={handleSetMessageText}
+                        handleSend={handleSend}
+                        files={files}
+                        failedToUploadFiles={failedToUploadFiles}
+                    />
                 </Stack>
             </Box>
         </Box>
+    );
+}
+
+type ChatInputProps = {
+    messageType: string;
+    loading: boolean;
+    message: string;
+    handleSetMessageText: (string) => void;
+    handleSend: () => void;
+    files: File[];
+    failedToUploadFiles: File[];
+};
+
+function ChatInput({
+    messageType,
+    loading,
+    message,
+    handleSetMessageText,
+    handleSend,
+    files,
+    failedToUploadFiles,
+}: ChatInputProps) {
+    const dispatch = useDispatch();
+    const editMessage = useSelector(selectEditMessage);
+    const [callEditMessage, { isLoading }] = useEditMessageMutation();
+
+    const onSend = async () => {
+        if (!editMessage) {
+            return handleSend();
+        }
+
+        await callEditMessage({ id: editMessage.id, text: message }).unwrap();
+        handleCloseEdit();
+    };
+
+    const handleCloseEdit = () => {
+        dispatch(setEditMessage(null));
+        handleSetMessageText("");
+    };
+
+    const generateMessageTextButtons = () => {
+        if (editMessage) {
+            if (isLoading) {
+                return (
+                    <Box>
+                        <CircularProgress sx={{ ml: 0 }} />
+                    </Box>
+                );
+            }
+
+            return (
+                <Box display="flex">
+                    <Button onClick={handleCloseEdit} variant="outlined" sx={{ mr: 1 }}>
+                        Cancel
+                    </Button>
+                    <Button onClick={onSend} variant="contained">
+                        Save
+                    </Button>
+                </Box>
+            );
+        }
+
+        if (message.length) {
+            return <SendIcon onClick={() => onSend()} color="primary" sx={{ cursor: "pointer" }} />;
+        }
+
+        return <KeyboardVoiceIcon fontSize="large" color="primary" />;
+    };
+
+    if (messageType === "text") {
+        return (
+            <>
+                <Box width="100%" position="relative">
+                    <Input
+                        disableUnderline={true}
+                        fullWidth
+                        value={message}
+                        disabled={loading}
+                        onChange={({ target }) => {
+                            handleSetMessageText(target.value);
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && e.shiftKey === true) {
+                                handleSetMessageText(e.currentTarget.value);
+                            } else if (e.key === "Enter") {
+                                e.preventDefault();
+                                onSend();
+                            } else {
+                            }
+                        }}
+                        placeholder="Type here..."
+                        sx={{
+                            border: "1px solid #C9C9CA",
+                            input: {
+                                py: 2,
+                                px: 1.5,
+                            },
+                            padding: "10px",
+                        }}
+                        multiline={true}
+                        maxRows={3}
+                    />
+                    <EmojiEmotionsIcon
+                        color="primary"
+                        sx={{ position: "absolute", top: "11px", right: "20px" }}
+                    />
+                </Box>
+                {generateMessageTextButtons()}
+            </>
+        );
+    }
+
+    return (
+        <>
+            <Attachments
+                files={files}
+                failedToUploadFileNames={failedToUploadFiles.map((f) => f.name)}
+            />
+
+            {loading ? (
+                <Box>
+                    <CircularProgress sx={{ ml: 0 }} />
+                </Box>
+            ) : (
+                <SendIcon
+                    onClick={() => handleSend()}
+                    fontSize="large"
+                    color="primary"
+                    sx={{ cursor: "pointer" }}
+                />
+            )}
+        </>
     );
 }
 
