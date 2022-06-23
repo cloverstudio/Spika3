@@ -57,8 +57,8 @@ theme = createTheme(theme, {
                         color: "grey",
                         fontWeight: theme.typography.fontWeightMedium,
                         "&:-webkit-autofill": {
-                            "-webkit-box-shadow": "0 0 0 100px #fff inset",
-                            "-webkit-text-fill-color": "grey",
+                            WebkitBoxShadow: "0 0 0 100px #fff inset",
+                            WebkitTextFillColor: "grey",
                         },
                     },
                 },

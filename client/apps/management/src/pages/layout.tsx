@@ -42,7 +42,8 @@ import SnackBar from "../components/snackBar";
 import BasicDialog from "../components/basicDialog";
 import { logout } from "../store/adminAuthSlice";
 import { showSnackBar } from "../store/uiSlice";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { selectRightSidebarOpen } from "../store/rightDrawerSlice";
 
 const drawerWidth = 240;
 
@@ -105,9 +106,10 @@ type LayoutParams = {
     subtitle: string;
     children: React.ReactNode;
     showBack: boolean | undefined;
+    selectedFilter: Function;
 };
 
-function DashboardContent({ subtitle, children, showBack = false }: LayoutParams) {
+function DashboardContent({ subtitle, children, showBack = false, selectedFilter }: LayoutParams) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
@@ -116,6 +118,8 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const [filterType, setFilterType] = React.useState<FilterType>(FilterType.None);
     const openMenu = Boolean(anchorEl);
+    const isRightDrawerOpen = useSelector(selectRightSidebarOpen);
+
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         setAnchorEl(event.currentTarget);
     };
@@ -126,7 +130,6 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
         setOpen(!open);
     };
 
-    const handleFilterSelection = () => {};
     const handleListItemClick = (
         event: React.MouseEvent<HTMLDivElement, MouseEvent>,
         index: number
@@ -188,6 +191,12 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
             }
         })();
     }, []);
+
+    useEffect(() => {
+        (async () => {
+            console.log("RightDrawerOpen:" + isRightDrawerOpen);
+        })();
+    }, [isRightDrawerOpen]);
 
     return (
         <ThemeProvider theme={theme}>
@@ -379,12 +388,15 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
                         paddingTop: "64px",
                     }}
                 >
-                    <FilterView type={filterType} onSelect={handleFilterSelection} />
+                    <FilterView type={filterType} />
                     {children}
                 </Box>
             </Box>
             <SnackBar />
             <BasicDialog />
+            <Drawer anchor={"right"} open={isRightDrawerOpen}>
+                Bok
+            </Drawer>
         </ThemeProvider>
     );
 }

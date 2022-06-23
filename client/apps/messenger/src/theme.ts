@@ -132,6 +132,17 @@ theme = createTheme(theme, {
                 },
             },
         },
+        MuiDataGrid: {
+            styleOverrides: {
+                root: {
+                    "& .MuiDataGrid-columnHeaders": {
+                        backgroundColor: "red",
+                        color: "rgba(255,0,0,0.7)",
+                        fontSize: 40,
+                    },
+                },
+            },
+        },
     },
 });
 

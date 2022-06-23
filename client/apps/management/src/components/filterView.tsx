@@ -11,22 +11,58 @@ import {
 } from "@mui/material";
 import theme from "../theme";
 import { FilterType } from "../pages/layout";
+import { setFilter } from "../store/filterSlice";
+import { useDispatch } from "react-redux";
 
 export interface FilterViewProps {
     type: FilterType;
-    onSelect: (value: string) => void;
 }
 
 export default function FilterView(props: FilterViewProps) {
-    const { type, onSelect } = props;
-
+    const { type } = props;
+    const dispatch = useDispatch();
     const [value, setValue] = React.useState("");
     const [title, setTitle] = React.useState("");
     const [filterOptions, setFilterOptions] = React.useState([]);
 
     const handleChange = (event: SelectChangeEvent) => {
         setValue(event.target.value);
-        onSelect(event.target.value);
+        setFilterValue(event.target.value);
+    };
+
+    const setFilterValue = (value: any) => {
+        const trueValue = Number(value);
+        var filterString = "";
+        switch (type) {
+            case FilterType.None: {
+                break;
+            }
+            case FilterType.User: {
+                if (trueValue == 0) {
+                    filterString = "true";
+                }
+                if (trueValue == 1) {
+                    filterString = "false";
+                }
+
+                break;
+            }
+            case FilterType.Device: {
+                break;
+            }
+            case FilterType.Room: {
+                break;
+            }
+            default: {
+                //statements;
+                break;
+            }
+        }
+        dispatch(
+            setFilter({
+                filterType: filterString,
+            })
+        );
     };
 
     useEffect(() => {
@@ -71,14 +107,13 @@ export default function FilterView(props: FilterViewProps) {
                             labelId="demo-select-small"
                             id="demo-select-small"
                             value={value}
-                            label="Age"
+                            label={title}
                             onChange={handleChange}
                         >
-                            <MenuItem value="">
-                                <em>None</em>
-                            </MenuItem>
-                            {filterOptions.map((item) => (
-                                <MenuItem value={item}>{item}</MenuItem>
+                            {filterOptions.map((item, index) => (
+                                <MenuItem value={index} key={index}>
+                                    {item}
+                                </MenuItem>
                             ))}
                         </Select>
                     </FormControl>
