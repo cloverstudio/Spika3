@@ -1,29 +1,51 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import User from "../../../types/User";
+import { createSlice } from "@reduxjs/toolkit";
 import type { RootState } from "../../../store/store";
 
 interface RightSidebarState {
+    activeTab: "details" | "notes" | "createNote" | "noteDetail" | "editNote";
     isOpened: boolean;
+    activeNoteId: number;
 }
 
 export const rightSidebarSlice = createSlice({
-    name: <string>"rightSidebar",
-    // `createSlice` will infer the state type from the `initialState` argument
+    name: "rightSidebar",
     initialState: <RightSidebarState>{
+        activeTab: "details",
         isOpened: false,
+        activeNoteId: null,
     },
     reducers: {
-        show: (state, action: PayloadAction<null>) => {
+        show: (state) => {
             state.isOpened = true;
         },
-        hide: (state, action: PayloadAction<null>) => {
+        hide: (state) => {
             state.isOpened = false;
+        },
+        setActiveTab(
+            state,
+            action: { payload: "details" | "notes" | "createNote" | "noteDetail" | "editNote" }
+        ) {
+            state.activeTab = action.payload;
+            state.activeNoteId = null;
+        },
+        setActiveNoteId(state, action: { payload: number }) {
+            state.activeTab = "noteDetail";
+            state.activeNoteId = action.payload;
+        },
+        setEditNoteId(state, action: { payload: number }) {
+            state.activeTab = "editNote";
+            state.activeNoteId = action.payload;
         },
     },
 });
 
-export const { show, hide } = rightSidebarSlice.actions;
+export const { show, hide, setActiveTab, setActiveNoteId, setEditNoteId } =
+    rightSidebarSlice.actions;
 
 export const selectRightSidebarOpen = (state: RootState): boolean => state.rightSidebar.isOpened;
+export const selectRightSidebarActiveTab = (state: RootState): string =>
+    state.rightSidebar.activeTab;
+export const selectRightSidebarActiveNoteId = (state: RootState): number =>
+    state.rightSidebar.activeNoteId;
 
 export default rightSidebarSlice.reducer;

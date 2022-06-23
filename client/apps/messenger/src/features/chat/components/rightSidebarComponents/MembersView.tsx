@@ -5,11 +5,6 @@ import {
     IconButton,
     Typography,
     Avatar,
-    List,
-    ListItem,
-    ListItemButton,
-    ListItemAvatar,
-    ListItemText,
     TextField,
     Button,
     Dialog,
@@ -43,7 +38,7 @@ export function DetailsMemberView(props: DetailsMembersProps) {
     const dispatch = useDispatch();
 
     let membersArray: RoomUserType[] = [];
-    let memberIdsArray: number[] = [];
+    const memberIdsArray: number[] = [];
 
     useEffect(() => {
         const meInRoom: RoomUserType = members.find((person) => person.userId === me.id);
