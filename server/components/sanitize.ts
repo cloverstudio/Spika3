@@ -116,6 +116,7 @@ function sanitizeUser({
     telephoneNumberHashed,
     displayName,
     avatarUrl,
+    verified,
     createdAt,
     modifiedAt,
 }: Partial<User>): SanitizedUserType {
@@ -126,6 +127,7 @@ function sanitizeUser({
         telephoneNumberHashed,
         displayName,
         avatarUrl,
+        verified,
         createdAt: +new Date(createdAt),
         modifiedAt: +new Date(modifiedAt),
     };
