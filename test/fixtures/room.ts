@@ -1,5 +1,4 @@
-import { PrismaClient, Room, RoomUser } from "@prisma/client";
-import faker from "faker";
+import { PrismaClient, Room } from "@prisma/client";
 
 const prisma = new PrismaClient();
 

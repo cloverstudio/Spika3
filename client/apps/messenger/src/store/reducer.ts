@@ -4,6 +4,7 @@ import api from "../api/api";
 import contactsReducer from "../features/chat/slice/contactsSlice";
 import adminAuthReducer from "./adminAuthSlice";
 import chatReducer from "../features/chat/slice/chatSlice";
+import callReducer from "../features/confcall/slice/callSlice";
 import roomReducer from "../features/chat/slice/roomSlice";
 import sidebarReducer from "../features/chat/slice/sidebarSlice";
 import rightSidebarReducer from "../features/chat/slice/rightSidebarSlice";
@@ -19,6 +20,7 @@ const rootReducer = combineReducers({
     rightSidebar: rightSidebarReducer,
     user: userReducer,
     modal: modalReducer,
+    call: callReducer,
     [api.reducerPath]: api.reducer,
 });
 

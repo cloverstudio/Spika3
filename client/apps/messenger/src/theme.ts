@@ -61,8 +61,8 @@ let theme = createTheme({
             videoBackground: "#222",
             videoLabelBackground: "#fff9",
             confCallControls: "#fff",
-            confCallControlsHoverBackground: "##fff1",
-            confCallBackground: "#373737",
+            confCallControlsHoverBackground: "#fff1",
+            confCallBackground: "#111111f4",
             confCallFirstLetterColor: "#fff",
         },
     },
@@ -97,6 +97,15 @@ theme = createTheme(theme, {
                         borderColor: theme.palette.text.tertiary,
                     },
                     input: {
+                        "&::placeholder": {
+                            color: theme.palette.text.tertiary,
+                            fontWeight: theme.typography.fontWeightMedium,
+                            opacity: "1",
+                        },
+                        color: theme.typography.body1.color,
+                        fontWeight: theme.typography.fontWeightMedium,
+                    },
+                    textarea: {
                         "&::placeholder": {
                             color: theme.palette.text.tertiary,
                             fontWeight: theme.typography.fontWeightMedium,
