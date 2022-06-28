@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import Layout from "../layout";
 import { useNavigate } from "react-router-dom";
 import { DataGrid, GridActionsCellItem, GridRenderCellParams } from "@mui/x-data-grid";
-import { Paper, Avatar, Stack, Button, TextField, Drawer, Box } from "@mui/material";
+import { Paper, Avatar, Stack, Button, TextField, Drawer, Box, Chip } from "@mui/material";
 import {
     Add as AddIcon,
     Delete as DeleteIcon,
@@ -30,6 +30,9 @@ import {
 } from "../../store/rightDrawerSlice";
 import { useDispatch } from "react-redux";
 import UserAdd from "../../pages/user/add";
+import UserEdit from "../../pages/user/edit";
+import { useShowBasicDialog, useShowSnackBar } from "../../components/useUI";
+import { useDeleteUserMutation } from "../../api/user";
 
 export interface UserMainViewProps {
     onSelect: (value: string) => void;
@@ -51,8 +54,14 @@ export default function Dashboard() {
     const [isFilterOn, setIsFilterOn] = React.useState<boolean>(false);
     const dispatch = useDispatch();
     const isRightDrawerOpen = useSelector(selectRightSidebarOpen);
+    const showSnackBar = useShowSnackBar();
+    const showBasicDialog = useShowBasicDialog();
+    const [deleteUser, deleteUserMutation] = useDeleteUserMutation();
+    const [showEditDrawer, setShowEditDrawer] = React.useState<boolean>(false);
+    const [selectedUserId, setSelectedUserId] = React.useState<number>(0);
 
     const hideDrawer = () => {
+        setShowEditDrawer(false);
         dispatch(hideCreateUser());
     };
 
@@ -170,9 +179,9 @@ export default function Dashboard() {
             renderCell: (params: GridRenderCellParams<boolean>) => (
                 <strong>
                     {params.value ? (
-                        <CheckCircleOutlineOutlined style={{ fill: "green" }} />
+                        <Chip label="Verified" size="small" color="success" />
                     ) : (
-                        <CancelOutlined style={{ fill: "red" }} />
+                        <Chip label="Unconfirmed" size="small" color="default" />
                     )}
                 </strong>
             ),
@@ -219,13 +228,29 @@ export default function Dashboard() {
                 <GridActionsCellItem
                     icon={<EditIcon />}
                     label="Edit"
-                    onClick={() => navigate(`/user/edit/${params.id}`)}
+                    onClick={(e) => {
+                        setSelectedUserId(params.id);
+                        setShowEditDrawer(true);
+                        dispatch(openCreateUser());
+                    }}
                     showInMenu
                 />,
                 <GridActionsCellItem
                     icon={<DeleteIcon />}
                     label="Delete"
-                    onClick={() => navigate(`/user/delete/${params.id}`)}
+                    onClick={(e) => {
+                        showBasicDialog({ text: "Please confirm delete." }, async () => {
+                            try {
+                                await deleteUser(params.id);
+                            } catch (e) {
+                                console.error(e);
+                                showSnackBar({
+                                    severity: "error",
+                                    text: "Server error, please check browser console.",
+                                });
+                            }
+                        });
+                    }}
                     showInMenu
                 />,
             ],
@@ -298,7 +323,11 @@ export default function Dashboard() {
                     onClose={hideDrawer}
                 >
                     <Box width={400}>
-                        <UserAdd />
+                        {showEditDrawer ? (
+                            <UserEdit userId={String(selectedUserId)} />
+                        ) : (
+                            <UserAdd />
+                        )}
                     </Box>
                 </Drawer>
             </Paper>
