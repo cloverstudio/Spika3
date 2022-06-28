@@ -120,6 +120,7 @@ const app: express.Express = express();
     });
 
     app.all("/messenger/*", (req: express.Request, res: express.Response) => {
+        console.log("__dirname", __dirname);
         res.sendFile(path.join(__dirname, "../..", "public/messenger/index.html"));
     });
 

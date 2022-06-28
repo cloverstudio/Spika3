@@ -17,7 +17,7 @@ class DeviceHandler {
         return devices.filter((device: MediaDeviceInfo) => device.kind == "audioinput");
     }
 
-    async getCamera(device?: MediaDeviceInfo): Promise<MediaStream> {
+    async getCamera(deviceId: string): Promise<MediaStream> {
         // close all device before create new one
         this.videoStreams.forEach((stream) => {
             stream.getTracks().forEach((track) => track.stop());
@@ -25,9 +25,9 @@ class DeviceHandler {
 
         const mediaStream: MediaStream = await navigator.mediaDevices.getUserMedia({
             audio: false,
-            video: device
+            video: deviceId
                 ? {
-                      deviceId: device.deviceId,
+                      deviceId,
                   }
                 : true,
         });
@@ -36,16 +36,16 @@ class DeviceHandler {
 
         return mediaStream;
     }
-    async getMicrophone(device?: MediaDeviceInfo): Promise<MediaStream> {
+    async getMicrophone(deviceId: string): Promise<MediaStream> {
         // close all device before create new one
         this.audioStreams.forEach((stream) => {
             stream.getTracks().forEach((track) => track.stop());
         });
 
         const mediaStream: MediaStream = await navigator.mediaDevices.getUserMedia({
-            audio: device
+            audio: deviceId
                 ? {
-                      deviceId: device.deviceId,
+                      deviceId,
                   }
                 : true,
             video: false,

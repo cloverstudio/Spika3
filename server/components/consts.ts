@@ -24,5 +24,8 @@ export const PUSH_TYPE_NEW_ROOM = "NEW_ROOM";
 export const PUSH_TYPE_UPDATE_ROOM = "UPDATE_ROOM";
 export const PUSH_TYPE_DELETE_ROOM = "DELETE_ROOM";
 
+export const PUSH_TYPE_CALL_JOIN = "CALL_JOIN";
+export const PUSH_TYPE_CALL_LEAVE = "CALL_LEAVE";
+
 export const EXCHANGE_NAME = "NOTIFICATION";
 export const MESSAGE_RECORD_VALID_TYPES = ["seen", "delivered", "reaction"];
