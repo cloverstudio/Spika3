@@ -4,6 +4,7 @@ const spikaLightGray = "#dcdcdc";
 const spikaPurpleGrey = "#282a40";
 const spikaPurple = "#5b5fd8";
 const spikaMainBackgroundColor = "#f5f5f5";
+const spikaGrey = "#a0a0a0";
 
 let theme = createTheme({
     typography: {
@@ -32,6 +33,10 @@ let theme = createTheme({
             main: spikaMainBackgroundColor,
             contrastText: "#fff",
         },
+        spikaGrey: {
+            main: spikaGrey,
+            contrastText: "#fff",
+        },
     },
 });
 
@@ -57,22 +62,22 @@ theme = createTheme(theme, {
                         color: "grey",
                         fontWeight: theme.typography.fontWeightMedium,
                         "&:-webkit-autofill": {
-                            "-webkit-box-shadow": "0 0 0 100px #fff inset",
-                            "-webkit-text-fill-color": "grey",
+                            WebkitBoxShadow: "0 0 0 100px #fff inset",
+                            WebkitTextFillColor: "grey",
                         },
                     },
                 },
             },
         },
-        MuiDrawer: {
-            styleOverrides: {
-                root: {
-                    "& 	.MuiDrawer-paper": {
-                        backgroundColor: theme.palette.spikaDrawer.main,
-                    },
-                },
-            },
-        },
+        // MuiDrawer: {
+        //     styleOverrides: {
+        //         root: {
+        //             "& 	.MuiDrawer-paper": {
+        //                 backgroundColor: theme.palette.spikaDrawer.main,
+        //             },
+        //         },
+        //     },
+        // },
         MuiInputLabel: {
             styleOverrides: {
                 root: {
@@ -91,6 +96,7 @@ declare module "@mui/material/styles" {
         spikaLightGrey: Palette["primary"];
         spikaDrawer: Palette["primary"];
         spikaMainBackgroundColor: Palette["primary"];
+        spikaGrey: Palette["primary"];
     }
 
     interface PaletteOptions {
@@ -98,11 +104,14 @@ declare module "@mui/material/styles" {
         spikaLightGrey?: PaletteOptions["primary"];
         spikaDrawer?: PaletteOptions["primary"];
         spikaMainBackgroundColor?: PaletteOptions["primary"];
+        spikaGrey?: PaletteOptions["primary"];
     }
 }
 declare module "@mui/material/Button" {
     interface ButtonPropsColorOverrides {
         spikaButton: true;
+        spikaLightGrey: true;
+        spikaGrey: true;
     }
 }
 declare module "@mui/material/Checkbox" {

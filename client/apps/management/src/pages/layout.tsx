@@ -14,9 +14,7 @@ import {
     Typography,
     Toolbar,
     IconButton,
-    Divider,
     List,
-    ListItem,
     ListItemIcon,
     ListItemText,
     ListItemButton,
@@ -42,7 +40,8 @@ import SnackBar from "../components/snackBar";
 import BasicDialog from "../components/basicDialog";
 import { logout } from "../store/adminAuthSlice";
 import { showSnackBar } from "../store/uiSlice";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { hide } from "../store/rightDrawerSlice";
 
 const drawerWidth = 240;
 
@@ -105,9 +104,10 @@ type LayoutParams = {
     subtitle: string;
     children: React.ReactNode;
     showBack: boolean | undefined;
+    selectedFilter: Function;
 };
 
-function DashboardContent({ subtitle, children, showBack = false }: LayoutParams) {
+function DashboardContent({ subtitle, children, showBack = false, selectedFilter }: LayoutParams) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
@@ -116,6 +116,7 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const [filterType, setFilterType] = React.useState<FilterType>(FilterType.None);
     const openMenu = Boolean(anchorEl);
+
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         setAnchorEl(event.currentTarget);
     };
@@ -125,8 +126,9 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
     const toggleDrawer = () => {
         setOpen(!open);
     };
-
-    const handleFilterSelection = () => {};
+    const hideDrawer = () => {
+        dispatch(hide());
+    };
     const handleListItemClick = (
         event: React.MouseEvent<HTMLDivElement, MouseEvent>,
         index: number
@@ -261,7 +263,15 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
                         </Menu>
                     </Toolbar>
                 </AppBar>
-                <Drawer variant="permanent" open={open}>
+                <Drawer
+                    variant="permanent"
+                    open={open}
+                    PaperProps={{
+                        sx: {
+                            backgroundColor: theme.palette.spikaDrawer.main,
+                        },
+                    }}
+                >
                     <Toolbar
                         sx={{
                             display: "flex",
@@ -379,7 +389,7 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
                         paddingTop: "64px",
                     }}
                 >
-                    <FilterView type={filterType} onSelect={handleFilterSelection} />
+                    <FilterView type={filterType} />
                     {children}
                 </Box>
             </Box>
