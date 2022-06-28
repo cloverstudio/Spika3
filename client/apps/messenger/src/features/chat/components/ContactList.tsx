@@ -6,7 +6,6 @@ import CheckIcon from "@mui/icons-material/Check";
 
 import { dynamicBaseQuery } from "../../../api/api";
 import { useCreateRoomMutation } from "../api/room";
-import { useGetContactsQuery } from "../api/contacts";
 import { fetchContact, selectContacts, selectContactLoading } from "../slice/contactsSlice";
 
 import User from "../../../types/User";
@@ -31,7 +30,7 @@ export default function SidebarContactList({
     const isFetching = loading !== "idle";
 
     const [page, setPage] = useState(1);
-    const [keyword, setKeyword] = useState<string>("");
+    const [keyword, setKeyword] = useState("");
     const { isInViewPort, elementRef } = useIsInViewport();
     const navigate = useNavigate();
     const [createRoom] = useCreateRoomMutation();

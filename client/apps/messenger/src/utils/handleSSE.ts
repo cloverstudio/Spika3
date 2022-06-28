@@ -1,4 +1,4 @@
-import { dynamicBaseQuery } from "../api/api";
+import api, { dynamicBaseQuery } from "../api/api";
 import {
     addMessage,
     addMessageRecord,
@@ -9,15 +9,19 @@ import { fetchHistory } from "../features/chat/slice/roomSlice";
 import { store } from "../store/store";
 
 const VALID_SSE_EVENT_TYPES = [
-    "NEW_MESSAGE",
     "NEW_MESSAGE_RECORD",
+    "NEW_MESSAGE",
     "DELETE_MESSAGE",
     "UPDATE_MESSAGE",
     "CALL_JOIN",
     "CALL_LEAVE",
+    "UPDATE_ROOM",
+    "USER_UPDATE",
 ];
 
 import { notify as notifyCallEvent } from "../features/confcall/lib/callEventListener";
+import { fetchContact } from "../features/chat/slice/contactsSlice";
+import { RoomType } from "../types/Rooms";
 
 export default async function handleSSE(event: MessageEvent): Promise<void> {
     const data = event.data ? JSON.parse(event.data) : {};
@@ -33,8 +37,9 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
         console.log(`Received SSE (${eventType}) that is not implemented yet!`);
         return;
     }
+    console.log(`Received SSE (${eventType})`);
 
-    switch (data.type) {
+    switch (eventType) {
         case "NEW_MESSAGE": {
             const message = data.message;
             if (!message) {
@@ -90,10 +95,69 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
 
         case "CALL_JOIN": {
             notifyCallEvent(data);
+
+            return;
         }
 
         case "CALL_LEAVE": {
             notifyCallEvent(data);
+
+            return;
+        }
+
+        case "UPDATE_ROOM": {
+            const room = data.room;
+
+            if (!room) {
+                console.log("Invalid UPDATE_ROOM payload");
+                return;
+            }
+
+            store.dispatch(api.util.invalidateTags([{ type: "Rooms", id: room.id }]));
+
+            return;
+        }
+
+        case "USER_UPDATE": {
+            const user = data.user;
+
+            if (!user) {
+                console.log("Invalid USER_UPDATE payload");
+
+                return;
+            }
+
+            store.dispatch(fetchContact({ page: 1, keyword: "" }));
+            const queries = store.getState().api.queries;
+
+            if (!queries) {
+                return;
+            }
+
+            const getRoomQueries = Object.entries(queries)
+                .filter(
+                    ([key, val]) =>
+                        key.startsWith("getRoom(") &&
+                        val?.data &&
+                        (val.data as { room: RoomType }).room.users.find(
+                            (u) => u.userId === user.id
+                        )
+                )
+                .map(([_, val]) => val);
+
+            if (!getRoomQueries.length) {
+                return;
+            }
+
+            for (const query of getRoomQueries) {
+                store.dispatch(
+                    api.util.invalidateTags([{ type: "Rooms", id: query.originalArgs as number }])
+                );
+            }
+
+            store.dispatch(fetchHistory({ page: 1, keyword: "" }));
+
+            return;
         }
 
         default:
