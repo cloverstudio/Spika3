@@ -18,6 +18,10 @@ interface CallState {
     showCall: boolean;
     initialMedia: MediaType;
     windowState: WindowState;
+    cameraEnabled: boolean;
+    microphoneEnabled: boolean;
+    selectedCamera: string;
+    selectedMicrophone: string;
 }
 
 export const CallSlice = createSlice({
@@ -26,6 +30,10 @@ export const CallSlice = createSlice({
         roomId: 0,
         showCall: false,
         initialMedia: null,
+        cameraEnabled: true,
+        microphoneEnabled: true,
+        selectedCamera: null,
+        selectedMicrophone: null,
         windowState: WindowState.maximized,
     },
     reducers: {
@@ -35,9 +43,28 @@ export const CallSlice = createSlice({
         setRoomId: (state, { payload }: { payload: number }) => {
             state.roomId = payload;
         },
+        setCameraEnabled: (state, { payload }: { payload: boolean }) => {
+            state.cameraEnabled = payload;
+        },
+        setMicrophoneEnabled: (state, { payload }: { payload: boolean }) => {
+            state.microphoneEnabled = payload;
+        },
+        setSelectedCamera: (state, { payload }: { payload: string }) => {
+            state.selectedCamera = payload;
+        },
+        setSelectedMicrophone: (state, { payload }: { payload: string }) => {
+            state.selectedMicrophone = payload;
+        },
     },
 });
 
-export const { setShowCall, setRoomId } = CallSlice.actions;
+export const {
+    setShowCall,
+    setRoomId,
+    setCameraEnabled,
+    setMicrophoneEnabled,
+    setSelectedCamera,
+    setSelectedMicrophone,
+} = CallSlice.actions;
 
 export default CallSlice.reducer;

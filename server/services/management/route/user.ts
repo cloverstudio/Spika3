@@ -14,6 +14,99 @@ import sanitize from "../../../components/sanitize";
 export default (params: InitRouterParams) => {
     const router = Router();
 
+    router.get("/search", adminAuth, async (req: Request, res: Response) => {
+        const searchTerm: string = req.query.searchTerm ? (req.query.searchTerm as string) : "";
+        const userReq: UserRequest = req as UserRequest;
+        console.log("SearchTerm:" + searchTerm);
+        try {
+            var allUsers: User[] = [];
+            if (onlyNumbers(searchTerm)) {
+                const phoneUsers: User[] = await prisma.user.findMany({
+                    where: {
+                        telephoneNumber: {
+                            contains: searchTerm,
+                        },
+                    },
+                });
+                // console.log(phoneUsers);
+                allUsers.push(...phoneUsers);
+            }
+
+            const emailUsers: User[] = await prisma.user.findMany({
+                where: {
+                    emailAddress: {
+                        contains: searchTerm,
+                    },
+                },
+            });
+            // console.log(emailUsers);
+            const nameUsers: User[] = await prisma.user.findMany({
+                where: {
+                    displayName: {
+                        contains: searchTerm,
+                    },
+                },
+            });
+            // console.log(nameUsers);
+            allUsers.push(...emailUsers);
+            allUsers.push(...nameUsers);
+
+            allUsers = allUsers.filter(
+                (value, index, self) => index === self.findIndex((t) => t.id === value.id)
+            );
+
+            console.log(allUsers);
+            const count = allUsers.length;
+
+            return res.send(
+                successResponse(
+                    {
+                        list: allUsers,
+                        count: count,
+                        limit: consts.PAGING_LIMIT,
+                    },
+                    userReq.lang
+                )
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.get("/verified", adminAuth, async (req: Request, res: Response) => {
+        const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 0;
+        const userReq: UserRequest = req as UserRequest;
+        try {
+            const users = await prisma.user.findMany({
+                where: {
+                    verified: true,
+                },
+                orderBy: [
+                    {
+                        createdAt: "asc",
+                    },
+                ],
+                skip: consts.PAGING_LIMIT * page,
+                take: consts.PAGING_LIMIT,
+            });
+
+            const count = users.length;
+            res.send(
+                successResponse(
+                    {
+                        list: users,
+                        count: count,
+                        limit: consts.PAGING_LIMIT,
+                    },
+                    userReq.lang
+                )
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
     router.post("/", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
@@ -258,5 +351,8 @@ export default (params: InitRouterParams) => {
         }
     });
 
+    function onlyNumbers(str: string) {
+        return /^[0-9]+$/.test(str);
+    }
     return router;
 };

@@ -65,7 +65,7 @@ export default function BasicDialog({
                         sx={{
                             width: "300px",
                         }}
-                        value={initialValue || selectedValue || ""}
+                        value={selectedValue || initialValue || ""}
                         onChange={(e) => {
                             setSelectedValue(e.target.value);
                         }}
