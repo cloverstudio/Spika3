@@ -7,6 +7,7 @@ import { beforeEach, before } from "mocha";
 import createFakeUser, { createManyFakeUsers } from "./fixtures/user";
 import { RoomUser, Room, User } from ".prisma/client";
 import sanitize from "../server/components/sanitize";
+import utils from "../server/components/utils";
 
 describe("API", () => {
     describe("/api/messenger/rooms POST", () => {
@@ -741,13 +742,13 @@ describe("API", () => {
         });
 
         it("Returns new rooms from lastUpdate", async () => {
-            const lastUpdate = +new Date();
-
+            const lastUpdate = +new Date() - 100;
             const room = await createFakeRoom([{ userId: globals.userId, isAdmin: true }]);
 
             const response = await supertest(app)
                 .get("/api/messenger/rooms/sync/" + lastUpdate)
                 .set({ accesstoken: globals.userToken });
+
             expect(response.status).to.eqls(200);
             expect(response.body.data).to.has.property("rooms");
             expect(response.body.data.rooms.some((m: any) => m.id === room.id)).to.be.true;

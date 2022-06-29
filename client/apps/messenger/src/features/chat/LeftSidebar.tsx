@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Button, Badge, Avatar, Typography, TextField } from "@mui/material";
-import ClearIcon from "@mui/icons-material/Clear";
+import ClearIcon from "@mui/icons-material/ClearRounded";
 
 import { useCreateRoomMutation } from "./api/room";
 
@@ -11,7 +11,6 @@ import SidebarContactList, { ContactRow } from "./components/ContactList";
 import LeftSidebarLayout from "./components/LeftSidebarLayout";
 import LeftSidebarHome from "./components/LeftSidebarHome";
 import SidebarNavigationHeader from "./components/SidebarNavigationHeader";
-import SearchBox from "./components/SearchBox";
 
 import uploadImage from "../../assets/upload-image.svg";
 import uploadFile from "../../utils/uploadFile";
@@ -143,7 +142,11 @@ function LeftSidebarNewGroup({
                                         sx={{
                                             "& .MuiBadge-badge": {
                                                 padding: "0",
+                                                height: "24px",
+                                                width: "24px",
+                                                borderRadius: "50%",
                                             },
+                                            mt: 1,
                                         }}
                                     >
                                         <Avatar
@@ -164,7 +167,7 @@ function LeftSidebarNewGroup({
                             ))}
                         </Box>
                     ) : (
-                        <Box mb={10.5} />
+                        <Box mb={11.5} />
                     )}
                     <SidebarContactList
                         selectedUsersIds={selectedUsers.map((u) => u.id)}

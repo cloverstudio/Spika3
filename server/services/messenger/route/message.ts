@@ -80,12 +80,9 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     fromDeviceId: userReq.device.id,
                     totalUserCount: room.users.length,
                     deliveredCount: 1,
+                    seenCount: 1,
                     localId,
                 },
-            });
-
-            await prisma.messageRecord.create({
-                data: { type: "delivered", userId: fromUserId, messageId: message.id },
             });
 
             const formattedBody = await formatMessageBody(body, type);
@@ -133,6 +130,18 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     })
                 );
             }
+
+            const messageRecords = (
+                await Promise.all(
+                    ["delivered", "seen"].map((type) =>
+                        prisma.messageRecord.create({
+                            data: { type, userId: fromUserId, messageId: message.id },
+                        })
+                    )
+                )
+            ).map((mr) => sanitize(mr).messageRecord());
+
+            sseMessageRecordsNotify(messageRecords, Constants.PUSH_TYPE_NEW_MESSAGE_RECORD);
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

@@ -14,10 +14,6 @@ const axiosBaseQuery =
         dispatch?: any
     ) => {
         try {
-            const browserName = platform.name;
-            const browserVersion = platform.version;
-            const OS = platform.os;
-
             const additionalHeaders: any = {
                 ...(token && { accesstoken: token }),
             };
@@ -72,7 +68,7 @@ export const dynamicBaseQuery = async (args: any, options?: { dispatch: any }) =
 export default createApi({
     reducerPath: "api",
     baseQuery: dynamicBaseQuery,
-    tagTypes: ["User", "Auth", "Contacts", "Rooms", "Device"],
+    tagTypes: ["User", "Auth", "Contacts", "Rooms", "Device", "Notes"],
 
     endpoints: () => ({}),
 });

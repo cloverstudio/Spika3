@@ -16,6 +16,7 @@ import formatRoomInfo from "./lib/formatRoomInfo";
 import ChatInput from "./components/ChatInput";
 import RoomHeader from "./components/RoomHeader";
 import RoomMessages from "./components/RoomMessages";
+import ConfCall from "../confcall/index";
 
 export default function Chat(): React.ReactElement {
     const roomId = parseInt(useParams().id || "");
@@ -26,6 +27,8 @@ export default function Chat(): React.ReactElement {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
     const { messages } = useSelector(selectRoomMessages(roomId));
+
+    const isCall = /^.+\/call.*$/.test(window.location.pathname);
 
     const room = data?.room;
 
@@ -66,6 +69,7 @@ export default function Chat(): React.ReactElement {
             {user?.id && <RoomHeader {...formatRoomInfo(room, user.id)} roomId={roomId} />}
             <RoomMessages roomId={roomId} />
             <ChatInput />
+            {isCall && <ConfCall />}
         </Box>
     );
 }

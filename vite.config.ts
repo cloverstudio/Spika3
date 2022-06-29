@@ -27,7 +27,7 @@ export default defineConfig(({ command, mode }) => {
     const configMessenger = {
         root: "./client/apps/messenger/",
         base: "/messenger/",
-        publicDir: "../../public/messenger",
+        publicDir: "../../../public/shared",
         plugins: [react()],
         build: {
             outDir: "../../../public/messenger",
@@ -56,7 +56,7 @@ export default defineConfig(({ command, mode }) => {
     const configManagement = {
         root: "./client/apps/management/",
         base: "/management/",
-        publicDir: "../../public/management",
+        publicDir: "../../../public/shared",
         plugins: [react()],
         build: {
             outDir: "../../../public/management",

@@ -11,6 +11,7 @@ const userApi = api.injectEndpoints({
             query: (data) => {
                 return { url: "/management/user", data, method: "POST" };
             },
+            invalidatesTags: (res) => res && [{ type: "User", id: "LIST" }],
         }),
         getUserById: build.query<{ user: UserType }, string>({
             query: (userId) => {
@@ -29,7 +30,18 @@ const userApi = api.injectEndpoints({
             },
             invalidatesTags: (res) => res && [{ type: "User", id: "LIST" }],
         }),
+
+        getUsersBySearchTerm: build.query<UserListType, string>({
+            query: (searchTerm) => `/management/user/search?searchTerm=${searchTerm}`,
+            providesTags: [{ type: "User", id: "LIST" }],
+        }),
+
+        getVerifiedUsers: build.query<UserListType, number>({
+            query: (page) => `/management/user/verified?page=${page}`,
+            providesTags: [{ type: "User", id: "LIST" }],
+        }),
     }),
+
     overrideExisting: true,
 });
 
@@ -39,5 +51,7 @@ export const {
     useGetUserByIdQuery,
     useUpdateUserMutation,
     useDeleteUserMutation,
+    useGetUsersBySearchTermQuery,
+    useGetVerifiedUsersQuery,
 } = userApi;
 export default userApi;

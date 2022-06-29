@@ -13,7 +13,11 @@ const VALID_SSE_EVENT_TYPES = [
     "NEW_MESSAGE_RECORD",
     "DELETE_MESSAGE",
     "UPDATE_MESSAGE",
+    "CALL_JOIN",
+    "CALL_LEAVE",
 ];
+
+import { notify as notifyCallEvent } from "../features/confcall/lib/callEventListener";
 
 export default async function handleSSE(event: MessageEvent): Promise<void> {
     const data = event.data ? JSON.parse(event.data) : {};
@@ -82,6 +86,14 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
             store.dispatch(editMessage(message));
 
             return;
+        }
+
+        case "CALL_JOIN": {
+            notifyCallEvent(data);
+        }
+
+        case "CALL_LEAVE": {
+            notifyCallEvent(data);
         }
 
         default:

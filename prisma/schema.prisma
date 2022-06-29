@@ -176,7 +176,8 @@ model MessageRecord {
 model Note {
   id Int @id @default(autoincrement()) @map(name: "id")
   roomId Int @map(name: "room_id")
-  content String @map("string")
+  content String @db.Text @map("content")
+  title String @default("") @map("title")
 
   createdAt  DateTime @default(now()) @map(name: "created_at")
   modifiedAt DateTime @default(now()) @map(name: "modified_at")
@@ -184,3 +185,14 @@ model Note {
   @@map(name: "note")
 }
 
+model CallSession {
+  id Int @id @default(autoincrement()) @map(name: "id")
+  roomId Int @map(name: "room_id")
+  content String @db.Text @map("content")
+  title String @default("") @map("title")
+
+  createdAt  DateTime @default(now()) @map(name: "created_at")
+  modifiedAt DateTime @default(now()) @map(name: "modified_at")
+
+  @@map(name: "note")
+}

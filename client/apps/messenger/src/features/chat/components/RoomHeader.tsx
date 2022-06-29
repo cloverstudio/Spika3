@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { Avatar, Box, Typography, useMediaQuery } from "@mui/material";
 import { Call, Search, Videocam } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
@@ -13,7 +14,7 @@ import { setLeftSidebar } from "../slice/sidebarSlice";
 declare const UPLOADS_BASE_URL: string;
 import { RootState } from "../../../store/store";
 
-import Confcall from "../../confcall";
+import Confcall from "../../confcall/lobby";
 
 type RoomHeaderProps = {
     name: string;
@@ -30,8 +31,8 @@ export default function RoomHeader({
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
     const dispatch = useDispatch();
     const rightSidebarState = useSelector((state: RootState) => state.rightSidebar);
-    const [showConfcall, setShowConfcall] = useState<boolean>(false);
     const me = useSelector(selectUser);
+    const navigate = useNavigate();
 
     return (
         <Box px={2} borderBottom="0.5px solid #C9C9CA">
@@ -71,7 +72,7 @@ export default function RoomHeader({
                                 cursor: "pointer",
                             }}
                             onClick={(e) => {
-                                setShowConfcall(true);
+                                navigate(`/rooms/${roomId}/call/lobby/video`, { replace: true });
                             }}
                         />
                     </Box>
@@ -84,7 +85,7 @@ export default function RoomHeader({
                                 cursor: "pointer",
                             }}
                             onClick={(e) => {
-                                setShowConfcall(true);
+                                navigate(`/rooms/${roomId}/call/lobby/audio`, { replace: true });
                             }}
                         />
                     </Box>
@@ -100,19 +101,6 @@ export default function RoomHeader({
                     </Box>
                 </Box>
             </Box>
-
-            {showConfcall ? (
-                <>
-                    <Confcall
-                        roomId={`${roomId}`}
-                        userId={`${me.id}`}
-                        userName={me.displayName}
-                        onClose={() => {
-                            setShowConfcall(false);
-                        }}
-                    />
-                </>
-            ) : null}
         </Box>
     );
 }

@@ -1,4 +1,4 @@
-import { Room, User, Device, Message, RoomUser, File, MessageRecord } from ".prisma/client";
+import { Room, User, Device, Message, RoomUser, File, MessageRecord, Note } from ".prisma/client";
 
 type SanitizedUserType = Partial<
     Omit<User, "createdAt" | "modifiedAt"> & { createdAt: number; modifiedAt: number }
@@ -16,10 +16,15 @@ export type SanitizedRoomType = Partial<
         users: SanitizedRoomUserType[];
     }
 >;
-type SanitizedMessageType = Partial<Omit<Message, "createdAt"> & { createdAt: number; body: any }>;
+type SanitizedMessageType = Partial<
+    Omit<Message, "createdAt" | "modifiedAt"> & { createdAt: number; modifiedAt: number; body: any }
+>;
 type SanitizedFileType = Partial<Omit<File, "createdAt"> & { createdAt: number }>;
 export type SanitizedMessageRecord = Partial<
     Omit<MessageRecord, "createdAt" | "modifiedAt"> & { createdAt: number }
+>;
+type SanitizedNoteType = Partial<
+    Omit<Note, "createdAt" | "modifiedAt"> & { createdAt: number; modifiedAt: number }
 >;
 
 interface sanitizeTypes {
@@ -29,6 +34,7 @@ interface sanitizeTypes {
     message: () => SanitizedMessageType;
     file: () => SanitizedFileType;
     messageRecord: () => SanitizedMessageRecord;
+    note: () => SanitizedNoteType;
 }
 
 export default function sanitize(data: any): sanitizeTypes {
@@ -61,6 +67,7 @@ export default function sanitize(data: any): sanitizeTypes {
                 type,
                 body,
                 createdAt,
+                modifiedAt,
                 localId,
                 deleted,
             } = data as Message & { body: any };
@@ -75,6 +82,7 @@ export default function sanitize(data: any): sanitizeTypes {
                 type,
                 body,
                 createdAt: +new Date(createdAt),
+                modifiedAt: +new Date(modifiedAt),
                 localId,
                 deleted,
             };
@@ -106,6 +114,18 @@ export default function sanitize(data: any): sanitizeTypes {
                 createdAt: +new Date(createdAt),
             };
         },
+        note: () => {
+            const { id, title, content, createdAt, modifiedAt, roomId } = data as Note;
+
+            return {
+                id,
+                title,
+                content,
+                roomId,
+                createdAt: +new Date(createdAt),
+                modifiedAt: +new Date(modifiedAt),
+            };
+        },
     };
 }
 
@@ -116,6 +136,7 @@ function sanitizeUser({
     telephoneNumberHashed,
     displayName,
     avatarUrl,
+    verified,
     createdAt,
     modifiedAt,
 }: Partial<User>): SanitizedUserType {
@@ -126,6 +147,7 @@ function sanitizeUser({
         telephoneNumberHashed,
         displayName,
         avatarUrl,
+        verified,
         createdAt: +new Date(createdAt),
         modifiedAt: +new Date(modifiedAt),
     };
