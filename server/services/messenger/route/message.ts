@@ -79,8 +79,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     fromUserId: userReq.user.id,
                     fromDeviceId: userReq.device.id,
                     totalUserCount: room.users.length,
-                    deliveredCount: 1,
-                    seenCount: 1,
+                    deliveredCount: 0,
+                    seenCount: 0,
                     localId,
                 },
             });
