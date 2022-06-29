@@ -105,6 +105,23 @@ function RoomRow({
     handleClick,
     unreadCount,
 }: RoomRowProps) {
+    const [time, setTime] = useState(
+        lastMessage?.createdAt && dayjs(lastMessage.createdAt).fromNow()
+    );
+
+    useEffect(() => {
+        if (lastMessage?.createdAt) {
+            setTime(dayjs(lastMessage.createdAt).fromNow());
+
+            const interval = setInterval(() => {
+                setTime(dayjs(lastMessage.createdAt).fromNow());
+            }, 1000);
+
+            return () => {
+                clearInterval(interval);
+            };
+        }
+    }, [lastMessage]);
     const lastMessageType = lastMessage?.type;
 
     let lastMessageText = lastMessage?.body?.text;
@@ -147,7 +164,7 @@ function RoomRow({
                     </Box>
                     <Box minWidth="90px" textAlign="right">
                         <Typography mb={1} color="text.tertiary" fontWeight="500" lineHeight="1rem">
-                            {lastMessage?.createdAt && dayjs(lastMessage?.createdAt).fromNow()}
+                            {time}
                         </Typography>
                         {unreadCount ? (
                             <Badge
