@@ -64,6 +64,7 @@ export const chatSlice = createSlice({
                     mr.userId === payload.userId &&
                     mr.type === payload.type
             );
+
             if (messageRecordHandled) {
                 return;
             }
