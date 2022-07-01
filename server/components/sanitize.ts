@@ -104,13 +104,14 @@ export default function sanitize(data: any): sanitizeTypes {
             };
         },
         messageRecord: () => {
-            const { id, type, messageId, userId, createdAt } = data as MessageRecord;
+            const { id, type, messageId, userId, createdAt, reaction } = data as MessageRecord;
 
             return {
                 id,
                 type,
                 messageId,
                 userId,
+                reaction,
                 createdAt: +new Date(createdAt),
             };
         },

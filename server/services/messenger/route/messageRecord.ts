@@ -73,6 +73,17 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         );
                 }
 
+                if (type === "reaction") {
+                    // delete previous reaction
+                    await prisma.messageRecord.deleteMany({
+                        where: {
+                            messageId,
+                            type,
+                            userId,
+                        },
+                    });
+                }
+
                 const messageRecord = await prisma.messageRecord.create({
                     data: {
                         messageId,

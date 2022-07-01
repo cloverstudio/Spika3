@@ -1,15 +1,15 @@
 import React, { useState } from "react";
-import { Avatar, Box, Modal, Typography } from "@mui/material";
+import { Avatar, Box, Typography } from "@mui/material";
 
 import MessageStatusIcon from "./MessageStatusIcon";
 import { useSelector } from "react-redux";
 import { selectUser } from "../../../store/userSlice";
-import getFileIcon from "../lib/getFileIcon";
-import DownloadIcon from "@mui/icons-material/Download";
 import { useGetRoomQuery } from "../api/room";
 import { useParams } from "react-router-dom";
-import { CloseOutlined, Info } from "@mui/icons-material";
-import { deletedMessageText } from "../lib/consts";
+import { InsertEmoticon } from "@mui/icons-material";
+import MessageReactions from "./MessageReactions";
+import ReactionOptions from "./ReactionOptions";
+import MessageBody from "./MessageBody";
 
 type MessageProps = {
     id: number;
@@ -45,6 +45,7 @@ export default function Message({
     const users = data?.room?.users;
     const roomType = data?.room?.type;
     const sender = users?.find((u) => u.userId === fromUserId)?.user;
+    const [showReactionOptions, setShowReactionOptions] = useState(false);
 
     const isUsersMessage = user?.id === fromUserId;
     const isFirstMessage = fromUserId !== previousMessageSenderId;
@@ -62,10 +63,21 @@ export default function Message({
         return "sent";
     };
 
-    const isDeleted = body?.text === deletedMessageText;
+    const handleMessageClick = (e) => {
+        e.preventDefault();
+        clickedAnchor(e, id);
+    };
 
     return (
-        <Box key={id}>
+        <Box
+            key={id}
+            sx={{
+                "&:hover .reaction-btn": {
+                    display: "block",
+                },
+                position: "relative",
+            }}
+        >
             {roomType === "group" && !isUsersMessage && isFirstMessage && (
                 <Typography color="text.tertiary" fontWeight={600} pl="34px" mb={0.5} mt={2}>
                     {sender?.displayName}
@@ -73,310 +85,56 @@ export default function Message({
             )}
             <Box
                 display="flex"
-                flexDirection="row"
                 justifyContent={isUsersMessage ? "flex-end" : "flex-start"}
                 mb={"0.375rem"}
-                alignItems="end"
             >
-                {roomType === "group" && !isUsersMessage && isLastMessage ? (
-                    <Avatar
-                        sx={{ width: 26, height: 26, mr: 1, mb: "0.375rem" }}
-                        alt={sender?.displayName}
-                        src={`${UPLOADS_BASE_URL}${sender?.avatarUrl}`}
-                    />
-                ) : (
-                    <Box width="26px" mr={1}></Box>
-                )}
-                {(type === "text" || isDeleted) && (
-                    <TextMessage
-                        body={body}
-                        isUsersMessage={isUsersMessage}
-                        onClick={(e) => {
-                            e.preventDefault();
-                            clickedAnchor(e, id);
-                        }}
-                    />
-                )}
-                {type === "image" && !isDeleted && (
-                    <ImageMessage
-                        body={body}
-                        isUsersMessage={isUsersMessage}
-                        onClickContextMenu={(e) => {
-                            e.preventDefault();
-                            clickedAnchor(e, id);
-                        }}
-                    />
-                )}
-                {type === "video" && !isDeleted && (
-                    <VideoMessage
-                        body={body}
-                        isUsersMessage={isUsersMessage}
-                        onClick={(e) => {
-                            e.preventDefault();
-                            clickedAnchor(e, id);
-                        }}
-                    />
-                )}
-                {type === "audio" && !isDeleted && (
-                    <AudioMessage
-                        body={body}
-                        isUsersMessage={isUsersMessage}
-                        onClick={(e) => {
-                            e.preventDefault();
-                            clickedAnchor(e, id);
-                        }}
-                    />
-                )}
-                {(type === "file" || type === "unknown") && !isDeleted && (
-                    <FileMessage
-                        body={body}
-                        isUsersMessage={isUsersMessage}
-                        onClick={(e) => {
-                            e.preventDefault();
-                            clickedAnchor(e, id);
-                        }}
-                    />
-                )}
-                {isUsersMessage && <MessageStatusIcon status={getStatusIcon()} />}
-            </Box>
-        </Box>
-    );
-}
-
-function ImageMessage({
-    body,
-    isUsersMessage,
-    onClickContextMenu,
-}: {
-    body: any;
-    isUsersMessage: boolean;
-    onClickContextMenu: (e: any) => void;
-}) {
-    const [open, setOpen] = useState(false);
-    const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);
-
-    if (!body.file) {
-        return null;
-    }
-
-    const style = {
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        bgcolor: "transparent",
-        outline: "none",
-        lineHeight: "1",
-    };
-
-    return (
-        <Box display="flex" flexDirection="column" alignItems={isUsersMessage ? "end" : "start"}>
-            {body.text && (
-                <TextMessage
-                    body={body}
-                    isUsersMessage={isUsersMessage}
-                    onClick={onClickContextMenu}
-                />
-            )}
-            <Box
-                onClick={handleOpen}
-                component="img"
-                borderRadius="0.625rem"
-                maxWidth="35rem"
-                height="10rem"
-                width="auto"
-                src={`${UPLOADS_BASE_URL}${body.thumb.path}`}
-                pb="0.8125"
-                sx={{ cursor: "pointer", objectFit: "contain" }}
-            />
-            <Modal open={open} onClose={handleClose}>
-                <>
-                    <Box textAlign="right" mr={2} mt={2}>
-                        <CloseOutlined
-                            onClick={handleClose}
-                            sx={{ color: "white", cursor: "pointer" }}
-                            fontSize="large"
-                        />
-                        <Info
-                            onClick={onClickContextMenu}
-                            sx={{ color: "white", cursor: "pointer" }}
-                            fontSize="large"
-                        />
-                    </Box>
-
-                    <Box sx={style}>
-                        <Box
-                            onClick={handleOpen}
-                            component="img"
-                            maxWidth="92vw"
-                            maxHeight="92vh"
-                            height="auto"
-                            src={`${UPLOADS_BASE_URL}${body.file.path}`}
-                        />
-                    </Box>
-                </>
-            </Modal>
-        </Box>
-    );
-}
-
-function FileMessage({
-    body,
-    isUsersMessage,
-    onClick,
-}: {
-    body: any;
-    isUsersMessage: boolean;
-    onClick: (e: any) => void;
-}) {
-    if (!body.file) {
-        return null;
-    }
-
-    const file = body.file;
-    const sizeInMB = (file.size / 1024 / 1024).toFixed(2);
-    const sizeInKB = (file.size / 1024).toFixed(2);
-
-    const Icon = getFileIcon(file.mimeType);
-    return (
-        <Box display="flex" flexDirection="column" alignItems={isUsersMessage ? "end" : "start"}>
-            {body.text && (
-                <TextMessage body={body} isUsersMessage={isUsersMessage} onClick={onClick} />
-            )}
-            <Box
-                display="flex"
-                alignItems="center"
-                borderRadius="0.625rem"
-                maxWidth="35rem"
-                p="1.25rem"
-                gap="1.25rem"
-                bgcolor={isUsersMessage ? "common.myMessageBackground" : "common.chatBackground"}
-            >
-                <Icon fontSize="large" />
-                <Box>
-                    <Typography fontSize="1rem" fontWeight={800} lineHeight="1.1rem" mb={0.25}>
-                        {file.fileName}
-                    </Typography>
-                    <Typography textAlign="left">
-                        {+sizeInMB > 0 ? `${sizeInMB} MB` : `${sizeInKB} KB`}
-                    </Typography>
-                </Box>
                 <Box
-                    component="a"
-                    href={`${UPLOADS_BASE_URL}${file.path}`}
-                    download
-                    sx={{ display: "block", color: "inherit" }}
+                    position="relative"
+                    width="max-content"
+                    display="flex"
+                    alignItems="end"
+                    justifyContent={isUsersMessage ? "flex-end" : "flex-start"}
                 >
-                    <DownloadIcon fontSize="large" />
+                    {roomType === "group" && !isUsersMessage && isLastMessage ? (
+                        <Avatar
+                            sx={{ width: 26, height: 26, mr: 1, mb: "0.375rem" }}
+                            alt={sender?.displayName}
+                            src={`${UPLOADS_BASE_URL}${sender?.avatarUrl}`}
+                        />
+                    ) : (
+                        !isUsersMessage && <Box width="26px" mr={1}></Box>
+                    )}
+
+                    <MessageBody
+                        type={type}
+                        body={body}
+                        isUsersMessage={isUsersMessage}
+                        onMessageClick={handleMessageClick}
+                    />
+
+                    {isUsersMessage && <MessageStatusIcon status={getStatusIcon()} />}
+                    {!isUsersMessage && (
+                        <Box
+                            className="reaction-btn"
+                            display="none"
+                            alignSelf="center"
+                            position="relative"
+                            top="4px"
+                            right={"-5px"}
+                            sx={{ cursor: "pointer" }}
+                            onClick={() => setShowReactionOptions((curr) => !curr)}
+                        >
+                            <InsertEmoticon />
+                        </Box>
+                    )}
                 </Box>
             </Box>
-        </Box>
-    );
-}
 
-function VideoMessage({
-    body,
-    isUsersMessage,
-    onClick,
-}: {
-    body: any;
-    isUsersMessage: boolean;
-    onClick: (e: any) => void;
-}) {
-    if (!body.file) {
-        return null;
-    }
+            <MessageReactions id={id} isUsersMessage={isUsersMessage} />
 
-    return (
-        <Box display="flex" flexDirection="column" alignItems={isUsersMessage ? "end" : "start"}>
-            {body.text && (
-                <TextMessage body={body} isUsersMessage={isUsersMessage} onClick={onClick} />
+            {showReactionOptions && (
+                <ReactionOptions messageId={id} onClose={() => setShowReactionOptions(false)} />
             )}
-            <Box
-                component="video"
-                borderRadius="0.625rem"
-                maxWidth="35rem"
-                controls
-                src={`${UPLOADS_BASE_URL}${body.file.path}`}
-                pb="0.8125"
-            />
         </Box>
-    );
-}
-
-function AudioMessage({
-    body,
-    isUsersMessage,
-    onClick,
-}: {
-    body: any;
-    isUsersMessage: boolean;
-    onClick: (e: any) => void;
-}) {
-    if (!body.file) {
-        return null;
-    }
-
-    return (
-        <Box display="flex" flexDirection="column" alignItems={isUsersMessage ? "end" : "start"}>
-            {body.text && (
-                <TextMessage body={body} isUsersMessage={isUsersMessage} onClick={onClick} />
-            )}
-            <Box component="audio" controls borderRadius="0.625rem" maxWidth="35rem" pb="0.8125">
-                <source type={body.file.type} src={`${UPLOADS_BASE_URL}${body.file.path}`} />
-            </Box>
-        </Box>
-    );
-}
-
-function TextMessage({
-    isUsersMessage,
-    body,
-    onClick,
-}: {
-    body: any;
-    isUsersMessage: boolean;
-    onClick: (e: any) => void;
-}) {
-    const filterText = (text: string): string => {
-        // escape html
-        text = text
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#39;");
-
-        // fold multiple new line in one
-        text = text.replace(/\n{3,}/g, "\n");
-
-        // auto link
-        const autolinkRegex = /(?![^<]*>|[^<>]*<\/)((https?:)\/\/[a-z0-9&#=.\/\-?_]+)/gi;
-        text = text.replace(autolinkRegex, '<a href="$1" target="_blank">$1</a>');
-
-        return text;
-    };
-
-    return (
-        <Box
-            component={"pre"}
-            sx={{
-                minWidth: "50px",
-                maxWidth: "80%",
-                backgroundColor: isUsersMessage
-                    ? "common.myMessageBackground"
-                    : "common.chatBackground",
-                borderRadius: "1rem",
-                padding: "10px",
-                color: "common.darkBlue",
-                lineHeight: "1.5rem",
-                whiteSpace: "pre-wrap",
-                margin: "0px",
-                cursor: "pointer",
-            }}
-            dangerouslySetInnerHTML={{ __html: filterText(body.text) }}
-            onClick={onClick}
-        />
     );
 }
