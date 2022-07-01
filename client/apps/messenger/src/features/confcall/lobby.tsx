@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { Box, Grid, useMediaQuery, Button } from "@mui/material";
+import { Box, Grid, useMediaQuery, Button, Avatar } from "@mui/material";
 import {
     setShowCall,
     setRoomId,
@@ -21,7 +21,10 @@ import {
 
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
+import { User } from "@prisma/client";
 
+import UserType from "../../types/User";
+import { dynamicBaseQuery } from "../../api/api";
 import { RootState } from "../../store/store";
 import * as Constants from "../../../../../lib/constants";
 import ButtonsHolder from "./ButtonsHolder";
@@ -30,6 +33,13 @@ import { useShowSnackBar } from "../../hooks/useModal";
 import SelectBoxDialog from "../../components/SelectBoxDialog";
 import { getCameras, getMicrophones } from "./lib/utils";
 import deviceHandler from "./lib/deviceHandler";
+import { callEventPayload } from "../../types/confcall";
+import { listen as listenCallEvent } from "./lib/callEventListener";
+
+//API
+import { useParticipantsQuery } from "./api";
+
+declare const UPLOADS_BASE_URL: string;
 
 export default function ConfCall() {
     const isCall = /^.+\/call\/.+$/.test(window.location.pathname);
@@ -56,6 +66,8 @@ export default function ConfCall() {
 
     const [microphoneList, setMicrophoneList] = useState<Array<MediaDeviceInfo>>(null);
     const [showMicrophoneSelectDialog, setShowMicrophoneSelectDialog] = useState<boolean>(false);
+
+    const [participants, setParticipants] = useState<Array<UserType>>(null);
 
     function updateDevice() {
         // init camera
@@ -96,6 +108,13 @@ export default function ConfCall() {
         })();
     }
 
+    async function updateParticipants() {
+        const res = await dynamicBaseQuery({
+            url: `/confcall/participants/${roomId}`,
+        });
+        setParticipants(res.data);
+    }
+
     // called when component is ready
     useEffect(() => {
         (async () => {
@@ -105,7 +124,22 @@ export default function ConfCall() {
             dispatch(setCameraEnabled(urlState === "video"));
             dispatch(setMicrophoneEnabled(true));
         })();
+
+        const clearListner = listenCallEvent(async (data: callEventPayload) => {
+            await updateParticipants();
+        });
+
+        return () => {
+            clearListner();
+        };
     }, []);
+
+    // when lobby screen appears
+    useEffect(() => {
+        (async () => {
+            await updateParticipants();
+        })();
+    }, [isCall]);
 
     // when DOM is ready to play video
     useEffect(() => {
@@ -260,10 +294,35 @@ export default function ConfCall() {
                     md={4}
                     sx={{
                         display: "flex",
+                        flexDirection: "column",
+                        alignItems: "right",
                         justifyContent: "center",
-                        alignItems: "center",
                     }}
                 >
+                    <Box
+                        sx={{
+                            color: "common.confCallControls",
+                            display: "flex",
+                            flexDirection: "row",
+                            marginBottom: "10px",
+                            padding: "0px 0px 0px 15px",
+                        }}
+                    >
+                        {participants &&
+                            participants.map((user) => {
+                                return (
+                                    <Avatar
+                                        key={user.id}
+                                        sx={{ width: 50, height: 50 }}
+                                        alt={user.displayName}
+                                        src={`${UPLOADS_BASE_URL}${user.avatarUrl}`}
+                                    />
+                                );
+                            })}
+                        {participants && participants.length === 0 && (
+                            <span>No one is in the call yet.</span>
+                        )}
+                    </Box>
                     <Box sx={{ color: "common.confCallControls", padding: "0px 0px 0px 15px" }}>
                         Join to the meeting
                         <br />

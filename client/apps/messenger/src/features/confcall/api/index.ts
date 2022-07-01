@@ -15,8 +15,13 @@ const confcallApi = api.injectEndpoints({
                 return { url: `/confcall/${roomId}/leave`, method: "POST" };
             },
         }),
+        participants: build.query<Array<UserType>, number>({
+            query: (roomId) => {
+                return `/confcall/participants/${roomId}`;
+            },
+        }),
     }),
     overrideExisting: true,
 });
 
-export const { useJoinMutation, useLeaveMutation } = confcallApi;
+export const { useJoinMutation, useLeaveMutation, useParticipantsQuery } = confcallApi;

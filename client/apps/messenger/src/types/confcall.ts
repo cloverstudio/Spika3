@@ -1,4 +1,4 @@
 export type callEventPayload = {
-    type: string;
+    type: "CALL_LEAVE" | "CALL_JOIN";
     data: any;
 };

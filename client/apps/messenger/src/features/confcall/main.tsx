@@ -37,7 +37,7 @@ export default function ConfCall() {
         })();
 
         const clearListner = listenCallEvent((data: callEventPayload) => {
-            console.log("call event", data);
+            console.log("event received", data);
         });
 
         return () => {
