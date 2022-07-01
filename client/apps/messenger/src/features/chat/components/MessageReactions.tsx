@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Box, Popover, Typography } from "@mui/material";
+import { Box, Popover, Stack, Typography } from "@mui/material";
 
 import { useGetMessageRecordsByIdQuery } from "../api/message";
 import { MessageRecordType } from "../../../types/Message";
@@ -15,6 +15,18 @@ export default function MessageReactions({
     id,
 }: MessageReactionsProps): React.ReactElement {
     const { data: messageRecordsData } = useGetMessageRecordsByIdQuery(id);
+    const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
+
+    const handleMouseEnter = (event: React.MouseEvent<HTMLDivElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleMouseLeave = () => {
+        setAnchorEl(null);
+    };
+
+    const open = Boolean(anchorEl);
+
     const messageReactions =
         messageRecordsData?.messageRecords.filter((mr) => mr.type === "reaction") || [];
 
@@ -36,17 +48,22 @@ export default function MessageReactions({
         <Box
             display="flex"
             alignItems="end"
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
             justifyContent={isUsersMessage ? "flex-end" : "flex-start"}
+            position="absolute"
+            sx={{
+                ...(isUsersMessage ? { left: 0 } : { right: 0 }),
+            }}
         >
-            <Box
+            <Stack
+                direction="row"
                 bgcolor={isUsersMessage ? "common.myMessageBackground" : "common.chatBackground"}
-                display="inline-flex"
                 position="relative"
-                bottom="15px"
-                left={isUsersMessage ? "-20px" : "36px"}
+                bottom="22px"
+                p={0.375}
                 sx={{
                     borderRadius: "1rem",
-                    padding: "5px 10px",
                     border: "1px solid white",
                     cursor: "default",
                 }}
@@ -54,49 +71,15 @@ export default function MessageReactions({
                 {Object.entries(messageRecordsByReaction).map(([emoji, reactions]) => {
                     return <Reaction key={emoji} emoji={emoji} reactions={reactions} />;
                 })}
-            </Box>
-        </Box>
-    );
-}
-
-type ReactionProps = {
-    emoji: string;
-    reactions: MessageRecordType[];
-};
-
-function Reaction({ emoji, reactions }: ReactionProps): React.ReactElement {
-    const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
-
-    const handleMouseEnter = (event: React.MouseEvent<HTMLDivElement>) => {
-        setAnchorEl(event.currentTarget);
-    };
-
-    const handleMouseLeave = () => {
-        setAnchorEl(null);
-    };
-
-    const open = Boolean(anchorEl);
-
-    return (
-        <>
-            <Box pr={0.75} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-                {emoji}{" "}
-                {reactions.length > 1 ? (
-                    <Typography ml={-0.5} display="inline" fontSize="0.75rem">
-                        {reactions.length}
-                    </Typography>
-                ) : (
-                    ""
-                )}
-            </Box>
+            </Stack>
             <Popover
                 id="reaction-users"
                 open={open}
                 anchorEl={anchorEl}
                 onClose={handleMouseLeave}
                 anchorOrigin={{
-                    vertical: "bottom",
-                    horizontal: "left",
+                    vertical: 32,
+                    horizontal: isUsersMessage ? "left" : "center",
                 }}
                 sx={{
                     pointerEvents: "none",
@@ -107,10 +90,34 @@ function Reaction({ emoji, reactions }: ReactionProps): React.ReactElement {
                 }}
                 disableRestoreFocus
             >
-                {reactions.map((r) => (
-                    <ReactionUser key={r.userId} userId={r.userId} reaction={emoji} />
-                ))}
+                <Box p={0.5}>
+                    {messageReactions.map((r) => (
+                        <ReactionUser key={r.userId} userId={r.userId} reaction={r.reaction} />
+                    ))}
+                </Box>
             </Popover>
+        </Box>
+    );
+}
+
+type ReactionProps = {
+    emoji: string;
+    reactions: MessageRecordType[];
+};
+
+function Reaction({ emoji, reactions }: ReactionProps): React.ReactElement {
+    return (
+        <>
+            <Box p={0.25}>
+                {emoji}{" "}
+                {reactions.length > 1 ? (
+                    <Typography ml={-0.5} display="inline" fontSize="0.75rem">
+                        {reactions.length}
+                    </Typography>
+                ) : (
+                    ""
+                )}
+            </Box>
         </>
     );
 }
@@ -124,7 +131,7 @@ function ReactionUser({ userId, reaction }: ReactionUserProps): React.ReactEleme
     const { data: userData } = useGetUserByIdQuery(userId);
 
     return (
-        <Typography key={userId} sx={{ px: 2, py: 1 }}>
+        <Typography key={userId} sx={{ px: 1, py: 0.5 }}>
             {reaction} {userData?.user.displayName}
         </Typography>
     );

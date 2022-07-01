@@ -7,7 +7,6 @@ import { selectUser } from "../../../store/userSlice";
 import { useGetRoomQuery } from "../api/room";
 import { useParams } from "react-router-dom";
 import { InsertEmoticon } from "@mui/icons-material";
-import MessageReactions from "./MessageReactions";
 import ReactionOptions from "./ReactionOptions";
 import MessageBody from "./MessageBody";
 
@@ -86,7 +85,7 @@ export default function Message({
             <Box
                 display="flex"
                 justifyContent={isUsersMessage ? "flex-end" : "flex-start"}
-                mb={"0.375rem"}
+                mb={"0.25rem"}
             >
                 <Box
                     position="relative"
@@ -106,6 +105,7 @@ export default function Message({
                     )}
 
                     <MessageBody
+                        id={id}
                         type={type}
                         body={body}
                         isUsersMessage={isUsersMessage}
@@ -129,8 +129,6 @@ export default function Message({
                     )}
                 </Box>
             </Box>
-
-            <MessageReactions id={id} isUsersMessage={isUsersMessage} />
 
             {showReactionOptions && (
                 <ReactionOptions messageId={id} onClose={() => setShowReactionOptions(false)} />

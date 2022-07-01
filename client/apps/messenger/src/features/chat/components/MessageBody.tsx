@@ -5,10 +5,28 @@ import getFileIcon from "../lib/getFileIcon";
 import DownloadIcon from "@mui/icons-material/Download";
 import { CloseOutlined, Info } from "@mui/icons-material";
 import { deletedMessageText } from "../lib/consts";
+import MessageReactions from "./MessageReactions";
 
 declare const UPLOADS_BASE_URL: string;
 
-export default function MessageBody({ type, body, isUsersMessage, onMessageClick }) {
+type MessageBodyContainerProps = {
+    id: number;
+    type: string;
+    body: any;
+    isUsersMessage: boolean;
+    onMessageClick: (e: any) => void;
+};
+
+export default function MessageBodyContainer({ id, ...props }: MessageBodyContainerProps) {
+    return (
+        <Box position="relative">
+            <MessageBody {...props} />
+            <MessageReactions id={id} isUsersMessage={props.isUsersMessage} />
+        </Box>
+    );
+}
+
+function MessageBody({ type, body, isUsersMessage, onMessageClick }) {
     const isDeleted = body?.text === deletedMessageText;
 
     if (isDeleted) {
@@ -88,7 +106,7 @@ function ImageMessage({
     };
 
     return (
-        <Box display="flex" flexDirection="column" alignItems={isUsersMessage ? "end" : "start"}>
+        <>
             {body.text && (
                 <TextMessage
                     body={body}
@@ -134,7 +152,7 @@ function ImageMessage({
                     </Box>
                 </>
             </Modal>
-        </Box>
+        </>
     );
 }
 
@@ -157,7 +175,7 @@ function FileMessage({
 
     const Icon = getFileIcon(file.mimeType);
     return (
-        <Box display="flex" flexDirection="column" alignItems={isUsersMessage ? "end" : "start"}>
+        <>
             {body.text && (
                 <TextMessage body={body} isUsersMessage={isUsersMessage} onClick={onClick} />
             )}
@@ -188,7 +206,7 @@ function FileMessage({
                     <DownloadIcon fontSize="large" />
                 </Box>
             </Box>
-        </Box>
+        </>
     );
 }
 
@@ -206,7 +224,7 @@ function VideoMessage({
     }
 
     return (
-        <Box display="flex" flexDirection="column" alignItems={isUsersMessage ? "end" : "start"}>
+        <>
             {body.text && (
                 <TextMessage body={body} isUsersMessage={isUsersMessage} onClick={onClick} />
             )}
@@ -218,7 +236,7 @@ function VideoMessage({
                 src={`${UPLOADS_BASE_URL}${body.file.path}`}
                 pb="0.8125"
             />
-        </Box>
+        </>
     );
 }
 
@@ -236,14 +254,14 @@ function AudioMessage({
     }
 
     return (
-        <Box display="flex" flexDirection="column" alignItems={isUsersMessage ? "end" : "start"}>
+        <>
             {body.text && (
                 <TextMessage body={body} isUsersMessage={isUsersMessage} onClick={onClick} />
             )}
             <Box component="audio" controls borderRadius="0.625rem" maxWidth="35rem" pb="0.8125">
                 <source type={body.file.type} src={`${UPLOADS_BASE_URL}${body.file.path}`} />
             </Box>
-        </Box>
+        </>
     );
 }
 
@@ -285,7 +303,7 @@ function TextMessage({
                     ? "common.myMessageBackground"
                     : "common.chatBackground",
                 borderRadius: "1rem",
-                padding: "10px",
+                padding: "1rem",
                 cursor: "pointer",
                 color: "common.darkBlue",
                 lineHeight: "1.5rem",
