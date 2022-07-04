@@ -27,7 +27,7 @@ import UserType from "../../types/User";
 import { dynamicBaseQuery } from "../../api/api";
 import { RootState } from "../../store/store";
 import * as Constants from "../../../../../lib/constants";
-import ButtonsHolder from "./ButtonsHolder";
+import ButtonsHolder from "./buttonsHolder";
 import * as Styles from "./lib/styles";
 import { useShowSnackBar } from "../../hooks/useModal";
 import SelectBoxDialog from "../../components/SelectBoxDialog";

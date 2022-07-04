@@ -20,6 +20,7 @@ interface CallState {
     windowState: WindowState;
     cameraEnabled: boolean;
     microphoneEnabled: boolean;
+    screenshareEnabled: boolean;
     selectedCamera: string;
     selectedMicrophone: string;
 }
@@ -32,6 +33,7 @@ export const CallSlice = createSlice({
         initialMedia: null,
         cameraEnabled: true,
         microphoneEnabled: true,
+        screenshareEnabled: false,
         selectedCamera: null,
         selectedMicrophone: null,
         windowState: WindowState.maximized,
@@ -49,6 +51,9 @@ export const CallSlice = createSlice({
         setMicrophoneEnabled: (state, { payload }: { payload: boolean }) => {
             state.microphoneEnabled = payload;
         },
+        setScreenshareEnabled: (state, { payload }: { payload: boolean }) => {
+            state.screenshareEnabled = payload;
+        },
         setSelectedCamera: (state, { payload }: { payload: string }) => {
             state.selectedCamera = payload;
         },
@@ -63,6 +68,7 @@ export const {
     setRoomId,
     setCameraEnabled,
     setMicrophoneEnabled,
+    setScreenshareEnabled,
     setSelectedCamera,
     setSelectedMicrophone,
 } = CallSlice.actions;

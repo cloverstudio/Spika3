@@ -650,7 +650,7 @@ async function updateRoomUsers({
 
     const userIdsToRemove = currentIds.filter((id) => !foundUserIds.includes(id));
     await prisma.roomUser.deleteMany({
-        where: { userId: { in: userIdsToRemove }, isAdmin: updatingAdmins },
+        where: { id: room.id, userId: { in: userIdsToRemove }, isAdmin: updatingAdmins },
     });
 
     const userIdsToAdd = foundUserIds.filter((id) => !currentIds.includes(id));
