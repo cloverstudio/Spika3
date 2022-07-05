@@ -13,7 +13,7 @@ import MessageReactions from "./MessageReactions";
 import { useGetMessageRecordsByIdQuery } from "../api/message";
 import getMessageStatus from "../lib/getMessageStatus";
 
-type MessageProps = {
+type MessageRowProps = {
     id: number;
     fromUserId: number;
     seenCount: number;
@@ -28,7 +28,7 @@ type MessageProps = {
 
 declare const UPLOADS_BASE_URL: string;
 
-export default function Message({
+export default function MessageRow({
     id,
     fromUserId,
     seenCount,
@@ -39,7 +39,7 @@ export default function Message({
     nextMessageSenderId,
     previousMessageSenderId,
     clickedAnchor,
-}: MessageProps): React.ReactElement {
+}: MessageRowProps): React.ReactElement {
     const roomId = +useParams().id;
     const { data: messageRecordsData } = useGetMessageRecordsByIdQuery(id);
     const messageReactions =
@@ -63,7 +63,6 @@ export default function Message({
 
     return (
         <Box
-            key={id}
             sx={{
                 "&:hover .reaction-btn": {
                     display: "flex",
