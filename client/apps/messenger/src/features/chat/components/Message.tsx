@@ -11,6 +11,7 @@ import ReactionOptions from "./ReactionOptions";
 import MessageBody from "./MessageBody";
 import MessageReactions from "./MessageReactions";
 import { useGetMessageRecordsByIdQuery } from "../api/message";
+import getMessageStatus from "../lib/getMessageStatus";
 
 type MessageProps = {
     id: number;
@@ -54,18 +55,6 @@ export default function Message({
     const isUsersMessage = user?.id === fromUserId;
     const isFirstMessage = fromUserId !== previousMessageSenderId;
     const isLastMessage = fromUserId !== nextMessageSenderId;
-
-    const getStatusIcon = () => {
-        if (seenCount === totalUserCount) {
-            return "seen";
-        }
-
-        if (deliveredCount === totalUserCount) {
-            return "delivered";
-        }
-
-        return "sent";
-    };
 
     const handleMessageClick = (e) => {
         e.preventDefault();
@@ -121,7 +110,11 @@ export default function Message({
                         isUsersMessage={isUsersMessage}
                     />
 
-                    {isUsersMessage && <MessageStatusIcon status={getStatusIcon()} />}
+                    {isUsersMessage && (
+                        <MessageStatusIcon
+                            status={getMessageStatus({ totalUserCount, deliveredCount, seenCount })}
+                        />
+                    )}
                     {!isUsersMessage && (
                         <Box
                             className="reaction-btn"
