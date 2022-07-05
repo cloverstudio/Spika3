@@ -9,6 +9,8 @@ import { useParams } from "react-router-dom";
 import { InsertEmoticon } from "@mui/icons-material";
 import ReactionOptions from "./ReactionOptions";
 import MessageBody from "./MessageBody";
+import MessageReactions from "./MessageReactions";
+import { useGetMessageRecordsByIdQuery } from "../api/message";
 
 type MessageProps = {
     id: number;
@@ -38,6 +40,9 @@ export default function Message({
     clickedAnchor,
 }: MessageProps): React.ReactElement {
     const roomId = +useParams().id;
+    const { data: messageRecordsData } = useGetMessageRecordsByIdQuery(id);
+    const messageReactions =
+        messageRecordsData?.messageRecords.filter((mr) => mr.type === "reaction") || [];
 
     const user = useSelector(selectUser);
     const { data } = useGetRoomQuery(roomId);
@@ -72,7 +77,7 @@ export default function Message({
             key={id}
             sx={{
                 "&:hover .reaction-btn": {
-                    display: "block",
+                    display: "flex",
                 },
                 position: "relative",
             }}
@@ -85,12 +90,11 @@ export default function Message({
             <Box
                 display="flex"
                 justifyContent={isUsersMessage ? "flex-end" : "flex-start"}
-                mb={"0.25rem"}
+                mb={messageReactions.length ? "1.5rem" : "0.25rem"}
             >
                 <Box
                     position="relative"
-                    width="max-content"
-                    display="flex"
+                    display="inline-flex"
                     alignItems="end"
                     justifyContent={isUsersMessage ? "flex-end" : "flex-start"}
                 >
@@ -112,15 +116,21 @@ export default function Message({
                         onMessageClick={handleMessageClick}
                     />
 
+                    <MessageReactions
+                        messageReactions={messageReactions}
+                        isUsersMessage={isUsersMessage}
+                    />
+
                     {isUsersMessage && <MessageStatusIcon status={getStatusIcon()} />}
                     {!isUsersMessage && (
                         <Box
                             className="reaction-btn"
                             display="none"
-                            alignSelf="center"
-                            position="relative"
-                            top="4px"
-                            right={"-5px"}
+                            alignItems="center"
+                            position="absolute"
+                            top="0"
+                            bottom="0"
+                            right={"-26px"}
                             sx={{ cursor: "pointer" }}
                             onClick={() => setShowReactionOptions((curr) => !curr)}
                         >

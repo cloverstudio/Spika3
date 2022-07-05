@@ -5,11 +5,10 @@ import getFileIcon from "../lib/getFileIcon";
 import DownloadIcon from "@mui/icons-material/Download";
 import { CloseOutlined, Info } from "@mui/icons-material";
 import { deletedMessageText } from "../lib/consts";
-import MessageReactions from "./MessageReactions";
 
 declare const UPLOADS_BASE_URL: string;
 
-type MessageBodyContainerProps = {
+type MessageBodyProps = {
     id: number;
     type: string;
     body: any;
@@ -17,16 +16,12 @@ type MessageBodyContainerProps = {
     onMessageClick: (e: any) => void;
 };
 
-export default function MessageBodyContainer({ id, ...props }: MessageBodyContainerProps) {
-    return (
-        <Box position="relative">
-            <MessageBody {...props} />
-            <MessageReactions id={id} isUsersMessage={props.isUsersMessage} />
-        </Box>
-    );
-}
-
-function MessageBody({ type, body, isUsersMessage, onMessageClick }) {
+export default function MessageBody({
+    type,
+    body,
+    isUsersMessage,
+    onMessageClick,
+}: MessageBodyProps): React.ReactElement {
     const isDeleted = body?.text === deletedMessageText;
 
     if (isDeleted) {
@@ -303,7 +298,7 @@ function TextMessage({
                     ? "common.myMessageBackground"
                     : "common.chatBackground",
                 borderRadius: "1rem",
-                padding: "1rem",
+                padding: "0.75rem",
                 cursor: "pointer",
                 color: "common.darkBlue",
                 lineHeight: "1.5rem",

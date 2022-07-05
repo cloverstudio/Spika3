@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Button, Paper, Stack } from "@mui/material";
 
 import { reactionEmojis } from "../lib/consts";
@@ -14,11 +14,27 @@ export default function ReactionOptions({
     messageId,
 }: ReactionOptionsProps): React.ReactElement {
     const [createReaction] = useCreateReactionMutation();
+    const ref = useRef<HTMLDivElement>();
 
     const handleSelect = async (reaction: string) => {
         await createReaction({ reaction, messageId });
         onClose();
     };
+
+    useEffect(() => {
+        if (ref?.current) {
+            const observer = new IntersectionObserver((entries) => {
+                const isInViewPortNew = !!entries[0]?.isIntersecting;
+                if (!isInViewPortNew) {
+                    ref.current.scrollIntoView({ behavior: "smooth" });
+                }
+            });
+
+            observer.observe(ref.current);
+
+            return () => observer.disconnect();
+        }
+    }, []);
 
     return (
         <Paper
@@ -30,7 +46,7 @@ export default function ReactionOptions({
                 p: 1,
             }}
         >
-            <Stack direction="row" spacing={1}>
+            <Stack direction="row" spacing={1} ref={ref}>
                 {reactionEmojis.map((emoji, i) => (
                     <Button
                         key={i}

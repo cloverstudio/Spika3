@@ -7,14 +7,13 @@ import { useGetUserByIdQuery } from "../api/user";
 
 type MessageReactionsProps = {
     isUsersMessage: boolean;
-    id: number;
+    messageReactions: MessageRecordType[];
 };
 
 export default function MessageReactions({
     isUsersMessage,
-    id,
+    messageReactions,
 }: MessageReactionsProps): React.ReactElement {
-    const { data: messageRecordsData } = useGetMessageRecordsByIdQuery(id);
     const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
 
     const handleMouseEnter = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -26,9 +25,6 @@ export default function MessageReactions({
     };
 
     const open = Boolean(anchorEl);
-
-    const messageReactions =
-        messageRecordsData?.messageRecords.filter((mr) => mr.type === "reaction") || [];
 
     const messageRecordsByReaction: { [key: string]: MessageRecordType[] } =
         messageReactions.reduce((acc, curr) => {
@@ -60,8 +56,8 @@ export default function MessageReactions({
                 direction="row"
                 bgcolor={isUsersMessage ? "common.myMessageBackground" : "common.chatBackground"}
                 position="relative"
-                bottom="22px"
-                p={0.375}
+                top="22px"
+                p={0.5}
                 sx={{
                     borderRadius: "1rem",
                     border: "1px solid white",
