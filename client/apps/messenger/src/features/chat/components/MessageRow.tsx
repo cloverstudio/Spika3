@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef } from "react";
 import { Avatar, Box, Typography } from "@mui/material";
 
 import MessageStatusIcon from "./MessageStatusIcon";
@@ -7,11 +7,12 @@ import { selectUser } from "../../../store/userSlice";
 import { useGetRoomQuery } from "../api/room";
 import { useParams } from "react-router-dom";
 import { InsertEmoticon } from "@mui/icons-material";
-import ReactionOptions from "./ReactionOptions";
 import MessageBody from "./MessageBody";
 import MessageReactions from "./MessageReactions";
 import { useGetMessageRecordsByIdQuery } from "../api/message";
 import getMessageStatus from "../lib/getMessageStatus";
+import ReactionOptionsPopover from "./ReactionOptionsPopover";
+import DatePopover from "./DatePopover";
 
 type MessageRowProps = {
     id: number;
@@ -21,6 +22,7 @@ type MessageRowProps = {
     deliveredCount: number;
     type: string;
     body: any;
+    createdAt: any;
     nextMessageSenderId?: number;
     previousMessageSenderId?: number;
     clickedAnchor: (event: React.MouseEvent<HTMLDivElement>, messageId: number) => void;
@@ -38,6 +40,7 @@ export default function MessageRow({
     body,
     nextMessageSenderId,
     previousMessageSenderId,
+    createdAt,
     clickedAnchor,
 }: MessageRowProps): React.ReactElement {
     const roomId = +useParams().id;
@@ -50,15 +53,31 @@ export default function MessageRow({
     const users = data?.room?.users;
     const roomType = data?.room?.type;
     const sender = users?.find((u) => u.userId === fromUserId)?.user;
-    const [showReactionOptions, setShowReactionOptions] = useState(false);
+    const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
+    const [anchorElCreatedAt, setAnchorElCreatedAt] = React.useState<HTMLElement | null>(null);
 
     const isUsersMessage = user?.id === fromUserId;
     const isFirstMessage = fromUserId !== previousMessageSenderId;
     const isLastMessage = fromUserId !== nextMessageSenderId;
 
+    const anchorRef = useRef<HTMLDivElement>();
+
     const handleMessageClick = (e) => {
         e.preventDefault();
         clickedAnchor(e, id);
+    };
+
+    const handlePopoverOpen = () => {
+        setAnchorEl(anchorRef.current);
+    };
+
+    const handlePopoverClose = () => {
+        setAnchorEl(null);
+        setAnchorElCreatedAt(null);
+    };
+
+    const handlePopoverTimeOpen = () => {
+        setAnchorElCreatedAt(anchorRef.current);
     };
 
     return (
@@ -69,6 +88,8 @@ export default function MessageRow({
                 },
                 position: "relative",
             }}
+            onMouseLeave={handlePopoverClose}
+            ref={anchorRef}
         >
             {roomType === "group" && !isUsersMessage && isFirstMessage && (
                 <Typography color="text.tertiary" fontWeight={600} pl="34px" mb={0.5} mt={2}>
@@ -96,13 +117,15 @@ export default function MessageRow({
                         !isUsersMessage && <Box width="26px" mr={1}></Box>
                     )}
 
-                    <MessageBody
-                        id={id}
-                        type={type}
-                        body={body}
-                        isUsersMessage={isUsersMessage}
-                        onMessageClick={handleMessageClick}
-                    />
+                    <Box onMouseEnter={handlePopoverTimeOpen}>
+                        <MessageBody
+                            id={id}
+                            type={type}
+                            body={body}
+                            isUsersMessage={isUsersMessage}
+                            onMessageClick={handleMessageClick}
+                        />
+                    </Box>
 
                     <MessageReactions
                         messageReactions={messageReactions}
@@ -117,24 +140,30 @@ export default function MessageRow({
                     {!isUsersMessage && (
                         <Box
                             className="reaction-btn"
-                            display="none"
+                            display={Boolean(anchorEl) ? "flex" : "none"}
                             alignItems="center"
                             position="absolute"
                             top="0"
                             bottom="0"
                             right={"-26px"}
                             sx={{ cursor: "pointer" }}
-                            onClick={() => setShowReactionOptions((curr) => !curr)}
                         >
-                            <InsertEmoticon />
+                            <InsertEmoticon onMouseEnter={handlePopoverOpen} />
                         </Box>
                     )}
                 </Box>
             </Box>
-
-            {showReactionOptions && (
-                <ReactionOptions messageId={id} onClose={() => setShowReactionOptions(false)} />
-            )}
+            <ReactionOptionsPopover
+                anchorEl={anchorEl}
+                messageId={id}
+                handleClose={() => handlePopoverClose()}
+            />
+            <DatePopover
+                anchorEl={anchorElCreatedAt}
+                isUsersMessage={isUsersMessage}
+                createdAt={createdAt}
+                handleClose={() => handlePopoverClose()}
+            />
         </Box>
     );
 }
