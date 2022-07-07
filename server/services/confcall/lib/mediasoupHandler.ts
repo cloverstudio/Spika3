@@ -1,22 +1,55 @@
 import * as mediasoup from "mediasoup";
+import { User } from "@prisma/client";
 
 import l, { error as le, warn as lw } from "../../../components/logger";
 import config from "./config";
+import utils from "../../../components/utils";
+import me from "../../messenger/route/me";
 
 type Peer = {
     peerId: string;
-    roomId: string;
-    name: string;
-    producerTransports?: Array<mediasoup.types.Transport>;
+    roomId: number;
+    user: User;
+    producerTransport?: mediasoup.types.WebRtcTransport;
     consumerTransports?: Array<mediasoup.types.Transport>;
-    producers?: mediasoup.types.Producer;
+    producers?: Array<mediasoup.types.Producer>;
     consumers?: Array<mediasoup.types.Consumer>;
 };
 
 type Room = {
-    transport?: mediasoup.types.Transport;
+    roomId: number;
+    transports?: Array<mediasoup.types.Transport>;
     router?: mediasoup.types.Router;
-    peers: Record<string, Peer>;
+    peers: Array<Peer>;
+};
+
+const mediaCodecs: Array<any> = [
+    {
+        kind: "audio",
+        mimeType: "audio/opus",
+        clockRate: 48000,
+        channels: 2,
+    },
+    {
+        kind: "video",
+        mimeType: "video/VP8",
+        clockRate: 90000,
+        parameters: {
+            "x-google-start-bitrate": 1000,
+        },
+    },
+];
+
+const webRtcTransport_options = {
+    listenIps: [
+        {
+            ip: process.env["MEDIASOUP_LISTEN_IP"] || "127.0.0.1", // replace with relevant IP address
+            announcedIp: process.env["MEDIASOUP_ANNOUNCED_IP"] || "127.0.0.1",
+        },
+    ],
+    enableUdp: true,
+    enableTcp: true,
+    preferUdp: true,
 };
 
 class MediasoupHandler {
@@ -59,7 +92,145 @@ class MediasoupHandler {
         })();
     }
 
-    join() {}
+    async join(
+        roomId: number,
+        user: User
+    ): Promise<{
+        peerId: string;
+        transportParams: {
+            id: any;
+            iceParameters: any;
+            iceCandidates: any;
+            dtlsParameters: any;
+        };
+        rtpCapabilities: mediasoup.types.RtpCapabilities;
+    }> {
+        const peerId = utils.randomString(8);
+
+        const newPeer: Peer = {
+            peerId: peerId,
+            roomId: roomId,
+            user: user,
+            producerTransport: null,
+            consumerTransports: [],
+            producers: [],
+            consumers: [],
+        };
+
+        let existingRoom = this.rooms.find((room) => room.roomId === roomId);
+        if (!existingRoom) {
+            const resposibleWorker: mediasoup.types.Worker =
+                this.mediasoupWorkers[roomId % this.mediasoupWorkers.length];
+
+            const newRoom: Room = {
+                roomId: roomId,
+                router: await resposibleWorker.createRouter({ mediaCodecs }),
+                peers: [],
+            };
+
+            existingRoom = newRoom;
+            this.rooms.push(newRoom);
+        }
+
+        existingRoom.peers.push(newPeer);
+
+        // create audio and video transport
+        newPeer.producerTransport = await existingRoom.router.createWebRtcTransport(
+            webRtcTransport_options
+        );
+
+        return {
+            peerId: newPeer.peerId,
+            transportParams: {
+                id: newPeer.producerTransport.id,
+                iceParameters: newPeer.producerTransport.iceParameters,
+                iceCandidates: newPeer.producerTransport.iceCandidates,
+                dtlsParameters: newPeer.producerTransport.dtlsParameters,
+            },
+            rtpCapabilities: existingRoom.router.rtpCapabilities,
+        };
+    }
+
+    async leave(roomId: number, user: User): Promise<void> {
+        let roomIndex: number = -1;
+        let existingRoom = this.rooms.find((room, index) => {
+            roomIndex = index;
+            return room.roomId === roomId;
+        });
+
+        if (!existingRoom) return;
+
+        let peerIndex: number = -1;
+        const peer = existingRoom.peers.find((peer, index) => {
+            peerIndex = index;
+            return peer.user.id === user.id;
+        });
+
+        // delete peer from the room
+        if (peerIndex >= 0) {
+            peer?.producerTransport?.close();
+            existingRoom.peers.splice(peerIndex, 1);
+        }
+
+        // delete room if no one exists
+        if (existingRoom.peers.length === 0) {
+            existingRoom.router?.close();
+            this.rooms.splice(roomIndex, 1);
+        }
+
+        return;
+    }
+
+    async transportConnect(
+        roomId: number,
+        peerId: string,
+        dtlsParameters: mediasoup.types.DtlsParameters
+    ) {
+        let room = this.rooms.find((room, index) => {
+            return room.roomId === roomId;
+        });
+
+        if (!room) throw "Invalid room id";
+
+        let peer = room.peers.find((peer) => peer.peerId === peerId);
+
+        if (!peer) throw "Invalid peer id";
+
+        const provider = peer.producerTransport;
+        if (!provider) throw "Invalid peer id";
+
+        await provider!.connect({ dtlsParameters });
+    }
+
+    async produce(
+        roomId: number,
+        peerId: string,
+        kind: mediasoup.types.MediaKind,
+        rtpParameters: mediasoup.types.RtpParameters
+    ): Promise<string> {
+        let room = this.rooms.find((room, index) => {
+            return room.roomId === roomId;
+        });
+
+        if (!room) throw "Invalid room id";
+
+        let peer = room.peers.find((peer) => peer.peerId === peerId);
+
+        if (!peer) throw "Invalid peer id";
+
+        const provider = peer.producerTransport;
+        if (!provider) throw "Invalid peer id";
+
+        // call produce based on the prameters from the client
+        const producer: mediasoup.types.Producer = await provider.produce({
+            kind: kind,
+            rtpParameters: rtpParameters,
+        });
+
+        peer.producers.push(producer);
+
+        return producer.id;
+    }
 }
 
 export default new MediasoupHandler();

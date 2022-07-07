@@ -19,15 +19,21 @@ const firebaseConfig = {
     appId: FCM_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
-
-const messaging = getMessaging(app);
+let app;
+let messaging;
+try {
+    app = initializeApp(firebaseConfig);
+    messaging = getMessaging(app);
+} catch (e) {
+    console.error("Faied to initialize Firebase");
+}
 
 const vapidKey = FCM_VAPID_KEY;
-
-navigator.serviceWorker.register(`/firebase-messaging-sw.js`);
+if (navigator?.serviceWorker) navigator?.serviceWorker.register(`/firebase-messaging-sw.js`);
 
 export const requestForToken = async (update: any) => {
+    if (!navigator?.serviceWorker) return;
+
     const swRegistration = await navigator.serviceWorker.register(`/firebase-messaging-sw.js`);
     return getToken(messaging, { vapidKey, serviceWorkerRegistration: swRegistration })
         .then((pushToken) => {

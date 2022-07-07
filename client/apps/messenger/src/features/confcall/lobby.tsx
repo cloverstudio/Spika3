@@ -36,9 +36,6 @@ import deviceHandler from "./lib/deviceHandler";
 import { callEventPayload } from "../../types/confcall";
 import { listen as listenCallEvent } from "./lib/callEventListener";
 
-//API
-import { useParticipantsQuery } from "./api";
-
 declare const UPLOADS_BASE_URL: string;
 
 export default function ConfCall() {

@@ -13,7 +13,7 @@ enum WindowState {
     minimized,
 }
 
-interface CallState {
+export interface CallState {
     roomId: number;
     showCall: boolean;
     initialMedia: MediaType;

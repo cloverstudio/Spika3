@@ -35,9 +35,119 @@ export default (params: InitRouterParams) => {
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
-            //mediasoupHandler.test();
+            const { peerId, transportParams, rtpCapabilities } = await mediasoupHandler.join(
+                roomId,
+                userReq.user
+            );
+
+            res.send(
+                successResponse(
+                    {
+                        peerId,
+                        transportParams,
+                        rtpCapabilities,
+                    },
+                    userReq.lang
+                )
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.get("/:roomId/leave", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        const roomId: number = parseInt((req.params.roomId as string) || "");
+
+        try {
+            const room: Room = await prisma.room.findFirst({
+                where: {
+                    id: roomId,
+                },
+            });
+            if (!room) {
+                return res.status(404).send(errorResponse("Not found", userReq.lang));
+            }
+
+            await mediasoupHandler.leave(roomId, userReq.user);
+
+            res.send(successResponse({}));
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.post("/:roomId/transportConnect", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        const roomId: number = parseInt((req.params.roomId as string) || "");
+        const peerId: string = req.body.peerId;
+        const dtlsParameters: any = req.body.dtlsParameters;
+
+        if (!peerId) return res.status(400).send(errorResponse("Invalid peerId", userReq.lang));
+        if (!dtlsParameters)
+            return res.status(400).send(errorResponse("Invalid dtlsParameters", userReq.lang));
+
+        try {
+            const room: Room = await prisma.room.findFirst({
+                where: {
+                    id: roomId,
+                },
+            });
+            if (!room) {
+                return res.status(404).send(errorResponse("Not found", userReq.lang));
+            }
+
+            await mediasoupHandler.transportConnect(roomId, peerId, dtlsParameters);
 
             res.send(successResponse({}, userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.post("/:roomId/transportProduce", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        const roomId: number = parseInt((req.params.roomId as string) || "");
+        const peerId: string = req.body.peerId;
+        const rtpParameters: any = req.body.rtpParameters;
+        const kind: any = req.body.kind;
+
+        if (!peerId) return res.status(400).send(errorResponse("Invalid peerId", userReq.lang));
+        if (!rtpParameters)
+            return res.status(400).send(errorResponse("Invalid rtpParameters", userReq.lang));
+        if (!kind)
+            return res
+                .status(400)
+                .send(errorResponse("Invalid params, kind needed.", userReq.lang));
+
+        try {
+            const room: Room = await prisma.room.findFirst({
+                where: {
+                    id: roomId,
+                },
+            });
+            if (!room) {
+                return res.status(404).send(errorResponse("Not found", userReq.lang));
+            }
+
+            const producerId: string = await mediasoupHandler.produce(
+                roomId,
+                peerId,
+                kind,
+                rtpParameters
+            );
+
+            res.send(
+                successResponse(
+                    {
+                        producerId: producerId,
+                    },
+                    userReq.lang
+                )
+            );
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

@@ -25,6 +25,7 @@ import {
     setScreenshareEnabled,
 } from "./slice/callSlice";
 
+import { useGetUserQuery } from "../auth/api/auth";
 import { RootState } from "../../store/store";
 import UserType from "../../types/User";
 import { dynamicBaseQuery } from "../../api/api";
@@ -37,7 +38,7 @@ import * as Styles from "./lib/styles";
 import SelectBoxDialog from "../../components/SelectBoxDialog";
 import { getCameras, getMicrophones } from "./lib/utils";
 import ParticipantView from "./participantView";
-import mediasoupHander from "./lib/mediasoupHanlder";
+import mediasoupHander, { StreamingState } from "./lib/mediasoupHanlder";
 
 //API
 import { useJoinMutation, useLeaveMutation } from "./api";
@@ -54,9 +55,12 @@ export default function ConfCall() {
     const navigate = useNavigate();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+    const { data: userDataMe } = useGetUserQuery();
 
     const [joinApi] = useJoinMutation();
     const [leaveApi] = useLeaveMutation();
+
+    const streamingState = mediasoupHander.useConnectionStatus();
 
     const roomId = useSelector((state: RootState) => state.call.roomId);
     const cameraEnabled = useSelector((state: RootState) => state.call.cameraEnabled);
@@ -75,12 +79,16 @@ export default function ConfCall() {
     const [viewSize, setViewSize] = useState<participantViewSize>({ xs: 12, md: 12 });
     const [gridStyle, setGridStyle] = useState<CSS.Properties>({});
 
+    const [myVideoStream, setMyVideoStream] = useState<MediaStream>(null);
+    const [myAudioAtream, setMyAudioStream] = useState<MediaStream>(null);
+
     const urlRoomId = parseInt(useParams().id || "");
 
     async function updateParticipants() {
         const res = await dynamicBaseQuery({
             url: `/confcall/participants/${roomId}`,
         });
+
         setParticipants(res.data);
     }
 
@@ -89,19 +97,27 @@ export default function ConfCall() {
         if (roomId === 0) {
             // back to lobby if roomID is not in the state
             navigate(`/rooms/${urlRoomId}/call/lobby/video`);
+            return;
         }
 
         (async () => {
-            await joinApi(callState.roomId);
             setCameraList(await getCameras());
             setMicrophoneList(await getMicrophones());
+
+            await joinApi(callState.roomId);
+            await mediasoupHander.startProduce(callState);
+            await updateParticipants();
         })();
 
-        const clearListner = listenCallEvent((data: callEventPayload) => {
-            updateParticipants();
+        const clearListner = listenCallEvent(async (data: callEventPayload) => {
+            try {
+                console.log("update participants");
+                await updateParticipants();
+            } catch (e) {
+                //This happens when component doesn't exists but this listener is called
+                //It happens often when user leave the room. I ignore this because its annoying.
+            }
         });
-
-        updateParticipants();
 
         return () => {
             clearListner();
@@ -156,6 +172,11 @@ export default function ConfCall() {
         }
     }, [participants]);
 
+    // mediasoup events
+    mediasoupHander.onCameraReady((stream: MediaStream) => {
+        setMyVideoStream(stream);
+    });
+
     return (
         <Box
             sx={{
@@ -168,6 +189,8 @@ export default function ConfCall() {
                 border: "none",
                 zIndex: 500,
                 overflowY: "auto",
+                margin: 0,
+                padding: 0,
             }}
             onMouseMove={() => {
                 if (showControllbarTimer) clearTimeout(showControllbarTimer);
@@ -177,16 +200,6 @@ export default function ConfCall() {
                 }, 300);
             }}
         >
-            {/* main part */}
-            <Grid container>
-                {participants &&
-                    participants.map((user, index) => (
-                        <Grid item {...viewSize} sx={gridStyle}>
-                            <ParticipantView key={index} user={user} />
-                        </Grid>
-                    ))}
-            </Grid>
-
             {/* controller */}
             <Box
                 sx={{
@@ -200,6 +213,7 @@ export default function ConfCall() {
                     background: "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%);",
                     opacity: showControllBar ? "1" : "0",
                     transition: "all 0.5s ease;",
+                    zIndex: 700,
                 }}
             >
                 <ButtonsHolder>
@@ -255,12 +269,41 @@ export default function ConfCall() {
                     <CloseIcon
                         sx={Styles.controlIconDefaultStyle}
                         onClick={async () => {
+                            mediasoupHander.stop();
                             await leaveApi(callState.roomId);
                             navigate(`/rooms/${callState.roomId}`);
                         }}
                     />
                 </ButtonsHolder>
+                <ButtonsHolder>
+                    {streamingState === StreamingState.NotJoined && "Not Joined"}
+                    {streamingState === StreamingState.Joind && "Joined"}
+                    {streamingState === StreamingState.AudioReady && "Audio Ready"}
+                    {streamingState === StreamingState.VideoReady && "Video Ready"}
+                    {streamingState === StreamingState.StartStreaming && "Streamin started"}
+                    {streamingState === StreamingState.WaitingConsumer && "Waiting participants"}
+                    {streamingState === StreamingState.Established && "Established"}
+                    {streamingState === StreamingState.Error && "Error"}
+                </ButtonsHolder>
             </Box>
+
+            {/* main part */}
+            <Grid container>
+                {participants &&
+                    participants.map((user, index) => (
+                        <Grid item {...viewSize} sx={gridStyle} key={index}>
+                            {user.id === userDataMe.user.id ? (
+                                <ParticipantView
+                                    user={user}
+                                    isMe={true}
+                                    videoStream={myVideoStream}
+                                />
+                            ) : (
+                                <ParticipantView user={user} isMe={false} />
+                            )}
+                        </Grid>
+                    ))}
+            </Grid>
 
             {/* modals */}
             <SelectBoxDialog
