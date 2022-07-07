@@ -194,5 +194,5 @@ model CallSession {
   createdAt  DateTime @default(now()) @map(name: "created_at")
   modifiedAt DateTime @default(now()) @map(name: "modified_at")
 
-  @@map(name: "note")
+  @@map(name: "call_session")
 }
