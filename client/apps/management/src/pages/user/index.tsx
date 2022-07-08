@@ -1,16 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
 import Layout from "../layout";
 import { useNavigate } from "react-router-dom";
 import { DataGrid, GridActionsCellItem, GridRenderCellParams } from "@mui/x-data-grid";
 import { Paper, Avatar, Stack, Button, TextField, Drawer, Box, Chip } from "@mui/material";
 import {
-    Add as AddIcon,
     Delete as DeleteIcon,
     Edit as EditIcon,
     Description as DescriptionIcon,
-    CancelOutlined,
-    CheckCircleOutlineOutlined,
     DevicesOther,
     MeetingRoom as RoomIcon,
 } from "@mui/icons-material/";
@@ -28,11 +24,13 @@ import {
     hide as hideCreateUser,
     selectRightSidebarOpen,
 } from "../../store/rightDrawerSlice";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import UserAdd from "../../pages/user/add";
 import UserEdit from "../../pages/user/edit";
 import { useShowBasicDialog, useShowSnackBar } from "../../components/useUI";
 import { useDeleteUserMutation } from "../../api/user";
+
+declare const UPLOADS_BASE_URL: string;
 
 export interface UserMainViewProps {
     onSelect: (value: string) => void;
@@ -83,27 +81,26 @@ export default function Dashboard() {
 
     useEffect(() => {
         (async () => {
-            if (!userSearchIsLoading) {
-                // console.log("SearchData: " + JSON.stringify(userSearchData));
-                if (searchTerm.length > 0) {
-                    setList(userSearchData.list);
-                    setPageSize(userSearchData.limit);
-                    setTotalCount(userSearchData.count);
-                } else {
-                    setList(data.list);
-                    setPageSize(data.limit);
-                    setTotalCount(data.count);
+            const delayDebounceFn = setTimeout(() => {
+                if (!userSearchIsLoading) {
+                    if (searchTerm.length > 0) {
+                        setList(userSearchData.list);
+                        setPageSize(userSearchData.limit);
+                        setTotalCount(userSearchData.count);
+                    } else {
+                        setList(data.list);
+                        setPageSize(data.limit);
+                        setTotalCount(data.count);
+                    }
                 }
-            }
+            }, 2000);
         })();
     }, [userSearchData]);
 
     useEffect(() => {
         (async () => {
             if (!filterSearchIsLoading) {
-                // console.log("FilterType: " + filterType);
                 const boolValue = filterType === "true";
-                // console.log("FilterhData: " + JSON.stringify(filterSearchData));
                 setIsFilterOn(boolValue);
                 if (boolValue) {
                     setList(filterSearchData.list);
@@ -140,7 +137,7 @@ export default function Dashboard() {
             filterable: false,
             renderCell: (params: GridRenderCellParams<string>) => (
                 <strong>
-                    <Avatar alt="Remy Sharp" src={params.value} />
+                    <Avatar alt="Remy Sharp" src={`${UPLOADS_BASE_URL}${params.value}`} />
                 </strong>
             ),
         },
@@ -186,22 +183,6 @@ export default function Dashboard() {
                 </strong>
             ),
         },
-        // {
-        //     field: "createdAt",
-        //     headerName: "Created",
-        //     type: "dateTime",
-        //     flex: 0.5,
-        //     sortable: false,
-        //     filterable: false,
-        // },
-        // {
-        //     field: "modifiedAt",
-        //     headerName: "Modified",
-        //     type: "dateTime",
-        //     flex: 0.5,
-        //     sortable: false,
-        //     filterable: false,
-        // },
         {
             field: "actions",
             type: "actions",

@@ -63,6 +63,7 @@ export default defineConfig(({ command, mode }) => {
         },
         define: {
             BASE_URL: JSON.stringify("/management"),
+            UPLOADS_BASE_URL: JSON.stringify(env.UPLOADS_BASE_URL),
             API_BASE_URL: JSON.stringify(env.API_BASE_URL),
         },
         server: {

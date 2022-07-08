@@ -162,31 +162,18 @@ function DashboardContent({ subtitle, children, showBack = false, selectedFilter
 
     useEffect(() => {
         (async () => {
-            switch (location.pathname) {
-                case "/dashboard": {
-                    setSelectedIndex(0);
-                    setFilterType(FilterType.None);
-                    break;
-                }
-                case "/user": {
-                    setSelectedIndex(1);
-                    setFilterType(FilterType.User);
-                    break;
-                }
-                case "/device": {
-                    setSelectedIndex(2);
-                    setFilterType(FilterType.Device);
-                    break;
-                }
-                case "/room": {
-                    setSelectedIndex(3);
-                    setFilterType(FilterType.Room);
-                    break;
-                }
-                default: {
-                    //statements;
-                    break;
-                }
+            if (location.pathname.includes("dashboard")) {
+                setSelectedIndex(0);
+                setFilterType(FilterType.None);
+            } else if (location.pathname.includes("user")) {
+                setSelectedIndex(1);
+                setFilterType(FilterType.User);
+            } else if (location.pathname.includes("device")) {
+                setSelectedIndex(2);
+                setFilterType(FilterType.Device);
+            } else if (location.pathname.includes("room")) {
+                setSelectedIndex(3);
+                setFilterType(FilterType.Room);
             }
         })();
     }, []);
@@ -389,7 +376,7 @@ function DashboardContent({ subtitle, children, showBack = false, selectedFilter
                         paddingTop: "64px",
                     }}
                 >
-                    <FilterView type={filterType} />
+                    {location.pathname.includes("detail") ? null : <FilterView type={filterType} />}
                     {children}
                 </Box>
             </Box>

@@ -51,6 +51,12 @@ export default function FilterView(props: FilterViewProps) {
                 break;
             }
             case FilterType.Room: {
+                if (trueValue == 1) {
+                    filterString = "group";
+                }
+                if (trueValue == 2) {
+                    filterString = "private";
+                }
                 break;
             }
             default: {
@@ -83,7 +89,7 @@ export default function FilterView(props: FilterViewProps) {
                 }
                 case FilterType.Room: {
                     setTitle("Room Type");
-                    setFilterOptions(["Group", "Private"]);
+                    setFilterOptions(["", "Group", "Private"]);
                     break;
                 }
                 default: {
@@ -111,7 +117,7 @@ export default function FilterView(props: FilterViewProps) {
                             onChange={handleChange}
                         >
                             {filterOptions.map((item, index) => (
-                                <MenuItem value={index} key={index}>
+                                <MenuItem sx={{ height: "50px" }} value={index} key={index}>
                                     {item}
                                 </MenuItem>
                             ))}

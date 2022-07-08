@@ -26,7 +26,6 @@ export default function Page() {
         (async () => {
             if (!isLoading) {
                 const response: DeviceType = data.device;
-                console.log(response);
                 setDetail(response);
             }
         })();

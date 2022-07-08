@@ -15,6 +15,7 @@ const deviceApi = api.injectEndpoints({
             query: (data) => {
                 return { url: "/management/device", data, method: "POST" };
             },
+            invalidatesTags: (res) => res && [{ type: "Device", id: "LIST" }],
         }),
         getDeviceById: build.query<{ device: DeviceType }, string>({
             query: (deviceId) => {
@@ -33,6 +34,10 @@ const deviceApi = api.injectEndpoints({
             },
             invalidatesTags: (res) => res && [{ type: "Device", id: "LIST" }],
         }),
+        getDevicesBySearchTerm: build.query<DeviceListType, string>({
+            query: (searchTerm) => `/management/device/search?searchTerm=${searchTerm}`,
+            providesTags: [{ type: "Device", id: "LIST" }],
+        }),
     }),
     overrideExisting: true,
 });
@@ -44,5 +49,6 @@ export const {
     useGetDeviceByIdQuery,
     useUpdateDeviceMutation,
     useDeleteDeviceMutation,
+    useGetDevicesBySearchTermQuery,
 } = deviceApi;
 export default deviceApi;

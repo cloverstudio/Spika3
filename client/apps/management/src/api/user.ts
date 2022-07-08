@@ -7,7 +7,7 @@ const userApi = api.injectEndpoints({
             query: (page) => `/management/user?page=${page}`,
             providesTags: [{ type: "User", id: "LIST" }],
         }),
-        createUser: build.mutation<{ room: UserType }, any>({
+        createUser: build.mutation<{ user: UserType }, any>({
             query: (data) => {
                 return { url: "/management/user", data, method: "POST" };
             },
@@ -18,7 +18,7 @@ const userApi = api.injectEndpoints({
                 return `/management/user/${userId}`;
             },
         }),
-        updateUser: build.mutation<{ room: UserType }, { userId: string; data: any }>({
+        updateUser: build.mutation<{ user: UserType }, { userId: string; data: any }>({
             query: ({ userId, data }) => {
                 return { url: `/management/user/${userId}`, method: "PUT", data };
             },

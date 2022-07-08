@@ -17,7 +17,6 @@ export default (params: InitRouterParams) => {
     router.get("/search", adminAuth, async (req: Request, res: Response) => {
         const searchTerm: string = req.query.searchTerm ? (req.query.searchTerm as string) : "";
         const userReq: UserRequest = req as UserRequest;
-        console.log("SearchTerm:" + searchTerm);
         try {
             var allUsers: User[] = [];
             if (onlyNumbers(searchTerm)) {
@@ -28,7 +27,6 @@ export default (params: InitRouterParams) => {
                         },
                     },
                 });
-                // console.log(phoneUsers);
                 allUsers.push(...phoneUsers);
             }
 
@@ -39,7 +37,6 @@ export default (params: InitRouterParams) => {
                     },
                 },
             });
-            // console.log(emailUsers);
             const nameUsers: User[] = await prisma.user.findMany({
                 where: {
                     displayName: {
@@ -47,7 +44,6 @@ export default (params: InitRouterParams) => {
                     },
                 },
             });
-            // console.log(nameUsers);
             allUsers.push(...emailUsers);
             allUsers.push(...nameUsers);
 
@@ -55,7 +51,6 @@ export default (params: InitRouterParams) => {
                 (value, index, self) => index === self.findIndex((t) => t.id === value.id)
             );
 
-            console.log(allUsers);
             const count = allUsers.length;
 
             return res.send(
@@ -291,14 +286,12 @@ export default (params: InitRouterParams) => {
         const userReq: UserRequest = req as UserRequest;
         try {
             const userId: number = parseInt(req.params.userId);
-            console.log(JSON.stringify(req.params));
             // check existance
             const user = await prisma.user.findFirst({
                 where: {
                     id: userId,
                 },
             });
-            console.log(JSON.stringify(user));
 
             if (!user) return res.status(404).send(errorResponse(`Wrong user id`, userReq.lang));
 

@@ -1,6 +1,6 @@
 import api from "./api";
-import RoomType, { RoomListType } from "../types/Room";
-import { string } from "yup";
+import RoomType, { RoomListType, RoomMixType } from "../types/Room";
+import UserType, { UserListType } from "../types/User";
 
 const roomApi = api.injectEndpoints({
     endpoints: (build) => ({
@@ -46,6 +46,45 @@ const roomApi = api.injectEndpoints({
                 `/management/room?page=${page}&userId=${userId}&deleted=${deleted}`,
             providesTags: [{ type: "Rooms", id: "LIST" }],
         }),
+        getRoomsBySearchTerm: build.query<RoomListType, string>({
+            query: (searchTerm) => `/management/room/search?searchTerm=${searchTerm}`,
+            providesTags: [{ type: "Rooms", id: "LIST" }],
+        }),
+        getGroupRooms: build.query<RoomListType, { page: number; type: string }>({
+            query: ({ page, type }) => `/management/room/group?page=${page}&type=${type}`,
+            providesTags: [{ type: "Rooms", id: "LIST" }],
+        }),
+        getUsersForRoom: build.query<RoomMixType, number>({
+            query: (roomId) => `/management/room/users?roomId=${roomId}`,
+            providesTags: [{ type: "RoomUser", id: "USERS" }],
+        }),
+        deleteUserInRoom: build.mutation<
+            { users: UserListType },
+            { roomId: number; userId: number }
+        >({
+            query: ({ roomId, userId }) => {
+                return { url: `/management/room/${roomId}/${userId}`, method: "DELETE" };
+            },
+            invalidatesTags: (res) => res && [{ type: "RoomUser", id: "USERS" }],
+        }),
+        addUsersToRoom: build.mutation<any, { roomId: number; userIds: number[] }>({
+            query: ({ roomId, userIds }) => {
+                return {
+                    url: `/management/room/addUsers?roomId=${roomId}&userIds=${userIds}`,
+                    method: "PUT",
+                };
+            },
+            invalidatesTags: (res) => res && [{ type: "RoomUser", id: "USERS" }],
+        }),
+        updateAdminForRoom: build.mutation<any, { roomId: number; userId: number }>({
+            query: ({ roomId, userId }) => {
+                return {
+                    url: `/management/room/userAdmin?roomId=${roomId}&userId=${userId}`,
+                    method: "PUT",
+                };
+            },
+            invalidatesTags: (res) => res && [{ type: "RoomUser", id: "USERS" }],
+        }),
     }),
     overrideExisting: true,
 });
@@ -59,5 +98,11 @@ export const {
     useDeleteRoomMutation,
     useGetDeletedRoomsQuery,
     useGetDeletedRoomsForUserQuery,
+    useGetRoomsBySearchTermQuery,
+    useGetGroupRoomsQuery,
+    useGetUsersForRoomQuery,
+    useDeleteUserInRoomMutation,
+    useAddUsersToRoomMutation,
+    useUpdateAdminForRoomMutation,
 } = roomApi;
 export default roomApi;

@@ -2,9 +2,8 @@ import React, { useEffect, useState } from "react";
 import Layout from "../layout";
 import { useNavigate, useParams } from "react-router-dom";
 import { DataGrid, GridActionsCellItem, GridRenderCellParams } from "@mui/x-data-grid";
-import { Paper, Fab, Avatar, Checkbox, FormGroup, FormControlLabel } from "@mui/material";
+import { Paper, Avatar, Stack, TextField, Button, Drawer, Box } from "@mui/material";
 import {
-    Add as AddIcon,
     Delete as DeleteIcon,
     Edit as EditIcon,
     Description as DescriptionIcon,
@@ -21,43 +20,24 @@ import {
     useGetDeletedRoomsForUserQuery,
 } from "../../api/room";
 import RoomType from "../../types/Room";
+import {
+    show as openCreateRoom,
+    hide as hideCreateRoom,
+    selectRightSidebarOpen,
+} from "../../store/rightDrawerSlice";
+import { useDispatch, useSelector } from "react-redux";
+import theme from "../../theme";
+import RoomAdd from "../../pages/room/add";
+import RoomEdit from "../../pages/room/edit";
+import { useShowBasicDialog, useShowSnackBar } from "../../components/useUI";
+import {
+    useUpdateRoomMutation,
+    useGetRoomsBySearchTermQuery,
+    useGetGroupRoomsQuery,
+} from "../../api/room";
+import { currentFilter } from "../../store/filterSlice";
 
-const defaultTheme = createTheme();
-const useStyles = makeStyles(
-    (theme: {
-        palette: {
-            mode: string;
-            info: { main: any };
-            success: { main: any };
-            warning: { main: any };
-            error: { main: any };
-        };
-    }) => {
-        const getBackgroundColor = (color: string) =>
-            theme.palette.mode === "dark" ? darken(color, 0.6) : lighten(color, 0.6);
-
-        const getHoverBackgroundColor = (color: string) =>
-            theme.palette.mode === "dark" ? darken(color, 0.5) : lighten(color, 0.5);
-
-        return {
-            root: {
-                "& .super-app-theme--true": {
-                    backgroundColor: getBackgroundColor(theme.palette.info.main),
-                    "&:hover": {
-                        backgroundColor: getHoverBackgroundColor(theme.palette.info.main),
-                    },
-                },
-                "& .super-app-theme--false": {
-                    backgroundColor: getBackgroundColor(theme.palette.success.main),
-                    "&:hover": {
-                        backgroundColor: getHoverBackgroundColor(theme.palette.success.main),
-                    },
-                },
-            },
-        };
-    },
-    { defaultTheme }
-);
+declare const UPLOADS_BASE_URL: string;
 
 export default function RoomIndex() {
     const [loading, setLoading] = React.useState<boolean>(false);
@@ -67,9 +47,31 @@ export default function RoomIndex() {
     const [deleteFilter, setDeleteFilter] = React.useState<boolean>(false);
     const [page, setPage] = useState(0);
     const urlParams = useParams();
+    const [searchTerm, setSearchTerm] = React.useState("");
+    const dispatch = useDispatch();
+    const filterType = useSelector(currentFilter);
+    const isRightDrawerOpen = useSelector(selectRightSidebarOpen);
+    const [showEditDrawer, setShowEditDrawer] = React.useState<boolean>(false);
+    const [selectedRoomId, setSelectedRoomId] = React.useState<number>(0);
+    const showSnackBar = useShowSnackBar();
+    const showBasicDialog = useShowBasicDialog();
+    const [updateRoom, updateRoomMutation] = useUpdateRoomMutation();
+    const { data: roomSearchData, isLoading: roomSearchIsLoading } =
+        useGetRoomsBySearchTermQuery(searchTerm);
+    const { data: filterSearchData, isLoading: filterSearchIsLoading } = useGetGroupRoomsQuery({
+        page: page,
+        type: filterType,
+    });
 
     const navigate = useNavigate();
-    const classes = useStyles();
+
+    const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(event.target.value);
+    };
+    const hideDrawer = () => {
+        setShowEditDrawer(false);
+        dispatch(hideCreateRoom());
+    };
 
     const { data, isLoading } = !deleteFilter
         ? urlParams.id == null
@@ -94,6 +96,40 @@ export default function RoomIndex() {
     }, [data]);
 
     useEffect(() => {
+        (async () => {
+            const delayDebounceFn = setTimeout(() => {
+                if (!roomSearchIsLoading) {
+                    if (searchTerm.length > 0) {
+                        setList(roomSearchData.list);
+                        setPageSize(roomSearchData.limit);
+                        setTotalCount(roomSearchData.count);
+                    } else {
+                        setList(data.list);
+                        setPageSize(data.limit);
+                        setTotalCount(data.count);
+                    }
+                }
+            }, 2000);
+        })();
+    }, [roomSearchData]);
+
+    useEffect(() => {
+        (async () => {
+            if (!filterSearchIsLoading) {
+                if (filterType === "group" || filterType === "private") {
+                    setList(filterSearchData.list);
+                    setPageSize(filterSearchData.limit);
+                    setTotalCount(filterSearchData.count);
+                } else {
+                    setList(data.list);
+                    setPageSize(data.limit);
+                    setTotalCount(data.count);
+                }
+            }
+        })();
+    }, [filterType]);
+
+    useEffect(() => {
         (async () => {})();
     }, [deleteFilter]);
 
@@ -107,7 +143,7 @@ export default function RoomIndex() {
             filterable: false,
             renderCell: (params: GridRenderCellParams<string>) => (
                 <strong>
-                    <Avatar alt="Remy Sharp" src={params.value} />
+                    <Avatar alt="Remy Sharp" src={`${UPLOADS_BASE_URL}${params.value}`} />
                 </strong>
             ),
         },
@@ -139,22 +175,22 @@ export default function RoomIndex() {
                 </strong>
             ),
         },
-        {
-            field: "createdAt",
-            headerName: "Created",
-            type: "dateTime",
-            flex: 0.5,
-            sortable: false,
-            filterable: false,
-        },
-        {
-            field: "modifiedAt",
-            headerName: "Modified",
-            type: "dateTime",
-            flex: 0.5,
-            sortable: false,
-            filterable: false,
-        },
+        // {
+        //     field: "createdAt",
+        //     headerName: "Created",
+        //     type: "dateTime",
+        //     flex: 0.5,
+        //     sortable: false,
+        //     filterable: false,
+        // },
+        // {
+        //     field: "modifiedAt",
+        //     headerName: "Modified",
+        //     type: "dateTime",
+        //     flex: 0.5,
+        //     sortable: false,
+        //     filterable: false,
+        // },
         {
             field: "actions",
             type: "actions",
@@ -169,13 +205,11 @@ export default function RoomIndex() {
                 <GridActionsCellItem
                     icon={<EditIcon />}
                     label="Edit"
-                    onClick={() => navigate(`/room/edit/${params.id}`)}
-                    showInMenu
-                />,
-                <GridActionsCellItem
-                    icon={<DeleteIcon />}
-                    label="Delete"
-                    onClick={() => navigate(`/room/delete/${params.id}`)}
+                    onClick={(e) => {
+                        setSelectedRoomId(params.id);
+                        setShowEditDrawer(true);
+                        dispatch(openCreateRoom());
+                    }}
                     showInMenu
                 />,
             ],
@@ -190,23 +224,37 @@ export default function RoomIndex() {
                     padding: "24px",
                 }}
             >
-                <FormGroup>
-                    <FormControlLabel
-                        label="Only Deleted"
-                        control={
-                            <Checkbox
-                                checked={deleteFilter}
-                                onChange={(e) => {
-                                    setDeleteFilter(e.target.checked);
-                                }}
-                            />
-                        }
-                    />
-                </FormGroup>
-                <div
-                    style={{ display: "flex", width: "100%", flexGrow: 1 }}
-                    className={classes.root}
+                <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                    sx={{
+                        display: "flex",
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        width: "100%",
+                        mb: "1em",
+                    }}
                 >
+                    <TextField
+                        label="Search Room"
+                        id="outlined-size-small"
+                        size="small"
+                        sx={{ minWidth: 400 }}
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                    />
+                    <Button
+                        type="submit"
+                        color="spikaButton"
+                        variant="contained"
+                        sx={{ mt: 3, mb: 2 }}
+                        onClick={() => dispatch(openCreateRoom())}
+                    >
+                        ADD ROOM
+                    </Button>
+                </Stack>
+                <div style={{ display: "flex", width: "100%", flexGrow: 1 }}>
                     <DataGrid
                         autoHeight
                         rows={list}
@@ -222,18 +270,26 @@ export default function RoomIndex() {
                         }
                     />
                 </div>
+                <Drawer
+                    PaperProps={{
+                        sx: {
+                            backgroundColor: theme.palette.spikaMainBackgroundColor.main,
+                        },
+                    }}
+                    anchor="right"
+                    sx={{ zIndex: 1300 }}
+                    open={isRightDrawerOpen}
+                    onClose={hideDrawer}
+                >
+                    <Box width={400}>
+                        {showEditDrawer ? (
+                            <RoomEdit roomId={String(selectedRoomId)} />
+                        ) : (
+                            <RoomAdd />
+                        )}
+                    </Box>
+                </Drawer>
             </Paper>
-
-            <Fab
-                color="primary"
-                aria-label="add"
-                sx={{ position: "absolute", right: 64, bottom: 128, zIndex: 100 }}
-                onClick={(e) => {
-                    navigate("/room/add");
-                }}
-            >
-                <AddIcon />
-            </Fab>
         </Layout>
     );
 }

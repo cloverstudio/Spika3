@@ -16,6 +16,65 @@ import { Device } from "@prisma/client";
 export default (params: InitRouterParams) => {
     const router = Router();
 
+    router.get("/search", adminAuth, async (req: Request, res: Response) => {
+        const searchTerm: string = req.query.searchTerm ? (req.query.searchTerm as string) : "";
+        const userReq: UserRequest = req as UserRequest;
+
+        try {
+            const allDevices: Device[] = await prisma.device.findMany({
+                where: {
+                    OR: [
+                        {
+                            deviceId: {
+                                contains: searchTerm,
+                            },
+                        },
+                        {
+                            type: {
+                                contains: searchTerm,
+                            },
+                        },
+                        {
+                            osName: {
+                                contains: searchTerm,
+                            },
+                        },
+                        {
+                            appVersion: {
+                                contains: searchTerm,
+                            },
+                        },
+                        {
+                            token: {
+                                contains: searchTerm,
+                            },
+                        },
+                        {
+                            pushToken: {
+                                contains: searchTerm,
+                            },
+                        },
+                    ],
+                },
+            });
+            const count = allDevices.length;
+
+            return res.send(
+                successResponse(
+                    {
+                        list: allDevices,
+                        count: count,
+                        limit: consts.PAGING_LIMIT,
+                    },
+                    userReq.lang
+                )
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
     router.post("/", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
@@ -122,7 +181,6 @@ export default (params: InitRouterParams) => {
 
     router.put("/:deviceId", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
-        console.log("do tu dodje");
         try {
             const idOfDevice: number = parseInt(req.params.deviceId);
             const userId: number = parseInt(req.body.userId);
