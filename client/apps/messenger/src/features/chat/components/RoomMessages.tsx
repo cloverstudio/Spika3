@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Box } from "@mui/material";
+import { ExpandMore } from "@mui/icons-material";
 
 import {
     selectRoomMessages,
@@ -9,13 +10,13 @@ import {
     setEditMessage,
 } from "../slice/chatSlice";
 
-import Message from "../components/Message";
+import MessageRow from "./MessageRow";
 import DeleteMessageDialog from "./DeleteMessageDialog";
-import { MessageMenu, MessageDetailDialog } from "../components/MessageMenu";
-import { ExpandMore } from "@mui/icons-material";
+import { MessageMenu, MessageDetailDialog } from "./MessageMenu";
 import { useGetUserQuery } from "../../auth/api/auth";
 import AttachmentManager from "../lib/AttachmentManager";
 import { deletedMessageText } from "../lib/consts";
+import NewMessageAlert from "./NewMessageAlert";
 type RoomMessagesProps = {
     roomId: number;
 };
@@ -208,21 +209,7 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
             sx={{ overflowY: "hidden" }}
         >
             {newMessages > 0 && (
-                <Box position="absolute" width="100%" textAlign="center">
-                    <Box display="inline-block" onClick={onScrollDown}>
-                        <Box
-                            bgcolor="common.myMessageBackground"
-                            borderRadius="0.625rem"
-                            display="flex"
-                            m={0.5}
-                            p={1}
-                            sx={{ cursor: "pointer" }}
-                        >
-                            <Box>{`${newMessages} new message${newMessages > 1 ? "s" : ""}`}</Box>
-                            <ExpandMore />
-                        </Box>
-                    </Box>
-                </Box>
+                <NewMessageAlert newMessages={newMessages} onScrollDown={onScrollDown} />
             )}
             <Box
                 px={1}
@@ -252,7 +239,7 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
                     <p> Drop files now </p>
                 </Box>
                 {messagesSorted.map((m, i) => (
-                    <Message
+                    <MessageRow
                         key={m.id}
                         {...m}
                         nextMessageSenderId={messagesSorted[i + 1]?.fromUserId}

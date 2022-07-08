@@ -25,7 +25,7 @@ declare const UPLOADS_BASE_URL: string;
 const userModelSchema = yup.object({
     displayName: yup.string().required("Display name is required"),
     telephoneNumber: yup.string().required("Telephone number is required"),
-    email: yup.string().required("Email is required").email("Not valid email"),
+    email: yup.string(),
     avatarUrl: yup.string(),
     verificationCode: yup.string(),
     verified: yup.boolean(),
@@ -41,6 +41,7 @@ export default function Page(props: EditUserProps) {
     const { data, isLoading } = useGetUserByIdQuery(userId);
     const [updateUser, updateUserMutation] = useUpdateUserMutation();
     const dispatch = useDispatch();
+
     const [file, setFile] = useState<File>();
     const uploadFileRef = React.useRef(null);
 
@@ -113,7 +114,6 @@ export default function Page(props: EditUserProps) {
 
     const validateAndUpdate = async () => {
         try {
-            console.log("alooooooooo");
             if (file) {
                 const uploadedFile = await uploadFile({
                     file,
@@ -132,7 +132,6 @@ export default function Page(props: EditUserProps) {
                     },
                 });
             } else {
-                console.log("alooooooooo");
                 await updateUser({
                     userId: userId,
                     data: {
@@ -145,7 +144,6 @@ export default function Page(props: EditUserProps) {
                     },
                 });
             }
-            console.log("alooooooooo");
             showSnackBar({ severity: "success", text: "User updated" });
             dispatch(hide());
         } catch (e: any) {
@@ -197,23 +195,19 @@ export default function Page(props: EditUserProps) {
                     inputProps={{ style: { fontSize: 15 } }}
                     InputLabelProps={{ style: { fontSize: 15 } }}
                 />
-                <Stack alignItems="center" spacing={1} direction="row">
-                    <TextField
-                        required
-                        fullWidth
-                        id="telephoneNumber"
-                        error={
-                            formik.touched.telephoneNumber && Boolean(formik.errors.telephoneNumber)
-                        }
-                        label="Phone number"
-                        value={formik.values.telephoneNumber}
-                        onChange={formik.handleChange}
-                        helperText={formik.touched.telephoneNumber && formik.errors.telephoneNumber}
-                        size="small"
-                        inputProps={{ style: { fontSize: 15 } }}
-                        InputLabelProps={{ style: { fontSize: 15 } }}
-                    />
-                </Stack>
+                <TextField
+                    required
+                    fullWidth
+                    id="telephoneNumber"
+                    error={formik.touched.telephoneNumber && Boolean(formik.errors.telephoneNumber)}
+                    label="Phone number"
+                    value={formik.values.telephoneNumber}
+                    onChange={formik.handleChange}
+                    helperText={formik.touched.telephoneNumber && formik.errors.telephoneNumber}
+                    size="small"
+                    inputProps={{ style: { fontSize: 15 } }}
+                    InputLabelProps={{ style: { fontSize: 15 } }}
+                />
                 <TextField
                     fullWidth
                     id="email"
@@ -263,11 +257,7 @@ export default function Page(props: EditUserProps) {
                     </FormGroup>
                 </FormControl>
                 <Stack spacing={2} direction="row">
-                    <Button
-                        variant="contained"
-                        onClick={() => dispatch(hide())}
-                        color="spikaButton"
-                    >
+                    <Button variant="contained" type="submit" color="spikaButton">
                         Edit user
                     </Button>
                     <Button variant="outlined" color="spikaGrey" onClick={() => dispatch(hide())}>

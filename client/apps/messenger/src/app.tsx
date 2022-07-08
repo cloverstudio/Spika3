@@ -22,7 +22,7 @@ export default function App(): React.ReactElement {
                     <Route path="rooms" element={<HomePage />}>
                         <Route path=":id" element={<RoomPage />} />
                         <Route path=":id/call/lobby/:media" element={<RoomPage />} />
-                        <Route path=":id/call/:media" element={<RoomPage />} />
+                        <Route path=":id/call" element={<RoomPage />} />
                     </Route>
                     <Route path="/playground" element={<Playground />} />
                 </Routes>

@@ -1,7 +1,14 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { Box, Grid, useMediaQuery, Button } from "@mui/material";
-import { setShowCall, setRoomId } from "./slice/callSlice";
+import {
+    setShowCall,
+    setRoomId,
+    setCameraEnabled,
+    setMicrophoneEnabled,
+    setSelectedCamera,
+    setSelectedMicrophone,
+} from "./slice/callSlice";
 import { useSelector, useDispatch } from "react-redux";
 import {
     Close as CloseIcon,
@@ -21,11 +28,20 @@ import ButtonsHolder from "./ButtonsHolder";
 import * as Styles from "./lib/styles";
 import { useShowSnackBar } from "../../hooks/useModal";
 import SelectBoxDialog from "../../components/SelectBoxDialog";
-import { getCameras, getMicrophones } from "./lib/Utils";
+import { getCameras, getMicrophones } from "./lib/utils";
 import deviceHandler from "./lib/deviceHandler";
 
 export default function ConfCall() {
+    const isCall = /^.+\/call\/.+$/.test(window.location.pathname);
+    const isLobby = /^.+\/call\/lobby\/.+$/.test(window.location.pathname);
+    const urlState = /^.+\/call\/lobby\/video$/.test(window.location.pathname) ? "video" : "audio";
+
     const callState = useSelector((state: RootState) => state.call);
+    const cameraEnabled = useSelector((state: RootState) => state.call.cameraEnabled);
+    const microphoneEnabled = useSelector((state: RootState) => state.call.microphoneEnabled);
+    const selectedCamera = useSelector((state: RootState) => state.call.selectedCamera);
+    const selectedMicrophone = useSelector((state: RootState) => state.call.selectedMicrophone);
+
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const theme = useTheme();
@@ -34,20 +50,12 @@ export default function ConfCall() {
     const localAudioRef = useRef<HTMLAudioElement>(null);
     const showSnackbar = useShowSnackBar();
 
-    const isCall = /^.+\/call\/.+$/.test(window.location.pathname);
-    const isLobby = /^.+\/call\/lobby\/.+$/.test(window.location.pathname);
-    const urlState = /^.+\/call\/lobby\/video$/.test(window.location.pathname) ? "video" : "audio";
-
     const roomId = parseInt(useParams().id || "");
-    const [cameraEnabled, setCameraEnabled] = useState<boolean>(urlState === "video");
-    const [micEnabled, setMicEnabled] = useState<boolean>(true);
     const [showCameraSelectDialog, setShowCameraSelectDialog] = useState<boolean>(false);
     const [cameraList, setCameraList] = useState<Array<MediaDeviceInfo>>(null);
-    const [selectedCamera, setSelectedCamera] = useState<MediaDeviceInfo>(null);
 
     const [microphoneList, setMicrophoneList] = useState<Array<MediaDeviceInfo>>(null);
     const [showMicrophoneSelectDialog, setShowMicrophoneSelectDialog] = useState<boolean>(false);
-    const [selectedMicrophone, setSelectedMicrophone] = useState<MediaDeviceInfo>(null);
 
     function updateDevice() {
         // init camera
@@ -62,7 +70,7 @@ export default function ConfCall() {
                 if (!cameraEnabled) deviceHandler.closeCamera();
             } catch (e) {
                 console.error(e);
-                setCameraEnabled(false);
+                dispatch(setCameraEnabled(false));
                 showSnackbar({
                     severity: "error",
                     text: "Failed to find a webcamera.",
@@ -70,16 +78,16 @@ export default function ConfCall() {
             }
 
             try {
-                if (micEnabled && localAudioRef.current) {
+                if (microphoneEnabled && localAudioRef.current) {
                     const stream = await deviceHandler.getMicrophone(selectedMicrophone);
                     localAudioRef.current.srcObject = stream;
-                } else if (!micEnabled && localAudioRef.current)
+                } else if (!microphoneEnabled && localAudioRef.current)
                     localAudioRef.current.srcObject = null;
 
-                if (!micEnabled) deviceHandler.closeMicrophone();
+                if (!microphoneEnabled) deviceHandler.closeMicrophone();
             } catch (e) {
                 console.error(e);
-                setMicEnabled(false);
+                dispatch(setMicrophoneEnabled(false));
                 showSnackbar({
                     severity: "error",
                     text: "Failed to find a microphone.",
@@ -93,6 +101,9 @@ export default function ConfCall() {
         (async () => {
             setCameraList(await getCameras());
             setMicrophoneList(await getMicrophones());
+
+            dispatch(setCameraEnabled(urlState === "video"));
+            dispatch(setMicrophoneEnabled(true));
         })();
     }, []);
 
@@ -110,20 +121,21 @@ export default function ConfCall() {
     // when mute state is changed
     useEffect(() => {
         localStorage.setItem(Constants.LSKEY_ENABLECAM, cameraEnabled ? "1" : "");
-        localStorage.setItem(Constants.LSKEY_ENABLEMIC, micEnabled ? "1" : "");
+        localStorage.setItem(Constants.LSKEY_ENABLEMIC, microphoneEnabled ? "1" : "");
 
         updateDevice();
-    }, [cameraEnabled, micEnabled]);
+    }, [cameraEnabled, microphoneEnabled]);
 
     // when selected device is changed
     useEffect(() => {
-        selectedCamera &&
-            localStorage.setItem(Constants.LSKEY_SELECTEDCAM, selectedCamera?.deviceId);
-        selectedMicrophone &&
-            localStorage.setItem(Constants.LSKEY_SELECTEDMIC, selectedMicrophone?.deviceId);
-
+        selectedCamera && localStorage.setItem(Constants.LSKEY_SELECTEDCAM, selectedCamera);
         updateDevice();
-    }, [selectedCamera, selectedMicrophone]);
+    }, [selectedCamera]);
+
+    useEffect(() => {
+        selectedMicrophone && localStorage.setItem(Constants.LSKEY_SELECTEDMIC, selectedMicrophone);
+        updateDevice();
+    }, [selectedMicrophone]);
 
     // when device list is populted
     useEffect(() => {
@@ -132,13 +144,8 @@ export default function ConfCall() {
         const selectedCameraId: string = localStorage.getItem(Constants.LSKEY_SELECTEDCAM);
         const selectedMicrphoneId: string = localStorage.getItem(Constants.LSKEY_SELECTEDMIC);
 
-        selectedCameraId &&
-            setSelectedCamera(cameraList.find((cam) => cam.deviceId === selectedCameraId));
-
-        selectedMicrphoneId &&
-            setSelectedMicrophone(
-                microphoneList.find((mic) => mic.deviceId === selectedMicrphoneId)
-            );
+        selectedCameraId && dispatch(setSelectedCamera(selectedCameraId));
+        selectedMicrphoneId && dispatch(setSelectedMicrophone(selectedMicrphoneId));
     }, [isCall, cameraList, microphoneList]);
 
     return (
@@ -208,12 +215,12 @@ export default function ConfCall() {
                                 {cameraEnabled ? (
                                     <VideocamIcon
                                         sx={Styles.controlIconDefaultStyle}
-                                        onClick={() => setCameraEnabled(!cameraEnabled)}
+                                        onClick={() => dispatch(setCameraEnabled(!cameraEnabled))}
                                     />
                                 ) : (
                                     <VideocamOffIcon
                                         sx={Styles.controlIconDefaultStyle}
-                                        onClick={() => setCameraEnabled(!cameraEnabled)}
+                                        onClick={() => dispatch(setCameraEnabled(!cameraEnabled))}
                                     />
                                 )}
                                 <KeyboardArrowUpIcon
@@ -224,15 +231,19 @@ export default function ConfCall() {
                                 />
                             </ButtonsHolder>
                             <ButtonsHolder>
-                                {micEnabled ? (
+                                {microphoneEnabled ? (
                                     <MicIcon
                                         sx={Styles.controlIconDefaultStyle}
-                                        onClick={() => setMicEnabled(!micEnabled)}
+                                        onClick={() =>
+                                            dispatch(setMicrophoneEnabled(!microphoneEnabled))
+                                        }
                                     />
                                 ) : (
                                     <MicOffIcon
                                         sx={Styles.controlIconDefaultStyle}
-                                        onClick={() => setMicEnabled(!micEnabled)}
+                                        onClick={() =>
+                                            dispatch(setMicrophoneEnabled(!microphoneEnabled))
+                                        }
                                     />
                                 )}
                                 <KeyboardArrowUpIcon
@@ -256,7 +267,14 @@ export default function ConfCall() {
                     <Box sx={{ color: "common.confCallControls", padding: "0px 0px 0px 15px" }}>
                         Join to the meeting
                         <br />
-                        <Button variant="contained" sx={{ width: "100%", marginTop: "10px" }}>
+                        <Button
+                            variant="contained"
+                            sx={{ width: "100%", marginTop: "10px" }}
+                            onClick={() => {
+                                deviceHandler.closeAllDevices();
+                                navigate(`/rooms/${roomId}/call`, { replace: true });
+                            }}
+                        >
                             Join
                         </Button>
                     </Box>
@@ -285,16 +303,12 @@ export default function ConfCall() {
             <SelectBoxDialog
                 show={showCameraSelectDialog}
                 title="Select Camera"
-                initialValue={selectedCamera?.deviceId}
+                initialValue={selectedCamera}
                 allowButtonLabel="OK"
                 denyButtonLabel="Cancel"
                 onOk={async (deviceId: string) => {
-                    const camera: MediaDeviceInfo = cameraList.find(
-                        (cam) => cam.deviceId === deviceId
-                    );
-                    setSelectedCamera(camera);
+                    dispatch(setSelectedCamera(deviceId));
                     setShowCameraSelectDialog(false);
-                    updateDevice();
                 }}
                 onCancel={() => {
                     setShowCameraSelectDialog(false);
@@ -311,17 +325,12 @@ export default function ConfCall() {
             <SelectBoxDialog
                 show={showMicrophoneSelectDialog}
                 title="Select Microphone"
-                initialValue={selectedMicrophone?.deviceId}
+                initialValue={selectedMicrophone}
                 allowButtonLabel="OK"
                 denyButtonLabel="Cancel"
                 onOk={async (deviceId: string) => {
-                    const microphone: MediaDeviceInfo = microphoneList.find(
-                        (mic) => mic.deviceId === deviceId
-                    );
-
-                    setSelectedMicrophone(microphone);
+                    dispatch(setSelectedMicrophone(deviceId));
                     setShowMicrophoneSelectDialog(false);
-                    updateDevice();
                 }}
                 onCancel={() => {
                     setShowMicrophoneSelectDialog(false);

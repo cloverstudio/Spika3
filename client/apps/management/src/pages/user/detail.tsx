@@ -22,6 +22,7 @@ export default function Page() {
         (async () => {
             if (!isLoading) {
                 const user: UserType = data.user;
+                console.log(JSON.stringify(user));
                 setDetail(user);
                 setChipText(user.verified ? "Verified" : "Unconfirmed");
                 setChipColor(user.verified ? "success" : "default");
