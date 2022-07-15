@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Box, Button, Input } from "@mui/material";
 import { getGroupedEmojis, searchEmoji } from "./utils/getEmojis";
 import EmojiGrid from "./EmojiGrid";
 import { Emoji } from "./types";
+import Tabs from "./Tabs";
 
 type EmojiPickerProps = {
     onSelect: (string) => void;
@@ -13,71 +14,66 @@ const emojiSpacing = 1;
 const groupedEmojis = getGroupedEmojis("native", 12.0);
 
 export default function EmojiPickerContainer({ onSelect }: EmojiPickerProps): React.ReactElement {
-    const [searchTerm, setSearchTerm] = useState("");
-    const [results, setResults] = useState([]);
+    const [results, setResults] = useState<Emoji[] | undefined>(undefined);
+    const [tabIndex, setTabIndex] = useState(0);
 
     const handleEmojiClick = (e, data: Emoji) => {
-        console.log({ e, data });
-
         onSelect(data.native);
     };
 
-    useEffect(() => {
-        setResults(searchEmoji(searchTerm, "native", 12.0));
-    }, [searchTerm]);
+    const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.currentTarget.value;
 
-    console.log("render Picker");
+        setTimeout(() => {
+            if (value.trim()) {
+                const search = value.toLowerCase();
+                const searchResult = searchEmoji(search, "native", 12.0);
+                setResults(searchResult);
+            } else {
+                setResults(undefined);
+            }
+        }, 0);
+    }, []);
+
+    const handleTabChange = (newValue: number) => {
+        setTabIndex(newValue);
+    };
+
+    const activeCategory = Object.entries(groupedEmojis)[tabIndex];
 
     return (
-        <Box width="100%" mb={0.5} pb={0.5} sx={{ overflowX: "auto" }}>
-            <Box width="100%" mb={1}>
-                <Input
-                    disableUnderline={true}
-                    fullWidth
-                    placeholder="Search Emoji"
-                    sx={{
-                        backgroundColor: "common.chatBackground",
-                        px: "20px",
-                        py: "9px",
-                        input: {
-                            padding: 0,
-                        },
-                    }}
-                    onChange={(e) => {
-                        setSearchTerm(e.target.value);
-                    }}
-                    value={searchTerm}
-                />
+        <Box width="100%" mb={0.5} p={0.5} sx={{ overflowX: "auto" }}>
+            <Box display="flex" justifyContent="space-between" alignContent="center">
+                <Tabs value={tabIndex} onChange={handleTabChange} showIndicator={!results} />
+
+                <Box
+                    display="flex"
+                    flexDirection="column"
+                    justifyContent="center"
+                    alignItems="center"
+                    mb={2}
+                >
+                    <Box maxWidth="32rem" width="100%">
+                        <Input
+                            disableUnderline={true}
+                            placeholder="Search Emoji"
+                            fullWidth
+                            sx={{
+                                backgroundColor: "common.chatBackground",
+                                px: "20px",
+                                py: "9px",
+                                input: {
+                                    padding: 0,
+                                },
+                            }}
+                            onChange={handleSearch}
+                        />
+                    </Box>
+                </Box>
             </Box>
 
             <Box maxHeight="7rem">
-                {!searchTerm &&
-                    Object.entries(groupedEmojis)
-                        .slice(0, 1)
-                        .map(([key, emojis]) => (
-                            <Box key={key} mb={6} position="relative">
-                                {/* <Box>{key}</Box> */}
-
-                                <EmojiGrid emojiSize={emojiSize} emojiSpacing={emojiSpacing}>
-                                    {emojis.map((data) => (
-                                        <Button
-                                            key={`emoji-${data.native}`}
-                                            onClick={(e) => handleEmojiClick(e, data)}
-                                            sx={{ p: 0.5 }}
-                                        >
-                                            <span
-                                                className="emoji-native"
-                                                style={{ fontSize: `${emojiSize}px` }}
-                                            >
-                                                {data.native}
-                                            </span>
-                                        </Button>
-                                    ))}
-                                </EmojiGrid>
-                            </Box>
-                        ))}
-
-                {searchTerm && (
+                {results ? (
                     <EmojiGrid emojiSize={emojiSize} emojiSpacing={emojiSpacing}>
                         {results.map((data) => (
                             <Button
@@ -94,6 +90,25 @@ export default function EmojiPickerContainer({ onSelect }: EmojiPickerProps): Re
                             </Button>
                         ))}
                     </EmojiGrid>
+                ) : (
+                    <Box position="relative">
+                        <EmojiGrid emojiSize={emojiSize} emojiSpacing={emojiSpacing}>
+                            {activeCategory[1].map((data) => (
+                                <Button
+                                    key={`emoji-${data.native}`}
+                                    onClick={(e) => handleEmojiClick(e, data)}
+                                    sx={{ p: 0.5 }}
+                                >
+                                    <span
+                                        className="emoji-native"
+                                        style={{ fontSize: `${emojiSize}px` }}
+                                    >
+                                        {data.native}
+                                    </span>
+                                </Button>
+                            ))}
+                        </EmojiGrid>
+                    </Box>
                 )}
             </Box>
         </Box>

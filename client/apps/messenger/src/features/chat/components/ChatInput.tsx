@@ -41,8 +41,6 @@ export default function ChatInputContainer(): React.ReactElement {
     const showBasicDialog = useShowBasicDialog();
     const canvasRef = useRef<HTMLCanvasElement>();
 
-    console.log("ChatInputContainer Render");
-
     useEffect(() => {
         if (files.length > 0) {
             dispatch(setInputType("files"));
@@ -182,8 +180,6 @@ function ChatInput({
 
         dispatch(editMessageThunk());
     };
-
-    console.log("ChatInput Render", { inputType });
 
     const handleCloseEdit = () => {
         dispatch(setEditMessage(null));
