@@ -1,146 +1,76 @@
 import React, { useState } from "react";
-import { Avatar, Box, Modal, Typography } from "@mui/material";
+import { Box, Modal, Typography } from "@mui/material";
 
-import MessageStatusIcon from "./MessageStatusIcon";
-import { useSelector } from "react-redux";
-import { selectUser } from "../../../store/userSlice";
 import getFileIcon from "../lib/getFileIcon";
 import DownloadIcon from "@mui/icons-material/Download";
-import { useGetRoomQuery } from "../api/room";
-import { useParams } from "react-router-dom";
 import { CloseOutlined, Info } from "@mui/icons-material";
 import { deletedMessageText } from "../lib/consts";
 
-type MessageProps = {
-    id: number;
-    fromUserId: number;
-    seenCount: number;
-    totalUserCount: number;
-    deliveredCount: number;
-    type: string;
-    body: any;
-    nextMessageSenderId?: number;
-    previousMessageSenderId?: number;
-    clickedAnchor: (event: React.MouseEvent<HTMLDivElement>, messageId: number) => void;
-};
-
 declare const UPLOADS_BASE_URL: string;
 
-export default function Message({
-    id,
-    fromUserId,
-    seenCount,
-    totalUserCount,
-    deliveredCount,
+type MessageBodyProps = {
+    id: number;
+    type: string;
+    body: any;
+    isUsersMessage: boolean;
+    onMessageClick: (e: any) => void;
+};
+
+export default function MessageBody({
     type,
     body,
-    nextMessageSenderId,
-    previousMessageSenderId,
-    clickedAnchor,
-}: MessageProps): React.ReactElement {
-    const roomId = +useParams().id;
-
-    const user = useSelector(selectUser);
-    const { data } = useGetRoomQuery(roomId);
-    const users = data?.room?.users;
-    const roomType = data?.room?.type;
-    const sender = users?.find((u) => u.userId === fromUserId)?.user;
-
-    const isUsersMessage = user?.id === fromUserId;
-    const isFirstMessage = fromUserId !== previousMessageSenderId;
-    const isLastMessage = fromUserId !== nextMessageSenderId;
-
-    const getStatusIcon = () => {
-        if (seenCount === totalUserCount) {
-            return "seen";
-        }
-
-        if (deliveredCount === totalUserCount) {
-            return "delivered";
-        }
-
-        return "sent";
-    };
-
+    isUsersMessage,
+    onMessageClick,
+}: MessageBodyProps): React.ReactElement {
     const isDeleted = body?.text === deletedMessageText;
 
-    return (
-        <Box key={id}>
-            {roomType === "group" && !isUsersMessage && isFirstMessage && (
-                <Typography color="text.tertiary" fontWeight={600} pl="34px" mb={0.5} mt={2}>
-                    {sender?.displayName}
-                </Typography>
-            )}
-            <Box
-                display="flex"
-                flexDirection="row"
-                justifyContent={isUsersMessage ? "flex-end" : "flex-start"}
-                mb={"0.375rem"}
-                alignItems="end"
-            >
-                {roomType === "group" && !isUsersMessage && isLastMessage ? (
-                    <Avatar
-                        sx={{ width: 26, height: 26, mr: 1, mb: "0.375rem" }}
-                        alt={sender?.displayName}
-                        src={`${UPLOADS_BASE_URL}${sender?.avatarUrl}`}
-                    />
-                ) : (
-                    <Box width="26px" mr={1}></Box>
-                )}
-                {(type === "text" || isDeleted) && (
-                    <TextMessage
-                        body={body}
-                        isUsersMessage={isUsersMessage}
-                        onClick={(e) => {
-                            e.preventDefault();
-                            clickedAnchor(e, id);
-                        }}
-                    />
-                )}
-                {type === "image" && !isDeleted && (
-                    <ImageMessage
-                        body={body}
-                        isUsersMessage={isUsersMessage}
-                        onClickContextMenu={(e) => {
-                            e.preventDefault();
-                            clickedAnchor(e, id);
-                        }}
-                    />
-                )}
-                {type === "video" && !isDeleted && (
-                    <VideoMessage
-                        body={body}
-                        isUsersMessage={isUsersMessage}
-                        onClick={(e) => {
-                            e.preventDefault();
-                            clickedAnchor(e, id);
-                        }}
-                    />
-                )}
-                {type === "audio" && !isDeleted && (
-                    <AudioMessage
-                        body={body}
-                        isUsersMessage={isUsersMessage}
-                        onClick={(e) => {
-                            e.preventDefault();
-                            clickedAnchor(e, id);
-                        }}
-                    />
-                )}
-                {(type === "file" || type === "unknown") && !isDeleted && (
-                    <FileMessage
-                        body={body}
-                        isUsersMessage={isUsersMessage}
-                        onClick={(e) => {
-                            e.preventDefault();
-                            clickedAnchor(e, id);
-                        }}
-                    />
-                )}
-                {isUsersMessage && <MessageStatusIcon status={getStatusIcon()} />}
-            </Box>
-        </Box>
-    );
+    if (isDeleted) {
+        return <TextMessage body={body} isUsersMessage={isUsersMessage} onClick={onMessageClick} />;
+    }
+
+    switch (type) {
+        case "text": {
+            return (
+                <TextMessage body={body} isUsersMessage={isUsersMessage} onClick={onMessageClick} />
+            );
+        }
+
+        case "image": {
+            return (
+                <ImageMessage
+                    body={body}
+                    isUsersMessage={isUsersMessage}
+                    onClickContextMenu={onMessageClick}
+                />
+            );
+        }
+
+        case "video": {
+            return (
+                <VideoMessage
+                    body={body}
+                    isUsersMessage={isUsersMessage}
+                    onClick={onMessageClick}
+                />
+            );
+        }
+
+        case "audio": {
+            return (
+                <AudioMessage
+                    body={body}
+                    isUsersMessage={isUsersMessage}
+                    onClick={onMessageClick}
+                />
+            );
+        }
+
+        default: {
+            return (
+                <FileMessage body={body} isUsersMessage={isUsersMessage} onClick={onMessageClick} />
+            );
+        }
+    }
 }
 
 function ImageMessage({
@@ -171,7 +101,7 @@ function ImageMessage({
     };
 
     return (
-        <Box display="flex" flexDirection="column" alignItems={isUsersMessage ? "end" : "start"}>
+        <>
             {body.text && (
                 <TextMessage
                     body={body}
@@ -217,7 +147,7 @@ function ImageMessage({
                     </Box>
                 </>
             </Modal>
-        </Box>
+        </>
     );
 }
 
@@ -240,7 +170,7 @@ function FileMessage({
 
     const Icon = getFileIcon(file.mimeType);
     return (
-        <Box display="flex" flexDirection="column" alignItems={isUsersMessage ? "end" : "start"}>
+        <>
             {body.text && (
                 <TextMessage body={body} isUsersMessage={isUsersMessage} onClick={onClick} />
             )}
@@ -271,7 +201,7 @@ function FileMessage({
                     <DownloadIcon fontSize="large" />
                 </Box>
             </Box>
-        </Box>
+        </>
     );
 }
 
@@ -289,7 +219,7 @@ function VideoMessage({
     }
 
     return (
-        <Box display="flex" flexDirection="column" alignItems={isUsersMessage ? "end" : "start"}>
+        <>
             {body.text && (
                 <TextMessage body={body} isUsersMessage={isUsersMessage} onClick={onClick} />
             )}
@@ -301,7 +231,7 @@ function VideoMessage({
                 src={`${UPLOADS_BASE_URL}${body.file.path}`}
                 pb="0.8125"
             />
-        </Box>
+        </>
     );
 }
 
@@ -319,14 +249,14 @@ function AudioMessage({
     }
 
     return (
-        <Box display="flex" flexDirection="column" alignItems={isUsersMessage ? "end" : "start"}>
+        <>
             {body.text && (
                 <TextMessage body={body} isUsersMessage={isUsersMessage} onClick={onClick} />
             )}
             <Box component="audio" controls borderRadius="0.625rem" maxWidth="35rem" pb="0.8125">
                 <source type={body.file.type} src={`${UPLOADS_BASE_URL}${body.file.path}`} />
             </Box>
-        </Box>
+        </>
     );
 }
 
@@ -363,17 +293,17 @@ function TextMessage({
             component={"pre"}
             sx={{
                 minWidth: "50px",
-                maxWidth: "80%",
+                maxWidth: "50rem",
                 backgroundColor: isUsersMessage
                     ? "common.myMessageBackground"
                     : "common.chatBackground",
                 borderRadius: "1rem",
-                padding: "10px",
+                padding: "0.75rem",
+                cursor: "pointer",
                 color: "common.darkBlue",
                 lineHeight: "1.5rem",
                 whiteSpace: "pre-wrap",
                 margin: "0px",
-                cursor: "pointer",
             }}
             dangerouslySetInnerHTML={{ __html: filterText(body.text) }}
             onClick={onClick}

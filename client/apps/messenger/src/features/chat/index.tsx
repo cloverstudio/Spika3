@@ -7,7 +7,7 @@ import { useTheme } from "@mui/material/styles";
 import { useGetRoomQuery } from "./api/room";
 import { useMarkRoomMessagesAsSeenMutation } from "./api/message";
 
-import { selectRoomMessages, setActiveRoomId } from "./slice/chatSlice";
+import { selectRoomMessagesCount, setActiveRoomId } from "./slice/chatSlice";
 import { selectUser } from "../../store/userSlice";
 
 import Loader from "../../components/Loader";
@@ -26,8 +26,7 @@ export default function Chat(): React.ReactElement {
     const [markRoomMessagesAsSeen] = useMarkRoomMessagesAsSeenMutation();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-    const { messages } = useSelector(selectRoomMessages(roomId));
-
+    const count = useSelector(selectRoomMessagesCount(roomId));
     const isCall = /^.+\/call.*$/.test(window.location.pathname);
 
     const room = data?.room;
@@ -42,7 +41,7 @@ export default function Chat(): React.ReactElement {
 
     useEffect(() => {
         markRoomMessagesAsSeen(roomId);
-    }, [dispatch, roomId, markRoomMessagesAsSeen, messages.length]);
+    }, [dispatch, roomId, markRoomMessagesAsSeen, count]);
 
     if (isLoading) {
         return <Loader />;

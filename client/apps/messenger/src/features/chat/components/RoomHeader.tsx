@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Avatar, Box, Typography, useMediaQuery } from "@mui/material";
@@ -6,15 +6,12 @@ import { Call, Search, Videocam } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 
-import { selectUser } from "../../../store/userSlice";
 import { show as showRightSidebar, hide as hideRightSidebar } from "../slice/rightSidebarSlice";
 
 import { setLeftSidebar } from "../slice/sidebarSlice";
 
 declare const UPLOADS_BASE_URL: string;
 import { RootState } from "../../../store/store";
-
-import Confcall from "../../confcall/lobby";
 
 type RoomHeaderProps = {
     name: string;
@@ -31,8 +28,13 @@ export default function RoomHeader({
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
     const dispatch = useDispatch();
     const rightSidebarState = useSelector((state: RootState) => state.rightSidebar);
-    const me = useSelector(selectUser);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (name) {
+            window.document.title = name;
+        }
+    }, [name]);
 
     return (
         <Box px={2} borderBottom="0.5px solid #C9C9CA">
