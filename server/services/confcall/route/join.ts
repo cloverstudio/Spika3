@@ -65,6 +65,17 @@ export default (params: InitRouterParams) => {
                 isInitiator = true;
             } else sessionId = callSession.id;
 
+            // delete active session if exists
+            await prisma.callHistory.updateMany({
+                where: {
+                    roomId: roomId,
+                    userId: userReq.user.id,
+                },
+                data: {
+                    isActive: false,
+                },
+            });
+
             // insert to history
             await prisma.callHistory.create({
                 data: {

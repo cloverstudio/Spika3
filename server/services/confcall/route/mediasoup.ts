@@ -218,5 +218,198 @@ export default (params: InitRouterParams) => {
         }
     });
 
+    router.post("/:roomId/receiveTransport", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        const roomId: number = parseInt((req.params.roomId as string) || "");
+        const userId: number = userReq.user.id;
+        const peerId: string = req.body.peerId;
+
+        if (!peerId) return res.status(400).send(errorResponse("Invalid peerId", userReq.lang));
+
+        try {
+            const room: Room = await prisma.room.findFirst({
+                where: {
+                    id: roomId,
+                },
+            });
+            if (!room) {
+                return res.status(404).send(errorResponse("Not found", userReq.lang));
+            }
+
+            // check existing session
+            const callSession: CallSession = await prisma.callSession.findFirst({
+                where: {
+                    roomId: roomId,
+                    isActive: true,
+                },
+            });
+            if (!callSession)
+                res.status(404).send(errorResponse("Not active session", userReq.lang));
+
+            // get history
+            const callHistory: CallHistory = await prisma.callHistory.findFirst({
+                where: {
+                    sessionId: callSession.id,
+                    isActive: true,
+                    leftAt: null,
+                },
+                orderBy: {
+                    joinedAt: "desc",
+                },
+            });
+            if (!callHistory)
+                res.status(404).send(errorResponse("Not active calllog", userReq.lang));
+
+            const transport = await mediasoupHandler.newConsumerTransport(roomId, peerId);
+
+            res.send(
+                successResponse(
+                    {
+                        id: transport.id,
+                        iceParameters: transport.iceParameters,
+                        iceCandidates: transport.iceCandidates,
+                        dtlsParameters: transport.dtlsParameters,
+                    },
+                    userReq.lang
+                )
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.post("/:roomId/receiverConnected", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        const roomId: number = parseInt((req.params.roomId as string) || "");
+        const userId: number = userReq.user.id;
+        const peerId: string = req.body.peerId;
+        const dtlsParameters: any = req.body.dtlsParameters;
+
+        if (!peerId) return res.status(400).send(errorResponse("Invalid peerId", userReq.lang));
+        if (!dtlsParameters)
+            return res.status(400).send(errorResponse("Invalid dtlsParameters", userReq.lang));
+
+        try {
+            const room: Room = await prisma.room.findFirst({
+                where: {
+                    id: roomId,
+                },
+            });
+            if (!room) {
+                return res.status(404).send(errorResponse("Not found", userReq.lang));
+            }
+
+            // check existing session
+            const callSession: CallSession = await prisma.callSession.findFirst({
+                where: {
+                    roomId: roomId,
+                    isActive: true,
+                },
+            });
+            if (!callSession)
+                res.status(404).send(errorResponse("Not active session", userReq.lang));
+
+            // get history
+            const callHistory: CallHistory = await prisma.callHistory.findFirst({
+                where: {
+                    sessionId: callSession.id,
+                    isActive: true,
+                    leftAt: null,
+                },
+                orderBy: {
+                    joinedAt: "desc",
+                },
+            });
+            if (!callHistory)
+                res.status(404).send(errorResponse("Not active calllog", userReq.lang));
+
+            const transport = await mediasoupHandler.consumerTransportConnect(
+                roomId,
+                peerId,
+                dtlsParameters
+            );
+
+            res.send(successResponse({}, userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.post("/:roomId/startConsuming", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        const roomId: number = parseInt((req.params.roomId as string) || "");
+        const userId: number = userReq.user.id;
+        const peerId: string = req.body.peerId;
+        const rtpCapabilities: any = req.body.rtpCapabilities;
+        const producerId: any = req.body.producerId;
+        const kind: any = req.body.kind;
+
+        if (!peerId) return res.status(400).send(errorResponse("Invalid peerId", userReq.lang));
+        if (!rtpCapabilities)
+            return res.status(400).send(errorResponse("Invalid rtpCapabilities", userReq.lang));
+        if (!producerId)
+            return res.status(400).send(errorResponse("Invalid producerId", userReq.lang));
+        if (!kind) return res.status(400).send(errorResponse("Invalid kind", userReq.lang));
+
+        try {
+            const room: Room = await prisma.room.findFirst({
+                where: {
+                    id: roomId,
+                },
+            });
+            if (!room) {
+                return res.status(404).send(errorResponse("Not found", userReq.lang));
+            }
+
+            // check existing session
+            const callSession: CallSession = await prisma.callSession.findFirst({
+                where: {
+                    roomId: roomId,
+                    isActive: true,
+                },
+            });
+            if (!callSession)
+                res.status(404).send(errorResponse("Not active session", userReq.lang));
+
+            // get history
+            const callHistory: CallHistory = await prisma.callHistory.findFirst({
+                where: {
+                    sessionId: callSession.id,
+                    isActive: true,
+                    leftAt: null,
+                },
+                orderBy: {
+                    joinedAt: "desc",
+                },
+            });
+            if (!callHistory)
+                res.status(404).send(errorResponse("Not active calllog", userReq.lang));
+
+            const consumer = await mediasoupHandler.startConsuming(
+                roomId,
+                peerId,
+                producerId,
+                kind,
+                rtpCapabilities
+            );
+
+            res.send(
+                successResponse(
+                    {
+                        id: consumer.id,
+                        producerId: producerId,
+                        kind: consumer.kind,
+                        rtpParameters: consumer.rtpParameters,
+                    },
+                    userReq.lang
+                )
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
     return router;
 };

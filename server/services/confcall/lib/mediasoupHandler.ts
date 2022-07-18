@@ -11,14 +11,13 @@ type Peer = {
     roomId: number;
     user: User;
     producerTransport?: mediasoup.types.WebRtcTransport;
-    consumerTransports?: Array<mediasoup.types.Transport>;
+    consumerTransport?: mediasoup.types.WebRtcTransport;
     producers?: Array<mediasoup.types.Producer>;
     consumers?: Array<mediasoup.types.Consumer>;
 };
 
 type Room = {
     roomId: number;
-    transports?: Array<mediasoup.types.Transport>;
     router?: mediasoup.types.Router;
     peers: Array<Peer>;
 };
@@ -70,6 +69,15 @@ class MediasoupHandler {
 
         l("running %d mediasoup Workers...", numWorkers);
 
+        console.log(
+            "config.mediasoup.workerSettings.logLevel",
+            config.mediasoup.workerSettings.logLevel
+        );
+
+        setInterval(() => {
+            console.log(this.rooms);
+        }, 5000);
+
         (async () => {
             for (let i = 0; i < numWorkers; ++i) {
                 const worker = await mediasoup.createWorker({
@@ -119,7 +127,7 @@ class MediasoupHandler {
             roomId: roomId,
             user: user,
             producerTransport: null,
-            consumerTransports: [],
+            consumerTransport: null,
             producers: [],
             consumers: [],
         };
@@ -138,6 +146,13 @@ class MediasoupHandler {
             existingRoom = newRoom;
             this.rooms.push(newRoom);
         }
+
+        //find existing peer
+        const findIndex = existingRoom.peers.findIndex((obj) => {
+            return obj.user.id === user.id;
+        });
+
+        if (findIndex !== -1) existingRoom.peers.splice(findIndex, 1);
 
         existingRoom.peers.push(newPeer);
 
@@ -237,6 +252,97 @@ class MediasoupHandler {
         peer.producers.push(producer);
 
         return producer.id;
+    }
+
+    async newConsumerTransport(
+        roomId: number,
+        peerId: string
+    ): Promise<mediasoup.types.WebRtcTransport> {
+        let room = this.rooms.find((room, index) => {
+            return room.roomId === roomId;
+        });
+
+        if (!room) throw "Invalid room id";
+
+        let peer = room.peers.find((peer) => peer.peerId === peerId);
+
+        if (!peer) throw "Invalid peer id";
+
+        const provider = peer.producerTransport;
+        if (!provider) throw "Invalid peer id";
+
+        if (!peer.consumerTransport)
+            peer.consumerTransport = await room.router.createWebRtcTransport(
+                webRtcTransport_options
+            );
+
+        return peer.consumerTransport;
+    }
+
+    async consumerTransportConnect(
+        roomId: number,
+        peerId: string,
+        dtlsParameters: any
+    ): Promise<mediasoup.types.WebRtcTransport> {
+        let room = this.rooms.find((room, index) => {
+            return room.roomId === roomId;
+        });
+
+        if (!room) throw "Invalid room id";
+
+        let peer = room.peers.find((peer) => peer.peerId === peerId);
+
+        if (!peer) throw "Invalid peer id";
+
+        const provider = peer.producerTransport;
+        if (!provider) throw "Invalid peer id";
+
+        if (peer.consumerTransport) await peer.consumerTransport.connect({ dtlsParameters });
+        else throw "consumer transport doesn't exist";
+
+        return peer.consumerTransport;
+    }
+
+    async startConsuming(
+        roomId: number,
+        peerId: string,
+        producerId: string,
+        kind: "audio" | "video",
+        rtpCapabilities: any
+    ): Promise<mediasoup.types.Consumer> {
+        console.log("start consuming peerId", peerId);
+
+        let room = this.rooms.find((room, index) => {
+            return room.roomId === roomId;
+        });
+
+        if (!room) throw "Invalid room id";
+
+        let peer = room.peers.find((peer) => peer.peerId === peerId);
+
+        if (!peer) throw "Invalid peer id";
+
+        const provider = peer.producerTransport;
+        if (!provider) throw "Invalid peer id";
+
+        if (!peer.consumerTransport) throw "consumer transport doesn't exist";
+
+        if (
+            !room.router.canConsume({
+                producerId: producerId,
+                rtpCapabilities,
+            })
+        )
+            throw "Cannot consume";
+
+        const consumer: mediasoup.types.Consumer = await peer.consumerTransport.consume({
+            producerId: producerId,
+            rtpCapabilities,
+        });
+
+        peer.consumers.push(consumer);
+
+        return consumer;
     }
 }
 

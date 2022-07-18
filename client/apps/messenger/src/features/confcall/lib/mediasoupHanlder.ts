@@ -34,8 +34,10 @@ class MediasoupHandler {
     micReadyListner: (stream: MediaStream) => void;
     device: mediasoupClient.types.Device; // device means Browser here, not webcam or mic
     producerTransport: mediasoupClient.types.Transport;
+    consumerTransport: mediasoupClient.types.Transport;
     videoProducer: mediasoupClient.types.Producer;
     audioProducer: mediasoupClient.types.Producer;
+    consumers: Array<mediasoupClient.types.Consumer>;
 
     constructor() {
         this.streamingState = StreamingState.NotJoined;
@@ -57,9 +59,12 @@ class MediasoupHandler {
         return connectionState;
     }
 
-    async startProduce(initialParams: CallState) {
+    // tell to the server the user is open the confcall
+    // setup producer and consumer transport
+
+    async connectToServer(roomId: number) {
         try {
-            this.roomId = initialParams.roomId;
+            this.roomId = roomId;
 
             const res = await dynamicBaseQuery({
                 url: `/confcall/mediasoup/${this.roomId}/join`,
@@ -73,15 +78,92 @@ class MediasoupHandler {
             this.peerId = res.data.peerId;
             const videoTransportParams = res.data.videoTransportParams;
 
-            const { roomId, microphoneEnabled, cameraEnabled, selectedCamera, selectedMicrophone } =
-                initialParams;
-
             // create device
             this.device = new mediasoupClient.Device();
 
             await this.device.load({
                 routerRtpCapabilities: this.rtpCapabilities,
             });
+
+            this.producerTransport = this.device.createSendTransport(res.data.transportParams);
+
+            this.producerTransport.on("connect", async ({ dtlsParameters }, callback, errback) => {
+                try {
+                    const res = await dynamicBaseQuery({
+                        url: `/confcall/mediasoup/${this.roomId}/transportConnect`,
+                        method: "POST",
+                        data: {
+                            peerId: this.peerId,
+                            dtlsParameters,
+                        },
+                    });
+
+                    callback();
+                } catch (error) {
+                    console.error(error);
+                    this.stop();
+                }
+            });
+
+            this.producerTransport.on("produce", async (parameters, callback, errback) => {
+                try {
+                    const res = await dynamicBaseQuery({
+                        url: `/confcall/mediasoup/${this.roomId}/transportProduce`,
+                        method: "POST",
+                        data: {
+                            peerId: this.peerId,
+                            kind: parameters.kind,
+                            rtpParameters: parameters.rtpParameters,
+                            appData: parameters.appData,
+                        },
+                    });
+
+                    console.log("res.data.producerId", res.data.producerId);
+
+                    if (res.data.producerId) {
+                        this.setConnectionState(StreamingState.StartStreaming);
+                        callback({ id: res.data.producerId });
+                    }
+                } catch (error) {
+                    console.error(error);
+                    this.stop();
+                }
+            });
+
+            const consumerTransportRes = await dynamicBaseQuery({
+                url: `/confcall/mediasoup/${this.roomId}/receiveTransport`,
+                method: "POST",
+                data: {
+                    roomId: this.roomId,
+                    peerId: this.peerId,
+                },
+            });
+
+            this.consumerTransport = this.device.createRecvTransport(consumerTransportRes.data);
+
+            this.consumerTransport.on("connect", async ({ dtlsParameters }, callback, errback) => {
+                const res = await dynamicBaseQuery({
+                    url: `/confcall/mediasoup/${this.roomId}/receiverConnected`,
+                    method: "POST",
+                    data: {
+                        roomId: this.roomId,
+                        peerId: this.peerId,
+                        dtlsParameters,
+                    },
+                });
+
+                callback();
+            });
+        } catch (e) {
+            console.error(e);
+            this.stop();
+        }
+    }
+
+    async startProduce(initialParams: CallState) {
+        try {
+            const { roomId, microphoneEnabled, cameraEnabled, selectedCamera, selectedMicrophone } =
+                initialParams;
 
             if (microphoneEnabled || cameraEnabled) {
                 if (cameraEnabled) {
@@ -95,54 +177,6 @@ class MediasoupHandler {
                     this.micReadyListner && this.micReadyListner(this.audioStream);
                     this.setConnectionState(StreamingState.AudioReady);
                 }
-
-                this.producerTransport = this.device.createSendTransport(res.data.transportParams);
-
-                this.producerTransport.on(
-                    "connect",
-                    async ({ dtlsParameters }, callback, errback) => {
-                        try {
-                            const res = await dynamicBaseQuery({
-                                url: `/confcall/mediasoup/${this.roomId}/transportConnect`,
-                                method: "POST",
-                                data: {
-                                    peerId: this.peerId,
-                                    dtlsParameters,
-                                },
-                            });
-
-                            callback();
-                        } catch (error) {
-                            console.error(error);
-                            this.stop();
-                        }
-                    }
-                );
-
-                this.producerTransport.on("produce", async (parameters, callback, errback) => {
-                    try {
-                        const res = await dynamicBaseQuery({
-                            url: `/confcall/mediasoup/${this.roomId}/transportProduce`,
-                            method: "POST",
-                            data: {
-                                peerId: this.peerId,
-                                kind: parameters.kind,
-                                rtpParameters: parameters.rtpParameters,
-                                appData: parameters.appData,
-                            },
-                        });
-
-                        console.log("res.data.producerId", res.data.producerId);
-
-                        if (res.data.producerId) {
-                            this.setConnectionState(StreamingState.StartStreaming);
-                            callback({ id: res.data.producerId });
-                        }
-                    } catch (error) {
-                        console.error(error);
-                        this.stop();
-                    }
-                });
 
                 this.videoProducer = await this.producerTransport.produce({
                     track: this.videoStream.getVideoTracks()[0],
@@ -218,6 +252,63 @@ class MediasoupHandler {
 
         this.cameraReadyListner = null;
         this.micReadyListner = null;
+    }
+    async startConsume(
+        params: { audioProducerId?: string; videoProducerId?: string },
+        callBack: (audioStream: MediaStream, videoStream: MediaStream) => void
+    ) {
+        let audioStream: MediaStream;
+        let videoStream: MediaStream;
+
+        if (params.audioProducerId) {
+            const resAudio = await dynamicBaseQuery({
+                url: `/confcall/mediasoup/${this.roomId}/startConsuming`,
+                method: "POST",
+                data: {
+                    roomId: this.roomId,
+                    peerId: this.peerId,
+                    producerId: params.audioProducerId,
+                    rtpCapabilities: this.device.rtpCapabilities,
+                    kind: "audio",
+                },
+            });
+
+            const audioConsumer: mediasoupClient.types.Consumer =
+                await this.consumerTransport.consume({
+                    id: resAudio.data.id,
+                    producerId: params.audioProducerId,
+                    kind: "audio",
+                    rtpParameters: resAudio.data.rtpParameters,
+                });
+
+            audioStream = new MediaStream([audioConsumer.track]);
+        }
+
+        if (params.videoProducerId) {
+            const resVideo = await dynamicBaseQuery({
+                url: `/confcall/mediasoup/${this.roomId}/startConsuming`,
+                method: "POST",
+                data: {
+                    roomId: this.roomId,
+                    peerId: this.peerId,
+                    producerId: params.videoProducerId,
+                    rtpCapabilities: this.device.rtpCapabilities,
+                    kind: "video",
+                },
+            });
+
+            const videoConsumer: mediasoupClient.types.Consumer =
+                await this.consumerTransport.consume({
+                    id: resVideo.data.id,
+                    producerId: params.videoProducerId,
+                    kind: "video",
+                    rtpParameters: resVideo.data.rtpParameters,
+                });
+
+            videoStream = new MediaStream([videoConsumer.track]);
+        }
+
+        callBack(audioStream, videoStream);
     }
 }
 

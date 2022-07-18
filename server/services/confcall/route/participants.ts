@@ -41,11 +41,14 @@ export default (params: InitRouterParams) => {
                 include: { user: true },
             });
 
-            const sanitizedUsers = activeCalls.map((callHistory) => {
-                return sanitize(callHistory.user).user();
+            const responseData = activeCalls.map((callHistory) => {
+                return {
+                    user: sanitize(callHistory.user).user(),
+                    callParams: callHistory.callParameters,
+                };
             });
 
-            res.send(successResponse(sanitizedUsers, userReq.lang));
+            res.send(successResponse(responseData, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

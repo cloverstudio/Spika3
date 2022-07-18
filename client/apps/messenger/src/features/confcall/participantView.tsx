@@ -7,6 +7,8 @@ import {} from "@mui/icons-material";
 import CSS from "csstype";
 
 import UserType from "../../types/User";
+import { CallParams } from "../../types/confcall";
+import mediasoupHandler from "./lib/mediasoupHanlder";
 
 import {
     setShowCall,
@@ -21,8 +23,9 @@ import {
 export interface ComponentInterface {
     user: UserType;
     isMe: boolean;
-    videoStream?: MediaStream;
-    audioStream?: MediaStream;
+    localVideoStream?: MediaStream;
+    localAaudioStream?: MediaStream;
+    callParams?: CallParams;
 }
 
 const defaultStyle: CSS.Properties = {
@@ -81,9 +84,25 @@ export default (props: ComponentInterface) => {
     const videoRef = useRef<HTMLVideoElement>(null);
 
     useEffect(() => {
-        if (!videoRef.current || !props.videoStream) return;
-        videoRef.current.srcObject = props.videoStream;
-    }, [videoRef, props.videoStream]);
+        (async () => {
+            if (!props.isMe)
+                await mediasoupHandler.startConsume(
+                    {
+                        audioProducerId: props.callParams.audioProducerId,
+                        videoProducerId: props.callParams.videoProducerId,
+                    },
+                    (audioStream: MediaStream, videoStream: MediaStream) => {
+                        console.log("videoStream", videoStream);
+                        videoRef.current.srcObject = videoStream;
+                    }
+                );
+        })();
+    }, [props.callParams]);
+
+    useEffect(() => {
+        if (!videoRef.current || !props.localVideoStream) return;
+        videoRef.current.srcObject = props.localVideoStream;
+    }, [videoRef, props.localVideoStream]);
 
     return (
         <Box sx={{ ...styles.container }}>

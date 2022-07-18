@@ -27,7 +27,7 @@ import {
 
 import { useGetUserQuery } from "../auth/api/auth";
 import { RootState } from "../../store/store";
-import UserType from "../../types/User";
+import { Participant } from "../../types/confcall";
 import { dynamicBaseQuery } from "../../api/api";
 import ButtonsHolder from "./buttonsHolder";
 import * as Constants from "../../../../../lib/constants";
@@ -74,7 +74,7 @@ export default function ConfCall() {
     const [cameraList, setCameraList] = useState<Array<MediaDeviceInfo>>(null);
     const [microphoneList, setMicrophoneList] = useState<Array<MediaDeviceInfo>>(null);
     const [showMicrophoneSelectDialog, setShowMicrophoneSelectDialog] = useState<boolean>(false);
-    const [participants, setParticipants] = useState<Array<UserType>>(null);
+    const [participants, setParticipants] = useState<Array<Participant>>(null);
     const [showControllBar, setShowControllBar] = useState<boolean>(false);
     const [viewSize, setViewSize] = useState<participantViewSize>({ xs: 12, md: 12 });
     const [gridStyle, setGridStyle] = useState<CSS.Properties>({});
@@ -88,6 +88,8 @@ export default function ConfCall() {
         const res = await dynamicBaseQuery({
             url: `/confcall/participants/${roomId}`,
         });
+
+        console.log("update participant", res.data);
 
         setParticipants(res.data);
     }
@@ -111,13 +113,13 @@ export default function ConfCall() {
                     audioEnabled: microphoneEnabled ? "1" : "0",
                 },
             });
+            await mediasoupHander.connectToServer(callState.roomId);
             await mediasoupHander.startProduce(callState);
             await updateParticipants();
         })();
 
         const clearListner = listenCallEvent(async (data: callEventPayload) => {
             try {
-                console.log("update participants");
                 await updateParticipants();
             } catch (e) {
                 //This happens when component doesn't exists but this listener is called
@@ -296,16 +298,20 @@ export default function ConfCall() {
             {/* main part */}
             <Grid container>
                 {participants &&
-                    participants.map((user, index) => (
+                    participants.map((participant, index) => (
                         <Grid item {...viewSize} sx={gridStyle} key={index}>
-                            {user.id === userDataMe.user.id ? (
+                            {participant.user.id === userDataMe.user.id ? (
                                 <ParticipantView
-                                    user={user}
+                                    user={participant.user}
                                     isMe={true}
-                                    videoStream={myVideoStream}
+                                    localVideoStream={myVideoStream}
                                 />
                             ) : (
-                                <ParticipantView user={user} isMe={false} />
+                                <ParticipantView
+                                    user={participant.user}
+                                    callParams={participant.callParams}
+                                    isMe={false}
+                                />
                             )}
                         </Grid>
                     ))}

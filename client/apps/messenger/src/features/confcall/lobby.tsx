@@ -23,7 +23,7 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import { User } from "@prisma/client";
 
-import UserType from "../../types/User";
+import { Participant } from "../../types/confcall";
 import { dynamicBaseQuery } from "../../api/api";
 import { RootState } from "../../store/store";
 import * as Constants from "../../../../../lib/constants";
@@ -64,7 +64,7 @@ export default function ConfCall() {
     const [microphoneList, setMicrophoneList] = useState<Array<MediaDeviceInfo>>(null);
     const [showMicrophoneSelectDialog, setShowMicrophoneSelectDialog] = useState<boolean>(false);
 
-    const [participants, setParticipants] = useState<Array<UserType>>(null);
+    const [participants, setParticipants] = useState<Array<Participant>>(null);
 
     function updateDevice() {
         // init camera
@@ -307,13 +307,13 @@ export default function ConfCall() {
                         }}
                     >
                         {participants &&
-                            participants.map((user) => {
+                            participants.map((participant) => {
                                 return (
                                     <Avatar
-                                        key={user.id}
+                                        key={participant.user.id}
                                         sx={{ width: 50, height: 50 }}
-                                        alt={user.displayName}
-                                        src={`${UPLOADS_BASE_URL}${user.avatarUrl}`}
+                                        alt={participant.user.displayName}
+                                        src={`${UPLOADS_BASE_URL}${participant.user.avatarUrl}`}
                                     />
                                 );
                             })}
