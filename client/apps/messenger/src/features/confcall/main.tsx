@@ -104,7 +104,13 @@ export default function ConfCall() {
             setCameraList(await getCameras());
             setMicrophoneList(await getMicrophones());
 
-            await joinApi(callState.roomId);
+            await joinApi({
+                roomId: callState.roomId,
+                data: {
+                    videoEnabled: cameraEnabled ? "1" : "0",
+                    audioEnabled: microphoneEnabled ? "1" : "0",
+                },
+            });
             await mediasoupHander.startProduce(callState);
             await updateParticipants();
         })();

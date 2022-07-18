@@ -73,8 +73,9 @@ export default function ConfCall() {
                 if (cameraEnabled && localVideoRef.current) {
                     const stream = await deviceHandler.getCamera(selectedCamera);
                     localVideoRef.current.srcObject = stream;
-                } else if (!cameraEnabled && localVideoRef.current)
+                } else if (!cameraEnabled && localVideoRef.current) {
                     localVideoRef.current.srcObject = null;
+                }
 
                 if (!cameraEnabled) deviceHandler.closeCamera();
             } catch (e) {
@@ -350,6 +351,9 @@ export default function ConfCall() {
                     deviceHandler.closeAllDevices();
                     localAudioRef.current.srcObject = null;
                     localVideoRef.current.srcObject = null;
+
+                    dispatch(setCameraEnabled(false));
+                    dispatch(setMicrophoneEnabled(false));
 
                     dispatch(setShowCall(false));
                     navigate(`/rooms/${callState.roomId}`);

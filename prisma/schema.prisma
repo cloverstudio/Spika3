@@ -211,6 +211,9 @@ model CallHistory {
   isInitiator Boolean  @default(false) @map(name: "is_initiator")
   joinedAt  DateTime @default(now()) @map(name: "joined_at")
   leftAt   DateTime? @map(name: "left_at")
+
+  callParameters Json?
+  
   @@map(name: "call_history")
 }
 

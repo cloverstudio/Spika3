@@ -87,7 +87,6 @@ export default (props: ComponentInterface) => {
 
     return (
         <Box sx={{ ...styles.container }}>
-            {props.isMe && <>Me</>}
             {props.user.displayName.substring(0, 1)}
             <div style={styles.videoContainer}>
                 <video autoPlay ref={videoRef} style={styles.video}></video>

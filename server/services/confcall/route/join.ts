@@ -22,6 +22,8 @@ export default (params: InitRouterParams) => {
     router.post("/:roomId/join", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         const roomId: number = parseInt((req.params.roomId as string) || "");
+        const videoEnabled: number = parseInt((req.body.videoEnabled as string) || "0");
+        const audioEnabled: number = parseInt((req.body.audioEnabled as string) || "0");
 
         try {
             const room: Room = await prisma.room.findFirst({
@@ -73,6 +75,12 @@ export default (params: InitRouterParams) => {
                     isInitiator: isInitiator,
                     joinedAt: new Date(),
                     leftAt: null,
+                    callParameters: {
+                        videoEnabled: videoEnabled === 1 ? true : false,
+                        audioEnabled: audioEnabled === 1 ? true : false,
+                        videoProducerId: "",
+                        audioProduverId: "",
+                    },
                 },
             });
 

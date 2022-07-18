@@ -23,6 +23,13 @@ type Room = {
     peers: Array<Peer>;
 };
 
+export type CallParamsInDB = {
+    videoProducerId: string;
+    audioProducerId: string;
+    videoEnabled: boolean;
+    audioEnabled: boolean;
+};
+
 const mediaCodecs: Array<any> = [
     {
         kind: "audio",
