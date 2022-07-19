@@ -297,8 +297,9 @@ class MediasoupHandler {
         const provider = peer.producerTransport;
         if (!provider) throw "Invalid peer id";
 
-        if (peer.consumerTransport) await peer.consumerTransport.connect({ dtlsParameters });
-        else throw "consumer transport doesn't exist";
+        if (!peer.consumerTransport) throw "consumer transport doesn't exist";
+
+        await peer.consumerTransport.connect({ dtlsParameters });
 
         return peer.consumerTransport;
     }

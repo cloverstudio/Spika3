@@ -268,7 +268,7 @@ class MediasoupHandler {
                     roomId: this.roomId,
                     peerId: this.peerId,
                     producerId: params.audioProducerId,
-                    rtpCapabilities: this.device.rtpCapabilities,
+                    rtpCapabilities: this.rtpCapabilities,
                     kind: "audio",
                 },
             });
@@ -292,7 +292,7 @@ class MediasoupHandler {
                     roomId: this.roomId,
                     peerId: this.peerId,
                     producerId: params.videoProducerId,
-                    rtpCapabilities: this.device.rtpCapabilities,
+                    rtpCapabilities: this.rtpCapabilities,
                     kind: "video",
                 },
             });
