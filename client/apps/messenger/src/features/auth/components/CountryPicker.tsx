@@ -12,7 +12,6 @@ import {
     Button,
 } from "@mui/material";
 import { KeyboardArrowDown, KeyboardArrowUp, Search } from "@mui/icons-material";
-import { makeStyles } from "@mui/styles";
 import { FixedSizeList, ListChildComponentProps } from "react-window";
 import countries, { CountryType } from "../lib/countries";
 import { isValidPhoneNumber } from "libphonenumber-js";

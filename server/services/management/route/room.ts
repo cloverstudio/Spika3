@@ -10,10 +10,186 @@ import l, { error as le } from "../../../components/logger";
 import { InitRouterParams } from "../../types/serviceInterface";
 import { successResponse, errorResponse } from "../../../components/response";
 import { UserRequest } from "../../messenger/lib/types";
-import { Room } from "@prisma/client";
+import { Room, RoomUser, User } from "@prisma/client";
 
 export default (params: InitRouterParams) => {
     const router = Router();
+
+    router.put("/userAdmin", adminAuth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        try {
+            const roomId: number =
+                parseInt(req.query.roomId ? (req.query.roomId as string) : "") || 0;
+            const userId: number =
+                parseInt(req.query.userId ? (req.query.userId as string) : "") || 0;
+
+            const roomUser = await prisma.roomUser.findFirst({
+                where: {
+                    roomId: roomId,
+                    userId: userId,
+                },
+            });
+
+            const updateRoomUser = await prisma.roomUser.updateMany({
+                where: {
+                    roomId: roomId,
+                    userId: userId,
+                },
+                data: {
+                    isAdmin: !roomUser.isAdmin,
+                },
+            });
+
+            return res.send(successResponse({ room: updateRoomUser }, userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.put("/addUsers", adminAuth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        try {
+            const roomId: number =
+                parseInt(req.query.roomId ? (req.query.roomId as string) : "") || 0;
+            const userIdsString = req.query.userIds;
+            const userIds: string[] = JSON.parse("[" + userIdsString + "]");
+
+            const array: { userId: number; roomId: number; isAdmin: boolean }[] = [];
+            userIds.forEach((element) => {
+                const model = { userId: Number(element), roomId: roomId, isAdmin: false };
+                array.push(model);
+            });
+
+            const allRoomUsers = await prisma.roomUser.createMany({
+                data: array,
+            });
+
+            return res.send(successResponse({ room: allRoomUsers }, userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.delete("/:roomId/:userId", adminAuth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        try {
+            const roomId: number = parseInt(req.params.roomId);
+            const userId: number = parseInt(req.params.userId);
+            const allRoomUsers = await prisma.roomUser.deleteMany({
+                where: {
+                    roomId: roomId,
+                    userId: userId,
+                },
+            });
+
+            return res.send(successResponse({ users: allRoomUsers }, userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.get("/users", adminAuth, async (req: Request, res: Response) => {
+        const roomId: number = Number(req.query.roomId);
+        const userReq: UserRequest = req as UserRequest;
+
+        try {
+            const room = await prisma.room.findUnique({
+                where: { id: roomId },
+                include: { users: true },
+            });
+
+            const userIds = room.users.map((ru) => ru.userId);
+            const users = await prisma.user.findMany({
+                where: { id: { in: userIds } },
+            });
+            return res.send(
+                successResponse(
+                    {
+                        room: room,
+                        users: users,
+                    },
+                    userReq.lang
+                )
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.get("/search", adminAuth, async (req: Request, res: Response) => {
+        const searchTerm: string = req.query.searchTerm ? (req.query.searchTerm as string) : "";
+        const userReq: UserRequest = req as UserRequest;
+
+        try {
+            const allRooms: Room[] = await prisma.room.findMany({
+                where: {
+                    OR: [
+                        {
+                            name: {
+                                contains: searchTerm,
+                            },
+                        },
+                    ],
+                },
+            });
+            const count = allRooms.length;
+
+            return res.send(
+                successResponse(
+                    {
+                        list: allRooms,
+                        count: count,
+                        limit: consts.PAGING_LIMIT,
+                    },
+                    userReq.lang
+                )
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.get("/group", adminAuth, async (req: Request, res: Response) => {
+        const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 0;
+        const type: string = req.query.type ? (req.query.type as string) : "";
+        const userReq: UserRequest = req as UserRequest;
+        // if (type.length > 0) {
+        try {
+            const rooms = await prisma.room.findMany({
+                where: {
+                    type: type,
+                },
+                orderBy: [
+                    {
+                        createdAt: "asc",
+                    },
+                ],
+                skip: consts.PAGING_LIMIT * page,
+                take: consts.PAGING_LIMIT,
+            });
+
+            const count = rooms.length;
+            res.send(
+                successResponse(
+                    {
+                        list: rooms,
+                        count: count,
+                        limit: consts.PAGING_LIMIT,
+                    },
+                    userReq.lang
+                )
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+        // }
+    });
 
     router.post("/", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;

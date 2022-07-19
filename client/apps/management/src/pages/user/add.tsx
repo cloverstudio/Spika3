@@ -1,8 +1,7 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     TextField,
-    Paper,
     Typography,
     Button,
     Stack,
@@ -10,13 +9,16 @@ import {
     FormGroup,
     FormControl,
     FormControlLabel,
+    Box,
 } from "@mui/material";
 import { useShowSnackBar } from "../../components/useUI";
 import * as yup from "yup";
 import { useFormik } from "formik";
-import { useCreateUserMutation } from "../../api/user";
+import { useCreateUserMutation, useUpdateUserMutation } from "../../api/user";
 import { hide } from "../../store/rightDrawerSlice";
 import { useDispatch } from "react-redux";
+import uploadImage from "../../assets/upload-image.svg";
+import uploadFile from "../../utils/uploadFile";
 
 const userModelSchema = yup.object({
     displayName: yup.string().required("Display name is required"),
@@ -24,8 +26,8 @@ const userModelSchema = yup.object({
         .number()
         .required("Telephone number is required")
         .typeError("Numbers only!"),
-    email: yup.string().required("Email is required").email("Not valid email"),
-    avatarUrl: yup.string().url(),
+    email: yup.string().email("Not valid email"),
+    avatarUrl: yup.string(),
     verified: yup.boolean(),
 });
 
@@ -53,6 +55,46 @@ export default function Dashboard() {
         setVerified(event.target.checked);
     };
 
+    const [file, setFile] = useState<File>();
+    const uploadFileRef = React.useRef(null);
+    const [update, updateMutation] = useUpdateUserMutation();
+
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const uploadedFile = e.target.files && e.target.files[0];
+
+        setFile(uploadedFile);
+    };
+
+    useEffect(() => {
+        (async () => {
+            if (addUserMutation.data && file) {
+                addAvatar();
+            }
+        })();
+    }, [addUserMutation.data]);
+
+    const addAvatar = async () => {
+        try {
+            const uploadedFile = await uploadFile({
+                file,
+                type: "avatar",
+                relationId: addUserMutation.data?.user.id,
+            });
+            await update({
+                userId: String(addUserMutation.data?.user.id),
+                data: {
+                    displayName: formik.values.displayName,
+                    emailAddress: formik.values.email,
+                    telephoneNumber: formik.values.telephoneNumber,
+                    avatarUrl: uploadedFile.path || "",
+                    verified: formik.values.verified,
+                },
+            });
+        } catch (error) {
+            console.error("Update failed ", error);
+        }
+    };
+
     const validateAndAdd = async () => {
         try {
             await addUser({
@@ -62,7 +104,6 @@ export default function Dashboard() {
                 avatarUrl: formik.values.avatarUrl,
                 verified: formik.values.verified,
             });
-
             showSnackBar({ severity: "success", text: "User added" });
             dispatch(hide());
         } catch (e: any) {
@@ -75,17 +116,26 @@ export default function Dashboard() {
 
     return (
         <form onSubmit={formik.handleSubmit}>
-            {/* <Paper
-                sx={{
-                    margin: "24px",
-                    p: "24px",
-                    height: "100%",
-                }}
-            > */}
             <Stack spacing={2} padding={2}>
                 <Typography component="h1" variant="subtitle1" noWrap style={{ color: "grey" }}>
                     Add User
                 </Typography>
+                <Box textAlign="center" mt={3} mb={5}>
+                    <img
+                        width={100}
+                        height={100}
+                        style={{ objectFit: "cover", borderRadius: "50%" }}
+                        src={file ? URL.createObjectURL(file) : uploadImage}
+                        onClick={() => uploadFileRef.current?.click()}
+                    />
+                    <input
+                        onChange={handleFileUpload}
+                        type="file"
+                        style={{ display: "none" }}
+                        ref={uploadFileRef}
+                        accept="image/*"
+                    />
+                </Box>
                 <TextField
                     required
                     fullWidth
@@ -115,7 +165,6 @@ export default function Dashboard() {
                 />
                 <TextField
                     fullWidth
-                    required
                     id="email"
                     error={formik.touched.email && Boolean(formik.errors.email)}
                     label="E-mail"
@@ -126,9 +175,9 @@ export default function Dashboard() {
                     inputProps={{ style: { fontSize: 15 } }}
                     InputLabelProps={{ style: { fontSize: 15 } }}
                 />
-                <TextField
+                {/* <TextField
                     fullWidth
-                    id="telephoneNumber"
+                    id="avatarUrl"
                     error={formik.touched.avatarUrl && Boolean(formik.errors.avatarUrl)}
                     label="Avatar Url"
                     value={formik.values.avatarUrl}
@@ -137,7 +186,7 @@ export default function Dashboard() {
                     size="small"
                     inputProps={{ style: { fontSize: 15 } }}
                     InputLabelProps={{ style: { fontSize: 15 } }}
-                />
+                /> */}
                 <FormControl component="fieldset">
                     <FormGroup aria-label="position" row>
                         <FormControlLabel
@@ -168,7 +217,6 @@ export default function Dashboard() {
                     </Button>
                 </Stack>
             </Stack>
-            {/* </Paper> */}
         </form>
     );
 }

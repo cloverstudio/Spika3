@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
     TextField,
     Typography,
@@ -8,6 +8,7 @@ import {
     FormControl,
     FormControlLabel,
     Checkbox,
+    Box,
 } from "@mui/material";
 import { useShowSnackBar } from "../../components/useUI";
 import * as yup from "yup";
@@ -16,12 +17,16 @@ import { useGetUserByIdQuery, useUpdateUserMutation } from "../../api/user";
 import UserType from "../../types/User";
 import { hide } from "../../store/rightDrawerSlice";
 import { useDispatch } from "react-redux";
+import uploadFile from "../../utils/uploadFile";
+import uploadImage from "../../assets/upload-image.svg";
+
+declare const UPLOADS_BASE_URL: string;
 
 const userModelSchema = yup.object({
     displayName: yup.string().required("Display name is required"),
     telephoneNumber: yup.string().required("Telephone number is required"),
-    email: yup.string().required("Email is required").email("Not valid email"),
-    avatarUrl: yup.string().url(),
+    email: yup.string(),
+    avatarUrl: yup.string(),
     verificationCode: yup.string(),
     verified: yup.boolean(),
 });
@@ -37,6 +42,15 @@ export default function Page(props: EditUserProps) {
     const [updateUser, updateUserMutation] = useUpdateUserMutation();
     const dispatch = useDispatch();
 
+    const [file, setFile] = useState<File>();
+    const uploadFileRef = React.useRef(null);
+
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const uploadedFile = e.target.files && e.target.files[0];
+
+        setFile(uploadedFile);
+    };
+
     const formik = useFormik({
         initialValues: {
             displayName: "",
@@ -48,6 +62,8 @@ export default function Page(props: EditUserProps) {
         },
         validationSchema: userModelSchema,
         onSubmit: (values) => {
+            console.log(formik.values.verified);
+            console.log(values);
             validateAndUpdate();
         },
     });
@@ -98,17 +114,36 @@ export default function Page(props: EditUserProps) {
 
     const validateAndUpdate = async () => {
         try {
-            await updateUser({
-                userId: userId,
-                data: {
-                    displayName: formik.values.displayName,
-                    emailAddress: formik.values.email,
-                    telephoneNumber: formik.values.telephoneNumber,
-                    avatarUrl: formik.values.avatarUrl,
-                    verified: formik.values.verified,
-                    verificationCode: formik.values.verificationCode,
-                },
-            });
+            if (file) {
+                const uploadedFile = await uploadFile({
+                    file,
+                    type: "avatar",
+                    relationId: Number(userId),
+                });
+                await updateUser({
+                    userId: userId,
+                    data: {
+                        displayName: formik.values.displayName,
+                        emailAddress: formik.values.email,
+                        telephoneNumber: formik.values.telephoneNumber,
+                        avatarUrl: uploadedFile.path || "",
+                        verified: formik.values.verified,
+                        verificationCode: formik.values.verificationCode,
+                    },
+                });
+            } else {
+                await updateUser({
+                    userId: userId,
+                    data: {
+                        displayName: formik.values.displayName,
+                        emailAddress: formik.values.email,
+                        telephoneNumber: formik.values.telephoneNumber,
+                        avatarUrl: formik.values.avatarUrl,
+                        verified: formik.values.verified,
+                        verificationCode: formik.values.verificationCode,
+                    },
+                });
+            }
             showSnackBar({ severity: "success", text: "User updated" });
             dispatch(hide());
         } catch (e: any) {
@@ -125,6 +160,28 @@ export default function Page(props: EditUserProps) {
                 <Typography component="h1" variant="subtitle1" noWrap style={{ color: "grey" }}>
                     Edit User
                 </Typography>
+                <Box textAlign="center" mt={3} mb={5}>
+                    <img
+                        width={100}
+                        height={100}
+                        style={{ objectFit: "cover", borderRadius: "50%" }}
+                        src={
+                            file
+                                ? URL.createObjectURL(file)
+                                : formik.values.avatarUrl.length > 0
+                                ? `${UPLOADS_BASE_URL}${formik.values.avatarUrl}`
+                                : uploadImage
+                        }
+                        onClick={() => uploadFileRef.current?.click()}
+                    />
+                    <input
+                        onChange={handleFileUpload}
+                        type="file"
+                        style={{ display: "none" }}
+                        ref={uploadFileRef}
+                        accept="image/*"
+                    />
+                </Box>
                 <TextField
                     required
                     fullWidth
@@ -138,44 +195,27 @@ export default function Page(props: EditUserProps) {
                     inputProps={{ style: { fontSize: 15 } }}
                     InputLabelProps={{ style: { fontSize: 15 } }}
                 />
-                <Stack alignItems="center" spacing={1} direction="row">
-                    <TextField
-                        required
-                        fullWidth
-                        id="telephoneNumber"
-                        error={
-                            formik.touched.telephoneNumber && Boolean(formik.errors.telephoneNumber)
-                        }
-                        label="Phone number"
-                        value={formik.values.telephoneNumber}
-                        onChange={formik.handleChange}
-                        helperText={formik.touched.telephoneNumber && formik.errors.telephoneNumber}
-                        size="small"
-                        inputProps={{ style: { fontSize: 15 } }}
-                        InputLabelProps={{ style: { fontSize: 15 } }}
-                    />
-                </Stack>
                 <TextField
-                    fullWidth
                     required
-                    id="email"
-                    error={formik.touched.email && Boolean(formik.errors.email)}
-                    label="E-mail"
-                    value={formik.values.email}
+                    fullWidth
+                    id="telephoneNumber"
+                    error={formik.touched.telephoneNumber && Boolean(formik.errors.telephoneNumber)}
+                    label="Phone number"
+                    value={formik.values.telephoneNumber}
                     onChange={formik.handleChange}
-                    helperText={formik.touched.email && formik.errors.email}
+                    helperText={formik.touched.telephoneNumber && formik.errors.telephoneNumber}
                     size="small"
                     inputProps={{ style: { fontSize: 15 } }}
                     InputLabelProps={{ style: { fontSize: 15 } }}
                 />
                 <TextField
                     fullWidth
-                    id="telephoneNumber"
-                    error={formik.touched.avatarUrl && Boolean(formik.errors.avatarUrl)}
-                    label="Avatar Url"
-                    value={formik.values.avatarUrl}
+                    id="email"
+                    error={formik.touched.email && Boolean(formik.errors.email)}
+                    label="E-mail"
+                    value={formik.values.email}
                     onChange={formik.handleChange}
-                    helperText={formik.touched.avatarUrl && formik.errors.avatarUrl}
+                    helperText={formik.touched.email && formik.errors.email}
                     size="small"
                     inputProps={{ style: { fontSize: 15 } }}
                     InputLabelProps={{ style: { fontSize: 15 } }}
@@ -203,6 +243,7 @@ export default function Page(props: EditUserProps) {
                                     id="verified"
                                     color="spikaButton"
                                     onChange={formik.handleChange}
+                                    checked={formik.values.verified}
                                 />
                             }
                             label={
