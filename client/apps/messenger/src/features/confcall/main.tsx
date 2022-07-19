@@ -300,7 +300,7 @@ export default function ConfCall() {
                 {participants &&
                     participants.map((participant, index) => (
                         <Grid item {...viewSize} sx={gridStyle} key={index}>
-                            {participant.user.id === userDataMe.user.id ? (
+                            {participant.user.id === userDataMe.user.id && false ? (
                                 <ParticipantView
                                     user={participant.user}
                                     isMe={true}

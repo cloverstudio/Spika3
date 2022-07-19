@@ -78,10 +78,14 @@ const styles: Record<string, CSS.Properties> = {
         padding: "2px",
         objectFit: "cover",
     },
+    audio: {
+        display: "hidden",
+    },
 };
 
 export default (props: ComponentInterface) => {
     const videoRef = useRef<HTMLVideoElement>(null);
+    const audioRef = useRef<HTMLAudioElement>(null);
 
     useEffect(() => {
         (async () => {
@@ -92,8 +96,8 @@ export default (props: ComponentInterface) => {
                         videoProducerId: props.callParams.videoProducerId,
                     },
                     (audioStream: MediaStream, videoStream: MediaStream) => {
-                        console.log("videoStream", videoStream);
                         videoRef.current.srcObject = videoStream;
+                        audioRef.current.srcObject = audioStream;
                     }
                 );
         })();
@@ -109,6 +113,7 @@ export default (props: ComponentInterface) => {
             {props.user.displayName.substring(0, 1)}
             <div style={styles.videoContainer}>
                 <video autoPlay ref={videoRef} style={styles.video}></video>
+                <audio autoPlay ref={audioRef} style={styles.audio}></audio>
             </div>
         </Box>
     );

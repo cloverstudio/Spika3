@@ -72,11 +72,11 @@ class MediasoupHandler {
 
             if (!res?.data.rtpCapabilities) throw "Failed to connect";
             if (!res?.data.peerId) throw "Failed to connect";
+            if (!res?.data.transportParams) throw "Failed to connect";
 
             this.setConnectionState(StreamingState.Joind);
             this.rtpCapabilities = res.data.rtpCapabilities;
             this.peerId = res.data.peerId;
-            const videoTransportParams = res.data.videoTransportParams;
 
             // create device
             this.device = new mediasoupClient.Device();
@@ -117,8 +117,6 @@ class MediasoupHandler {
                             appData: parameters.appData,
                         },
                     });
-
-                    console.log("res.data.producerId", res.data.producerId);
 
                     if (res.data.producerId) {
                         this.setConnectionState(StreamingState.StartStreaming);
@@ -268,7 +266,7 @@ class MediasoupHandler {
                     roomId: this.roomId,
                     peerId: this.peerId,
                     producerId: params.audioProducerId,
-                    rtpCapabilities: this.rtpCapabilities,
+                    rtpCapabilities: this.device.rtpCapabilities,
                     kind: "audio",
                 },
             });
@@ -292,7 +290,7 @@ class MediasoupHandler {
                     roomId: this.roomId,
                     peerId: this.peerId,
                     producerId: params.videoProducerId,
-                    rtpCapabilities: this.rtpCapabilities,
+                    rtpCapabilities: this.device.rtpCapabilities,
                     kind: "video",
                 },
             });

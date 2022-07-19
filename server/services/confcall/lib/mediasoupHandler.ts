@@ -49,7 +49,7 @@ const mediaCodecs: Array<any> = [
 const webRtcTransport_options = {
     listenIps: [
         {
-            ip: process.env["MEDIASOUP_LISTEN_IP"] || "127.0.0.1", // replace with relevant IP address
+            ip: process.env["MEDIASOUP_LISTEN_IP"] || "0.0.0.0", // replace with relevant IP address
             announcedIp: process.env["MEDIASOUP_ANNOUNCED_IP"] || "127.0.0.1",
         },
     ],
