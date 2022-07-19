@@ -10,6 +10,9 @@ import {
     Checkbox,
     Typography,
     Box,
+    Select,
+    MenuItem,
+    SelectChangeEvent,
 } from "@mui/material";
 import { useShowSnackBar } from "../../components/useUI";
 import * as yup from "yup";
@@ -43,6 +46,7 @@ export default function RoomEdit(props: EditRoomProps) {
     const [file, setFile] = useState<File>();
     const uploadFileRef = React.useRef(null);
     const dispatch = useDispatch();
+    const [value, setValue] = React.useState("private");
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const uploadedFile = e.target.files && e.target.files[0];
@@ -50,10 +54,14 @@ export default function RoomEdit(props: EditRoomProps) {
         setFile(uploadedFile);
     };
 
+    const handleChange = (event: SelectChangeEvent) => {
+        setValue(event.target.value);
+    };
+
     const formik = useFormik({
         initialValues: {
             name: "",
-            type: "",
+            type: value,
             avatarUrl: "",
             deleted: false,
         },
@@ -94,7 +102,7 @@ export default function RoomEdit(props: EditRoomProps) {
                     roomId: roomId,
                     data: {
                         name: formik.values.name,
-                        type: formik.values.type,
+                        type: value,
                         avatarUrl: uploadedFile.path || "",
                         deleted: formik.values.deleted,
                     },
@@ -104,7 +112,7 @@ export default function RoomEdit(props: EditRoomProps) {
                     roomId: roomId,
                     data: {
                         name: formik.values.name,
-                        type: formik.values.type,
+                        type: value,
                         avatarUrl: formik.values.avatarUrl,
                         deleted: formik.values.deleted,
                     },
@@ -159,16 +167,20 @@ export default function RoomEdit(props: EditRoomProps) {
                     onChange={formik.handleChange}
                     helperText={formik.touched.name && formik.errors.name}
                 />
-                <TextField
-                    required
-                    fullWidth
-                    id="type"
-                    error={formik.touched.type && Boolean(formik.errors.type)}
+                <Select
+                    labelId="demo-select-small"
+                    id="demo-select-small"
+                    value={value}
                     label="Type"
-                    value={formik.values.type}
-                    onChange={formik.handleChange}
-                    helperText={formik.touched.type && formik.errors.type}
-                />
+                    onChange={handleChange}
+                >
+                    <MenuItem sx={{ height: "50px" }} value={"private"} key={0}>
+                        Private
+                    </MenuItem>
+                    <MenuItem sx={{ height: "50px" }} value={"group"} key={1}>
+                        Group
+                    </MenuItem>
+                </Select>
                 <FormControl component="fieldset">
                     <FormGroup aria-label="position" row>
                         <FormControlLabel

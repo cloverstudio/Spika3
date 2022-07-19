@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from "react";
-import Layout from "../layout";
 import { useNavigate } from "react-router-dom";
-import { TextField, Stack, Grid, Button, Typography, Box } from "@mui/material";
+import {
+    TextField,
+    Stack,
+    Select,
+    Button,
+    Typography,
+    Box,
+    MenuItem,
+    SelectChangeEvent,
+} from "@mui/material";
 import { useShowSnackBar } from "../../components/useUI";
 import * as yup from "yup";
 import { useFormik } from "formik";
@@ -26,11 +34,12 @@ export default function RoomAdd() {
     const uploadFileRef = React.useRef(null);
     const dispatch = useDispatch();
     const [update, updateMutation] = useUpdateRoomMutation();
+    const [value, setValue] = React.useState("private");
 
     const formik = useFormik({
         initialValues: {
             name: "",
-            type: "",
+            type: value,
             avatarUrl: "",
             deleted: false,
         },
@@ -39,6 +48,10 @@ export default function RoomAdd() {
             validateAndAdd();
         },
     });
+
+    const handleChange = (event: SelectChangeEvent) => {
+        setValue(event.target.value);
+    };
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const uploadedFile = e.target.files && e.target.files[0];
@@ -50,7 +63,7 @@ export default function RoomAdd() {
         try {
             await addRoom({
                 name: formik.values.name,
-                type: formik.values.type,
+                type: value,
                 avatarUrl: formik.values.avatarUrl,
                 deleted: formik.values.deleted,
             });
@@ -130,19 +143,20 @@ export default function RoomAdd() {
                     inputProps={{ style: { fontSize: 15 } }}
                     InputLabelProps={{ style: { fontSize: 15 } }}
                 />
-                <TextField
-                    required
-                    fullWidth
-                    id="type"
-                    error={formik.touched.type && Boolean(formik.errors.type)}
+                <Select
+                    labelId="demo-select-small"
+                    id="demo-select-small"
+                    value={value}
                     label="Type"
-                    value={formik.values.type}
-                    onChange={formik.handleChange}
-                    helperText={formik.touched.type && formik.errors.type}
-                    size="small"
-                    inputProps={{ style: { fontSize: 15 } }}
-                    InputLabelProps={{ style: { fontSize: 15 } }}
-                />
+                    onChange={handleChange}
+                >
+                    <MenuItem sx={{ height: "50px" }} value={"private"} key={0}>
+                        Private
+                    </MenuItem>
+                    <MenuItem sx={{ height: "50px" }} value={"group"} key={1}>
+                        Group
+                    </MenuItem>
+                </Select>
                 <Stack spacing={2} direction="row">
                     <Button variant="contained" type="submit" color="spikaButton">
                         Add new room
