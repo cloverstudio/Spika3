@@ -1,0 +1,22 @@
+-- CreateTable
+CREATE TABLE `call_session` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `room_id` INTEGER NOT NULL,
+    `starte_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `finished_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `call_history` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `room_id` INTEGER NOT NULL,
+    `user_id` INTEGER NOT NULL,
+    `is_active` BOOLEAN NOT NULL DEFAULT false,
+    `is_initiator` BOOLEAN NOT NULL DEFAULT false,
+    `joined_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `left_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

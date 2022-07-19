@@ -15,6 +15,7 @@ const VALID_SSE_EVENT_TYPES = [
     "UPDATE_MESSAGE",
     "CALL_JOIN",
     "CALL_LEAVE",
+    "CALL_UPDATE",
     "UPDATE_ROOM",
     "USER_UPDATE",
 ];
@@ -108,6 +109,12 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
         }
 
         case "CALL_LEAVE": {
+            notifyCallEvent(data);
+
+            return;
+        }
+
+        case "CALL_UPDATE": {
             notifyCallEvent(data);
 
             return;

@@ -8,7 +8,7 @@ module.exports = {
         // mediasoup WorkerSettings.
         // See https://mediasoup.org/documentation/v3/mediasoup/api/#WorkerSettings
         workerSettings: {
-            logLevel: "error",
+            logLevel: "debug",
             logTags: [
                 "info",
                 "ice",
