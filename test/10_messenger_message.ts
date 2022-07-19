@@ -30,7 +30,7 @@ describe("API", () => {
         beforeEach(async () => {
             validParams = {
                 roomId: room.id,
-                type: "type",
+                type: "text",
                 body: {
                     text: "text",
                     mediaUrl: "url",
@@ -87,7 +87,7 @@ describe("API", () => {
             const responseValid = await supertest(app)
                 .post("/api/messenger/messages")
                 .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, type: "string" });
+                .send({ ...validParams, type: "text" });
 
             expect(responseInvalid.status).to.eqls(400);
             expect(responseValid.status).to.eqls(200);
@@ -107,7 +107,7 @@ describe("API", () => {
             const responseValid = await supertest(app)
                 .post("/api/messenger/messages")
                 .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, type: "type" });
+                .send({ ...validParams, type: "text" });
 
             expect(responseInvalidOne.status).to.eqls(400);
             expect(responseInvalidTwo.status).to.eqls(400);

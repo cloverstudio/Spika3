@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Box } from "@mui/material";
-import { ExpandMore } from "@mui/icons-material";
 
 import {
     selectRoomMessages,
@@ -27,7 +26,7 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
     const { data: userData } = useGetUserQuery();
     const dispatch = useDispatch();
     const { messages, count } = useSelector(selectRoomMessages(roomId));
-    const loading = useSelector(selectLoading());
+    const loading = useSelector(selectLoading);
     const [page, setPage] = useState(1);
     const [newMessages, setNewMessages] = useState(0);
     const [lastScrollHeight, setLastScrollHeight] = useState<number>();
