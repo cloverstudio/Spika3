@@ -53,7 +53,6 @@ export default function UserListView(props: UserListViewProps) {
     };
 
     const handleSaveClick = async () => {
-        console.log(selectedIds);
         try {
             await addUsers({
                 roomId: roomId,

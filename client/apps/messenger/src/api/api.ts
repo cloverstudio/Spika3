@@ -32,7 +32,6 @@ const axiosBaseQuery =
                 headers: additionalHeaders,
                 validateStatus: (status) => status < 500,
             });
-            console.log({ [url]: result.data });
 
             if (result.data.status !== "success") {
                 throw new Error(result.data.message);

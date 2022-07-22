@@ -67,6 +67,7 @@ export default function ConfCall() {
     const [participants, setParticipants] = useState<Array<Participant>>(null);
 
     function updateDevice() {
+        console.log("update device", cameraEnabled);
         // init camera
         (async () => {
             try {
@@ -86,23 +87,6 @@ export default function ConfCall() {
                     text: "Failed to find a webcamera.",
                 });
             }
-
-            try {
-                if (microphoneEnabled && localAudioRef.current) {
-                    const stream = await deviceHandler.getMicrophone(selectedMicrophone);
-                    localAudioRef.current.srcObject = stream;
-                } else if (!microphoneEnabled && localAudioRef.current)
-                    localAudioRef.current.srcObject = null;
-
-                if (!microphoneEnabled) deviceHandler.closeMicrophone();
-            } catch (e) {
-                console.error(e);
-                dispatch(setMicrophoneEnabled(false));
-                showSnackbar({
-                    severity: "error",
-                    text: "Failed to find a microphone.",
-                });
-            }
         })();
     }
 
@@ -115,6 +99,7 @@ export default function ConfCall() {
 
     // called when component is ready
     useEffect(() => {
+        console.log("urlState", urlState);
         (async () => {
             setCameraList(await getCameras());
             setMicrophoneList(await getMicrophones());

@@ -69,6 +69,7 @@ export default function ConfCall() {
     const selectedCamera = useSelector((state: RootState) => state.call.selectedCamera);
     const selectedMicrophone = useSelector((state: RootState) => state.call.selectedMicrophone);
     const callState = useSelector((state: RootState) => state.call);
+    const showSnackbar = useShowSnackBar();
 
     const [showCameraSelectDialog, setShowCameraSelectDialog] = useState<boolean>(false);
     const [cameraList, setCameraList] = useState<Array<MediaDeviceInfo>>(null);
@@ -88,8 +89,6 @@ export default function ConfCall() {
         const res = await dynamicBaseQuery({
             url: `/confcall/participants/${roomId}`,
         });
-
-        console.log("update participant", res.data);
 
         setParticipants(res.data);
     }
@@ -185,6 +184,38 @@ export default function ConfCall() {
         setMyVideoStream(stream);
     });
 
+    // handle resume / pause
+    useEffect(() => {
+        if (streamingState < StreamingState.WaitingConsumer) return;
+
+        (async () => {
+            try {
+                if (!cameraEnabled) await mediasoupHander.pauseVideo(callState);
+                else await mediasoupHander.resumeVideo(callState);
+            } catch (e) {
+                showSnackbar({
+                    severity: "error",
+                    text: "Failed to pause or resume video",
+                });
+            }
+        })();
+    }, [cameraEnabled]);
+
+    useEffect(() => {
+        if (streamingState < StreamingState.WaitingConsumer) return;
+        (async () => {
+            try {
+                if (!microphoneEnabled) await mediasoupHander.pauseAudio(callState);
+                else await mediasoupHander.resumeAudio(callState);
+            } catch (e) {
+                showSnackbar({
+                    severity: "error",
+                    text: "Failed to pause or resume audio",
+                });
+            }
+        })();
+    }, [microphoneEnabled]);
+
     return (
         <Box
             sx={{
@@ -228,12 +259,16 @@ export default function ConfCall() {
                     {cameraEnabled ? (
                         <VideocamIcon
                             sx={Styles.controlIconDefaultStyle}
-                            onClick={() => dispatch(setCameraEnabled(!cameraEnabled))}
+                            onClick={async () => {
+                                dispatch(setCameraEnabled(!cameraEnabled));
+                            }}
                         />
                     ) : (
                         <VideocamOffIcon
                             sx={Styles.controlIconDefaultStyle}
-                            onClick={() => dispatch(setCameraEnabled(!cameraEnabled))}
+                            onClick={async () => {
+                                dispatch(setCameraEnabled(!cameraEnabled));
+                            }}
                         />
                     )}
                     <KeyboardArrowUpIcon
@@ -247,12 +282,16 @@ export default function ConfCall() {
                     {microphoneEnabled ? (
                         <MicIcon
                             sx={Styles.controlIconDefaultStyle}
-                            onClick={() => dispatch(setMicrophoneEnabled(!microphoneEnabled))}
+                            onClick={async () => {
+                                dispatch(setMicrophoneEnabled(!microphoneEnabled));
+                            }}
                         />
                     ) : (
                         <MicOffIcon
                             sx={Styles.controlIconDefaultStyle}
-                            onClick={() => dispatch(setMicrophoneEnabled(!microphoneEnabled))}
+                            onClick={async () => {
+                                dispatch(setMicrophoneEnabled(!microphoneEnabled));
+                            }}
                         />
                     )}
                     <KeyboardArrowUpIcon
@@ -300,7 +339,7 @@ export default function ConfCall() {
                 {participants &&
                     participants.map((participant, index) => (
                         <Grid item {...viewSize} sx={gridStyle} key={index}>
-                            {participant.user.id === userDataMe.user.id && false ? (
+                            {participant.user.id === userDataMe.user.id ? (
                                 <ParticipantView
                                     user={participant.user}
                                     isMe={true}

@@ -71,13 +71,11 @@ export default function RoomUsersView(props: RoomUsersViewProps) {
     const areThereMultipleAdmins = () => {
         var counter = 0;
         roomUsers.forEach((element) => {
-            console.log(element);
             if (element.isAdmin) {
                 counter += 1;
             }
-            console.log(counter);
         });
-        console.log(counter);
+
         setMultipleAdmins(counter > 1);
     };
 

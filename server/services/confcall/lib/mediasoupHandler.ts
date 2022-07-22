@@ -345,6 +345,48 @@ class MediasoupHandler {
 
         return consumer;
     }
+
+    async pause(roomId: number, peerId: string, kind: mediasoup.types.MediaKind): Promise<void> {
+        let room = this.rooms.find((room, index) => {
+            return room.roomId === roomId;
+        });
+
+        if (!room) throw "Invalid room id";
+
+        let peer = room.peers.find((peer) => peer.peerId === peerId);
+
+        if (!peer) throw "Invalid peer id";
+
+        const provider = peer.producerTransport;
+        if (!provider) throw "Invalid peer id";
+
+        const producer = peer.producers.find((producer) => {
+            return producer.kind === kind;
+        });
+
+        producer.pause();
+    }
+
+    async resume(roomId: number, peerId: string, kind: mediasoup.types.MediaKind): Promise<void> {
+        let room = this.rooms.find((room, index) => {
+            return room.roomId === roomId;
+        });
+
+        if (!room) throw "Invalid room id";
+
+        let peer = room.peers.find((peer) => peer.peerId === peerId);
+
+        if (!peer) throw "Invalid peer id";
+
+        const provider = peer.producerTransport;
+        if (!provider) throw "Invalid peer id";
+
+        const producer = peer.producers.find((producer) => {
+            return producer.kind === kind;
+        });
+
+        producer.resume();
+    }
 }
 
 export default new MediasoupHandler();

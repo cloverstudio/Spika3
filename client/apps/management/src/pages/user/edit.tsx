@@ -62,8 +62,6 @@ export default function Page(props: EditUserProps) {
         },
         validationSchema: userModelSchema,
         onSubmit: (values) => {
-            console.log(formik.values.verified);
-            console.log(values);
             validateAndUpdate();
         },
     });

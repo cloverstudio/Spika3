@@ -163,18 +163,34 @@ class MediasoupHandler {
             const { roomId, microphoneEnabled, cameraEnabled, selectedCamera, selectedMicrophone } =
                 initialParams;
 
-            if (microphoneEnabled || cameraEnabled) {
-                if (cameraEnabled) {
-                    this.videoStream = await deviceHandler.getCamera(selectedCamera);
-                    this.cameraReadyListner && this.cameraReadyListner(this.videoStream);
-                    this.setConnectionState(StreamingState.VideoReady);
-                }
+            if (microphoneEnabled) {
+                this.audioStream = await deviceHandler.getMicrophone(selectedMicrophone);
+                this.micReadyListner && this.micReadyListner(this.audioStream);
+                this.setConnectionState(StreamingState.AudioReady);
 
-                if (microphoneEnabled) {
-                    this.audioStream = await deviceHandler.getMicrophone(selectedMicrophone);
-                    this.micReadyListner && this.micReadyListner(this.audioStream);
-                    this.setConnectionState(StreamingState.AudioReady);
-                }
+                this.audioProducer = await this.producerTransport.produce({
+                    track: this.audioStream.getAudioTracks()[0],
+                    codecOptions: {
+                        opusStereo: true,
+                        opusDtx: true,
+                    },
+                });
+
+                this.audioProducer.on("trackended", () => {
+                    // close video track
+                });
+
+                this.audioProducer.on("transportclose", () => {
+                    // close video track
+                });
+
+                this.setConnectionState(StreamingState.WaitingConsumer);
+            }
+
+            if (cameraEnabled) {
+                this.videoStream = await deviceHandler.getCamera(selectedCamera);
+                this.cameraReadyListner && this.cameraReadyListner(this.videoStream);
+                this.setConnectionState(StreamingState.VideoReady);
 
                 this.videoProducer = await this.producerTransport.produce({
                     track: this.videoStream.getVideoTracks()[0],
@@ -201,39 +217,15 @@ class MediasoupHandler {
                     },
                 });
 
-                this.audioProducer = await this.producerTransport.produce({
-                    track: this.audioStream.getAudioTracks()[0],
-                    codecOptions: {
-                        opusStereo: true,
-                        opusDtx: true,
-                    },
-                });
-
                 this.videoProducer.on("trackended", () => {
-                    console.log("track ended");
-
                     // close video track
                 });
 
                 this.videoProducer.on("transportclose", () => {
-                    console.log("transport ended");
-
                     // close video track
                 });
 
-                this.audioProducer.on("trackended", () => {
-                    console.log("track ended");
-
-                    // close video track
-                });
-
-                this.audioProducer.on("transportclose", () => {
-                    console.log("transport ended");
-
-                    // close video track
-                });
-            } else {
-                // spectator mode
+                this.setConnectionState(StreamingState.WaitingConsumer);
             }
         } catch (e) {
             console.error(e);
@@ -250,6 +242,12 @@ class MediasoupHandler {
 
         this.cameraReadyListner = null;
         this.micReadyListner = null;
+
+        this.videoProducer.close();
+        this.audioProducer.close();
+
+        this.videoProducer = null;
+        this.audioProducer = null;
     }
     async startConsume(
         params: { audioProducerId?: string; videoProducerId?: string },
@@ -280,6 +278,7 @@ class MediasoupHandler {
                 });
 
             audioStream = new MediaStream([audioConsumer.track]);
+            this.setConnectionState(StreamingState.Established);
         }
 
         if (params.videoProducerId) {
@@ -304,9 +303,76 @@ class MediasoupHandler {
                 });
 
             videoStream = new MediaStream([videoConsumer.track]);
+            this.setConnectionState(StreamingState.Established);
         }
 
         callBack(audioStream, videoStream);
+    }
+
+    async pauseVideo(callState: CallState) {
+        const resVideo = await dynamicBaseQuery({
+            url: `/confcall/mediasoup/${this.roomId}/pause`,
+            method: "POST",
+            data: {
+                roomId: this.roomId,
+                peerId: this.peerId,
+                kind: "video",
+            },
+        });
+
+        await this.videoProducer.pause();
+    }
+
+    async resumeVideo(callState: CallState) {
+        console.log("this.videoProducer", this.videoProducer);
+        if (!this.videoProducer) {
+            this.startProduce(callState);
+            return;
+        }
+        const resVideo = await dynamicBaseQuery({
+            url: `/confcall/mediasoup/${this.roomId}/resume`,
+            method: "POST",
+            data: {
+                roomId: this.roomId,
+                peerId: this.peerId,
+                kind: "video",
+            },
+        });
+
+        await this.videoProducer.resume();
+    }
+
+    async pauseAudio(callState: CallState) {
+        const resVideo = await dynamicBaseQuery({
+            url: `/confcall/mediasoup/${this.roomId}/pause`,
+            method: "POST",
+            data: {
+                roomId: this.roomId,
+                peerId: this.peerId,
+                kind: "audio",
+            },
+        });
+
+        await this.audioProducer.pause();
+    }
+
+    async resumeAudio(callState: CallState) {
+        if (!this.audioProducer) {
+            this.startProduce(callState);
+            return;
+        }
+
+        const resVideo = await dynamicBaseQuery({
+            url: `/confcall/mediasoup/${this.roomId}/resume`,
+            method: "POST",
+            data: {
+                roomId: this.roomId,
+                peerId: this.peerId,
+                kind: "audio",
+            },
+        });
+
+        await this.audioProducer.resume();
     }
 }
 

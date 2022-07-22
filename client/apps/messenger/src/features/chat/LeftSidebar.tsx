@@ -102,7 +102,7 @@ function LeftSidebarNewGroup({
                     type: "group",
                     avatarUrl: uploadedFile?.path || "",
                 }).unwrap();
-                console.log({ res });
+
                 if (res && res.room?.id) {
                     setSidebar("");
                     navigate(`/rooms/${res.room.id}`);
