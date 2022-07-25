@@ -168,6 +168,7 @@ export default (params: InitRouterParams) => {
             // get history
             const callHistory: CallHistory = await prisma.callHistory.findFirst({
                 where: {
+                    userId: userId,
                     sessionId: callSession.id,
                     isActive: true,
                     leftAt: null,
@@ -249,6 +250,7 @@ export default (params: InitRouterParams) => {
             // get history
             const callHistory: CallHistory = await prisma.callHistory.findFirst({
                 where: {
+                    userId: userId,
                     sessionId: callSession.id,
                     isActive: true,
                     leftAt: null,
@@ -313,6 +315,7 @@ export default (params: InitRouterParams) => {
             // get history
             const callHistory: CallHistory = await prisma.callHistory.findFirst({
                 where: {
+                    userId: userId,
                     sessionId: callSession.id,
                     isActive: true,
                     leftAt: null,
@@ -376,6 +379,7 @@ export default (params: InitRouterParams) => {
             // get history
             const callHistory: CallHistory = await prisma.callHistory.findFirst({
                 where: {
+                    userId: userId,
                     sessionId: callSession.id,
                     isActive: true,
                     leftAt: null,
@@ -448,6 +452,7 @@ export default (params: InitRouterParams) => {
             // get history
             const callHistory: CallHistory = await prisma.callHistory.findFirst({
                 where: {
+                    userId: userId,
                     sessionId: callSession.id,
                     isActive: true,
                     leftAt: null,
@@ -521,6 +526,7 @@ export default (params: InitRouterParams) => {
             // get history
             const callHistory: CallHistory = await prisma.callHistory.findFirst({
                 where: {
+                    userId: userId,
                     sessionId: callSession.id,
                     isActive: true,
                     leftAt: null,

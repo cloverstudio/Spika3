@@ -324,7 +324,6 @@ class MediasoupHandler {
     }
 
     async resumeVideo(callState: CallState) {
-        console.log("this.videoProducer", this.videoProducer);
         if (!this.videoProducer) {
             this.startProduce(callState);
             return;
@@ -373,6 +372,19 @@ class MediasoupHandler {
         });
 
         await this.audioProducer.resume();
+    }
+
+    async chengeCamera(deviceId: string): Promise<void> {
+        this.videoStream = await deviceHandler.getCamera(deviceId);
+        const newVideoTrack = this.videoStream.getVideoTracks()[0];
+        await this.videoProducer.replaceTrack({ track: newVideoTrack });
+        this.cameraReadyListner(this.videoStream);
+    }
+
+    async chengeMicrophone(deviceId: string): Promise<void> {
+        this.audioStream = await deviceHandler.getMicrophone(deviceId);
+        const newAudoiTrack = this.audioStream.getAudioTracks()[0];
+        await this.audioProducer.replaceTrack({ track: newAudoiTrack });
     }
 }
 

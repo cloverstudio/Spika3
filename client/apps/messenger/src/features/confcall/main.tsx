@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { Box, Grid, useMediaQuery, Button } from "@mui/material";
 import CSS from "csstype";
 import { useNavigate, useParams } from "react-router-dom";
@@ -42,6 +42,7 @@ import mediasoupHander, { StreamingState } from "./lib/mediasoupHanlder";
 
 //API
 import { useJoinMutation, useLeaveMutation } from "./api";
+import { loadPartialConfig } from "@babel/core";
 
 let showControllbarTimer: NodeJS.Timer;
 
@@ -239,123 +240,150 @@ export default function ConfCall() {
                 }, 300);
             }}
         >
-            {/* controller */}
-            <Box
-                sx={{
-                    height: "100px",
-                    display: "flex",
-                    flexDirection: "row",
-                    justifyContent: "center",
-                    position: "absolute",
-                    bottom: 0,
-                    width: "100%",
-                    background: "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%);",
-                    opacity: showControllBar ? "1" : "0",
-                    transition: "all 0.5s ease;",
-                    zIndex: 700,
-                }}
-            >
-                <ButtonsHolder>
-                    {cameraEnabled ? (
-                        <VideocamIcon
-                            sx={Styles.controlIconDefaultStyle}
-                            onClick={async () => {
-                                dispatch(setCameraEnabled(!cameraEnabled));
-                            }}
-                        />
-                    ) : (
-                        <VideocamOffIcon
-                            sx={Styles.controlIconDefaultStyle}
-                            onClick={async () => {
-                                dispatch(setCameraEnabled(!cameraEnabled));
-                            }}
-                        />
-                    )}
-                    <KeyboardArrowUpIcon
-                        sx={Styles.controlArrowIconDefaultStyle}
-                        onClick={() => {
-                            setShowCameraSelectDialog(true);
+            {streamingState < StreamingState.WaitingConsumer ? (
+                <>connecting...</>
+            ) : (
+                <>
+                    <Box
+                        sx={{
+                            height: "100px",
+                            display: "flex",
+                            flexDirection: "row",
+                            justifyContent: "center",
+                            position: "absolute",
+                            bottom: 0,
+                            width: "100%",
+                            background:
+                                "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%);",
+                            opacity: showControllBar ? "1" : "0",
+                            transition: "all 0.5s ease;",
+                            zIndex: 700,
                         }}
-                    />
-                </ButtonsHolder>
-                <ButtonsHolder>
-                    {microphoneEnabled ? (
-                        <MicIcon
-                            sx={Styles.controlIconDefaultStyle}
-                            onClick={async () => {
-                                dispatch(setMicrophoneEnabled(!microphoneEnabled));
-                            }}
-                        />
-                    ) : (
-                        <MicOffIcon
-                            sx={Styles.controlIconDefaultStyle}
-                            onClick={async () => {
-                                dispatch(setMicrophoneEnabled(!microphoneEnabled));
-                            }}
-                        />
-                    )}
-                    <KeyboardArrowUpIcon
-                        sx={Styles.controlArrowIconDefaultStyle}
-                        onClick={() => setShowMicrophoneSelectDialog(true)}
-                    />
-                </ButtonsHolder>
-                <ButtonsHolder>
-                    {screenshareEnabled ? (
-                        <ScreenShareIcon
-                            sx={Styles.controlIconDefaultStyle}
-                            onClick={() => dispatch(setScreenshareEnabled(!screenshareEnabled))}
-                        />
-                    ) : (
-                        <StopScreenShareIcon
-                            sx={Styles.controlIconDefaultStyle}
-                            onClick={() => dispatch(setScreenshareEnabled(!screenshareEnabled))}
-                        />
-                    )}
-                </ButtonsHolder>
-                <ButtonsHolder>
-                    <CloseIcon
-                        sx={Styles.controlIconDefaultStyle}
-                        onClick={async () => {
-                            mediasoupHander.stop();
-                            await leaveApi(callState.roomId);
-                            navigate(`/rooms/${callState.roomId}`);
-                        }}
-                    />
-                </ButtonsHolder>
-                <ButtonsHolder>
-                    {streamingState === StreamingState.NotJoined && "Not Joined"}
-                    {streamingState === StreamingState.Joind && "Joined"}
-                    {streamingState === StreamingState.AudioReady && "Audio Ready"}
-                    {streamingState === StreamingState.VideoReady && "Video Ready"}
-                    {streamingState === StreamingState.StartStreaming && "Streamin started"}
-                    {streamingState === StreamingState.WaitingConsumer && "Waiting participants"}
-                    {streamingState === StreamingState.Established && "Established"}
-                    {streamingState === StreamingState.Error && "Error"}
-                </ButtonsHolder>
-            </Box>
-
-            {/* main part */}
-            <Grid container>
-                {participants &&
-                    participants.map((participant, index) => (
-                        <Grid item {...viewSize} sx={gridStyle} key={index}>
-                            {participant.user.id === userDataMe.user.id ? (
-                                <ParticipantView
-                                    user={participant.user}
-                                    isMe={true}
-                                    localVideoStream={myVideoStream}
+                    >
+                        <ButtonsHolder>
+                            {cameraEnabled ? (
+                                <VideocamIcon
+                                    sx={Styles.controlIconDefaultStyle}
+                                    onClick={async () => {
+                                        dispatch(setCameraEnabled(!cameraEnabled));
+                                    }}
                                 />
                             ) : (
-                                <ParticipantView
-                                    user={participant.user}
-                                    callParams={participant.callParams}
-                                    isMe={false}
+                                <VideocamOffIcon
+                                    sx={Styles.controlIconDefaultStyle}
+                                    onClick={async () => {
+                                        dispatch(setCameraEnabled(!cameraEnabled));
+                                    }}
                                 />
                             )}
-                        </Grid>
-                    ))}
-            </Grid>
+                            <KeyboardArrowUpIcon
+                                sx={Styles.controlArrowIconDefaultStyle}
+                                onClick={() => {
+                                    setShowCameraSelectDialog(true);
+                                }}
+                            />
+                        </ButtonsHolder>
+                        <ButtonsHolder>
+                            {microphoneEnabled ? (
+                                <MicIcon
+                                    sx={Styles.controlIconDefaultStyle}
+                                    onClick={async () => {
+                                        dispatch(setMicrophoneEnabled(!microphoneEnabled));
+                                    }}
+                                />
+                            ) : (
+                                <MicOffIcon
+                                    sx={Styles.controlIconDefaultStyle}
+                                    onClick={async () => {
+                                        dispatch(setMicrophoneEnabled(!microphoneEnabled));
+                                    }}
+                                />
+                            )}
+                            <KeyboardArrowUpIcon
+                                sx={Styles.controlArrowIconDefaultStyle}
+                                onClick={() => setShowMicrophoneSelectDialog(true)}
+                            />
+                        </ButtonsHolder>
+                        <ButtonsHolder>
+                            {screenshareEnabled ? (
+                                <ScreenShareIcon
+                                    sx={Styles.controlIconDefaultStyle}
+                                    onClick={() =>
+                                        dispatch(setScreenshareEnabled(!screenshareEnabled))
+                                    }
+                                />
+                            ) : (
+                                <StopScreenShareIcon
+                                    sx={Styles.controlIconDefaultStyle}
+                                    onClick={() =>
+                                        dispatch(setScreenshareEnabled(!screenshareEnabled))
+                                    }
+                                />
+                            )}
+                        </ButtonsHolder>
+                        <ButtonsHolder>
+                            <CloseIcon
+                                sx={Styles.controlIconDefaultStyle}
+                                onClick={async () => {
+                                    mediasoupHander.stop();
+                                    await leaveApi(callState.roomId);
+                                    navigate(`/rooms/${callState.roomId}`);
+                                }}
+                            />
+                        </ButtonsHolder>
+                        <ButtonsHolder>
+                            {streamingState === StreamingState.NotJoined && "Not Joined"}
+                            {streamingState === StreamingState.Joind && "Joined"}
+                            {streamingState === StreamingState.AudioReady && "Audio Ready"}
+                            {streamingState === StreamingState.VideoReady && "Video Ready"}
+                            {streamingState === StreamingState.StartStreaming && "Streamin started"}
+                            {streamingState === StreamingState.WaitingConsumer &&
+                                "Waiting participants"}
+                            {streamingState === StreamingState.Established && "Established"}
+                            {streamingState === StreamingState.Error && "Error"}
+                        </ButtonsHolder>
+                    </Box>
 
+                    {/* main part */}
+                    <Grid container>
+                        {participants &&
+                            participants.map((participant, index) => {
+                                return (
+                                    <Grid
+                                        item
+                                        {...viewSize}
+                                        sx={gridStyle}
+                                        key={participant.user.id}
+                                    >
+                                        {participant.user.id === userDataMe.user.id ? (
+                                            <ParticipantView
+                                                displayName={participant.user.displayName}
+                                                isMe={true}
+                                                localVideoStream={myVideoStream}
+                                                videoEnabled={cameraEnabled}
+                                                userId={userDataMe.user.id}
+                                            />
+                                        ) : (
+                                            <ParticipantView
+                                                displayName={participant.user.displayName}
+                                                isMe={false}
+                                                audioProducerId={
+                                                    participant.callParams.audioProducerId
+                                                }
+                                                videoProducerId={
+                                                    participant.callParams.videoProducerId
+                                                }
+                                                videoEnabled={participant.callParams.videoEnabled}
+                                                audioEnabled={participant.callParams.audioEnabled}
+                                                userId={participant.user.id}
+                                            />
+                                        )}
+                                    </Grid>
+                                );
+                            })}
+                    </Grid>
+                </>
+            )}
             {/* modals */}
             <SelectBoxDialog
                 show={showCameraSelectDialog}
@@ -366,6 +394,8 @@ export default function ConfCall() {
                 onOk={async (deviceId: string) => {
                     dispatch(setSelectedCamera(deviceId));
                     setShowCameraSelectDialog(false);
+
+                    mediasoupHander.chengeCamera(deviceId);
                 }}
                 onCancel={() => {
                     setShowCameraSelectDialog(false);
@@ -388,6 +418,7 @@ export default function ConfCall() {
                 onOk={async (deviceId: string) => {
                     dispatch(setSelectedMicrophone(deviceId));
                     setShowMicrophoneSelectDialog(false);
+                    mediasoupHander.chengeMicrophone(deviceId);
                 }}
                 onCancel={() => {
                     setShowMicrophoneSelectDialog(false);

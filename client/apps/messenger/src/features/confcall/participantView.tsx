@@ -3,7 +3,7 @@ import { Box, Grid, useMediaQuery, Button } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import { useSelector, useDispatch } from "react-redux";
-import {} from "@mui/icons-material";
+import { VillaRounded } from "@mui/icons-material";
 import CSS from "csstype";
 
 import UserType from "../../types/User";
@@ -21,11 +21,15 @@ import {
 } from "./slice/callSlice";
 
 export interface ComponentInterface {
-    user: UserType;
+    userId: number;
+    displayName: string;
     isMe: boolean;
     localVideoStream?: MediaStream;
     localAaudioStream?: MediaStream;
-    callParams?: CallParams;
+    videoProducerId?: string;
+    audioProducerId?: string;
+    audioEnabled?: boolean;
+    videoEnabled?: boolean;
 }
 
 const defaultStyle: CSS.Properties = {
@@ -83,36 +87,60 @@ const styles: Record<string, CSS.Properties> = {
     },
 };
 
+let videoStreamLocal: MediaStream = null;
+let audioStreamLocal: MediaStream = null;
+
 export default (props: ComponentInterface) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const audioRef = useRef<HTMLAudioElement>(null);
 
     useEffect(() => {
+        console.log(`userid ${props.userId} video state changed ${props.videoEnabled}`);
+    }, [props.videoEnabled, props.audioEnabled]);
+
+    useEffect(() => {
+        if (props.isMe) return;
+
         (async () => {
-            if (!props.isMe)
-                await mediasoupHandler.startConsume(
-                    {
-                        audioProducerId: props.callParams.audioProducerId,
-                        videoProducerId: props.callParams.videoProducerId,
-                    },
-                    (audioStream: MediaStream, videoStream: MediaStream) => {
-                        videoRef.current.srcObject = videoStream;
-                        audioRef.current.srcObject = audioStream;
-                    }
-                );
+            await mediasoupHandler.startConsume(
+                {
+                    audioProducerId: props.audioProducerId,
+                    videoProducerId: props.videoProducerId,
+                },
+                (audioStream: MediaStream, videoStream: MediaStream) => {
+                    if (videoStream) videoStreamLocal = videoStream;
+                    if (audioStream) audioStreamLocal = audioStream;
+                    updateVideo();
+                }
+            );
         })();
-    }, [props.callParams]);
+    }, [props.audioProducerId, props.videoProducerId]);
 
     useEffect(() => {
         if (!videoRef.current || !props.localVideoStream) return;
         videoRef.current.srcObject = props.localVideoStream;
     }, [videoRef, props.localVideoStream]);
 
+    useEffect(() => {
+        updateVideo();
+    }, [videoRef, audioRef]);
+
+    const updateVideo = () => {
+        if (props.isMe) return;
+
+        if (videoStreamLocal && videoRef.current) videoRef.current.srcObject = videoStreamLocal;
+        if (audioStreamLocal && audioRef.current) audioRef.current.srcObject = audioStreamLocal;
+    };
+
     return (
         <Box sx={{ ...styles.container }}>
-            {props.user.displayName.substring(0, 1)}
+            {props.displayName.substring(0, 1)}
             <div style={styles.videoContainer}>
-                <video autoPlay ref={videoRef} style={styles.video}></video>
+                <video
+                    autoPlay
+                    ref={videoRef}
+                    style={{ ...styles.video, opacity: props.videoEnabled ? 1 : 0 }}
+                ></video>
                 <audio autoPlay ref={audioRef} style={styles.audio}></audio>
             </div>
         </Box>

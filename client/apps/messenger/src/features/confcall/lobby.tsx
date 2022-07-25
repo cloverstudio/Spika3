@@ -67,7 +67,6 @@ export default function ConfCall() {
     const [participants, setParticipants] = useState<Array<Participant>>(null);
 
     function updateDevice() {
-        console.log("update device", cameraEnabled);
         // init camera
         (async () => {
             try {
