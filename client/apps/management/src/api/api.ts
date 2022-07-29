@@ -30,7 +30,7 @@ const axiosBaseQuery =
             additionalHeaders["device-type"] = constants.DEVICE_TYPE;
             additionalHeaders[constants.ADMIN_ACCESS_TOKEN] = token;
 
-            // console.log("URL: " + url);
+            console.log("URL: " + url);
             const result = await axios({
                 url: baseUrl + url,
                 method,

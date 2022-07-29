@@ -1,10 +1,7 @@
+import { Serie } from "@nivo/line";
+
 export type StatisticListType = {
-    list: StatisticType[];
+    list: Serie[];
     count: number;
     limit: number;
-};
-
-export type StatisticType = {
-    timeValue: number;
-    statisticValue: number;
 };
