@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { PrismaClient } from "@prisma/client";
-
+import amqp from "amqplib";
 import Service, { ServiceStartParams } from "../types/serviceInterface";
 import auth from "./lib/auth";
 import { UserRequest } from "./lib/types";
@@ -8,13 +8,17 @@ import NotificationServer from "./notificationServer";
 import { formatMessageBody } from "../../components/message";
 import sanitize from "../../components/sanitize";
 import * as Constants from "../../components/consts";
+import { leaveCallLogicUser } from "../,,/../confcall/lib/leaveCallLogic";
 
 const prisma = new PrismaClient();
 
 export default class SSEService implements Service {
     notificationServer: NotificationServer;
+    rabbitMQChannel: amqp.Channel;
+
     async start({ rabbitMQChannel }: ServiceStartParams): Promise<void> {
         this.notificationServer = new NotificationServer(rabbitMQChannel);
+        this.rabbitMQChannel = rabbitMQChannel;
     }
 
     getRoutes(): Router {
@@ -47,11 +51,13 @@ export default class SSEService implements Service {
             });
             console.log(`Device id: ${channelId} - Connection open`);
 
-            req.on("close", () => {
+            req.on("close", async () => {
                 clearInterval(interval);
                 this.notificationServer.unsubscribe(connectionId);
                 res.end();
                 console.log(`Device id: ${channelId} - Connection closed`);
+
+                await leaveCallLogicUser(userReq.user.id, this.rabbitMQChannel);
             });
         });
         return SSERouter;

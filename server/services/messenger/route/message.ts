@@ -57,6 +57,33 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 return res.status(400).send(errorResponse("Room not found", userReq.lang));
             }
 
+            // validation
+            if (type === "image" || type === "audio" || type === "video" || type === "file") {
+                if (!body.fileId)
+                    return res.status(400).send(errorResponse("FileID is missing", userReq.lang));
+
+                const fileId: number = body.fileId;
+                const thumbId: number = body.thumbId;
+
+                // check existance
+                const exists = await prisma.file.findFirst({ where: { id: fileId } });
+                if (!exists)
+                    return res.status(400).send(errorResponse("Invalid fileId", userReq.lang));
+
+                if (thumbId) {
+                    const exists = await prisma.file.findFirst({
+                        where: { id: thumbId },
+                    });
+                    if (!exists)
+                        return res.status(400).send(errorResponse("Invalid thumbId", userReq.lang));
+                }
+            } else if (type === "text") {
+                if (!body.text)
+                    return res.status(400).send(errorResponse("Text is missing", userReq.lang));
+            } else {
+                return res.status(400).send(errorResponse("Invalid type", userReq.lang));
+            }
+
             const devices = await prisma.device.findMany({
                 where: {
                     userId: { in: room.users.map((u) => u.userId) },

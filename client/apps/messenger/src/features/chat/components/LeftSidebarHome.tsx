@@ -24,7 +24,6 @@ import SidebarContactList from "./ContactList";
 import SidebarCallList from "./CallList";
 import SidebarChatList from "./ChatList";
 import LeftSidebarLayout from "./LeftSidebarLayout";
-import SearchBox from "./SearchBox";
 import { EditProfileView } from "./EditProfile";
 
 import logo from "../../../assets/logo.svg";

@@ -1,26 +1,13 @@
 import React, { useEffect, useState } from "react";
-import {
-    Typography,
-    TextField,
-    Grid,
-    Button,
-    Avatar,
-    Stack,
-    Divider,
-    Chip,
-    Drawer,
-    Box,
-} from "@mui/material";
-import { Close, Add, Check } from "@mui/icons-material";
-
+import { Typography, TextField, Button, Avatar, Stack, Box } from "@mui/material";
+import { Check } from "@mui/icons-material";
 import User from "../../types/User";
-import Contacts from "../../types/Contacts";
 import { RoomUserType } from "../../types/Room";
 
 import { useGetUsersQuery, useGetUsersBySearchTermQuery } from "../../api/user";
 import { useAddUsersToRoomMutation } from "../../api/room";
 import UserType from "../../types/User";
-import { useShowBasicDialog, useShowSnackBar } from "../../components/useUI";
+import { useShowSnackBar } from "../../components/useUI";
 import { hide as addUserFinished } from "../../store/rightDrawerSlice";
 import { useDispatch } from "react-redux";
 
@@ -53,7 +40,6 @@ export default function UserListView(props: UserListViewProps) {
     };
 
     const handleSaveClick = async () => {
-        console.log(selectedIds);
         try {
             await addUsers({
                 roomId: roomId,

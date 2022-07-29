@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { Box, Grid, useMediaQuery, Button } from "@mui/material";
+import { Box, Grid, useMediaQuery, Button, Avatar } from "@mui/material";
 import {
     setShowCall,
     setRoomId,
@@ -21,15 +21,22 @@ import {
 
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
+import { User } from "@prisma/client";
 
+import { Participant } from "../../types/confcall";
+import { dynamicBaseQuery } from "../../api/api";
 import { RootState } from "../../store/store";
 import * as Constants from "../../../../../lib/constants";
-import ButtonsHolder from "./ButtonsHolder";
+import ButtonsHolder from "./buttonsHolder";
 import * as Styles from "./lib/styles";
 import { useShowSnackBar } from "../../hooks/useModal";
 import SelectBoxDialog from "../../components/SelectBoxDialog";
 import { getCameras, getMicrophones } from "./lib/utils";
 import deviceHandler from "./lib/deviceHandler";
+import { callEventPayload } from "../../types/confcall";
+import { listen as listenCallEvent } from "./lib/callEventListener";
+
+declare const UPLOADS_BASE_URL: string;
 
 export default function ConfCall() {
     const isCall = /^.+\/call\/.+$/.test(window.location.pathname);
@@ -57,6 +64,8 @@ export default function ConfCall() {
     const [microphoneList, setMicrophoneList] = useState<Array<MediaDeviceInfo>>(null);
     const [showMicrophoneSelectDialog, setShowMicrophoneSelectDialog] = useState<boolean>(false);
 
+    const [participants, setParticipants] = useState<Array<Participant>>(null);
+
     function updateDevice() {
         // init camera
         (async () => {
@@ -64,8 +73,9 @@ export default function ConfCall() {
                 if (cameraEnabled && localVideoRef.current) {
                     const stream = await deviceHandler.getCamera(selectedCamera);
                     localVideoRef.current.srcObject = stream;
-                } else if (!cameraEnabled && localVideoRef.current)
+                } else if (!cameraEnabled && localVideoRef.current) {
                     localVideoRef.current.srcObject = null;
+                }
 
                 if (!cameraEnabled) deviceHandler.closeCamera();
             } catch (e) {
@@ -76,28 +86,19 @@ export default function ConfCall() {
                     text: "Failed to find a webcamera.",
                 });
             }
-
-            try {
-                if (microphoneEnabled && localAudioRef.current) {
-                    const stream = await deviceHandler.getMicrophone(selectedMicrophone);
-                    localAudioRef.current.srcObject = stream;
-                } else if (!microphoneEnabled && localAudioRef.current)
-                    localAudioRef.current.srcObject = null;
-
-                if (!microphoneEnabled) deviceHandler.closeMicrophone();
-            } catch (e) {
-                console.error(e);
-                dispatch(setMicrophoneEnabled(false));
-                showSnackbar({
-                    severity: "error",
-                    text: "Failed to find a microphone.",
-                });
-            }
         })();
+    }
+
+    async function updateParticipants() {
+        const res = await dynamicBaseQuery({
+            url: `/confcall/participants/${roomId}`,
+        });
+        setParticipants(res.data);
     }
 
     // called when component is ready
     useEffect(() => {
+        console.log("urlState", urlState);
         (async () => {
             setCameraList(await getCameras());
             setMicrophoneList(await getMicrophones());
@@ -105,7 +106,22 @@ export default function ConfCall() {
             dispatch(setCameraEnabled(urlState === "video"));
             dispatch(setMicrophoneEnabled(true));
         })();
+
+        const clearListner = listenCallEvent(async (data: callEventPayload) => {
+            await updateParticipants();
+        });
+
+        return () => {
+            clearListner();
+        };
     }, []);
+
+    // when lobby screen appears
+    useEffect(() => {
+        (async () => {
+            await updateParticipants();
+        })();
+    }, [isCall]);
 
     // when DOM is ready to play video
     useEffect(() => {
@@ -260,10 +276,35 @@ export default function ConfCall() {
                     md={4}
                     sx={{
                         display: "flex",
+                        flexDirection: "column",
+                        alignItems: "right",
                         justifyContent: "center",
-                        alignItems: "center",
                     }}
                 >
+                    <Box
+                        sx={{
+                            color: "common.confCallControls",
+                            display: "flex",
+                            flexDirection: "row",
+                            marginBottom: "10px",
+                            padding: "0px 0px 0px 15px",
+                        }}
+                    >
+                        {participants &&
+                            participants.map((participant) => {
+                                return (
+                                    <Avatar
+                                        key={participant.user.id}
+                                        sx={{ width: 50, height: 50 }}
+                                        alt={participant.user.displayName}
+                                        src={`${UPLOADS_BASE_URL}${participant.user.avatarUrl}`}
+                                    />
+                                );
+                            })}
+                        {participants && participants.length === 0 && (
+                            <span>No one is in the call yet.</span>
+                        )}
+                    </Box>
                     <Box sx={{ color: "common.confCallControls", padding: "0px 0px 0px 15px" }}>
                         Join to the meeting
                         <br />
@@ -294,6 +335,9 @@ export default function ConfCall() {
                     deviceHandler.closeAllDevices();
                     localAudioRef.current.srcObject = null;
                     localVideoRef.current.srcObject = null;
+
+                    dispatch(setCameraEnabled(false));
+                    dispatch(setMicrophoneEnabled(false));
 
                     dispatch(setShowCall(false));
                     navigate(`/rooms/${callState.roomId}`);

@@ -10,7 +10,7 @@ import {
     ListItemText,
     ListItem,
     Stack,
-    Badge,
+    Tooltip,
     Box,
 } from "@mui/material";
 
@@ -71,13 +71,10 @@ export default function RoomUsersView(props: RoomUsersViewProps) {
     const areThereMultipleAdmins = () => {
         var counter = 0;
         roomUsers.forEach((element) => {
-            console.log(element);
             if (element.isAdmin) {
                 counter += 1;
             }
-            console.log(counter);
         });
-        console.log(counter);
         setMultipleAdmins(counter > 1);
     };
 
@@ -157,43 +154,50 @@ export default function RoomUsersView(props: RoomUsersViewProps) {
                         secondaryAction={
                             roomType == "group" ? (
                                 <Box>
-                                    <IconButton
-                                        onClick={(e) => {
-                                            handleAdmin(item);
-                                        }}
+                                    <Tooltip
+                                        title={isUserAdmin(item.id) ? "Remove admin" : "Add admin"}
                                     >
-                                        {isUserAdmin(item.id) ? (
-                                            <GppGood
+                                        <IconButton
+                                            onClick={(e) => {
+                                                handleAdmin(item);
+                                            }}
+                                        >
+                                            {isUserAdmin(item.id) ? (
+                                                <GppGood
+                                                    style={{ fill: theme.palette.spikaButton.main }}
+                                                />
+                                            ) : (
+                                                <GppBad
+                                                    style={{ fill: theme.palette.spikaGrey.main }}
+                                                />
+                                            )}
+                                        </IconButton>
+                                    </Tooltip>
+
+                                    <Tooltip title="Remove member">
+                                        <IconButton
+                                            edge="end"
+                                            aria-label="delete"
+                                            onClick={(e) => {
+                                                if (multipleAdmins) {
+                                                    removeUserFromRoom(item.id);
+                                                } else {
+                                                    if (isUserAdmin(item.id)) {
+                                                        showSnackBar({
+                                                            severity: "error",
+                                                            text: "Group needs at least one Admin",
+                                                        });
+                                                    } else {
+                                                        removeUserFromRoom(item.id);
+                                                    }
+                                                }
+                                            }}
+                                        >
+                                            <PersonRemove
                                                 style={{ fill: theme.palette.spikaButton.main }}
                                             />
-                                        ) : (
-                                            <GppBad
-                                                style={{ fill: theme.palette.spikaGrey.main }}
-                                            />
-                                        )}
-                                    </IconButton>
-                                    <IconButton
-                                        edge="end"
-                                        aria-label="delete"
-                                        onClick={(e) => {
-                                            if (multipleAdmins) {
-                                                removeUserFromRoom(item.id);
-                                            } else {
-                                                if (isUserAdmin(item.id)) {
-                                                    showSnackBar({
-                                                        severity: "error",
-                                                        text: "Group needs at least one Admin",
-                                                    });
-                                                } else {
-                                                    removeUserFromRoom(item.id);
-                                                }
-                                            }
-                                        }}
-                                    >
-                                        <PersonRemove
-                                            style={{ fill: theme.palette.spikaButton.main }}
-                                        />
-                                    </IconButton>
+                                        </IconButton>
+                                    </Tooltip>
                                 </Box>
                             ) : null
                         }
