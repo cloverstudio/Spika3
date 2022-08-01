@@ -37,6 +37,7 @@ import { callEventPayload } from "../../types/confcall";
 import { listen as listenCallEvent } from "./lib/callEventListener";
 
 declare const UPLOADS_BASE_URL: string;
+let timer: NodeJS.Timeout;
 
 export default function ConfCall() {
     const isCall = /^.+\/call\/.+$/.test(window.location.pathname);
@@ -68,7 +69,8 @@ export default function ConfCall() {
 
     function updateDevice() {
         // init camera
-        (async () => {
+        const func = async () => {
+            console.log("cameraEnabled", cameraEnabled);
             try {
                 if (cameraEnabled && localVideoRef.current) {
                     const stream = await deviceHandler.getCamera(selectedCamera);
@@ -86,7 +88,13 @@ export default function ConfCall() {
                     text: "Failed to find a webcamera.",
                 });
             }
-        })();
+        };
+
+        if (timer) clearTimeout(timer);
+
+        timer = setTimeout(() => {
+            func();
+        }, 500);
     }
 
     async function updateParticipants() {
@@ -98,7 +106,6 @@ export default function ConfCall() {
 
     // called when component is ready
     useEffect(() => {
-        console.log("urlState", urlState);
         (async () => {
             setCameraList(await getCameras());
             setMicrophoneList(await getMicrophones());
@@ -110,6 +117,12 @@ export default function ConfCall() {
         const clearListner = listenCallEvent(async (data: callEventPayload) => {
             await updateParticipants();
         });
+
+        const selectedCameraId: string = localStorage.getItem(Constants.LSKEY_SELECTEDCAM);
+        const selectedMicrphoneId: string = localStorage.getItem(Constants.LSKEY_SELECTEDMIC);
+
+        selectedCameraId && dispatch(setSelectedCamera(selectedCameraId));
+        selectedMicrphoneId && dispatch(setSelectedMicrophone(selectedMicrphoneId));
 
         return () => {
             clearListner();
@@ -130,7 +143,7 @@ export default function ConfCall() {
             dispatch(setRoomId(roomId));
             dispatch(setShowCall(true));
 
-            updateDevice();
+            //updateDevice();
         }
     }, [isCall, localVideoRef.current, localAudioRef.current]);
 
@@ -344,49 +357,53 @@ export default function ConfCall() {
                 }}
             />
 
-            <SelectBoxDialog
-                show={showCameraSelectDialog}
-                title="Select Camera"
-                initialValue={selectedCamera}
-                allowButtonLabel="OK"
-                denyButtonLabel="Cancel"
-                onOk={async (deviceId: string) => {
-                    dispatch(setSelectedCamera(deviceId));
-                    setShowCameraSelectDialog(false);
-                }}
-                onCancel={() => {
-                    setShowCameraSelectDialog(false);
-                }}
-                items={
-                    cameraList &&
-                    cameraList.reduce((deviceMap, device) => {
-                        deviceMap.set(device.deviceId, device.label);
-                        return deviceMap;
-                    }, new Map<string, string>())
-                }
-            ></SelectBoxDialog>
+            {cameraList && (
+                <SelectBoxDialog
+                    show={showCameraSelectDialog}
+                    title="Select Camera"
+                    initialValue={selectedCamera}
+                    allowButtonLabel="OK"
+                    denyButtonLabel="Cancel"
+                    onOk={async (deviceId: string) => {
+                        dispatch(setSelectedCamera(deviceId));
+                        setShowCameraSelectDialog(false);
+                    }}
+                    onCancel={() => {
+                        setShowCameraSelectDialog(false);
+                    }}
+                    items={
+                        cameraList &&
+                        cameraList.reduce((deviceMap, device) => {
+                            deviceMap.set(device.deviceId, device.label);
+                            return deviceMap;
+                        }, new Map<string, string>())
+                    }
+                ></SelectBoxDialog>
+            )}
 
-            <SelectBoxDialog
-                show={showMicrophoneSelectDialog}
-                title="Select Microphone"
-                initialValue={selectedMicrophone}
-                allowButtonLabel="OK"
-                denyButtonLabel="Cancel"
-                onOk={async (deviceId: string) => {
-                    dispatch(setSelectedMicrophone(deviceId));
-                    setShowMicrophoneSelectDialog(false);
-                }}
-                onCancel={() => {
-                    setShowMicrophoneSelectDialog(false);
-                }}
-                items={
-                    microphoneList &&
-                    microphoneList.reduce((deviceMap, device) => {
-                        deviceMap.set(device.deviceId, device.label);
-                        return deviceMap;
-                    }, new Map<string, string>())
-                }
-            ></SelectBoxDialog>
+            {microphoneList && (
+                <SelectBoxDialog
+                    show={showMicrophoneSelectDialog}
+                    title="Select Microphone"
+                    initialValue={selectedMicrophone}
+                    allowButtonLabel="OK"
+                    denyButtonLabel="Cancel"
+                    onOk={async (deviceId: string) => {
+                        dispatch(setSelectedMicrophone(deviceId));
+                        setShowMicrophoneSelectDialog(false);
+                    }}
+                    onCancel={() => {
+                        setShowMicrophoneSelectDialog(false);
+                    }}
+                    items={
+                        microphoneList &&
+                        microphoneList.reduce((deviceMap, device) => {
+                            deviceMap.set(device.deviceId, device.label);
+                            return deviceMap;
+                        }, new Map<string, string>())
+                    }
+                ></SelectBoxDialog>
+            )}
         </Box>
     );
 }

@@ -36,7 +36,7 @@ export default function BasicDialog({
     onCancel,
     items,
 }: Props) {
-    const [selectedValue, setSelectedValue] = useState<string>(null);
+    const [selectedValue, setSelectedValue] = useState<string>(initialValue);
     const modalState = useSelector((state: RootState) => state.modal);
     const dispatch = useDispatch();
 
@@ -65,7 +65,7 @@ export default function BasicDialog({
                         sx={{
                             width: "300px",
                         }}
-                        value={selectedValue || initialValue || ""}
+                        value={selectedValue || ""}
                         onChange={(e) => {
                             setSelectedValue(e.target.value);
                         }}
