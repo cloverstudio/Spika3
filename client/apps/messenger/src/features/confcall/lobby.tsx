@@ -70,11 +70,10 @@ export default function ConfCall() {
     function updateDevice() {
         // init camera
         const func = async () => {
-            console.log("cameraEnabled", cameraEnabled);
             try {
-                if (cameraEnabled && localVideoRef.current) {
+                if (cameraEnabled) {
                     const stream = await deviceHandler.getCamera(selectedCamera);
-                    localVideoRef.current.srcObject = stream;
+                    if (stream && localVideoRef.current) localVideoRef.current.srcObject = stream;
                 } else if (!cameraEnabled && localVideoRef.current) {
                     localVideoRef.current.srcObject = null;
                 }
@@ -325,6 +324,7 @@ export default function ConfCall() {
                             variant="contained"
                             sx={{ width: "100%", marginTop: "10px" }}
                             onClick={() => {
+                                if (timer) clearTimeout(timer);
                                 deviceHandler.closeAllDevices();
                                 navigate(`/rooms/${roomId}/call`, { replace: true });
                             }}
