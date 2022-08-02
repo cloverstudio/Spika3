@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Typography, TextField, Button, Avatar, Stack, Box } from "@mui/material";
 import { Check } from "@mui/icons-material";
-
 import User from "../../types/User";
 import { RoomUserType } from "../../types/Room";
 

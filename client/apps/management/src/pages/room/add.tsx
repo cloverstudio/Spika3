@@ -34,6 +34,7 @@ export default function RoomAdd() {
     const uploadFileRef = React.useRef(null);
     const dispatch = useDispatch();
     const [update, updateMutation] = useUpdateRoomMutation();
+
     const [value, setValue] = React.useState("private");
 
     const formik = useFormik({
@@ -48,7 +49,6 @@ export default function RoomAdd() {
             validateAndAdd();
         },
     });
-
     const handleChange = (event: SelectChangeEvent) => {
         setValue(event.target.value);
     };

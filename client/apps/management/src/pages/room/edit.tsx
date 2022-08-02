@@ -46,6 +46,7 @@ export default function RoomEdit(props: EditRoomProps) {
     const [file, setFile] = useState<File>();
     const uploadFileRef = React.useRef(null);
     const dispatch = useDispatch();
+
     const [value, setValue] = React.useState("private");
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

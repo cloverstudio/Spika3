@@ -75,7 +75,6 @@ export default function RoomUsersView(props: RoomUsersViewProps) {
                 counter += 1;
             }
         });
-
         setMultipleAdmins(counter > 1);
     };
 

@@ -30,7 +30,7 @@ const axiosBaseQuery =
             additionalHeaders["device-type"] = constants.DEVICE_TYPE;
             additionalHeaders[constants.ADMIN_ACCESS_TOKEN] = token;
 
-            // console.log("URL: " + url);
+            console.log("URL: " + url);
             const result = await axios({
                 url: baseUrl + url,
                 method,
@@ -71,7 +71,7 @@ export const dynamicBaseQuery = async (args: any, options?: { dispatch: any }) =
 export default createApi({
     reducerPath: "api",
     baseQuery: dynamicBaseQuery,
-    tagTypes: ["User", "Auth", "Contacts", "Rooms", "Device", "RoomUser"],
+    tagTypes: ["User", "Auth", "Contacts", "Rooms", "Device", "RoomUser", "Messages"],
 
     endpoints: () => ({}),
 });
