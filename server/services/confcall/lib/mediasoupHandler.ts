@@ -25,6 +25,7 @@ type Room = {
 export type CallParamsInDB = {
     videoProducerId: string;
     audioProducerId: string;
+    screenshareProducerId: string;
     videoEnabled: boolean;
     audioEnabled: boolean;
 };
@@ -228,7 +229,8 @@ class MediasoupHandler {
         roomId: number,
         peerId: string,
         kind: mediasoup.types.MediaKind,
-        rtpParameters: mediasoup.types.RtpParameters
+        rtpParameters: mediasoup.types.RtpParameters,
+        appData: any
     ): Promise<string> {
         let room = this.rooms.find((room, index) => {
             return room.roomId === roomId;
@@ -247,6 +249,7 @@ class MediasoupHandler {
         const producer: mediasoup.types.Producer = await provider.produce({
             kind: kind,
             rtpParameters: rtpParameters,
+            appData: appData,
         });
 
         peer.producers.push(producer);
@@ -386,6 +389,27 @@ class MediasoupHandler {
         });
 
         producer.resume();
+    }
+
+    async stopScreenshare(roomId: number, peerId: string): Promise<void> {
+        let room = this.rooms.find((room, index) => {
+            return room.roomId === roomId;
+        });
+
+        if (!room) throw "Invalid room id";
+
+        let peer = room.peers.find((peer) => peer.peerId === peerId);
+
+        if (!peer) throw "Invalid peer id";
+
+        const provider = peer.producerTransport;
+        if (!provider) throw "Invalid peer id";
+
+        const producer = peer.producers.find((producer) => {
+            return producer.appData.kind === "screenshare";
+        });
+
+        producer.close();
     }
 }
 

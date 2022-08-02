@@ -24,6 +24,7 @@ export interface ComponentInterface {
     userId: number;
     displayName: string;
     isMe: boolean;
+    isScreenshare?: boolean;
     localVideoStream?: MediaStream;
     localAaudioStream?: MediaStream;
     videoProducerId?: string;
@@ -95,10 +96,6 @@ export default (props: ComponentInterface) => {
     const audioRef = useRef<HTMLAudioElement>(null);
 
     useEffect(() => {
-        console.log(`userid ${props.userId} video state changed ${props.videoEnabled}`);
-    }, [props.videoEnabled, props.audioEnabled]);
-
-    useEffect(() => {
         if (props.isMe) return;
 
         (async () => {
@@ -110,6 +107,7 @@ export default (props: ComponentInterface) => {
                 (audioStream: MediaStream, videoStream: MediaStream) => {
                     if (videoStream) videoStreamLocal = videoStream;
                     if (audioStream) audioStreamLocal = audioStream;
+
                     updateVideo();
                 }
             );
@@ -139,7 +137,11 @@ export default (props: ComponentInterface) => {
                 <video
                     autoPlay
                     ref={videoRef}
-                    style={{ ...styles.video, opacity: props.videoEnabled ? 1 : 0 }}
+                    style={{
+                        ...styles.video,
+                        opacity: props.videoEnabled ? 1 : 0,
+                        objectFit: props.isScreenshare ? "contain" : "cover",
+                    }}
                 ></video>
                 <audio autoPlay ref={audioRef} style={styles.audio}></audio>
             </div>

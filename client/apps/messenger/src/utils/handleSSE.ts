@@ -38,7 +38,6 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
         console.log(`Received SSE (${eventType}) that is not implemented yet!`);
         return;
     }
-    console.log(`Received SSE (${eventType})`);
 
     switch (eventType) {
         case "NEW_MESSAGE": {

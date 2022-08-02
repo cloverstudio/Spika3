@@ -51,6 +51,31 @@ type participantViewSize = {
     md: number;
 };
 
+const styles: Record<string, CSS.Properties> = {
+    screenshareContainer: {
+        display: "grid",
+        gridTemplateColumns: "70vw 30vw",
+        gridTemplateRows: "100%",
+        height: "100%",
+    },
+    screenshareVideoContainer: {
+        width: "100%",
+        height: "100%",
+    },
+    video: {
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
+    },
+    screenshareParticipantsContainer: {
+        overflowY: "auto",
+    },
+    screenshareParticipantVideo: {
+        width: "30vw",
+        height: "calc(30vw / 16 * 9)",
+    },
+};
+
 export default function ConfCall() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -83,6 +108,9 @@ export default function ConfCall() {
 
     const [myVideoStream, setMyVideoStream] = useState<MediaStream>(null);
     const [myAudioAtream, setMyAudioStream] = useState<MediaStream>(null);
+
+    const [screenshareMode, setScreenshareMode] = useState<boolean>(false);
+    const screeshareRef = useRef<HTMLVideoElement>(null);
 
     const urlRoomId = parseInt(useParams().id || "");
 
@@ -127,6 +155,8 @@ export default function ConfCall() {
             }
         });
 
+        dispatch(setScreenshareEnabled(false));
+
         return () => {
             clearListner();
         };
@@ -135,6 +165,11 @@ export default function ConfCall() {
     useEffect(() => {
         if (!participants) return;
 
+        const screeshareParticipant = participants.find((participant: Participant) => {
+            return participant.callParams.screenshareProducerId?.length > 0;
+        });
+
+        setScreenshareMode(!!screeshareParticipant);
         const count = participants.length;
 
         if (count === 1) {
@@ -185,23 +220,6 @@ export default function ConfCall() {
         setMyVideoStream(stream);
     });
 
-    // handle resume / pause
-    useEffect(() => {
-        if (streamingState < StreamingState.WaitingConsumer) return;
-
-        (async () => {
-            try {
-                if (!cameraEnabled) await mediasoupHander.pauseVideo(callState);
-                else await mediasoupHander.resumeVideo(callState);
-            } catch (e) {
-                showSnackbar({
-                    severity: "error",
-                    text: "Failed to pause or resume video",
-                });
-            }
-        })();
-    }, [cameraEnabled]);
-
     useEffect(() => {
         if (streamingState < StreamingState.WaitingConsumer) return;
         (async () => {
@@ -216,6 +234,10 @@ export default function ConfCall() {
             }
         })();
     }, [microphoneEnabled]);
+
+    const screenshareParticipant = participants?.find((participant: Participant) => {
+        return participant.callParams.screenshareProducerId?.length > 0;
+    });
 
     return (
         <Box
@@ -265,14 +287,32 @@ export default function ConfCall() {
                                 <VideocamIcon
                                     sx={Styles.controlIconDefaultStyle}
                                     onClick={async () => {
-                                        dispatch(setCameraEnabled(!cameraEnabled));
+                                        try {
+                                            await mediasoupHander.pauseVideo(callState);
+                                            dispatch(setCameraEnabled(false));
+                                        } catch (e) {
+                                            console.error(e);
+                                            showSnackbar({
+                                                severity: "error",
+                                                text: "Failed to stop camera",
+                                            });
+                                        }
                                     }}
                                 />
                             ) : (
                                 <VideocamOffIcon
                                     sx={Styles.controlIconDefaultStyle}
                                     onClick={async () => {
-                                        dispatch(setCameraEnabled(!cameraEnabled));
+                                        try {
+                                            await mediasoupHander.resumeVideo(callState);
+                                            dispatch(setCameraEnabled(true));
+                                        } catch (e) {
+                                            console.error(e);
+                                            showSnackbar({
+                                                severity: "error",
+                                                text: "Failed to start camera",
+                                            });
+                                        }
                                     }}
                                 />
                             )}
@@ -288,14 +328,32 @@ export default function ConfCall() {
                                 <MicIcon
                                     sx={Styles.controlIconDefaultStyle}
                                     onClick={async () => {
-                                        dispatch(setMicrophoneEnabled(!microphoneEnabled));
+                                        try {
+                                            await mediasoupHander.pauseAudio(callState);
+                                            dispatch(setMicrophoneEnabled(false));
+                                        } catch (e) {
+                                            console.error(e);
+                                            showSnackbar({
+                                                severity: "error",
+                                                text: "Failed to stop microphone",
+                                            });
+                                        }
                                     }}
                                 />
                             ) : (
                                 <MicOffIcon
                                     sx={Styles.controlIconDefaultStyle}
                                     onClick={async () => {
-                                        dispatch(setMicrophoneEnabled(!microphoneEnabled));
+                                        try {
+                                            await mediasoupHander.resumeAudio(callState);
+                                            dispatch(setMicrophoneEnabled(true));
+                                        } catch (e) {
+                                            console.error(e);
+                                            showSnackbar({
+                                                severity: "error",
+                                                text: "Failed to start microphone",
+                                            });
+                                        }
                                     }}
                                 />
                             )}
@@ -308,16 +366,44 @@ export default function ConfCall() {
                             {screenshareEnabled ? (
                                 <ScreenShareIcon
                                     sx={Styles.controlIconDefaultStyle}
-                                    onClick={() =>
-                                        dispatch(setScreenshareEnabled(!screenshareEnabled))
-                                    }
+                                    onClick={async () => {
+                                        try {
+                                            await mediasoupHander.stopScreenshare();
+                                            dispatch(setScreenshareEnabled(false));
+                                        } catch (e) {
+                                            console.error(e);
+                                            showSnackbar({
+                                                severity: "error",
+                                                text: "Failed to stop screenshare",
+                                            });
+                                        }
+                                    }}
                                 />
                             ) : (
                                 <StopScreenShareIcon
                                     sx={Styles.controlIconDefaultStyle}
-                                    onClick={() =>
-                                        dispatch(setScreenshareEnabled(!screenshareEnabled))
-                                    }
+                                    onClick={async () => {
+                                        if (screenshareMode) {
+                                            showSnackbar({
+                                                severity: "warning",
+                                                text: "Another user's screen share is active. Please wait until the user ends the screen share.",
+                                            });
+                                            return;
+                                        }
+                                        try {
+                                            await mediasoupHander.startScreenshare(async () => {
+                                                dispatch(setScreenshareEnabled(false));
+                                                await mediasoupHander.stopScreenshare();
+                                            });
+                                            dispatch(setScreenshareEnabled(true));
+                                        } catch (e) {
+                                            console.error(e);
+                                            showSnackbar({
+                                                severity: "error",
+                                                text: "Failed to start screenshare",
+                                            });
+                                        }
+                                    }}
                                 />
                             )}
                         </ButtonsHolder>
@@ -325,7 +411,7 @@ export default function ConfCall() {
                             <CloseIcon
                                 sx={Styles.controlIconDefaultStyle}
                                 onClick={async () => {
-                                    mediasoupHander.stop();
+                                    await mediasoupHander.stop();
                                     await leaveApi(callState.roomId);
                                     navigate(`/rooms/${callState.roomId}`);
                                 }}
@@ -345,43 +431,104 @@ export default function ConfCall() {
                     </Box>
 
                     {/* main part */}
-                    <Grid container>
-                        {participants &&
-                            participants.map((participant, index) => {
-                                return (
-                                    <Grid
-                                        item
-                                        {...viewSize}
-                                        sx={gridStyle}
-                                        key={participant.user.id}
-                                    >
-                                        {participant.user.id === userDataMe.user.id ? (
-                                            <ParticipantView
-                                                displayName={participant.user.displayName}
-                                                isMe={true}
-                                                localVideoStream={myVideoStream}
-                                                videoEnabled={cameraEnabled}
-                                                userId={userDataMe.user.id}
-                                            />
-                                        ) : (
-                                            <ParticipantView
-                                                displayName={participant.user.displayName}
-                                                isMe={false}
-                                                audioProducerId={
-                                                    participant.callParams.audioProducerId
-                                                }
-                                                videoProducerId={
-                                                    participant.callParams.videoProducerId
-                                                }
-                                                videoEnabled={participant.callParams.videoEnabled}
-                                                audioEnabled={participant.callParams.audioEnabled}
-                                                userId={participant.user.id}
-                                            />
-                                        )}
-                                    </Grid>
-                                );
-                            })}
-                    </Grid>
+
+                    {screenshareMode ? (
+                        <div style={styles.screenshareContainer}>
+                            <div style={styles.screenshareVideoContainer}>
+                                <ParticipantView
+                                    displayName=""
+                                    isMe={false}
+                                    videoProducerId={
+                                        screenshareParticipant?.callParams.screenshareProducerId
+                                    }
+                                    userId={screenshareParticipant?.user.id}
+                                    videoEnabled={true}
+                                    isScreenshare={true}
+                                />
+                            </div>
+                            <div style={styles.screenshareParticipantsContainer}>
+                                {participants &&
+                                    participants.map((participant, index) => {
+                                        return (
+                                            <div
+                                                style={styles.screenshareParticipantVideo}
+                                                key={participant.user.id}
+                                            >
+                                                {participant.user.id === userDataMe.user.id ? (
+                                                    <ParticipantView
+                                                        displayName={participant.user.displayName}
+                                                        isMe={true}
+                                                        localVideoStream={myVideoStream}
+                                                        videoEnabled={cameraEnabled}
+                                                        userId={userDataMe.user.id}
+                                                    />
+                                                ) : (
+                                                    <ParticipantView
+                                                        displayName={participant.user.displayName}
+                                                        isMe={false}
+                                                        audioProducerId={
+                                                            participant.callParams.audioProducerId
+                                                        }
+                                                        videoProducerId={
+                                                            participant.callParams.videoProducerId
+                                                        }
+                                                        videoEnabled={
+                                                            participant.callParams.videoEnabled
+                                                        }
+                                                        audioEnabled={
+                                                            participant.callParams.audioEnabled
+                                                        }
+                                                        userId={participant.user.id}
+                                                    />
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                            </div>
+                        </div>
+                    ) : (
+                        <Grid container style={{ width: "100%", height: "100%" }}>
+                            {participants &&
+                                participants.map((participant, index) => {
+                                    return (
+                                        <Grid
+                                            item
+                                            {...viewSize}
+                                            sx={gridStyle}
+                                            key={participant.user.id}
+                                        >
+                                            {participant.user.id === userDataMe.user.id ? (
+                                                <ParticipantView
+                                                    displayName={participant.user.displayName}
+                                                    isMe={true}
+                                                    localVideoStream={myVideoStream}
+                                                    videoEnabled={cameraEnabled}
+                                                    userId={userDataMe.user.id}
+                                                />
+                                            ) : (
+                                                <ParticipantView
+                                                    displayName={participant.user.displayName}
+                                                    isMe={false}
+                                                    audioProducerId={
+                                                        participant.callParams.audioProducerId
+                                                    }
+                                                    videoProducerId={
+                                                        participant.callParams.videoProducerId
+                                                    }
+                                                    videoEnabled={
+                                                        participant.callParams.videoEnabled
+                                                    }
+                                                    audioEnabled={
+                                                        participant.callParams.audioEnabled
+                                                    }
+                                                    userId={participant.user.id}
+                                                />
+                                            )}
+                                        </Grid>
+                                    );
+                                })}
+                        </Grid>
+                    )}
                 </>
             )}
             {/* modals */}

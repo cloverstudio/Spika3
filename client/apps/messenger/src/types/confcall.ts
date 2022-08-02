@@ -8,6 +8,7 @@ export type callEventPayload = {
 export type CallParams = {
     videoProducerId: string;
     audioProducerId: string;
+    screenshareProducerId: string;
     videoEnabled: boolean;
     audioEnabled: boolean;
 };

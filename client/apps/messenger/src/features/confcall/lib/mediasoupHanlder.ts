@@ -24,12 +24,13 @@ export enum EventType {
 
 class MediasoupHandler {
     rtpCapabilities: mediasoupClient.types.RtpCapabilities;
-    streamingState: StreamingState;
+    connectionState: StreamingState;
     setConnectionState: (state: StreamingState) => void;
     roomId: number;
     peerId: string;
     videoStream: MediaStream;
     audioStream: MediaStream;
+    captureStream: MediaStream;
     cameraReadyListner: (stream: MediaStream) => void;
     micReadyListner: (stream: MediaStream) => void;
     device: mediasoupClient.types.Device; // device means Browser here, not webcam or mic
@@ -37,10 +38,13 @@ class MediasoupHandler {
     consumerTransport: mediasoupClient.types.Transport;
     videoProducer: mediasoupClient.types.Producer;
     audioProducer: mediasoupClient.types.Producer;
+    screenShareProducer: mediasoupClient.types.Producer;
     consumers: Array<mediasoupClient.types.Consumer>;
+    processing: boolean;
 
     constructor() {
-        this.streamingState = StreamingState.NotJoined;
+        this.connectionState = StreamingState.NotJoined;
+        this.processing = false;
     }
 
     // events
@@ -54,8 +58,11 @@ class MediasoupHandler {
 
     // custom hook
     useConnectionStatus() {
-        const [connectionState, setConnectionState] = useState<StreamingState>(this.streamingState);
+        const [connectionState, setConnectionState] = useState<StreamingState>(
+            StreamingState.NotJoined
+        );
         this.setConnectionState = setConnectionState;
+        this.connectionState = connectionState;
         return connectionState;
     }
 
@@ -119,7 +126,8 @@ class MediasoupHandler {
                     });
 
                     if (res.data.producerId) {
-                        this.setConnectionState(StreamingState.StartStreaming);
+                        if (this.connectionState < StreamingState.StartStreaming)
+                            this.setConnectionState(StreamingState.StartStreaming);
                         callback({ id: res.data.producerId });
                     }
                 } catch (error) {
@@ -174,6 +182,9 @@ class MediasoupHandler {
                         opusStereo: true,
                         opusDtx: true,
                     },
+                    appData: {
+                        kind: "audio",
+                    },
                 });
 
                 this.audioProducer.on("trackended", () => {
@@ -215,6 +226,12 @@ class MediasoupHandler {
                     codecOptions: {
                         videoGoogleStartBitrate: 1000,
                     },
+                    codec: this.device.rtpCapabilities.codecs.find(
+                        (codec) => codec.mimeType.toLowerCase() === "video/h264"
+                    ),
+                    appData: {
+                        kind: "video",
+                    },
                 });
 
                 this.videoProducer.on("trackended", () => {
@@ -243,11 +260,13 @@ class MediasoupHandler {
         this.cameraReadyListner = null;
         this.micReadyListner = null;
 
-        this.videoProducer.close();
-        this.audioProducer.close();
+        this.videoProducer?.close();
+        this.audioProducer?.close();
 
         this.videoProducer = null;
         this.audioProducer = null;
+
+        await this.stopScreenshare();
     }
     async startConsume(
         params: { audioProducerId?: string; videoProducerId?: string },
@@ -385,6 +404,73 @@ class MediasoupHandler {
         this.audioStream = await deviceHandler.getMicrophone(deviceId);
         const newAudoiTrack = this.audioStream.getAudioTracks()[0];
         await this.audioProducer.replaceTrack({ track: newAudoiTrack });
+    }
+
+    async startScreenshare(closeListener: () => void): Promise<void> {
+        if (this.processing) throw "Processing...";
+        this.processing = true;
+
+        try {
+            this.captureStream = await navigator.mediaDevices.getDisplayMedia({
+                video: true,
+                audio: false,
+            });
+
+            this.screenShareProducer = await this.producerTransport.produce({
+                track: this.captureStream.getVideoTracks()[0],
+                codec: this.device.rtpCapabilities.codecs.find(
+                    (codec) => codec.mimeType.toLowerCase() === "video/vp8"
+                ),
+                appData: {
+                    kind: "screenshare",
+                },
+            });
+
+            this.screenShareProducer.on("trackended", () => {
+                // close video track
+                console.log("screen share track end");
+                if (closeListener) closeListener();
+            });
+
+            this.screenShareProducer.on("transportclose", () => {
+                // close video track
+                console.log("screen share transport close");
+            });
+
+            this.processing = false;
+        } catch (err) {
+            console.error(`Error: ${err}`);
+            this.processing = false;
+            throw err;
+        }
+    }
+
+    async stopScreenshare(): Promise<void> {
+        if (this.processing) throw "Processing...";
+        this.processing = true;
+
+        try {
+            if (this.screenShareProducer) {
+                this.screenShareProducer.close();
+
+                const resVideo = await dynamicBaseQuery({
+                    url: `/confcall/mediasoup/${this.roomId}/stopScreenshare`,
+                    method: "POST",
+                    data: {
+                        roomId: this.roomId,
+                        peerId: this.peerId,
+                    },
+                });
+            }
+
+            if (this.captureStream) {
+                this.captureStream.getTracks().forEach((track) => track.stop());
+            }
+        } catch (e) {
+            console.error(e);
+            this.processing = false;
+        }
+        this.processing = false;
     }
 }
 
