@@ -90,7 +90,8 @@ export default (params: InitRouterParams) => {
                         videoEnabled: videoEnabled === 1 ? true : false,
                         audioEnabled: audioEnabled === 1 ? true : false,
                         videoProducerId: "",
-                        audioProduverId: "",
+                        audioProducerId: "",
+                        screenshareProducerId: "",
                     },
                 },
             });
