@@ -1,8 +1,8 @@
 version: "2.0"
 services:
     mysql:
+        restart: on-failure
         image: "mysql:8.0"
-        restart: always
         environment:
             MYSQL_DATABASE: db
             MYSQL_USER: mysqluser
@@ -15,8 +15,8 @@ services:
         volumes:
             - "./docker/data/db:/var/lib/mysql"
     mysql-test:
+        restart: on-failure
         image: "mysql:8.0"
-        restart: always
         environment:
             MYSQL_DATABASE: dbtest
             MYSQL_USER: mysqluser
@@ -29,16 +29,18 @@ services:
         volumes:
             - "./docker/data/testdb:/var/lib/mysql"
     phpmyadmin:
+        restart: on-failure
         depends_on:
             - mysql
         image: phpmyadmin/phpmyadmin
-        restart: always
         ports:
             - "8082:80"
         environment:
             PMA_HOST: mysql
             MYSQL_ROOT_PASSWORD: ZjP68Ygd
+            UPLOAD_LIMIT: 300M
     rabbitmq:
+        restart: on-failure
         image: rabbitmq:3.8-management-alpine
         environment:
             - RABBITMQ_DEFAULT_USER=myuser
@@ -47,8 +49,8 @@ services:
             - "5672:5672"
             - "15672:15672"
     redis-spika:
+        restart: on-failure
         image: "redis:latest"
-        restart: always
         ports:
             - "6379:6379"
         environment:

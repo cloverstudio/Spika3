@@ -6,15 +6,17 @@ import { useCreateReactionMutation } from "../api/message";
 import { Box } from "@mui/system";
 
 type ReactionOptionsPopoverProps = {
+    isUsersMessage: boolean;
     messageId: number;
     handleClose: () => void;
-    anchorEl: any;
+    show: boolean;
 };
 
 export default function ReactionOptionsPopover({
+    isUsersMessage,
     messageId,
     handleClose,
-    anchorEl,
+    show,
 }: ReactionOptionsPopoverProps): React.ReactElement {
     const [createReaction] = useCreateReactionMutation();
 
@@ -23,37 +25,51 @@ export default function ReactionOptionsPopover({
         handleClose();
     };
 
-    const open = Boolean(anchorEl);
+    const styleModifier: any = {};
+
+    const itemStyle = {
+        cursor: "pointer",
+        color: "#222",
+        "&:hover": {
+            opacity: "0.5",
+        },
+    };
+
+    if (!isUsersMessage) styleModifier.left = "35px";
+    else styleModifier.right = "50px";
 
     return (
-        <Box>
-            <Popover
-                id="mouse-over-popover"
-                open={open}
-                anchorEl={anchorEl}
-                anchorOrigin={{
-                    vertical: "bottom",
-                    horizontal: "left",
-                }}
-                transformOrigin={{
-                    vertical: "top",
-                    horizontal: "left",
-                }}
-                onClose={handleClose}
-                disableRestoreFocus
-            >
-                <Stack direction="row" spacing={1}>
-                    {reactionEmojis.map((emoji, i) => (
-                        <Button
-                            key={i}
-                            onClick={() => handleSelect(emoji)}
-                            sx={{ p: 0, fontSize: "2rem" }}
-                        >
-                            {emoji}
-                        </Button>
-                    ))}
-                </Stack>
-            </Popover>
-        </Box>
+        <>
+            {show ? (
+                <Box
+                    onMouseLeave={() => {
+                        handleClose();
+                    }}
+                    sx={{
+                        ...{
+                            backgroundColor: "#fff",
+                            border: "2px solid #9995",
+                            borderRadius: "5px",
+                            position: "absolute",
+                            bottom: "-40px",
+                            zIndex: 1100,
+                        },
+                        ...styleModifier,
+                    }}
+                >
+                    <Stack direction="row" spacing={1}>
+                        {reactionEmojis.map((emoji, i) => (
+                            <Button
+                                key={i}
+                                onClick={() => handleSelect(emoji)}
+                                sx={{ p: 0, fontSize: "2rem" }}
+                            >
+                                {emoji}
+                            </Button>
+                        ))}
+                    </Stack>
+                </Box>
+            ) : null}
+        </>
     );
 }

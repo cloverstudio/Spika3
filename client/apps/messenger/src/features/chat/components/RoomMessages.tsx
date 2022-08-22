@@ -244,6 +244,26 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
                         nextMessageSenderId={messagesSorted[i + 1]?.fromUserId}
                         previousMessageSenderId={messagesSorted[i - 1]?.fromUserId}
                         clickedAnchor={handleClick}
+                        showMessageDetails={(id) => {
+                            setMessageId(id);
+                            showModalMessageDetails();
+                        }}
+                        onDelete={
+                            !deletedMessage
+                                ? (id) => {
+                                      setMessageId(id);
+                                      setShowDeleteModal(true);
+                                  }
+                                : undefined
+                        }
+                        onEdit={
+                            isEditable
+                                ? (id) => {
+                                      setMessageId(id);
+                                      handleOnEdit();
+                                  }
+                                : undefined
+                        }
                     />
                 ))}
             </Box>
