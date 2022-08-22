@@ -70,16 +70,12 @@ class MediasoupHandler {
 
         l("running %d mediasoup Workers...", numWorkers);
 
-        console.log(
-            "config.mediasoup.workerSettings.logLevel",
-            config.mediasoup.workerSettings.logLevel
-        );
-
-        setInterval(() => {
-            console.log(this.rooms);
-        }, 5000);
-
         (async () => {
+            console.log(
+                "config.mediasoup.workerSettings.logLevel",
+                config.mediasoup.workerSettings.logLevel
+            );
+
             for (let i = 0; i < numWorkers; ++i) {
                 const worker = await mediasoup.createWorker({
                     logLevel: config.mediasoup.workerSettings

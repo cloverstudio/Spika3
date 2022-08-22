@@ -7,39 +7,48 @@ type DatePopoverProps = {
     createdAt: number;
     isUsersMessage: boolean;
     handleClose: () => void;
-    anchorEl: any;
+    mouseOver: boolean;
 };
 
 export default function DatePopover({
     createdAt,
     isUsersMessage,
     handleClose,
-    anchorEl,
+    mouseOver,
 }: DatePopoverProps): React.ReactElement {
-    const open = Boolean(anchorEl);
+    const styleModifier: any = {
+        opacity: 0,
+    };
+    if (!isUsersMessage) styleModifier.right = "-50px";
+    else styleModifier.left = "-50px";
+
+    if (mouseOver) styleModifier.opacity = 1;
 
     return (
-        <Box>
-            <Popover
-                id="mouse-over-popover"
-                open={open}
-                anchorEl={anchorEl}
+        <Box
+            sx={{
+                ...{
+                    transition: "opacity 0.2s ease",
+                    minWidth: "100px",
+                    backgroundColor: "#0009",
+                    display: "inline-block",
+                    borderRadius: "5px",
+                    padding: "1px",
+                    position: "absolute",
+                    top: "-10px",
+                },
+                ...styleModifier,
+            }}
+        >
+            <Typography
                 sx={{
-                    pointerEvents: "none",
+                    color: "common.white",
+                    fontSize: "0.9em",
+                    padding: "3px",
                 }}
-                anchorOrigin={{
-                    vertical: "bottom",
-                    horizontal: isUsersMessage ? "right" : "left",
-                }}
-                transformOrigin={{
-                    vertical: "top",
-                    horizontal: "left",
-                }}
-                onClose={handleClose}
-                disableRestoreFocus
             >
-                <Typography p={1}>{dayjs(createdAt).format("ddd HH:mm")}</Typography>
-            </Popover>
+                {dayjs(createdAt).format("ddd HH:mm")}
+            </Typography>
         </Box>
     );
 }

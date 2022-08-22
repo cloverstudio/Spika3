@@ -13,7 +13,7 @@ type MessageBodyProps = {
     type: string;
     body: any;
     isUsersMessage: boolean;
-    onMessageClick: (e: any) => void;
+    onMessageClick?: (e: any) => void;
 };
 
 export default function MessageBody({
