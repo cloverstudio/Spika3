@@ -35,7 +35,7 @@ export default function DatePopover({
                     borderRadius: "5px",
                     padding: "1px",
                     position: "absolute",
-                    top: "-10px",
+                    top: "-20px",
                 },
                 ...styleModifier,
             }}

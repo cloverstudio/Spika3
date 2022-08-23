@@ -10,6 +10,13 @@ import {
     DoneAll,
 } from "@mui/icons-material";
 
+export enum IconConfigs {
+    showEmociton = 1,
+    showInfo = 2,
+    showEdit = 4,
+    showDelete = 8,
+}
+
 type Props = {
     isUsersMessage: boolean;
     handleClose: () => void;
@@ -18,6 +25,7 @@ type Props = {
     handleInfo?: (e: React.MouseEvent<any>) => void;
     handleEdit?: (e: React.MouseEvent<any>) => void;
     handleDelete?: (e: React.MouseEvent<any>) => void;
+    iconConfig: IconConfigs;
 };
 
 export default function DatePopover({
@@ -28,12 +36,13 @@ export default function DatePopover({
     handleInfo,
     handleEdit,
     handleDelete,
+    iconConfig,
 }: Props): React.ReactElement {
     const styleModifier: any = {
         opacity: 0,
     };
     if (!isUsersMessage) styleModifier.left = "35px";
-    else styleModifier.right = "50px";
+    else styleModifier.right = "70px";
 
     if (mouseOver) styleModifier.opacity = 1;
     const itemStyle = {
@@ -65,15 +74,20 @@ export default function DatePopover({
                 ...styleModifier,
             }}
         >
-            <InsertEmoticon
-                sx={{ ...itemStyle, ...{ color: "#7af" } }}
-                onClick={(e) => handleEmoticon(e)}
-            />
-            <InfoOutlined sx={{ ...itemStyle, ...{} }} onClick={(e) => handleInfo(e)} />
-            {isUsersMessage ? (
+            {(iconConfig & IconConfigs.showEmociton) == IconConfigs.showEmociton ? (
+                <InsertEmoticon
+                    sx={{ ...itemStyle, ...{ color: "#7af" } }}
+                    onClick={(e) => handleEmoticon(e)}
+                />
+            ) : null}
+
+            {(iconConfig & IconConfigs.showInfo) == IconConfigs.showInfo ? (
+                <InfoOutlined sx={{ ...itemStyle, ...{} }} onClick={(e) => handleInfo(e)} />
+            ) : null}
+            {(iconConfig & IconConfigs.showEdit) == IconConfigs.showEdit ? (
                 <Edit sx={{ ...itemStyle, ...{} }} onClick={(e) => handleEdit(e)} />
             ) : null}
-            {isUsersMessage ? (
+            {(iconConfig & IconConfigs.showDelete) == IconConfigs.showDelete ? (
                 <DeleteOutline
                     sx={{ ...itemStyle, ...{ color: "#f33" } }}
                     onClick={(e) => handleDelete(e)}

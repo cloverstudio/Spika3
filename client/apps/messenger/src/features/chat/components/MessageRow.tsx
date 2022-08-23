@@ -13,7 +13,7 @@ import { useGetMessageRecordsByIdQuery } from "../api/message";
 import getMessageStatus from "../lib/getMessageStatus";
 import ReactionOptionsPopover from "./ReactionOptionsPopover";
 import DatePopover from "./DatePopover";
-import MessageContectMenu from "./MessageContectMenu";
+import MessageContectMenu, { IconConfigs } from "./MessageContectMenu";
 import { OnlinePredictionTwoTone } from "@mui/icons-material";
 
 type MessageRowProps = {
@@ -68,6 +68,15 @@ export default function MessageRow({
     const isFirstMessage = fromUserId !== previousMessageSenderId;
     const isLastMessage = fromUserId !== nextMessageSenderId;
 
+    const contectMenuIcons = isUsersMessage
+        ? type === "text"
+            ? IconConfigs.showEmociton |
+              IconConfigs.showInfo |
+              IconConfigs.showEdit |
+              IconConfigs.showDelete
+            : IconConfigs.showEmociton | IconConfigs.showInfo | IconConfigs.showDelete
+        : IconConfigs.showEmociton | IconConfigs.showInfo;
+
     return (
         <Box
             sx={{
@@ -87,9 +96,6 @@ export default function MessageRow({
                 display="flex"
                 justifyContent={isUsersMessage ? "flex-end" : "flex-start"}
                 mb={messageReactions.length ? "1.5rem" : "0.25rem"}
-                onMouseEnter={() => {
-                    setMouseOver(true);
-                }}
             >
                 <Box
                     position="relative"
@@ -107,7 +113,11 @@ export default function MessageRow({
                         !isUsersMessage && <Box width="26px" mr={1}></Box>
                     )}
 
-                    <Box>
+                    <Box
+                        onMouseEnter={() => {
+                            setMouseOver(true);
+                        }}
+                    >
                         <MessageBody
                             id={id}
                             type={type}
@@ -147,6 +157,7 @@ export default function MessageRow({
                     />
 
                     <MessageContectMenu
+                        iconConfig={contectMenuIcons}
                         mouseOver={mouseOver}
                         isUsersMessage={isUsersMessage}
                         handleClose={() => setMouseOver(false)}
@@ -158,10 +169,10 @@ export default function MessageRow({
                             showMessageDetails(id);
                         }}
                         handleDelete={(e) => {
-                            onDelete(id);
+                            if (onDelete) onDelete(id);
                         }}
                         handleEdit={(e) => {
-                            onEdit(id);
+                            if (onEdit) onEdit(id);
                         }}
                     />
                     <ReactionOptionsPopover

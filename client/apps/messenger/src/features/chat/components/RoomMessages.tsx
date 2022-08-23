@@ -212,7 +212,7 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
             )}
             <Box
                 px={1}
-                sx={{ overflowY: "auto" }}
+                sx={{ overflowY: "auto", overflowX: "hidden" }}
                 ref={scrollableConversation}
                 onWheel={onWheel}
                 onScroll={onScroll}
@@ -248,33 +248,17 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
                             setMessageId(id);
                             showModalMessageDetails();
                         }}
-                        onDelete={
-                            !deletedMessage
-                                ? (id) => {
-                                      setMessageId(id);
-                                      setShowDeleteModal(true);
-                                  }
-                                : undefined
-                        }
-                        onEdit={
-                            isEditable
-                                ? (id) => {
-                                      setMessageId(id);
-                                      handleOnEdit();
-                                  }
-                                : undefined
-                        }
+                        onDelete={(id) => {
+                            setMessageId(id);
+                            setShowDeleteModal(true);
+                        }}
+                        onEdit={(id) => {
+                            setMessageId(id);
+                            handleOnEdit();
+                        }}
                     />
                 ))}
             </Box>
-            <MessageMenu
-                open={open}
-                onClose={handleCloseMessageMenu}
-                anchorElement={anchorEl}
-                showMessageDetails={showModalMessageDetails}
-                onDelete={!deletedMessage ? () => setShowDeleteModal(true) : undefined}
-                onEdit={isEditable ? handleOnEdit : undefined}
-            />
             {openMessageDetails && (
                 <MessageDetailDialog
                     open={openMessageDetails}

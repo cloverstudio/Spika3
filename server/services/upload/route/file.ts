@@ -184,12 +184,18 @@ export default (): Router => {
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
-            if (!fs.existsSync(file.path)) {
+            const pathToFile = path.resolve(
+                __dirname,
+                "../../../../../",
+                process.env["UPLOAD_FOLDER"],
+                "files/",
+                file.clientId
+            );
+            if (!fs.existsSync(pathToFile)) {
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
-            const readable = fs.createReadStream(file.path);
-            readable.pipe(res);
+            res.download(pathToFile, file.fileName);
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

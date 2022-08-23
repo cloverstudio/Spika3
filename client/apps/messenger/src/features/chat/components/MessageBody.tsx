@@ -100,6 +100,7 @@ function ImageMessage({
         lineHeight: "1",
     };
 
+    console.log("body", body);
     return (
         <>
             {body.text && (
@@ -116,7 +117,7 @@ function ImageMessage({
                 maxWidth="35rem"
                 height="10rem"
                 width="auto"
-                src={`${UPLOADS_BASE_URL}${body.thumb.path}`}
+                src={`${API_BASE_URL}/upload/files/${body.thumbId}`}
                 pb="0.8125"
                 sx={{ cursor: "pointer", objectFit: "contain" }}
             />
@@ -142,7 +143,7 @@ function ImageMessage({
                             maxWidth="92vw"
                             maxHeight="92vh"
                             height="auto"
-                            src={`${UPLOADS_BASE_URL}${body.file.path}`}
+                            src={`${API_BASE_URL}/upload/files/${body.fileId}`}
                         />
                     </Box>
                 </>
@@ -194,7 +195,8 @@ function FileMessage({
                 </Box>
                 <Box
                     component="a"
-                    href={`${UPLOADS_BASE_URL}${file.path}`}
+                    href={`${API_BASE_URL}/upload/files/${body.fileId}`}
+                    target="_blank"
                     download
                     sx={{ display: "block", color: "inherit" }}
                 >
@@ -228,7 +230,7 @@ function VideoMessage({
                 borderRadius="0.625rem"
                 maxWidth="35rem"
                 controls
-                src={`${UPLOADS_BASE_URL}${body.file.path}`}
+                src={`${API_BASE_URL}/upload/files/${body.fileId}`}
                 pb="0.8125"
             />
         </>
@@ -254,7 +256,7 @@ function AudioMessage({
                 <TextMessage body={body} isUsersMessage={isUsersMessage} onClick={onClick} />
             )}
             <Box component="audio" controls borderRadius="0.625rem" maxWidth="35rem" pb="0.8125">
-                <source type={body.file.type} src={`${UPLOADS_BASE_URL}${body.file.path}`} />
+                <source type={body.file.type} src={`${API_BASE_URL}/upload/files/${body.fileId}`} />
             </Box>
         </>
     );
