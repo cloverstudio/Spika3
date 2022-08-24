@@ -5,6 +5,7 @@ import { Box } from "@mui/material";
 import {
     selectRoomMessages,
     fetchMessagesByRoomId,
+    selectRoomMessagesCount,
     selectLoading,
     setEditMessage,
 } from "../slice/chatSlice";
@@ -25,7 +26,8 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
     const messagesLengthRef = useRef<number>(0);
     const { data: userData } = useGetUserQuery();
     const dispatch = useDispatch();
-    const { messages, count } = useSelector(selectRoomMessages(roomId));
+    const messages = useSelector(selectRoomMessages(roomId));
+    const count = useSelector(selectRoomMessagesCount(roomId));
     const loading = useSelector(selectLoading);
     const [page, setPage] = useState(1);
     const [newMessages, setNewMessages] = useState(0);

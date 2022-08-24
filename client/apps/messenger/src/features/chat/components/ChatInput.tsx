@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Box, Button, CircularProgress, Input, LinearProgress, Stack } from "@mui/material";
+import { makeStyles } from "@mui/styles";
 
 import KeyboardVoiceIcon from "@mui/icons-material/KeyboardVoice";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
@@ -259,17 +260,34 @@ function RightActionTextIcon(): React.ReactElement {
     return <KeyboardVoiceIcon fontSize="large" color="primary" />;
 }
 
+const useStyles = makeStyles(() => ({
+    input: {
+        border: "none",
+        padding: "10px",
+        display: "block",
+        width:"100%",
+        outline:"none",
+        fontSize:"1.1em",
+    },
+  }));
+
 function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
+    const style = useStyles();
     const message = useSelector(selectMessageText);
     const loading = useSelector(selectSendingMessage);
+    const inputRef = useRef<HTMLTextAreaElement>();
     const dispatch = useDispatch();
 
     const handleSetMessageText = (text: string) => dispatch(setMessageText(text));
 
+    useEffect(() => {
+        inputRef.current.focus();
+    });
+
     return (
-        <Input
-            disableUnderline={true}
-            fullWidth
+        <textarea
+            autoFocus={true}
+            ref={inputRef}
             value={message}
             disabled={loading}
             onChange={({ target }) => {
@@ -285,16 +303,8 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
                 }
             }}
             placeholder="Type here..."
-            sx={{
-                border: "1px solid #C9C9CA",
-                input: {
-                    py: 2,
-                    px: 1.5,
-                },
-                padding: "10px",
-            }}
-            multiline={true}
-            maxRows={3}
+            className={style.input}
+            rows={1}
         />
     );
 }

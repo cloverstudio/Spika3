@@ -77,6 +77,7 @@ export default function MessageRow({
             : IconConfigs.showEmociton | IconConfigs.showInfo | IconConfigs.showDelete
         : IconConfigs.showEmociton | IconConfigs.showInfo;
 
+
     return (
         <Box
             sx={{

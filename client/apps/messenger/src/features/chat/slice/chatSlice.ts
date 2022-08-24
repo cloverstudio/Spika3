@@ -59,6 +59,7 @@ export const editMessageThunk = createAsyncThunk(
 interface ChatState {
     activeRoomId: number | null;
     messages: MessageType[];
+    messagesByRoom: Record<number,MessageType[]>;
     messageRecords: MessageRecordType[];
     count: { roomId: number; count: number }[];
     loading: "idle" | "pending" | "succeeded" | "failed";
@@ -73,6 +74,7 @@ export const chatSlice = createSlice({
     initialState: <ChatState>{
         activeRoomId: null,
         messages: [],
+        messagesByRoom: {},
         messageRecords: [],
         count: [],
         loading: "idle",
@@ -100,6 +102,8 @@ export const chatSlice = createSlice({
         addMessage: (state, { payload }: { payload: MessageType }) => {
             if (state.messages.findIndex((m) => m.id === payload.id) === -1) {
                 state.messages = [...state.messages, payload];
+
+                //const roomId = 
             }
         },
         addMessageRecord: (state, { payload }: { payload: MessageRecordType }) => {
@@ -170,7 +174,7 @@ export const chatSlice = createSlice({
             const notAdded = payload.list.filter(
                 (m: { id: number }) => !messagesIds.includes(m.id)
             );
-
+                
             if (
                 state.activeRoomId &&
                 state.count.findIndex((c) => c.roomId === state.activeRoomId) < 0
@@ -181,6 +185,13 @@ export const chatSlice = createSlice({
                 });
             }
             state.messages = [...state.messages, ...notAdded];
+            
+            if(!state.messagesByRoom[state.activeRoomId])
+                state.messagesByRoom[state.activeRoomId] = []
+            
+
+            state.messagesByRoom[state.activeRoomId].push(...notAdded);
+
             state.loading = "idle";
         });
         builder.addCase(fetchMessagesByRoomId.pending, (state) => {
@@ -192,6 +203,8 @@ export const chatSlice = createSlice({
 
         builder.addCase(sendMessage.fulfilled, (state, { payload }) => {
             state.messages = [...state.messages, payload.message];
+            state.messagesByRoom[payload.message.roomId].push(payload.message);
+
             state.sendingMessage = "idle";
             state.messageText = "";
             state.inputType = "text";
@@ -228,11 +241,14 @@ export const selectMessageText = (state: RootState): string => state.chat.messag
 export const selectEditMessage = (state: RootState): MessageType | null => state.chat.editMessage;
 export const selectRoomMessages =
     (roomId: number) =>
-    (state: RootState): { messages: MessageType[]; count: number } => {
-        const messages = state.chat.messages.filter((m) => m.roomId === roomId);
-        const count = state.chat.count.find((c) => c.roomId === roomId)?.count || 0;
+    (state: RootState): MessageType[] => {
 
-        return { messages, count };
+        const messages = state.chat.messages.filter((m) => m.roomId === roomId);
+  
+        if(!state.chat.messagesByRoom[roomId])
+            return [];
+
+        return state.chat.messagesByRoom[roomId];
     };
 export const selectRoomMessagesCount =
     (roomId: number) =>

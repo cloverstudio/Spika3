@@ -100,7 +100,6 @@ function ImageMessage({
         lineHeight: "1",
     };
 
-    console.log("body", body);
     return (
         <>
             {body.text && (

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Avatar, Badge, Box, Typography } from "@mui/material";
-
 import { selectUser } from "../../../store/userSlice";
 import { selectActiveRoomId } from "../slice/chatSlice";
 import { fetchHistory, selectHistory, selectHistoryLoading } from "../slice/roomSlice";
@@ -21,6 +20,7 @@ declare const UPLOADS_BASE_URL: string;
 
 export default function SidebarContactList(): React.ReactElement {
     const dispatch = useDispatch();
+
     const { list, count } = useSelector(selectHistory);
     const loading = useSelector(selectHistoryLoading());
     const [page, setPage] = useState(1);
