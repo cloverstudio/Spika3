@@ -48,7 +48,15 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
         dispatch(fetchMessagesByRoomId({ roomId, page }));
     }, [page, dispatch, roomId]);
 
-    const messagesSorted = messages.sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1));
+
+    //messages is readonly so here I have to create new instance
+    const messagesSorted = [...messages].sort((a, b) => {
+        if(a && b)
+            return a.createdAt > b.createdAt ? 1 : -1
+        else
+            return 1
+    });
+
     const lastMessageFromUserId = messagesSorted[messagesSorted.length - 1]?.fromUserId;
     const isUsersLastMessage = lastMessageFromUserId === userData?.user?.id;
 

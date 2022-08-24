@@ -103,7 +103,11 @@ export const chatSlice = createSlice({
             if (state.messages.findIndex((m) => m.id === payload.id) === -1) {
                 state.messages = [...state.messages, payload];
 
-                //const roomId = 
+                if(payload){
+                    const roomId = payload.roomId;
+                    state.messagesByRoom[roomId].push(payload);
+                }
+                
             }
         },
         addMessageRecord: (state, { payload }: { payload: MessageRecordType }) => {
@@ -253,9 +257,9 @@ export const selectRoomMessages =
 export const selectRoomMessagesCount =
     (roomId: number) =>
     (state: RootState): number => {
-        const count = state.chat.messages.filter((m) => m.roomId === roomId).length;
-
-        return count;
+        //const count = state.chat.messages.filter((m) => m.roomId === roomId).length;
+        const countRow = state.chat.count.find((c) => c.roomId === roomId);
+        return countRow?.count
     };
 
 export const selectLoading = (state: RootState): "idle" | "pending" | "succeeded" | "failed" => {
