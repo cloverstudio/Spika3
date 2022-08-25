@@ -24,6 +24,8 @@ export default function DatePopover({
 
     if (mouseOver) styleModifier.opacity = 1;
 
+    if(!mouseOver) return <></>;
+    
     return (
         <Box
             sx={{

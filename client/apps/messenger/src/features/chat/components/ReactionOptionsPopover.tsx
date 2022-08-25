@@ -38,6 +38,8 @@ export default function ReactionOptionsPopover({
     if (!isUsersMessage) styleModifier.left = "35px";
     else styleModifier.right = "50px";
 
+    if(!show) return <></>;
+
     return (
         <>
             {show ? (

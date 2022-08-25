@@ -19,7 +19,7 @@ export default function App(): React.ReactElement {
                     <Route path="/confcall" element={<Confcall />} />
                     <Route path="app" element={<HomePage />} />
 
-                    <Route path="rooms" element={<HomePage />}>
+                    <Route path="rooms" element={<HomePage />} >
                         <Route path=":id" element={<RoomPage />} />
                         <Route path=":id/call/lobby/:media" element={<RoomPage />} />
                         <Route path=":id/call" element={<RoomPage />} />

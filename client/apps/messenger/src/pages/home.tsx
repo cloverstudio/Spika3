@@ -13,7 +13,7 @@ import { selectLeftSidebarOpen, setLeftSidebar } from "../features/chat/slice/si
 import { selectRightSidebarOpen } from "../features/chat/slice/rightSidebarSlice";
 
 export default function Home(): React.ReactElement {
-    const { id } = useParams();
+
     const theme = useTheme();
 
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -26,8 +26,6 @@ export default function Home(): React.ReactElement {
             dispatch(setLeftSidebar(true));
         }
     }, [isMobile, dispatch]);
-
-    const isRoomPage = !!id;
 
     const setOpen = () => dispatch(setLeftSidebar(!open));
     return (
@@ -55,6 +53,18 @@ export default function Home(): React.ReactElement {
                 ) : (
                     <LeftSidebar />
                 )}
+                <Outlet />
+                 
+
+                {rightSidebarOpen ? <RightSidebar /> : null}
+            </Box>
+        </Base>
+    );
+}
+
+
+{/*
+
                 {isRoomPage ? (
                     <Outlet />
                 ) : (
@@ -67,8 +77,4 @@ export default function Home(): React.ReactElement {
                         Select or create room
                     </Box>
                 )}
-                {rightSidebarOpen ? <RightSidebar /> : null}
-            </Box>
-        </Base>
-    );
-}
+                */}

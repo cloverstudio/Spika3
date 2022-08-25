@@ -55,6 +55,9 @@ export default function DatePopover({
             opacity: "0.5",
         },
     };
+
+    if(!mouseOver) return <></>;
+    
     return (
         <Box
             sx={{

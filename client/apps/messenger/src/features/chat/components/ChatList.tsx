@@ -18,7 +18,7 @@ import SearchBox from "./SearchBox";
 dayjs.extend(relativeTime);
 declare const UPLOADS_BASE_URL: string;
 
-export default function SidebarContactList(): React.ReactElement {
+export default function SidebarChatList(): React.ReactElement {
     const dispatch = useDispatch();
 
     const { list, count } = useSelector(selectHistory);
@@ -89,7 +89,7 @@ export default function SidebarContactList(): React.ReactElement {
 type RoomRowProps = {
     id: number;
     name: string;
-    isActive: boolean;
+    isActive?: boolean;
     handleClick: () => void;
     unreadCount?: number;
     lastMessage?: MessageType;

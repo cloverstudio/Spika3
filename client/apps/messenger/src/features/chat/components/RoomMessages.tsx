@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Box } from "@mui/material";
-
+import * as utils from "../../../../../../lib/utils"; 
 import {
     selectRoomMessages,
     fetchMessagesByRoomId,
@@ -17,6 +17,7 @@ import { useGetUserQuery } from "../../auth/api/auth";
 import AttachmentManager from "../lib/AttachmentManager";
 import { deletedMessageText } from "../lib/consts";
 import NewMessageAlert from "./NewMessageAlert";
+import { async } from "@firebase/util";
 type RoomMessagesProps = {
     roomId: number;
 };
@@ -44,10 +45,14 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
     const [selectedMessageId, setMessageId] = useState<number>();
     const open = Boolean(anchorEl);
 
+    
     useEffect(() => {
-        dispatch(fetchMessagesByRoomId({ roomId, page }));
-    }, [page, dispatch, roomId]);
 
+        if(messages.length !== 0 && page <= 1) return;
+
+        dispatch(fetchMessagesByRoomId({ roomId, page }));  
+    }, [page, dispatch, roomId]);
+    
 
     //messages is readonly so here I have to create new instance
     const messagesSorted = [...messages].sort((a, b) => {
@@ -222,7 +227,7 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
             )}
             <Box
                 px={1}
-                sx={{ overflowY: "auto", overflowX: "hidden" }}
+                sx={{ overflowY: "auto", overflowX: "hidden", height:"100%", paddingTop: "20px" }}
                 ref={scrollableConversation}
                 onWheel={onWheel}
                 onScroll={onScroll}
