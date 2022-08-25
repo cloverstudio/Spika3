@@ -19,8 +19,8 @@ export default function DatePopover({
     const styleModifier: any = {
         opacity: 0,
     };
-    if (!isUsersMessage) styleModifier.left = "10px";
-    else styleModifier.right = "10px";
+    if (!isUsersMessage) styleModifier.left = "40px";
+    else styleModifier.right = "30px";
 
     if (mouseOver) styleModifier.opacity = 1;
 
