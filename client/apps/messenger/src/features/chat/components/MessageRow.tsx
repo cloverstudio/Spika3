@@ -2,9 +2,7 @@ import React, { useRef } from "react";
 import { Avatar, Box, Typography } from "@mui/material";
 
 import MessageStatusIcon from "./MessageStatusIcon";
-import { useSelector } from "react-redux";
-import { selectUser } from "../../../store/userSlice";
-import { useGetRoomQuery } from "../api/room";
+
 import { useParams } from "react-router-dom";
 
 import MessageBody from "./MessageBody";
@@ -15,9 +13,12 @@ import ReactionOptionsPopover from "./ReactionOptionsPopover";
 import DatePopover from "./DatePopover";
 import MessageContectMenu, { IconConfigs } from "./MessageContectMenu";
 import { OnlinePredictionTwoTone } from "@mui/icons-material";
+import User from "../../../types/User";
+import RoomType from "../../../../../management/src/types/Room";
 
 type MessageRowProps = {
     id: number;
+    roomId: number;
     fromUserId: number;
     seenCount: number;
     totalUserCount: number;
@@ -27,6 +28,8 @@ type MessageRowProps = {
     createdAt: any;
     nextMessageSenderId?: number;
     previousMessageSenderId?: number;
+    user: User;
+    data: any;
     clickedAnchor: (event: React.MouseEvent<HTMLDivElement>, messageId: number) => void;
     showMessageDetails: (id: number) => void;
     onDelete: (id: number) => void;
@@ -37,6 +40,7 @@ declare const UPLOADS_BASE_URL: string;
 
 export default function MessageRow({
     id,
+    roomId,
     fromUserId,
     seenCount,
     totalUserCount,
@@ -46,18 +50,18 @@ export default function MessageRow({
     nextMessageSenderId,
     previousMessageSenderId,
     createdAt,
+    user,
+    data,
     clickedAnchor,
     showMessageDetails,
     onDelete,
-    onEdit,
+    onEdit
 }: MessageRowProps): React.ReactElement {
-    const roomId = +useParams().id;
     const { data: messageRecordsData } = useGetMessageRecordsByIdQuery(id);
     const messageReactions =
         messageRecordsData?.messageRecords.filter((mr) => mr.type === "reaction") || [];
 
-    const user = useSelector(selectUser);
-    const { data } = useGetRoomQuery(roomId);
+
     const users = data?.room?.users;
     const roomType = data?.room?.type;
     const sender = users?.find((u) => u.userId === fromUserId)?.user;

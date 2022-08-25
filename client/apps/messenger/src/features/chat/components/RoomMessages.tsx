@@ -21,8 +21,15 @@ import { async } from "@firebase/util";
 type RoomMessagesProps = {
     roomId: number;
 };
+import { selectUser } from "../../../store/userSlice";
+import { useGetRoomQuery } from "../api/room";
+
 
 export default function RoomMessages({ roomId }: RoomMessagesProps): React.ReactElement {
+    const user = useSelector(selectUser);
+    const { data } = useGetRoomQuery(roomId);
+
+
     const scrollableConversation = useRef<HTMLDivElement>();
     const messagesLengthRef = useRef<number>(0);
     const { data: userData } = useGetUserQuery();
@@ -271,6 +278,8 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
                             setMessageId(id);
                             handleOnEdit();
                         }}
+                        user={user}
+                        data={data}
                     />
                 ))}
             </Box>
