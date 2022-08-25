@@ -19,8 +19,8 @@ export default function DatePopover({
     const styleModifier: any = {
         opacity: 0,
     };
-    if (!isUsersMessage) styleModifier.right = "-50px";
-    else styleModifier.left = "-50px";
+    if (!isUsersMessage) styleModifier.left = "10px";
+    else styleModifier.right = "10px";
 
     if (mouseOver) styleModifier.opacity = 1;
 
@@ -37,7 +37,8 @@ export default function DatePopover({
                     borderRadius: "5px",
                     padding: "1px",
                     position: "absolute",
-                    top: "-20px",
+                    bottom: "-20px",
+                    zIndex: 1000
                 },
                 ...styleModifier,
             }}

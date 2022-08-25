@@ -41,7 +41,7 @@ export default function DatePopover({
     const styleModifier: any = {
         opacity: 0,
     };
-    if (!isUsersMessage) styleModifier.left = "35px";
+    if (!isUsersMessage) styleModifier.right = "-135px";
     else styleModifier.right = "70px";
 
     if (mouseOver) styleModifier.opacity = 1;
@@ -51,9 +51,6 @@ export default function DatePopover({
         marginLeft: "10px",
         cursor: "pointer",
         color: "#222",
-        "&:hover": {
-            opacity: "0.5",
-        },
     };
 
     if(!mouseOver) return <></>;
@@ -62,7 +59,7 @@ export default function DatePopover({
         <Box
             sx={{
                 ...{
-                    transition: "opacity 0.2s ease",
+                    position: "absolute",
                     minWidth: "100px",
                     backgroundColor: "#fff",
                     border: "2px solid #9995",
@@ -70,8 +67,7 @@ export default function DatePopover({
                     justifyContent: "space-between",
                     borderRadius: "5px",
                     padding: "10px",
-                    position: "absolute",
-                    bottom: "-40px",
+                    top: "-50px",
                     zIndex: 1000,
                 },
                 ...styleModifier,

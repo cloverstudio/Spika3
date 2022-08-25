@@ -34,6 +34,7 @@ type MessageRowProps = {
     showMessageDetails: (id: number) => void;
     onDelete: (id: number) => void;
     onEdit: (id: number) => void;
+    isDeleted: boolean;
 };
 
 declare const UPLOADS_BASE_URL: string;
@@ -55,7 +56,8 @@ export default function MessageRow({
     clickedAnchor,
     showMessageDetails,
     onDelete,
-    onEdit
+    onEdit,
+    isDeleted
 }: MessageRowProps): React.ReactElement {
     const { data: messageRecordsData } = useGetMessageRecordsByIdQuery(id);
     const messageReactions =
@@ -72,15 +74,20 @@ export default function MessageRow({
     const isFirstMessage = fromUserId !== previousMessageSenderId;
     const isLastMessage = fromUserId !== nextMessageSenderId;
 
-    const contectMenuIcons = isUsersMessage
-        ? type === "text"
-            ? IconConfigs.showEmociton |
-              IconConfigs.showInfo |
-              IconConfigs.showEdit |
-              IconConfigs.showDelete
-            : IconConfigs.showEmociton | IconConfigs.showInfo | IconConfigs.showDelete
-        : IconConfigs.showEmociton | IconConfigs.showInfo;
-
+    let contextMenuIcons = IconConfigs.showInfo;
+    
+    if(isDeleted){
+        contextMenuIcons = IconConfigs.showInfo;
+    }else if(isUsersMessage && type === "text"){
+        contextMenuIcons = IconConfigs.showEmociton |
+        IconConfigs.showInfo |
+        IconConfigs.showEdit |
+        IconConfigs.showDelete;
+    } else if(isUsersMessage){
+        contextMenuIcons = IconConfigs.showEmociton | IconConfigs.showInfo | IconConfigs.showDelete;
+    } else {
+        contextMenuIcons = IconConfigs.showEmociton | IconConfigs.showInfo;
+    }
 
     return (
         <Box
@@ -160,9 +167,8 @@ export default function MessageRow({
                         createdAt={createdAt}
                         handleClose={() => setMouseOver(false)}
                     />
-
                     <MessageContectMenu
-                        iconConfig={contectMenuIcons}
+                        iconConfig={contextMenuIcons}
                         mouseOver={mouseOver}
                         isUsersMessage={isUsersMessage}
                         handleClose={() => setMouseOver(false)}

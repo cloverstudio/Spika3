@@ -54,9 +54,6 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
 
     
     useEffect(() => {
-
-        if(messages.length !== 0 && page <= 1) return;
-
         dispatch(fetchMessagesByRoomId({ roomId, page }));  
     }, [page, dispatch, roomId]);
     
@@ -214,10 +211,14 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
         selectedMessage?.deleted || selectedMessage?.body?.text === deletedMessageText;
     const isEditable = selectedMessage?.type === "text" && selectedUsersMessage && !deletedMessage;
 
-    const handleOnEdit = () => {
+    const handleOnEdit = (id:number) => {
+
+        const selectedMessage = messagesSorted.find((m) => m.id === id);
+
         if (selectedMessage) {
             dispatch(setEditMessage(selectedMessage));
         }
+
     };
 
     return (
@@ -276,10 +277,11 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
                         }}
                         onEdit={(id) => {
                             setMessageId(id);
-                            handleOnEdit();
+                            handleOnEdit(id);
                         }}
                         user={user}
                         data={data}
+                        isDeleted={m.deleted}
                     />
                 ))}
             </Box>

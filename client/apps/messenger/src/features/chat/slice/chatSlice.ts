@@ -155,6 +155,14 @@ export const chatSlice = createSlice({
             if (messageIndex > -1) {
                 state.messages.splice(messageIndex, 1, payload);
             }
+
+            const roomId = payload.roomId;
+            const messageRoomIndex = state.messagesByRoom[roomId].findIndex((m) => m.id === payload.id);
+
+            if (messageRoomIndex > -1) {
+                state.messagesByRoom[roomId].splice(messageRoomIndex, 1, payload);
+            }
+            
         },
 
         editMessage: (state, { payload }: { payload: MessageType }) => {
@@ -163,6 +171,15 @@ export const chatSlice = createSlice({
             if (messageIndex > -1) {
                 state.messages.splice(messageIndex, 1, payload);
             }
+
+            const roomId = payload.roomId;
+            const messageRoomIndex = state.messagesByRoom[roomId].findIndex((m) => m.id === payload.id);
+
+            if (messageRoomIndex > -1) {
+                state.messagesByRoom[roomId].splice(messageRoomIndex, 1, payload);
+            }
+
+
         },
         setInputType: (state, { payload }: { payload: "text" | "emoji" | "files" }) => {
             state.inputType = payload;
