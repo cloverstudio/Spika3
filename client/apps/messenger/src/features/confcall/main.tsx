@@ -146,9 +146,13 @@ export default function ConfCall() {
             await updateParticipants();
         })();
 
+        const timerId = setInterval(() => {
+            updateParticipants();
+        },2000);
+
         const clearListner = listenCallEvent(async (data: callEventPayload) => {
             try {
-                await updateParticipants();
+                //await updateParticipants();
             } catch (e) {
                 //This happens when component doesn't exists but this listener is called
                 //It happens often when user leave the room. I ignore this because its annoying.
@@ -158,7 +162,8 @@ export default function ConfCall() {
         dispatch(setScreenshareEnabled(false));
 
         return () => {
-            clearListner();
+            //clearListner();
+            clearInterval(timerId);
         };
     }, []);
 
@@ -411,6 +416,12 @@ export default function ConfCall() {
                             <CloseIcon
                                 sx={Styles.controlIconDefaultStyle}
                                 onClick={async () => {
+
+                                    if(screenshareEnabled){
+                                        await mediasoupHander.stopScreenshare();
+                                        dispatch(setScreenshareEnabled(false));
+                                    }
+                                    
                                     await mediasoupHander.stop();
                                     await leaveApi(callState.roomId);
                                     navigate(`/rooms/${callState.roomId}`);

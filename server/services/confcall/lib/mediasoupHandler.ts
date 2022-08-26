@@ -392,14 +392,14 @@ class MediasoupHandler {
             return room.roomId === roomId;
         });
 
-        if (!room) throw "Invalid room id";
+        if (!room) throw new Error("Invalid room id");
 
         let peer = room.peers.find((peer) => peer.peerId === peerId);
 
-        if (!peer) throw "Invalid peer id";
+        if (!peer) throw new Error("Invalid peer id");
 
         const provider = peer.producerTransport;
-        if (!provider) throw "Invalid peer id";
+        if (!provider) throw new Error("Invalid peer id");
 
         const producer = peer.producers.find((producer) => {
             return producer.appData.kind === "screenshare";

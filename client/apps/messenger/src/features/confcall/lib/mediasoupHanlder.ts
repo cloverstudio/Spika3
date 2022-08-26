@@ -266,7 +266,7 @@ class MediasoupHandler {
         this.videoProducer = null;
         this.audioProducer = null;
 
-        await this.stopScreenshare();
+        //await this.stopScreenshare();
     }
     async startConsume(
         params: { audioProducerId?: string; videoProducerId?: string },

@@ -480,7 +480,7 @@ export default (params: InitRouterParams) => {
             if (!callHistory)
                 res.status(404).send(errorResponse("Not active calllog", userReq.lang));
 
-            mediasoupHandler.pause(roomId, peerId, kind);
+            await mediasoupHandler.pause(roomId, peerId, kind);
 
             const callParams: CallParamsInDB = callHistory.callParameters as CallParamsInDB;
             if (kind === "video") callParams.videoEnabled = false;
@@ -554,7 +554,7 @@ export default (params: InitRouterParams) => {
             if (!callHistory)
                 res.status(404).send(errorResponse("Not active calllog", userReq.lang));
 
-            mediasoupHandler.resume(roomId, peerId, kind);
+            await mediasoupHandler.resume(roomId, peerId, kind);
 
             const callParams: CallParamsInDB = callHistory.callParameters as CallParamsInDB;
             if (kind === "video") callParams.videoEnabled = true;
@@ -623,7 +623,7 @@ export default (params: InitRouterParams) => {
             if (!callHistory)
                 res.status(404).send(errorResponse("Not active calllog", userReq.lang));
 
-            mediasoupHandler.stopScreenshare(roomId, peerId);
+            await mediasoupHandler.stopScreenshare(roomId, peerId);
 
             const callParams: CallParamsInDB = callHistory.callParameters as CallParamsInDB;
             callParams.screenshareProducerId = "";
