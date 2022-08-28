@@ -43,7 +43,7 @@ function RightSidebarContainer({ children }: RightSidebarContainerProps): React.
         <Box
             borderLeft="0.5px solid #C9C9CA"
             height="100vh"
-            style={{ overflowY: "auto", overflowX: "hidden" }}
+            style={{ overflowY: "auto", overflowX: "hidden", backgroundColor: "#fff", zIndex: 1100 }}
         >
             {children}
         </Box>

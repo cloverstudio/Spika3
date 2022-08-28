@@ -95,7 +95,7 @@ function NumberInput({
                         border: "1px solid",
                         borderColor: "text.tertiary",
                         borderRadius: "0.625rem",
-                        height: "100%",
+                        height: "34px",
                         padding: "5px",
                         textAlign: "center",
                         color: "primary.main",

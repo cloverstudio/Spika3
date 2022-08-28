@@ -42,11 +42,6 @@ export default function RoomHeader({
                 <Box
                     display="flex"
                     alignItems="center"
-                    sx={{ cursor: "pointer" }}
-                    onClick={(e) => {
-                        if (!rightSidebarState.isOpened) dispatch(showRightSidebar());
-                        else dispatch(hideRightSidebar());
-                    }}
                 >
                     {isMobile && (
                         <ChevronLeftIcon
@@ -60,7 +55,14 @@ export default function RoomHeader({
                     )}
                     <Avatar alt={name} src={`${UPLOADS_BASE_URL}${avatarUrl}`} />
 
-                    <Typography fontWeight="500" ml={1.5}>
+                    <Typography f
+                        ontWeight="500" 
+                        ml={1.5}                     
+                        sx={{ cursor: "pointer" }}
+                        onClick={(e) => {
+                        if (!rightSidebarState.isOpened) dispatch(showRightSidebar());
+                        else dispatch(hideRightSidebar());
+                    }}>
                         {name}
                     </Typography>
                 </Box>

@@ -177,27 +177,7 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                     );
                 })}
             </Box>
-            {members.length > 4 ? (
-                <IconButton
-                    disableRipple
-                    size="large"
-                    color="primary"
-                    sx={{
-                        ml: 1,
-                        "&.MuiButtonBase-root:hover": {
-                            bgcolor: "transparent",
-                        },
-                        width: "100%",
-                        margin: "0",
-                        padding: "0",
-                    }}
-                    onClick={(e) => {
-                        setShowMore(!showMore);
-                    }}
-                >
-                    <Typography variant="subtitle1">Show more</Typography>
-                </IconButton>
-            ) : null}
+
             {openAddDialog ? (
                 <AddMembersDialog
                     open={openAddDialog}
