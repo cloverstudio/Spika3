@@ -152,7 +152,7 @@ export default function ConfCall() {
 
         const clearListner = listenCallEvent(async (data: callEventPayload) => {
             try {
-                //await updateParticipants();
+                //{await updateParticipants();
             } catch (e) {
                 //This happens when component doesn't exists but this listener is called
                 //It happens often when user leave the room. I ignore this because its annoying.

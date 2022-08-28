@@ -63,7 +63,6 @@ export default function MessageRow({
     const messageReactions =
         messageRecordsData?.messageRecords.filter((mr) => mr.type === "reaction") || [];
 
-
     const users = data?.room?.users;
     const roomType = data?.room?.type;
     const sender = users?.find((u) => u.userId === fromUserId)?.user;
@@ -96,6 +95,7 @@ export default function MessageRow({
             }}
             onMouseLeave={() => {
                 setMouseOver(false);
+                setShowReactionMenu(false);
             }}
         >
             {roomType === "group" && !isUsersMessage && isFirstMessage && (

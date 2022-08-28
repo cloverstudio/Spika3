@@ -44,9 +44,6 @@ export default function ReactionOptionsPopover({
         <>
             {show ? (
                 <Box
-                    onMouseLeave={() => {
-                        handleClose();
-                    }}
                     sx={{
                         ...{
                             backgroundColor: "#fff",
