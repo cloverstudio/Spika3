@@ -6,6 +6,7 @@ import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 
 import Base from "../components/Base";
+import PushnotificationPermissionDialog from "../components/PushnotificationPermissionDialog";
 import LeftSidebar from "../features/chat/LeftSidebar";
 import RightSidebar from "../features/chat/RightSidebar";
 import { selectLeftSidebarOpen, setLeftSidebar } from "../features/chat/slice/sidebarSlice";
@@ -58,23 +59,9 @@ export default function Home(): React.ReactElement {
 
                 {rightSidebarOpen ? <RightSidebar /> : null}
             </Box>
+
+            <PushnotificationPermissionDialog />
         </Base>
     );
 }
 
-
-{/*
-
-                {isRoomPage ? (
-                    <Outlet />
-                ) : (
-                    <Box
-                        display="flex"
-                        flexDirection="column"
-                        justifyContent="center"
-                        alignItems="center"
-                    >
-                        Select or create room
-                    </Box>
-                )}
-                */}

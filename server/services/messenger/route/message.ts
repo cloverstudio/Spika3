@@ -137,6 +137,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                                         ?.pushToken,
                                     data: {
                                         message: sanitizedMessage,
+                                        user: sanitize(userReq.user).user(),
                                     },
                                 })
                             )

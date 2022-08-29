@@ -8,6 +8,7 @@ export const LSKEY_SELECTEDMIC = "selectedmic";
 export const LSKEY_LASTROOM = "lastroom";
 export const LSKEY_ENABLECAM = "enablecam";
 export const LSKEY_ENABLEMIC = "enablemic";
+export const LSKEY_DISABLEPUSHALER: string = "disable_pushnotificationalert";
 export const LSKEY_CROPSIZE = 512;
 
 export const LSKEY_ACCESSTOKEN: string = "access-token";

@@ -265,7 +265,22 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                     </Link>
                 )}
             </Stack>
+ 
             <Box p={2} mt={2}>
+
+                {localStorage.getItem(Constants.LSKEY_DISABLEPUSHALER) && <><Link
+                    component="button"
+                    align="left"
+                    fontWeight="bold"
+                    variant="h6"
+                    underline="none"
+                    onClick={() => {
+                        localStorage.removeItem(Constants.LSKEY_DISABLEPUSHALER);
+                        location.reload();
+                    }}
+                >
+                    Enable desktop notification
+                </Link><br /></> }
                 <Link
                     component="button"
                     align="left"
@@ -278,7 +293,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                         navigate("/");
                     }}
                 >
-                    Log out
+                    Logout
                 </Link>
             </Box>
             {editProfilePicture ? (

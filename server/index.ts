@@ -11,6 +11,7 @@ import PushService from "./services/push";
 import SSEService from "./services/sse";
 import ConfcallService from "./services/confcall";
 import amqp from "amqplib";
+import fs from "fs";
 import path from "path";
 
 import { error as e } from "./components/logger";
@@ -41,6 +42,22 @@ const app: express.Express = express();
 
     const server: http.Server = app.listen(process.env["SERVER_PORT"], () => {
         console.log(`Start on port ${process.env["SERVER_PORT"]}.`);
+    });
+
+    // override static access only for this file
+    app.get("/firebase-messaging-sw.js", (req: express.Request, res: express.Response) => {
+        const pathToJS = path.join(__dirname, "../..", "public/firebase-messaging-sw.js");
+        let content = fs.readFileSync(pathToJS, "utf8");
+
+        content = content.replace("{{apiKey}}", process.env["FCM_API_KEY"]);
+        content = content.replace("{{authDomain}}", process.env["FCM_AUTH_DOMAIN"]);
+        content = content.replace("{{projectId}}", process.env["FCM_PROJECT_ID"]);
+        content = content.replace("{{storageBucket}}", process.env["FCM_STORAGE_BUCKET"]);
+        content = content.replace("{{messagingSenderId}}", process.env["FCM_SENDER_ID"]);
+        content = content.replace("{{appId}}", process.env["FCM_APP_ID"]);
+
+        res.contentType("text/javascript");
+        res.send(content);
     });
 
     app.use(express.static("public"));
@@ -111,6 +128,7 @@ const app: express.Express = express();
     }
 
     // test
+
     app.get("/api/test", (req: express.Request, res: express.Response) => {
         res.send("test");
     });

@@ -55,9 +55,8 @@ export default function RoomHeader({
                     )}
                     <Avatar alt={name} src={`${UPLOADS_BASE_URL}${avatarUrl}`} />
 
-                    <Typography f
-                        ontWeight="500" 
-                        ml={1.5}                     
+                    <Typography 
+                        fontWeight="500" ml={1.5}                     
                         sx={{ cursor: "pointer" }}
                         onClick={(e) => {
                         if (!rightSidebarState.isOpened) dispatch(showRightSidebar());

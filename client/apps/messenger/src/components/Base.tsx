@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 
 import { CssBaseline } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
+
 import theme from "../theme";
 
 import SnackBar from "./SnackBar";
@@ -12,7 +13,6 @@ import Loader from "./Loader";
 
 import { useGetUserQuery } from "../features/auth/api/auth";
 
-import { requestForToken } from "../firebaseInit";
 import { useGetDeviceQuery, useUpdateDeviceMutation } from "../api/device";
 
 import handleSSE from "../utils/handleSSE";
@@ -24,6 +24,12 @@ type Props = {
     children?: React.ReactNode;
 };
 
+async function checkPermission() {
+    if (Notification.permission !== "granted") {
+        // ask for permission
+    }
+}
+
 export default function AuthBase({ children }: Props): React.ReactElement {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -32,18 +38,12 @@ export default function AuthBase({ children }: Props): React.ReactElement {
     const [updateDevice] = useUpdateDeviceMutation();
 
     const hasPushToken = deviceData && deviceData.device.pushToken;
+
     useEffect(() => {
         if (!isFetching && !user) {
             navigate("/");
         }
     }, [user, isFetching, navigate]);
-
-    useEffect(() => {
-        if (!deviceIsLoading && !hasPushToken) {
-            console.log("should update device");
-            requestForToken(updateDevice);
-        }
-    }, [hasPushToken, updateDevice, deviceIsLoading]);
 
     useEffect(() => {
         let source: EventSource;
@@ -90,7 +90,6 @@ export function Base({ children }: Props): React.ReactElement {
         <ThemeProvider theme={theme}>
             <CssBaseline />
             {children}
-
             <SnackBar />
             <BasicDialog />
         </ThemeProvider>
