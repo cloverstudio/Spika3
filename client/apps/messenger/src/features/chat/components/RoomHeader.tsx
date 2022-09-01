@@ -30,19 +30,10 @@ export default function RoomHeader({
     const rightSidebarState = useSelector((state: RootState) => state.rightSidebar);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        if (name) {
-            window.document.title = name;
-        }
-    }, [name]);
-
     return (
         <Box px={2} borderBottom="0.5px solid #C9C9CA">
             <Box display="flex" justifyContent="space-between" height="80px">
-                <Box
-                    display="flex"
-                    alignItems="center"
-                >
+                <Box display="flex" alignItems="center">
                     {isMobile && (
                         <ChevronLeftIcon
                             sx={{
@@ -55,13 +46,15 @@ export default function RoomHeader({
                     )}
                     <Avatar alt={name} src={`${UPLOADS_BASE_URL}${avatarUrl}`} />
 
-                    <Typography 
-                        fontWeight="500" ml={1.5}                     
+                    <Typography
+                        fontWeight="500"
+                        ml={1.5}
                         sx={{ cursor: "pointer" }}
                         onClick={(e) => {
-                        if (!rightSidebarState.isOpened) dispatch(showRightSidebar());
-                        else dispatch(hideRightSidebar());
-                    }}>
+                            if (!rightSidebarState.isOpened) dispatch(showRightSidebar());
+                            else dispatch(hideRightSidebar());
+                        }}
+                    >
                         {name}
                     </Typography>
                 </Box>

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Box } from "@mui/material";
-import * as utils from "../../../../../../lib/utils"; 
+import * as utils from "../../../../../../lib/utils";
 import {
     selectRoomMessages,
     fetchMessagesByRoomId,
@@ -24,11 +24,9 @@ type RoomMessagesProps = {
 import { selectUser } from "../../../store/userSlice";
 import { useGetRoomQuery } from "../api/room";
 
-
 export default function RoomMessages({ roomId }: RoomMessagesProps): React.ReactElement {
     const user = useSelector(selectUser);
     const { data } = useGetRoomQuery(roomId);
-
 
     const scrollableConversation = useRef<HTMLDivElement>();
     const messagesLengthRef = useRef<number>(0);
@@ -52,18 +50,14 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
     const [selectedMessageId, setMessageId] = useState<number>();
     const open = Boolean(anchorEl);
 
-    
     useEffect(() => {
-        dispatch(fetchMessagesByRoomId({ roomId, page }));  
+        dispatch(fetchMessagesByRoomId({ roomId, page }));
     }, [page, dispatch, roomId]);
-    
 
     //messages is readonly so here I have to create new instance
     const messagesSorted = [...messages].sort((a, b) => {
-        if(a && b)
-            return a.createdAt > b.createdAt ? 1 : -1
-        else
-            return 1
+        if (a && b) return a.createdAt > b.createdAt ? 1 : -1;
+        else return 1;
     });
 
     const lastMessageFromUserId = messagesSorted[messagesSorted.length - 1]?.fromUserId;
@@ -211,14 +205,12 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
         selectedMessage?.deleted || selectedMessage?.body?.text === deletedMessageText;
     const isEditable = selectedMessage?.type === "text" && selectedUsersMessage && !deletedMessage;
 
-    const handleOnEdit = (id:number) => {
-
+    const handleOnEdit = (id: number) => {
         const selectedMessage = messagesSorted.find((m) => m.id === id);
 
         if (selectedMessage) {
             dispatch(setEditMessage(selectedMessage));
         }
-
     };
 
     return (
@@ -235,7 +227,7 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
             )}
             <Box
                 px={1}
-                sx={{ overflowY: "auto", overflowX: "hidden", height:"100%", paddingTop: "20px" }}
+                sx={{ overflowY: "auto", overflowX: "hidden", height: "100%", paddingTop: "20px" }}
                 ref={scrollableConversation}
                 onWheel={onWheel}
                 onScroll={onScroll}

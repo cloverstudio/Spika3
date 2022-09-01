@@ -7,6 +7,8 @@ import messageApi from "../api/message";
 import MessageType from "../../../types/Message";
 import { dynamicBaseQuery } from "../../../api/api";
 
+import * as utils from "../../../../../../lib/utils";
+
 interface RoomState {
     list: (RoomType & { lastMessage: MessageType })[];
     count: number;

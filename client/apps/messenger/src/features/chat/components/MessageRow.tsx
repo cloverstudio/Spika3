@@ -57,7 +57,7 @@ export default function MessageRow({
     showMessageDetails,
     onDelete,
     onEdit,
-    isDeleted
+    isDeleted,
 }: MessageRowProps): React.ReactElement {
     const { data: messageRecordsData } = useGetMessageRecordsByIdQuery(id);
     const messageReactions =
@@ -74,15 +74,16 @@ export default function MessageRow({
     const isLastMessage = fromUserId !== nextMessageSenderId;
 
     let contextMenuIcons = IconConfigs.showInfo;
-    
-    if(isDeleted){
+
+    if (isDeleted) {
         contextMenuIcons = IconConfigs.showInfo;
-    }else if(isUsersMessage && type === "text"){
-        contextMenuIcons = IconConfigs.showEmociton |
-        IconConfigs.showInfo |
-        IconConfigs.showEdit |
-        IconConfigs.showDelete;
-    } else if(isUsersMessage){
+    } else if (isUsersMessage && type === "text") {
+        contextMenuIcons =
+            IconConfigs.showEmociton |
+            IconConfigs.showInfo |
+            IconConfigs.showEdit |
+            IconConfigs.showDelete;
+    } else if (isUsersMessage) {
         contextMenuIcons = IconConfigs.showEmociton | IconConfigs.showInfo | IconConfigs.showDelete;
     } else {
         contextMenuIcons = IconConfigs.showEmociton | IconConfigs.showInfo;

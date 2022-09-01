@@ -17,6 +17,7 @@ import ChatInput from "./components/ChatInput";
 import RoomHeader from "./components/RoomHeader";
 import RoomMessages from "./components/RoomMessages";
 import ConfCall from "../confcall/index";
+import TitleUpdater from "./components/TitleUpdater";
 
 export default function Chat(): React.ReactElement {
     const roomId = parseInt(useParams().id || "");
@@ -69,6 +70,7 @@ export default function Chat(): React.ReactElement {
             <RoomMessages roomId={roomId} />
             <ChatInput />
             {isCall && <ConfCall />}
+            <TitleUpdater {...formatRoomInfo(room, user.id)} roomId={roomId} />
         </Box>
     );
 }

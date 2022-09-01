@@ -55,3 +55,8 @@ export function getDeviceId(): string {
 
     return window.localStorage.getItem(constants.LSKEY_DEVICEID);
 }
+
+export function updateBrowserTitle(roomName: string, unreadMessage: number): void {
+    if (unreadMessage === 0) window.document.title = `${constants.TITLE_PREFIX}/${roomName}`;
+    else window.document.title = `(${unreadMessage}) ${constants.TITLE_PREFIX}/${roomName}`;
+}

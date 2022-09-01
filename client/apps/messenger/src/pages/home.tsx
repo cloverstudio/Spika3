@@ -13,14 +13,23 @@ import { selectLeftSidebarOpen, setLeftSidebar } from "../features/chat/slice/si
 
 import { selectRightSidebarOpen } from "../features/chat/slice/rightSidebarSlice";
 
-export default function Home(): React.ReactElement {
+import { selectUserId, fetchMe } from "../../src/store/userSlice";
 
+export default function Home(): React.ReactElement {
     const theme = useTheme();
 
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
     const dispatch = useDispatch();
     const open = useSelector(selectLeftSidebarOpen);
     const rightSidebarOpen = useSelector(selectRightSidebarOpen);
+
+    const loggedInUserId = useSelector(selectUserId);
+
+    useEffect(() => {
+        if (!loggedInUserId) {
+            dispatch(fetchMe());
+        }
+    });
 
     useEffect(() => {
         if (isMobile) {
@@ -55,7 +64,6 @@ export default function Home(): React.ReactElement {
                     <LeftSidebar />
                 )}
                 <Outlet />
-                 
 
                 {rightSidebarOpen ? <RightSidebar /> : null}
             </Box>
@@ -64,4 +72,3 @@ export default function Home(): React.ReactElement {
         </Base>
     );
 }
-

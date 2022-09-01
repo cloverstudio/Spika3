@@ -23,6 +23,7 @@ const VALID_SSE_EVENT_TYPES = [
 import { notify as notifyCallEvent } from "../features/confcall/lib/callEventListener";
 import { fetchContact } from "../features/chat/slice/contactsSlice";
 import { RoomType } from "../types/Rooms";
+import newMessageSound from "../../../../assets/newmessage.mp3";
 
 export default async function handleSSE(event: MessageEvent): Promise<void> {
     const data = event.data ? JSON.parse(event.data) : {};
@@ -46,13 +47,19 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                 console.log("Invalid NEW_MESSAGE payload");
                 return;
             }
+
+            if (message.fromUserId !== store.getState().user.id) new Audio(newMessageSound).play();
+
             await dynamicBaseQuery({
                 url: "/messenger/messages/delivered",
                 method: "POST",
                 data: { messagesIds: [message.id] },
             });
+
             store.dispatch(addMessage(message));
-            store.dispatch(fetchHistory({ page: 1, keyword: "" }));
+
+            if (store.getState().chat.activeRoomId !== message.roomId)
+                store.dispatch(fetchHistory({ page: 1, keyword: "" }));
 
             return;
         }

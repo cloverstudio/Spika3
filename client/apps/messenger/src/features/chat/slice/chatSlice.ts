@@ -59,7 +59,7 @@ export const editMessageThunk = createAsyncThunk(
 interface ChatState {
     activeRoomId: number | null;
     messages: MessageType[];
-    messagesByRoom: Record<number,MessageType[]>;
+    messagesByRoom: Record<number, MessageType[]>;
     messageRecords: MessageRecordType[];
     count: { roomId: number; count: number }[];
     loading: "idle" | "pending" | "succeeded" | "failed";
@@ -103,11 +103,10 @@ export const chatSlice = createSlice({
             if (state.messages.findIndex((m) => m.id === payload.id) === -1) {
                 state.messages = [...state.messages, payload];
 
-                if(payload){
+                if (payload) {
                     const roomId = payload.roomId;
                     state.messagesByRoom[roomId].push(payload);
                 }
-                
             }
         },
         addMessageRecord: (state, { payload }: { payload: MessageRecordType }) => {
@@ -157,12 +156,13 @@ export const chatSlice = createSlice({
             }
 
             const roomId = payload.roomId;
-            const messageRoomIndex = state.messagesByRoom[roomId].findIndex((m) => m.id === payload.id);
+            const messageRoomIndex = state.messagesByRoom[roomId].findIndex(
+                (m) => m.id === payload.id
+            );
 
             if (messageRoomIndex > -1) {
                 state.messagesByRoom[roomId].splice(messageRoomIndex, 1, payload);
             }
-            
         },
 
         editMessage: (state, { payload }: { payload: MessageType }) => {
@@ -173,13 +173,13 @@ export const chatSlice = createSlice({
             }
 
             const roomId = payload.roomId;
-            const messageRoomIndex = state.messagesByRoom[roomId].findIndex((m) => m.id === payload.id);
+            const messageRoomIndex = state.messagesByRoom[roomId].findIndex(
+                (m) => m.id === payload.id
+            );
 
             if (messageRoomIndex > -1) {
                 state.messagesByRoom[roomId].splice(messageRoomIndex, 1, payload);
             }
-
-
         },
         setInputType: (state, { payload }: { payload: "text" | "emoji" | "files" }) => {
             state.inputType = payload;
@@ -195,7 +195,7 @@ export const chatSlice = createSlice({
             const notAdded = payload.list.filter(
                 (m: { id: number }) => !messagesIds.includes(m.id)
             );
-                
+
             if (
                 state.activeRoomId &&
                 state.count.findIndex((c) => c.roomId === state.activeRoomId) < 0
@@ -206,10 +206,9 @@ export const chatSlice = createSlice({
                 });
             }
             state.messages = [...state.messages, ...notAdded];
-            
-            if(!state.messagesByRoom[state.activeRoomId])
-                state.messagesByRoom[state.activeRoomId] = []
-            
+
+            if (!state.messagesByRoom[state.activeRoomId])
+                state.messagesByRoom[state.activeRoomId] = [];
 
             state.messagesByRoom[state.activeRoomId].push(...notAdded);
 
@@ -263,11 +262,9 @@ export const selectEditMessage = (state: RootState): MessageType | null => state
 export const selectRoomMessages =
     (roomId: number) =>
     (state: RootState): MessageType[] => {
-
         const messages = state.chat.messages.filter((m) => m.roomId === roomId);
-  
-        if(!state.chat.messagesByRoom[roomId])
-            return [];
+
+        if (!state.chat.messagesByRoom[roomId]) return [];
 
         return state.chat.messagesByRoom[roomId];
     };
@@ -276,7 +273,7 @@ export const selectRoomMessagesCount =
     (state: RootState): number => {
         //const count = state.chat.messages.filter((m) => m.roomId === roomId).length;
         const countRow = state.chat.count.find((c) => c.roomId === roomId);
-        return countRow?.count
+        return countRow?.count;
     };
 
 export const selectLoading = (state: RootState): "idle" | "pending" | "succeeded" | "failed" => {

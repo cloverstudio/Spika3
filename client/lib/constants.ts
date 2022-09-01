@@ -1,5 +1,6 @@
 export const APP_VERSION = "1.0.0";
 export const DEVICE_TYPE = "browser";
+export const TITLE_PREFIX = "Spika";
 
 export const LSKEY_USERNAME = "username";
 export const LSKEY_PEERID = "peerid";
