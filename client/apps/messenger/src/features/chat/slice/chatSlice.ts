@@ -105,6 +105,7 @@ export const chatSlice = createSlice({
 
                 if (payload) {
                     const roomId = payload.roomId;
+                    state.messagesByRoom[roomId] ??= [];
                     state.messagesByRoom[roomId].push(payload);
                 }
             }

@@ -5,6 +5,8 @@ import {
     deleteMessage,
     editMessage,
 } from "../features/chat/slice/chatSlice";
+
+import { updateLastMessage } from "../features/chat/slice/roomSlice";
 import { fetchHistory } from "../features/chat/slice/roomSlice";
 import { store } from "../store/store";
 
@@ -48,8 +50,6 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                 return;
             }
 
-            if (message.fromUserId !== store.getState().user.id) new Audio(newMessageSound).play();
-
             await dynamicBaseQuery({
                 url: "/messenger/messages/delivered",
                 method: "POST",
@@ -58,8 +58,26 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
 
             store.dispatch(addMessage(message));
 
-            if (store.getState().chat.activeRoomId !== message.roomId)
+            if (document.hidden || store.getState().chat.activeRoomId !== message.roomId) {
                 store.dispatch(fetchHistory({ page: 1, keyword: "" }));
+            } else {
+                store.dispatch(updateLastMessage(message));
+                await dynamicBaseQuery({
+                    url: `/messenger/messages/${message.roomId}/seen`,
+                    method: "POST",
+                });
+            }
+
+            // play sound logic
+            if (
+                !document.hidden &&
+                store.getState().chat.activeRoomId !== message.roomId &&
+                message.fromUserId !== store.getState().user.id
+            ) {
+                new Audio(newMessageSound).play();
+            } else if (document.hidden) {
+                new Audio(newMessageSound).play();
+            }
 
             return;
         }

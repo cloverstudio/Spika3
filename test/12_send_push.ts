@@ -28,18 +28,13 @@ describe("Send Push Worker", () => {
                         text: "testing",
                     },
                 },
+                user: {
+                    displayName: "test",
+                },
             },
         });
 
         expect(sendFcmMessage.default).to.have.been.called.once;
-        expect(sendFcmMessage.default).to.have.been.called.with({
-            message: {
-                token: "dummy_token",
-                data: {
-                    message: JSON.stringify({ body: { text: "testing" } }),
-                },
-            },
-        });
     });
 
     it("Doesn't send push if type is not implemented", async () => {

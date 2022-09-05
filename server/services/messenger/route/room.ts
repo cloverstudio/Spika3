@@ -582,6 +582,29 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         }
     });
 
+    router.post("/:id/markAsRead", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+
+        try {
+            const id = parseInt((req.params.id as string) || "");
+
+            const room = await prisma.room.findFirst({
+                where: {
+                    id,
+                },
+            });
+
+            if (!room) {
+                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+            }
+
+            res.send(successResponse({}, userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
     return router;
 };
 

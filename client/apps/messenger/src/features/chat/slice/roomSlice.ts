@@ -48,6 +48,17 @@ export const roomSlice = createSlice({
 
             state.list = [...list];
         },
+        updateLastMessage(state, { payload: message }: { payload: MessageType }) {
+            const list = state.list.map((room) => {
+                if (message.roomId === room.id) {
+                    room.lastMessage = message;
+                }
+
+                return room;
+            });
+
+            state.list = [...list];
+        },
     },
     extraReducers: (builder) => {
         builder.addCase(fetchHistory.fulfilled, (state, { payload }: any) => {
@@ -114,6 +125,6 @@ export const selectHistoryLoading =
     (state: RootState): "idle" | "pending" | "succeeded" | "failed" =>
         state.room.loading;
 
-export const { refreshOne } = roomSlice.actions;
+export const { refreshOne, updateLastMessage } = roomSlice.actions;
 
 export default roomSlice.reducer;
