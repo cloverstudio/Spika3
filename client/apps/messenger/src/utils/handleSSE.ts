@@ -83,6 +83,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
         }
 
         case "NEW_MESSAGE_RECORD": {
+            console.log("new message record");
             const messageRecord = data.messageRecord;
             if (!messageRecord) {
                 console.log("Invalid NEW_MESSAGE_RECORD payload");

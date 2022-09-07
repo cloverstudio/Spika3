@@ -177,7 +177,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 },
             });
 
-            sseMessageRecordsNotify(messageRecords, Constants.PUSH_TYPE_NEW_MESSAGE_RECORD);
+            //sseMessageRecordsNotify(messageRecords, Constants.PUSH_TYPE_NEW_MESSAGE_RECORD);
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -283,10 +283,12 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                             },
                         });
 
+                        /*
                         sseMessageRecordsNotify(
                             [sanitize(record).messageRecord()],
                             Constants.PUSH_TYPE_NEW_MESSAGE_RECORD
                         );
+                        */
                     } catch (error) {
                         console.error({ error });
                     }
@@ -409,7 +411,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     }
                 }
 
-                sseMessageRecordsNotify(messageRecords, Constants.PUSH_TYPE_NEW_MESSAGE_RECORD);
+                //sseMessageRecordsNotify(messageRecords, Constants.PUSH_TYPE_NEW_MESSAGE_RECORD);
 
                 res.send(successResponse({ messageRecords }, userReq.lang));
             } catch (e: any) {
@@ -550,7 +552,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 }
             }
 
-            sseMessageRecordsNotify(messageRecords, Constants.PUSH_TYPE_NEW_MESSAGE_RECORD);
+            //sseMessageRecordsNotify(messageRecords, Constants.PUSH_TYPE_NEW_MESSAGE_RECORD);
 
             res.send(successResponse({ messageRecords }, userReq.lang));
         } catch (e: any) {
