@@ -85,6 +85,7 @@ export default function sanitize(data: any): sanitizeTypes {
                 modifiedAt: +new Date(modifiedAt),
                 localId,
                 deleted,
+                messageRecords: data.messageRecords?.filter((m) => m.type === "reaction"),
             };
         },
         file: () => {

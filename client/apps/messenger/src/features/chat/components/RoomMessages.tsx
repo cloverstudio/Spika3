@@ -23,6 +23,7 @@ type RoomMessagesProps = {
 };
 import { selectUser } from "../../../store/userSlice";
 import { useGetRoomQuery } from "../api/room";
+import MessageType from "../../../types/Message";
 
 export default function RoomMessages({ roomId }: RoomMessagesProps): React.ReactElement {
     const user = useSelector(selectUser);
@@ -54,8 +55,7 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
         dispatch(fetchMessagesByRoomId({ roomId, page }));
     }, [page, dispatch, roomId]);
 
-    //messages is readonly so here I have to create new instance
-    const messagesSorted = [...messages].sort((a, b) => {
+    const messagesSorted: MessageType[] = [...messages].sort((a, b) => {
         if (a && b) return a.createdAt > b.createdAt ? 1 : -1;
         else return 1;
     });
@@ -274,6 +274,7 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
                         user={user}
                         data={data}
                         isDeleted={m.deleted}
+                        messageRecordsData={m.messageRecords}
                     />
                 ))}
             </Box>

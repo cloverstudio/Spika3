@@ -7,7 +7,6 @@ import { useParams } from "react-router-dom";
 
 import MessageBody from "./MessageBody";
 import MessageReactions from "./MessageReactions";
-import { useGetMessageRecordsByIdQuery } from "../api/message";
 import getMessageStatus from "../lib/getMessageStatus";
 import ReactionOptionsPopover from "./ReactionOptionsPopover";
 import DatePopover from "./DatePopover";
@@ -15,6 +14,7 @@ import MessageContectMenu, { IconConfigs } from "./MessageContectMenu";
 import { OnlinePredictionTwoTone } from "@mui/icons-material";
 import User from "../../../types/User";
 import RoomType from "../../../../../management/src/types/Room";
+import { MessageRecordType } from "../../../types/Message";
 
 type MessageRowProps = {
     id: number;
@@ -35,6 +35,7 @@ type MessageRowProps = {
     onDelete: (id: number) => void;
     onEdit: (id: number) => void;
     isDeleted: boolean;
+    messageRecordsData: MessageRecordType[];
 };
 
 declare const UPLOADS_BASE_URL: string;
@@ -58,10 +59,9 @@ export default function MessageRow({
     onDelete,
     onEdit,
     isDeleted,
+    messageRecordsData,
 }: MessageRowProps): React.ReactElement {
-    const { data: messageRecordsData } = useGetMessageRecordsByIdQuery(id);
-    const messageReactions =
-        messageRecordsData?.messageRecords.filter((mr) => mr.type === "reaction") || [];
+    const messageReactions = messageRecordsData?.filter((mr) => mr.type === "reaction") || [];
 
     const users = data?.room?.users;
     const roomType = data?.room?.type;
