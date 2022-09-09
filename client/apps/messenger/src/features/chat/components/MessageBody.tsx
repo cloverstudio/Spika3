@@ -302,7 +302,7 @@ function TextMessage({
                 padding: "0.4rem",
                 cursor: "pointer",
                 color: "common.darkBlue",
-                lineHeight: "1.0rem",
+                lineHeight: "1.2rem",
                 whiteSpace: "pre-wrap",
                 margin: "0px",
                 fontSize: "0.95rem",
