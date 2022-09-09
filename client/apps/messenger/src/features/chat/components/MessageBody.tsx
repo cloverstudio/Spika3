@@ -291,20 +291,21 @@ function TextMessage({
 
     return (
         <Box
-            component={"pre"}
+            component={"div"}
             sx={{
                 minWidth: "50px",
                 maxWidth: "50rem",
                 backgroundColor: isUsersMessage
                     ? "common.myMessageBackground"
                     : "common.chatBackground",
-                borderRadius: "1rem",
-                padding: "0.75rem",
+                borderRadius: "0.3rem",
+                padding: "0.4rem",
                 cursor: "pointer",
                 color: "common.darkBlue",
-                lineHeight: "1.5rem",
+                lineHeight: "1.0rem",
                 whiteSpace: "pre-wrap",
                 margin: "0px",
+                fontSize: "0.95rem",
             }}
             dangerouslySetInnerHTML={{ __html: filterText(body.text) }}
             onClick={onClick}

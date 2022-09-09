@@ -8,7 +8,7 @@ const spikaGrey = "#a0a0a0";
 
 let theme = createTheme({
     typography: {
-        fontFamily: `"Montserrat" , sans-serif`,
+        fontFamily: `"Roboto" , sans-serif`,
         fontSize: 14,
         fontWeightLight: 300,
         fontWeightRegular: 400,

@@ -21,12 +21,13 @@ declare const UPLOADS_BASE_URL: string;
 export default function SidebarChatList(): React.ReactElement {
     const dispatch = useDispatch();
 
-    const { list, count } = useSelector(selectHistory);
-    const loading = useSelector(selectHistoryLoading());
+    const { list, count } = useSelector(selectHistory, (bfr, aft) => false);
+    const loading = useSelector(selectHistoryLoading(), (bfr, aft) => true);
+    const activeRoomId = useSelector(selectActiveRoomId, (bfr, aft) => false);
+    const user = useSelector(selectUser, (bfr, aft) => true);
+
     const [page, setPage] = useState(1);
     const { isInViewPort, elementRef } = useIsInViewport();
-    const activeRoomId = useSelector(selectActiveRoomId);
-    const user = useSelector(selectUser);
     const onChatClick = () => dispatch(setLeftSidebar(false));
     const isFetching = loading !== "idle";
     const [keyword, setKeyword] = useState<string>("");

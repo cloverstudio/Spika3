@@ -265,11 +265,11 @@ const useStyles = makeStyles(() => ({
         border: "none",
         padding: "10px",
         display: "block",
-        width:"100%",
-        outline:"none",
-        fontSize:"1.1em",
+        width: "100%",
+        outline: "none",
+        fontSize: "0.9em",
     },
-  }));
+}));
 
 function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
     const style = useStyles();
