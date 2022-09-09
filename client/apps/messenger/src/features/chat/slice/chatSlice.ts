@@ -116,7 +116,8 @@ export const chatSlice = createSlice({
                 (mr) =>
                     mr.messageId === payload.messageId &&
                     mr.userId === payload.userId &&
-                    mr.type === payload.type
+                    mr.type === payload.type &&
+                    mr.type !== "reaction"
             );
 
             if (messageRecordHandled) {
@@ -130,7 +131,7 @@ export const chatSlice = createSlice({
                 return;
             }
 
-            const updatedMessage = { ...state.messages[messageIndex] };
+            const updatedMessage: MessageType = { ...state.messages[messageIndex] };
 
             switch (payload.type) {
                 case "seen": {
@@ -141,6 +142,16 @@ export const chatSlice = createSlice({
                     updatedMessage.deliveredCount += 1;
                     break;
                 }
+                case "reaction": {
+                    updatedMessage.messageRecords ??= [];
+                    const existedIndex = updatedMessage.messageRecords.findIndex(
+                        (m) => m.type === "reaction" && m.userId === payload.userId
+                    );
+                    if (existedIndex === -1) {
+                        updatedMessage.messageRecords.push(payload);
+                    } else updatedMessage.messageRecords.splice(existedIndex, 1, payload);
+                    break;
+                }
                 default: {
                     console.log(`Add message record type {${payload.type}) not implemented!`);
                     break;
@@ -148,6 +159,17 @@ export const chatSlice = createSlice({
             }
 
             state.messages.splice(messageIndex, 1, updatedMessage);
+
+            const roomId = updatedMessage.roomId;
+            const messageRoomIndex = state.messagesByRoom[roomId].findIndex(
+                (m) => m.id === updatedMessage.id
+            );
+
+            console.log("messageRoomIndex", messageRoomIndex);
+            console.log("updatedMessage", updatedMessage);
+            if (messageRoomIndex > -1) {
+                state.messagesByRoom[roomId].splice(messageRoomIndex, 1, updatedMessage);
+            }
         },
         deleteMessage: (state, { payload }: { payload: MessageType }) => {
             const messageIndex = state.messages.findIndex((m) => m.id === payload.id);

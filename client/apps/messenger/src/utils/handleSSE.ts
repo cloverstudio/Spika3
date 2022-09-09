@@ -90,15 +90,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                 return;
             }
 
-            if (messageRecord.type === "reaction") {
-                store.dispatch(
-                    api.util.invalidateTags([
-                        { type: "MessageRecords", id: messageRecord.messageId },
-                    ])
-                );
-            } else {
-                store.dispatch(addMessageRecord(messageRecord));
-            }
+            store.dispatch(addMessageRecord(messageRecord));
 
             return;
         }
