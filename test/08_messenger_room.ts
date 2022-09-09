@@ -246,7 +246,7 @@ describe("API", () => {
             expect(roomFromRes.name).to.eqls("");
         });
 
-        it("sets name to 'United room' when more than two users", async () => {
+        it("sets name to 'Untitled room' when more than two users", async () => {
             const users = await createManyFakeUsers(2);
 
             const response = await supertest(app)
@@ -264,7 +264,7 @@ describe("API", () => {
             expect(response.body.data).to.has.property("room");
 
             const roomFromRes = response.body.data.room;
-            expect(roomFromRes.name).to.eqls("United room");
+            expect(roomFromRes.name).to.eqls("Untitled room");
         });
 
         it("adds user as admin", async () => {

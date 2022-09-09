@@ -621,7 +621,7 @@ function getRoomName(initialName: string, usersCount: number) {
             return "";
         }
         default: {
-            return "United room";
+            return "Untitled room";
         }
     }
 }

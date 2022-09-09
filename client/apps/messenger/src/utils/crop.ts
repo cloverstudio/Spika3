@@ -32,7 +32,7 @@ export function crop(url: string, aspectRatio: number, resizeWidth: number, resi
             const secondContext = resizedImage.getContext("2d");
             secondContext.drawImage(croppedImage, 0, 0, resizeWidth, resizeHeight);
 
-            croppedImage.toBlob(function (blob) {
+            resizedImage.toBlob(function (blob) {
                 resolve(blob);
             });
         };

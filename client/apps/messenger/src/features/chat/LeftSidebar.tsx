@@ -14,6 +14,10 @@ import SidebarNavigationHeader from "./components/SidebarNavigationHeader";
 
 import uploadImage from "../../assets/upload-image.svg";
 import uploadFile from "../../utils/uploadFile";
+
+import { crop } from "../../utils/crop";
+import * as Constants from "../../../../../lib/constants";
+
 declare const UPLOADS_BASE_URL: string;
 
 export default function LeftSidebar(): React.ReactElement {
@@ -61,11 +65,21 @@ function LeftSidebarNewGroup({
     const [createRoom] = useCreateRoomMutation();
     const navigate = useNavigate();
 
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const uploadedFile = e.target.files && e.target.files[0];
+        const objectUrl = URL.createObjectURL(uploadedFile);
 
-        setFile(uploadedFile);
+        const croppedImage = await crop(
+            objectUrl,
+            1,
+            Constants.LSKEY_CROPSIZE,
+            Constants.LSKEY_CROPSIZE
+        );
+        const file = new File([croppedImage], "image.png");
+
+        setFile(file);
     };
+
     const handleUserClick = (user: User): void => {
         const selectedUsersIds = selectedUsers.map((u) => u.id);
         const userIsSelected = selectedUsersIds.includes(user.id);
