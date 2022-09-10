@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { ReactElement, useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Box } from "@mui/material";
 import * as utils from "../../../../../../lib/utils";
@@ -24,6 +24,14 @@ type RoomMessagesProps = {
 import { selectUser } from "../../../store/userSlice";
 import { useGetRoomQuery } from "../api/room";
 import MessageType from "../../../types/Message";
+import dayjs from "dayjs";
+
+const compareDate = (timestamp1: number, timestamp2: number): boolean => {
+    return (
+        dayjs.unix(timestamp1 / 1000).format("YYYYMMDD") !==
+        dayjs.unix(timestamp2 / 1000).format("YYYYMMDD")
+    );
+};
 
 export default function RoomMessages({ roomId }: RoomMessagesProps): React.ReactElement {
     const user = useSelector(selectUser);
@@ -252,31 +260,55 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
                     <i className="fa fa-cloud-upload"></i>
                     <p> Drop files now </p>
                 </Box>
-                {messagesSorted.map((m, i) => (
-                    <MessageRow
-                        key={m.id}
-                        {...m}
-                        nextMessageSenderId={messagesSorted[i + 1]?.fromUserId}
-                        previousMessageSenderId={messagesSorted[i - 1]?.fromUserId}
-                        clickedAnchor={handleClick}
-                        showMessageDetails={(id) => {
-                            setMessageId(id);
-                            showModalMessageDetails();
-                        }}
-                        onDelete={(id) => {
-                            setMessageId(id);
-                            setShowDeleteModal(true);
-                        }}
-                        onEdit={(id) => {
-                            setMessageId(id);
-                            handleOnEdit(id);
-                        }}
-                        user={user}
-                        data={data}
-                        isDeleted={m.deleted}
-                        messageRecordsData={m.messageRecords}
-                    />
-                ))}
+                {messagesSorted.map((m, i) => {
+                    const previousMessage = i > 0 ? messagesSorted[i - 1] : null;
+
+                    const additionalRows: ReactElement[] = [];
+
+                    if (previousMessage && compareDate(previousMessage.createdAt, m.createdAt)) {
+                        additionalRows.push(
+                            <div
+                                style={{
+                                    paddingTop: "10px",
+                                    margin: "20px 0px 20px 0px",
+                                    textAlign: "center",
+                                    //borderTop: "1px solid #aaa",
+                                }}
+                            >
+                                {dayjs.unix(m.createdAt / 1000).format("dddd, MMM D")}
+                            </div>
+                        );
+                    }
+
+                    return (
+                        <>
+                            {additionalRows.map((r) => r)}
+                            <MessageRow
+                                key={m.id}
+                                {...m}
+                                nextMessageSenderId={messagesSorted[i + 1]?.fromUserId}
+                                previousMessageSenderId={messagesSorted[i - 1]?.fromUserId}
+                                clickedAnchor={handleClick}
+                                showMessageDetails={(id) => {
+                                    setMessageId(id);
+                                    showModalMessageDetails();
+                                }}
+                                onDelete={(id) => {
+                                    setMessageId(id);
+                                    setShowDeleteModal(true);
+                                }}
+                                onEdit={(id) => {
+                                    setMessageId(id);
+                                    handleOnEdit(id);
+                                }}
+                                user={user}
+                                data={data}
+                                isDeleted={m.deleted}
+                                messageRecordsData={m.messageRecords}
+                            />
+                        </>
+                    );
+                })}
             </Box>
             {openMessageDetails && (
                 <MessageDetailDialog
