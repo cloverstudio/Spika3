@@ -1,50 +1,59 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-import {
-    Box,
-    CircularProgress,
-    IconButton,
-    Input,
-    LinearProgress,
-    Paper,
-    Stack,
-    Typography,
-} from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
+import React, { useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Box, Button, CircularProgress, Input, LinearProgress, Stack } from "@mui/material";
+import { makeStyles } from "@mui/styles";
+
 import KeyboardVoiceIcon from "@mui/icons-material/KeyboardVoice";
-import CloseIcon from "@mui/icons-material/Close";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
-import { useSendMessageMutation } from "../api/message";
 import { useParams } from "react-router-dom";
 import AttachmentManager from "../lib/AttachmentManager";
 import uploadFile from "../../../utils/uploadFile";
-import ImageIcon from "@mui/icons-material/Image";
-import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import SendIcon from "@mui/icons-material/Send";
-import getFileIcon from "../lib/getFileIcon";
 import { useShowBasicDialog } from "../../../hooks/useModal";
-import { dynamicBaseQuery } from "../../../api/api";
-import { addMessage } from "../slice/chatSlice";
-import { fetchHistory } from "../slice/roomSlice";
+import {
+    sendMessage,
+    selectEditMessage,
+    selectMessageText,
+    setEditMessage,
+    setMessageText,
+    selectInputType,
+    setInputType,
+    editMessageThunk,
+    addEmoji,
+    selectSendingMessage,
+    selectInputTypeIsFiles,
+} from "../slice/chatSlice";
+import getFileType from "../lib/getFileType";
+import AddAttachment from "./AddAttachment";
+import generateThumbFile from "../lib/generateThumbFile";
+import Attachments from "./Attachments";
+import EmojiPicker from "./emojiPicker";
 
-export default function ChatInput(): React.ReactElement {
+export default function ChatInputContainer(): React.ReactElement {
     const dispatch = useDispatch();
-    const roomId = +useParams().id;
-    const [sendMessage] = useSendMessageMutation();
-    const [message, setMessage] = useState("");
+    const roomId = parseInt(useParams().id || "");
+    const inputTypeIsFiles = useSelector(selectInputTypeIsFiles);
     const [loading, setLoading] = useState(false);
+
     const [filesSent, setFilesSent] = useState(0);
     const [files, setFiles] = useState(AttachmentManager.getFiles(roomId) || []);
     const [failedToUploadFiles, setFailedToUploadFiles] = useState<File[]>([]);
-    const showBasicDialog = useShowBasicDialog();
 
-    const messageType = files.length > 0 ? "files" : "text";
+    const showBasicDialog = useShowBasicDialog();
+    const canvasRef = useRef<HTMLCanvasElement>();
+
+    useEffect(() => {
+        if (files.length > 0) {
+            dispatch(setInputType("files"));
+        } else {
+            dispatch(setInputType("text"));
+        }
+    }, [files.length]);
 
     const handleSend = async () => {
         const failed: File[] = [];
-        let response;
 
-        if (messageType !== "text") {
+        if (inputTypeIsFiles) {
             setLoading(true);
             for (const file of files) {
                 try {
@@ -52,23 +61,45 @@ export default function ChatInput(): React.ReactElement {
                         file,
                         type: file.type || "unknown",
                     });
+                    let thumbFileUploaded:
+                        | {
+                              path: string;
+                              id: number;
+                          }
+                        | undefined;
 
                     const fileType = getFileType(file.type);
-                    response = await sendMessage({
-                        roomId,
-                        type: fileType,
-                        body: { fileId: uploaded.id, thumbId: uploaded.id },
-                    }).unwrap();
-                    setFilesSent((filesSent) => filesSent + 1);
 
-                    if (response && response.message) {
-                        dispatch(addMessage(response.message));
-                        dispatch(fetchHistory(1));
+                    if (fileType === "image" && canvasRef.current) {
+                        const thumbFile = await generateThumbFile(file, canvasRef.current);
+                        if (thumbFile) {
+                            thumbFileUploaded = await uploadFile({
+                                file: thumbFile,
+                                type: thumbFile.type || "unknown",
+                            });
+                        }
                     }
+
+                    const sent = await dispatch(
+                        sendMessage({
+                            roomId,
+                            type: fileType,
+                            body: {
+                                fileId: uploaded.id,
+                                thumbId: thumbFileUploaded ? thumbFileUploaded.id : uploaded.id,
+                            },
+                        })
+                    );
+
+                    if ((sent as { error?: any })?.error) {
+                        throw Error("Send message error");
+                    }
+
+                    setFilesSent((filesSent) => filesSent + 1);
                 } catch (error) {
                     showBasicDialog({ text: "Some files are not sent!", title: "Upload error" });
                     failed.push(file);
-                    console.log({ failed: file, error });
+                    console.error({ failed: file, error });
                 }
             }
 
@@ -76,18 +107,14 @@ export default function ChatInput(): React.ReactElement {
             setFailedToUploadFiles(failed);
             setLoading(false);
             setFilesSent(0);
-        } else if (message.length) {
-            response = await sendMessage({
-                roomId,
-                type: "text",
-                body: { text: message },
-            }).unwrap();
-
-            setMessage("");
-            if (response && response.message) {
-                dispatch(addMessage(response.message));
-                dispatch(fetchHistory(1));
-            }
+        } else {
+            dispatch(
+                sendMessage({
+                    roomId,
+                    type: "text",
+                    body: {},
+                })
+            );
         }
     };
 
@@ -97,8 +124,13 @@ export default function ChatInput(): React.ReactElement {
         return () => AttachmentManager.removeEventListener(roomId);
     }, [roomId]);
 
+    const handleSetMessageText = (message: string) => {
+        dispatch(setMessageText(message));
+    };
+
     return (
-        <Box borderTop="0.5px solid #C9C9CA" px={2} py={1}>
+        <Box borderTop="1px solid #C9C9CA" px={2} py={1}>
+            <canvas ref={canvasRef} style={{ display: "none" }} />
             {loading && (
                 <LinearProgress
                     sx={{ mb: 1 }}
@@ -110,258 +142,169 @@ export default function ChatInput(): React.ReactElement {
                 <Stack spacing={2} direction="row" alignItems="center" width="100%">
                     <AddAttachment />
 
-                    {messageType === "text" ? (
-                        <>
-                            <Box width="100%" position="relative">
-                                <Input
-                                    disableUnderline={true}
-                                    fullWidth
-                                    value={message}
-                                    disabled={loading}
-                                    onChange={({ target }) => setMessage(target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter") {
-                                            handleSend();
-                                        }
-                                    }}
-                                    placeholder="Type here..."
-                                    sx={{
-                                        backgroundColor: "#fff",
-                                        border: "1px solid #C9C9CA",
-                                        input: {
-                                            py: 2,
-                                            px: 1.5,
-                                        },
-                                    }}
-                                />
-                                <EmojiEmotionsIcon
-                                    fontSize="large"
-                                    color="primary"
-                                    sx={{ position: "absolute", top: "12px", right: "20px" }}
-                                />
-                            </Box>
-                            {message.length ? (
-                                <SendIcon
-                                    onClick={() => handleSend()}
-                                    fontSize="large"
-                                    color="primary"
-                                    sx={{ cursor: "pointer" }}
-                                />
-                            ) : (
-                                <KeyboardVoiceIcon fontSize="large" color="primary" />
-                            )}
-                        </>
-                    ) : (
-                        <>
-                            <Attachments
-                                files={files}
-                                failedToUploadFileNames={failedToUploadFiles.map((f) => f.name)}
-                            />
-
-                            {loading ? (
-                                <Box>
-                                    <CircularProgress sx={{ ml: 0 }} />
-                                </Box>
-                            ) : (
-                                <SendIcon
-                                    onClick={() => handleSend()}
-                                    fontSize="large"
-                                    color="primary"
-                                    sx={{ cursor: "pointer" }}
-                                />
-                            )}
-                        </>
-                    )}
+                    <ChatInput
+                        loading={loading}
+                        handleSetMessageText={handleSetMessageText}
+                        handleSend={handleSend}
+                        files={files}
+                        failedToUploadFiles={failedToUploadFiles}
+                    />
                 </Stack>
             </Box>
         </Box>
     );
 }
 
-function AddAttachment() {
-    const roomId = +useParams().id;
-    const [attachmentMenuOpen, setAttachmentMenuOpen] = useState(false);
-    const uploadFilesRef = React.useRef(null);
-    const uploadImagesRef = React.useRef(null);
+type ChatInputProps = {
+    loading: boolean;
+    handleSetMessageText: (string) => void;
+    handleSend: () => void;
+    files: File[];
+    failedToUploadFiles: File[];
+};
 
-    const handleFilesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const uploadedFiles = e.target.files;
-        AttachmentManager.addFiles({ roomId, files: Array.from(uploadedFiles) });
-        setAttachmentMenuOpen(false);
+function ChatInput({
+    loading,
+    handleSetMessageText,
+    handleSend,
+    files,
+    failedToUploadFiles,
+}: ChatInputProps) {
+    const dispatch = useDispatch();
+    const editMessage = useSelector(selectEditMessage);
+    const inputType = useSelector(selectInputType);
+
+    const onSend = async () => {
+        if (!editMessage) {
+            return handleSend();
+        }
+
+        dispatch(editMessageThunk());
     };
 
-    if (!attachmentMenuOpen) {
+    const handleCloseEdit = () => {
+        dispatch(setEditMessage(null));
+        handleSetMessageText("");
+    };
+
+    if (inputType === "files") {
         return (
-            <Paper elevation={0} sx={{ p: 1, textAlign: "center", minWidth: "3.75rem" }}>
-                <AddIcon
-                    color="primary"
-                    fontSize="large"
-                    onClick={() => setAttachmentMenuOpen(true)}
-                    sx={{ cursor: "pointer" }}
+            <>
+                <Attachments
+                    files={files}
+                    failedToUploadFileNames={failedToUploadFiles.map((f) => f.name)}
                 />
-            </Paper>
+
+                {loading ? (
+                    <Box>
+                        <CircularProgress sx={{ ml: 0 }} />
+                    </Box>
+                ) : (
+                    <SendIcon
+                        onClick={() => handleSend()}
+                        fontSize="large"
+                        color="primary"
+                        sx={{ cursor: "pointer" }}
+                    />
+                )}
+            </>
         );
     }
 
     return (
-        <Box position="relative" minWidth="3.75rem" minHeight="53.7px">
-            <Paper
-                elevation={2}
-                sx={{
-                    p: 1,
-                    position: "absolute",
-                    bottom: "0",
-                    textAlign: "center",
-                    borderRadius: "0.625rem",
-                }}
-            >
-                <Stack mb={3}>
-                    <Box
-                        my={2}
-                        sx={{ cursor: "pointer" }}
-                        onClick={() => uploadFilesRef.current?.click()}
-                    >
-                        <InsertDriveFileIcon color="primary" fontSize="large" />
-                        <Typography fontWeight="medium" color="primary">
-                            Files
-                        </Typography>
-                        <input
-                            onChange={handleFilesUpload}
-                            type="file"
-                            style={{ display: "none" }}
-                            ref={uploadFilesRef}
-                            multiple
-                        />
-                    </Box>
-                    <Box
-                        sx={{ cursor: "pointer" }}
-                        onClick={() => uploadImagesRef.current?.click()}
-                    >
-                        <ImageIcon color="primary" fontSize="large" />
-                        <Typography fontWeight="medium" color="primary">
-                            Images
-                        </Typography>
-                        <input
-                            onChange={handleFilesUpload}
-                            type="file"
-                            style={{ display: "none" }}
-                            ref={uploadImagesRef}
-                            accept="image/*"
-                            multiple
-                        />
-                    </Box>
-                </Stack>
-                <CloseIcon
-                    color="primary"
-                    fontSize="large"
-                    onClick={() => setAttachmentMenuOpen(false)}
-                    sx={{ cursor: "pointer" }}
-                />
-            </Paper>
-        </Box>
+        <>
+            <Box width="100%" position="relative">
+                {inputType === "emoji" && (
+                    <EmojiPicker onSelect={(emoji) => dispatch(addEmoji(emoji))} />
+                )}
+                <Box width="100%" position="relative">
+                    <TextInput onSend={onSend} />
+                    <EmojiEmotionsIcon
+                        color="primary"
+                        onClick={() =>
+                            dispatch(setInputType(inputType === "emoji" ? "text" : "emoji"))
+                        }
+                        sx={{ position: "absolute", top: "11px", right: "20px", cursor: "pointer" }}
+                    />
+                </Box>
+            </Box>
+            {editMessage ? (
+                <Box display="flex">
+                    <Button onClick={handleCloseEdit} variant="outlined" sx={{ mr: 1 }}>
+                        Cancel
+                    </Button>
+                    <Button onClick={onSend} variant="contained">
+                        Save
+                    </Button>
+                </Box>
+            ) : (
+                <RightActionTextIcon />
+            )}
+        </>
     );
 }
 
-type AttachmentsProps = {
-    files: File[];
-    failedToUploadFileNames: string[];
-};
+function RightActionTextIcon(): React.ReactElement {
+    const message = useSelector(selectMessageText);
+    const dispatch = useDispatch();
+    const roomId = parseInt(useParams().id || "");
 
-function Attachments({ files, failedToUploadFileNames }: AttachmentsProps): React.ReactElement {
-    const roomId = +useParams().id;
+    const onSend = () => {
+        dispatch(sendMessage({ roomId, type: "text", body: {} }));
+    };
+
+    if (message.length) {
+        return <SendIcon onClick={() => onSend()} color="primary" sx={{ cursor: "pointer" }} />;
+    }
+
+    return <KeyboardVoiceIcon fontSize="large" color="primary" />;
+}
+
+const useStyles = makeStyles(() => ({
+    input: {
+        border: "none",
+        padding: "10px",
+        display: "block",
+        width: "100%",
+        outline: "none",
+        fontSize: "0.9em",
+    },
+}));
+
+function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
+    const style = useStyles();
+    const message = useSelector(selectMessageText);
+    const loading = useSelector(selectSendingMessage);
+    const inputRef = useRef<HTMLTextAreaElement>();
+    const dispatch = useDispatch();
+
+    const handleSetMessageText = (text: string) => dispatch(setMessageText(text));
+
+    useEffect(() => {
+        inputRef.current.focus();
+    });
 
     return (
-        <Box
-            width="100%"
-            display="flex"
-            gap={1}
-            ml="4.75rem"
-            mb={0.5}
-            pb={0.5}
-            sx={{ overflowX: "auto" }}
-        >
-            {files.length > 0 &&
-                files.map((file) => {
-                    const Icon = getFileIcon(file.type);
-                    const isFailed = failedToUploadFileNames.includes(file.name);
-                    return (
-                        <Box key={file.name} position="relative">
-                            <Box
-                                width="74px"
-                                height="74px"
-                                borderRadius="0.625rem"
-                                bgcolor="#F2F2F2"
-                                textAlign="center"
-                                display="flex"
-                                flexDirection="column"
-                                justifyContent="space-evenly"
-                                alignItems="center"
-                                sx={{
-                                    borderWidth: "2px",
-                                    borderColor: isFailed ? "red" : "transparent",
-                                    borderStyle: "solid",
-                                }}
-                            >
-                                {file.type?.startsWith("image") ? (
-                                    <Box
-                                        component="img"
-                                        width="72px"
-                                        height="72px"
-                                        borderRadius="0.625rem"
-                                        sx={{ objectFit: "cover" }}
-                                        src={URL.createObjectURL(file)}
-                                    />
-                                ) : (
-                                    <>
-                                        <Icon fontSize="large" />
-                                        <Typography>
-                                            {file.name.length > 5
-                                                ? file.name.slice(0, 5) + "..."
-                                                : file.name}
-                                        </Typography>
-                                    </>
-                                )}
-                            </Box>
-                            <IconButton
-                                sx={{
-                                    position: "absolute",
-                                    top: "-4px",
-                                    right: "-4px",
-                                    p: 0,
-                                    backgroundColor: "white",
-                                }}
-                                onClick={() =>
-                                    AttachmentManager.removeFile({
-                                        roomId,
-                                        fileName: file.name,
-                                    })
-                                }
-                            >
-                                <CloseIcon color="primary" />
-                            </IconButton>
-                        </Box>
-                    );
-                })}
-        </Box>
+        <textarea
+            autoFocus={true}
+            ref={inputRef}
+            value={message}
+            disabled={loading}
+            onChange={({ target }) => {
+                handleSetMessageText(target.value);
+            }}
+            onKeyDown={(e) => {
+                if (e.key === "Enter" && e.shiftKey === true) {
+                    handleSetMessageText(e.currentTarget.value);
+                } else if (e.key === "Enter") {
+                    e.preventDefault();
+                    onSend();
+                } else {
+                }
+            }}
+            placeholder="Type here..."
+            className={style.input}
+            rows={1}
+        />
     );
-}
-
-function getFileType(htmlType: string): string {
-    if (!htmlType) {
-        return "unknown";
-    }
-
-    if (htmlType.startsWith("image/")) {
-        return "image";
-    }
-
-    if (htmlType.startsWith("audio/")) {
-        return "audio";
-    }
-
-    if (htmlType.startsWith("video/")) {
-        return "video";
-    }
-
-    return "file";
 }

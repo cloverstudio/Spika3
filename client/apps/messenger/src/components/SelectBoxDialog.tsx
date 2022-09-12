@@ -18,6 +18,7 @@ import { uiListeners } from "../hooks/useModal";
 type Props = {
     show: boolean;
     title: string;
+    initialValue?: string;
     allowButtonLabel: string;
     denyButtonLabel: string;
     onOk: (deviceId: string) => void;
@@ -28,13 +29,14 @@ type Props = {
 export default function BasicDialog({
     show,
     title,
+    initialValue,
     allowButtonLabel,
     denyButtonLabel,
     onOk,
     onCancel,
     items,
 }: Props) {
-    const [selectedValue, setSelectedValue] = useState<string>("");
+    const [selectedValue, setSelectedValue] = useState<string>(initialValue);
     const modalState = useSelector((state: RootState) => state.modal);
     const dispatch = useDispatch();
 
@@ -52,30 +54,31 @@ export default function BasicDialog({
             onClose={(e) => dispatch(hideBasicDialog())}
             aria-labelledby="alert-dialog-title"
             aria-describedby="alert-dialog-description"
+            sx={{
+                zIndex: 600,
+            }}
         >
             <DialogTitle id="alert-dialog-title">{title}</DialogTitle>
             <DialogContent>
-                <DialogContentText id="alert-dialog-description">
-                    {items ? (
-                        <Select
-                            sx={{
-                                width: "300px",
-                            }}
-                            value={selectedValue}
-                            onChange={(e) => {
-                                setSelectedValue(e.target.value);
-                            }}
-                        >
-                            {[...items].map(([val, label]) => {
-                                return (
-                                    <MenuItem value={val} key={val}>
-                                        {label}
-                                    </MenuItem>
-                                );
-                            })}
-                        </Select>
-                    ) : null}
-                </DialogContentText>
+                {items ? (
+                    <Select
+                        sx={{
+                            width: "300px",
+                        }}
+                        value={selectedValue || ""}
+                        onChange={(e) => {
+                            setSelectedValue(e.target.value);
+                        }}
+                    >
+                        {[...items].map(([val, label]) => {
+                            return (
+                                <MenuItem value={val} key={val}>
+                                    {label}
+                                </MenuItem>
+                            );
+                        })}
+                    </Select>
+                ) : null}
             </DialogContent>
             <DialogActions>
                 <Button

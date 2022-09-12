@@ -7,6 +7,7 @@ import { beforeEach, before } from "mocha";
 import createFakeUser, { createManyFakeUsers } from "./fixtures/user";
 import { RoomUser, Room, User } from ".prisma/client";
 import sanitize from "../server/components/sanitize";
+import utils from "../server/components/utils";
 
 describe("API", () => {
     describe("/api/messenger/rooms POST", () => {
@@ -245,7 +246,7 @@ describe("API", () => {
             expect(roomFromRes.name).to.eqls("");
         });
 
-        it("sets name to 'United room' when more than two users", async () => {
+        it("sets name to 'Untitled room' when more than two users", async () => {
             const users = await createManyFakeUsers(2);
 
             const response = await supertest(app)
@@ -263,21 +264,7 @@ describe("API", () => {
             expect(response.body.data).to.has.property("room");
 
             const roomFromRes = response.body.data.room;
-            expect(roomFromRes.name).to.eqls("United room");
-        });
-
-        it("Can't creat room with only one user", async () => {
-            const response = await supertest(app)
-                .post("/api/messenger/rooms")
-                .set({ accesstoken: globals.userToken })
-                .send({
-                    ...validParams,
-                    name: undefined,
-                    userIds: [globals.userId],
-                    adminUserIds: [],
-                });
-
-            expect(response.status).to.eqls(400);
+            expect(roomFromRes.name).to.eqls("Untitled room");
         });
 
         it("adds user as admin", async () => {
@@ -359,6 +346,8 @@ describe("API", () => {
                     },
                 },
             });
+
+            globals.roomId = response.body.data.room.id;
 
             expect(JSON.stringify(response.body.data.room)).to.eqls(
                 JSON.stringify(sanitize(room).room())
@@ -586,6 +575,17 @@ describe("API", () => {
                 roomsFromRes.every((r) => r.users.map((u) => u.userId).includes(globals.userId))
             ).to.eqls(true);
         });
+
+        it("Return 0 when keyword is ramdom", async () => {
+            const response = await supertest(app)
+                .get("/api/messenger/rooms?keyword=sssssss")
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(200);
+            expect(response.body).to.has.property("data");
+            expect(response.body.data).to.has.property("list");
+            expect(response.body.data.list.length).to.eqls(0);
+        });
     });
 
     describe("/api/messenger/rooms/:id GET", () => {
@@ -742,13 +742,13 @@ describe("API", () => {
         });
 
         it("Returns new rooms from lastUpdate", async () => {
-            const lastUpdate = +new Date();
-
+            const lastUpdate = +new Date() - 100;
             const room = await createFakeRoom([{ userId: globals.userId, isAdmin: true }]);
 
             const response = await supertest(app)
                 .get("/api/messenger/rooms/sync/" + lastUpdate)
                 .set({ accesstoken: globals.userToken });
+
             expect(response.status).to.eqls(200);
             expect(response.body.data).to.has.property("rooms");
             expect(response.body.data.rooms.some((m: any) => m.id === room.id)).to.be.true;
@@ -760,12 +760,13 @@ describe("API", () => {
 
             const updatedRoom = await globals.prisma.room.update({
                 where: { id: room.id },
-                data: { name: "changed", modifiedAt: new Date() },
+                data: { name: "changed", modifiedAt: new Date(lastUpdate + 1000) },
             });
 
             const response = await supertest(app)
                 .get("/api/messenger/rooms/sync/" + lastUpdate)
                 .set({ accesstoken: globals.userToken });
+
             expect(response.status).to.eqls(200);
             expect(response.body.data).to.has.property("rooms");
             expect(response.body.data.rooms.some((m: any) => m.name === updatedRoom.name)).to.be

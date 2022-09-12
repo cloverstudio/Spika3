@@ -1,5 +1,6 @@
 import hash from "crypto-js/sha256";
 import * as constants from "../lib/constants";
+import dayjs from "dayjs";
 
 export function wait(sec: number): Promise<void> {
     return new Promise<void>((res) => {
@@ -27,6 +28,10 @@ export function formatDate(date: Date): string {
     return date.toLocaleString();
 }
 
+export function showDetailDate(timestamp: number): string {
+    return dayjs.unix(timestamp / 1000).format("YYYY-MM-DD HH:mm:ss");
+}
+
 export type DeviceInfo = {
     browser: string;
     browser_ver: string;
@@ -49,4 +54,9 @@ export function getDeviceId(): string {
     }
 
     return window.localStorage.getItem(constants.LSKEY_DEVICEID);
+}
+
+export function updateBrowserTitle(roomName: string, unreadMessage: number): void {
+    if (unreadMessage === 0) window.document.title = `${constants.TITLE_PREFIX}/${roomName}`;
+    else window.document.title = `(${unreadMessage}) ${constants.TITLE_PREFIX}/${roomName}`;
 }

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Button, Badge, Avatar, Typography, TextField } from "@mui/material";
-import ClearIcon from "@mui/icons-material/Clear";
+import ClearIcon from "@mui/icons-material/ClearRounded";
 
 import { useCreateRoomMutation } from "./api/room";
 
@@ -11,10 +11,13 @@ import SidebarContactList, { ContactRow } from "./components/ContactList";
 import LeftSidebarLayout from "./components/LeftSidebarLayout";
 import LeftSidebarHome from "./components/LeftSidebarHome";
 import SidebarNavigationHeader from "./components/SidebarNavigationHeader";
-import SearchBox from "./components/SearchBox";
 
 import uploadImage from "../../assets/upload-image.svg";
 import uploadFile from "../../utils/uploadFile";
+
+import { crop } from "../../utils/crop";
+import * as Constants from "../../../../../lib/constants";
+
 declare const UPLOADS_BASE_URL: string;
 
 export default function LeftSidebar(): React.ReactElement {
@@ -39,7 +42,6 @@ function LeftSidebarNewChat({
     return (
         <LeftSidebarLayout>
             <SidebarNavigationHeader handleBack={() => setSidebar("")} title="New chat" />
-            <SearchBox />
 
             <Box textAlign="center">
                 <Button onClick={() => setSidebar("new_group")}>New group chat</Button>
@@ -63,11 +65,21 @@ function LeftSidebarNewGroup({
     const [createRoom] = useCreateRoomMutation();
     const navigate = useNavigate();
 
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const uploadedFile = e.target.files && e.target.files[0];
+        const objectUrl = URL.createObjectURL(uploadedFile);
 
-        setFile(uploadedFile);
+        const croppedImage = await crop(
+            objectUrl,
+            1,
+            Constants.LSKEY_CROPSIZE,
+            Constants.LSKEY_CROPSIZE
+        );
+        const file = new File([croppedImage], "image.png");
+
+        setFile(file);
     };
+
     const handleUserClick = (user: User): void => {
         const selectedUsersIds = selectedUsers.map((u) => u.id);
         const userIsSelected = selectedUsersIds.includes(user.id);
@@ -104,7 +116,7 @@ function LeftSidebarNewGroup({
                     type: "group",
                     avatarUrl: uploadedFile?.path || "",
                 }).unwrap();
-                console.log({ res });
+
                 if (res && res.room?.id) {
                     setSidebar("");
                     navigate(`/rooms/${res.room.id}`);
@@ -117,16 +129,13 @@ function LeftSidebarNewGroup({
 
     const title = step === "select_members" ? "Select members" : "Group members";
     const buttonText = step === "select_members" ? "Next" : "Create";
-    const buttonIsDisabled =
-        (step === "select_members" && selectedUsers.length < 1) ||
-        (step === "edit_group_info" && !name);
+    const buttonIsDisabled = step === "edit_group_info" && !name;
 
     return (
         <LeftSidebarLayout>
             <SidebarNavigationHeader handleBack={handleBack} title={title} />
             {step === "select_members" ? (
                 <>
-                    <SearchBox />
                     {selectedUsers.length > 0 ? (
                         <Box display="flex" px={2.5} mb={2}>
                             {selectedUsers.map((user) => (
@@ -138,7 +147,6 @@ function LeftSidebarNewGroup({
                                         badgeContent={
                                             <ClearIcon
                                                 sx={{
-                                                    fontSize: "small",
                                                     color: "white",
                                                     cursor: "pointer",
                                                 }}
@@ -148,7 +156,11 @@ function LeftSidebarNewGroup({
                                         sx={{
                                             "& .MuiBadge-badge": {
                                                 padding: "0",
+                                                height: "24px",
+                                                width: "24px",
+                                                borderRadius: "50%",
                                             },
+                                            mt: 1,
                                         }}
                                     >
                                         <Avatar
@@ -160,8 +172,7 @@ function LeftSidebarNewGroup({
                                     <Typography
                                         textAlign="center"
                                         fontWeight="medium"
-                                        color="#9AA0A6"
-                                        fontSize="0.875rem"
+                                        color="text.tertiary"
                                         lineHeight="1.25rem"
                                     >
                                         {user.displayName}
@@ -170,7 +181,7 @@ function LeftSidebarNewGroup({
                             ))}
                         </Box>
                     ) : (
-                        <Box mb={10.5} />
+                        <Box mb={11.5} />
                     )}
                     <SidebarContactList
                         selectedUsersIds={selectedUsers.map((u) => u.id)}
@@ -209,9 +220,8 @@ function LeftSidebarNewGroup({
 
                     <Typography
                         textAlign="right"
-                        color="#141414"
+                        color="primary.main"
                         fontWeight="medium"
-                        fontSize="0.875rem"
                         lineHeight="1.25rem"
                         sx={{ px: 2.5, py: 2 }}
                     >

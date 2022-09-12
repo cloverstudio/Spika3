@@ -14,10 +14,6 @@ const axiosBaseQuery =
         dispatch?: any
     ) => {
         try {
-            const browserName = platform.name;
-            const browserVersion = platform.version;
-            const OS = platform.os;
-
             const additionalHeaders: any = {
                 ...(token && { accesstoken: token }),
             };
@@ -36,7 +32,6 @@ const axiosBaseQuery =
                 headers: additionalHeaders,
                 validateStatus: (status) => status < 500,
             });
-            console.log({ [url]: result.data });
 
             if (result.data.status !== "success") {
                 throw new Error(result.data.message);
@@ -72,7 +67,7 @@ export const dynamicBaseQuery = async (args: any, options?: { dispatch: any }) =
 export default createApi({
     reducerPath: "api",
     baseQuery: dynamicBaseQuery,
-    tagTypes: ["User", "Auth", "Contacts", "Rooms", "Device"],
+    tagTypes: ["User", "Auth", "Contacts", "Rooms", "Device", "Notes", "MessageRecords"],
 
     endpoints: () => ({}),
 });

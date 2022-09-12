@@ -33,6 +33,7 @@ function newMessageFormatter(payload: SendPushPayload) {
             //},
             data: {
                 message: JSON.stringify(payload.data.message),
+                fromUserName: payload.data.user.displayName,
             },
         },
     };

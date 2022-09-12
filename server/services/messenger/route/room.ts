@@ -104,12 +104,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 isAdmin: adminUserIds.includes(user.id) || false,
             }));
 
-            if (users.length < 2) {
-                return res
-                    .status(400)
-                    .send(errorResponse("Can't creat room with only one user", userReq.lang));
-            }
-
             const type = userDefinedType || (users.length < 3 ? "private" : "group");
             const name = getRoomName(userDefinedName, users.length);
 
@@ -390,6 +384,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
         try {
             const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
+            const keyword: string = req.query.keyword as string;
 
             const rooms = await prisma.room.findMany({
                 where: {
@@ -399,6 +394,9 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         },
                     },
                     deleted: false,
+                    name: {
+                        startsWith: keyword,
+                    },
                 },
                 include: {
                     users: {
@@ -422,6 +420,9 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         some: {
                             userId: userReq.user.id,
                         },
+                    },
+                    name: {
+                        startsWith: keyword,
                     },
                 },
             });
@@ -554,9 +555,17 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 select: {
                     room: {
                         select: {
+                            id: true,
+                            name: true,
+                            type: true,
+                            avatarUrl: true,
+                            createdAt: true,
+                            modifiedAt: true,
                             users: {
                                 select: {
                                     user: true,
+                                    isAdmin: true,
+                                    userId: true,
                                 },
                             },
                         },
@@ -567,6 +576,29 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             const roomsSanitized = roomsUser.map((ru) => sanitize(ru.room).room());
 
             res.send(successResponse({ rooms: roomsSanitized }, userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.post("/:id/markAsRead", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+
+        try {
+            const id = parseInt((req.params.id as string) || "");
+
+            const room = await prisma.room.findFirst({
+                where: {
+                    id,
+                },
+            });
+
+            if (!room) {
+                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+            }
+
+            res.send(successResponse({}, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -589,7 +621,7 @@ function getRoomName(initialName: string, usersCount: number) {
             return "";
         }
         default: {
-            return "United room";
+            return "Untitled room";
         }
     }
 }
@@ -641,7 +673,7 @@ async function updateRoomUsers({
 
     const userIdsToRemove = currentIds.filter((id) => !foundUserIds.includes(id));
     await prisma.roomUser.deleteMany({
-        where: { userId: { in: userIdsToRemove }, isAdmin: updatingAdmins },
+        where: { roomId: room.id, userId: { in: userIdsToRemove }, isAdmin: updatingAdmins },
     });
 
     const userIdsToAdd = foundUserIds.filter((id) => !currentIds.includes(id));

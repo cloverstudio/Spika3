@@ -67,7 +67,6 @@ export default function AuthLayout({
                                 display={{ xs: "none", md: "block" }}
                                 component="span"
                                 variant="body1"
-                                fontSize="1.15rem"
                                 fontWeight="bold"
                             >
                                 Spika

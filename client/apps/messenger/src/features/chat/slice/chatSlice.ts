@@ -3,23 +3,71 @@ import MessageType, { MessageRecordType } from "../../../types/Message";
 
 import type { RootState } from "../../../store/store";
 import { dynamicBaseQuery } from "../../../api/api";
+import { fetchHistory } from "./roomSlice";
 
 export const fetchMessagesByRoomId = createAsyncThunk(
     "messages/fetchByIdStatus",
-    async ({ page, roomId }: { page: number; roomId: number }) => {
-        const response = await dynamicBaseQuery(
-            `/messenger/messages/roomId/${roomId}?page=${page}`
-        );
+    async ({ page, roomId, messageId }: { page: number; roomId: number; messageId: number }) => {
+        let url = `/messenger/messages/roomId/${roomId}?page=${page}`;
+        if (messageId) url += `&messageId=${messageId}`;
+
+        const response = await dynamicBaseQuery(url);
+        return response.data;
+    }
+);
+
+export const sendMessage = createAsyncThunk(
+    "messages/sendMessage",
+    async (
+        data: {
+            roomId: number;
+            type: string;
+            body: any;
+        },
+        thunkAPI
+    ): Promise<{ message: MessageType }> => {
+        if (data.type === "text" || data.type === "emoji") {
+            data.body = { text: (thunkAPI.getState() as RootState).chat.messageText };
+        }
+
+        const response = await dynamicBaseQuery({
+            url: "/messenger/messages",
+            data,
+            method: "POST",
+        });
+
+        thunkAPI.dispatch(fetchHistory({ page: 1, keyword: "" }));
+        return response.data;
+    }
+);
+
+export const editMessageThunk = createAsyncThunk(
+    "messages/editMessage",
+    async (_, thunkAPI): Promise<{ message: MessageType }> => {
+        const { editMessage: message, messageText } = (thunkAPI.getState() as RootState).chat;
+
+        const response = await dynamicBaseQuery({
+            url: `/messenger/messages/${message.id}`,
+            data: { text: messageText },
+            method: "PUT",
+        });
+
+        thunkAPI.dispatch(fetchHistory({ page: 1, keyword: "" }));
         return response.data;
     }
 );
 
 interface ChatState {
-    activeRoomId: number;
+    activeRoomId: number | null;
     messages: MessageType[];
+    messagesByRoom: Record<number, MessageType[]>;
     messageRecords: MessageRecordType[];
     count: { roomId: number; count: number }[];
     loading: "idle" | "pending" | "succeeded" | "failed";
+    sendingMessage: "idle" | "pending" | "succeeded" | "failed";
+    messageText: string;
+    editMessage: MessageType | null;
+    inputType: "text" | "emoji" | "files";
 }
 
 export const chatSlice = createSlice({
@@ -27,18 +75,40 @@ export const chatSlice = createSlice({
     initialState: <ChatState>{
         activeRoomId: null,
         messages: [],
+        messagesByRoom: {},
         messageRecords: [],
         count: [],
         loading: "idle",
+        sendingMessage: "idle",
+        messageText: "",
+        editMessage: null,
+        inputType: "text",
     },
     reducers: {
-        setActiveRoomId: (state, { payload }: { payload: number }) => {
+        setActiveRoomId: (state, { payload }: { payload: number | null }) => {
             state.activeRoomId = payload;
+        },
+
+        setMessageText: (state, { payload }: { payload: string }) => {
+            state.messageText = payload;
+        },
+
+        setEditMessage: (state, { payload }: { payload: MessageType | null }) => {
+            state.editMessage = payload;
+            if (payload) {
+                state.messageText = payload.body.text;
+            }
         },
 
         addMessage: (state, { payload }: { payload: MessageType }) => {
             if (state.messages.findIndex((m) => m.id === payload.id) === -1) {
                 state.messages = [...state.messages, payload];
+
+                if (payload) {
+                    const roomId = payload.roomId;
+                    state.messagesByRoom[roomId] ??= [];
+                    state.messagesByRoom[roomId].push(payload);
+                }
             }
         },
         addMessageRecord: (state, { payload }: { payload: MessageRecordType }) => {
@@ -47,8 +117,10 @@ export const chatSlice = createSlice({
                 (mr) =>
                     mr.messageId === payload.messageId &&
                     mr.userId === payload.userId &&
-                    mr.type === payload.type
+                    mr.type === payload.type &&
+                    mr.type !== "reaction"
             );
+
             if (messageRecordHandled) {
                 return;
             }
@@ -60,7 +132,7 @@ export const chatSlice = createSlice({
                 return;
             }
 
-            const updatedMessage = { ...state.messages[messageIndex] };
+            const updatedMessage: MessageType = { ...state.messages[messageIndex] };
 
             switch (payload.type) {
                 case "seen": {
@@ -71,6 +143,16 @@ export const chatSlice = createSlice({
                     updatedMessage.deliveredCount += 1;
                     break;
                 }
+                case "reaction": {
+                    updatedMessage.messageRecords ??= [];
+                    const existedIndex = updatedMessage.messageRecords.findIndex(
+                        (m) => m.type === "reaction" && m.userId === payload.userId
+                    );
+                    if (existedIndex === -1) {
+                        updatedMessage.messageRecords.push(payload);
+                    } else updatedMessage.messageRecords.splice(existedIndex, 1, payload);
+                    break;
+                }
                 default: {
                     console.log(`Add message record type {${payload.type}) not implemented!`);
                     break;
@@ -78,6 +160,57 @@ export const chatSlice = createSlice({
             }
 
             state.messages.splice(messageIndex, 1, updatedMessage);
+
+            const roomId = updatedMessage.roomId;
+            const messageRoomIndex = state.messagesByRoom[roomId].findIndex(
+                (m) => m.id === updatedMessage.id
+            );
+
+            console.log("messageRoomIndex", messageRoomIndex);
+            console.log("updatedMessage", updatedMessage);
+            if (messageRoomIndex > -1) {
+                state.messagesByRoom[roomId].splice(messageRoomIndex, 1, updatedMessage);
+            }
+        },
+        deleteMessage: (state, { payload }: { payload: MessageType }) => {
+            const messageIndex = state.messages.findIndex((m) => m.id === payload.id);
+
+            if (messageIndex > -1) {
+                state.messages.splice(messageIndex, 1, payload);
+            }
+
+            const roomId = payload.roomId;
+            const messageRoomIndex = state.messagesByRoom[roomId].findIndex(
+                (m) => m.id === payload.id
+            );
+
+            if (messageRoomIndex > -1) {
+                state.messagesByRoom[roomId].splice(messageRoomIndex, 1, payload);
+            }
+        },
+
+        editMessage: (state, { payload }: { payload: MessageType }) => {
+            const messageIndex = state.messages.findIndex((m) => m.id === payload.id);
+
+            if (messageIndex > -1) {
+                state.messages.splice(messageIndex, 1, payload);
+            }
+
+            const roomId = payload.roomId;
+            const messageRoomIndex = state.messagesByRoom[roomId].findIndex(
+                (m) => m.id === payload.id
+            );
+
+            if (messageRoomIndex > -1) {
+                state.messagesByRoom[roomId].splice(messageRoomIndex, 1, payload);
+            }
+        },
+        setInputType: (state, { payload }: { payload: "text" | "emoji" | "files" }) => {
+            state.inputType = payload;
+        },
+
+        addEmoji: (state, { payload }: { payload: string }) => {
+            state.messageText += payload;
         },
     },
     extraReducers: (builder) => {
@@ -87,13 +220,22 @@ export const chatSlice = createSlice({
                 (m: { id: number }) => !messagesIds.includes(m.id)
             );
 
-            if (state.count.findIndex((c) => c.roomId === state.activeRoomId) < 0) {
+            if (
+                state.activeRoomId &&
+                state.count.findIndex((c) => c.roomId === state.activeRoomId) < 0
+            ) {
                 state.count.push({
                     roomId: state.activeRoomId,
                     count: payload.count,
                 });
             }
             state.messages = [...state.messages, ...notAdded];
+
+            if (!state.messagesByRoom[state.activeRoomId])
+                state.messagesByRoom[state.activeRoomId] = [];
+
+            state.messagesByRoom[state.activeRoomId].push(...notAdded);
+
             state.loading = "idle";
         });
         builder.addCase(fetchMessagesByRoomId.pending, (state) => {
@@ -102,24 +244,76 @@ export const chatSlice = createSlice({
         builder.addCase(fetchMessagesByRoomId.rejected, (state) => {
             state.loading = "failed";
         });
+
+        builder.addCase(sendMessage.fulfilled, (state, { payload }) => {
+            state.messages = [...state.messages, payload.message];
+            state.messagesByRoom[payload.message.roomId].push(payload.message);
+
+            state.sendingMessage = "idle";
+            state.messageText = "";
+            state.inputType = "text";
+        });
+        builder.addCase(sendMessage.pending, (state) => {
+            state.sendingMessage = "pending";
+        });
+        builder.addCase(sendMessage.rejected, (state) => {
+            state.sendingMessage = "failed";
+        });
+
+        builder.addCase(editMessageThunk.fulfilled, (state) => {
+            state.messageText = "";
+            state.inputType = "text";
+            state.editMessage = null;
+        });
     },
 });
 
-export const { setActiveRoomId, addMessage, addMessageRecord } = chatSlice.actions;
+export const {
+    setActiveRoomId,
+    addMessage,
+    addMessageRecord,
+    deleteMessage,
+    editMessage,
+    setMessageText,
+    setEditMessage,
+    setInputType,
+    addEmoji,
+} = chatSlice.actions;
 
-export const selectActiveRoomId = (state: RootState): number => state.chat.activeRoomId;
+export const selectActiveRoomId = (state: RootState): number | null => state.chat.activeRoomId;
+export const selectMessageText = (state: RootState): string => state.chat.messageText;
+export const selectEditMessage = (state: RootState): MessageType | null => state.chat.editMessage;
 export const selectRoomMessages =
     (roomId: number) =>
-    (state: RootState): { messages: MessageType[]; count: number } => {
+    (state: RootState): MessageType[] => {
         const messages = state.chat.messages.filter((m) => m.roomId === roomId);
-        const count = state.chat.count.find((c) => c.roomId === roomId)?.count || 0;
 
-        return { messages, count };
+        if (!state.chat.messagesByRoom[roomId]) return [];
+
+        return state.chat.messagesByRoom[roomId];
     };
-export const selectLoading =
-    () =>
-    (state: RootState): "idle" | "pending" | "succeeded" | "failed" => {
-        return state.chat.loading;
+export const selectRoomMessagesCount =
+    (roomId: number) =>
+    (state: RootState): number => {
+        //const count = state.chat.messages.filter((m) => m.roomId === roomId).length;
+        const countRow = state.chat.count.find((c) => c.roomId === roomId);
+        return countRow?.count;
     };
+
+export const selectLoading = (state: RootState): "idle" | "pending" | "succeeded" | "failed" => {
+    return state.chat.loading;
+};
+
+export const selectSendingMessage = (state: RootState): boolean => {
+    return state.chat.sendingMessage === "pending";
+};
+
+export const selectInputType = (state: RootState): "text" | "emoji" | "files" => {
+    return state.chat.inputType;
+};
+
+export const selectInputTypeIsFiles = (state: RootState): boolean => {
+    return state.chat.inputType === "files";
+};
 
 export default chatSlice.reducer;

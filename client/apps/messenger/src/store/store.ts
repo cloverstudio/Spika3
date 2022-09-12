@@ -17,9 +17,5 @@ export const store = configureStore({
     //.concat(save({ ignoreStates: ["api"] })),
 });
 
-if (ENV !== "production" && module?.hot) {
-    module.hot.accept("./reducer", () => store.replaceReducer(rootReducer));
-}
-
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

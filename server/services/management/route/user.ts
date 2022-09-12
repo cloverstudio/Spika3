@@ -1,21 +1,107 @@
 import { Router, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
-
 import adminAuth from "../lib/adminAuth";
 import Utils from "../../../components/utils";
 import * as consts from "../../../components/consts";
-
 import l, { error as le } from "../../../components/logger";
-
 import { InitRouterParams } from "../../types/serviceInterface";
 import { successResponse, errorResponse } from "../../../components/response";
 import { UserRequest } from "../../messenger/lib/types";
 import { User } from "@prisma/client";
+import sanitize from "../../../components/sanitize";
 
 export default (params: InitRouterParams) => {
     const router = Router();
 
+    router.get("/search", adminAuth, async (req: Request, res: Response) => {
+        const searchTerm: string = req.query.searchTerm ? (req.query.searchTerm as string) : "";
+        const userReq: UserRequest = req as UserRequest;
+        try {
+            var allUsers: User[] = [];
+            if (onlyNumbers(searchTerm)) {
+                const phoneUsers: User[] = await prisma.user.findMany({
+                    where: {
+                        telephoneNumber: {
+                            contains: searchTerm,
+                        },
+                    },
+                });
+                allUsers.push(...phoneUsers);
+            }
+
+            const emailUsers: User[] = await prisma.user.findMany({
+                where: {
+                    emailAddress: {
+                        contains: searchTerm,
+                    },
+                },
+            });
+            const nameUsers: User[] = await prisma.user.findMany({
+                where: {
+                    displayName: {
+                        contains: searchTerm,
+                    },
+                },
+            });
+            allUsers.push(...emailUsers);
+            allUsers.push(...nameUsers);
+
+            allUsers = allUsers.filter(
+                (value, index, self) => index === self.findIndex((t) => t.id === value.id)
+            );
+
+            const count = allUsers.length;
+
+            return res.send(
+                successResponse(
+                    {
+                        list: allUsers,
+                        count: count,
+                        limit: consts.PAGING_LIMIT,
+                    },
+                    userReq.lang
+                )
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.get("/verified", adminAuth, async (req: Request, res: Response) => {
+        const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 0;
+        const userReq: UserRequest = req as UserRequest;
+        try {
+            const users = await prisma.user.findMany({
+                where: {
+                    verified: true,
+                },
+                orderBy: [
+                    {
+                        createdAt: "asc",
+                    },
+                ],
+                skip: consts.PAGING_LIMIT * page,
+                take: consts.PAGING_LIMIT,
+            });
+
+            const count = users.length;
+            res.send(
+                successResponse(
+                    {
+                        list: users,
+                        count: count,
+                        limit: consts.PAGING_LIMIT,
+                    },
+                    userReq.lang
+                )
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
     router.post("/", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
@@ -118,7 +204,7 @@ export default (params: InitRouterParams) => {
 
             if (!user) return res.status(404).send(errorResponse(`Wrong user id`, userReq.lang));
 
-            return res.send(successResponse({ user }, userReq.lang));
+            return res.send(successResponse({ user: sanitize(user).user() }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
@@ -200,7 +286,6 @@ export default (params: InitRouterParams) => {
         const userReq: UserRequest = req as UserRequest;
         try {
             const userId: number = parseInt(req.params.userId);
-
             // check existance
             const user = await prisma.user.findFirst({
                 where: {
@@ -209,6 +294,45 @@ export default (params: InitRouterParams) => {
             });
 
             if (!user) return res.status(404).send(errorResponse(`Wrong user id`, userReq.lang));
+
+            const fromDevice = await prisma.device.findMany({ where: { userId: userId } });
+            const fromDeviceIds = fromDevice.map((ru) => ru.id);
+            const selectedMessages = await prisma.message.findMany({
+                where: {
+                    fromDeviceId: { in: fromDeviceIds },
+                },
+            });
+            const selectedMessagesIds = selectedMessages.map((ru) => ru.id);
+            const deleteMessageDevice = await prisma.deviceMessage.deleteMany({
+                where: { messageId: { in: selectedMessagesIds } },
+            });
+            const deleteMessageRecord = await prisma.messageRecord.deleteMany({
+                where: { messageId: { in: selectedMessagesIds } },
+            });
+
+            const deleteMessages = await prisma.message.deleteMany({
+                where: { fromDeviceId: { in: fromDeviceIds } },
+            });
+
+            const deleteDevice = await prisma.device.deleteMany({
+                where: { userId: userId },
+            });
+
+            const deleteContactByContactId = await prisma.contact.deleteMany({
+                where: { contactId: userId },
+            });
+
+            const deleteContactByUserId = await prisma.contact.deleteMany({
+                where: { userId: userId },
+            });
+
+            const deleteByMessageRecord = await prisma.messageRecord.deleteMany({
+                where: { userId: userId },
+            });
+
+            const deleteFromRoom = await prisma.roomUser.deleteMany({
+                where: { userId: userId },
+            });
 
             const deleteResult = await prisma.user.delete({
                 where: { id: userId },
@@ -220,5 +344,8 @@ export default (params: InitRouterParams) => {
         }
     });
 
+    function onlyNumbers(str: string) {
+        return /^[0-9]+$/.test(str);
+    }
     return router;
 };

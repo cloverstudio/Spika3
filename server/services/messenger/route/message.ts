@@ -15,6 +15,7 @@ import { InitRouterParams } from "../../types/serviceInterface";
 import sanitize from "../../../components/sanitize";
 import { formatMessageBody } from "../../../components/message";
 import createSSEMessageRecordsNotify from "../lib/sseMessageRecordsNotify";
+import message from "../../management/route/message";
 
 const prisma = new PrismaClient();
 
@@ -57,6 +58,33 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 return res.status(400).send(errorResponse("Room not found", userReq.lang));
             }
 
+            // validation
+            if (type === "image" || type === "audio" || type === "video" || type === "file") {
+                if (!body.fileId)
+                    return res.status(400).send(errorResponse("FileID is missing", userReq.lang));
+
+                const fileId: number = body.fileId;
+                const thumbId: number = body.thumbId;
+
+                // check existance
+                const exists = await prisma.file.findFirst({ where: { id: fileId } });
+                if (!exists)
+                    return res.status(400).send(errorResponse("Invalid fileId", userReq.lang));
+
+                if (thumbId) {
+                    const exists = await prisma.file.findFirst({
+                        where: { id: thumbId },
+                    });
+                    if (!exists)
+                        return res.status(400).send(errorResponse("Invalid thumbId", userReq.lang));
+                }
+            } else if (type === "text") {
+                if (!body.text)
+                    return res.status(400).send(errorResponse("Text is missing", userReq.lang));
+            } else {
+                return res.status(400).send(errorResponse("Invalid type", userReq.lang));
+            }
+
             const devices = await prisma.device.findMany({
                 where: {
                     userId: { in: room.users.map((u) => u.userId) },
@@ -79,13 +107,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     fromUserId: userReq.user.id,
                     fromDeviceId: userReq.device.id,
                     totalUserCount: room.users.length,
-                    deliveredCount: 1,
+                    deliveredCount: 0,
+                    seenCount: 0,
                     localId,
                 },
-            });
-
-            await prisma.messageRecord.create({
-                data: { type: "delivered", userId: fromUserId, messageId: message.id },
             });
 
             const formattedBody = await formatMessageBody(body, type);
@@ -113,6 +138,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                                         ?.pushToken,
                                     data: {
                                         message: sanitizedMessage,
+                                        user: sanitize(userReq.user).user(),
                                     },
                                 })
                             )
@@ -133,6 +159,26 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     })
                 );
             }
+
+            const messageRecords = (
+                await Promise.all(
+                    ["delivered", "seen"].map(async (type) =>
+                        prisma.messageRecord.create({
+                            data: { type, userId: fromUserId, messageId: message.id },
+                        })
+                    )
+                )
+            ).map((mr) => sanitize(mr).messageRecord());
+
+            await prisma.message.update({
+                where: { id: message.id },
+                data: {
+                    deliveredCount: { increment: 1 },
+                    seenCount: { increment: 1 },
+                },
+            });
+
+            //sseMessageRecordsNotify(messageRecords, Constants.PUSH_TYPE_NEW_MESSAGE_RECORD);
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -184,10 +230,40 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         const userReq: UserRequest = req as UserRequest;
         const userId = userReq.user.id;
         const deviceId = userReq.device.id;
-        const page = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
+        let page = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
+        const messageId: number =
+            parseInt(req.query.messageId ? (req.query.messageId as string) : "") || 0;
+
+        let skip = Constants.MESSAGE_PAGING_LIMIT * (page - 1);
+        let take = Constants.MESSAGE_PAGING_LIMIT;
 
         try {
             const roomId = parseInt(req.params.roomId as string);
+
+            // find how many messages needs to reach to the target message
+            if (messageId) {
+                const targetMessage = await prisma.message.findFirst({
+                    where: {
+                        id: messageId,
+                    },
+                });
+
+                if (targetMessage) {
+                    const countToSkip = await prisma.message.count({
+                        where: {
+                            createdAt: { gte: targetMessage.createdAt },
+                        },
+                    });
+
+                    if (countToSkip > Constants.MESSAGE_PAGING_LIMIT)
+                        take =
+                            Math.ceil(countToSkip / Constants.MESSAGE_PAGING_LIMIT) *
+                            Constants.MESSAGE_PAGING_LIMIT;
+
+                    skip = 0;
+                    page = take / Math.ceil(countToSkip / Constants.MESSAGE_PAGING_LIMIT);
+                }
+            }
 
             const count = await prisma.message.count({
                 where: {
@@ -216,8 +292,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 orderBy: {
                     modifiedAt: "desc",
                 },
-                skip: Constants.PAGING_LIMIT * 3 * (page - 1),
-                take: Constants.PAGING_LIMIT * 3,
+                skip: skip,
+                take: take,
             });
 
             for (const message of messages) {
@@ -238,10 +314,12 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                             },
                         });
 
+                        /*
                         sseMessageRecordsNotify(
                             [sanitize(record).messageRecord()],
                             Constants.PUSH_TYPE_NEW_MESSAGE_RECORD
                         );
+                        */
                     } catch (error) {
                         console.error({ error });
                     }
@@ -260,7 +338,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             );
 
             res.send(
-                successResponse({ list, count, limit: Constants.PAGING_LIMIT * 3 }, userReq.lang)
+                successResponse(
+                    { list, count, limit: Constants.MESSAGE_PAGING_LIMIT, page },
+                    userReq.lang
+                )
             );
         } catch (e: any) {
             le(e);
@@ -364,7 +445,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     }
                 }
 
-                sseMessageRecordsNotify(messageRecords, Constants.PUSH_TYPE_NEW_MESSAGE_RECORD);
+                //sseMessageRecordsNotify(messageRecords, Constants.PUSH_TYPE_NEW_MESSAGE_RECORD);
 
                 res.send(successResponse({ messageRecords }, userReq.lang));
             } catch (e: any) {
@@ -374,55 +455,41 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         }
     );
 
-    router.get("/:timestamp", auth, async (req: Request, res: Response) => {
+    router.get("/sync", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         const deviceId = userReq.device.id;
         const userId = userReq.user.id;
 
-        const timestamp = parseInt(req.params.timestamp as string);
-        const page = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
-
         try {
-            if (isNaN(timestamp)) {
-                return res
-                    .status(400)
-                    .send(errorResponse("timestamp must be number", userReq.lang));
-            }
-
-            const count = await prisma.message.count({
+            const undeliveredMessages = await prisma.message.findMany({
                 where: {
-                    createdAt: { gte: new Date(timestamp) },
                     deviceMessages: {
                         some: {
                             deviceId,
                         },
                     },
-                },
-            });
-
-            const messages = await prisma.message.findMany({
-                where: {
-                    createdAt: { gte: new Date(timestamp) },
-                    deviceMessages: {
-                        some: {
-                            deviceId,
+                    messageRecords: {
+                        none: {
+                            type: "delivered",
+                            userId,
                         },
                     },
                 },
-                orderBy: {
-                    createdAt: "desc",
+                include: {
+                    deviceMessages: true,
                 },
-                include: { deviceMessages: true },
-                skip: Constants.PAGING_LIMIT * (page - 1),
-                take: Constants.PAGING_LIMIT,
             });
 
-            const list = messages.map((m) => {
-                const body = m.deviceMessages.find((dm) => dm.deviceId === deviceId)?.body;
-                return sanitize({ ...m, body }).message();
-            });
+            const sanitizedUndeliveredMessages = await Promise.all(
+                undeliveredMessages.map(async (message) =>
+                    sanitize({
+                        ...message,
+                        body: await formatMessageBody(message.deviceMessages[0].body, message.type),
+                    }).message()
+                )
+            );
 
-            res.send(successResponse({ list, count, limit: Constants.PAGING_LIMIT }, userReq.lang));
+            res.send(successResponse({ messages: sanitizedUndeliveredMessages }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -519,9 +586,173 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 }
             }
 
-            sseMessageRecordsNotify(messageRecords, Constants.PUSH_TYPE_NEW_MESSAGE_RECORD);
+            //sseMessageRecordsNotify(messageRecords, Constants.PUSH_TYPE_NEW_MESSAGE_RECORD);
 
             res.send(successResponse({ messageRecords }, userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.delete("/:id", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        const userId = userReq.user.id;
+        try {
+            const id = parseInt((req.params.id as string) || "");
+            const target = ((req.query.target as string) || "").toLowerCase();
+
+            if (!target || !["all", "user"].includes(target)) {
+                return res
+                    .status(400)
+                    .send(errorResponse("Invalid target query param", userReq.lang));
+            }
+
+            let message = await prisma.message.findFirst({
+                where: { id },
+                include: { deviceMessages: true },
+            });
+            if (!message) {
+                return res.status(404).send(errorResponse("Not found", userReq.lang));
+            }
+
+            if (target === "all" && message.fromUserId !== userId) {
+                return res
+                    .status(403)
+                    .send(errorResponse("User can't delete another users message", userReq.lang));
+            }
+
+            const roomUser = await prisma.roomUser.findFirst({ where: { roomId: message.roomId } });
+
+            if (!roomUser) {
+                return res
+                    .status(403)
+                    .send(
+                        errorResponse(
+                            "User can't delete messages from room that he is not in",
+                            userReq.lang
+                        )
+                    );
+            }
+
+            const deviceMessagesToDelete =
+                target === "all"
+                    ? message.deviceMessages
+                    : message.deviceMessages.filter((dm) => dm.userId === userId);
+
+            const newBody = { text: "Deleted message" };
+
+            for (const deviceMessage of deviceMessagesToDelete) {
+                await prisma.deviceMessage.update({
+                    where: { id: deviceMessage.id },
+                    data: { modifiedAt: new Date(), body: newBody },
+                });
+            }
+
+            if (target === "all") {
+                message = await prisma.message.update({
+                    where: { id },
+                    data: { modifiedAt: new Date(), deleted: true, type: "text" },
+                    include: { deviceMessages: true },
+                });
+            }
+
+            const sanitizedMessage = sanitize({ ...message, body: newBody }).message();
+
+            res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
+
+            while (deviceMessagesToDelete.length) {
+                deviceMessagesToDelete.splice(0, 10).map((deviceMessage) => {
+                    rabbitMQChannel.sendToQueue(
+                        Constants.QUEUE_SSE,
+                        Buffer.from(
+                            JSON.stringify({
+                                channelId: deviceMessage.deviceId,
+                                data: {
+                                    type: Constants.PUSH_TYPE_DELETE_MESSAGE,
+                                    message: sanitizedMessage,
+                                },
+                            })
+                        )
+                    );
+                });
+            }
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.put("/:id", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        const userId = userReq.user.id;
+
+        try {
+            const id = parseInt((req.params.id as string) || "");
+            const text = req.body.text as string;
+
+            if (!text) {
+                return res.status(400).send(errorResponse("Text is required", userReq.lang));
+            }
+
+            let message = await prisma.message.findFirst({
+                where: { id },
+                include: { deviceMessages: true },
+            });
+
+            if (!message) {
+                return res.status(404).send(errorResponse("Not found", userReq.lang));
+            }
+
+            if (userId !== message.fromUserId) {
+                return res
+                    .status(403)
+                    .send(
+                        errorResponse("User can't edit messages that he is not owner", userReq.lang)
+                    );
+            }
+
+            if (message.type !== "text") {
+                return res
+                    .status(400)
+                    .send(
+                        errorResponse("Only messages with type text can be edited", userReq.lang)
+                    );
+            }
+
+            for (const deviceMessage of message.deviceMessages) {
+                await prisma.deviceMessage.update({
+                    where: { id: deviceMessage.id },
+                    data: { modifiedAt: new Date(), body: { text } },
+                });
+            }
+
+            message = await prisma.message.update({
+                where: { id },
+                data: { modifiedAt: new Date() },
+                include: { deviceMessages: true },
+            });
+
+            const sanitizedMessage = sanitize({ ...message, body: { text } }).message();
+
+            res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
+
+            while (message.deviceMessages.length) {
+                message.deviceMessages.splice(0, 10).map((deviceMessage) => {
+                    rabbitMQChannel.sendToQueue(
+                        Constants.QUEUE_SSE,
+                        Buffer.from(
+                            JSON.stringify({
+                                channelId: deviceMessage.deviceId,
+                                data: {
+                                    type: Constants.PUSH_TYPE_UPDATE_MESSAGE,
+                                    message: sanitizedMessage,
+                                },
+                            })
+                        )
+                    );
+                });
+            }
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

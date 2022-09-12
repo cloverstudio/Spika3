@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { PrismaClient } from "@prisma/client";
-
+import amqp from "amqplib";
 import Service, { ServiceStartParams } from "../types/serviceInterface";
 import auth from "./lib/auth";
 import { UserRequest } from "./lib/types";
@@ -8,13 +8,17 @@ import NotificationServer from "./notificationServer";
 import { formatMessageBody } from "../../components/message";
 import sanitize from "../../components/sanitize";
 import * as Constants from "../../components/consts";
+import { leaveCallLogicUser } from "../,,/../confcall/lib/leaveCallLogic";
 
 const prisma = new PrismaClient();
 
 export default class SSEService implements Service {
     notificationServer: NotificationServer;
+    rabbitMQChannel: amqp.Channel;
+
     async start({ rabbitMQChannel }: ServiceStartParams): Promise<void> {
         this.notificationServer = new NotificationServer(rabbitMQChannel);
+        this.rabbitMQChannel = rabbitMQChannel;
     }
 
     getRoutes(): Router {
@@ -33,41 +37,6 @@ export default class SSEService implements Service {
             res.writeHead(200, headers);
             res.write("data: \n\n");
 
-            const undeliveredMessages = await prisma.message.findMany({
-                where: {
-                    deviceMessages: {
-                        some: {
-                            deviceId: userReq.device.id,
-                        },
-                    },
-                    messageRecords: {
-                        none: {
-                            type: "delivered",
-                            userId: userReq.user.id,
-                        },
-                    },
-                },
-                include: {
-                    deviceMessages: true,
-                },
-            });
-
-            const sanitizedUndeliveredMessages = await Promise.all(
-                undeliveredMessages.map(async (message) =>
-                    sanitize({
-                        ...message,
-                        body: await formatMessageBody(message.deviceMessages[0].body, message.type),
-                    }).message()
-                )
-            );
-
-            for (const message of sanitizedUndeliveredMessages) {
-                const jsonData = JSON.stringify({ type: Constants.PUSH_TYPE_NEW_MESSAGE, message });
-
-                const eventData = "data: " + jsonData + "\n\n";
-                res.write(eventData);
-            }
-
             const interval = setInterval(() => {
                 res.write("data: \n\n");
             }, 5000);
@@ -82,11 +51,13 @@ export default class SSEService implements Service {
             });
             console.log(`Device id: ${channelId} - Connection open`);
 
-            req.on("close", () => {
+            req.on("close", async () => {
                 clearInterval(interval);
                 this.notificationServer.unsubscribe(connectionId);
                 res.end();
                 console.log(`Device id: ${channelId} - Connection closed`);
+
+                await leaveCallLogicUser(userReq.user.id, this.rabbitMQChannel);
             });
         });
         return SSERouter;

@@ -92,14 +92,14 @@ function NumberInput({
                 onKeyDown={handleKeyDown}
                 sx={{
                     input: {
-                        border: "1px solid #9AA0A6",
+                        border: "1px solid",
+                        borderColor: "text.tertiary",
                         borderRadius: "0.625rem",
-                        height: "100%",
+                        height: "34px",
                         padding: "5px",
                         textAlign: "center",
-                        color: "#141414",
+                        color: "primary.main",
                         fontWeight: "bold",
-                        fontSize: "28px",
                         lineHeight: "34px",
                         "&::-webkit-outer-spin-button": {
                             margin: "0",

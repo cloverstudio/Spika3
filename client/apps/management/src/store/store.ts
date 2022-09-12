@@ -4,15 +4,26 @@ import { save, load } from "redux-localstorage-simple";
 import counterReducer from "./counterSlice";
 import adminAuthReducer from "./adminAuthSlice";
 import uiReducer from "./uiSlice";
+import filterReducer from "./filterSlice";
+import rightSideBarReducer from "./rightDrawerSlice";
+import api from "../api/api";
 
 export const store = configureStore({
     reducer: {
         counter: counterReducer,
         auth: adminAuthReducer,
         ui: uiReducer,
+        filter: filterReducer,
+        rightSidebar: rightSideBarReducer,
+        [api.reducerPath]: api.reducer,
     },
     preloadedState: load(),
-    middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(save()),
+    middleware: (getDefaultMiddleware) =>
+        getDefaultMiddleware({
+            serializableCheck: {
+                ignoredPaths: ["store.api"],
+            },
+        }).concat(api.middleware),
 });
 
 // Infer the `RootState` and `AppDispatch` types from the store itself

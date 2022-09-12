@@ -30,7 +30,7 @@ describe("API", () => {
         beforeEach(async () => {
             validParams = {
                 roomId: room.id,
-                type: "type",
+                type: "text",
                 body: {
                     text: "text",
                     mediaUrl: "url",
@@ -87,7 +87,7 @@ describe("API", () => {
             const responseValid = await supertest(app)
                 .post("/api/messenger/messages")
                 .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, type: "string" });
+                .send({ ...validParams, type: "text" });
 
             expect(responseInvalid.status).to.eqls(400);
             expect(responseValid.status).to.eqls(200);
@@ -107,7 +107,7 @@ describe("API", () => {
             const responseValid = await supertest(app)
                 .post("/api/messenger/messages")
                 .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, type: "type" });
+                .send({ ...validParams, type: "text" });
 
             expect(responseInvalidOne.status).to.eqls(400);
             expect(responseInvalidTwo.status).to.eqls(400);
@@ -647,40 +647,14 @@ describe("API", () => {
         });
     });
 
-    describe("/api/messenger/messages/:timestamp GET", () => {
-        it("timestamp param must be number", async () => {
-            const responseInvalid = await supertest(app)
-                .get("/api/messenger/messages/invalid")
-                .set({ accesstoken: globals.userToken });
-
-            const response = await supertest(app)
-                .get(`/api/messenger/messages/${+Date.now()}`)
-                .set({ accesstoken: globals.userToken });
-
-            expect(responseInvalid.status).to.eqls(400);
-            expect(response.status).to.eqls(200);
-        });
-
-        it("gets messages that are created after timestamp", async () => {
-            const responseOne = await supertest(app)
-                .get(`/api/messenger/messages/${+Date.now()}`)
-                .set({ accesstoken: globals.userToken });
-
-            expect(responseOne.status).to.eqls(200);
-            expect(responseOne.body).to.has.property("data");
-            expect(responseOne.body.data).to.has.property("list");
-            expect(responseOne.body.data).to.has.property("count");
-            expect(responseOne.body.data.list).to.have.lengthOf(0);
-            expect(responseOne.body.data.count).to.eqls(0);
-
+    describe("/api/messenger/messages/sync GET", () => {
+        it("gets messages that are not delivered", async () => {
             const user = await createFakeUser();
             const device = await createFakeDevice(user.id);
             const room = await createFakeRoom([
                 { userId: globals.userId, isAdmin: true },
                 { userId: user.id },
             ]);
-
-            const timestamp = +new Date();
 
             const messages = await Promise.all(
                 new Array(18).fill(true).map(() =>
@@ -692,16 +666,303 @@ describe("API", () => {
                 )
             );
 
-            const responseTwo = await supertest(app)
-                .get(`/api/messenger/messages/${timestamp}`)
+            const deliveredMessage = await createFakeMessage({
+                fromUserId: user.id,
+                room,
+                fromDeviceId: device.id,
+            });
+
+            await globals.prisma.messageRecord.create({
+                data: {
+                    messageId: deliveredMessage.id,
+                    userId: globals.userId,
+                    type: "delivered",
+                },
+            });
+
+            const response = await supertest(app)
+                .get("/api/messenger/messages/sync")
                 .set({ accesstoken: globals.userToken });
 
-            expect(responseTwo.status).to.eqls(200);
-            expect(responseTwo.body).to.has.property("data");
-            expect(responseTwo.body.data).to.has.property("list");
-            expect(responseTwo.body.data).to.has.property("count");
-            expect(responseTwo.body.data.list).to.have.lengthOf(Constants.PAGING_LIMIT);
-            expect(responseTwo.body.data.count).to.eqls(messages.length);
+            expect(response.status).to.eqls(200);
+            expect(response.body).to.has.property("data");
+            expect(response.body.data).to.has.property("messages");
+            expect(
+                messages.every((m) => response.body.data.messages.find((bm: any) => bm.id === m.id))
+            ).to.be.true;
+            expect(
+                response.body.data.messages.filter((mb: any) => mb.id === deliveredMessage.id)
+            ).to.have.lengthOf(0);
+        });
+    });
+
+    describe("/api/messenger/messages/:id DELETE", () => {
+        let room: Room;
+
+        before(async () => {
+            room = await createFakeRoom([{ userId: globals.userId, isAdmin: true }]);
+        });
+
+        it("requires target to be all or user", async () => {
+            const message = await createFakeMessage({
+                fromUserId: globals.userId,
+                room,
+                fromDeviceId: globals.deviceId,
+            });
+
+            const responseInvalidOne = await supertest(app)
+                .delete(`/api/messenger/messages/${message.id}`)
+                .set({ accesstoken: globals.userToken });
+
+            const responseInvalidTwo = await supertest(app)
+                .delete(`/api/messenger/messages/${message.id}?target=invalid`)
+                .set({ accesstoken: globals.userToken });
+
+            const responseValidOne = await supertest(app)
+                .delete(`/api/messenger/messages/${message.id}?target=all`)
+                .set({ accesstoken: globals.userToken });
+
+            const responseValidTwo = await supertest(app)
+                .delete(`/api/messenger/messages/${message.id}?target=all`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseInvalidOne.status).to.eqls(400);
+            expect(responseInvalidTwo.status).to.eqls(400);
+            expect(responseValidOne.status).to.eqls(200);
+            expect(responseValidTwo.status).to.eqls(200);
+        });
+
+        it("requires message to exist", async () => {
+            const responseInvalid = await supertest(app)
+                .delete("/api/messenger/messages/65415361531115131?target=all")
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseInvalid.status).to.eqls(404);
+        });
+
+        it("requires user to be owner of message if target is all", async () => {
+            const fakeUser = await createFakeUser();
+            const message = await createFakeMessage({
+                fromUserId: fakeUser.id,
+                room,
+                fromDeviceId: globals.deviceId,
+            });
+
+            const responseInvalid = await supertest(app)
+                .delete(`/api/messenger/messages/${message.id}?target=all`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseInvalid.status).to.eqls(403);
+        });
+
+        it("requires user to be in room if target is user", async () => {
+            const room = await createFakeRoom([]);
+            const message = await createFakeMessage({
+                fromUserId: globals.userId,
+                room,
+                fromDeviceId: globals.deviceId,
+            });
+
+            const responseInvalid = await supertest(app)
+                .delete(`/api/messenger/messages/${message.id}?target=all`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseInvalid.status).to.eqls(403);
+        });
+
+        it("updates users messageDevices if target is user", async () => {
+            const message = await createFakeMessage({
+                fromUserId: globals.userId,
+                room,
+                fromDeviceId: globals.deviceId,
+            });
+
+            const responseValid = await supertest(app)
+                .delete(`/api/messenger/messages/${message.id}?target=user`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseValid.status).to.eqls(200);
+
+            const deviceMessagesFromDb = await globals.prisma.deviceMessage.findMany({
+                where: { messageId: message.id, userId: globals.userId },
+            });
+            expect(
+                deviceMessagesFromDb.every(
+                    (dm) => (dm.body as { text: string }).text === "Deleted message"
+                )
+            ).to.eqls(true);
+        });
+
+        it("updates all messageDevices if target is all", async () => {
+            const message = await createFakeMessage({
+                fromUserId: globals.userId,
+                room,
+                fromDeviceId: globals.deviceId,
+            });
+
+            const responseValid = await supertest(app)
+                .delete(`/api/messenger/messages/${message.id}?target=user`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseValid.status).to.eqls(200);
+
+            const deviceMessagesFromDb = await globals.prisma.deviceMessage.findMany({
+                where: { messageId: message.id },
+            });
+            expect(
+                deviceMessagesFromDb.every(
+                    (dm) => (dm.body as { text: string }).text === "Deleted message"
+                )
+            ).to.eqls(true);
+        });
+
+        it("updates message if target is all", async () => {
+            const message = await createFakeMessage({
+                fromUserId: globals.userId,
+                room,
+                fromDeviceId: globals.deviceId,
+            });
+
+            const responseValid = await supertest(app)
+                .delete(`/api/messenger/messages/${message.id}?target=all`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseValid.status).to.eqls(200);
+
+            const messageFromDb = await globals.prisma.message.findUnique({
+                where: { id: message.id },
+            });
+            expect(messageFromDb.deleted).to.eqls(true);
+            expect(+messageFromDb.modifiedAt > +message.modifiedAt).to.eqls(true);
+            expect(messageFromDb.type).to.eqls("text");
+        });
+    });
+
+    describe("/api/messenger/messages/:id PUT", () => {
+        let room: Room;
+
+        before(async () => {
+            room = await createFakeRoom([{ userId: globals.userId, isAdmin: true }]);
+        });
+
+        it("text is required", async () => {
+            const message = await createFakeMessage({
+                fromUserId: globals.userId,
+                room,
+                fromDeviceId: globals.deviceId,
+            });
+
+            const responseInvalid = await supertest(app)
+                .put(`/api/messenger/messages/${message.id}`)
+                .send({
+                    text: "",
+                })
+                .set({ accesstoken: globals.userToken });
+
+            const responseValid = await supertest(app)
+                .put(`/api/messenger/messages/${message.id}`)
+                .send({
+                    text: "la la la",
+                })
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseInvalid.status).to.eqls(400);
+            expect(responseValid.status).to.eqls(200);
+        });
+
+        it("requires message to exist", async () => {
+            const responseInvalid = await supertest(app)
+                .put("/api/messenger/messages/65415361531115131")
+                .send({
+                    text: "la la la",
+                })
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseInvalid.status).to.eqls(404);
+        });
+
+        it("can only update messages that have type text", async () => {
+            const message = await createFakeMessage({
+                fromUserId: globals.userId,
+                room,
+                type: "video",
+                fromDeviceId: globals.deviceId,
+            });
+
+            const responseInvalid = await supertest(app)
+                .put(`/api/messenger/messages/${message.id}`)
+                .send({
+                    text: "lal la",
+                })
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseInvalid.status).to.eqls(400);
+        });
+
+        it("requires user to be owner of message", async () => {
+            const fakeUser = await createFakeUser();
+            const message = await createFakeMessage({
+                fromUserId: fakeUser.id,
+                room,
+                fromDeviceId: globals.deviceId,
+            });
+
+            const responseInvalid = await supertest(app)
+                .put(`/api/messenger/messages/${message.id}`)
+                .send({
+                    text: "la la la",
+                })
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseInvalid.status).to.eqls(403);
+        });
+
+        it("updates all messageDevices", async () => {
+            const message = await createFakeMessage({
+                fromUserId: globals.userId,
+                room,
+                fromDeviceId: globals.deviceId,
+            });
+
+            const responseValid = await supertest(app)
+                .put(`/api/messenger/messages/${message.id}`)
+                .send({
+                    text: "la la la",
+                })
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseValid.status).to.eqls(200);
+
+            const deviceMessagesFromDb = await globals.prisma.deviceMessage.findMany({
+                where: { messageId: message.id },
+            });
+            expect(
+                deviceMessagesFromDb.every(
+                    (dm) => (dm.body as { text: string }).text === "la la la"
+                )
+            ).to.eqls(true);
+        });
+
+        it("updates messages modifiedAt", async () => {
+            const message = await createFakeMessage({
+                fromUserId: globals.userId,
+                room,
+                fromDeviceId: globals.deviceId,
+            });
+
+            const responseValid = await supertest(app)
+                .put(`/api/messenger/messages/${message.id}`)
+                .send({
+                    text: "la la la",
+                })
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseValid.status).to.eqls(200);
+
+            const messageFromDb = await globals.prisma.message.findUnique({
+                where: { id: message.id },
+            });
+            expect(+messageFromDb.modifiedAt > +message.modifiedAt).to.eqls(true);
         });
     });
 });

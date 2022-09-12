@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 
 import { RootState } from "../store/store";
 
-declare var API_BASE_URL: string;
+declare const API_BASE_URL: string;
 
 type CallbackFunction = (data: any) => void;
 
@@ -13,9 +13,6 @@ export function usePost() {
     const accessToken = useSelector((state: RootState) => state.auth.token);
 
     return async (url: string, params: any) => {
-        console.log("API_BASE_URL", API_BASE_URL);
-        console.log("url", url);
-
         const response: AxiosResponse<any> = await axios({
             method: "post",
             url: API_BASE_URL + url,

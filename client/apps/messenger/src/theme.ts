@@ -1,9 +1,35 @@
 import { createTheme } from "@mui/material/styles";
 
+declare module "@mui/material/styles" {
+    interface TypeText {
+        primary: string;
+        secondary: string;
+        disabled: string;
+        tertiary: string;
+        navigation: string;
+    }
+}
+
+declare module "@mui/material/styles/createPalette" {
+    interface CommonColors {
+        black: string;
+        white: string;
+        chatBackground: string;
+        myMessageBackground: string;
+        darkBlue: string;
+        confCallBackground: string;
+        videoBackground: string;
+        videoLabelBackground: string;
+        confCallControls: string;
+        confCallControlsHoverBackground: string;
+        confCallFirstLetterColor: string;
+    }
+}
+
 let theme = createTheme({
     typography: {
-        fontFamily: `"Montserrat" , sans-serif`,
-        fontSize: 12,
+        fontFamily: `"Roboto" , sans-serif`,
+        fontSize: 14,
         fontWeightLight: 300,
         fontWeightRegular: 400,
         fontWeightMedium: 500,
@@ -20,6 +46,24 @@ let theme = createTheme({
         action: {
             disabled: "#fff",
             disabledBackground: "#a3cbf8",
+            hover: "#E6F4FF",
+        },
+        text: {
+            primary: "#141414",
+            secondary: "#4A4A4A",
+            tertiary: "#9AA0A6",
+            navigation: "#9BB4CF",
+        },
+        common: {
+            darkBlue: "#131940",
+            chatBackground: "#F2F2F2",
+            myMessageBackground: "#C8EBFE",
+            videoBackground: "#222",
+            videoLabelBackground: "#fff9",
+            confCallControls: "#fff",
+            confCallControlsHoverBackground: "#fff1",
+            confCallBackground: "#111111f4",
+            confCallFirstLetterColor: "#fff",
         },
     },
 });
@@ -33,7 +77,6 @@ theme = createTheme(theme, {
                     borderRadius: "0.625rem",
                     boxShadow: "none",
                     textTransform: "none",
-                    fontSize: "1rem",
                     fontWeight: theme.typography.fontWeightBold,
                 },
             },
@@ -41,7 +84,7 @@ theme = createTheme(theme, {
         MuiFormLabel: {
             styleOverrides: {
                 root: {
-                    color: "#9AA0A6",
+                    color: theme.palette.text.tertiary,
                     fontWeight: theme.typography.fontWeightMedium,
                 },
             },
@@ -51,11 +94,20 @@ theme = createTheme(theme, {
                 root: {
                     "& .MuiOutlinedInput-notchedOutline": {
                         borderRadius: "0.625rem",
-                        borderColor: "#9AA0A6",
+                        borderColor: theme.palette.text.tertiary,
                     },
                     input: {
                         "&::placeholder": {
-                            color: "#9AA0A6",
+                            color: theme.palette.text.tertiary,
+                            fontWeight: theme.typography.fontWeightMedium,
+                            opacity: "1",
+                        },
+                        color: theme.typography.body1.color,
+                        fontWeight: theme.typography.fontWeightMedium,
+                    },
+                    textarea: {
+                        "&::placeholder": {
+                            color: theme.palette.text.tertiary,
                             fontWeight: theme.typography.fontWeightMedium,
                             opacity: "1",
                         },
@@ -71,7 +123,7 @@ theme = createTheme(theme, {
                     borderRadius: "0.625rem",
                     input: {
                         "&::placeholder": {
-                            color: "#9AA0A6",
+                            color: theme.palette.text.tertiary,
                             fontWeight: theme.typography.fontWeightMedium,
                             opacity: "1",
                         },
@@ -84,9 +136,19 @@ theme = createTheme(theme, {
         MuiAlertTitle: {
             styleOverrides: {
                 root: {
-                    fontSize: "1rem",
                     fontWeight: theme.typography.fontWeightBold,
                     color: "#ef5350",
+                },
+            },
+        },
+        MuiDataGrid: {
+            styleOverrides: {
+                root: {
+                    "& .MuiDataGrid-columnHeaders": {
+                        backgroundColor: "red",
+                        color: "rgba(255,0,0,0.7)",
+                        fontSize: 40,
+                    },
                 },
             },
         },

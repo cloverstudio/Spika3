@@ -6,10 +6,12 @@ export default async function createFakeMessage({
     fromUserId,
     fromDeviceId,
     room,
+    type = "text",
 }: {
     fromUserId: number;
     fromDeviceId: number;
     room: Room;
+    type?: string;
 }): Promise<Message> {
     const roomUsers = await prisma.roomUser.findMany({ where: { roomId: room.id } });
 
@@ -21,7 +23,7 @@ export default async function createFakeMessage({
 
     const message = await prisma.message.create({
         data: {
-            type: "text",
+            type,
             roomId: room.id,
             fromDeviceId,
             fromUserId,

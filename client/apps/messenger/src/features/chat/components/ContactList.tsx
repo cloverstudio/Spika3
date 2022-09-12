@@ -6,13 +6,14 @@ import CheckIcon from "@mui/icons-material/Check";
 
 import { dynamicBaseQuery } from "../../../api/api";
 import { useCreateRoomMutation } from "../api/room";
-import { useGetContactsQuery } from "../api/contacts";
-import { selectContacts } from "../slice/contactsSlice";
+import { fetchContact, selectContacts, selectContactLoading } from "../slice/contactsSlice";
 
 import User from "../../../types/User";
 
 import useIsInViewport from "../../../hooks/useIsInViewport";
 import { setLeftSidebar } from "../slice/sidebarSlice";
+
+import SearchBox from "./SearchBox";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -25,8 +26,11 @@ export default function SidebarContactList({
 }): React.ReactElement {
     const dispatch = useDispatch();
     const { list, count, sortedByDisplayName } = useSelector(selectContacts);
+    const loading = useSelector(selectContactLoading());
+    const isFetching = loading !== "idle";
+
     const [page, setPage] = useState(1);
-    const { isFetching } = useGetContactsQuery(page);
+    const [keyword, setKeyword] = useState("");
     const { isInViewPort, elementRef } = useIsInViewport();
     const navigate = useNavigate();
     const [createRoom] = useCreateRoomMutation();
@@ -35,14 +39,23 @@ export default function SidebarContactList({
     const hasMoreContactsToLoad = count > list.length;
 
     useEffect(() => {
-        if (isInViewPort && !isFetching && hasMoreContactsToLoad) {
+        dispatch(fetchContact({ page: page, keyword }));
+    }, [dispatch, page]);
+
+    useEffect(() => {
+        dispatch(fetchContact({ page: 1, keyword }));
+    }, [keyword]);
+
+    useEffect(() => {
+        if (isInViewPort && hasMoreContactsToLoad) {
             setPage((page) => page + 1);
         }
     }, [isInViewPort, isFetching, hasMoreContactsToLoad]);
 
-    if (!list.length && !isFetching) {
-        return <Typography align="center">No contacts</Typography>;
-    }
+    useEffect(() => {
+        if (page === 1) dispatch(fetchContact({ page: 1, keyword }));
+        else setPage(1);
+    }, [keyword]);
 
     const defaultHandleUserClick = async (user: User) => {
         try {
@@ -69,10 +82,20 @@ export default function SidebarContactList({
 
     return (
         <Box sx={{ overflowY: "auto", maxHeight: "100%" }}>
+            <Box mt={3}>
+                <SearchBox
+                    onSearch={(keyword: string) => {
+                        setKeyword(keyword);
+                    }}
+                />
+            </Box>
+
+            {!list.length && !isFetching && <Typography align="center">No contacts</Typography>}
+
             {sortedByDisplayName.map(([letter, contactList]) => {
                 return (
                     <Box key={letter} mb={2}>
-                        <Typography ml={4.75} py={1.5} fontWeight="bold" fontSize="1.1rem">
+                        <Typography ml={4.75} py={1.5} fontWeight="bold">
                             {letter}
                         </Typography>
 
@@ -122,9 +145,7 @@ export function ContactRow({
                 justifyContent="space-between"
                 alignItems="center"
             >
-                <Typography fontWeight="500" fontSize="1rem">
-                    {name}
-                </Typography>
+                <Typography fontWeight="500">{name}</Typography>
                 {selected && <SelectedIcon />}
             </Box>
         </Box>

@@ -1,58 +1,86 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Layout from "../layout";
 import { useNavigate, useParams } from "react-router-dom";
 import { DataGrid, GridActionsCellItem } from "@mui/x-data-grid";
-import { Paper, Fab } from "@mui/material";
+import { Paper, Stack, TextField, Button, Drawer, Box } from "@mui/material";
 import {
-    Add as AddIcon,
     Delete as DeleteIcon,
     Edit as EditIcon,
     Description as DescriptionIcon,
 } from "@mui/icons-material/";
 import { Device } from "@prisma/client";
-import { useGet } from "../../lib/useApi";
-import { useShowSnackBar } from "../../components/useUI";
-import { ListResponseType } from "../../lib/customTypes";
-import { successResponseType } from "../../../../../../server/components/response";
+import { useGetDevicesQuery, useGetDevicesForUserQuery } from "../../api/device";
+import DeviceType from "../../types/Device";
+import { useDispatch, useSelector } from "react-redux";
+import {
+    show as openCreateUser,
+    hide as hideCreateUser,
+    selectRightSidebarOpen,
+} from "../../store/rightDrawerSlice";
+import theme from "../../theme";
+import DeviceAdd from "../../pages/device/add";
+import DeviceEdit from "../../pages/device/edit";
+import { useShowBasicDialog, useShowSnackBar } from "../../components/useUI";
+import { useDeleteDeviceMutation, useGetDevicesBySearchTermQuery } from "../../api/device";
 
 export default function Dashboard() {
     const [loading, setLoading] = React.useState<boolean>(false);
-    const [list, setList] = React.useState<Array<Device>>([]);
+    const [list, setList] = React.useState<DeviceType[]>([]);
     const [pageSize, setPageSize] = React.useState<number>(30);
     const [totalCount, setTotalCount] = React.useState<number>(0);
     const urlParams = useParams();
-    const showSnackBar = useShowSnackBar();
     const navigate = useNavigate();
-    const get = useGet();
+    const [page, setPage] = useState(0);
+    const [searchTerm, setSearchTerm] = React.useState("");
+    const { data, isLoading } =
+        urlParams.id == null
+            ? useGetDevicesQuery(page)
+            : useGetDevicesForUserQuery({ page: page, userId: urlParams.id });
+    const dispatch = useDispatch();
+    const isRightDrawerOpen = useSelector(selectRightSidebarOpen);
+    const [showEditDrawer, setShowEditDrawer] = React.useState<boolean>(false);
+    const [selectedDeviceId, setSelectedDeviceId] = React.useState<number>(0);
+    const showSnackBar = useShowSnackBar();
+    const showBasicDialog = useShowBasicDialog();
+    const [deleteDevice, deleteDeviceMutation] = useDeleteDeviceMutation();
+    const { data: deviceSearchData, isLoading: deviceSearchIsLoading } =
+        useGetDevicesBySearchTermQuery(searchTerm);
+
+    const hideDrawer = () => {
+        setShowEditDrawer(false);
+        dispatch(hideCreateUser());
+    };
 
     useEffect(() => {
         (async () => {
-            await fetchData(0);
+            if (!isLoading) {
+                setList(data.list);
+                setPageSize(data.limit);
+                setTotalCount(data.count);
+            }
         })();
-    }, []);
+    }, [data]);
 
-    const fetchData = async (page: number) => {
-        setLoading(true);
+    useEffect(() => {
+        (async () => {
+            const delayDebounceFn = setTimeout(() => {
+                if (!deviceSearchIsLoading) {
+                    if (searchTerm.length > 0) {
+                        setList(deviceSearchData.list);
+                        setPageSize(deviceSearchData.limit);
+                        setTotalCount(deviceSearchData.count);
+                    } else {
+                        setList(data.list);
+                        setPageSize(data.limit);
+                        setTotalCount(data.count);
+                    }
+                }
+            }, 2000);
+        })();
+    }, [deviceSearchData]);
 
-        try {
-            const url: string =
-                urlParams.id == null
-                    ? `/management/device?page=${page}`
-                    : `/management/device?page=${page}&userId=${urlParams.id}`;
-            const serverResponse: successResponseType = await get(url);
-            const response: ListResponseType<Device> = serverResponse.data;
-            setList(response.list);
-            setPageSize(response.limit);
-            setTotalCount(response.count);
-        } catch (e) {
-            console.error(e);
-            showSnackBar({
-                severity: "error",
-                text: "Server error, please check browser console.",
-            });
-        }
-
-        setLoading(false);
+    const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(event.target.value);
     };
 
     const columns = [
@@ -98,22 +126,6 @@ export default function Dashboard() {
             filterable: false,
         },
         {
-            field: "createdAt",
-            headerName: "Created",
-            type: "dateTime",
-            flex: 0.5,
-            sortable: false,
-            filterable: false,
-        },
-        {
-            field: "modifiedAt",
-            headerName: "Modified",
-            type: "dateTime",
-            flex: 0.5,
-            sortable: false,
-            filterable: false,
-        },
-        {
             field: "actions",
             type: "actions",
             width: 80,
@@ -127,13 +139,29 @@ export default function Dashboard() {
                 <GridActionsCellItem
                     icon={<EditIcon />}
                     label="Edit"
-                    onClick={() => navigate(`/device/edit/${params.id}`)}
+                    onClick={(e) => {
+                        setSelectedDeviceId(params.id);
+                        setShowEditDrawer(true);
+                        dispatch(openCreateUser());
+                    }}
                     showInMenu
                 />,
                 <GridActionsCellItem
                     icon={<DeleteIcon />}
                     label="Delete"
-                    onClick={() => navigate(`/device/delete/${params.id}`)}
+                    onClick={(e) => {
+                        showBasicDialog({ text: "Please confirm delete." }, async () => {
+                            try {
+                                await deleteDevice(params.id);
+                            } catch (e) {
+                                console.error(e);
+                                showSnackBar({
+                                    severity: "error",
+                                    text: "Server error, please check browser console.",
+                                });
+                            }
+                        });
+                    }}
                     showInMenu
                 />,
             ],
@@ -148,6 +176,36 @@ export default function Dashboard() {
                     padding: "24px",
                 }}
             >
+                <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                    sx={{
+                        display: "flex",
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        width: "100%",
+                        mb: "1em",
+                    }}
+                >
+                    <TextField
+                        label="Search Device"
+                        id="outlined-size-small"
+                        size="small"
+                        sx={{ minWidth: 400 }}
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                    />
+                    <Button
+                        type="submit"
+                        color="spikaButton"
+                        variant="contained"
+                        sx={{ mt: 3, mb: 2 }}
+                        onClick={() => dispatch(openCreateUser())}
+                    >
+                        ADD DEVICE
+                    </Button>
+                </Stack>
                 <div style={{ display: "flex", width: "100%", flexGrow: 1 }}>
                     <DataGrid
                         autoHeight
@@ -157,22 +215,30 @@ export default function Dashboard() {
                         rowCount={totalCount}
                         pagination
                         paginationMode="server"
-                        onPageChange={(newPage) => fetchData(newPage)}
+                        onPageChange={(newPage) => setPage(newPage)}
                         loading={loading}
                     />
                 </div>
+                <Drawer
+                    PaperProps={{
+                        sx: {
+                            backgroundColor: theme.palette.spikaMainBackgroundColor.main,
+                        },
+                    }}
+                    anchor="right"
+                    sx={{ zIndex: 1300 }}
+                    open={isRightDrawerOpen}
+                    onClose={hideDrawer}
+                >
+                    <Box width={400}>
+                        {showEditDrawer ? (
+                            <DeviceEdit deviceId={String(selectedDeviceId)} />
+                        ) : (
+                            <DeviceAdd />
+                        )}
+                    </Box>
+                </Drawer>
             </Paper>
-
-            <Fab
-                color="primary"
-                aria-label="add"
-                sx={{ position: "absolute", right: 64, bottom: 128, zIndex: 100 }}
-                onClick={(e) => {
-                    navigate("/device/add");
-                }}
-            >
-                <AddIcon />
-            </Fab>
         </Layout>
     );
 }

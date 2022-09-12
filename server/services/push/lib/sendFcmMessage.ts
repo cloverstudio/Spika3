@@ -1,11 +1,13 @@
 import axios, { AxiosResponse } from "axios";
 import { google } from "googleapis";
 
-import { error as le } from "../../../components/logger";
+import l, { error as le } from "../../../components/logger";
 
 const PATH = "/v1/projects/" + process.env.FCM_PROJECT_ID + "/messages:send";
 const MESSAGING_SCOPE = "https://www.googleapis.com/auth/firebase.messaging";
 const SCOPES = [MESSAGING_SCOPE];
+
+let accessToken = null;
 
 function getAccessToken() {
     return new Promise(function (resolve, reject) {
@@ -42,7 +44,7 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
         return;
     }
 
-    const accessToken = await getAccessToken();
+    if (!accessToken) accessToken = await getAccessToken();
 
     const response: AxiosResponse<any> = await axios({
         method: "post",
@@ -68,6 +70,8 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
     if (response.status !== 200) {
         le("FCM error, ", { status: response.status, data: response.data });
         throw new Error("FCM error");
+    } else {
+        l("FCM sent");
     }
 
     return response.data;

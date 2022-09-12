@@ -73,6 +73,17 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         );
                 }
 
+                if (type === "reaction") {
+                    // delete previous reaction
+                    await prisma.messageRecord.deleteMany({
+                        where: {
+                            messageId,
+                            type,
+                            userId,
+                        },
+                    });
+                }
+
                 const messageRecord = await prisma.messageRecord.create({
                     data: {
                         messageId,
@@ -84,10 +95,12 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
                 const messageRecordSanitized = sanitize(messageRecord).messageRecord();
 
-                sseMessageRecordsNotify(
-                    [messageRecordSanitized],
-                    Constants.PUSH_TYPE_NEW_MESSAGE_RECORD
-                );
+                if (type === "reaction") {
+                    sseMessageRecordsNotify(
+                        [messageRecordSanitized],
+                        Constants.PUSH_TYPE_NEW_MESSAGE_RECORD
+                    );
+                }
 
                 res.send(successResponse({ messageRecord: messageRecordSanitized }, userReq.lang));
             } catch (e: any) {

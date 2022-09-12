@@ -1,9 +1,12 @@
-import React from "react";
-
-import { styled, createTheme, ThemeProvider } from "@mui/material/styles";
+import React, { useEffect } from "react";
+import { styled, ThemeProvider } from "@mui/material/styles";
 import MuiDrawer from "@mui/material/Drawer";
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import * as constants from "../../../../lib/constants";
+import logo from "../assets/logo.svg";
+import theme from "../theme";
+import FilterView from "../components/filterView";
 
 import {
     CssBaseline,
@@ -11,12 +14,13 @@ import {
     Typography,
     Toolbar,
     IconButton,
-    Divider,
-    Badge,
     List,
-    ListItem,
     ListItemIcon,
     ListItemText,
+    ListItemButton,
+    Stack,
+    Menu,
+    MenuItem,
 } from "@mui/material";
 
 import {
@@ -29,15 +33,24 @@ import {
     Devices as DeviceIcon,
     MeetingRoom as RoomIcon,
     Logout as LogoutIcon,
+    AccountCircle,
 } from "@mui/icons-material/";
 
 import SnackBar from "../components/snackBar";
 import BasicDialog from "../components/basicDialog";
 import { logout } from "../store/adminAuthSlice";
 import { showSnackBar } from "../store/uiSlice";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { hide } from "../store/rightDrawerSlice";
 
 const drawerWidth = 240;
+
+export enum FilterType {
+    User = "user",
+    Device = "device",
+    Room = "room",
+    None = "none",
+}
 
 interface AppBarProps extends MuiAppBarProps {
     open?: boolean;
@@ -87,31 +100,93 @@ const Drawer = styled(MuiDrawer, {
     },
 }));
 
-const mdTheme = createTheme();
-const localToken = "localToken";
 type LayoutParams = {
     subtitle: string;
     children: React.ReactNode;
     showBack: boolean | undefined;
+    selectedFilter: Function;
 };
 
-function DashboardContent({ subtitle, children, showBack = false }: LayoutParams) {
+function DashboardContent({ subtitle, children, showBack = false, selectedFilter }: LayoutParams) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-
+    const location = useLocation();
     const [open, setOpen] = React.useState(true);
+    const [selectedIndex, setSelectedIndex] = React.useState(0);
+    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const [filterType, setFilterType] = React.useState<FilterType>(FilterType.None);
+    const openMenu = Boolean(anchorEl);
+
+    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+    const handleClose = () => {
+        setAnchorEl(null);
+    };
     const toggleDrawer = () => {
         setOpen(!open);
     };
+    const hideDrawer = () => {
+        dispatch(hide());
+    };
+    const handleListItemClick = (
+        event: React.MouseEvent<HTMLDivElement, MouseEvent>,
+        index: number
+    ) => {
+        switch (index) {
+            case 0: {
+                navigate("/dashboard");
+                break;
+            }
+            case 1: {
+                navigate("/user");
+
+                break;
+            }
+            case 2: {
+                navigate("/device");
+
+                break;
+            }
+            case 3: {
+                navigate("/room");
+
+                break;
+            }
+            default: {
+                //statements;
+                break;
+            }
+        }
+    };
+
+    useEffect(() => {
+        (async () => {
+            if (location.pathname.includes("dashboard")) {
+                setSelectedIndex(0);
+                setFilterType(FilterType.None);
+            } else if (location.pathname.includes("user")) {
+                setSelectedIndex(1);
+                setFilterType(FilterType.User);
+            } else if (location.pathname.includes("device")) {
+                setSelectedIndex(2);
+                setFilterType(FilterType.Device);
+            } else if (location.pathname.includes("room")) {
+                setSelectedIndex(3);
+                setFilterType(FilterType.Room);
+            }
+        })();
+    }, []);
 
     return (
-        <ThemeProvider theme={mdTheme}>
+        <ThemeProvider theme={theme}>
             <Box sx={{ display: "flex" }}>
                 <CssBaseline />
-                <AppBar position="absolute" open={open}>
+                <AppBar position="absolute" open={open} elevation={0}>
                     <Toolbar
                         sx={{
                             pr: "24px", // keep right padding when drawer closed
+                            backgroundColor: theme.palette.spikaMainBackgroundColor.main,
                         }}
                     >
                         <IconButton
@@ -124,7 +199,7 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
                                 ...(open && { display: "none" }),
                             }}
                         >
-                            <MenuIcon />
+                            <MenuIcon style={{ fill: theme.palette.spikaButton.main }} />
                         </IconButton>
 
                         {showBack ? (
@@ -139,97 +214,153 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
                             color="inherit"
                             noWrap
                             sx={{ flexGrow: 1 }}
+                        ></Typography>
+                        <IconButton
+                            color="inherit"
+                            onClick={(e) => {
+                                handleClick(e);
+                            }}
                         >
-                            {subtitle}
-                        </Typography>
-                        <IconButton color="inherit">
-                            <Badge badgeContent={4} color="secondary">
-                                <NotificationsIcon />
-                            </Badge>
+                            <AccountCircle style={{ fill: theme.palette.spikaButton.main }} />
                         </IconButton>
+                        <Menu
+                            id="basic-menu"
+                            anchorEl={anchorEl}
+                            open={openMenu}
+                            onClose={handleClose}
+                            MenuListProps={{
+                                "aria-labelledby": "basic-button",
+                            }}
+                        >
+                            <MenuItem
+                                onClick={(e) => {
+                                    dispatch(logout());
+                                    dispatch(
+                                        showSnackBar({
+                                            severity: "success",
+                                            text: "Singed out",
+                                        })
+                                    );
+                                    localStorage.removeItem(constants.ADMIN_ACCESS_TOKEN);
+                                    navigate("/");
+                                }}
+                            >
+                                Logout
+                            </MenuItem>
+                        </Menu>
                     </Toolbar>
                 </AppBar>
-                <Drawer variant="permanent" open={open}>
+                <Drawer
+                    variant="permanent"
+                    open={open}
+                    PaperProps={{
+                        sx: {
+                            backgroundColor: theme.palette.spikaDrawer.main,
+                        },
+                    }}
+                >
                     <Toolbar
                         sx={{
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "flex-end",
+                            justifyContent: "space-between",
                             px: [1],
                         }}
                     >
+                        <Stack
+                            justifyContent="center"
+                            alignItems="center"
+                            spacing={2}
+                            direction="row"
+                            marginLeft="1em"
+                        >
+                            <Box component="img" height="40px" width="40px" src={logo} />
+                            <Typography
+                                component="h1"
+                                variant="h6"
+                                color={theme.palette.spikaLightGrey.main}
+                                noWrap
+                            >
+                                Spika
+                            </Typography>
+                        </Stack>
+
                         <IconButton onClick={toggleDrawer}>
-                            <ChevronLeftIcon />
+                            <ChevronLeftIcon style={{ fill: theme.palette.spikaLightGrey.main }} />
                         </IconButton>
                     </Toolbar>
-                    <Divider />
-                    <List>
-                        <ListItem
-                            button
-                            onClick={(e) => {
-                                navigate("/dashboard");
-                            }}
+                    <List
+                        sx={{
+                            // selected and (selected + hover) states
+                            "&& .Mui-selected, && .Mui-selected:hover": {
+                                bgcolor: theme.palette.spikaButton.main,
+                            },
+                            ml: "0.5em",
+                            mr: "0.5em",
+                        }}
+                    >
+                        <ListItemButton
+                            selected={selectedIndex === 0}
+                            onClick={(event) => handleListItemClick(event, 0)}
+                            sx={{ borderRadius: "1em" }}
                         >
                             <ListItemIcon>
-                                <DashboardIcon />
+                                <DashboardIcon
+                                    style={{ fill: theme.palette.spikaLightGrey.main }}
+                                />
                             </ListItemIcon>
-                            <ListItemText primary="Dashboard" />
-                        </ListItem>
-                        <ListItem
-                            button
-                            onClick={(e) => {
-                                navigate("/user");
-                            }}
+                            <ListItemText
+                                primary="Dashboard"
+                                primaryTypographyProps={{
+                                    style: { color: theme.palette.spikaLightGrey.main },
+                                }}
+                            />
+                        </ListItemButton>
+                        <ListItemButton
+                            selected={selectedIndex === 1}
+                            onClick={(event) => handleListItemClick(event, 1)}
+                            sx={{ borderRadius: "1em" }}
                         >
                             <ListItemIcon>
-                                <UserIcon />
+                                <UserIcon style={{ fill: theme.palette.spikaLightGrey.main }} />
                             </ListItemIcon>
-                            <ListItemText primary="Users" />
-                        </ListItem>
-                        <ListItem
-                            button
-                            onClick={(e) => {
-                                navigate("/device");
-                            }}
+                            <ListItemText
+                                primary="Users"
+                                primaryTypographyProps={{
+                                    style: { color: theme.palette.spikaLightGrey.main },
+                                }}
+                            />
+                        </ListItemButton>
+                        <ListItemButton
+                            selected={selectedIndex === 2}
+                            onClick={(event) => handleListItemClick(event, 2)}
+                            sx={{ borderRadius: "1em" }}
                         >
                             <ListItemIcon>
-                                <DeviceIcon />
+                                <DeviceIcon style={{ fill: theme.palette.spikaLightGrey.main }} />
                             </ListItemIcon>
-                            <ListItemText primary="Devices" />
-                        </ListItem>
-                        <ListItem
-                            button
-                            onClick={(e) => {
-                                navigate("/room");
-                            }}
+                            <ListItemText
+                                primary="Devices"
+                                primaryTypographyProps={{
+                                    style: { color: theme.palette.spikaLightGrey.main },
+                                }}
+                            />
+                        </ListItemButton>
+                        <ListItemButton
+                            selected={selectedIndex === 3}
+                            onClick={(event) => handleListItemClick(event, 3)}
+                            sx={{ borderRadius: "1em" }}
                         >
                             <ListItemIcon>
-                                <RoomIcon />
+                                <RoomIcon style={{ fill: theme.palette.spikaLightGrey.main }} />
                             </ListItemIcon>
-                            <ListItemText primary="Rooms" />
-                        </ListItem>
-                    </List>
-                    <Divider />
-                    <List>
-                        <ListItem
-                            button
-                            onClick={(e) => {
-                                dispatch(logout());
-                                dispatch(
-                                    showSnackBar({
-                                        severity: "success",
-                                        text: "Singed out",
-                                    })
-                                );
-                                localStorage.removeItem(localToken);
-                                navigate("/");
-                            }}
-                        >
-                            <ListItemIcon>
-                                <LogoutIcon />
-                            </ListItemIcon>
-                            <ListItemText primary="Logout" />
-                        </ListItem>
+                            <ListItemText
+                                primary="Rooms"
+                                primaryTypographyProps={{
+                                    style: { color: theme.palette.spikaLightGrey.main },
+                                }}
+                            />
+                        </ListItemButton>
                     </List>
                 </Drawer>
                 <Box
@@ -245,10 +376,10 @@ function DashboardContent({ subtitle, children, showBack = false }: LayoutParams
                         paddingTop: "64px",
                     }}
                 >
+                    {location.pathname.includes("detail") ? null : <FilterView type={filterType} />}
                     {children}
                 </Box>
             </Box>
-
             <SnackBar />
             <BasicDialog />
         </ThemeProvider>

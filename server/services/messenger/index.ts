@@ -12,6 +12,7 @@ import historyRouter from "./route/history";
 import userRouter from "./route/user";
 import settingsRouter from "./route/settings";
 import messageRecordRouter from "./route/messageRecord";
+import noteRouter from "./route/note";
 
 import * as Constants from "../../components/consts";
 import Service, { ServiceStartParams } from "../types/serviceInterface";
@@ -50,6 +51,7 @@ export default class Messenger implements Service {
         messengerRouter.use("/device", deviceRouter());
         messengerRouter.use("/history", historyRouter());
         messengerRouter.use("/users", userRouter());
+        messengerRouter.use("/notes", noteRouter({}));
         messengerRouter.use("/settings", settingsRouter());
         messengerRouter.use(
             "/message-records",

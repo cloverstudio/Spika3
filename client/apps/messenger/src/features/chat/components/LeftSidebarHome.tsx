@@ -24,7 +24,6 @@ import SidebarContactList from "./ContactList";
 import SidebarCallList from "./CallList";
 import SidebarChatList from "./ChatList";
 import LeftSidebarLayout from "./LeftSidebarLayout";
-import SearchBox from "./SearchBox";
 import { EditProfileView } from "./EditProfile";
 
 import logo from "../../../assets/logo.svg";
@@ -88,10 +87,11 @@ export default function LeftSidebarHome({
                                 <Box mr={3}>
                                     <IconButton onClick={() => setOpenEditor()}>
                                         <Settings
+                                            fontSize="large"
                                             sx={{
-                                                width: "20px",
-                                                height: "20px",
-                                                color: "#9BB4CF",
+                                                width: "25px",
+                                                height: "25px",
+                                                color: "text.navigation",
                                                 cursor: "pointer",
                                             }}
                                         />
@@ -100,10 +100,11 @@ export default function LeftSidebarHome({
                                 <Box>
                                     <IconButton onClick={() => setSidebar("new_chat")}>
                                         <Edit
+                                            fontSize="large"
                                             sx={{
-                                                width: "20px",
-                                                height: "20px",
-                                                color: "#9BB4CF",
+                                                width: "25px",
+                                                height: "25px",
+                                                color: "text.navigation",
                                                 cursor: "pointer",
                                             }}
                                         />
@@ -112,7 +113,7 @@ export default function LeftSidebarHome({
                             </Box>
                         </Box>
                     </Box>
-                    <Box order={isMobile ? 2 : 0} px={5} pt={2} mb={3}>
+                    <Box order={isMobile ? 2 : 0} px={5} pt={2}>
                         <Box display="flex" justifyContent="space-between">
                             {navigation.map((item) => (
                                 <ActionIcon
@@ -123,9 +124,6 @@ export default function LeftSidebarHome({
                                 />
                             ))}
                         </Box>
-                    </Box>
-                    <Box mt={3}>
-                        <SearchBox />
                     </Box>
                     <Box flex={1} overflow="hidden">
                         <ActiveElement />
@@ -156,15 +154,15 @@ function ActionIcon({ Icon, isActive, handleClick }: ActionIconProps) {
             height="52px"
             borderRadius="50%"
             p={1}
-            bgcolor={isActive ? "#E5F4FF" : "transparent"}
+            bgcolor={isActive ? "action.hover" : "transparent"}
             sx={{
                 cursor: "pointer",
                 "&:hover": {
-                    bgcolor: "#E5F4FF",
+                    bgcolor: "action.hover",
                 },
             }}
         >
-            <Icon sx={{ width: "20px", color: isActive ? "#4696F0" : "#9BB4CF" }} />
+            <Icon sx={{ width: "25px", color: isActive ? "primary.main" : "text.navigation" }} />
         </Box>
     );
 }

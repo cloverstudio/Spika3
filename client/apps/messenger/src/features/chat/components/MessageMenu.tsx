@@ -19,19 +19,23 @@ import {
     Reply,
     Shortcut,
     ContentCopy,
-    FavoriteBorder,
+    Edit,
     DeleteOutline,
     InfoOutlined,
     Close,
     DoneAll,
+    DoneOutlineSharp,
 } from "@mui/icons-material";
+import { useTheme } from "@mui/material/styles";
 
-import { MessageRecordType } from "../../../types/Message";
+import MessageType, { MessageRecordType } from "../../../types/Message";
 import { selectUser } from "../../../store/userSlice";
 import { useGetMessageRecordsByIdQuery } from "../api/message";
 import { useGetUserByIdQuery } from "../api/user";
 
 import dayjs from "dayjs";
+import { utils } from "mocha";
+import * as Utils from "../../../../../../lib/utils";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -40,14 +44,30 @@ export interface MessageDetailsOptionsProps {
     onClose: () => void;
     anchorElement?: HTMLDivElement;
     showMessageDetails: () => void;
+    onDelete?: () => void;
+    onEdit?: () => void;
 }
 
 export function MessageMenu(props: MessageDetailsOptionsProps) {
-    const { open, onClose, anchorElement, showMessageDetails } = props;
+    const { open, onClose, anchorElement, showMessageDetails, onDelete, onEdit } = props;
 
     const showModalMessageDetails = () => {
         showMessageDetails();
         onClose();
+    };
+
+    const showDeleteModal = () => {
+        if (onDelete) {
+            onDelete();
+            onClose();
+        }
+    };
+
+    const showEditModal = () => {
+        if (onEdit) {
+            onEdit();
+            onClose();
+        }
     };
 
     return (
@@ -64,37 +84,34 @@ export function MessageMenu(props: MessageDetailsOptionsProps) {
                 horizontal: "left",
             }}
         >
-            <Stack
-                direction="column"
-                alignItems="center"
-                spacing={0}
+            <Box
                 sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "left",
-
-                    padding: "10px",
+                    padding: "2px",
                 }}
             >
-                <MessageOption onClick={onClose} label="Reply" icon={<Reply />} />
+                {/*  <MessageOption onClick={onClose} label="Reply" icon={<Reply />} />
                 <MessageOption onClick={onClose} label="Forward message" icon={<Shortcut />} />
                 <MessageOption onClick={onClose} label="Copy" icon={<ContentCopy />} />
+                <MessageOption
+                    onClick={onClose}
+                    label="Add to favorite"
+                    icon={<FavoriteBorder />}
+                /> */}
+                {onEdit && <MessageOption onClick={showEditModal} label="Edit" icon={<Edit />} />}
                 <MessageOption
                     onClick={showModalMessageDetails}
                     label="Details"
                     icon={<InfoOutlined />}
                 />
-                <MessageOption
-                    onClick={onClose}
-                    label="Add to favorite"
-                    icon={<FavoriteBorder />}
-                />
-                <MessageOption
-                    onClick={onClose}
-                    label="Delete"
-                    icon={<DeleteOutline style={{ fill: "red" }} />}
-                />
-            </Stack>
+
+                {onDelete && (
+                    <MessageOption
+                        onClick={showDeleteModal}
+                        label="Delete"
+                        icon={<DeleteOutline style={{ fill: "red" }} />}
+                    />
+                )}
+            </Box>
         </Popover>
     );
 }
@@ -106,36 +123,27 @@ type MessageOptionProps = {
 };
 
 function MessageOption({ onClick, icon, label }: MessageOptionProps) {
+    const theme = useTheme();
+
     return (
-        <IconButton
-            disableRipple
-            size="large"
+        <Box
             sx={{
-                ml: 1,
-                "&.MuiButtonBase-root:hover": {
-                    bgcolor: "transparent",
+                padding: "10px 30px 10px 5px",
+                display: "flex",
+                flexDirectio: "row",
+                alignItems: "center",
+                height: "2.5rem",
+                cursor: "pointer",
+                "&:hover": {
+                    background: theme.palette.action.hover,
                 },
-                width: "100%",
-                margin: "0",
-                padding: "5px",
             }}
             onClick={onClick}
         >
-            <Stack
-                direction="row"
-                alignItems="center"
-                spacing={1}
-                sx={{
-                    display: "flex",
-                    flexDirection: "row",
-                    justifyContent: "flex-start",
-                    width: "100%",
-                }}
-            >
-                {icon}
-                <Typography variant="subtitle1">{label}</Typography>
-            </Stack>
-        </IconButton>
+            <Box sx={{ marginRight: "15px" }}>{icon}</Box>
+
+            {label}
+        </Box>
     );
 }
 
@@ -143,6 +151,7 @@ export interface MessageDetailsDialogProps {
     open: boolean;
     onClose: () => void;
     messageId: number;
+    message: MessageType;
 }
 
 export function MessageDetailDialog(props: MessageDetailsDialogProps) {
@@ -158,51 +167,55 @@ export function MessageDetailDialog(props: MessageDetailsDialogProps) {
 
     return (
         <Dialog onClose={onClose} open={open}>
-            <DialogTitle sx={{ textAlign: "center" }}>Details</DialogTitle>
-            <IconButton
-                disableRipple
-                size="large"
+            <Box
                 sx={{
-                    ml: 1,
-                    "&.MuiButtonBase-root:hover": {
-                        bgcolor: "transparent",
-                    },
-                    margin: "0",
-                    padding: "5px",
-                    position: "absolute",
-                    right: "10px",
-                    top: "12px",
+                    width: "400px",
                 }}
-                onClick={onClose}
             >
-                <Close />
-            </IconButton>
-            <Box width="250px" m="1rem">
-                <Box display="flex" justifyContent="space-between">
-                    <Typography variant="h6" mb={4}>
-                        Read by
-                    </Typography>
-                    <DoneAll fontSize="large" color="info" />
+                <DialogTitle sx={{ textAlign: "center" }}>Details</DialogTitle>
+                <IconButton
+                    disableRipple
+                    sx={{
+                        ml: 1,
+                        "&.MuiButtonBase-root:hover": {
+                            bgcolor: "transparent",
+                        },
+                        margin: "0",
+                        padding: "5px",
+                        position: "absolute",
+                        right: "10px",
+                        top: "12px",
+                    }}
+                    onClick={onClose}
+                >
+                    <Close />
+                </IconButton>
+                <Box m="0px 10px 0px 10px">
+                    Message sent at {Utils.showDetailDate(props.message.createdAt)}
                 </Box>
-                <List sx={{ pt: 0 }}>
-                    {seenMembers.map((member) => (
-                        <MessageDetailRow record={member} key={member.id} />
-                    ))}
-                </List>
-            </Box>
-            <Box width="250px" m="1rem">
-                <Box display="flex" justifyContent="space-between">
-                    <Typography variant="h6" mb={4}>
-                        Delivered to
-                    </Typography>
-                    <DoneAll fontSize="large" />
+                <Box m="10px 10px 0px 10px">
+                    <Box display="flex" justifyContent="space-between">
+                        <Box sx={{ fontWeight: "bold", marginBottom: "5px" }}>Read by</Box>
+                        <DoneAll color="info" />
+                    </Box>
+                    <List sx={{ pt: 0 }}>
+                        {seenMembers.map((member) => (
+                            <MessageDetailRow record={member} key={member.id} />
+                        ))}
+                    </List>
                 </Box>
+                <Box m="10px 10px 0px 10px">
+                    <Box display="flex" justifyContent="space-between">
+                        <Box sx={{ fontWeight: "bold", marginBottom: "5px" }}>Delivered to</Box>
+                        <DoneAll />
+                    </Box>
 
-                <List sx={{ pt: 0 }}>
-                    {deliveredMembers.map((member) => (
-                        <MessageDetailRow record={member} key={member.id} />
-                    ))}
-                </List>
+                    <List sx={{ pt: 0 }}>
+                        {deliveredMembers.map((member) => (
+                            <MessageDetailRow record={member} key={member.id} />
+                        ))}
+                    </List>
+                </Box>
             </Box>
         </Dialog>
     );
@@ -218,7 +231,7 @@ function MessageDetailRow({ record }: MessageDetailsRowProps) {
     return (
         <ListItem key={record.id} sx={{ p: 0 }}>
             <Box>
-                <Box display="flex" justifyContent="space-between">
+                <Box display="flex" justifyContent="space-between" alignItems="center">
                     <ListItemAvatar>
                         {isLoading ? (
                             <Skeleton variant="circular" width={40} height={40} />

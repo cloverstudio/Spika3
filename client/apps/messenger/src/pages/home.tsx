@@ -6,18 +6,16 @@ import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 
 import Base from "../components/Base";
+import PushnotificationPermissionDialog from "../components/PushnotificationPermissionDialog";
 import LeftSidebar from "../features/chat/LeftSidebar";
 import RightSidebar from "../features/chat/RightSidebar";
 import { selectLeftSidebarOpen, setLeftSidebar } from "../features/chat/slice/sidebarSlice";
 
-import rightSidebarSlice, {
-    selectRightSidebarOpen,
-    show as showRightSidebar,
-    hide as hideRightSidebar,
-} from "../features/chat/slice/rightSidebarSlice";
+import { selectRightSidebarOpen } from "../features/chat/slice/rightSidebarSlice";
+
+import { selectUserId, fetchMe } from "../../src/store/userSlice";
 
 export default function Home(): React.ReactElement {
-    const { id } = useParams();
     const theme = useTheme();
 
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -25,13 +23,19 @@ export default function Home(): React.ReactElement {
     const open = useSelector(selectLeftSidebarOpen);
     const rightSidebarOpen = useSelector(selectRightSidebarOpen);
 
+    const loggedInUserId = useSelector(selectUserId);
+
+    useEffect(() => {
+        if (!loggedInUserId) {
+            dispatch(fetchMe());
+        }
+    });
+
     useEffect(() => {
         if (isMobile) {
             dispatch(setLeftSidebar(true));
         }
     }, [isMobile, dispatch]);
-
-    const isRoomPage = !!id;
 
     const setOpen = () => dispatch(setLeftSidebar(!open));
     return (
@@ -59,20 +63,12 @@ export default function Home(): React.ReactElement {
                 ) : (
                     <LeftSidebar />
                 )}
-                {isRoomPage ? (
-                    <Outlet />
-                ) : (
-                    <Box
-                        display="flex"
-                        flexDirection="column"
-                        justifyContent="center"
-                        alignItems="center"
-                    >
-                        Select or create room
-                    </Box>
-                )}
+                <Outlet />
+
                 {rightSidebarOpen ? <RightSidebar /> : null}
             </Box>
+
+            <PushnotificationPermissionDialog />
         </Base>
     );
 }
