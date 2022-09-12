@@ -54,11 +54,16 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 where: { telephoneNumber },
             });
 
-            if (!requestUser) {
-                verificationCode =
-                    process.env.IS_TEST === "1"
-                        ? Constants.BACKDOOR_VERIFICATION_CODE
-                        : Utils.randomNumber(6);
+            if (
+                registeredDevice &&
+                registeredDevice.user &&
+                registeredDevice.user.telephoneNumber !== telephoneNumber &&
+                registeredDevice.user.verified === false
+            ) {
+                // delete both device and user related to the device id
+                await prisma.device.delete({
+                    where: { id: registeredDevice.id },
+                });
 
                 l(`Verification code ${verificationCode}, device id ${deviceId}`);
 
@@ -75,10 +80,11 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             } else if (requestUser.verified === false) {
                 // send sms again
 
-                verificationCode =
-                    process.env.IS_TEST === "1"
-                        ? Constants.BACKDOOR_VERIFICATION_CODE
-                        : Utils.randomNumber(6);
+            // The main logic starts here.
+            const verificationCode =
+                process.env.IS_TEST === "1"
+                    ? Constants.BACKDOOR_VERIFICATION_CODE
+                    : Utils.randomNumber(6);
 
                 requestUser = await prisma.user.update({
                     where: {
@@ -109,11 +115,26 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 where: { deviceId },
             });
 
+            // check the user already has browser device
+            if (deviceType === constants.DEVICE_TYPE_BROWSER) {
+                requestDevice = await prisma.device.findFirst({
+                    where: {
+                        userId: requestUser.id,
+                        type: constants.DEVICE_TYPE_BROWSER,
+                    },
+                });
+            }
+
             if (!requestDevice) {
                 requestDevice = await prisma.device.create({
                     data: {
                         deviceId,
                         userId: requestUser.id,
+                        osName: req.headers["os-name"] as string,
+                        osVersion: req.headers["os-version"] as string,
+                        deviceName: req.headers["device-name"] as string,
+                        appVersion: req.headers["app-version"] as string,
+                        type: deviceType,
                     },
                 });
             }
@@ -129,8 +150,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         id: requestDevice.id,
                     },
                     data: {
-                        token: newToken,
-                        tokenExpiredAt: expireDate,
+                        tokenExpiredAt: new Date(),
+                        userId: requestUser.id,
                     },
                 });
             }
@@ -187,7 +208,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             await prisma.user.update({
                 where: {
-                    id: requestUser.id,
+                    id: findUser.id,
                 },
                 data: {
                     verificationCode: "",

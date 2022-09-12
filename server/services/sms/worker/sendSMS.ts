@@ -12,13 +12,17 @@ class sendSMSWorker implements QueueWorkerInterface {
             return l("Ignore sending SMS");
         }
 
-        const twilioResult = await client.messages.create({
-            body: payload.content,
-            from: process.env.TWILIO_FROM_NUMBER,
-            to: payload.telephoneNumber,
-        });
+        try {
+            const twilioResult = await client.messages.create({
+                body: payload.content,
+                from: process.env.TWILIO_FROM_NUMBER,
+                to: payload.telephoneNumber,
+            });
 
-        l("Twilio: ", twilioResult);
+            l("Twilio: ", twilioResult);
+        } catch (error) {
+            le("Twilio error: ", error);
+        }
     }
 }
 

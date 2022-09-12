@@ -9,10 +9,10 @@ import utils from "../server/components/utils";
 import createFakeFile from "./fixtures/file";
 import faker from "faker";
 import { after, beforeEach } from "mocha";
+import crypto from "crypto";
 
 const readDir = util.promisify(fs.readdir);
 const readFile = util.promisify(fs.readFile);
-const getFileStat = util.promisify(fs.stat);
 
 describe("API", () => {
     describe("/api/upload/files/:id GET", () => {
@@ -39,14 +39,7 @@ describe("API", () => {
             validParams = {
                 chunk: "string",
                 offset: 0,
-                total: 100,
-                size: 200,
-                mimeType: "string",
-                fileName: "string",
-                type: "string",
-                fileHash: "string",
-                relationId: 8,
-                clientId: String(faker.datatype.number({ min: 1, max: 100000 })),
+                clientId: encodeURIComponent(faker.datatype.string(52)),
             };
         });
 
@@ -96,96 +89,6 @@ describe("API", () => {
             expect(responseValid.status).to.eqls(200);
         });
 
-        it("Requires offset param to be less than total", async () => {
-            const responseInvalid = await supertest(app)
-                .post("/api/upload/files")
-                .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, offset: 22, total: 10 });
-
-            const responseValid = await supertest(app)
-                .post("/api/upload/files")
-                .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, offset: 42, total: 43 });
-
-            expect(responseInvalid.status).to.eqls(400);
-            expect(responseValid.status).to.eqls(200);
-        });
-
-        it("Requires total param to be number", async () => {
-            const responseInvalid = await supertest(app)
-                .post("/api/upload/files")
-                .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, total: undefined });
-
-            const responseInvalidNotNumber = await supertest(app)
-                .post("/api/upload/files")
-                .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, total: "string" });
-
-            const responseInvalidZero = await supertest(app)
-                .post("/api/upload/files")
-                .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, total: 0 });
-
-            const responseValid = await supertest(app)
-                .post("/api/upload/files")
-                .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, total: 42 });
-
-            expect(responseInvalid.status).to.eqls(400);
-            expect(responseInvalidNotNumber.status).to.eqls(400);
-            expect(responseInvalidZero.status).to.eqls(400);
-            expect(responseValid.status).to.eqls(200);
-        });
-
-        it("Requires size param to be positive number", async () => {
-            const responseInvalid = await supertest(app)
-                .post("/api/upload/files")
-                .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, size: undefined });
-
-            const responseInvalidNotNumber = await supertest(app)
-                .post("/api/upload/files")
-                .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, size: "string" });
-
-            const responseInvalidZero = await supertest(app)
-                .post("/api/upload/files")
-                .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, size: 0 });
-
-            const responseValid = await supertest(app)
-                .post("/api/upload/files")
-                .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, size: 42 });
-
-            expect(responseInvalid.status).to.eqls(400);
-            expect(responseInvalidNotNumber.status).to.eqls(400);
-            expect(responseInvalidZero.status).to.eqls(400);
-            expect(responseValid.status).to.eqls(200);
-        });
-
-        it("Requires type param to be string", async () => {
-            const responseInvalid = await supertest(app)
-                .post("/api/upload/files")
-                .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, type: undefined });
-
-            const responseInvalidNotString = await supertest(app)
-                .post("/api/upload/files")
-                .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, type: 42 });
-
-            const responseValid = await supertest(app)
-                .post("/api/upload/files")
-                .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, type: "string" });
-
-            expect(responseInvalid.status).to.eqls(400);
-            expect(responseInvalidNotString.status).to.eqls(400);
-            expect(responseValid.status).to.eqls(200);
-        });
-
         it("Requires clientId param to be string", async () => {
             const responseInvalid = await supertest(app)
                 .post("/api/upload/files")
@@ -200,7 +103,7 @@ describe("API", () => {
             const responseValid = await supertest(app)
                 .post("/api/upload/files")
                 .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, clientId: "string" });
+                .send(validParams);
 
             expect(responseInvalid.status).to.eqls(400);
             expect(responseInvalidNotString.status).to.eqls(400);
@@ -216,108 +119,6 @@ describe("API", () => {
                 .send({ ...validParams, clientId });
 
             expect(responseInvalid.status).to.eqls(400);
-        });
-
-        it("Requires mimeType param to be string", async () => {
-            const responseInvalid = await supertest(app)
-                .post("/api/upload/files")
-                .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, mimeType: undefined });
-
-            const responseInvalidNotString = await supertest(app)
-                .post("/api/upload/files")
-                .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, mimeType: 42 });
-
-            const responseValid = await supertest(app)
-                .post("/api/upload/files")
-                .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, mimeType: "string" });
-
-            expect(responseInvalid.status).to.eqls(400);
-            expect(responseInvalidNotString.status).to.eqls(400);
-            expect(responseValid.status).to.eqls(200);
-        });
-
-        it("If defined, requires fileHash param to be string", async () => {
-            const responseNoParam = await supertest(app)
-                .post("/api/upload/files")
-                .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, fileHash: undefined });
-
-            const responseInvalidNotString = await supertest(app)
-                .post("/api/upload/files")
-                .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, fileHash: 42 });
-
-            const responseValid = await supertest(app)
-                .post("/api/upload/files")
-                .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, fileHash: "string" });
-
-            expect(responseInvalidNotString.status).to.eqls(400);
-            expect(responseNoParam.status).to.eqls(200);
-            expect(responseValid.status).to.eqls(200);
-        });
-
-        it("If defined, requires relationId param to be number", async () => {
-            const responseNoParam = await supertest(app)
-                .post("/api/upload/files")
-                .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, relationId: undefined });
-
-            const responseInvalidNotNumber = await supertest(app)
-                .post("/api/upload/files")
-                .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, relationId: "42" });
-
-            const responseValid = await supertest(app)
-                .post("/api/upload/files")
-                .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, relationId: 5 });
-
-            expect(responseInvalidNotNumber.status).to.eqls(400);
-            expect(responseNoParam.status).to.eqls(200);
-            expect(responseValid.status).to.eqls(200);
-        });
-
-        it("Returns error if hash is not matching", async () => {
-            const fileName = "test.png";
-            const filePath = path.join(__dirname, `fixtures/files/${fileName}`);
-            const fileHash = "wrong hash";
-            const { size } = await getFileStat(filePath);
-            const chunkSize = 8; // in bytes
-            const readable = fs.createReadStream(filePath, { highWaterMark: chunkSize });
-            const total = Math.ceil(size / chunkSize);
-
-            let offset = -1;
-
-            readable.on("data", async function (chunk) {
-                offset++;
-                await supertest(app)
-                    .post("/api/upload/files")
-                    .set({ accesstoken: globals.userToken })
-                    .send({
-                        ...validParams,
-                        fileName,
-                        chunk: chunk.toString("base64"),
-                        offset,
-                        total,
-                        size,
-                        fileHash,
-                    });
-            });
-
-            await utils.wait(1);
-
-            const filesDir = path.join(process.env["UPLOAD_FOLDER"], `files`);
-            const files = await readDir(filesDir);
-            expect(files).to.be.an("array").that.does.not.include(validParams.clientId);
-
-            const fileFromDb = await globals.prisma.file.findFirst({
-                where: { clientId: validParams.clientId },
-            });
-            expect(fileFromDb).to.eqls(null);
         });
 
         it("Uploads chunk of file", async () => {
@@ -356,51 +157,241 @@ describe("API", () => {
             const content = await readFile(tempFileDir + `/${offset}-chunk`);
             expect(content.toString()).to.eqls("101");
         });
+    });
 
-        it("Uploads file", async () => {
-            const fileName = "test.png";
-            const filePath = path.join(__dirname, `fixtures/files/${fileName}`);
-            const { size } = await getFileStat(filePath);
-            const chunkSize = 8; // in bytes
-            const readable = fs.createReadStream(filePath, { highWaterMark: chunkSize });
-            const total = Math.ceil(size / chunkSize);
+    describe("/api/upload/files/verify POST", () => {
+        let validParams: any = {};
 
-            let offset = -1;
+        beforeEach(async () => {
+            const chunk = Buffer.from("101").toString("base64");
+            const offset = 0;
+            const clientId = encodeURIComponent(faker.datatype.string(52));
+            const hash = utils.sha256("101");
 
-            readable.on("data", async function (chunk) {
-                offset++;
+            try {
                 await supertest(app)
                     .post("/api/upload/files")
                     .set({ accesstoken: globals.userToken })
                     .send({
-                        ...validParams,
-                        fileName,
-                        chunk: chunk.toString("base64"),
+                        chunk,
                         offset,
-                        total,
-                        size,
-                        fileHash: undefined,
+                        clientId,
                     });
-            });
+            } catch (error) {
+                console.log({ "beforeEach upload chunk error": error });
+            }
 
-            await utils.wait(1);
+            validParams = {
+                clientId,
+                size: 200,
+                mimeType: "string",
+                fileName: "string",
+                type: "string",
+                total: 1,
+                relationId: 8,
+                fileHash: hash,
+            };
+        });
 
-            const filesDir = path.join(process.env["UPLOAD_FOLDER"], `files`);
-            const filesDirExists = fs.existsSync(filesDir);
+        after(async () => {
+            await globals.prisma.file.deleteMany();
+        });
 
-            expect(filesDirExists).to.eqls(true);
+        it("Requires total param to be number", async () => {
+            const responseInvalid = await supertest(app)
+                .post("/api/upload/files/verify")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, total: undefined });
 
-            const files = await readDir(filesDir);
-            expect(files).to.be.an("array").that.does.include(validParams.clientId);
+            const responseInvalidNotNumber = await supertest(app)
+                .post("/api/upload/files/verify")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, total: "string" });
 
-            const originalFile = await readFile(filePath);
-            const content = await readFile(filesDir + `/${validParams.clientId}`);
-            expect(content.toString()).to.eqls(originalFile.toString());
+            const responseInvalidZero = await supertest(app)
+                .post("/api/upload/files/verify")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, total: 0 });
 
-            const createdFile = await globals.prisma.file.findFirst({
-                where: { clientId: validParams.clientId },
-            });
-            expect(createdFile.fileName).to.eqls(fileName);
+            const responseValid = await supertest(app)
+                .post("/api/upload/files/verify")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, total: 1 });
+
+            expect(responseInvalid.status).to.eqls(400);
+            expect(responseInvalidNotNumber.status).to.eqls(400);
+            expect(responseInvalidZero.status).to.eqls(400);
+            expect(responseValid.status).to.eqls(200);
+        });
+
+        it("Requires size param to be positive number", async () => {
+            const responseInvalid = await supertest(app)
+                .post("/api/upload/files/verify")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, size: undefined });
+
+            const responseInvalidNotNumber = await supertest(app)
+                .post("/api/upload/files/verify")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, size: "string" });
+
+            const responseInvalidZero = await supertest(app)
+                .post("/api/upload/files/verify")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, size: 0 });
+
+            const responseValid = await supertest(app)
+                .post("/api/upload/files/verify")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, size: 42 });
+
+            expect(responseInvalid.status).to.eqls(400);
+            expect(responseInvalidNotNumber.status).to.eqls(400);
+            expect(responseInvalidZero.status).to.eqls(400);
+            expect(responseValid.status).to.eqls(200);
+        });
+
+        it("Requires type param to be string", async () => {
+            const responseInvalid = await supertest(app)
+                .post("/api/upload/files/verify")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, type: undefined });
+
+            const responseInvalidNotString = await supertest(app)
+                .post("/api/upload/files/verify")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, type: 42 });
+
+            const responseValid = await supertest(app)
+                .post("/api/upload/files/verify")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, type: "string" });
+
+            expect(responseInvalid.status).to.eqls(400);
+            expect(responseInvalidNotString.status).to.eqls(400);
+            expect(responseValid.status).to.eqls(200);
+        });
+
+        it("Requires clientId param to be string", async () => {
+            const responseInvalid = await supertest(app)
+                .post("/api/upload/files/verify")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, clientId: undefined });
+
+            const responseInvalidNotString = await supertest(app)
+                .post("/api/upload/files/verify")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, clientId: 42 });
+
+            const responseValid = await supertest(app)
+                .post("/api/upload/files/verify")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams });
+
+            expect(responseInvalid.status).to.eqls(400);
+            expect(responseInvalidNotString.status).to.eqls(400);
+            expect(responseValid.status).to.eqls(200);
+        });
+
+        it("Requires clientId param to be unique", async () => {
+            const clientId = faker.datatype.string(20);
+            await createFakeFile({ clientId });
+            const responseInvalid = await supertest(app)
+                .post("/api/upload/files/verify")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, clientId });
+
+            expect(responseInvalid.status).to.eqls(400);
+        });
+
+        it("Requires mimeType param to be string", async () => {
+            const responseInvalid = await supertest(app)
+                .post("/api/upload/files/verify")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, mimeType: undefined });
+
+            const responseInvalidNotString = await supertest(app)
+                .post("/api/upload/files/verify")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, mimeType: 42 });
+
+            const responseValid = await supertest(app)
+                .post("/api/upload/files/verify")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, mimeType: "string" });
+
+            expect(responseInvalid.status).to.eqls(400);
+            expect(responseInvalidNotString.status).to.eqls(400);
+            expect(responseValid.status).to.eqls(200);
+        });
+
+        it("requires fileHash param to be string", async () => {
+            const responseNoParam = await supertest(app)
+                .post("/api/upload/files/verify")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, fileHash: undefined });
+
+            const responseInvalidNotString = await supertest(app)
+                .post("/api/upload/files/verify")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, fileHash: 42 });
+
+            const responseValid = await supertest(app)
+                .post("/api/upload/files/verify")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams });
+
+            expect(responseInvalidNotString.status).to.eqls(400);
+            expect(responseNoParam.status).to.eqls(400);
+            expect(responseValid.status).to.eqls(200);
+        });
+
+        it("Requires relationId param to be number", async () => {
+            const responseNoParam = await supertest(app)
+                .post("/api/upload/files/verify")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, relationId: undefined });
+
+            const responseInvalidNotNumber = await supertest(app)
+                .post("/api/upload/files/verify")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, relationId: "42" });
+
+            expect(responseInvalidNotNumber.status).to.eqls(400);
+            expect(responseNoParam.status).to.eqls(200);
         });
     });
 });
+
+async function createFileHash(filePath: string) {
+    return new Promise((resolve, reject) => {
+        try {
+            const readable = fs.createReadStream(filePath);
+
+            const hash = crypto.createHash("sha256");
+            hash.setEncoding("hex");
+
+            readable.on("end", function () {
+                hash.end();
+
+                const result = hash.read().toString("hex");
+
+                if (!result) {
+                    return reject("Hash create failed");
+                }
+
+                return resolve(result);
+            });
+
+            readable.on("error", function (error) {
+                hash.end();
+                return reject(error);
+            });
+
+            readable.pipe(hash);
+        } catch (error) {
+            console.log({ error });
+            reject(error);
+        }
+    });
+}

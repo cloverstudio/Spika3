@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 
 import { RootState } from "../store/store";
 
-declare var API_BASEURL: string;
+declare const API_BASE_URL: string;
 
 type CallbackFunction = (data: any) => void;
 
@@ -15,7 +15,7 @@ export function usePost() {
     return async (url: string, params: any) => {
         const response: AxiosResponse<any> = await axios({
             method: "post",
-            url: API_BASEURL + url,
+            url: API_BASE_URL + url,
             data: params,
             headers: {
                 "admin-accesstoken": accessToken,
@@ -34,7 +34,7 @@ export function useGet() {
     return async (url: string) => {
         const response: AxiosResponse<any> = await axios({
             method: "get",
-            url: API_BASEURL + url,
+            url: API_BASE_URL + url,
             headers: {
                 "admin-accesstoken": accessToken,
             },
@@ -53,7 +53,7 @@ export function usePut() {
     return async (url: string, params: any) => {
         const response: AxiosResponse<any> = await axios({
             method: "put",
-            url: API_BASEURL + url,
+            url: API_BASE_URL + url,
             data: params,
             headers: {
                 "admin-accesstoken": accessToken,
@@ -73,7 +73,7 @@ export function useDelete() {
     return async (url: string) => {
         const response: AxiosResponse<any> = await axios({
             method: "delete",
-            url: API_BASEURL + url,
+            url: API_BASE_URL + url,
             headers: {
                 "admin-accesstoken": accessToken,
             },

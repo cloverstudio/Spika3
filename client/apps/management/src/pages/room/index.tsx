@@ -1,14 +1,12 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Layout from "../layout";
 import { useHistory, useParams } from "react-router-dom";
 import { DataGrid, GridActionsCellItem, GridRenderCellParams } from "@mui/x-data-grid";
 import { Paper, Fab, Avatar } from "@mui/material";
 import {
-    Add as AddIcon,
     Delete as DeleteIcon,
     Edit as EditIcon,
     Description as DescriptionIcon,
-    CancelOutlined,
     CheckCircleOutlineOutlined,
 } from "@mui/icons-material/";
 import { Room } from "@prisma/client";
@@ -17,7 +15,7 @@ import { useShowSnackBar } from "../../components/useUI";
 import { ListResponseType } from "../../lib/customTypes";
 import { successResponseType } from "../../../../../../server/components/response";
 
-export default function Room() {
+export default function RoomIndex() {
     const [loading, setLoading] = React.useState<boolean>(false);
     const [list, setList] = React.useState<Array<Room>>([]);
     const [pageSize, setPageSize] = React.useState<number>(30);
@@ -25,17 +23,64 @@ export default function Room() {
     const urlParams: { userId: string } = useParams();
 
     const showSnackBar = useShowSnackBar();
-    const history = useHistory();
-    const get = useGet();
+    const showBasicDialog = useShowBasicDialog();
+    const [updateRoom, updateRoomMutation] = useUpdateRoomMutation();
+    const { data: roomSearchData, isLoading: roomSearchIsLoading } =
+        useGetRoomsBySearchTermQuery(searchTerm);
+    const { data: filterSearchData, isLoading: filterSearchIsLoading } = useGetGroupRoomsQuery({
+        page: page,
+        type: filterType,
+    });
+
+    const navigate = useNavigate();
+
+    const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(event.target.value);
+    };
+    const hideDrawer = () => {
+        setShowEditDrawer(false);
+        dispatch(hideCreateRoom());
+    };
+
+    const { data, isLoading } = !deleteFilter
+        ? urlParams.id == null
+            ? useGetRoomsQuery(page)
+            : useGetRoomsForUserQuery({ page: page, userId: urlParams.id })
+        : urlParams.id == null
+        ? useGetDeletedRoomsQuery({ page: page, deleted: deleteFilter })
+        : useGetDeletedRoomsForUserQuery({
+              page: page,
+              userId: urlParams.id,
+              deleted: deleteFilter,
+          });
 
     useEffect(() => {
         (async () => {
-            await fetchData(0);
+            if (!isLoading) {
+                setList(data.list);
+                setPageSize(data.limit);
+                setTotalCount(data.count);
+            }
         })();
-    }, []);
+    }, [data]);
 
-    const fetchData = async (page: number) => {
-        setLoading(true);
+    useEffect(() => {
+        (async () => {
+            const delayDebounceFn = setTimeout(() => {
+                if (!roomSearchIsLoading) {
+                    if (searchTerm.length > 0) {
+                        setList(roomSearchData.list);
+                        setPageSize(roomSearchData.limit);
+                        setTotalCount(roomSearchData.count);
+                    } else {
+                        setList(data.list);
+                        setPageSize(data.limit);
+                        setTotalCount(data.count);
+                    }
+                }
+            }, 2000);
+        })();
+    }, [roomSearchData]);
 
         try {
             console.log("UrlParams:" + urlParams.userId);
@@ -56,17 +101,9 @@ export default function Room() {
             });
         }
 
-        setLoading(false);
-    };
-
-    function getFullNumber(params: { getValue: (arg0: any, arg1: string) => any; id: any }) {
-        return (
-            "+" +
-            `${params.getValue(params.id, "countryCode") || ""} ${
-                params.getValue(params.id, "telephoneNumber") || ""
-            }`
-        );
-    }
+    useEffect(() => {
+        (async () => {})();
+    }, [deleteFilter]);
 
     const columns = [
         { field: "id", headerName: "ID", flex: 0.2, sortable: false, filterable: false },
@@ -78,7 +115,7 @@ export default function Room() {
             filterable: false,
             renderCell: (params: GridRenderCellParams<string>) => (
                 <strong>
-                    <Avatar alt="Remy Sharp" src={params.value} />
+                    <Avatar alt="Remy Sharp" src={`${UPLOADS_BASE_URL}${params.value}`} />
                 </strong>
             ),
         },
@@ -106,30 +143,26 @@ export default function Room() {
             filterable: false,
             renderCell: (params: GridRenderCellParams<boolean>) => (
                 <strong>
-                    {params.value ? (
-                        <CheckCircleOutlineOutlined style={{ fill: "green" }} />
-                    ) : (
-                        <CancelOutlined style={{ fill: "red" }} />
-                    )}
+                    {!params.value ? "" : <CheckCircleOutlineOutlined style={{ fill: "red" }} />}
                 </strong>
             ),
         },
-        {
-            field: "createdAt",
-            headerName: "Created",
-            type: "dateTime",
-            flex: 0.5,
-            sortable: false,
-            filterable: false,
-        },
-        {
-            field: "modifiedAt",
-            headerName: "Modified",
-            type: "dateTime",
-            flex: 0.5,
-            sortable: false,
-            filterable: false,
-        },
+        // {
+        //     field: "createdAt",
+        //     headerName: "Created",
+        //     type: "dateTime",
+        //     flex: 0.5,
+        //     sortable: false,
+        //     filterable: false,
+        // },
+        // {
+        //     field: "modifiedAt",
+        //     headerName: "Modified",
+        //     type: "dateTime",
+        //     flex: 0.5,
+        //     sortable: false,
+        //     filterable: false,
+        // },
         {
             field: "actions",
             type: "actions",
@@ -171,6 +204,36 @@ export default function Room() {
                     padding: "24px",
                 }}
             >
+                <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                    sx={{
+                        display: "flex",
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        width: "100%",
+                        mb: "1em",
+                    }}
+                >
+                    <TextField
+                        label="Search Room"
+                        id="outlined-size-small"
+                        size="small"
+                        sx={{ minWidth: 400 }}
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                    />
+                    <Button
+                        type="submit"
+                        color="spikaButton"
+                        variant="contained"
+                        sx={{ mt: 3, mb: 2 }}
+                        onClick={() => dispatch(openCreateRoom())}
+                    >
+                        ADD ROOM
+                    </Button>
+                </Stack>
                 <div style={{ display: "flex", width: "100%", flexGrow: 1 }}>
                     <DataGrid
                         autoHeight
@@ -180,10 +243,32 @@ export default function Room() {
                         rowCount={totalCount}
                         pagination
                         paginationMode="server"
-                        onPageChange={(newPage) => fetchData(newPage)}
+                        onPageChange={(newPage) => setPage(newPage)}
                         loading={loading}
+                        getRowClassName={(params) =>
+                            `super-app-theme--${params.getValue(params.id, "deleted")}`
+                        }
                     />
                 </div>
+                <Drawer
+                    PaperProps={{
+                        sx: {
+                            backgroundColor: theme.palette.spikaMainBackgroundColor.main,
+                        },
+                    }}
+                    anchor="right"
+                    sx={{ zIndex: 1300 }}
+                    open={isRightDrawerOpen}
+                    onClose={hideDrawer}
+                >
+                    <Box width={400}>
+                        {showEditDrawer ? (
+                            <RoomEdit roomId={String(selectedRoomId)} />
+                        ) : (
+                            <RoomAdd />
+                        )}
+                    </Box>
+                </Drawer>
             </Paper>
 
             <Fab

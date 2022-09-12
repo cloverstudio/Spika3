@@ -12,28 +12,18 @@ export default function Page() {
     const history = useHistory();
     const showSnackBar = useShowSnackBar();
     const showBasicDialog = useShowBasicDialog();
-    const [detail, setDetail] = React.useState<User>();
-
-    const callDelete = useDelete();
-    const get = useGet();
+    const [detail, setDetail] = React.useState<UserType>();
+    const { data, isLoading } = useGetUserByIdQuery(urlParams.id);
+    const [deleteUser, deleteUserMutation] = useDeleteUserMutation();
 
     useEffect(() => {
         (async () => {
-            try {
-                const response: successResponseType = await get(
-                    `/api/management/user/${urlParams.id}`
-                );
-                const user: User = response.data;
-                setDetail(user);
-            } catch (e) {
-                console.error(e);
-                showSnackBar({
-                    severity: "error",
-                    text: "Server error, please check browser console.",
-                });
+            if (!isLoading) {
+                const response: UserType = data.user;
+                setDetail(response);
             }
         })();
-    }, []);
+    }, [data]);
 
     return (
         <Layout subtitle={`Delete user ( ${urlParams.id} )`} showBack={true}>
@@ -56,7 +46,7 @@ export default function Page() {
                                     <Typography component="dt" variant="h6">
                                         ID
                                     </Typography>
-                                    <Typography component="dd" className="margin-bottom">
+                                    <Typography component="dd" marginBottom={10}>
                                         {detail.id}
                                     </Typography>
                                     <Typography component="dt" variant="h6">
@@ -67,10 +57,6 @@ export default function Page() {
                                         Display Name
                                     </Typography>
                                     <Typography component="dd">{detail.displayName}</Typography>
-                                    <Typography component="dt" variant="h6">
-                                        Country Code
-                                    </Typography>
-                                    <Typography component="dd">{detail.countryCode}</Typography>
                                     <Typography component="dt" variant="h6">
                                         Phone Number
                                     </Typography>
@@ -104,8 +90,8 @@ export default function Page() {
                             onClick={(e) => {
                                 showBasicDialog({ text: "Please confirm delete." }, async () => {
                                     try {
-                                        await callDelete(`/api/management/user/${urlParams.id}`);
-                                        history.push("/user");
+                                        await deleteUser(urlParams.id);
+                                        navigate("/user");
                                     } catch (e) {
                                         console.error(e);
                                         showSnackBar({

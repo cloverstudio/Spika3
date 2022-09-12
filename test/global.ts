@@ -5,10 +5,11 @@ export interface Globals {
     adminToken: string;
     createdUser: User | undefined;
     createdDevice: Device | undefined;
-    deviceId: string | undefined;
+    deviceId: number | undefined;
     telephoneNumber: string | undefined;
     userToken: string | undefined;
     userId?: number | undefined;
+    roomId?: number | undefined;
     prisma: PrismaClient;
     createdRoom: Room;
 }

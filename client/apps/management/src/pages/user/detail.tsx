@@ -11,112 +11,90 @@ export default function Page() {
     const urlParams: { id: string } = useParams();
     const history = useHistory();
     const showSnackBar = useShowSnackBar();
-    const [detail, setDetail] = React.useState<User>();
-
-    const get = useGet();
+    const showBasicDialog = useShowBasicDialog();
+    const [deleteUser, deleteUserMutation] = useDeleteUserMutation();
 
     useEffect(() => {
         (async () => {
-            try {
-                const response: successResponseType = await get(
-                    `/api/management/user/${urlParams.id}`
-                );
-                const user: User = response.data.user;
+            if (!isLoading) {
+                const user: UserType = data.user;
+
                 setDetail(user);
-            } catch (e) {
-                console.error(e);
-                showSnackBar({
-                    severity: "error",
-                    text: "Server error, please check browser console.",
-                });
+                setChipText(user.verified ? "Verified" : "Unconfirmed");
+                setChipColor(user.verified ? "success" : "default");
             }
         })();
-    }, []);
+    }, [data]);
 
     return (
         <Layout subtitle={`User detail ( ${urlParams.id} )`} showBack={true}>
-            <Paper
-                sx={{
-                    margin: "24px",
-                    padding: "24px",
-                    minHeight: "calc(100vh-64px)",
-                }}
-            >
-                <Grid container spacing={2}>
-                    <Grid item xs={12} md={8}>
-                        {detail ? (
-                            <Grid
-                                container
-                                component="dl" // mount a Definition List
-                                spacing={2}
-                            >
-                                <Grid item>
-                                    <Typography component="dt" variant="h6">
-                                        ID:
+            <Grid container ml="24px">
+                <Grid item xs={12} md={6} m={0} pl={0}>
+                    {detail ? (
+                        <Paper>
+                            <Stack justifyContent="center" alignItems="center" spacing={2} p={1}>
+                                <Avatar alt="Remy Sharp" src={detail.avatarUrl} />
+                                <Typography component="h1" variant="h6">
+                                    {detail.displayName}
+                                </Typography>
+                            </Stack>
+                            <Stack spacing={1} p={1}>
+                                <Typography component="h1" variant="h6">
+                                    Details
+                                </Typography>
+                                <Divider />
+                                <Stack spacing={1} p={1} direction="row">
+                                    <Typography component="h1" variant="subtitle2">
+                                        Phone Number:
                                     </Typography>
-                                    <Typography component="dd" className="margin-bottom">
-                                        {detail.id}
+                                    <Typography component="h1" variant="body2">
+                                        {detail.telephoneNumber}
                                     </Typography>
-                                    <Typography component="dt" variant="h6">
-                                        Avatar
+                                </Stack>
+                                <Stack spacing={1} p={1} direction="row">
+                                    <Typography component="h1" variant="subtitle2">
+                                        Email:
                                     </Typography>
-                                    <Avatar alt="Remy Sharp" src={detail.avatarUrl} />
-                                    <Typography component="dt" variant="h6">
-                                        Display Name
+                                    <Typography component="h1" variant="body2">
+                                        {detail.emailAddress}
                                     </Typography>
-                                    <Typography component="dd">{detail.displayName}</Typography>
-                                    <Typography component="dt" variant="h6">
-                                        Country Code
+                                </Stack>
+                                <Stack spacing={1} p={1} direction="row">
+                                    <Typography component="h1" variant="subtitle2">
+                                        Verified:
                                     </Typography>
-                                    <Typography component="dd">{detail.countryCode}</Typography>
-                                    <Typography component="dt" variant="h6">
-                                        Phone Number
-                                    </Typography>
-                                    <Typography component="dd">{detail.telephoneNumber}</Typography>
-                                    <Typography component="dt" variant="h6">
-                                        E-mail
-                                    </Typography>
-                                    <Typography component="dd">{detail.emailAddress}</Typography>
-                                    <Typography component="dt" variant="h6">
-                                        Avatar Url
-                                    </Typography>
-                                    <Typography component="dd">{detail.avatarUrl}</Typography>
-                                    <Typography component="dt" variant="h6">
-                                        Verification Code
-                                    </Typography>
-                                    <Typography component="dd">
-                                        {detail.verificationCode}
-                                    </Typography>
-                                    <Typography component="dt" variant="h6">
-                                        Verified
-                                    </Typography>
-                                    <Checkbox checked={detail.verified} />
-                                </Grid>
-                            </Grid>
-                        ) : null}
-                    </Grid>
-                    <Grid item xs={12} md={8} textAlign="right">
-                        <Button
-                            className="margin-right"
-                            variant="contained"
-                            onClick={(e) => {
-                                history.push(`/user/edit/${urlParams.id}`);
-                            }}
-                        >
-                            Edit
-                        </Button>
-                        <Button
-                            color="error"
-                            variant="contained"
-                            onClick={(e) => {
-                                history.push(`/user/delete/${urlParams.id}`);
-                            }}
-                        >
-                            Delete
-                        </Button>
-                    </Grid>
+                                    <Chip label={chipText} size="small" color={chipColor} />
+                                </Stack>
+                            </Stack>
+                            <Stack justifyContent="center" alignItems="center" spacing={2} p={1}>
+                                <Button
+                                    color="error"
+                                    variant="contained"
+                                    onClick={(e) => {
+                                        showBasicDialog(
+                                            { text: "Please confirm delete." },
+                                            async () => {
+                                                try {
+                                                    await deleteUser(urlParams.id);
+                                                    navigate(`/user`);
+                                                } catch (e) {
+                                                    console.error(e);
+                                                    showSnackBar({
+                                                        severity: "error",
+                                                        text: "Server error, please check browser console.",
+                                                    });
+                                                }
+                                            }
+                                        );
+                                    }}
+                                >
+                                    Delete
+                                </Button>
+                            </Stack>
+                        </Paper>
+                    ) : null}
                 </Grid>
-            </Paper>
+            </Grid>
         </Layout>
     );
 }

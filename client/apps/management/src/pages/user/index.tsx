@@ -1,15 +1,12 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Layout from "../layout";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { DataGrid, GridActionsCellItem, GridRenderCellParams } from "@mui/x-data-grid";
 import { Paper, Fab, Avatar } from "@mui/material";
 import {
-    Add as AddIcon,
     Delete as DeleteIcon,
     Edit as EditIcon,
     Description as DescriptionIcon,
-    CancelOutlined,
-    CheckCircleOutlineOutlined,
     DevicesOther,
     MeetingRoom as RoomIcon,
 } from "@mui/icons-material/";
@@ -19,49 +16,99 @@ import { useShowSnackBar } from "../../components/useUI";
 import { ListResponseType } from "../../lib/customTypes";
 import { successResponseType } from "../../../../../../server/components/response";
 
+export interface UserMainViewProps {
+    onSelect: (value: string) => void;
+}
+
 export default function Dashboard() {
-    const [loading, setLoading] = React.useState<boolean>(false);
-    const [list, setList] = React.useState<Array<User>>([]);
+    const [list, setList] = React.useState<UserType[]>([]);
     const [pageSize, setPageSize] = React.useState<number>(30);
     const [totalCount, setTotalCount] = React.useState<number>(0);
-
+    const [page, setPage] = useState(0);
+    const [verifiedPage, setVerifiedPage] = useState(0);
+    const [searchTerm, setSearchTerm] = React.useState("");
+    const { data, isLoading } = useGetUsersQuery(page);
+    const { data: userSearchData, isLoading: userSearchIsLoading } =
+        useGetUsersBySearchTermQuery(searchTerm);
+    const { data: filterSearchData, isLoading: filterSearchIsLoading } =
+        useGetVerifiedUsersQuery(verifiedPage);
+    const filterType = useSelector(currentFilter);
+    const [isFilterOn, setIsFilterOn] = React.useState<boolean>(false);
+    const dispatch = useDispatch();
+    const isRightDrawerOpen = useSelector(selectRightSidebarOpen);
     const showSnackBar = useShowSnackBar();
-    const history = useHistory();
-    const get = useGet();
+    const showBasicDialog = useShowBasicDialog();
+    const [deleteUser, deleteUserMutation] = useDeleteUserMutation();
+    const [showEditDrawer, setShowEditDrawer] = React.useState<boolean>(false);
+    const [selectedUserId, setSelectedUserId] = React.useState<number>(0);
+
+    const hideDrawer = () => {
+        setShowEditDrawer(false);
+        dispatch(hideCreateUser());
+    };
+
+    const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(event.target.value);
+    };
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         (async () => {
-            await fetchData(0);
+            if (!isLoading) {
+                setList(data.list);
+                setPageSize(data.limit);
+                setTotalCount(data.count);
+            }
         })();
-    }, []);
+    }, [data]);
 
-    const fetchData = async (page: number) => {
-        setLoading(true);
+    useEffect(() => {
+        (async () => {
+            const delayDebounceFn = setTimeout(() => {
+                if (!userSearchIsLoading) {
+                    if (searchTerm.length > 0) {
+                        setList(userSearchData.list);
+                        setPageSize(userSearchData.limit);
+                        setTotalCount(userSearchData.count);
+                    } else {
+                        setList(data.list);
+                        setPageSize(data.limit);
+                        setTotalCount(data.count);
+                    }
+                }
+            }, 2000);
+        })();
+    }, [userSearchData]);
 
-        try {
-            const response: successResponseType = await get(`/api/management/user?page=${page}`);
-            const data: ListResponseType<User> = response.data;
-            setList(data.list);
-            setPageSize(data.limit);
-            setTotalCount(data.count);
-        } catch (e) {
-            console.error(e);
-            showSnackBar({
-                severity: "error",
-                text: "Server error, please check browser console.",
-            });
-        }
+    useEffect(() => {
+        (async () => {
+            if (!filterSearchIsLoading) {
+                const boolValue = filterType === "true";
+                setIsFilterOn(boolValue);
+                if (boolValue) {
+                    setList(filterSearchData.list);
+                    setPageSize(filterSearchData.limit);
+                    setTotalCount(filterSearchData.count);
+                } else {
+                    setList(data.list);
+                    setPageSize(data.limit);
+                    setTotalCount(data.count);
+                }
+            }
+        })();
+    }, [filterType]);
 
-        setLoading(false);
+    const datagridSx = {
+        "& .MuiDataGrid-columnHeaders": {
+            backgroundColor: theme.palette.spikaLightGrey.main,
+            // color: "lightgrey",
+            fontSize: 14,
+        },
     };
 
     function getFullNumber(params: { getValue: (arg0: any, arg1: string) => any; id: any }) {
-        return (
-            "+" +
-            `${params.getValue(params.id, "countryCode") || ""} ${
-                params.getValue(params.id, "telephoneNumber") || ""
-            }`
-        );
+        return "+" + `${params.getValue(params.id, "telephoneNumber") || ""}`;
     }
 
     const columns = [
@@ -74,7 +121,7 @@ export default function Dashboard() {
             filterable: false,
             renderCell: (params: GridRenderCellParams<string>) => (
                 <strong>
-                    <Avatar alt="Remy Sharp" src={params.value} />
+                    <Avatar alt="Remy Sharp" src={`${UPLOADS_BASE_URL}${params.value}`} />
                 </strong>
             ),
         },
@@ -113,28 +160,12 @@ export default function Dashboard() {
             renderCell: (params: GridRenderCellParams<boolean>) => (
                 <strong>
                     {params.value ? (
-                        <CheckCircleOutlineOutlined style={{ fill: "green" }} />
+                        <Chip label="Verified" size="small" color="success" />
                     ) : (
-                        <CancelOutlined style={{ fill: "red" }} />
+                        <Chip label="Unconfirmed" size="small" color="default" />
                     )}
                 </strong>
             ),
-        },
-        {
-            field: "createdAt",
-            headerName: "Created",
-            type: "dateTime",
-            flex: 0.5,
-            sortable: false,
-            filterable: false,
-        },
-        {
-            field: "modifiedAt",
-            headerName: "Modified",
-            type: "dateTime",
-            flex: 0.5,
-            sortable: false,
-            filterable: false,
         },
         {
             field: "actions",
@@ -144,13 +175,13 @@ export default function Dashboard() {
                 <GridActionsCellItem
                     icon={<DescriptionIcon />}
                     label="Detail"
-                    onClick={() => history.push(`/user/detail/${params.id}`)}
+                    onClick={() => navigate(`/user/detail/${params.id}`)}
                     showInMenu
                 />,
                 <GridActionsCellItem
                     icon={<DevicesOther />}
                     label="Devices"
-                    onClick={() => history.push(`/user/${params.id}/devices`)}
+                    onClick={() => navigate(`/user/${params.id}/devices`)}
                     showInMenu
                 />,
                 <GridActionsCellItem
@@ -162,13 +193,29 @@ export default function Dashboard() {
                 <GridActionsCellItem
                     icon={<EditIcon />}
                     label="Edit"
-                    onClick={() => history.push(`/user/edit/${params.id}`)}
+                    onClick={(e) => {
+                        setSelectedUserId(params.id);
+                        setShowEditDrawer(true);
+                        dispatch(openCreateUser());
+                    }}
                     showInMenu
                 />,
                 <GridActionsCellItem
                     icon={<DeleteIcon />}
                     label="Delete"
-                    onClick={() => history.push(`/user/delete/${params.id}`)}
+                    onClick={(e) => {
+                        showBasicDialog({ text: "Please confirm delete." }, async () => {
+                            try {
+                                await deleteUser(params.id);
+                            } catch (e) {
+                                console.error(e);
+                                showSnackBar({
+                                    severity: "error",
+                                    text: "Server error, please check browser console.",
+                                });
+                            }
+                        });
+                    }}
                     showInMenu
                 />,
             ],
@@ -183,6 +230,37 @@ export default function Dashboard() {
                     padding: "24px",
                 }}
             >
+                <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                    sx={{
+                        display: "flex",
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        width: "100%",
+                        mb: "1em",
+                    }}
+                >
+                    <TextField
+                        label="Search User"
+                        id="outlined-size-small"
+                        size="small"
+                        sx={{ minWidth: 400 }}
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                    />
+                    <Button
+                        type="submit"
+                        color="spikaButton"
+                        variant="contained"
+                        sx={{ mt: 3, mb: 2 }}
+                        onClick={() => dispatch(openCreateUser())}
+                    >
+                        ADD USER
+                    </Button>
+                </Stack>
+
                 <div style={{ display: "flex", width: "100%", flexGrow: 1 }}>
                     <DataGrid
                         autoHeight
@@ -192,22 +270,32 @@ export default function Dashboard() {
                         rowCount={totalCount}
                         pagination
                         paginationMode="server"
-                        onPageChange={(newPage) => fetchData(newPage)}
-                        loading={loading}
+                        rowsPerPageOptions={[10, 20]}
+                        onPageChange={(newPage) => setPage(newPage)}
+                        loading={isLoading}
+                        sx={datagridSx}
                     />
                 </div>
+                <Drawer
+                    PaperProps={{
+                        sx: {
+                            backgroundColor: theme.palette.spikaMainBackgroundColor.main,
+                        },
+                    }}
+                    anchor="right"
+                    sx={{ zIndex: 1300 }}
+                    open={isRightDrawerOpen}
+                    onClose={hideDrawer}
+                >
+                    <Box width={400}>
+                        {showEditDrawer ? (
+                            <UserEdit userId={String(selectedUserId)} />
+                        ) : (
+                            <UserAdd />
+                        )}
+                    </Box>
+                </Drawer>
             </Paper>
-
-            <Fab
-                color="primary"
-                aria-label="add"
-                className="fab-main"
-                onClick={(e) => {
-                    history.push("/user/add");
-                }}
-            >
-                <AddIcon />
-            </Fab>
         </Layout>
     );
 }

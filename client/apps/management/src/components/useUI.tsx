@@ -13,7 +13,7 @@ interface useShowBasicDialogParams {
 }
 
 interface listeners {
-    onBasicDialogOK: Function | undefined;
+    onBasicDialogOK: () => void | undefined;
 }
 
 // global
@@ -37,7 +37,7 @@ export function useShowSnackBar() {
 export function useShowBasicDialog() {
     const dispatch = useDispatch();
 
-    return (param: useShowBasicDialogParams, callBack: Function) => {
+    return (param: useShowBasicDialogParams, callBack: () => void) => {
         uiListeners.onBasicDialogOK = callBack;
 
         dispatch(

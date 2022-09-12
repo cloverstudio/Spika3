@@ -1,7 +1,8 @@
 import dotenv from "dotenv";
-const result = dotenv.config();
+dotenv.config();
 
 import express from "express";
+import http from "http";
 import UserManagementAPIService from "./services/management";
 import MessengerAPIService from "./services/messenger";
 import SMSService from "./services/sms";
@@ -9,8 +10,10 @@ import UploadService from "./services/upload";
 import PushService from "./services/push";
 import bodyParser from "body-parser";
 import amqp from "amqplib";
+import fs from "fs";
+import path from "path";
 
-import l, { error as e } from "./components/logger";
+import { error as e } from "./components/logger";
 
 const app: express.Express = express();
 
@@ -25,25 +28,44 @@ const app: express.Express = express();
         res.header("Access-Control-Allow-Headers", "*");
         res.header(
             "Access-Control-Allow-Headers",
-            "Content-Type, Authorization, access-token, admin-accesstoken"
+            "Content-Type, Authorization, access-token, admin-accesstoken, accesstoken, device-name, os-name, os-version, device-type, app-version"
         );
 
         // intercept OPTIONS method
         if ("OPTIONS" === req.method) {
-            res.send(200);
+            res.sendStatus(200);
         } else {
             next();
         }
     });
 
-    app.listen(process.env["SERVER_PORT"], () => {
+    const server: http.Server = app.listen(process.env["SERVER_PORT"], () => {
         console.log(`Start on port ${process.env["SERVER_PORT"]}.`);
     });
 
-    app.use(express.static("public"));
+    // override static access only for this file
+    app.get("/firebase-messaging-sw.js", (req: express.Request, res: express.Response) => {
+        const pathToJS = path.join(__dirname, "../..", "public/firebase-messaging-sw.js");
+        let content = fs.readFileSync(pathToJS, "utf8");
 
-    const rabbitMQConnetion = await amqp.connect(process.env["RABBITMQ_URL"] || "amqp://localhost");
-    const rabbitMQChannel: amqp.Channel = await rabbitMQConnetion.createChannel();
+        content = content.replace("{{apiKey}}", process.env["FCM_API_KEY"]);
+        content = content.replace("{{authDomain}}", process.env["FCM_AUTH_DOMAIN"]);
+        content = content.replace("{{projectId}}", process.env["FCM_PROJECT_ID"]);
+        content = content.replace("{{storageBucket}}", process.env["FCM_STORAGE_BUCKET"]);
+        content = content.replace("{{messagingSenderId}}", process.env["FCM_SENDER_ID"]);
+        content = content.replace("{{appId}}", process.env["FCM_APP_ID"]);
+
+        res.contentType("text/javascript");
+        res.send(content);
+    });
+
+    app.use(express.static("public"));
+    app.use("/uploads", express.static(process.env["UPLOAD_FOLDER"]));
+
+    const rabbitMQConnection = await amqp.connect(
+        process.env["RABBITMQ_URL"] || "amqp://localhost"
+    );
+    const rabbitMQChannel: amqp.Channel = await rabbitMQConnection.createChannel();
 
     if (process.env["USE_MNG_API"]) {
         const userManagementAPIService: UserManagementAPIService = new UserManagementAPIService();
@@ -86,12 +108,26 @@ const app: express.Express = express();
     }
 
     // test
+
     app.get("/api/test", (req: express.Request, res: express.Response) => {
         res.send("test");
     });
 
+    app.all("/", (req: express.Request, res: express.Response) => {
+        res.redirect("/messenger");
+    });
+
+    app.all("/messenger/*", (req: express.Request, res: express.Response) => {
+        console.log("__dirname", __dirname);
+        res.sendFile(path.join(__dirname, "../..", "public/messenger/index.html"));
+    });
+
+    app.all("/management/*", (req: express.Request, res: express.Response) => {
+        res.sendFile(path.join(__dirname, "../..", "public/management/index.html"));
+    });
+
     // general error
-    app.use(async (err: Error, req: express.Request, res: express.Response, next: Function) => {
+    app.use(async (err: Error, req: express.Request, res: express.Response, next: () => void) => {
         e(err);
         return res.status(500).send(`Server Error ${err.message}`);
     });

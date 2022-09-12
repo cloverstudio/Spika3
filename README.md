@@ -8,6 +8,7 @@
 ## Setup server from scratch ( on Ubuntu 20.04)
 
 ```
+    $ sudo apt-get install curl build-essential python3 pip
     $ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
     $ source ~/.bashrc
     $ nvm install v12.6.0
@@ -35,6 +36,7 @@
 ## How to setup dev environment
 
 ```
+    $ sudo apt-get install curl build-essential python3 pip
     $ docker-compose up
 
     # Clone a repo

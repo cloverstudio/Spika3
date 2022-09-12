@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import Login from "./pages/login";
 import Dashboard from "./pages/dashboard/index";
@@ -20,7 +20,7 @@ import RoomEdit from "./pages/room/edit";
 import RoomDelete from "./pages/room/delete";
 declare var BASE_URL: string;
 
-function App() {
+function App(): React.ReactElement {
     return (
         <>
             <Router basename={BASE_URL}>

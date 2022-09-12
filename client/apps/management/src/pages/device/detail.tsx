@@ -11,110 +11,131 @@ export default function Page() {
     const urlParams: { id: string } = useParams();
     const history = useHistory();
     const showSnackBar = useShowSnackBar();
-    const [detail, setDetail] = React.useState<Device>();
-
-    const get = useGet();
+    const showBasicDialog = useShowBasicDialog();
+    const [deleteUser, deleteUserMutation] = useDeleteDeviceMutation();
 
     useEffect(() => {
         (async () => {
-            try {
-                const serverResponse: successResponseType = await get(
-                    `/api/management/device/${urlParams.id}`
-                );
-                const response: Device = serverResponse.data;
-                setDetail(response);
-            } catch (e) {
-                console.error(e);
-                showSnackBar({
-                    severity: "error",
-                    text: "Server error, please check browser console.",
-                });
+            if (!isLoading) {
+                const user: DeviceType = data.device;
+                setDetail(user);
             }
         })();
-    }, []);
+    }, [data]);
 
     return (
         <Layout subtitle={`Device detail ( ${urlParams.id} )`} showBack={true}>
-            <Paper
-                sx={{
-                    margin: "24px",
-                    padding: "24px",
-                    minHeight: "calc(100vh-64px)",
-                }}
-            >
-                <Grid container spacing={2}>
-                    <Grid item xs={12} md={8}>
-                        {detail ? (
-                            <Grid
-                                container
-                                component="dl" // mount a Definition List
-                                spacing={2}
-                            >
-                                <Grid item>
-                                    <Typography component="dt" variant="h6">
-                                        ID:
+            <Grid container ml="24px">
+                <Grid item xs={12} md={6} m={0} pl={0}>
+                    {detail ? (
+                        <Paper>
+                            <Stack justifyContent="center" alignItems="center" spacing={2} p={1}>
+                                <PhoneIphone />
+                                <Typography component="h1" variant="h6">
+                                    {detail.deviceName}
+                                </Typography>
+                            </Stack>
+                            <Stack spacing={1} p={1}>
+                                <Typography component="h1" variant="h6">
+                                    Details
+                                </Typography>
+                                <Divider />
+                                <Stack spacing={1} p={1} direction="row">
+                                    <Typography component="h1" variant="subtitle2">
+                                        Device Id:
                                     </Typography>
-                                    <Typography component="dd" className="margin-bottom">
-                                        {detail.id}
+                                    <Typography component="h1" variant="body2">
+                                        {detail.deviceId}
                                     </Typography>
-                                    <Typography component="dt" variant="h6">
-                                        Device Id
+                                </Stack>
+                                <Stack spacing={1} p={1} direction="row">
+                                    <Typography component="h1" variant="subtitle2">
+                                        User Id:
                                     </Typography>
-                                    <Typography component="dd">{detail.deviceId}</Typography>
-                                    <Typography component="dt" variant="h6">
-                                        User Id
+                                    <Typography component="h1" variant="body2">
+                                        {detail.userId}
                                     </Typography>
-                                    <Typography component="dd">{detail.userId}</Typography>
-                                    <Typography component="dt" variant="h6">
-                                        Type
+                                </Stack>
+                                <Stack spacing={1} p={1} direction="row">
+                                    <Typography component="h1" variant="subtitle2">
+                                        Type:
                                     </Typography>
-                                    <Typography component="dd">{detail.type}</Typography>
-                                    <Typography component="dt" variant="h6">
-                                        OS name
+                                    <Typography component="h1" variant="body2">
+                                        {detail.type}
                                     </Typography>
-                                    <Typography component="dd">{detail.osName}</Typography>
-                                    <Typography component="dt" variant="h6">
-                                        App Version
+                                </Stack>
+                                <Stack spacing={1} p={1} direction="row">
+                                    <Typography component="h1" variant="subtitle2">
+                                        OS name:
                                     </Typography>
-                                    <Typography component="dd">{detail.appVersion}</Typography>
-                                    <Typography component="dt" variant="h6">
-                                        Token
+                                    <Typography component="h1" variant="body2">
+                                        {detail.osName}
                                     </Typography>
-                                    <Typography component="dd">{detail.token}</Typography>
-                                    <Typography component="dt" variant="h6">
-                                        Push Token
+                                </Stack>
+                                <Stack spacing={1} p={1} direction="row">
+                                    <Typography component="h1" variant="subtitle2">
+                                        App Version:
                                     </Typography>
-                                    <Typography component="dd">{detail.pushToken}</Typography>
-                                    <Typography component="dt" variant="h6">
-                                        Token Expired
+                                    <Typography component="h1" variant="body2">
+                                        {detail.appVersion}
                                     </Typography>
-                                    <Typography component="dd">{detail.tokenExpiredAt}</Typography>
-                                </Grid>
-                            </Grid>
-                        ) : null}
-                    </Grid>
-                    <Grid item xs={12} md={8} textAlign="right">
-                        <Button
-                            className="margin-right"
-                            variant="contained"
-                            onClick={(e) => {
-                                history.push(`/device/edit/${urlParams.id}`);
-                            }}
-                        >
-                            Edit
-                        </Button>
-                        <Button
-                            color="error"
-                            variant="contained"
-                            onClick={(e) => {
-                                history.push(`/device/delete/${urlParams.id}`);
-                            }}
-                        >
-                            Delete
-                        </Button>
-                    </Grid>
+                                </Stack>
+                                <Stack spacing={1} p={1} direction="row">
+                                    <Typography component="h1" variant="subtitle2">
+                                        Token:
+                                    </Typography>
+                                    <Typography component="h1" variant="body2">
+                                        {detail.token}
+                                    </Typography>
+                                </Stack>
+                                <Stack spacing={1} p={1} direction="row">
+                                    <Typography component="h1" variant="subtitle2">
+                                        Push Token:
+                                    </Typography>
+                                    <Typography component="h1" variant="body2">
+                                        {detail.pushToken}
+                                    </Typography>
+                                </Stack>
+                                <Stack spacing={1} p={1} direction="row">
+                                    <Typography component="h1" variant="subtitle2">
+                                        Token Expired:
+                                    </Typography>
+                                    <Typography component="h1" variant="body2">
+                                        {detail.tokenExpiredAt != null
+                                            ? formatDate(detail.tokenExpiredAt)
+                                            : ""}
+                                    </Typography>
+                                </Stack>
+                            </Stack>
+                            <Stack justifyContent="center" alignItems="center" spacing={2} p={1}>
+                                <Button
+                                    color="error"
+                                    variant="contained"
+                                    onClick={(e) => {
+                                        showBasicDialog(
+                                            { text: "Please confirm delete." },
+                                            async () => {
+                                                try {
+                                                    await deleteUser(urlParams.id);
+                                                    navigate(`/device`);
+                                                } catch (e) {
+                                                    console.error(e);
+                                                    showSnackBar({
+                                                        severity: "error",
+                                                        text: "Server error, please check browser console.",
+                                                    });
+                                                }
+                                            }
+                                        );
+                                    }}
+                                >
+                                    Delete
+                                </Button>
+                            </Stack>
+                        </Paper>
+                    ) : null}
                 </Grid>
-            </Paper>
+            </Grid>
         </Layout>
     );
 }

@@ -4,42 +4,54 @@ import { useHistory, useParams } from "react-router-dom";
 import { useGet, usePut } from "../../lib/useApi";
 import {
     TextField,
-    Paper,
-    Grid,
+    Typography,
     Button,
     Stack,
     FormGroup,
     FormControl,
     FormControlLabel,
     Checkbox,
+    Box,
 } from "@mui/material";
 import { useShowSnackBar } from "../../components/useUI";
-import { User } from "@prisma/client";
 import * as yup from "yup";
 import { useFormik } from "formik";
 import { successResponseType } from "../../../../../../server/components/response";
 
+declare const UPLOADS_BASE_URL: string;
+
 const userModelSchema = yup.object({
     displayName: yup.string().required("Display name is required"),
-    countryCode: yup.string().required("Code is required"),
     telephoneNumber: yup.string().required("Telephone number is required"),
-    email: yup.string().required("Email is required").email("Not valid email"),
-    avatarUrl: yup.string().url(),
+    email: yup.string(),
+    avatarUrl: yup.string(),
     verificationCode: yup.string(),
     verified: yup.boolean(),
 });
 
-export default function Page() {
-    const urlParams: { id: string } = useParams();
-    const history = useHistory();
+type EditUserProps = {
+    userId: string;
+};
+
+export default function Page(props: EditUserProps) {
+    const { userId } = props;
     const showSnackBar = useShowSnackBar();
-    const get = useGet();
-    const put = usePut();
+    const { data, isLoading } = useGetUserByIdQuery(userId);
+    const [updateUser, updateUserMutation] = useUpdateUserMutation();
+    const dispatch = useDispatch();
+
+    const [file, setFile] = useState<File>();
+    const uploadFileRef = React.useRef(null);
+
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const uploadedFile = e.target.files && e.target.files[0];
+
+        setFile(uploadedFile);
+    };
 
     const formik = useFormik({
         initialValues: {
             displayName: "",
-            countryCode: "",
             telephoneNumber: "",
             email: "",
             avatarUrl: "",
@@ -48,6 +60,8 @@ export default function Page() {
         },
         validationSchema: userModelSchema,
         onSubmit: (values) => {
+            console.log(formik.values.verified);
+            console.log(values);
             validateAndUpdate();
         },
     });
@@ -55,7 +69,6 @@ export default function Page() {
     const serverUser = useFormik({
         initialValues: {
             displayName: "",
-            countryCode: "",
             telephoneNumber: "",
             email: "",
             avatarUrl: "",
@@ -68,13 +81,9 @@ export default function Page() {
 
     useEffect(() => {
         (async () => {
-            try {
-                const serverResponse: successResponseType = await get(
-                    `/api/management/user/${urlParams.id}`
-                );
-                const response: User = serverResponse.data.user;
+            if (!isLoading) {
+                const response: UserType = data.user;
                 const checkName = response.displayName == null ? "" : response.displayName;
-                const checkCC = response.countryCode == null ? "" : response.countryCode;
                 const checkPhone = response.telephoneNumber == null ? "" : response.telephoneNumber;
                 const checkEmail = response.emailAddress == null ? "" : response.emailAddress;
                 const checkUrl = response.avatarUrl == null ? "" : response.avatarUrl;
@@ -83,7 +92,6 @@ export default function Page() {
                     response.verificationCode == null ? "" : response.verificationCode;
                 formik.setValues({
                     displayName: checkName,
-                    countryCode: checkCC,
                     telephoneNumber: checkPhone,
                     email: checkEmail,
                     avatarUrl: checkUrl,
@@ -92,37 +100,50 @@ export default function Page() {
                 });
                 serverUser.setValues({
                     displayName: checkName,
-                    countryCode: checkCC,
                     telephoneNumber: checkPhone,
                     email: checkEmail,
                     avatarUrl: checkUrl,
                     verificationCode: checkVerCode,
                     verified: checkVer,
                 });
-            } catch (e) {
-                console.error(e);
-                showSnackBar({
-                    severity: "error",
-                    text: "Server error, please check browser console.",
-                });
             }
         })();
-    }, []);
+    }, [data]);
 
     const validateAndUpdate = async () => {
         try {
-            const result = await put(`/api/management/user/${urlParams.id}`, {
-                displayName: formik.values.displayName,
-                emailAddress: formik.values.email,
-                countryCode: formik.values.countryCode,
-                telephoneNumber: formik.values.telephoneNumber,
-                avatarUrl: formik.values.avatarUrl,
-                verified: formik.values.verified,
-                verificationCode: formik.values.verificationCode,
-            });
-
+            if (file) {
+                const uploadedFile = await uploadFile({
+                    file,
+                    type: "avatar",
+                    relationId: Number(userId),
+                });
+                await updateUser({
+                    userId: userId,
+                    data: {
+                        displayName: formik.values.displayName,
+                        emailAddress: formik.values.email,
+                        telephoneNumber: formik.values.telephoneNumber,
+                        avatarUrl: uploadedFile.path || "",
+                        verified: formik.values.verified,
+                        verificationCode: formik.values.verificationCode,
+                    },
+                });
+            } else {
+                await updateUser({
+                    userId: userId,
+                    data: {
+                        displayName: formik.values.displayName,
+                        emailAddress: formik.values.email,
+                        telephoneNumber: formik.values.telephoneNumber,
+                        avatarUrl: formik.values.avatarUrl,
+                        verified: formik.values.verified,
+                        verificationCode: formik.values.verificationCode,
+                    },
+                });
+            }
             showSnackBar({ severity: "success", text: "User updated" });
-            history.push("/user");
+            dispatch(hide());
         } catch (e: any) {
             showSnackBar({
                 severity: "error",
@@ -132,45 +153,95 @@ export default function Page() {
     };
 
     return (
-        <Layout subtitle={`User detail ( ${urlParams.id} )`} showBack={true}>
-            <form onSubmit={formik.handleSubmit}>
-                <Paper
-                    sx={{
-                        margin: "24px",
-                        padding: "24px",
-                        minHeight: "calc(100vh-64px)",
-                    }}
-                >
-                    <Grid container spacing={2}>
-                        <Grid item xs={12} md={8}>
-                            <TextField
-                                required
-                                fullWidth
-                                id="displayName"
-                                error={
-                                    formik.touched.displayName && Boolean(formik.errors.displayName)
-                                }
-                                label="Display Name"
-                                value={formik.values.displayName}
-                                onChange={formik.handleChange}
-                                helperText={formik.touched.displayName && formik.errors.displayName}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={8}>
-                            <Stack alignItems="center" spacing={1} direction="row">
-                                <TextField
-                                    required
-                                    id="countryCode"
-                                    error={
-                                        formik.touched.countryCode &&
-                                        Boolean(formik.errors.countryCode)
-                                    }
-                                    label="Country code"
-                                    value={formik.values.countryCode}
+        <form onSubmit={formik.handleSubmit}>
+            <Stack spacing={2} padding={2}>
+                <Typography component="h1" variant="subtitle1" noWrap style={{ color: "grey" }}>
+                    Edit User
+                </Typography>
+                <Box textAlign="center" mt={3} mb={5}>
+                    <img
+                        width={100}
+                        height={100}
+                        style={{ objectFit: "cover", borderRadius: "50%" }}
+                        src={
+                            file
+                                ? URL.createObjectURL(file)
+                                : formik.values.avatarUrl.length > 0
+                                ? `${UPLOADS_BASE_URL}${formik.values.avatarUrl}`
+                                : uploadImage
+                        }
+                        onClick={() => uploadFileRef.current?.click()}
+                    />
+                    <input
+                        onChange={handleFileUpload}
+                        type="file"
+                        style={{ display: "none" }}
+                        ref={uploadFileRef}
+                        accept="image/*"
+                    />
+                </Box>
+                <TextField
+                    required
+                    fullWidth
+                    id="displayName"
+                    error={formik.touched.displayName && Boolean(formik.errors.displayName)}
+                    label="Display Name"
+                    value={formik.values.displayName}
+                    onChange={formik.handleChange}
+                    helperText={formik.touched.displayName && formik.errors.displayName}
+                    size="small"
+                    inputProps={{ style: { fontSize: 15 } }}
+                    InputLabelProps={{ style: { fontSize: 15 } }}
+                />
+                <TextField
+                    required
+                    fullWidth
+                    id="telephoneNumber"
+                    error={formik.touched.telephoneNumber && Boolean(formik.errors.telephoneNumber)}
+                    label="Phone number"
+                    value={formik.values.telephoneNumber}
+                    onChange={formik.handleChange}
+                    helperText={formik.touched.telephoneNumber && formik.errors.telephoneNumber}
+                    size="small"
+                    inputProps={{ style: { fontSize: 15 } }}
+                    InputLabelProps={{ style: { fontSize: 15 } }}
+                />
+                <TextField
+                    fullWidth
+                    id="email"
+                    error={formik.touched.email && Boolean(formik.errors.email)}
+                    label="E-mail"
+                    value={formik.values.email}
+                    onChange={formik.handleChange}
+                    helperText={formik.touched.email && formik.errors.email}
+                    size="small"
+                    inputProps={{ style: { fontSize: 15 } }}
+                    InputLabelProps={{ style: { fontSize: 15 } }}
+                />
+                <TextField
+                    fullWidth
+                    id="verificationCode"
+                    error={
+                        formik.touched.verificationCode && Boolean(formik.errors.verificationCode)
+                    }
+                    label="Verification Code"
+                    value={formik.values.verificationCode}
+                    onChange={formik.handleChange}
+                    helperText={formik.touched.verificationCode && formik.errors.verificationCode}
+                    size="small"
+                    inputProps={{ style: { fontSize: 15 } }}
+                    InputLabelProps={{ style: { fontSize: 15 } }}
+                />
+                <FormControl component="fieldset">
+                    <FormGroup aria-label="position" row>
+                        <FormControlLabel
+                            value="start"
+                            control={
+                                <Checkbox
+                                    id="verified"
+                                    color="spikaButton"
                                     onChange={formik.handleChange}
-                                    helperText={
-                                        formik.touched.countryCode && formik.errors.countryCode
-                                    }
+                                    checked={formik.values.verified}
                                 />
                                 <TextField
                                     required

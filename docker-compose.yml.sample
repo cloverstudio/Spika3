@@ -1,0 +1,81 @@
+version: "2.0"
+services:
+    mysql:
+        restart: on-failure
+        image: "mysql:8.0"
+        environment:
+            MYSQL_DATABASE: db
+            MYSQL_USER: mysqluser
+            MYSQL_PASSWORD: ZjP68Ygd
+            MYSQL_ROOT_PASSWORD: ZjP68Ygd
+        ports:
+            - "3306:3306"
+        expose:
+            - "3306"
+        volumes:
+            - "./docker/data/db:/var/lib/mysql"
+    mysql-test:
+        restart: on-failure
+        image: "mysql:8.0"
+        environment:
+            MYSQL_DATABASE: dbtest
+            MYSQL_USER: mysqluser
+            MYSQL_PASSWORD: testtest
+            MYSQL_ROOT_PASSWORD: testtest
+        ports:
+            - "3307:3306"
+        expose:
+            - "3307"
+        volumes:
+            - "./docker/data/testdb:/var/lib/mysql"
+    phpmyadmin:
+        restart: on-failure
+        depends_on:
+            - mysql
+        image: phpmyadmin/phpmyadmin
+        ports:
+            - "8082:80"
+        environment:
+            PMA_HOST: mysql
+            MYSQL_ROOT_PASSWORD: ZjP68Ygd
+            UPLOAD_LIMIT: 300M
+    rabbitmq:
+        restart: on-failure
+        image: rabbitmq:3.8-management-alpine
+        environment:
+            - RABBITMQ_DEFAULT_USER=myuser
+            - RABBITMQ_DEFAULT_PASS=mypassword
+        ports:
+            - "5672:5672"
+            - "15672:15672"
+    redis-spika:
+        restart: on-failure
+        image: "redis:latest"
+        ports:
+            - "6379:6379"
+        environment:
+            - REDIS_AOF_ENABLED=no
+#    app:
+#        build:
+#            context: .
+#            dockerfile: Dockerfile.production
+#        env_file: .env
+#        environment:
+#            NODE_ENV: production
+#           DATABASE_URL: ${DATABASE_URL}
+#        command:
+#            - /bin/sh
+#            - -c
+#            - |
+#                sleep 5
+#                cd /app
+#                npx prisma migrate deploy 
+#                npx prisma generate
+#                npm run start:server
+#        volumes:
+#            - "./uploads:/app/uploads"
+#        ports:
+#            - 3000:3000
+volumes:
+    spika3-db: null
+    spika3-db-test: null

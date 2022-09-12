@@ -16,6 +16,65 @@ import { Device } from "@prisma/client";
 export default (params: InitRouterParams) => {
     const router = Router();
 
+    router.get("/search", adminAuth, async (req: Request, res: Response) => {
+        const searchTerm: string = req.query.searchTerm ? (req.query.searchTerm as string) : "";
+        const userReq: UserRequest = req as UserRequest;
+
+        try {
+            const allDevices: Device[] = await prisma.device.findMany({
+                where: {
+                    OR: [
+                        {
+                            deviceId: {
+                                contains: searchTerm,
+                            },
+                        },
+                        {
+                            type: {
+                                contains: searchTerm,
+                            },
+                        },
+                        {
+                            osName: {
+                                contains: searchTerm,
+                            },
+                        },
+                        {
+                            appVersion: {
+                                contains: searchTerm,
+                            },
+                        },
+                        {
+                            token: {
+                                contains: searchTerm,
+                            },
+                        },
+                        {
+                            pushToken: {
+                                contains: searchTerm,
+                            },
+                        },
+                    ],
+                },
+            });
+            const count = allDevices.length;
+
+            return res.send(
+                successResponse(
+                    {
+                        list: allDevices,
+                        count: count,
+                        limit: consts.PAGING_LIMIT,
+                    },
+                    userReq.lang
+                )
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
     router.post("/", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
@@ -23,7 +82,7 @@ export default (params: InitRouterParams) => {
             const deviceId: string = req.body.deviceId;
             const type: string = req.body.type;
             const osName: string = req.body.osName;
-            const appVersion: number = req.body.appVersion ? parseInt(req.body.appVersion) : null;
+            const appVersion: string = req.body.appVersion;
             const token: string = req.body.token;
             const pushToken: string = req.body.pushToken;
 
@@ -128,7 +187,7 @@ export default (params: InitRouterParams) => {
             const deviceId: string = req.body.deviceId;
             const type: string = req.body.type;
             const osName: string = req.body.osName;
-            const appVersion: number = parseInt(req.body.appVersion);
+            const appVersion: string = req.body.appVersion;
             const token: string = req.body.token;
             const pushToken: string = req.body.pushToken;
             const device: Device = await prisma.device.findFirst({

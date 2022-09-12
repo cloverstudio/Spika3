@@ -35,9 +35,13 @@ describe("API", () => {
                 contacts: users,
             });
 
+            // force change env var
+            const teammode: string = process.env.TEAM_MODE;
+            process.env.TEAM_MODE = "0";
             const response = await supertest(app)
                 .get("/api/messenger/contacts?page=2")
                 .set({ accesstoken: globals.userToken });
+            process.env.TEAM_MODE = teammode;
 
             expect(response.status).to.eqls(200);
             expect(response.body).to.has.property("data");
@@ -171,6 +175,55 @@ describe("API", () => {
             expect(users.every((u) => contacts.map((c) => c.contactId).includes(u.id))).to.eqls(
                 true
             );
+        });
+
+        describe("/api/messenger/contacts GET", () => {
+            it("Works without any params", async () => {
+                const response = await supertest(app)
+                    .get("/api/messenger/contacts")
+                    .set({ accesstoken: globals.userToken });
+
+                expect(response.status).to.eqls(200);
+                expect(response.body).to.has.property("data");
+                expect(response.body.data).to.has.property("list");
+                expect(response.body.data).to.has.property("count");
+                expect(response.body.data).to.has.property("limit");
+            });
+
+            it("Accepts page query", async () => {
+                const contacts = await createFakeContacts({
+                    userId: globals.userId,
+                    contacts: users,
+                });
+
+                const response = await supertest(app)
+                    .get("/api/messenger/contacts?page=2")
+                    .set({ accesstoken: globals.userToken });
+
+                expect(response.status).to.eqls(200);
+                expect(response.body).to.has.property("data");
+                expect(response.body.data).to.has.property("list");
+                expect(response.body.data).to.has.property("count");
+                expect(response.body.data).to.has.property("limit");
+            });
+
+            it("filter by keyword works", async () => {
+                const contacts = await createFakeContacts({
+                    userId: globals.userId,
+                    contacts: users,
+                });
+
+                const response = await supertest(app)
+                    .get("/api/messenger/contacts?keyword=randomkeyword")
+                    .set({ accesstoken: globals.userToken });
+
+                expect(response.status).to.eqls(200);
+                expect(response.body).to.has.property("data");
+                expect(response.body.data).to.has.property("list");
+                expect(response.body.data).to.has.property("count");
+                expect(response.body.data).to.has.property("limit");
+                expect(response.body.data.list.length).to.eqls(0);
+            });
         });
     });
 });
