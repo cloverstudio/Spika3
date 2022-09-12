@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Layout from "../layout";
 import { useNavigate } from "react-router-dom";
 import { DataGrid, GridActionsCellItem, GridRenderCellParams } from "@mui/x-data-grid";
-import { Paper, Fab, Avatar } from "@mui/material";
+import { Paper, Avatar, Stack, Button, TextField, Drawer, Box, Chip } from "@mui/material";
 import {
     Delete as DeleteIcon,
     Edit as EditIcon,
@@ -11,10 +11,26 @@ import {
     MeetingRoom as RoomIcon,
 } from "@mui/icons-material/";
 import { User } from "@prisma/client";
-import { useGet } from "../../lib/useApi";
-import { useShowSnackBar } from "../../components/useUI";
-import { ListResponseType } from "../../lib/customTypes";
-import { successResponseType } from "../../../../../../server/components/response";
+import {
+    useGetUsersQuery,
+    useGetUsersBySearchTermQuery,
+    useGetVerifiedUsersQuery,
+} from "../../api/user";
+import UserType from "../../types/User";
+import theme from "../../theme";
+import { currentFilter } from "../../store/filterSlice";
+import {
+    show as openCreateUser,
+    hide as hideCreateUser,
+    selectRightSidebarOpen,
+} from "../../store/rightDrawerSlice";
+import { useDispatch, useSelector } from "react-redux";
+import UserAdd from "../../pages/user/add";
+import UserEdit from "../../pages/user/edit";
+import { useShowBasicDialog, useShowSnackBar } from "../../components/useUI";
+import { useDeleteUserMutation } from "../../api/user";
+
+declare const UPLOADS_BASE_URL: string;
 
 export interface UserMainViewProps {
     onSelect: (value: string) => void;
@@ -187,7 +203,7 @@ export default function Dashboard() {
                 <GridActionsCellItem
                     icon={<RoomIcon />}
                     label="Rooms"
-                    onClick={() => history.push(`/user/${params.id}/room`)}
+                    onClick={() => navigate(`/user/${params.id}/room`)}
                     showInMenu
                 />,
                 <GridActionsCellItem

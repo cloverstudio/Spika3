@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, User } from "@prisma/client";
 
 import Utils from "../../../components/utils";
 import * as Constants from "../../../components/consts";
@@ -11,13 +11,14 @@ import validate from "../../../components/validateMiddleware";
 import * as yup from "yup";
 import { successResponse, errorResponse } from "../../../components/response";
 import sanitize from "../../../components/sanitize";
+import * as constants from "../lib/constants";
+import device from "./device";
 
 const prisma = new PrismaClient();
 
 const authSchema = yup.object().shape({
     body: yup.object().shape({
         telephoneNumber: yup.string().required(),
-        telephoneNumberHashed: yup.string().required(),
         deviceId: yup.string().required(),
     }),
 });
@@ -44,14 +45,29 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
     router.post("/", validate(authSchema), async (req: Request, res: Response) => {
         try {
             const telephoneNumber = req.body.telephoneNumber as string;
-            const telephoneNumberHashed = req.body.telephoneNumberHashed as string;
+            const telephoneNumberHashed = Utils.sha256(telephoneNumber);
             const deviceId = req.body.deviceId as string;
+            const osName = (req.headers["os-name"] || "") as string;
+            const deviceType: string = req.headers["device-type"] as string;
 
             let isNewUser = false;
-            let verificationCode: string = null;
 
-            let requestUser = await prisma.user.findFirst({
-                where: { telephoneNumber },
+            // Handle irregular cases here
+
+            // The cases to handle
+            // 1. When user changes telephone number before success signup.
+            //     -> Delete the previous device and user
+            // 2. When user changes telephone number after signed up successfully
+            //     -> Create new user and the new user will have the device
+            // 3. When new device id comes from same telephone number
+            //     -> Is's ok. User can have multiple devices
+
+            // 1. When user changes telephone number before success signup.
+            let registeredDevice = await prisma.device.findFirst({
+                where: { deviceId },
+                include: {
+                    user: true,
+                },
             });
 
             if (
@@ -65,8 +81,24 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     where: { id: registeredDevice.id },
                 });
 
-                l(`Verification code ${verificationCode}, device id ${deviceId}`);
+                await prisma.user.delete({
+                    where: { id: registeredDevice.userId },
+                });
 
+                console.log("user deleted----------------------");
+            }
+
+            // The main logic starts here.
+            const verificationCode =
+                process.env.IS_TEST === "1"
+                    ? Constants.BACKDOOR_VERIFICATION_CODE
+                    : Utils.randomNumber(6);
+
+            let requestUser = await prisma.user.findFirst({
+                where: { telephoneNumber },
+            });
+
+            if (!requestUser) {
                 const newUser = await prisma.user.create({
                     data: {
                         telephoneNumber,
@@ -77,38 +109,20 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
                 requestUser = newUser;
                 isNewUser = true;
-            } else if (requestUser.verified === false) {
-                // send sms again
-
-            // The main logic starts here.
-            const verificationCode =
-                process.env.IS_TEST === "1"
-                    ? Constants.BACKDOOR_VERIFICATION_CODE
-                    : Utils.randomNumber(6);
-
-                requestUser = await prisma.user.update({
-                    where: {
-                        id: requestUser.id,
-                    },
-                    data: {
-                        verificationCode,
-                        telephoneNumberHashed,
-                    },
-                });
-
-                isNewUser = true;
             } else {
-                // re-login
+                isNewUser = !requestUser.displayName;
+
                 requestUser = await prisma.user.update({
                     where: {
                         id: requestUser.id,
                     },
                     data: {
                         verificationCode,
-                        verified: false,
                     },
                 });
             }
+
+            l(`Verification code ${verificationCode}, device id ${deviceId}`);
 
             // is new device ?
             let requestDevice = await prisma.device.findFirst({
@@ -137,14 +151,9 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         type: deviceType,
                     },
                 });
-            }
-
-            // generate token if existed user
-            // send SMS if new user
-            if (!isNewUser) {
-                const newToken = Utils.createToken();
-                const expireDate = Utils.getTokenExpireDate();
-
+            } else {
+                // expire token if existing device
+                // If there is device already registered the user took the device
                 requestDevice = await prisma.device.update({
                     where: {
                         id: requestDevice.id,
@@ -156,10 +165,9 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 });
             }
 
-            // send sms
             const SMSPayload: SendSMSPayload = {
                 telephoneNumber,
-                content: verificationCodeSMS({ verificationCode }),
+                content: verificationCodeSMS({ verificationCode, osName }),
             };
 
             rabbitMQChannel.sendToQueue(
@@ -167,13 +175,16 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 Buffer.from(JSON.stringify(SMSPayload))
             );
 
+            // Browser device id is used to override device id in browser to support multiple browser
             res.send(
                 successResponse({
                     isNewUser,
                     user: sanitize(requestUser).user(),
-                    device: {
-                        id: requestDevice.id,
-                    },
+                    device: sanitize(requestDevice).device(),
+                    browserDeviceId:
+                        requestDevice.type === constants.DEVICE_TYPE_BROWSER
+                            ? requestDevice.deviceId
+                            : undefined,
                 })
             );
         } catch (e: any) {
@@ -187,23 +198,31 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             const verificationCode = req.body.code as string;
             const deviceId = req.body.deviceId as string;
 
-            const requestUser = await prisma.user.findFirst({
-                where: { verificationCode },
-            });
-
-            if (!requestUser) {
-                return res.status(403).send(errorResponse("Verification code is invalid"));
-            }
-
             let requestDevice = await prisma.device.findFirst({
                 where: {
                     deviceId: deviceId,
-                    userId: requestUser.id,
                 },
             });
 
             if (!requestDevice) {
                 return res.status(403).send(errorResponse("Invalid device id"));
+            }
+
+            const requestUser = await prisma.user.findMany({
+                where: { verificationCode },
+                orderBy: {
+                    createdAt: "desc",
+                },
+            });
+
+            if (!requestUser || requestUser.length === 0) {
+                return res.status(403).send(errorResponse("Verification code is invalid"));
+            }
+
+            const findUser: User = requestUser.find((user) => user.id === requestDevice.userId);
+
+            if (!findUser) {
+                return res.status(403).send(errorResponse("Verification code is invalid"));
             }
 
             await prisma.user.update({
@@ -231,8 +250,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             res.send(
                 successResponse({
-                    user: sanitize(requestUser).user(),
-                    device: requestDevice,
+                    user: sanitize(findUser).user(),
+                    device: sanitize(requestDevice).device(),
                 })
             );
         } catch (e: any) {

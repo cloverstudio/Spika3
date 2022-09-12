@@ -1,15 +1,19 @@
 import React, { useEffect } from "react";
 import Layout from "../layout";
-import { useHistory, useParams } from "react-router-dom";
-import { useGet } from "../../lib/useApi";
-import { Typography, Paper, Grid, Button } from "@mui/material";
-import { useShowSnackBar } from "../../components/useUI";
-import { Device } from "@prisma/client";
-import { successResponseType } from "../../../../../../server/components/response";
+import { useNavigate, useParams } from "react-router-dom";
+import { Typography, Paper, Grid, Button, Stack, Divider } from "@mui/material";
+import { formatDate } from "../../../../../lib/utils";
+import { useGetDeviceByIdQuery } from "../../api/device";
+import DeviceType from "../../types/Device";
+import { PhoneIphone } from "@mui/icons-material/";
+import { useShowBasicDialog, useShowSnackBar } from "../../components/useUI";
+import { useDeleteDeviceMutation } from "../../api/device";
 
 export default function Page() {
-    const urlParams: { id: string } = useParams();
-    const history = useHistory();
+    const urlParams = useParams();
+    const navigate = useNavigate();
+    const [detail, setDetail] = React.useState<DeviceType>();
+    const { data, isLoading } = useGetDeviceByIdQuery(urlParams.id);
     const showSnackBar = useShowSnackBar();
     const showBasicDialog = useShowBasicDialog();
     const [deleteUser, deleteUserMutation] = useDeleteDeviceMutation();

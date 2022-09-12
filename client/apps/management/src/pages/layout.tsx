@@ -33,13 +33,15 @@ import {
     Devices as DeviceIcon,
     MeetingRoom as RoomIcon,
     Logout as LogoutIcon,
+    AccountCircle,
 } from "@mui/icons-material/";
 
 import SnackBar from "../components/snackBar";
 import BasicDialog from "../components/basicDialog";
 import { logout } from "../store/adminAuthSlice";
 import { showSnackBar } from "../store/uiSlice";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { hide } from "../store/rightDrawerSlice";
 
 const drawerWidth = 240;
 
@@ -320,7 +322,7 @@ function DashboardContent({ subtitle, children, showBack = false, selectedFilter
                             sx={{ borderRadius: "1em" }}
                         >
                             <ListItemIcon>
-                                <UserIcon />
+                                <UserIcon style={{ fill: theme.palette.spikaLightGrey.main }} />
                             </ListItemIcon>
                             <ListItemText
                                 primary="Users"
@@ -335,40 +337,22 @@ function DashboardContent({ subtitle, children, showBack = false, selectedFilter
                             sx={{ borderRadius: "1em" }}
                         >
                             <ListItemIcon>
-                                <DeviceIcon />
+                                <DeviceIcon style={{ fill: theme.palette.spikaLightGrey.main }} />
                             </ListItemIcon>
-                            <ListItemText primary="Devices" />
-                        </ListItem>
-                        <ListItem
-                            button
-                            onClick={(e) => {
-                                history.push("/room");
-                            }}
+                            <ListItemText
+                                primary="Devices"
+                                primaryTypographyProps={{
+                                    style: { color: theme.palette.spikaLightGrey.main },
+                                }}
+                            />
+                        </ListItemButton>
+                        <ListItemButton
+                            selected={selectedIndex === 3}
+                            onClick={(event) => handleListItemClick(event, 3)}
+                            sx={{ borderRadius: "1em" }}
                         >
                             <ListItemIcon>
-                                <RoomIcon />
-                            </ListItemIcon>
-                            <ListItemText primary="Rooms" />
-                        </ListItem>
-                    </List>
-                    <Divider />
-                    <List>
-                        <ListItem
-                            button
-                            onClick={(e) => {
-                                dispatch(logout());
-                                dispatch(
-                                    showSnackBar({
-                                        severity: "success",
-                                        text: "Singed out",
-                                    })
-                                );
-
-                                history.push("/");
-                            }}
-                        >
-                            <ListItemIcon>
-                                <LogoutIcon />
+                                <RoomIcon style={{ fill: theme.palette.spikaLightGrey.main }} />
                             </ListItemIcon>
                             <ListItemText
                                 primary="Rooms"

@@ -1,11 +1,11 @@
 import React, { useEffect } from "react";
 import Layout from "../layout";
-import { useHistory, useParams } from "react-router-dom";
-import { useGet, useDelete } from "../../lib/useApi";
+import { useNavigate, useParams } from "react-router-dom";
 import { Typography, Paper, Grid, Button } from "@mui/material";
 import { useShowBasicDialog, useShowSnackBar } from "../../components/useUI";
-import { Device } from "@prisma/client";
-import { successResponseType } from "../../../../../../server/components/response";
+import { formatDate } from "../../../../../lib/utils";
+import { useGetDeviceByIdQuery, useDeleteDeviceMutation } from "../../api/device";
+import DeviceType from "../../types/Device";
 
 interface formItem {
     value: string;
@@ -14,8 +14,8 @@ interface formItem {
 }
 
 export default function Page() {
-    const urlParams: { id: string } = useParams();
-    const history = useHistory();
+    const urlParams = useParams();
+    const navigate = useNavigate();
     const showSnackBar = useShowSnackBar();
     const showBasicDialog = useShowBasicDialog();
     const [detail, setDetail] = React.useState<DeviceType>();

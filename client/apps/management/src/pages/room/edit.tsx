@@ -1,22 +1,30 @@
-import React, { useEffect } from "react";
-import Layout from "../layout";
-import { useHistory, useParams } from "react-router-dom";
-import { useGet, usePut } from "../../lib/useApi";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
     TextField,
-    Paper,
-    Grid,
+    Stack,
     Button,
     FormGroup,
     FormControl,
     FormControlLabel,
     Checkbox,
+    Typography,
+    Box,
+    Select,
+    MenuItem,
+    SelectChangeEvent,
 } from "@mui/material";
 import { useShowSnackBar } from "../../components/useUI";
-import { Room } from "@prisma/client";
 import * as yup from "yup";
 import { useFormik } from "formik";
-import { successResponseType } from "../../../../../../server/components/response";
+import { useGetRoomByIdQuery, useUpdateRoomMutation } from "../../api/room";
+import RoomType from "../../types/Room";
+import uploadFile from "../../utils/uploadFile";
+import uploadImage from "../../assets/upload-image.svg";
+import { hide } from "../../store/rightDrawerSlice";
+import { useDispatch } from "react-redux";
+
+declare const UPLOADS_BASE_URL: string;
 
 const roomModelSchema = yup.object({
     name: yup.string().required("Name is required"),
@@ -25,17 +33,36 @@ const roomModelSchema = yup.object({
     deleted: yup.boolean(),
 });
 
-export default function RoomEdit() {
-    const urlParams: { id: string } = useParams();
-    const history = useHistory();
+type EditRoomProps = {
+    roomId: string;
+};
+
+export default function RoomEdit(props: EditRoomProps) {
+    const { roomId } = props;
+    const navigate = useNavigate();
     const showSnackBar = useShowSnackBar();
-    const get = useGet();
-    const put = usePut();
+    const { data, isLoading } = useGetRoomByIdQuery(roomId);
+    const [updateRoom, updateRoomMutation] = useUpdateRoomMutation();
+    const [file, setFile] = useState<File>();
+    const uploadFileRef = React.useRef(null);
+    const dispatch = useDispatch();
+
+    const [value, setValue] = React.useState("private");
+
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const uploadedFile = e.target.files && e.target.files[0];
+
+        setFile(uploadedFile);
+    };
+
+    const handleChange = (event: SelectChangeEvent) => {
+        setValue(event.target.value);
+    };
 
     const formik = useFormik({
         initialValues: {
             name: "",
-            type: "",
+            type: value,
             avatarUrl: "",
             deleted: false,
         },
@@ -47,11 +74,9 @@ export default function RoomEdit() {
 
     useEffect(() => {
         (async () => {
-            try {
-                const serverResponse: successResponseType = await get(
-                    `/api/management/room/${urlParams.id}`
-                );
-                const response: Room = serverResponse.data.room;
+            if (!isLoading) {
+                const response: RoomType = data.room;
+                console.log(JSON.stringify(response));
                 const checkName = response.name == null ? "" : response.name;
                 const checkType = response.type == null ? "" : response.type;
                 const checkUrl = response.avatarUrl == null ? "" : response.avatarUrl;
@@ -62,28 +87,41 @@ export default function RoomEdit() {
                     avatarUrl: checkUrl,
                     deleted: checkDel,
                 });
-            } catch (e) {
-                console.error(e);
-                showSnackBar({
-                    severity: "error",
-                    text: "Server error, please check browser console.",
-                });
             }
         })();
-    }, []);
+    }, [data]);
 
     const validateAndUpdate = async () => {
-        console.log(formik.values);
         try {
-            const result = await put(`/api/management/room/${urlParams.id}`, {
-                name: formik.values.name,
-                type: formik.values.type,
-                avatarUrl: formik.values.avatarUrl,
-                deleted: formik.values.deleted,
-            });
+            if (file) {
+                const uploadedFile = await uploadFile({
+                    file,
+                    type: "avatar",
+                    relationId: Number(roomId),
+                });
+                await updateRoom({
+                    roomId: roomId,
+                    data: {
+                        name: formik.values.name,
+                        type: value,
+                        avatarUrl: uploadedFile.path || "",
+                        deleted: formik.values.deleted,
+                    },
+                });
+            } else {
+                await updateRoom({
+                    roomId: roomId,
+                    data: {
+                        name: formik.values.name,
+                        type: value,
+                        avatarUrl: formik.values.avatarUrl,
+                        deleted: formik.values.deleted,
+                    },
+                });
+            }
 
             showSnackBar({ severity: "success", text: "Room updated" });
-            history.push("/room");
+            dispatch(hide());
         } catch (e: any) {
             showSnackBar({
                 severity: "error",
@@ -93,77 +131,92 @@ export default function RoomEdit() {
     };
 
     return (
-        <Layout subtitle={`Room detail ( ${urlParams.id} )`} showBack={true}>
-            <form onSubmit={formik.handleSubmit}>
-                <Paper
-                    sx={{
-                        margin: "24px",
-                        padding: "24px",
-                        minHeight: "calc(100vh-64px)",
-                    }}
+        <form onSubmit={formik.handleSubmit}>
+            <Stack spacing={2} padding={2}>
+                <Typography component="h1" variant="subtitle1" noWrap style={{ color: "grey" }}>
+                    Edit Room
+                </Typography>
+                <Box textAlign="center" mt={3} mb={5}>
+                    <img
+                        width={100}
+                        height={100}
+                        style={{ objectFit: "cover", borderRadius: "50%" }}
+                        src={
+                            file
+                                ? URL.createObjectURL(file)
+                                : formik.values.avatarUrl.length > 0
+                                ? `${UPLOADS_BASE_URL}${formik.values.avatarUrl}`
+                                : uploadImage
+                        }
+                        onClick={() => uploadFileRef.current?.click()}
+                    />
+                    <input
+                        onChange={handleFileUpload}
+                        type="file"
+                        style={{ display: "none" }}
+                        ref={uploadFileRef}
+                        accept="image/*"
+                    />
+                </Box>
+                <TextField
+                    required
+                    fullWidth
+                    id="name"
+                    error={formik.touched.name && Boolean(formik.errors.name)}
+                    label="Name"
+                    value={formik.values.name}
+                    onChange={formik.handleChange}
+                    helperText={formik.touched.name && formik.errors.name}
+                />
+                <Select
+                    labelId="demo-select-small"
+                    id="demo-select-small"
+                    value={value}
+                    label="Type"
+                    onChange={handleChange}
                 >
-                    <Grid container spacing={2}>
-                        <Grid item xs={12} md={8}>
-                            <TextField
-                                required
-                                fullWidth
-                                id="name"
-                                error={formik.touched.name && Boolean(formik.errors.name)}
-                                label="Name"
-                                value={formik.values.name}
-                                onChange={formik.handleChange}
-                                helperText={formik.touched.name && formik.errors.name}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={8}>
-                            <TextField
-                                required
-                                fullWidth
-                                id="type"
-                                error={formik.touched.type && Boolean(formik.errors.type)}
-                                label="Type"
-                                value={formik.values.type}
-                                onChange={formik.handleChange}
-                                helperText={formik.touched.type && formik.errors.type}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={8}>
-                            <TextField
-                                fullWidth
-                                id="avatarUrl"
-                                error={formik.touched.avatarUrl && Boolean(formik.errors.avatarUrl)}
-                                label="Avatar Url"
-                                value={formik.values.avatarUrl}
-                                onChange={formik.handleChange}
-                                helperText={formik.touched.avatarUrl && formik.errors.avatarUrl}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={8}>
-                            <FormControl component="fieldset">
-                                <FormGroup aria-label="position" row>
-                                    <FormControlLabel
-                                        value="start"
-                                        control={
-                                            <Checkbox
-                                                checked={formik.values.deleted}
-                                                id="deleted"
-                                                onChange={formik.handleChange}
-                                            />
-                                        }
-                                        label="Deleted"
-                                        labelPlacement="start"
-                                    />
-                                </FormGroup>
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={12} md={8} textAlign="right">
-                            <Button variant="contained" type="submit">
-                                Edit room
-                            </Button>
-                        </Grid>
-                    </Grid>
-                </Paper>
-            </form>
-        </Layout>
+                    <MenuItem sx={{ height: "50px" }} value={"private"} key={0}>
+                        Private
+                    </MenuItem>
+                    <MenuItem sx={{ height: "50px" }} value={"group"} key={1}>
+                        Group
+                    </MenuItem>
+                </Select>
+                <FormControl component="fieldset">
+                    <FormGroup aria-label="position" row>
+                        <FormControlLabel
+                            value="start"
+                            control={
+                                <Checkbox
+                                    id="deleted"
+                                    color="spikaButton"
+                                    onChange={formik.handleChange}
+                                    checked={formik.values.deleted}
+                                />
+                            }
+                            label={
+                                <Typography style={{ color: "grey" }} variant="body2">
+                                    Deleted
+                                </Typography>
+                            }
+                            labelPlacement="start"
+                            sx={{ ml: "0" }}
+                        />
+                    </FormGroup>
+                </FormControl>
+                <Stack spacing={2} direction="row">
+                    <Button
+                        variant="contained"
+                        onClick={() => validateAndUpdate()}
+                        color="spikaButton"
+                    >
+                        Edit room
+                    </Button>
+                    <Button variant="outlined" color="spikaGrey" onClick={() => dispatch(hide())}>
+                        Cancel
+                    </Button>
+                </Stack>
+            </Stack>
+        </form>
     );
 }

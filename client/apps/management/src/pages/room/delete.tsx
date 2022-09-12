@@ -1,39 +1,28 @@
 import React, { useEffect } from "react";
 import Layout from "../layout";
-import { useHistory, useParams } from "react-router-dom";
-import { useGet, usePut } from "../../lib/useApi";
+import { useNavigate, useParams } from "react-router-dom";
 import { Typography, Paper, Grid, Button, Avatar, Checkbox } from "@mui/material";
 import { useShowBasicDialog, useShowSnackBar } from "../../components/useUI";
-import { Room } from "@prisma/client";
-import { successResponseType } from "../../../../../../server/components/response";
+import { useGetRoomByIdQuery, useUpdateRoomMutation } from "../../api/room";
+import RoomType from "../../types/Room";
 
 export default function Page() {
-    const urlParams: { id: string } = useParams();
-    const history = useHistory();
+    const urlParams = useParams();
+    const navigate = useNavigate();
     const showSnackBar = useShowSnackBar();
     const showBasicDialog = useShowBasicDialog();
-    const [detail, setDetail] = React.useState<Room>();
-
-    const put = usePut();
-    const get = useGet();
+    const [detail, setDetail] = React.useState<RoomType>();
+    const { data, isLoading } = useGetRoomByIdQuery(urlParams.id);
+    const [deleteRoom, deleteRoomMutation] = useUpdateRoomMutation();
 
     useEffect(() => {
         (async () => {
-            try {
-                const response: successResponseType = await get(
-                    `/api/management/room/${urlParams.id}`
-                );
-                const room: Room = response.data.room;
-                setDetail(room);
-            } catch (e) {
-                console.error(e);
-                showSnackBar({
-                    severity: "error",
-                    text: "Server error, please check browser console.",
-                });
+            if (!isLoading) {
+                const response: RoomType = data.room;
+                setDetail(response);
             }
         })();
-    }, []);
+    }, [data]);
 
     return (
         <Layout subtitle={`Delete room ( ${urlParams.id} )`} showBack={true}>
@@ -56,7 +45,7 @@ export default function Page() {
                                     <Typography component="dt" variant="h6">
                                         ID:
                                     </Typography>
-                                    <Typography component="dd" className="margin-bottom">
+                                    <Typography component="dd" marginBottom={10}>
                                         {detail.id}
                                     </Typography>
                                     <Typography component="dt" variant="h6">
@@ -91,16 +80,16 @@ export default function Page() {
                                         { text: "Please confirm delete." },
                                         async () => {
                                             try {
-                                                const result = await put(
-                                                    `/api/management/room/${urlParams.id}`,
-                                                    {
+                                                await deleteRoom({
+                                                    roomId: urlParams.id,
+                                                    data: {
                                                         name: detail.name,
                                                         type: detail.type,
                                                         avatarUrl: detail.avatarUrl,
                                                         deleted: true,
-                                                    }
-                                                );
-                                                history.push("/room");
+                                                    },
+                                                });
+                                                navigate("/room");
                                             } catch (e) {
                                                 console.error(e);
                                                 showSnackBar({

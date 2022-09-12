@@ -1,7 +1,5 @@
-import React from "react";
-import Layout from "../layout";
-import { useHistory } from "react-router-dom";
-import { usePost } from "../../lib/useApi";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
     TextField,
     Typography,
@@ -199,72 +197,26 @@ export default function Dashboard() {
                                     color="spikaButton"
                                     onChange={formik.handleChange}
                                 />
-                                <TextField
-                                    required
-                                    fullWidth
-                                    id="telephoneNumber"
-                                    error={
-                                        formik.touched.telephoneNumber &&
-                                        Boolean(formik.errors.telephoneNumber)
-                                    }
-                                    label="Phone number"
-                                    value={formik.values.telephoneNumber}
-                                    onChange={formik.handleChange}
-                                    helperText={
-                                        formik.touched.telephoneNumber &&
-                                        formik.errors.telephoneNumber
-                                    }
-                                />
-                            </Stack>
-                        </Grid>
-                        <Grid item xs={12} md={8}>
-                            <TextField
-                                fullWidth
-                                required
-                                id="email"
-                                error={formik.touched.email && Boolean(formik.errors.email)}
-                                label="E-mail"
-                                value={formik.values.email}
-                                onChange={formik.handleChange}
-                                helperText={formik.touched.email && formik.errors.email}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={8}>
-                            <TextField
-                                fullWidth
-                                id="telephoneNumber"
-                                error={formik.touched.avatarUrl && Boolean(formik.errors.avatarUrl)}
-                                label="Avatar Url"
-                                value={formik.values.avatarUrl}
-                                onChange={formik.handleChange}
-                                helperText={formik.touched.avatarUrl && formik.errors.avatarUrl}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={8}>
-                            <FormControl component="fieldset">
-                                <FormGroup aria-label="position" row>
-                                    <FormControlLabel
-                                        value="start"
-                                        control={
-                                            <Checkbox
-                                                id="verified"
-                                                onChange={formik.handleChange}
-                                            />
-                                        }
-                                        label="Verified"
-                                        labelPlacement="start"
-                                    />
-                                </FormGroup>
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={12} md={8} textAlign="right">
-                            <Button variant="contained" type="submit">
-                                Add new user
-                            </Button>
-                        </Grid>
-                    </Grid>
-                </Paper>
-            </form>
-        </Layout>
+                            }
+                            label={
+                                <Typography style={{ color: "grey" }} variant="body2">
+                                    Verified
+                                </Typography>
+                            }
+                            labelPlacement="start"
+                            sx={{ ml: "0" }}
+                        />
+                    </FormGroup>
+                </FormControl>
+                <Stack spacing={2} direction="row">
+                    <Button variant="contained" type="submit" color="spikaButton">
+                        Add new user
+                    </Button>
+                    <Button variant="outlined" color="spikaGrey" onClick={() => dispatch(hide())}>
+                        Cancel
+                    </Button>
+                </Stack>
+            </Stack>
+        </form>
     );
 }

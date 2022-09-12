@@ -8,6 +8,10 @@ import utils from "../server/components/utils";
 
 const telephoneNumber = `+385${faker.fake("{{datatype.number}}")}`;
 const telephoneNumberHashed = utils.sha256(telephoneNumber);
+const telephoneNumber2 = `+385${faker.fake("{{datatype.number}}")}`;
+const telephoneNumberHashed2 = utils.sha256(telephoneNumber);
+const telephoneNumber3 = `+385${faker.fake("{{datatype.number}}")}`;
+const telephoneNumberHashed3 = utils.sha256(telephoneNumber);
 const deviceId = faker.random.alphaNumeric(6);
 const deviceId2 = faker.random.alphaNumeric(6);
 
@@ -51,15 +55,6 @@ describe("API", () => {
             expect(response.status).to.eqls(400);
         });
 
-        it("Hash is missing", async () => {
-            const response = await supertest(app).post("/api/messenger/auth").send({
-                telephoneNumber,
-                deviceId,
-            });
-
-            expect(response.status).to.eqls(400);
-        });
-
         it("New user", async () => {
             const response = await supertest(app).post("/api/messenger/auth").send({
                 telephoneNumber,
@@ -91,6 +86,7 @@ describe("API", () => {
             expect(response.status).to.eqls(200);
             expect(response.body.data.device).to.have.property("token");
             globals.userToken = response.body.data.device.token;
+            globals.deviceId = response.body.data.device.id;
         });
 
         it("Verify verification code fail", async () => {

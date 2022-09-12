@@ -1,15 +1,19 @@
 import React, { useEffect } from "react";
 import Layout from "../layout";
-import { useHistory, useParams } from "react-router-dom";
-import { useGet } from "../../lib/useApi";
-import { Typography, Paper, Grid, Button, Avatar, Checkbox } from "@mui/material";
-import { useShowSnackBar } from "../../components/useUI";
-import { User } from "@prisma/client";
-import { successResponseType } from "../../../../../../server/components/response";
+import { useNavigate, useParams } from "react-router-dom";
+import { Typography, Paper, Grid, Button, Avatar, Chip, Stack, Divider } from "@mui/material";
+import { useGetUserByIdQuery } from "../../api/user";
+import UserType from "../../types/User";
+import { useShowBasicDialog, useShowSnackBar } from "../../components/useUI";
+import { useDeleteUserMutation } from "../../api/user";
 
 export default function Page() {
-    const urlParams: { id: string } = useParams();
-    const history = useHistory();
+    const urlParams = useParams();
+    const navigate = useNavigate();
+    const [detail, setDetail] = React.useState<UserType>();
+    const [chipText, setChipText] = React.useState<string>("");
+    const [chipColor, setChipColor] = React.useState<"default" | "success">("default");
+    const { data, isLoading } = useGetUserByIdQuery(urlParams.id);
     const showSnackBar = useShowSnackBar();
     const showBasicDialog = useShowBasicDialog();
     const [deleteUser, deleteUserMutation] = useDeleteUserMutation();

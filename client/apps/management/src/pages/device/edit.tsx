@@ -1,12 +1,14 @@
 import React, { useEffect } from "react";
 import Layout from "../layout";
-import { useHistory, useParams } from "react-router-dom";
-import { useGet, usePut } from "../../lib/useApi";
-import { TextField, Paper, Grid, Button } from "@mui/material";
+import { useNavigate, useParams } from "react-router-dom";
+import { TextField, Stack, Grid, Button, Typography } from "@mui/material";
 import { useShowSnackBar } from "../../components/useUI";
 import * as yup from "yup";
 import { useFormik } from "formik";
-import { successResponseType } from "../../../../../../server/components/response";
+import { useGetDeviceByIdQuery, useUpdateDeviceMutation } from "../../api/device";
+import DeviceType from "../../types/Device";
+import { hide } from "../../store/rightDrawerSlice";
+import { useDispatch } from "react-redux";
 
 const deviceModelSchema = yup.object({
     userId: yup.number().required("User id is required"),

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Layout from "../layout";
-import { useHistory, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { DataGrid, GridActionsCellItem, GridRenderCellParams } from "@mui/x-data-grid";
-import { Paper, Fab, Avatar } from "@mui/material";
+import { Paper, Avatar, Stack, TextField, Button, Drawer, Box } from "@mui/material";
 import {
     Delete as DeleteIcon,
     Edit as EditIcon,
@@ -10,18 +10,49 @@ import {
     CheckCircleOutlineOutlined,
 } from "@mui/icons-material/";
 import { Room } from "@prisma/client";
-import { useGet } from "../../lib/useApi";
-import { useShowSnackBar } from "../../components/useUI";
-import { ListResponseType } from "../../lib/customTypes";
-import { successResponseType } from "../../../../../../server/components/response";
+
+import { createTheme, darken, lighten } from "@mui/material/styles";
+import { makeStyles } from "@material-ui/styles";
+import {
+    useGetRoomsQuery,
+    useGetRoomsForUserQuery,
+    useGetDeletedRoomsQuery,
+    useGetDeletedRoomsForUserQuery,
+} from "../../api/room";
+import RoomType from "../../types/Room";
+import {
+    show as openCreateRoom,
+    hide as hideCreateRoom,
+    selectRightSidebarOpen,
+} from "../../store/rightDrawerSlice";
+import { useDispatch, useSelector } from "react-redux";
+import theme from "../../theme";
+import RoomAdd from "../../pages/room/add";
+import RoomEdit from "../../pages/room/edit";
+import { useShowBasicDialog, useShowSnackBar } from "../../components/useUI";
+import {
+    useUpdateRoomMutation,
+    useGetRoomsBySearchTermQuery,
+    useGetGroupRoomsQuery,
+} from "../../api/room";
+import { currentFilter } from "../../store/filterSlice";
+
+declare const UPLOADS_BASE_URL: string;
 
 export default function RoomIndex() {
     const [loading, setLoading] = React.useState<boolean>(false);
-    const [list, setList] = React.useState<Array<Room>>([]);
+    const [list, setList] = React.useState<RoomType[]>([]);
     const [pageSize, setPageSize] = React.useState<number>(30);
     const [totalCount, setTotalCount] = React.useState<number>(0);
-    const urlParams: { userId: string } = useParams();
-
+    const [deleteFilter, setDeleteFilter] = React.useState<boolean>(false);
+    const [page, setPage] = useState(0);
+    const urlParams = useParams();
+    const [searchTerm, setSearchTerm] = React.useState("");
+    const dispatch = useDispatch();
+    const filterType = useSelector(currentFilter);
+    const isRightDrawerOpen = useSelector(selectRightSidebarOpen);
+    const [showEditDrawer, setShowEditDrawer] = React.useState<boolean>(false);
+    const [selectedRoomId, setSelectedRoomId] = React.useState<number>(0);
     const showSnackBar = useShowSnackBar();
     const showBasicDialog = useShowBasicDialog();
     const [updateRoom, updateRoomMutation] = useUpdateRoomMutation();
@@ -82,24 +113,21 @@ export default function RoomIndex() {
         })();
     }, [roomSearchData]);
 
-        try {
-            console.log("UrlParams:" + urlParams.userId);
-            const url: string =
-                urlParams.userId == null
-                    ? `/api/management/room?page=${page}`
-                    : `/api/management/room?page=${page}&userId=${urlParams.userId}`;
-            const response: successResponseType = await get(url);
-            const data: ListResponseType<Room> = response.data;
-            setList(data.list);
-            setPageSize(data.limit);
-            setTotalCount(data.count);
-        } catch (e) {
-            console.error(e);
-            showSnackBar({
-                severity: "error",
-                text: "Server error, please check browser console.",
-            });
-        }
+    useEffect(() => {
+        (async () => {
+            if (!filterSearchIsLoading) {
+                if (filterType === "group" || filterType === "private") {
+                    setList(filterSearchData.list);
+                    setPageSize(filterSearchData.limit);
+                    setTotalCount(filterSearchData.count);
+                } else {
+                    setList(data.list);
+                    setPageSize(data.limit);
+                    setTotalCount(data.count);
+                }
+            }
+        })();
+    }, [filterType]);
 
     useEffect(() => {
         (async () => {})();
@@ -171,25 +199,17 @@ export default function RoomIndex() {
                 <GridActionsCellItem
                     icon={<DescriptionIcon />}
                     label="Detail"
-                    onClick={() => history.push(`/room/detail/${params.id}`)}
+                    onClick={() => navigate(`/room/detail/${params.id}`)}
                     showInMenu
                 />,
-                // <GridActionsCellItem
-                //     icon={<DevicesOther />}
-                //     label="Devices"
-                //     onClick={() => history.push(`/room/${params.id}/devices`)}
-                //     showInMenu
-                // />,
                 <GridActionsCellItem
                     icon={<EditIcon />}
                     label="Edit"
-                    onClick={() => history.push(`/room/edit/${params.id}`)}
-                    showInMenu
-                />,
-                <GridActionsCellItem
-                    icon={<DeleteIcon />}
-                    label="Delete"
-                    onClick={() => history.push(`/room/delete/${params.id}`)}
+                    onClick={(e) => {
+                        setSelectedRoomId(params.id);
+                        setShowEditDrawer(true);
+                        dispatch(openCreateRoom());
+                    }}
                     showInMenu
                 />,
             ],
@@ -270,17 +290,6 @@ export default function RoomIndex() {
                     </Box>
                 </Drawer>
             </Paper>
-
-            <Fab
-                color="primary"
-                aria-label="add"
-                className="fab-main"
-                onClick={(e) => {
-                    history.push("/room/add");
-                }}
-            >
-                <AddIcon />
-            </Fab>
         </Layout>
     );
 }

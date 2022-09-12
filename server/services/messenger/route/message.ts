@@ -12,6 +12,10 @@ import { MESSAGE_ACTION_NEW_MESSAGE } from "../../../components/consts";
 import * as Constants from "../../../components/consts";
 
 import { InitRouterParams } from "../../types/serviceInterface";
+import sanitize from "../../../components/sanitize";
+import { formatMessageBody } from "../../../components/message";
+import createSSEMessageRecordsNotify from "../lib/sseMessageRecordsNotify";
+import message from "../../management/route/message";
 
 const prisma = new PrismaClient();
 
@@ -21,6 +25,12 @@ const postMessageSchema = yup.object().shape({
         type: yup.string().strict().required(),
         body: yup.object().required(),
         localId: yup.string().strict(),
+    }),
+});
+
+const deliveredMessagesSchema = yup.object().shape({
+    body: yup.object().shape({
+        messagesIds: yup.array().default([]).of(yup.number().strict().moreThan(0)).required(),
     }),
 });
 
@@ -96,11 +106,17 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     roomId,
                     fromUserId: userReq.user.id,
                     fromDeviceId: userReq.device.id,
-                    totalDeviceCount: deviceMessages.length,
+                    totalUserCount: room.users.length,
+                    deliveredCount: 0,
+                    seenCount: 0,
+                    localId,
                 },
             });
 
-            res.send(successResponse({ message }, userReq.lang));
+            const formattedBody = await formatMessageBody(body, type);
+            const sanitizedMessage = sanitize({ ...message, body: formattedBody }).message();
+
+            res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
 
             while (deviceMessages.length) {
                 await Promise.all(
@@ -108,6 +124,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         await prisma.deviceMessage.create({
                             data: { ...deviceMessage, messageId: message.id },
                         });
+
+                        if (deviceMessage.deviceId === fromDeviceId) {
+                            return;
+                        }
 
                         rabbitMQChannel.sendToQueue(
                             Constants.QUEUE_PUSH,
@@ -117,7 +137,21 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                                     token: devices.find((d) => d.id == deviceMessage.deviceId)
                                         ?.pushToken,
                                     data: {
-                                        deviceMessage,
+                                        message: sanitizedMessage,
+                                        user: sanitize(userReq.user).user(),
+                                    },
+                                })
+                            )
+                        );
+
+                        rabbitMQChannel.sendToQueue(
+                            Constants.QUEUE_SSE,
+                            Buffer.from(
+                                JSON.stringify({
+                                    channelId: deviceMessage.deviceId,
+                                    data: {
+                                        type: Constants.PUSH_TYPE_NEW_MESSAGE,
+                                        message: sanitizedMessage,
                                     },
                                 })
                             )
@@ -125,6 +159,190 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     })
                 );
             }
+
+            const messageRecords = (
+                await Promise.all(
+                    ["delivered", "seen"].map(async (type) =>
+                        prisma.messageRecord.create({
+                            data: { type, userId: fromUserId, messageId: message.id },
+                        })
+                    )
+                )
+            ).map((mr) => sanitize(mr).messageRecord());
+
+            await prisma.message.update({
+                where: { id: message.id },
+                data: {
+                    deliveredCount: { increment: 1 },
+                    seenCount: { increment: 1 },
+                },
+            });
+
+            //sseMessageRecordsNotify(messageRecords, Constants.PUSH_TYPE_NEW_MESSAGE_RECORD);
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.get("/:id/message-records", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        const userId = userReq.user.id;
+
+        try {
+            const id = parseInt(req.params.id as string);
+
+            const message = await prisma.message.findUnique({
+                where: { id },
+                include: { messageRecords: true },
+            });
+
+            if (!message) {
+                return res.status(404).send(errorResponse("No message found", userReq.lang));
+            }
+
+            const roomUser = await prisma.roomUser.findFirst({
+                where: { roomId: message.roomId, userId },
+            });
+
+            if (!roomUser) {
+                return res.status(404).send(errorResponse("No message found", userReq.lang));
+            }
+
+            res.send(
+                successResponse(
+                    {
+                        messageRecords: message.messageRecords.map((record) =>
+                            sanitize(record).messageRecord()
+                        ),
+                    },
+                    userReq.lang
+                )
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    // only web should call this route
+    router.get("/roomId/:roomId", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        const userId = userReq.user.id;
+        const deviceId = userReq.device.id;
+        let page = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
+        const messageId: number =
+            parseInt(req.query.messageId ? (req.query.messageId as string) : "") || 0;
+
+        let skip = Constants.MESSAGE_PAGING_LIMIT * (page - 1);
+        let take = Constants.MESSAGE_PAGING_LIMIT;
+
+        try {
+            const roomId = parseInt(req.params.roomId as string);
+
+            // find how many messages needs to reach to the target message
+            if (messageId) {
+                const targetMessage = await prisma.message.findFirst({
+                    where: {
+                        id: messageId,
+                    },
+                });
+
+                if (targetMessage) {
+                    const countToSkip = await prisma.message.count({
+                        where: {
+                            createdAt: { gte: targetMessage.createdAt },
+                        },
+                    });
+
+                    if (countToSkip > Constants.MESSAGE_PAGING_LIMIT)
+                        take =
+                            Math.ceil(countToSkip / Constants.MESSAGE_PAGING_LIMIT) *
+                            Constants.MESSAGE_PAGING_LIMIT;
+
+                    skip = 0;
+                    page = take / Math.ceil(countToSkip / Constants.MESSAGE_PAGING_LIMIT);
+                }
+            }
+
+            const count = await prisma.message.count({
+                where: {
+                    roomId,
+                    deviceMessages: {
+                        some: {
+                            deviceId,
+                        },
+                    },
+                },
+            });
+
+            const messages = await prisma.message.findMany({
+                where: {
+                    roomId,
+                    deviceMessages: {
+                        some: {
+                            deviceId,
+                        },
+                    },
+                },
+                include: {
+                    deviceMessages: true,
+                    messageRecords: true,
+                },
+                orderBy: {
+                    modifiedAt: "desc",
+                },
+                skip: skip,
+                take: take,
+            });
+
+            for (const message of messages) {
+                const record = message.messageRecords.find(
+                    (mr) => mr.type === "delivered" && mr.userId === userId
+                );
+
+                if (!record) {
+                    try {
+                        await prisma.messageRecord.create({
+                            data: { type: "delivered", userId, messageId: message.id },
+                        });
+
+                        await prisma.message.update({
+                            where: { id: message.id },
+                            data: {
+                                deliveredCount: { increment: 1 },
+                            },
+                        });
+
+                        /*
+                        sseMessageRecordsNotify(
+                            [sanitize(record).messageRecord()],
+                            Constants.PUSH_TYPE_NEW_MESSAGE_RECORD
+                        );
+                        */
+                    } catch (error) {
+                        console.error({ error });
+                    }
+                }
+            }
+
+            const list = await Promise.all(
+                messages.map(async (m) => {
+                    const body = m.deviceMessages.find(
+                        (dm) => dm.messageId === m.id && dm.deviceId === deviceId
+                    )?.body;
+
+                    const formattedBody = await formatMessageBody(body, m.type);
+                    return sanitize({ ...m, body: formattedBody }).message();
+                })
+            );
+
+            res.send(
+                successResponse(
+                    { list, count, limit: Constants.MESSAGE_PAGING_LIMIT, page },
+                    userReq.lang
+                )
+            );
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

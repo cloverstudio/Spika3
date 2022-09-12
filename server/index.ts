@@ -8,7 +8,8 @@ import MessengerAPIService from "./services/messenger";
 import SMSService from "./services/sms";
 import UploadService from "./services/upload";
 import PushService from "./services/push";
-import bodyParser from "body-parser";
+import SSEService from "./services/sse";
+import ConfcallService from "./services/confcall";
 import amqp from "amqplib";
 import fs from "fs";
 import path from "path";
@@ -105,6 +106,25 @@ const app: express.Express = express();
         pushService.start({
             rabbitMQChannel,
         });
+    }
+
+    if (process.env["USE_SSE"]) {
+        const sseService: SSEService = new SSEService();
+        sseService.start({
+            rabbitMQChannel,
+        });
+
+        app.use("/api/sse", sseService.getRoutes());
+    }
+
+    if (process.env["USE_CONFCALL"]) {
+        const confcallService: ConfcallService = new ConfcallService();
+        confcallService.start({
+            rabbitMQChannel,
+            server,
+        });
+
+        app.use("/api/confcall", confcallService.getRoutes());
     }
 
     // test

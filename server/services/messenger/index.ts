@@ -7,6 +7,12 @@ import contactRouter from "./route/contact";
 import roomRouter from "./route/room";
 import messageRouter from "./route/message";
 import meRouter from "./route/me";
+import deviceRouter from "./route/device";
+import historyRouter from "./route/history";
+import userRouter from "./route/user";
+import settingsRouter from "./route/settings";
+import messageRecordRouter from "./route/messageRecord";
+import noteRouter from "./route/note";
 
 import * as Constants from "../../components/consts";
 import Service, { ServiceStartParams } from "../types/serviceInterface";
@@ -39,9 +45,18 @@ export default class Messenger implements Service {
         messengerRouter.use("/test", testRouter({}));
         messengerRouter.use("/auth", signupRouter({ rabbitMQChannel: this.rabbitMQChannel }));
         messengerRouter.use("/contacts", contactRouter({ rabbitMQChannel: this.rabbitMQChannel }));
-        messengerRouter.use("/rooms", roomRouter());
+        messengerRouter.use("/rooms", roomRouter({ rabbitMQChannel: this.rabbitMQChannel }));
         messengerRouter.use("/messages", messageRouter({ rabbitMQChannel: this.rabbitMQChannel }));
-        messengerRouter.use("/me", meRouter());
+        messengerRouter.use("/me", meRouter({ rabbitMQChannel: this.rabbitMQChannel }));
+        messengerRouter.use("/device", deviceRouter());
+        messengerRouter.use("/history", historyRouter());
+        messengerRouter.use("/users", userRouter());
+        messengerRouter.use("/notes", noteRouter({}));
+        messengerRouter.use("/settings", settingsRouter());
+        messengerRouter.use(
+            "/message-records",
+            messageRecordRouter({ rabbitMQChannel: this.rabbitMQChannel })
+        );
         return messengerRouter;
     }
 

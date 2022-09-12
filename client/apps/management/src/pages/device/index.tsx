@@ -1,18 +1,27 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Layout from "../layout";
-import { useHistory, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { DataGrid, GridActionsCellItem } from "@mui/x-data-grid";
-import { Paper, Fab } from "@mui/material";
+import { Paper, Stack, TextField, Button, Drawer, Box } from "@mui/material";
 import {
     Delete as DeleteIcon,
     Edit as EditIcon,
     Description as DescriptionIcon,
 } from "@mui/icons-material/";
 import { Device } from "@prisma/client";
-import { useGet } from "../../lib/useApi";
-import { useShowSnackBar } from "../../components/useUI";
-import { ListResponseType } from "../../lib/customTypes";
-import { successResponseType } from "../../../../../../server/components/response";
+import { useGetDevicesQuery, useGetDevicesForUserQuery } from "../../api/device";
+import DeviceType from "../../types/Device";
+import { useDispatch, useSelector } from "react-redux";
+import {
+    show as openCreateUser,
+    hide as hideCreateUser,
+    selectRightSidebarOpen,
+} from "../../store/rightDrawerSlice";
+import theme from "../../theme";
+import DeviceAdd from "../../pages/device/add";
+import DeviceEdit from "../../pages/device/edit";
+import { useShowBasicDialog, useShowSnackBar } from "../../components/useUI";
+import { useDeleteDeviceMutation, useGetDevicesBySearchTermQuery } from "../../api/device";
 
 export default function Dashboard() {
     const [loading, setLoading] = React.useState<boolean>(false);
