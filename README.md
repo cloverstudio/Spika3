@@ -1,4 +1,7 @@
-# Spika3 server and web client repo
+# Spika3 server and web client 
+
+![Alt text](/documents/screenshot1.png?raw=true "Optional Title")
+
 
 ## System requirement
 
