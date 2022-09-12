@@ -15,6 +15,8 @@ import { OnlinePredictionTwoTone } from "@mui/icons-material";
 import User from "../../../types/User";
 import RoomType from "../../../../../management/src/types/Room";
 import { MessageRecordType } from "../../../types/Message";
+import { useShowSnackBar } from "../../../hooks/useModal";
+import { CSSProperties } from "@mui/styled-engine";
 
 type MessageRowProps = {
     id: number;
@@ -36,6 +38,7 @@ type MessageRowProps = {
     onEdit: (id: number) => void;
     isDeleted: boolean;
     messageRecordsData: MessageRecordType[];
+    hightlight?: boolean;
 };
 
 declare const UPLOADS_BASE_URL: string;
@@ -60,6 +63,7 @@ export default function MessageRow({
     onEdit,
     isDeleted,
     messageRecordsData,
+    hightlight,
 }: MessageRowProps): React.ReactElement {
     const messageReactions = messageRecordsData?.filter((mr) => mr.type === "reaction") || [];
 
@@ -72,6 +76,8 @@ export default function MessageRow({
     const isUsersMessage = user?.id === fromUserId;
     const isFirstMessage = fromUserId !== previousMessageSenderId;
     const isLastMessage = fromUserId !== nextMessageSenderId;
+
+    const showSnackBar = useShowSnackBar();
 
     let contextMenuIcons = IconConfigs.showInfo;
 
@@ -89,10 +95,21 @@ export default function MessageRow({
         contextMenuIcons = IconConfigs.showEmociton | IconConfigs.showInfo;
     }
 
+    const hightlightStyle: CSSProperties = hightlight
+        ? {
+              paddingTop: "10px",
+              paddingBottom: "5px",
+              borderTop: "2px solid #ffaaaa",
+              marginBottom: "10px",
+              marginTop: "10px",
+          }
+        : {};
+
     return (
         <Box
             sx={{
                 position: "relative",
+                ...hightlightStyle,
             }}
             onMouseLeave={() => {
                 setMouseOver(false);
@@ -185,6 +202,17 @@ export default function MessageRow({
                         }}
                         handleEdit={(e) => {
                             if (onEdit) onEdit(id);
+                        }}
+                        handleShare={async (e) => {
+                            const parsedUrl = new URL(window.location.href);
+
+                            const url = `${parsedUrl.origin}/messenger/rooms/${roomId}/${id}`;
+                            await navigator.clipboard.writeText(url);
+
+                            showSnackBar({
+                                severity: "info",
+                                text: "Permalink Copied",
+                            });
                         }}
                     />
                     <ReactionOptionsPopover

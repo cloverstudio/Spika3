@@ -7,10 +7,11 @@ import { fetchHistory } from "./roomSlice";
 
 export const fetchMessagesByRoomId = createAsyncThunk(
     "messages/fetchByIdStatus",
-    async ({ page, roomId }: { page: number; roomId: number }) => {
-        const response = await dynamicBaseQuery(
-            `/messenger/messages/roomId/${roomId}?page=${page}`
-        );
+    async ({ page, roomId, messageId }: { page: number; roomId: number; messageId: number }) => {
+        let url = `/messenger/messages/roomId/${roomId}?page=${page}`;
+        if (messageId) url += `&messageId=${messageId}`;
+
+        const response = await dynamicBaseQuery(url);
         return response.data;
     }
 );

@@ -38,7 +38,7 @@ export default function ReactionOptionsPopover({
     if (!isUsersMessage) styleModifier.left = "35px";
     else styleModifier.right = "50px";
 
-    if(!show) return <></>;
+    if (!show) return <></>;
 
     return (
         <>
@@ -56,12 +56,12 @@ export default function ReactionOptionsPopover({
                         ...styleModifier,
                     }}
                 >
-                    <Stack direction="row" spacing={1}>
+                    <Stack direction="row">
                         {reactionEmojis.map((emoji, i) => (
                             <Button
                                 key={i}
                                 onClick={() => handleSelect(emoji)}
-                                sx={{ p: 0, fontSize: "2rem" }}
+                                sx={{ p: 0, fontSize: "1.5rem" }}
                             >
                                 {emoji}
                             </Button>

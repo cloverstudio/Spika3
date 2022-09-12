@@ -15,6 +15,7 @@ import { InitRouterParams } from "../../types/serviceInterface";
 import sanitize from "../../../components/sanitize";
 import { formatMessageBody } from "../../../components/message";
 import createSSEMessageRecordsNotify from "../lib/sseMessageRecordsNotify";
+import message from "../../management/route/message";
 
 const prisma = new PrismaClient();
 
@@ -229,10 +230,40 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         const userReq: UserRequest = req as UserRequest;
         const userId = userReq.user.id;
         const deviceId = userReq.device.id;
-        const page = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
+        let page = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
+        const messageId: number =
+            parseInt(req.query.messageId ? (req.query.messageId as string) : "") || 0;
+
+        let skip = Constants.MESSAGE_PAGING_LIMIT * (page - 1);
+        let take = Constants.MESSAGE_PAGING_LIMIT;
 
         try {
             const roomId = parseInt(req.params.roomId as string);
+
+            // find how many messages needs to reach to the target message
+            if (messageId) {
+                const targetMessage = await prisma.message.findFirst({
+                    where: {
+                        id: messageId,
+                    },
+                });
+
+                if (targetMessage) {
+                    const countToSkip = await prisma.message.count({
+                        where: {
+                            createdAt: { gte: targetMessage.createdAt },
+                        },
+                    });
+
+                    if (countToSkip > Constants.MESSAGE_PAGING_LIMIT)
+                        take =
+                            Math.ceil(countToSkip / Constants.MESSAGE_PAGING_LIMIT) *
+                            Constants.MESSAGE_PAGING_LIMIT;
+
+                    skip = 0;
+                    page = take / Math.ceil(countToSkip / Constants.MESSAGE_PAGING_LIMIT);
+                }
+            }
 
             const count = await prisma.message.count({
                 where: {
@@ -261,8 +292,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 orderBy: {
                     modifiedAt: "desc",
                 },
-                skip: Constants.PAGING_LIMIT * 3 * (page - 1),
-                take: Constants.PAGING_LIMIT * 3,
+                skip: skip,
+                take: take,
             });
 
             for (const message of messages) {
@@ -307,7 +338,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             );
 
             res.send(
-                successResponse({ list, count, limit: Constants.PAGING_LIMIT * 3 }, userReq.lang)
+                successResponse(
+                    { list, count, limit: Constants.MESSAGE_PAGING_LIMIT, page },
+                    userReq.lang
+                )
             );
         } catch (e: any) {
             le(e);

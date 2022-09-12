@@ -56,8 +56,7 @@ export default function MessageReactions({
                 direction="row"
                 bgcolor={isUsersMessage ? "common.myMessageBackground" : "common.chatBackground"}
                 position="relative"
-                top="22px"
-                p={0.5}
+                top="23px"
                 sx={{
                     borderRadius: "1rem",
                     border: "1px solid white",

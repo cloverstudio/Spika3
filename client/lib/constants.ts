@@ -16,3 +16,4 @@ export const LSKEY_ACCESSTOKEN: string = "access-token";
 export const LSKEY_DEVICEID: string = "deviceId";
 export const ADMIN_ACCESS_TOKEN = "admin-accesstoken";
 export const THUMB_WIDTH = 256;
+export const MESSAGE_PAGING_LIMIT = 50;

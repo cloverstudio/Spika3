@@ -6,7 +6,7 @@ import {
     Edit,
     DeleteOutline,
     InfoOutlined,
-    Close,
+    Share,
     DoneAll,
 } from "@mui/icons-material";
 
@@ -25,6 +25,7 @@ type Props = {
     handleInfo?: (e: React.MouseEvent<any>) => void;
     handleEdit?: (e: React.MouseEvent<any>) => void;
     handleDelete?: (e: React.MouseEvent<any>) => void;
+    handleShare?: (e: React.MouseEvent<any>) => void;
     iconConfig: IconConfigs;
 };
 
@@ -36,6 +37,7 @@ export default function DatePopover({
     handleInfo,
     handleEdit,
     handleDelete,
+    handleShare,
     iconConfig,
 }: Props): React.ReactElement {
     const styleModifier: any = {
@@ -46,15 +48,18 @@ export default function DatePopover({
 
     if (mouseOver) styleModifier.opacity = 1;
     const itemStyle = {
-        fontSize: "2.0em",
+        fontSize: "1.8em",
         marginRight: "10px",
         marginLeft: "10px",
         cursor: "pointer",
         color: "#222",
+        "&:hover": {
+            opacity: 0.5,
+        },
     };
 
-    if(!mouseOver) return <></>;
-    
+    if (!mouseOver) return <></>;
+
     return (
         <Box
             sx={{
@@ -92,6 +97,7 @@ export default function DatePopover({
                     onClick={(e) => handleDelete(e)}
                 />
             ) : null}
+            <Share sx={{ ...itemStyle, ...{} }} onClick={(e) => handleShare(e)} />
         </Box>
     );
 }

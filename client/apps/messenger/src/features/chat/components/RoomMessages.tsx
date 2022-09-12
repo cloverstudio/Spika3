@@ -1,6 +1,8 @@
 import React, { ReactElement, useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Box } from "@mui/material";
+import { useNavigate, useParams } from "react-router-dom";
+
 import * as utils from "../../../../../../lib/utils";
 import {
     selectRoomMessages,
@@ -25,6 +27,7 @@ import { selectUser } from "../../../store/userSlice";
 import { useGetRoomQuery } from "../api/room";
 import MessageType from "../../../types/Message";
 import dayjs from "dayjs";
+import * as constants from "../../../../../../lib/constants";
 
 const compareDate = (timestamp1: number, timestamp2: number): boolean => {
     return (
@@ -34,6 +37,7 @@ const compareDate = (timestamp1: number, timestamp2: number): boolean => {
 };
 
 export default function RoomMessages({ roomId }: RoomMessagesProps): React.ReactElement {
+    const urlParams = useParams();
     const user = useSelector(selectUser);
     const { data } = useGetRoomQuery(roomId);
 
@@ -58,9 +62,13 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedMessageId, setMessageId] = useState<number>();
     const open = Boolean(anchorEl);
+    const messageId = parseInt(urlParams.messageId || "") || null;
 
     useEffect(() => {
-        dispatch(fetchMessagesByRoomId({ roomId, page }));
+        // ignore if paging is less than total message length
+        // it is needed to handle the case when message id is specified
+        if (page * constants.MESSAGE_PAGING_LIMIT <= messages.length) return;
+        dispatch(fetchMessagesByRoomId({ roomId, page, messageId: page === 1 ? messageId : null }));
     }, [page, dispatch, roomId]);
 
     const messagesSorted: MessageType[] = [...messages].sort((a, b) => {
@@ -70,6 +78,12 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
 
     const lastMessageFromUserId = messagesSorted[messagesSorted.length - 1]?.fromUserId;
     const isUsersLastMessage = lastMessageFromUserId === userData?.user?.id;
+
+    useEffect(() => {
+        if (messages.length > 0 && messageId && page === 1) {
+            setPage(Math.ceil(messages.length / constants.MESSAGE_PAGING_LIMIT));
+        }
+    }, [messages]);
 
     useEffect(() => {
         if (!scrollableConversation.current) {
@@ -91,7 +105,11 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
                 }
             }
         } else {
-            if (scrollableConversation.current.scrollHeight !== lastScrollHeight) {
+            if (messageId) {
+                setTimeout(() => {
+                    document.getElementById(`message_${messageId}`).scrollIntoView();
+                }, 500);
+            } else if (scrollableConversation.current.scrollHeight !== lastScrollHeight) {
                 onScrollDown();
             }
         }
@@ -235,7 +253,13 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
             )}
             <Box
                 px={1}
-                sx={{ overflowY: "auto", overflowX: "hidden", height: "100%", paddingTop: "20px" }}
+                sx={{
+                    overflowY: "auto",
+                    overflowX: "hidden",
+                    height: "100%",
+                    paddingTop: "20px",
+                    paddingBottom: "50px",
+                }}
                 ref={scrollableConversation}
                 onWheel={onWheel}
                 onScroll={onScroll}
@@ -268,6 +292,7 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
                     if (previousMessage && compareDate(previousMessage.createdAt, m.createdAt)) {
                         additionalRows.push(
                             <div
+                                key={i}
                                 style={{
                                     paddingTop: "10px",
                                     margin: "20px 0px 20px 0px",
@@ -281,7 +306,7 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
                     }
 
                     return (
-                        <>
+                        <div key={m.id} id={`message_${m.id}`}>
                             {additionalRows.map((r) => r)}
                             <MessageRow
                                 key={m.id}
@@ -305,8 +330,9 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
                                 data={data}
                                 isDeleted={m.deleted}
                                 messageRecordsData={m.messageRecords}
+                                hightlight={messageId === m.id}
                             />
-                        </>
+                        </div>
                     );
                 })}
             </Box>
