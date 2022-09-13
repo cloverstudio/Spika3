@@ -641,6 +641,58 @@ describe("API", () => {
         });
     });
 
+    describe("/api/messenger/rooms/:id/mute PUT", () => {
+        it("returns 404 if there is no room with that id", async () => {
+            const id = 865454588;
+
+            const response = await supertest(app)
+                .post(`/api/messenger/rooms/${id}/mute`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(404);
+        });
+
+        it("user can leave mute room", async () => {
+            const user = await createFakeUser();
+            const room = await createFakeRoom([
+                { userId: user.id, isAdmin: true },
+                { userId: globals.userId },
+            ]);
+
+            const response = await supertest(app)
+                .post(`/api/messenger/rooms/${room.id}/mute`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(200);
+        });
+    });
+
+    describe("/api/messenger/rooms/:id/unmute PUT", () => {
+        it("returns 404 if there is no room with that id", async () => {
+            const id = 865454588;
+
+            const response = await supertest(app)
+                .post(`/api/messenger/rooms/${id}/unmute`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(404);
+        });
+
+        it("user can leave unmute room", async () => {
+            const user = await createFakeUser();
+            const room = await createFakeRoom([
+                { userId: user.id, isAdmin: true },
+                { userId: globals.userId },
+            ]);
+
+            const response = await supertest(app)
+                .post(`/api/messenger/rooms/${room.id}/unmute`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(200);
+        });
+    });
+
     describe("/api/messenger/rooms/:id/leave POST", () => {
         it("returns 404 if there is no record with that id", async () => {
             const id = 865454588;

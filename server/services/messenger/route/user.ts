@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { PrismaClient, User } from "@prisma/client";
+import { PrismaClient, User, UserSetting } from "@prisma/client";
 
 import { error as le } from "../../../components/logger";
 import { successResponse, errorResponse } from "../../../components/response";

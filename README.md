@@ -1,4 +1,12 @@
-# Spika3 server and web client repo
+# Spika3 server and web client 
+
+![Alt text](/documents/screenshot1.png?raw=true "Optional Title")
+
+Spika3 is an open-source communication platform based on Javascript technology, roughly we use MySQL, NodeJS, RabbitMQ, and ReactJS.
+
+The concept of Spika3 is a flexible real-time communication platform for all purposes. Spika3 is built on top of standard technology which should be familiar for most web developers, and it is designed to be easy to change so you can customize it to fit your purpose with minimum effort.
+
+You can use it to communicate between colleagues, friends, other companies, and customers out of the box at the start. Then you can customize Spika3 to fit your demands and increase the productivity and quality of communication.
 
 ## System requirement
 

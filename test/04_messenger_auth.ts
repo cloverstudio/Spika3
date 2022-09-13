@@ -217,4 +217,14 @@ describe("API", () => {
             expect(response5.body.data.device).to.have.property("token");
         });
     });
+
+    describe("/api/messenger/me/settings GET", () => {
+        it("Get user settings works", async () => {
+            const response = await supertest(app)
+                .get("/api/messenger/me/settings")
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(200);
+        });
+    });
 });
