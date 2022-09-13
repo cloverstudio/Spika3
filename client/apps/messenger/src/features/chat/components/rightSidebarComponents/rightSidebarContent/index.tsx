@@ -31,7 +31,7 @@ export default function RightSidebarContent({
         return (
             <>
                 <DetailsBasicInfoView roomData={room} />
-                <DetailsAdditionalInfoView />
+                <DetailsAdditionalInfoView roomData={room} />
                 {!isPrivate ? <DetailsMemberView members={room.users} roomId={room.id} /> : null}
                 <DetailsDestructiveActionsView isItPrivateChat={isPrivate} otherUser={otherUser} />
             </>

@@ -1,11 +1,29 @@
 import React from "react";
 import { Box, Stack, Switch } from "@mui/material";
 import { ChevronRight } from "@mui/icons-material";
-import { setActiveTab } from "../../slice/rightSidebarSlice";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
-export function DetailsAdditionalInfoView() {
+import { RoomType } from "../../../../types/Rooms";
+import { setActiveTab } from "../../slice/rightSidebarSlice";
+import { useShowSnackBar } from "../../../../hooks/useModal";
+import { useMuteRoomMutation, useUnmuteRoomMutation } from "../../api/room";
+
+import { settings as storeSettings } from "../../../../../src/store/userSlice";
+import { fetchSettings } from "../../../../../src/store/userSlice";
+
+import * as constants from "../../../../../../../lib/constants";
+
+export interface Props {
+    roomData: RoomType;
+}
+
+export function DetailsAdditionalInfoView(props: Props) {
+    const room: RoomType = props.roomData;
     const dispatch = useDispatch();
+    const showSnackBar = useShowSnackBar();
+    const [muteRoom, muteRoomMutation] = useMuteRoomMutation();
+    const [unmuteRoom, unmuteRoomMutation] = useUnmuteRoomMutation();
+    const settings = useSelector(storeSettings);
 
     return (
         <Box>
@@ -112,7 +130,30 @@ export function DetailsAdditionalInfoView() {
                     }}
                 >
                     <Box component="span">Mute notifications</Box>
-                    <Switch />
+                    <Switch
+                        checked={
+                            settings.find(
+                                (r) => r.key === `${constants.SETTINGS_ROOM_MUTE_PREFIX}${room.id}`
+                            )?.value === constants.SETTINGS_TRUE
+                        }
+                        onChange={async (e) => {
+                            try {
+                                if (e.target.checked) {
+                                    await muteRoom({ roomId: room.id });
+                                } else {
+                                    await unmuteRoom({ roomId: room.id });
+                                }
+
+                                dispatch(fetchSettings());
+                            } catch (e: any) {
+                                console.error(e);
+                                showSnackBar({
+                                    severity: "error",
+                                    text: String(e.message),
+                                });
+                            }
+                        }}
+                    />
                 </Stack>
             </Stack>
         </Box>

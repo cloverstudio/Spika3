@@ -13,7 +13,7 @@ import { selectLeftSidebarOpen, setLeftSidebar } from "../features/chat/slice/si
 
 import { selectRightSidebarOpen } from "../features/chat/slice/rightSidebarSlice";
 
-import { selectUserId, fetchMe } from "../../src/store/userSlice";
+import { selectUserId, fetchMe, fetchSettings } from "../../src/store/userSlice";
 
 export default function Home(): React.ReactElement {
     const theme = useTheme();
@@ -28,8 +28,9 @@ export default function Home(): React.ReactElement {
     useEffect(() => {
         if (!loggedInUserId) {
             dispatch(fetchMe());
+            dispatch(fetchSettings());
         }
-    });
+    }, []);
 
     useEffect(() => {
         if (isMobile) {

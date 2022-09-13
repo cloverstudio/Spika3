@@ -21,14 +21,15 @@ model User {
   verified              Boolean  @default(false) @map(name: "verified")
   createdAt             DateTime @default(now()) @map(name: "created_at")
   modifiedAt            DateTime @default(now()) @map(name: "modified_at")
-  rooms RoomUser[]
 
+  rooms RoomUser[]
   device    Device[]
   contacts  Contact[] @relation("user")
   contactee Contact[] @relation("contact")
   messages Message[]
   messagesRecords MessageRecord[]
   callHistory CallHistory[]
+  userSetting UserSetting[]
 
   @@map(name: "user")
 }
@@ -215,5 +216,18 @@ model CallHistory {
   callParameters Json?
   
   @@map(name: "call_history")
+}
+
+model UserSetting {
+  id Int @id @default(autoincrement()) @map(name: "id")
+
+  user User @relation(fields: [userId], references: [id])
+  userId Int @map(name: "user_id")
+
+  key String @map(name: "key")
+  value String @map(name: "value")
+
+  @@unique([userId, key], name: "userId_key_unique_constraint")
+  @@map(name: "user_setting")
 }
 
