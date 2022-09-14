@@ -18,7 +18,7 @@ class sendPushWorker implements QueueWorkerInterface {
             await sendFcmMessage(fcmMessagePayload);
         } catch (error) {
             // handle push sending failed case
-            lw("push sending failed", { error, payload });
+            lw("push sending failed");
         }
     }
 }
