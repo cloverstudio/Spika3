@@ -14,6 +14,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { setLeftSidebar } from "../slice/sidebarSlice";
 import SearchBox from "./SearchBox";
+import { RoomUserType } from "../../../types/Rooms";
 
 dayjs.extend(relativeTime);
 declare const UPLOADS_BASE_URL: string;
@@ -90,11 +91,13 @@ export default function SidebarChatList(): React.ReactElement {
 type RoomRowProps = {
     id: number;
     name: string;
+    type: string;
     isActive?: boolean;
     handleClick: () => void;
     unreadCount?: number;
     lastMessage?: MessageType;
     avatarUrl?: string;
+    users: RoomUserType[];
 };
 
 function RoomRow({
@@ -105,6 +108,8 @@ function RoomRow({
     lastMessage,
     handleClick,
     unreadCount,
+    type,
+    users,
 }: RoomRowProps) {
     const [time, setTime] = useState(
         lastMessage?.createdAt && dayjs(lastMessage.createdAt).fromNow()
@@ -123,6 +128,7 @@ function RoomRow({
             };
         }
     }, [lastMessage]);
+
     const lastMessageType = lastMessage?.type;
 
     let lastMessageText = lastMessage?.body?.text;
@@ -130,6 +136,11 @@ function RoomRow({
     if (lastMessage && lastMessageType !== "text") {
         lastMessageText = (lastMessageType || "") + " shared";
         lastMessageText = lastMessageText.charAt(0).toUpperCase() + lastMessageText.slice(1);
+    }
+
+    if (lastMessageText && type === "group") {
+        const senderUser = users.find((u) => u.userId === lastMessage.fromUserId).user;
+        lastMessageText = `${senderUser?.displayName || "Removed user"}: ${lastMessageText}`;
     }
 
     if (lastMessageText?.length > 17) {
