@@ -269,6 +269,7 @@ const useStyles = makeStyles(() => ({
         outline: "none",
         fontSize: "0.9em",
         paddingRight: "32px",
+        resize: "vertical",
     },
 }));
 
