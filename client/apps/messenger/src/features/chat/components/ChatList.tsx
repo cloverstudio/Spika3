@@ -172,7 +172,7 @@ function RoomRow({
                         <Typography mb={1} fontWeight="600">
                             {name}
                             {roomIsMuted && (
-                                <Box display="inline-flex" ml={1}>
+                                <Box component="span" display="inline-flex" ml={1}>
                                     <VolumeOffOutlined fontSize="inherit" />
                                 </Box>
                             )}
