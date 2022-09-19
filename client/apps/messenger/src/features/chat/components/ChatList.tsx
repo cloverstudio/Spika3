@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Avatar, Badge, Box, Typography } from "@mui/material";
-import { selectUser } from "../../../store/userSlice";
+import { isRoomMuted, selectUser } from "../../../store/userSlice";
 import { selectActiveRoomId } from "../slice/chatSlice";
 import { fetchHistory, selectHistory, selectHistoryLoading } from "../slice/roomSlice";
 
@@ -15,6 +15,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { setLeftSidebar } from "../slice/sidebarSlice";
 import SearchBox from "./SearchBox";
 import { RoomUserType } from "../../../types/Rooms";
+import { VolumeOffOutlined } from "@mui/icons-material";
 
 dayjs.extend(relativeTime);
 declare const UPLOADS_BASE_URL: string;
@@ -111,6 +112,7 @@ function RoomRow({
     type,
     users,
 }: RoomRowProps) {
+    const roomIsMuted = useSelector(isRoomMuted(id));
     const [time, setTime] = useState(
         lastMessage?.createdAt && dayjs(lastMessage.createdAt).fromNow()
     );
@@ -169,6 +171,11 @@ function RoomRow({
                     <Box flexGrow={1}>
                         <Typography mb={1} fontWeight="600">
                             {name}
+                            {roomIsMuted && (
+                                <Box display="inline-flex" ml={1}>
+                                    <VolumeOffOutlined fontSize="inherit" />
+                                </Box>
+                            )}
                         </Typography>
                         <Typography color="text.secondary" lineHeight="1.0625rem">
                             {lastMessageText}
