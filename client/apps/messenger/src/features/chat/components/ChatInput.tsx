@@ -268,6 +268,7 @@ const useStyles = makeStyles(() => ({
         width: "100%",
         outline: "none",
         fontSize: "0.9em",
+        paddingRight: "32px",
     },
 }));
 
