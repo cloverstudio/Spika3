@@ -148,6 +148,7 @@ export default function MessageRow({
                             type={type}
                             body={body}
                             isUsersMessage={isUsersMessage}
+                            onImageMessageClick={() => setMouseOver(false)}
                         />
                     </Box>
 

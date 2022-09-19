@@ -3,7 +3,7 @@ import { Box, Modal, Typography } from "@mui/material";
 
 import getFileIcon from "../lib/getFileIcon";
 import DownloadIcon from "@mui/icons-material/Download";
-import { CloseOutlined, Info } from "@mui/icons-material";
+import { CloseOutlined } from "@mui/icons-material";
 import { deletedMessageText } from "../lib/consts";
 
 declare const UPLOADS_BASE_URL: string;
@@ -13,26 +13,24 @@ type MessageBodyProps = {
     type: string;
     body: any;
     isUsersMessage: boolean;
-    onMessageClick?: (e: any) => void;
+    onImageMessageClick?: () => void;
 };
 
 export default function MessageBody({
     type,
     body,
     isUsersMessage,
-    onMessageClick,
+    onImageMessageClick,
 }: MessageBodyProps): React.ReactElement {
     const isDeleted = body?.text === deletedMessageText;
 
     if (isDeleted) {
-        return <TextMessage body={body} isUsersMessage={isUsersMessage} onClick={onMessageClick} />;
+        return <TextMessage body={body} isUsersMessage={isUsersMessage} />;
     }
 
     switch (type) {
         case "text": {
-            return (
-                <TextMessage body={body} isUsersMessage={isUsersMessage} onClick={onMessageClick} />
-            );
+            return <TextMessage body={body} isUsersMessage={isUsersMessage} />;
         }
 
         case "image": {
@@ -40,35 +38,21 @@ export default function MessageBody({
                 <ImageMessage
                     body={body}
                     isUsersMessage={isUsersMessage}
-                    onClickContextMenu={onMessageClick}
+                    onClick={onImageMessageClick}
                 />
             );
         }
 
         case "video": {
-            return (
-                <VideoMessage
-                    body={body}
-                    isUsersMessage={isUsersMessage}
-                    onClick={onMessageClick}
-                />
-            );
+            return <VideoMessage body={body} isUsersMessage={isUsersMessage} />;
         }
 
         case "audio": {
-            return (
-                <AudioMessage
-                    body={body}
-                    isUsersMessage={isUsersMessage}
-                    onClick={onMessageClick}
-                />
-            );
+            return <AudioMessage body={body} isUsersMessage={isUsersMessage} />;
         }
 
         default: {
-            return (
-                <FileMessage body={body} isUsersMessage={isUsersMessage} onClick={onMessageClick} />
-            );
+            return <FileMessage body={body} isUsersMessage={isUsersMessage} />;
         }
     }
 }
@@ -76,14 +60,17 @@ export default function MessageBody({
 function ImageMessage({
     body,
     isUsersMessage,
-    onClickContextMenu,
+    onClick,
 }: {
     body: any;
     isUsersMessage: boolean;
-    onClickContextMenu: (e: any) => void;
+    onClick: () => void;
 }) {
     const [open, setOpen] = useState(false);
-    const handleOpen = () => setOpen(true);
+    const handleOpen = () => {
+        setOpen(true);
+        onClick();
+    };
     const handleClose = () => setOpen(false);
 
     if (!body.file) {
@@ -102,13 +89,7 @@ function ImageMessage({
 
     return (
         <>
-            {body.text && (
-                <TextMessage
-                    body={body}
-                    isUsersMessage={isUsersMessage}
-                    onClick={onClickContextMenu}
-                />
-            )}
+            {body.text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
             <Box
                 onClick={handleOpen}
                 component="img"
@@ -125,11 +106,6 @@ function ImageMessage({
                     <Box textAlign="right" mr={2} mt={2}>
                         <CloseOutlined
                             onClick={handleClose}
-                            sx={{ color: "white", cursor: "pointer" }}
-                            fontSize="large"
-                        />
-                        <Info
-                            onClick={onClickContextMenu}
                             sx={{ color: "white", cursor: "pointer" }}
                             fontSize="large"
                         />
@@ -151,15 +127,7 @@ function ImageMessage({
     );
 }
 
-function FileMessage({
-    body,
-    isUsersMessage,
-    onClick,
-}: {
-    body: any;
-    isUsersMessage: boolean;
-    onClick: (e: any) => void;
-}) {
+function FileMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boolean }) {
     if (!body.file) {
         return null;
     }
@@ -171,9 +139,7 @@ function FileMessage({
     const Icon = getFileIcon(file.mimeType);
     return (
         <>
-            {body.text && (
-                <TextMessage body={body} isUsersMessage={isUsersMessage} onClick={onClick} />
-            )}
+            {body.text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
             <Box
                 display="flex"
                 alignItems="center"
@@ -206,24 +172,14 @@ function FileMessage({
     );
 }
 
-function VideoMessage({
-    body,
-    isUsersMessage,
-    onClick,
-}: {
-    body: any;
-    isUsersMessage: boolean;
-    onClick: (e: any) => void;
-}) {
+function VideoMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boolean }) {
     if (!body.file) {
         return null;
     }
 
     return (
         <>
-            {body.text && (
-                <TextMessage body={body} isUsersMessage={isUsersMessage} onClick={onClick} />
-            )}
+            {body.text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
             <Box
                 component="video"
                 borderRadius="0.625rem"
@@ -236,24 +192,14 @@ function VideoMessage({
     );
 }
 
-function AudioMessage({
-    body,
-    isUsersMessage,
-    onClick,
-}: {
-    body: any;
-    isUsersMessage: boolean;
-    onClick: (e: any) => void;
-}) {
+function AudioMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boolean }) {
     if (!body.file) {
         return null;
     }
 
     return (
         <>
-            {body.text && (
-                <TextMessage body={body} isUsersMessage={isUsersMessage} onClick={onClick} />
-            )}
+            {body.text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
             <Box component="audio" controls borderRadius="0.625rem" maxWidth="35rem" pb="0.8125">
                 <source type={body.file.type} src={`${API_BASE_URL}/upload/files/${body.fileId}`} />
             </Box>
@@ -261,15 +207,7 @@ function AudioMessage({
     );
 }
 
-function TextMessage({
-    isUsersMessage,
-    body,
-    onClick,
-}: {
-    body: any;
-    isUsersMessage: boolean;
-    onClick: (e: any) => void;
-}) {
+function TextMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boolean }) {
     const filterText = (text: string): string => {
         // escape html
         text = text
@@ -308,7 +246,6 @@ function TextMessage({
                 fontSize: "0.95rem",
             }}
             dangerouslySetInnerHTML={{ __html: filterText(body.text) }}
-            onClick={onClick}
         />
     );
 }
