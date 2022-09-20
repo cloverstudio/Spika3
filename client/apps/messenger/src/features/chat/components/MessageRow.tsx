@@ -1,19 +1,15 @@
-import React, { useRef } from "react";
+import React from "react";
 import { Avatar, Box, Typography } from "@mui/material";
 
 import MessageStatusIcon from "./MessageStatusIcon";
-
-import { useParams } from "react-router-dom";
 
 import MessageBody from "./MessageBody";
 import MessageReactions from "./MessageReactions";
 import getMessageStatus from "../lib/getMessageStatus";
 import ReactionOptionsPopover from "./ReactionOptionsPopover";
 import DatePopover from "./DatePopover";
-import MessageContectMenu, { IconConfigs } from "./MessageContectMenu";
-import { OnlinePredictionTwoTone } from "@mui/icons-material";
+import MessageContextMenu, { IconConfigs } from "./MessageContextMenu";
 import User from "../../../types/User";
-import RoomType from "../../../../../management/src/types/Room";
 import { MessageRecordType } from "../../../types/Message";
 import { useShowSnackBar } from "../../../hooks/useModal";
 import { CSSProperties } from "@mui/styled-engine";
@@ -38,7 +34,7 @@ type MessageRowProps = {
     onEdit: (id: number) => void;
     isDeleted: boolean;
     messageRecordsData: MessageRecordType[];
-    hightlight?: boolean;
+    highlight?: boolean;
 };
 
 declare const UPLOADS_BASE_URL: string;
@@ -57,13 +53,12 @@ export default function MessageRow({
     createdAt,
     user,
     data,
-    clickedAnchor,
     showMessageDetails,
     onDelete,
     onEdit,
     isDeleted,
     messageRecordsData,
-    hightlight,
+    highlight,
 }: MessageRowProps): React.ReactElement {
     const messageReactions = messageRecordsData?.filter((mr) => mr.type === "reaction") || [];
 
@@ -85,17 +80,17 @@ export default function MessageRow({
         contextMenuIcons = IconConfigs.showInfo;
     } else if (isUsersMessage && type === "text") {
         contextMenuIcons =
-            IconConfigs.showEmociton |
+            IconConfigs.showEmoticon |
             IconConfigs.showInfo |
             IconConfigs.showEdit |
             IconConfigs.showDelete;
     } else if (isUsersMessage) {
-        contextMenuIcons = IconConfigs.showEmociton | IconConfigs.showInfo | IconConfigs.showDelete;
+        contextMenuIcons = IconConfigs.showEmoticon | IconConfigs.showInfo | IconConfigs.showDelete;
     } else {
-        contextMenuIcons = IconConfigs.showEmociton | IconConfigs.showInfo;
+        contextMenuIcons = IconConfigs.showEmoticon | IconConfigs.showInfo;
     }
 
-    const hightlightStyle: CSSProperties = hightlight
+    const highlightStyle: CSSProperties = highlight
         ? {
               paddingTop: "10px",
               paddingBottom: "5px",
@@ -109,7 +104,7 @@ export default function MessageRow({
         <Box
             sx={{
                 position: "relative",
-                ...hightlightStyle,
+                ...highlightStyle,
             }}
             onMouseLeave={() => {
                 setMouseOver(false);
@@ -153,6 +148,7 @@ export default function MessageRow({
                             type={type}
                             body={body}
                             isUsersMessage={isUsersMessage}
+                            onImageMessageClick={() => setMouseOver(false)}
                         />
                     </Box>
 
@@ -185,7 +181,8 @@ export default function MessageRow({
                         createdAt={createdAt}
                         handleClose={() => setMouseOver(false)}
                     />
-                    <MessageContectMenu
+                    <MessageContextMenu
+                        isFirstMessage={isFirstMessage}
                         iconConfig={contextMenuIcons}
                         mouseOver={mouseOver}
                         isUsersMessage={isUsersMessage}

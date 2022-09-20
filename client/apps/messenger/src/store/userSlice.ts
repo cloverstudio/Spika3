@@ -4,6 +4,7 @@ import UserSettingList from "../types/UserSettings";
 import type { RootState } from "./store";
 import { dynamicBaseQuery } from "../api/api";
 import UserSettingsList from "../types/UserSettings";
+import * as constants from "../../../../lib/constants";
 
 interface UserState {
     id: number;
@@ -52,7 +53,7 @@ export const userSlice = createSlice({
 
 export const {} = userSlice.actions;
 
-export const selectUserId = (state: RootState): Number => state.user.id;
+export const selectUserId = (state: RootState): number => state.user.id;
 
 export const selectUser = (state: RootState): User => {
     const data = state.api.queries["getUser(undefined)"]?.data as any;
@@ -60,5 +61,12 @@ export const selectUser = (state: RootState): User => {
 };
 
 export const settings = (state: RootState): UserSettingsList => state.user.settings;
+
+export const isRoomMuted =
+    (roomId: number) =>
+    (state: RootState): boolean =>
+        state.user.settings?.find(
+            (r) => r.key === `${constants.SETTINGS_ROOM_MUTE_PREFIX}${roomId}`
+        )?.value === constants.SETTINGS_TRUE;
 
 export default userSlice.reducer;

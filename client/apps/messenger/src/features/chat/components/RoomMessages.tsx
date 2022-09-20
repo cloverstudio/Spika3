@@ -330,7 +330,7 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
                                 data={data}
                                 isDeleted={m.deleted}
                                 messageRecordsData={m.messageRecords}
-                                hightlight={messageId === m.id}
+                                highlight={messageId === m.id}
                             />
                         </div>
                     );
