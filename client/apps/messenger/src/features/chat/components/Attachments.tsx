@@ -4,6 +4,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useParams } from "react-router-dom";
 import AttachmentManager from "../lib/AttachmentManager";
 import getFileIcon from "../lib/getFileIcon";
+
 type AttachmentsProps = {
     files: File[];
     failedToUploadFileNames: string[];
