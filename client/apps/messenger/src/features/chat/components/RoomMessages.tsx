@@ -257,7 +257,7 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
                     overflowY: "auto",
                     overflowX: "hidden",
                     height: "100%",
-                    paddingTop: "20px",
+                    paddingTop: "50px",
                     paddingBottom: "50px",
                 }}
                 ref={scrollableConversation}

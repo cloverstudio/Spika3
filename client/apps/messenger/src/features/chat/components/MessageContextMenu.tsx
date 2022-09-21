@@ -19,7 +19,6 @@ type Props = {
     handleDelete?: (e: React.MouseEvent<any>) => void;
     handleShare?: (e: React.MouseEvent<any>) => void;
     iconConfig: IconConfigs;
-    isFirstMessage: boolean;
 };
 
 export default function MessageContextMenu({
@@ -31,7 +30,6 @@ export default function MessageContextMenu({
     handleDelete,
     handleShare,
     iconConfig,
-    isFirstMessage,
 }: Props): React.ReactElement {
     const styleModifier: any = {
         opacity: 0,
@@ -65,7 +63,7 @@ export default function MessageContextMenu({
                     justifyContent: "space-between",
                     borderRadius: "5px",
                     padding: "10px",
-                    top: isFirstMessage ? "50px" : "-50px",
+                    top: "-50px",
                     zIndex: 1000,
                 },
                 ...styleModifier,
