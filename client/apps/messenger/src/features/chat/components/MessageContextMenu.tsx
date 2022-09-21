@@ -1,17 +1,9 @@
 import React from "react";
-import { Popover, Typography } from "@mui/material";
 import { Box } from "@mui/system";
-import {
-    InsertEmoticon,
-    Edit,
-    DeleteOutline,
-    InfoOutlined,
-    Share,
-    DoneAll,
-} from "@mui/icons-material";
+import { InsertEmoticon, Edit, DeleteOutline, InfoOutlined, Share } from "@mui/icons-material";
 
 export enum IconConfigs {
-    showEmociton = 1,
+    showEmoticon = 1,
     showInfo = 2,
     showEdit = 4,
     showDelete = 8,
@@ -27,11 +19,11 @@ type Props = {
     handleDelete?: (e: React.MouseEvent<any>) => void;
     handleShare?: (e: React.MouseEvent<any>) => void;
     iconConfig: IconConfigs;
+    isFirstMessage: boolean;
 };
 
-export default function DatePopover({
+export default function MessageContextMenu({
     isUsersMessage,
-    handleClose,
     mouseOver,
     handleEmoticon,
     handleInfo,
@@ -39,6 +31,7 @@ export default function DatePopover({
     handleDelete,
     handleShare,
     iconConfig,
+    isFirstMessage,
 }: Props): React.ReactElement {
     const styleModifier: any = {
         opacity: 0,
@@ -72,13 +65,13 @@ export default function DatePopover({
                     justifyContent: "space-between",
                     borderRadius: "5px",
                     padding: "10px",
-                    top: "-50px",
+                    top: isFirstMessage ? "50px" : "-50px",
                     zIndex: 1000,
                 },
                 ...styleModifier,
             }}
         >
-            {(iconConfig & IconConfigs.showEmociton) == IconConfigs.showEmociton ? (
+            {(iconConfig & IconConfigs.showEmoticon) == IconConfigs.showEmoticon ? (
                 <InsertEmoticon
                     sx={{ ...itemStyle, ...{ color: "#7af" } }}
                     onClick={(e) => handleEmoticon(e)}

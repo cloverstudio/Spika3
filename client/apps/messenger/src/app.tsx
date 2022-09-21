@@ -10,7 +10,6 @@ import Playground from "./pages/playground";
 declare const BASE_URL: string;
 
 export default function App(): React.ReactElement {
-    const handleClose = () => {};
     return (
         <>
             <Router basename={BASE_URL}>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Avatar, Badge, Box, Typography } from "@mui/material";
-import { selectUser } from "../../../store/userSlice";
+import { isRoomMuted, selectUser } from "../../../store/userSlice";
 import { selectActiveRoomId } from "../slice/chatSlice";
 import { fetchHistory, selectHistory, selectHistoryLoading } from "../slice/roomSlice";
 
@@ -14,6 +14,8 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { setLeftSidebar } from "../slice/sidebarSlice";
 import SearchBox from "./SearchBox";
+import { RoomUserType } from "../../../types/Rooms";
+import { VolumeOffOutlined } from "@mui/icons-material";
 
 dayjs.extend(relativeTime);
 declare const UPLOADS_BASE_URL: string;
@@ -90,11 +92,13 @@ export default function SidebarChatList(): React.ReactElement {
 type RoomRowProps = {
     id: number;
     name: string;
+    type: string;
     isActive?: boolean;
     handleClick: () => void;
     unreadCount?: number;
     lastMessage?: MessageType;
     avatarUrl?: string;
+    users: RoomUserType[];
 };
 
 function RoomRow({
@@ -105,7 +109,10 @@ function RoomRow({
     lastMessage,
     handleClick,
     unreadCount,
+    type,
+    users,
 }: RoomRowProps) {
+    const roomIsMuted = useSelector(isRoomMuted(id));
     const [time, setTime] = useState(
         lastMessage?.createdAt && dayjs(lastMessage.createdAt).fromNow()
     );
@@ -123,6 +130,7 @@ function RoomRow({
             };
         }
     }, [lastMessage]);
+
     const lastMessageType = lastMessage?.type;
 
     let lastMessageText = lastMessage?.body?.text;
@@ -130,6 +138,11 @@ function RoomRow({
     if (lastMessage && lastMessageType !== "text") {
         lastMessageText = (lastMessageType || "") + " shared";
         lastMessageText = lastMessageText.charAt(0).toUpperCase() + lastMessageText.slice(1);
+    }
+
+    if (lastMessageText && type === "group") {
+        const senderUser = users.find((u) => u.userId === lastMessage.fromUserId).user;
+        lastMessageText = `${senderUser?.displayName || "Removed user"}: ${lastMessageText}`;
     }
 
     if (lastMessageText?.length > 17) {
@@ -158,6 +171,11 @@ function RoomRow({
                     <Box flexGrow={1}>
                         <Typography mb={1} fontWeight="600">
                             {name}
+                            {roomIsMuted && (
+                                <Box component="span" display="inline-flex" ml={1}>
+                                    <VolumeOffOutlined fontSize="inherit" />
+                                </Box>
+                            )}
                         </Typography>
                         <Typography color="text.secondary" lineHeight="1.0625rem">
                             {lastMessageText}
