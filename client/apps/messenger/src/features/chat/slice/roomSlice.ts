@@ -7,8 +7,6 @@ import messageApi from "../api/message";
 import MessageType from "../../../types/Message";
 import { dynamicBaseQuery } from "../../../api/api";
 
-import * as utils from "../../../../../../lib/utils";
-
 interface RoomState {
     list: (RoomType & { lastMessage: MessageType })[];
     count: number;
@@ -56,6 +54,11 @@ export const roomSlice = createSlice({
 
                 return room;
             });
+
+            state.list = [...list];
+        },
+        removeRoom(state, { payload: roomId }: { payload: number }) {
+            const list = state.list.filter((room) => room.id !== roomId);
 
             state.list = [...list];
         },
@@ -125,6 +128,6 @@ export const selectHistoryLoading =
     (state: RootState): "idle" | "pending" | "succeeded" | "failed" =>
         state.room.loading;
 
-export const { refreshOne, updateLastMessage } = roomSlice.actions;
+export const { refreshOne, updateLastMessage, removeRoom } = roomSlice.actions;
 
 export default roomSlice.reducer;

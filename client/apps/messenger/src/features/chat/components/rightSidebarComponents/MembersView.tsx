@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Box,
     Stack,
@@ -13,7 +13,7 @@ import {
 import { Close, Add, Check } from "@mui/icons-material";
 import { useSelector, useDispatch } from "react-redux";
 import { RoomUserType } from "../../../../types/Rooms";
-import { selectUser } from "../../../../store/userSlice";
+import { selectUserId } from "../../../../store/userSlice";
 import { useUpdateRoomMutation } from "../../api/room";
 import { useGetContactsQuery, useGetContactsByKeywordQuery } from "../../api/contacts";
 import { selectContacts } from "../../slice/contactsSlice";
@@ -30,37 +30,31 @@ export interface DetailsMembersProps {
 
 export function DetailsMemberView(props: DetailsMembersProps) {
     const { members, roomId } = props;
-    const me = useSelector(selectUser);
-    const [amIAdmin, setAmIAdmin] = useState(false);
-    const [showMore, setShowMore] = useState(false);
-    const [update, updateMutation] = useUpdateRoomMutation();
-    const [openAddDialog, setOpenAddDialog] = useState(false);
+
+    const userId = useSelector(selectUserId);
     const dispatch = useDispatch();
+    const [update] = useUpdateRoomMutation();
+    const [openAddDialog, setOpenAddDialog] = useState(false);
 
-    let membersArray: RoomUserType[] = [];
-    const memberIdsArray: number[] = [];
+    const userIsAdmin = members.find((u) => u.userId === userId).isAdmin;
 
-    useEffect(() => {
-        const meInRoom: RoomUserType = members.find((person) => person.userId === me.id);
-        setAmIAdmin(meInRoom.isAdmin);
-
-        members.forEach((member) => {
-            memberIdsArray.push(member.userId);
+    const handlePromoteToAdmin = (memberId: number) => {
+        handleUpdateGroup({
+            adminUserIds: members
+                .filter((m) => m.isAdmin)
+                .map((u) => u.userId)
+                .concat(memberId),
         });
-    }, []);
-
-    const removeMemberWithId = (memberId: number) => {
-        const membersArray: number[] = [];
-        members.forEach((participant) => {
-            if (participant.userId != memberId) {
-                membersArray.push(participant.userId);
-            }
-        });
-        handleUpdateGroup(membersArray);
     };
 
-    const handleUpdateGroup = async (memberIds: number[]) => {
-        const { room } = await update({ roomId: roomId, data: { userIds: memberIds } }).unwrap();
+    const removeMemberWithId = (memberId: number) => {
+        handleUpdateGroup({
+            userIds: members.filter((m) => m.userId !== memberId).map((u) => u.userId),
+        });
+    };
+
+    const handleUpdateGroup = async (data: any) => {
+        const { room } = await update({ roomId, data }).unwrap();
         dispatch(refreshOneRoom(room));
     };
 
@@ -72,23 +66,11 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                 membersArray.push(participant.userId);
             });
 
-            handleUpdateGroup(membersArray);
+            handleUpdateGroup({ userIds: membersArray });
         }
 
         setOpenAddDialog(false);
     };
-
-    const filterMembersArray = () => {
-        if (members.length > 4 && showMore) {
-            membersArray = members.slice(0, 4);
-        } else {
-            membersArray = members;
-        }
-    };
-
-    useEffect(() => {
-        filterMembersArray();
-    }, [showMore]);
 
     return (
         <Box padding="12px">
@@ -104,17 +86,11 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                 }}
             >
                 <Typography variant="h6"> {members.length} Members</Typography>
-                {amIAdmin ? (
-                    <IconButton
-                        size="large"
-                        color="primary"
-                        onClick={(e) => {
-                            setOpenAddDialog(true);
-                        }}
-                    >
+                {userIsAdmin && (
+                    <IconButton size="large" color="primary" onClick={() => setOpenAddDialog(true)}>
                         <Add />
                     </IconButton>
-                ) : null}
+                )}
             </Stack>
             <Box
                 component={"ul"}
@@ -125,11 +101,13 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                     paddingLeft: "0",
                 }}
             >
-                {members.map((value, index) => {
+                {members.map((roomUser, i) => {
+                    const { user } = roomUser;
+
                     return (
                         <Box
                             component={"li"}
-                            key={index}
+                            key={i}
                             sx={{
                                 marginBottom: "10px",
                                 listStyle: "none",
@@ -149,36 +127,48 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                                 }}
                             >
                                 <Avatar
-                                    alt={value.user.displayName}
-                                    src={`${UPLOADS_BASE_URL}${value.user.avatarUrl}`}
+                                    alt={user.displayName}
+                                    src={`${UPLOADS_BASE_URL}${user.avatarUrl}`}
                                     sx={{
                                         marginRight: "5px",
                                     }}
                                 />
-                                <Box>{value.user.displayName}</Box>
+                                <Box>{user.displayName}</Box>
                             </Box>
 
                             <Box>
-                                {value.isAdmin ? (
+                                {roomUser.isAdmin ? (
                                     <span>Admin</span>
-                                ) : amIAdmin ? (
-                                    <IconButton
-                                        size="large"
-                                        color="primary"
-                                        onClick={(e) => {
-                                            removeMemberWithId(value.user.id);
-                                        }}
-                                    >
-                                        <Close />
-                                    </IconButton>
-                                ) : null}
+                                ) : (
+                                    userIsAdmin && (
+                                        <Box display="flex">
+                                            <Button
+                                                size="small"
+                                                variant="text"
+                                                color="primary"
+                                                onClick={() => handlePromoteToAdmin(user.id)}
+                                                sx={{ mr: 1 }}
+                                            >
+                                                Make admin
+                                            </Button>
+
+                                            <IconButton
+                                                size="large"
+                                                color="primary"
+                                                onClick={() => removeMemberWithId(user.id)}
+                                            >
+                                                <Close />
+                                            </IconButton>
+                                        </Box>
+                                    )
+                                )}
                             </Box>
                         </Box>
                     );
                 })}
             </Box>
 
-            {openAddDialog ? (
+            {openAddDialog && (
                 <AddMembersDialog
                     open={openAddDialog}
                     onClose={closeAddMemberDialog}
@@ -187,7 +177,7 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                     addedIds={[]}
                     existedMembers={members}
                 />
-            ) : null}
+            )}
         </Box>
     );
 }
@@ -206,9 +196,8 @@ export function AddMembersDialog(props: AddMembersDialogProps) {
     const [searchTermDelay, setSearchTermDelay] = React.useState("");
     const [contacts, setContacts] = React.useState<Contacts>(null);
     const contactSearchResult = useGetContactsByKeywordQuery(searchTermDelay);
-    const { onClose, open, roomId, addedIds } = props;
-    const { data: contactData, isLoading } = useGetContactsQuery({ page: 1, keyword: "" });
-    const { list, count, sortedByDisplayName } = useSelector(selectContacts);
+    const { onClose, open } = props;
+    const { data: contactData } = useGetContactsQuery({ page: 1, keyword: "" });
     const [selectedIds, setSelectedIds] = React.useState<Array<number>>([]);
 
     useEffect(() => {
@@ -325,14 +314,13 @@ export interface AddMembersRowProps {
     existed: boolean;
     checked: boolean;
 }
+
 export function AddMemberRow({
     user,
     onClick,
     existed,
     checked,
 }: AddMembersRowProps): React.ReactElement {
-    const [selected, setSelected] = useState(checked);
-
     return (
         <Box
             px={2.5}

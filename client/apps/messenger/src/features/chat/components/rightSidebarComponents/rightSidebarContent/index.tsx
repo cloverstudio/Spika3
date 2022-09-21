@@ -1,7 +1,6 @@
 import React from "react";
 import { useSelector } from "react-redux";
 
-import { selectUser } from "../../../../../store/userSlice";
 import { RoomType } from "../../../../../types/Rooms";
 import { selectRightSidebarActiveTab } from "../../../slice/rightSidebarSlice";
 import { DetailsAdditionalInfoView } from "../AdditionalInfoView";
@@ -21,19 +20,17 @@ type RightSidebarContentProps = {
 export default function RightSidebarContent({
     room,
 }: RightSidebarContentProps): React.ReactElement {
-    const user = useSelector(selectUser);
     const activeTab = useSelector(selectRightSidebarActiveTab);
-
-    const otherUser = room.users.find((u) => u.userId !== user.id);
-    const isPrivate = room.type === "private";
 
     if (activeTab === "details") {
         return (
             <>
                 <DetailsBasicInfoView roomData={room} />
                 <DetailsAdditionalInfoView roomData={room} />
-                {!isPrivate ? <DetailsMemberView members={room.users} roomId={room.id} /> : null}
-                <DetailsDestructiveActionsView isItPrivateChat={isPrivate} otherUser={otherUser} />
+                {room.type === "group" && (
+                    <DetailsMemberView members={room.users} roomId={room.id} />
+                )}
+                <DetailsDestructiveActionsView room={room} />
             </>
         );
     }

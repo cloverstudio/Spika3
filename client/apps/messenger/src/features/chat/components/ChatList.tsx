@@ -141,7 +141,7 @@ function RoomRow({
     }
 
     if (lastMessageText && type === "group") {
-        const senderUser = users.find((u) => u.userId === lastMessage.fromUserId).user;
+        const senderUser = users.find((u) => u.userId === lastMessage.fromUserId)?.user;
         lastMessageText = `${senderUser?.displayName || "Removed user"}: ${lastMessageText}`;
     }
 
