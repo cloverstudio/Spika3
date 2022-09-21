@@ -77,6 +77,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 registeredDevice.user.verified === false
             ) {
                 // delete both device and user related to the device id
+
+                console.log("registeredDevice", registeredDevice);
                 await prisma.device.delete({
                     where: { id: registeredDevice.id },
                 });
