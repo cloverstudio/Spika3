@@ -182,7 +182,6 @@ export default function MessageRow({
                         handleClose={() => setMouseOver(false)}
                     />
                     <MessageContextMenu
-                        isFirstMessage={isFirstMessage}
                         iconConfig={contextMenuIcons}
                         mouseOver={mouseOver}
                         isUsersMessage={isUsersMessage}

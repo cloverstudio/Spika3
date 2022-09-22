@@ -195,7 +195,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     adminUserIds.push(userReq.user.id);
                 }
 
-                await updateRoomUsers({ room, newIds: adminUserIds, updatingAdmins: true });
+                await updateRoomAdminUsers({ room, newAdminIds: adminUserIds });
             }
 
             const userCount = await prisma.roomUser.count({ where: { roomId: id } });
@@ -771,14 +771,9 @@ function canLeaveRoomCheck(userId: number, roomUsers: RoomUser[]) {
 interface UpdateRoomUsersParams {
     room: Room & { users: RoomUser[] };
     newIds: number[];
-    updatingAdmins?: boolean;
 }
 
-async function updateRoomUsers({
-    newIds,
-    room,
-    updatingAdmins = false,
-}: UpdateRoomUsersParams): Promise<void> {
+async function updateRoomUsers({ newIds, room }: UpdateRoomUsersParams): Promise<void> {
     const currentIds = room.users.map((u) => u.userId);
 
     const foundUsers = await prisma.user.findMany({
@@ -789,11 +784,40 @@ async function updateRoomUsers({
 
     const userIdsToRemove = currentIds.filter((id) => !foundUserIds.includes(id));
     await prisma.roomUser.deleteMany({
-        where: { roomId: room.id, userId: { in: userIdsToRemove }, isAdmin: updatingAdmins },
+        where: { roomId: room.id, userId: { in: userIdsToRemove }, isAdmin: false },
     });
 
     const userIdsToAdd = foundUserIds.filter((id) => !currentIds.includes(id));
     await prisma.roomUser.createMany({
-        data: userIdsToAdd.map((userId) => ({ userId, roomId: room.id, isAdmin: updatingAdmins })),
+        data: userIdsToAdd.map((userId) => ({ userId, roomId: room.id, isAdmin: false })),
+    });
+}
+
+interface UpdateRoomAdminUsersParams {
+    room: Room & { users: RoomUser[] };
+    newAdminIds: number[];
+}
+
+async function updateRoomAdminUsers({
+    newAdminIds,
+    room,
+}: UpdateRoomAdminUsersParams): Promise<void> {
+    const currentAdminIds = room.users.filter((u) => u.isAdmin).map((u) => u.userId);
+
+    const newAdmins = await prisma.user.findMany({
+        where: { id: { in: newAdminIds } },
+        select: { id: true },
+    });
+    const newAdminUserIds = newAdmins.map((u) => u.id);
+
+    const userAdminIdsToRemove = currentAdminIds.filter((id) => !newAdminUserIds.includes(id));
+    await prisma.roomUser.updateMany({
+        where: { roomId: room.id, userId: { in: userAdminIdsToRemove }, isAdmin: true },
+        data: { isAdmin: false },
+    });
+
+    await prisma.roomUser.updateMany({
+        where: { roomId: room.id, userId: { in: newAdminUserIds }, isAdmin: false },
+        data: { isAdmin: true },
     });
 }
