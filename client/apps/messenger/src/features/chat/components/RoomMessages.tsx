@@ -17,7 +17,6 @@ import DeleteMessageDialog from "./DeleteMessageDialog";
 import { MessageDetailDialog } from "./MessageMenu";
 import { useGetUserQuery } from "../../auth/api/auth";
 import AttachmentManager from "../lib/AttachmentManager";
-import { deletedMessageText } from "../lib/consts";
 import NewMessageAlert from "./NewMessageAlert";
 type RoomMessagesProps = {
     roomId: number;
@@ -56,7 +55,6 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
     const isFetching = loading !== "idle";
     const hasMoreContactsToLoad = count > messages.length;
 
-    const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>();
     const [openMessageDetails, setOpenMessageDetails] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedMessageId, setMessageId] = useState<number>();
@@ -78,10 +76,10 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
     const isUsersLastMessage = lastMessageFromUserId === userData?.user?.id;
 
     useEffect(() => {
-        if (messages.length > 0 && messageId && page === 1) {
-            setPage(Math.ceil(messages.length / constants.MESSAGE_PAGING_LIMIT));
+        if (count > 0 && messageId && !messages.some((m) => m.id === messageId)) {
+            setPage(Math.ceil(count / constants.MESSAGE_PAGING_LIMIT));
         }
-    }, [messages, messageId]);
+    }, [messages, messageId, count]);
 
     useEffect(() => {
         if (!scrollableConversation.current) {
@@ -117,7 +115,6 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
 
     const handleClick = (event: React.MouseEvent<HTMLDivElement>, messageId: number) => {
         setMessageId(messageId);
-        setAnchorEl(event.currentTarget);
     };
 
     const showModalMessageDetails = () => {

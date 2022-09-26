@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Box, Button, CircularProgress, Input, LinearProgress, Stack } from "@mui/material";
+import { Box, Button, CircularProgress, IconButton, LinearProgress, Stack } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 
 import KeyboardVoiceIcon from "@mui/icons-material/KeyboardVoice";
@@ -24,12 +24,17 @@ import {
     selectSendingMessage,
     selectInputTypeIsFiles,
     replyMessageThunk,
+    setReplyMessage,
+    selectActiveRoomId,
 } from "../slice/chatSlice";
 import getFileType from "../lib/getFileType";
 import AddAttachment from "./AddAttachment";
 import generateThumbFile from "../lib/generateThumbFile";
 import Attachments from "./Attachments";
 import EmojiPicker from "./emojiPicker";
+import Close from "@mui/icons-material/Close";
+import { useGetRoomQuery } from "../api/room";
+import MessageType from "../../../types/Message";
 
 export default function ChatInputContainer(): React.ReactElement {
     const dispatch = useDispatch();
@@ -225,17 +230,7 @@ function ChatInput({
                     <EmojiPicker onSelect={(emoji) => dispatch(addEmoji(emoji))} />
                 )}
 
-                {replyMessage && (
-                    <Box
-                        width="100%"
-                        position="relative"
-                        sx={{ backgroundColor: "common.chatBackground" }}
-                        p={1}
-                        mb={1}
-                    >
-                        {replyMessage.body?.text}
-                    </Box>
-                )}
+                {replyMessage && <ReplyMessage message={replyMessage} />}
                 <Box width="100%" position="relative">
                     <TextInput onSend={onSend} />
                     <EmojiEmotionsIcon
@@ -257,20 +252,14 @@ function ChatInput({
                     </Button>
                 </Box>
             ) : (
-                <RightActionTextIcon />
+                <RightActionTextIcon onSend={onSend} />
             )}
         </>
     );
 }
 
-function RightActionTextIcon(): React.ReactElement {
+function RightActionTextIcon({ onSend }: { onSend: () => void }): React.ReactElement {
     const message = useSelector(selectMessageText);
-    const dispatch = useDispatch();
-    const roomId = parseInt(useParams().id || "");
-
-    const onSend = () => {
-        dispatch(sendMessage({ roomId, type: "text", body: {} }));
-    };
 
     if (message.length) {
         return <SendIcon onClick={() => onSend()} color="primary" sx={{ cursor: "pointer" }} />;
@@ -327,5 +316,46 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
             className={style.input}
             rows={1}
         />
+    );
+}
+
+function ReplyMessage({ message }: { message: MessageType }): React.ReactElement {
+    const dispatch = useDispatch();
+    const roomId = useSelector(selectActiveRoomId);
+    const { data } = useGetRoomQuery(roomId);
+
+    const sender = data.room.users?.find((u) => u.userId === message.fromUserId)?.user;
+
+    return (
+        <Box
+            width="100%"
+            position="relative"
+            sx={{
+                backgroundColor: "common.chatBackground",
+                borderRadius: "0.3rem",
+                padding: "0.4rem",
+                color: "common.darkBlue",
+            }}
+            mb={1}
+        >
+            {sender && (
+                <Box mb={0.75} fontWeight="medium">
+                    {sender.displayName}
+                </Box>
+            )}
+
+            {message.body?.text && message.body?.text}
+            {message.type === "image" && "Image"}
+            {message.type === "audio" && "Audio"}
+            {message.type === "video" && "Video"}
+            {message.type === "file" && "File"}
+            <IconButton
+                size="small"
+                onClick={() => dispatch(setReplyMessage(null))}
+                sx={{ position: "absolute", right: "4px", top: "4px" }}
+            >
+                <Close fontSize="inherit" />
+            </IconButton>
+        </Box>
     );
 }

@@ -8,6 +8,8 @@ import { deletedMessageText } from "../lib/consts";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectActiveRoomId } from "../slice/chatSlice";
+import { useGetRoomQuery } from "../api/room";
+import UserType from "../../../types/User";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -34,7 +36,7 @@ export default function MessageBody({
     }
 
     if (isReply) {
-        return <ReplyMessage body={body} isUsersMessage={isUsersMessage} type={type} />;
+        return <ReplyMessage body={body} isUsersMessage={isUsersMessage} />;
     }
 
     switch (type) {
@@ -216,46 +218,122 @@ function AudioMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
     );
 }
 
-function ReplyMessage({
-    isUsersMessage,
-    body,
-    type,
-}: {
-    body: any;
-    isUsersMessage: boolean;
-    type: string;
-}) {
-    console.log({ body, type });
+function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boolean }) {
     const navigate = useNavigate();
     const roomId = useSelector(selectActiveRoomId);
+    const { data } = useGetRoomQuery(roomId);
 
     const renderReplyMessage = () => {
         const { type: replyMsgType, body: replyMsgBody } = body.referenceMessage;
+
+        const sender = data.room.users?.find(
+            (u) => u.userId === body.referenceMessage.fromUserId
+        )?.user;
         switch (replyMsgType) {
             case "text": {
-                return <TextMessage body={replyMsgBody} isUsersMessage={!isUsersMessage} />;
-            }
-
-            case "image": {
                 return (
-                    <ImageMessage
+                    <TextMessage
                         body={replyMsgBody}
                         isUsersMessage={!isUsersMessage}
-                        onClick={() => true}
+                        sender={sender}
                     />
                 );
             }
 
+            case "image": {
+                return (
+                    <Box
+                        sx={{
+                            backgroundColor: !isUsersMessage
+                                ? "common.myMessageBackground"
+                                : "common.chatBackground",
+                            borderRadius: "0.3rem",
+                            padding: "0.4rem",
+                            cursor: "pointer",
+                            color: "common.darkBlue",
+                        }}
+                    >
+                        {sender && (
+                            <Box mb={0.75} fontWeight="medium">
+                                {sender.displayName}
+                            </Box>
+                        )}
+                        <ImageMessage
+                            body={replyMsgBody}
+                            isUsersMessage={!isUsersMessage}
+                            onClick={() => true}
+                        />
+                    </Box>
+                );
+            }
+
             case "video": {
-                return <VideoMessage body={replyMsgBody} isUsersMessage={!isUsersMessage} />;
+                return (
+                    <Box
+                        sx={{
+                            backgroundColor: !isUsersMessage
+                                ? "common.myMessageBackground"
+                                : "common.chatBackground",
+                            borderRadius: "0.3rem",
+                            padding: "0.4rem",
+                            cursor: "pointer",
+                            color: "common.darkBlue",
+                        }}
+                    >
+                        {sender && (
+                            <Box mb={0.75} fontWeight="medium">
+                                {sender.displayName}
+                            </Box>
+                        )}
+                        <VideoMessage body={replyMsgBody} isUsersMessage={!isUsersMessage} />
+                    </Box>
+                );
             }
 
             case "audio": {
-                return <AudioMessage body={replyMsgBody} isUsersMessage={!isUsersMessage} />;
+                return (
+                    <Box
+                        sx={{
+                            backgroundColor: !isUsersMessage
+                                ? "common.myMessageBackground"
+                                : "common.chatBackground",
+                            borderRadius: "0.3rem",
+                            padding: "0.4rem",
+                            cursor: "pointer",
+                            color: "common.darkBlue",
+                        }}
+                    >
+                        {sender && (
+                            <Box mb={0.75} fontWeight="medium">
+                                {sender.displayName}
+                            </Box>
+                        )}
+                        <AudioMessage body={replyMsgBody} isUsersMessage={!isUsersMessage} />
+                    </Box>
+                );
             }
 
             default: {
-                return <FileMessage body={replyMsgBody} isUsersMessage={!isUsersMessage} />;
+                return (
+                    <Box
+                        sx={{
+                            backgroundColor: !isUsersMessage
+                                ? "common.myMessageBackground"
+                                : "common.chatBackground",
+                            borderRadius: "0.3rem",
+                            padding: "0.4rem",
+                            cursor: "pointer",
+                            color: "common.darkBlue",
+                        }}
+                    >
+                        {sender && (
+                            <Box mb={0.75} fontWeight="medium">
+                                {sender.displayName}
+                            </Box>
+                        )}
+                        <FileMessage body={replyMsgBody} isUsersMessage={!isUsersMessage} />
+                    </Box>
+                );
             }
         }
     };
@@ -291,7 +369,15 @@ function ReplyMessage({
     );
 }
 
-function TextMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boolean }) {
+function TextMessage({
+    isUsersMessage,
+    body,
+    sender,
+}: {
+    body: any;
+    isUsersMessage: boolean;
+    sender?: UserType;
+}) {
     const filterText = (text: string): string => {
         // escape html
         text = text
@@ -329,7 +415,13 @@ function TextMessage({ isUsersMessage, body }: { body: any; isUsersMessage: bool
                 margin: "0px",
                 fontSize: "0.95rem",
             }}
-            dangerouslySetInnerHTML={{ __html: filterText(body.text) }}
-        />
+        >
+            {sender && (
+                <Box mb={1} fontWeight="medium">
+                    {sender.displayName}
+                </Box>
+            )}
+            <Box dangerouslySetInnerHTML={{ __html: filterText(body.text) }} />
+        </Box>
     );
 }
