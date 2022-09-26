@@ -15,7 +15,6 @@ import { InitRouterParams } from "../../types/serviceInterface";
 import sanitize from "../../../components/sanitize";
 import { formatMessageBody } from "../../../components/message";
 import createSSEMessageRecordsNotify from "../lib/sseMessageRecordsNotify";
-import message from "../../management/route/message";
 
 const prisma = new PrismaClient();
 
@@ -25,6 +24,7 @@ const postMessageSchema = yup.object().shape({
         type: yup.string().strict().required(),
         body: yup.object().required(),
         localId: yup.string().strict(),
+        reply: yup.boolean().default(false),
     }),
 });
 
@@ -46,6 +46,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             const type = req.body.type;
             const body = req.body.body;
             const localId = req.body.localId;
+            const reply = req.body.reply;
             const fromUserId = userReq.user.id;
             const fromDeviceId = userReq.device.id;
 
@@ -66,7 +67,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 const fileId: number = body.fileId;
                 const thumbId: number = body.thumbId;
 
-                // check existance
+                // check existence
                 const exists = await prisma.file.findFirst({ where: { id: fileId } });
                 if (!exists)
                     return res.status(400).send(errorResponse("Invalid fileId", userReq.lang));
@@ -79,6 +80,13 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         return res.status(400).send(errorResponse("Invalid thumbId", userReq.lang));
                 }
             } else if (type === "text") {
+                if (!body.text)
+                    return res.status(400).send(errorResponse("Text is missing", userReq.lang));
+            } else if (reply) {
+                if (!body.referenceMessage)
+                    return res
+                        .status(400)
+                        .send(errorResponse("referenceMessage is missing", userReq.lang));
                 if (!body.text)
                     return res.status(400).send(errorResponse("Text is missing", userReq.lang));
             } else {
@@ -110,6 +118,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     deliveredCount: 0,
                     seenCount: 0,
                     localId,
+                    reply,
                 },
             });
 
@@ -723,7 +732,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             for (const deviceMessage of message.deviceMessages) {
                 await prisma.deviceMessage.update({
                     where: { id: deviceMessage.id },
-                    data: { modifiedAt: new Date(), body: { text } },
+                    data: {
+                        modifiedAt: new Date(),
+                        body: { ...(deviceMessage.body as Record<string, unknown>), text },
+                    },
                 });
             }
 
@@ -733,7 +745,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 include: { deviceMessages: true },
             });
 
-            const sanitizedMessage = sanitize({ ...message, body: { text } }).message();
+            const sanitizedMessage = sanitize({
+                ...message,
+                body: { ...(message.deviceMessages[0].body as Record<string, unknown>), text },
+            }).message();
 
             res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
 

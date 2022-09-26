@@ -13,6 +13,7 @@ import { useShowBasicDialog } from "../../../hooks/useModal";
 import {
     sendMessage,
     selectEditMessage,
+    selectReplyMessage,
     selectMessageText,
     setEditMessage,
     setMessageText,
@@ -22,6 +23,7 @@ import {
     addEmoji,
     selectSendingMessage,
     selectInputTypeIsFiles,
+    replyMessageThunk,
 } from "../slice/chatSlice";
 import getFileType from "../lib/getFileType";
 import AddAttachment from "./AddAttachment";
@@ -172,11 +174,16 @@ function ChatInput({
 }: ChatInputProps) {
     const dispatch = useDispatch();
     const editMessage = useSelector(selectEditMessage);
+    const replyMessage = useSelector(selectReplyMessage);
     const inputType = useSelector(selectInputType);
 
     const onSend = async () => {
-        if (!editMessage) {
+        if (!editMessage && !replyMessage) {
             return handleSend();
+        }
+
+        if (replyMessage) {
+            return dispatch(replyMessageThunk("text"));
         }
 
         dispatch(editMessageThunk());
@@ -216,6 +223,18 @@ function ChatInput({
             <Box width="100%" position="relative">
                 {inputType === "emoji" && (
                     <EmojiPicker onSelect={(emoji) => dispatch(addEmoji(emoji))} />
+                )}
+
+                {replyMessage && (
+                    <Box
+                        width="100%"
+                        position="relative"
+                        sx={{ backgroundColor: "common.chatBackground" }}
+                        p={1}
+                        mb={1}
+                    >
+                        {replyMessage.body?.text}
+                    </Box>
                 )}
                 <Box width="100%" position="relative">
                     <TextInput onSend={onSend} />

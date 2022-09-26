@@ -5,6 +5,9 @@ import getFileIcon from "../lib/getFileIcon";
 import DownloadIcon from "@mui/icons-material/Download";
 import { CloseOutlined } from "@mui/icons-material";
 import { deletedMessageText } from "../lib/consts";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { selectActiveRoomId } from "../slice/chatSlice";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -13,6 +16,7 @@ type MessageBodyProps = {
     type: string;
     body: any;
     isUsersMessage: boolean;
+    isReply: boolean;
     onImageMessageClick?: () => void;
 };
 
@@ -20,12 +24,17 @@ export default function MessageBody({
     type,
     body,
     isUsersMessage,
+    isReply,
     onImageMessageClick,
 }: MessageBodyProps): React.ReactElement {
     const isDeleted = body?.text === deletedMessageText;
 
     if (isDeleted) {
         return <TextMessage body={body} isUsersMessage={isUsersMessage} />;
+    }
+
+    if (isReply) {
+        return <ReplyMessage body={body} isUsersMessage={isUsersMessage} type={type} />;
     }
 
     switch (type) {
@@ -204,6 +213,81 @@ function AudioMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
                 <source type={body.file.type} src={`${API_BASE_URL}/upload/files/${body.fileId}`} />
             </Box>
         </>
+    );
+}
+
+function ReplyMessage({
+    isUsersMessage,
+    body,
+    type,
+}: {
+    body: any;
+    isUsersMessage: boolean;
+    type: string;
+}) {
+    console.log({ body, type });
+    const navigate = useNavigate();
+    const roomId = useSelector(selectActiveRoomId);
+
+    const renderReplyMessage = () => {
+        const { type: replyMsgType, body: replyMsgBody } = body.referenceMessage;
+        switch (replyMsgType) {
+            case "text": {
+                return <TextMessage body={replyMsgBody} isUsersMessage={!isUsersMessage} />;
+            }
+
+            case "image": {
+                return (
+                    <ImageMessage
+                        body={replyMsgBody}
+                        isUsersMessage={!isUsersMessage}
+                        onClick={() => true}
+                    />
+                );
+            }
+
+            case "video": {
+                return <VideoMessage body={replyMsgBody} isUsersMessage={!isUsersMessage} />;
+            }
+
+            case "audio": {
+                return <AudioMessage body={replyMsgBody} isUsersMessage={!isUsersMessage} />;
+            }
+
+            default: {
+                return <FileMessage body={replyMsgBody} isUsersMessage={!isUsersMessage} />;
+            }
+        }
+    };
+
+    const handleReplyClick = () => {
+        navigate(`/rooms/${roomId}/${body.referenceMessage.id}`);
+    };
+    return (
+        <Box
+            component={"div"}
+            sx={{
+                minWidth: "50px",
+                maxWidth: "50rem",
+                backgroundColor: isUsersMessage
+                    ? "common.myMessageBackground"
+                    : "common.chatBackground",
+                borderRadius: "0.3rem",
+                padding: "0.4rem",
+                cursor: "pointer",
+                color: "common.darkBlue",
+                lineHeight: "1.2rem",
+                whiteSpace: "pre-wrap",
+                margin: "0px",
+                fontSize: "0.95rem",
+            }}
+        >
+            <Box mb="0.4rem" onClick={handleReplyClick}>
+                {renderReplyMessage()}
+            </Box>
+
+            <Box>{body.text}</Box>
+        </Box>
     );
 }
 

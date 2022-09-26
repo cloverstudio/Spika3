@@ -70,6 +70,7 @@ export default function sanitize(data: any): sanitizeTypes {
                 modifiedAt,
                 localId,
                 deleted,
+                reply,
             } = data as Message & { body: any };
 
             return {
@@ -85,6 +86,7 @@ export default function sanitize(data: any): sanitizeTypes {
                 modifiedAt: +new Date(modifiedAt),
                 localId,
                 deleted,
+                reply,
                 messageRecords: data.messageRecords?.filter((m) => m.type === "reaction"),
             };
         },
