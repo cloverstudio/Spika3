@@ -35,6 +35,7 @@ import EmojiPicker from "./emojiPicker";
 import Close from "@mui/icons-material/Close";
 import { useGetRoomQuery } from "../api/room";
 import MessageType from "../../../types/Message";
+import getFileIcon from "../lib/getFileIcon";
 
 export default function ChatInputContainer(): React.ReactElement {
     const dispatch = useDispatch();
@@ -325,6 +326,7 @@ function ReplyMessage({ message }: { message: MessageType }): React.ReactElement
     const { data } = useGetRoomQuery(roomId);
 
     const sender = data.room.users?.find((u) => u.userId === message.fromUserId)?.user;
+    const Icon = getFileIcon(message.body.file.mimeType);
 
     return (
         <Box
@@ -345,10 +347,35 @@ function ReplyMessage({ message }: { message: MessageType }): React.ReactElement
             )}
 
             {message.body?.text && message.body?.text}
-            {message.type === "image" && "Image"}
-            {message.type === "audio" && "Audio"}
-            {message.type === "video" && "Video"}
-            {message.type === "file" && "File"}
+            {message.type === "image" && (
+                <Box
+                    component="img"
+                    borderRadius="0.3rem"
+                    maxWidth="10rem"
+                    height="3rem"
+                    width="auto"
+                    src={`${API_BASE_URL}/upload/files/${message.body.thumbId}`}
+                    sx={{ cursor: "pointer", objectFit: "contain" }}
+                />
+            )}
+            {message.type === "audio" && (
+                <Box component="audio" controls borderRadius="0.3rem" maxWidth="10rem">
+                    <source
+                        type={message.body.file.type}
+                        src={`${API_BASE_URL}/upload/files/${message.body.fileId}`}
+                    />
+                </Box>
+            )}
+            {message.type === "video" && (
+                <Box
+                    component="video"
+                    borderRadius="0.3rem"
+                    maxWidth="10rem"
+                    controls
+                    src={`${API_BASE_URL}/upload/files/${message.body.fileId}`}
+                />
+            )}
+            {message.type === "file" && <Icon fontSize="large" />}
             <IconButton
                 size="small"
                 onClick={() => dispatch(setReplyMessage(null))}

@@ -321,6 +321,53 @@ describe("API", () => {
             // -1 is because we don't send push to user who send the message
             expect(sendPush.run).to.have.been.called.min(deviceMessagesCount - 1);
         });
+
+        it("if message is reply it requires referenceMessage and text", async () => {
+            const responseInvalidOne = await supertest(app)
+                .post("/api/messenger/messages")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, reply: true });
+
+            const responseInvalidTwo = await supertest(app)
+                .post("/api/messenger/messages")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, reply: true, body: { referenceMessage: true } });
+
+            const responseInvalidThree = await supertest(app)
+                .post("/api/messenger/messages")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, reply: true, body: { referenceMessage: {}, text: "foo" } });
+
+            const responseInvalidFour = await supertest(app)
+                .post("/api/messenger/messages")
+                .set({ accesstoken: globals.userToken })
+                .send({
+                    ...validParams,
+                    reply: true,
+                    body: { referenceMessage: { id: 12365478987154154 }, text: "foo" },
+                });
+
+            const message = await createFakeMessage({
+                room,
+                fromUserId: globals.userId,
+                fromDeviceId: globals.deviceId,
+            });
+
+            const response = await supertest(app)
+                .post("/api/messenger/messages")
+                .set({ accesstoken: globals.userToken })
+                .send({
+                    ...validParams,
+                    reply: true,
+                    body: { referenceMessage: message, text: "foo" },
+                });
+
+            expect(responseInvalidOne.status).to.eqls(400);
+            expect(responseInvalidTwo.status).to.eqls(400);
+            expect(responseInvalidThree.status).to.eqls(400);
+            expect(responseInvalidFour.status).to.eqls(400);
+            expect(response.status).to.eqls(200);
+        });
     });
 
     describe("/api/messenger/messages/:roomId/seen POST", () => {

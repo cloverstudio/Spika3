@@ -79,14 +79,27 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     if (!exists)
                         return res.status(400).send(errorResponse("Invalid thumbId", userReq.lang));
                 }
-            } else if (type === "text") {
-                if (!body.text)
-                    return res.status(400).send(errorResponse("Text is missing", userReq.lang));
             } else if (reply) {
                 if (!body.referenceMessage)
                     return res
                         .status(400)
                         .send(errorResponse("referenceMessage is missing", userReq.lang));
+                if (!body.referenceMessage.id)
+                    return res
+                        .status(400)
+                        .send(errorResponse("referenceMessage id is missing", userReq.lang));
+
+                if (!body.text)
+                    return res.status(400).send(errorResponse("Text is missing", userReq.lang));
+                const referenceMessageFound = await prisma.message.findUnique({
+                    where: { id: body.referenceMessage.id },
+                });
+
+                if (!referenceMessageFound)
+                    return res
+                        .status(400)
+                        .send(errorResponse("referenceMessage not found", userReq.lang));
+            } else if (type === "text") {
                 if (!body.text)
                     return res.status(400).send(errorResponse("Text is missing", userReq.lang));
             } else {
