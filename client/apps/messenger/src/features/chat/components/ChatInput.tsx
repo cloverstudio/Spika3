@@ -326,7 +326,7 @@ function ReplyMessage({ message }: { message: MessageType }): React.ReactElement
     const { data } = useGetRoomQuery(roomId);
 
     const sender = data.room.users?.find((u) => u.userId === message.fromUserId)?.user;
-    const Icon = getFileIcon(message.body.file.mimeType);
+    const Icon = getFileIcon(message.body?.file?.mimeType);
 
     return (
         <Box
