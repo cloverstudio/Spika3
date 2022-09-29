@@ -1,12 +1,23 @@
 import React from "react";
 import { Box } from "@mui/system";
-import { InsertEmoticon, Edit, DeleteOutline, InfoOutlined, Share } from "@mui/icons-material";
+import {
+    InsertEmoticon,
+    Edit,
+    DeleteOutline,
+    InfoOutlined,
+    Share,
+    Replay,
+    Replay10Outlined,
+    Forward,
+    FormatQuote,
+} from "@mui/icons-material";
 
 export enum IconConfigs {
     showEmoticon = 1,
     showInfo = 2,
     showEdit = 4,
     showDelete = 8,
+    showReply = 16,
 }
 
 type Props = {
@@ -18,6 +29,7 @@ type Props = {
     handleEdit?: (e: React.MouseEvent<any>) => void;
     handleDelete?: (e: React.MouseEvent<any>) => void;
     handleShare?: (e: React.MouseEvent<any>) => void;
+    handleReply?: (e: React.MouseEvent<any>) => void;
     iconConfig: IconConfigs;
 };
 
@@ -29,6 +41,7 @@ export default function MessageContextMenu({
     handleEdit,
     handleDelete,
     handleShare,
+    handleReply,
     iconConfig,
 }: Props): React.ReactElement {
     const styleModifier: any = {
@@ -69,25 +82,28 @@ export default function MessageContextMenu({
                 ...styleModifier,
             }}
         >
-            {(iconConfig & IconConfigs.showEmoticon) == IconConfigs.showEmoticon ? (
+            {(iconConfig & IconConfigs.showEmoticon) === IconConfigs.showEmoticon && (
                 <InsertEmoticon
                     sx={{ ...itemStyle, ...{ color: "#7af" } }}
                     onClick={(e) => handleEmoticon(e)}
                 />
-            ) : null}
+            )}
 
-            {(iconConfig & IconConfigs.showInfo) == IconConfigs.showInfo ? (
+            {(iconConfig & IconConfigs.showInfo) === IconConfigs.showInfo && (
                 <InfoOutlined sx={{ ...itemStyle, ...{} }} onClick={(e) => handleInfo(e)} />
-            ) : null}
-            {(iconConfig & IconConfigs.showEdit) == IconConfigs.showEdit ? (
+            )}
+            {(iconConfig & IconConfigs.showEdit) === IconConfigs.showEdit && (
                 <Edit sx={{ ...itemStyle, ...{} }} onClick={(e) => handleEdit(e)} />
-            ) : null}
-            {(iconConfig & IconConfigs.showDelete) == IconConfigs.showDelete ? (
+            )}
+            {(iconConfig & IconConfigs.showReply) === IconConfigs.showReply && (
+                <FormatQuote sx={{ ...itemStyle, ...{} }} onClick={(e) => handleReply(e)} />
+            )}
+            {(iconConfig & IconConfigs.showDelete) === IconConfigs.showDelete && (
                 <DeleteOutline
                     sx={{ ...itemStyle, ...{ color: "#f33" } }}
                     onClick={(e) => handleDelete(e)}
                 />
-            ) : null}
+            )}
             <Share sx={{ ...itemStyle, ...{} }} onClick={(e) => handleShare(e)} />
         </Box>
     );

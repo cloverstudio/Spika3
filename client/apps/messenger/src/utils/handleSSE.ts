@@ -76,14 +76,6 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                         (r) => r.key === `${constants.SETTINGS_ROOM_MUTE_PREFIX}${message.roomId}`
                     )?.value === constants.SETTINGS_TRUE;
 
-            console.log(
-                "isMute",
-                store
-                    .getState()
-                    .user.settings?.find(
-                        (r) => r.key === `${constants.SETTINGS_ROOM_MUTE_PREFIX}${message.roomId}`
-                    )?.value
-            );
             // play sound logic
             if (
                 !isMute &&

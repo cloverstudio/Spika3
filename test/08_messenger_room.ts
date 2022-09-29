@@ -444,7 +444,10 @@ describe("API", () => {
         it("adds users to admin list", async () => {
             const users = await createManyFakeUsers(3);
             const adminUserIds = users.map((u) => u.id);
-            const room = await createFakeRoom([{ userId: globals.userId, isAdmin: true }]);
+            const room = await createFakeRoom([
+                { userId: globals.userId, isAdmin: true },
+                ...adminUserIds.map((userId) => ({ userId, isAdmin: false })),
+            ]);
 
             const response = await supertest(app)
                 .put("/api/messenger/rooms/" + room.id)
@@ -524,13 +527,16 @@ describe("API", () => {
         });
 
         it("updates are saved in db", async () => {
-            const room = await createFakeRoom([{ userId: globals.userId, isAdmin: true }]);
-            const avatarUrl = "/some/new/path";
-            const name = "Kool kids room";
-            const users = await createManyFakeUsers(2);
-            const userIds = users.map((u) => u.id);
             const admins = await createManyFakeUsers(2);
             const adminUserIds = admins.map((u) => u.id);
+            const users = await createManyFakeUsers(2);
+            const userIds = users.map((u) => u.id).concat(...adminUserIds, globals.userId);
+            const room = await createFakeRoom([
+                { userId: globals.userId, isAdmin: true },
+                ...adminUserIds.map((userId) => ({ userId, isAdmin: false })),
+            ]);
+            const avatarUrl = "/some/new/path";
+            const name = "Cool kids room";
 
             const response = await supertest(app)
                 .put("/api/messenger/rooms/" + room.id)
@@ -551,11 +557,11 @@ describe("API", () => {
             expect(roomFromDb).to.has.property("users");
             expect(roomFromDb.users).to.be.an("array");
             expect(
+                roomFromDb.users.filter((u: RoomUser) => !u.isAdmin).map((u: RoomUser) => u.userId)
+            ).to.include.members(users.map((u) => u.id));
+            expect(
                 roomFromDb.users.filter((u: RoomUser) => u.isAdmin).map((u: RoomUser) => u.userId)
             ).to.include.members([globals.userId, ...adminUserIds]);
-            expect(
-                roomFromDb.users.filter((u: RoomUser) => !u.isAdmin).map((u: RoomUser) => u.userId)
-            ).to.include.members(userIds);
         });
     });
 

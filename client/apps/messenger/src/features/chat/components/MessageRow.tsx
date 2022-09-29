@@ -32,7 +32,9 @@ type MessageRowProps = {
     showMessageDetails: (id: number) => void;
     onDelete: (id: number) => void;
     onEdit: (id: number) => void;
+    onReply: (id: number) => void;
     isDeleted: boolean;
+    isReply: boolean;
     messageRecordsData: MessageRecordType[];
     highlight?: boolean;
 };
@@ -56,9 +58,11 @@ export default function MessageRow({
     showMessageDetails,
     onDelete,
     onEdit,
+    onReply,
     isDeleted,
     messageRecordsData,
     highlight,
+    isReply,
 }: MessageRowProps): React.ReactElement {
     const messageReactions = messageRecordsData?.filter((mr) => mr.type === "reaction") || [];
 
@@ -83,11 +87,16 @@ export default function MessageRow({
             IconConfigs.showEmoticon |
             IconConfigs.showInfo |
             IconConfigs.showEdit |
+            IconConfigs.showReply |
             IconConfigs.showDelete;
     } else if (isUsersMessage) {
-        contextMenuIcons = IconConfigs.showEmoticon | IconConfigs.showInfo | IconConfigs.showDelete;
+        contextMenuIcons =
+            IconConfigs.showEmoticon |
+            IconConfigs.showInfo |
+            IconConfigs.showReply |
+            IconConfigs.showDelete;
     } else {
-        contextMenuIcons = IconConfigs.showEmoticon | IconConfigs.showInfo;
+        contextMenuIcons = IconConfigs.showEmoticon | IconConfigs.showInfo | IconConfigs.showReply;
     }
 
     const highlightStyle: CSSProperties = highlight
@@ -148,6 +157,7 @@ export default function MessageRow({
                             type={type}
                             body={body}
                             isUsersMessage={isUsersMessage}
+                            isReply={isReply}
                             onImageMessageClick={() => setMouseOver(false)}
                         />
                     </Box>
@@ -198,6 +208,9 @@ export default function MessageRow({
                         }}
                         handleEdit={(e) => {
                             if (onEdit) onEdit(id);
+                        }}
+                        handleReply={(e) => {
+                            if (onReply) onReply(id);
                         }}
                         handleShare={async (e) => {
                             const parsedUrl = new URL(window.location.href);
