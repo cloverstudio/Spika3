@@ -8,6 +8,7 @@ const MESSAGING_SCOPE = "https://www.googleapis.com/auth/firebase.messaging";
 const SCOPES = [MESSAGING_SCOPE];
 
 let accessToken = null;
+let accessTokenExpiryMS = null;
 
 function getAccessToken() {
     return new Promise(function (resolve, reject) {
@@ -18,12 +19,17 @@ function getAccessToken() {
             SCOPES,
             null
         );
+
         jwtClient.authorize(function (err, tokens) {
             if (err) {
                 reject(err);
                 return;
             }
-            resolve(tokens.access_token);
+            accessToken = tokens.access_token;
+            accessTokenExpiryMS = tokens.expiry_date;
+
+            console.log("Getting access token \n\n", { accessToken, accessTokenExpiryMS });
+            resolve(true);
         });
     });
 }
@@ -44,7 +50,9 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
         return;
     }
 
-    if (!accessToken) accessToken = await getAccessToken();
+    if (!accessToken || +new Date() > accessTokenExpiryMS - 1000) {
+        await getAccessToken();
+    }
 
     const response: AxiosResponse<any> = await axios({
         method: "post",
