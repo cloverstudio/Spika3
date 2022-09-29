@@ -124,7 +124,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                 console.log("Invalid UPDATE_MESSAGE payload");
                 return;
             }
-            console.log({ message });
+
             store.dispatch(editMessage(message));
 
             return;
