@@ -41,7 +41,7 @@ export default async (
         const now: number = dayjs().unix();
 
         if (now - tokenExpiredAtTS > constants.TOKEN_EXPIRED)
-            return res.status(403).send("Token is expired");
+            return res.status(401).send("Token is expired");
 
         const userRequest: UserRequest = req as UserRequest;
 
