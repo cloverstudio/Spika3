@@ -52,18 +52,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             let isNewUser = false;
 
-            // Handle irregular cases here
-
-            // The cases to handle
-            // 1. When user changes telephone number before success signup.
-            //     -> Delete the previous device and user
-            // 2. When user changes telephone number after signed up successfully
-            //     -> Create new user and the new user will have the device
-            // 3. When new device id comes from same telephone number
-            //     -> Is's ok. User can have multiple devices
-
-            // 1. When user changes telephone number before success signup.
-            let registeredDevice = await prisma.device.findFirst({
+            const registeredDevice = await prisma.device.findFirst({
                 where: { deviceId },
                 include: {
                     user: true,
@@ -73,24 +62,13 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             if (
                 registeredDevice &&
                 registeredDevice.user &&
-                registeredDevice.user.telephoneNumber !== telephoneNumber &&
-                registeredDevice.user.verified === false
+                registeredDevice.user.telephoneNumber !== telephoneNumber
             ) {
-                // delete both device and user related to the device id
-
-                console.log("registeredDevice", registeredDevice);
-                await prisma.device.delete({
-                    where: { id: registeredDevice.id },
-                });
-
-                await prisma.user.delete({
-                    where: { id: registeredDevice.userId },
-                });
-
-                console.log("user deleted----------------------");
+                return res
+                    .status(403)
+                    .send(errorResponse(`There is already phone number tied to this device`));
             }
 
-            // The main logic starts here.
             const verificationCode =
                 process.env.IS_TEST === "1"
                     ? Constants.BACKDOOR_VERIFICATION_CODE
@@ -101,7 +79,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             });
 
             if (!requestUser) {
-                const newUser = await prisma.user.create({
+                requestUser = await prisma.user.create({
                     data: {
                         telephoneNumber,
                         telephoneNumberHashed,
@@ -109,7 +87,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     },
                 });
 
-                requestUser = newUser;
                 isNewUser = true;
             } else {
                 isNewUser = !requestUser.displayName;
