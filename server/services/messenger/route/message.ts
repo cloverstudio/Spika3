@@ -159,8 +159,9 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                                     token: devices.find((d) => d.id == deviceMessage.deviceId)
                                         ?.pushToken,
                                     data: {
-                                        message: sanitizedMessage,
+                                        message: { ...sanitizedMessage },
                                         user: sanitize(userReq.user).user(),
+                                        ...(room.type === "group" && { groupName: room.name }),
                                     },
                                 })
                             )
