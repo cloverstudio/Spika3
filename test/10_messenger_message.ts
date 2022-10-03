@@ -694,8 +694,17 @@ describe("API", () => {
         });
     });
 
-    describe("/api/messenger/messages/sync GET", () => {
-        it("gets messages that are not delivered", async () => {
+    describe("/api/messenger/messages/sync/:lastUpdate GET", () => {
+        it("Requires lastUpdate to be number", async () => {
+            const response = await supertest(app)
+                .get("/api/messenger/messages/sync/abc58")
+                .set({ accesstoken: globals.userToken });
+            expect(response.status).to.eqls(400);
+        });
+
+        it("Returns messages from lastUpdate", async () => {
+            const lastUpdate = +new Date();
+
             const user = await createFakeUser();
             const device = await createFakeDevice(user.id);
             const room = await createFakeRoom([
@@ -713,22 +722,19 @@ describe("API", () => {
                 )
             );
 
-            const deliveredMessage = await createFakeMessage({
-                fromUserId: user.id,
-                room,
-                fromDeviceId: device.id,
-            });
-
-            await globals.prisma.messageRecord.create({
-                data: {
-                    messageId: deliveredMessage.id,
-                    userId: globals.userId,
-                    type: "delivered",
-                },
-            });
+            const olderMessages = await Promise.all(
+                new Array(18).fill(true).map(() =>
+                    createFakeMessage({
+                        fromUserId: user.id,
+                        room,
+                        fromDeviceId: device.id,
+                        modifiedAt: new Date(+new Date() - 10000),
+                    })
+                )
+            );
 
             const response = await supertest(app)
-                .get("/api/messenger/messages/sync")
+                .get("/api/messenger/messages/sync/" + lastUpdate)
                 .set({ accesstoken: globals.userToken });
 
             expect(response.status).to.eqls(200);
@@ -738,8 +744,10 @@ describe("API", () => {
                 messages.every((m) => response.body.data.messages.find((bm: any) => bm.id === m.id))
             ).to.be.true;
             expect(
-                response.body.data.messages.filter((mb: any) => mb.id === deliveredMessage.id)
-            ).to.have.lengthOf(0);
+                olderMessages.every(
+                    (m) => !response.body.data.messages.find((bm: any) => bm.id === m.id)
+                )
+            ).to.be.true;
         });
     });
 

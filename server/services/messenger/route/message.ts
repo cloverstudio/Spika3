@@ -477,33 +477,33 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         }
     );
 
-    router.get("/sync", auth, async (req: Request, res: Response) => {
+    router.get("/sync/:lastUpdate", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
-        const deviceId = userReq.device.id;
         const userId = userReq.user.id;
+        const lastUpdate = parseInt(req.params.lastUpdate as string);
 
         try {
-            const undeliveredMessages = await prisma.message.findMany({
+            if (isNaN(lastUpdate)) {
+                return res
+                    .status(400)
+                    .send(errorResponse("lastUpdate must be number", userReq.lang));
+            }
+
+            const roomsUser = await prisma.roomUser.findMany({ where: { userId } });
+            const roomsIds = roomsUser.map((ru) => ru.roomId);
+
+            const messages = await prisma.message.findMany({
                 where: {
-                    deviceMessages: {
-                        some: {
-                            deviceId,
-                        },
-                    },
-                    messageRecords: {
-                        none: {
-                            type: "delivered",
-                            userId,
-                        },
-                    },
+                    modifiedAt: { gt: new Date(lastUpdate) },
+                    roomId: { in: roomsIds },
                 },
                 include: {
                     deviceMessages: true,
                 },
             });
 
-            const sanitizedUndeliveredMessages = await Promise.all(
-                undeliveredMessages.map(async (message) =>
+            const sanitizedMessages = await Promise.all(
+                messages.map(async (message) =>
                     sanitize({
                         ...message,
                         body: await formatMessageBody(message.deviceMessages[0].body, message.type),
@@ -511,7 +511,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 )
             );
 
-            res.send(successResponse({ messages: sanitizedUndeliveredMessages }, userReq.lang));
+            res.send(successResponse({ messages: sanitizedMessages }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
