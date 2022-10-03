@@ -62,7 +62,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             if (
                 registeredDevice &&
                 registeredDevice.user &&
-                registeredDevice.user.telephoneNumber !== telephoneNumber
+                registeredDevice.user.telephoneNumber !== telephoneNumber &&
+                deviceType !== constants.DEVICE_TYPE_BROWSER
             ) {
                 return res
                     .status(403)
