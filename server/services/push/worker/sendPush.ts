@@ -27,11 +27,11 @@ function newMessageFormatter(payload: SendPushPayload) {
     return {
         message: {
             token: payload.token,
-            data: {
-                message: JSON.stringify(payload.data.message),
-                fromUserName: String(payload.data.user.displayName),
+            data: JSON.stringify({
+                message: payload.data.message,
+                fromUserName: payload.data.user.displayName,
                 ...(payload.data.groupName && { groupName: payload.data.groupName }),
-            },
+            }),
         },
     };
 }
