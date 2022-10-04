@@ -15,21 +15,49 @@ firebase.initializeApp(firebaseConfig);
 
 const messaging = firebase.messaging();
 
-messaging.onBackgroundMessage(function(payload) {
-  console.log('Received background message ', payload);
-const message = payload?.data?.message ? JSON.parse(payload.data.message) : {};
-const fromUserName = payload?.data?.fromUserName ? payload?.data?.fromUserName : "";
+messaging.onBackgroundMessage(async function(payload) {
+  const message = payload?.data?.message ? JSON.parse(payload.data.message) : {};
+  const fromUserName = payload?.data?.fromUserName ? payload?.data?.fromUserName : "";
+  const groupName = payload?.data?.groupName ? payload?.data?.groupName : "";
+  const isGroup = !!groupName
 
   if(!message){
     return;
   } 
-  
-  const notificationTitle = `New message from ${fromUserName}`;
+
+  const roomNotifications = await self.registration.getNotifications({tag: message.roomId})
+
+  const notificationTitle = isGroup ?  groupName : fromUserName;
+  let body = message.type === "text" ? message.body.text : "Media"
+
+  if(isGroup){
+    body = `${fromUserName}: ${body}` 
+  }
+
+  if(roomNotifications[0]){
+    body += ` \n${roomNotifications[0].body}`
+  }
   const notificationOptions = {
-    body: message.type === "text" ? message.body.text : "Media",
+    tag: message.roomId,
+    body,
   };
   
   self.registration.showNotification(notificationTitle,
     notificationOptions);
 
+})
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  event.waitUntil(clients.matchAll({
+    type: "window"
+  }).then((clientList) => {
+    for (const client of clientList) {
+      if (client.url.includes(`/messenger/rooms/${event.notification.tag}`) && 'focus' in client)
+        return client.focus();
+    }
+    if (clients.openWindow)
+      return clients.openWindow(`/messenger/rooms/${event.notification.tag}`);
+  }));
 });
