@@ -16,8 +16,8 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage(async function(payload) {
   const message = payload?.data?.message ? JSON.parse(payload.data.message) : {};
-  const fromUserName = payload?.data?.fromUserName ? payload?.data?.fromUserName : "";
-  const groupName = payload?.data?.groupName ? payload?.data?.groupName : "";
+  const fromUserName = message.fromUserName || "";
+  const groupName = message.groupName || "";
   const isGroup = !!groupName
 
   if(!message){

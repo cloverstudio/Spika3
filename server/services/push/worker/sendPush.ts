@@ -14,9 +14,9 @@ class sendPushWorker implements QueueWorkerInterface {
                 getFormattingFunction(payload.type);
 
             const fcmMessagePayload = formattingFunction(payload);
-
             await sendFcmMessage(fcmMessagePayload);
         } catch (error) {
+            console.error({ pushSendError: error });
             // handle push sending failed case
             lw("push sending failed");
         }
@@ -27,11 +27,13 @@ function newMessageFormatter(payload: SendPushPayload) {
     return {
         message: {
             token: payload.token,
-            data: JSON.stringify({
-                message: payload.data.message,
-                fromUserName: payload.data.user.displayName,
-                ...(payload.data.groupName && { groupName: payload.data.groupName }),
-            }),
+            data: {
+                message: JSON.stringify({
+                    ...payload.data.message,
+                    fromUserName: payload.data.user.displayName,
+                    groupName: payload.data.groupName || "",
+                }),
+            },
         },
     };
 }
