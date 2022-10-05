@@ -114,6 +114,18 @@ describe("API", () => {
             expect(responseValid.status).to.eqls(200);
         });
 
+        it("requires room to not be deleted", async () => {
+            const room = await createFakeRoom([{ userId: globals.userId, isAdmin: true }], {
+                deleted: true,
+            });
+            const response = await supertest(app)
+                .post("/api/messenger/messages")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, roomId: room.id });
+
+            expect(response.status).to.eqls(403);
+        });
+
         it("creates message model", async () => {
             const response = await supertest(app)
                 .post("/api/messenger/messages")

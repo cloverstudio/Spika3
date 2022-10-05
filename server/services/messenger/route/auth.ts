@@ -62,6 +62,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             if (
                 registeredDevice &&
                 registeredDevice.user &&
+                registeredDevice.user.verified &&
                 registeredDevice.user.telephoneNumber !== telephoneNumber &&
                 deviceType !== constants.DEVICE_TYPE_BROWSER
             ) {
@@ -98,6 +99,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     },
                     data: {
                         verificationCode,
+                        verified: false,
                     },
                 });
             }

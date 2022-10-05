@@ -124,18 +124,9 @@ describe("API", () => {
             });
 
             expect(response2.status).to.eqls(200);
-            expect(response2.body.data.isNewUser).equals(true);
-
-            const response3 = await supertest(app).post("/api/messenger/auth/verify").send({
-                code: "eureka",
-                deviceId: deviceId2,
-            });
-
-            expect(response3.status).to.eqls(200);
-            expect(response3.body.data.device).to.have.property("token");
         });
 
-        it("New user3 tried to signup with different telephone number should work", async () => {
+        it("New user3 tried to signup with different telephone number shouldn't work", async () => {
             const response = await supertest(app).post("/api/messenger/auth").send({
                 telephoneNumber: telephoneNumber4,
                 telephoneNumberHashed: telephoneNumberHashed4,
@@ -159,15 +150,7 @@ describe("API", () => {
                 deviceId: deviceId4,
             });
 
-            expect(response3.status).to.eqls(200);
-
-            const response4 = await supertest(app).post("/api/messenger/auth/verify").send({
-                code: "eureka",
-                deviceId: deviceId4,
-            });
-
-            expect(response4.status).to.eqls(200);
-            expect(response4.body.data.device).to.have.property("token");
+            expect(response3.status).to.eqls(403);
         });
 
         it("Someone occasionally input existed telephone number", async () => {
