@@ -1,10 +1,10 @@
 import React from "react";
 import { Box, Stack, IconButton, Typography } from "@mui/material";
-import { ExitToApp, WarningAmber, DoDisturb } from "@mui/icons-material";
+import { ExitToApp, WarningAmber, DoDisturb, DeleteOutline } from "@mui/icons-material";
 
 import { RoomType } from "../../../../types/Rooms";
 import { useShowBasicDialog } from "../../../../hooks/useModal";
-import { useLeaveRoomMutation } from "../../api/room";
+import { useDeleteRoomMutation, useLeaveRoomMutation } from "../../api/room";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { hide } from "../../slice/rightSidebarSlice";
@@ -21,8 +21,11 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
     const userId = useSelector(selectUserId);
     const showBasicDialog = useShowBasicDialog();
     const [leaveRoom] = useLeaveRoomMutation();
+    const [deleteRoom] = useDeleteRoomMutation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
+
+    const userIsAdmin = users.find((u) => u.userId === userId).isAdmin;
 
     const handleLeave = () => {
         const haveOtherAdmins = users.filter((u) => u.isAdmin && u.userId !== userId).length > 0;
@@ -44,6 +47,25 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
             },
             () =>
                 leaveRoom({ roomId: id })
+                    .unwrap()
+                    .then(() => {
+                        dispatch(hide());
+                        dispatch(removeRoom(id));
+                        navigate("/app");
+                    })
+        );
+    };
+
+    const handleDelete = () => {
+        showBasicDialog(
+            {
+                text: "Delete group?",
+                title: "Confirmation",
+                allowButtonLabel: "YES",
+                denyButtonLabel: "Cancel",
+            },
+            () =>
+                deleteRoom({ roomId: id })
                     .unwrap()
                     .then(() => {
                         dispatch(hide());
@@ -144,6 +166,36 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
 
                         <Typography variant="subtitle1" color="red">
                             Exit group
+                        </Typography>
+                    </Stack>
+                </IconButton>
+            )}
+
+            {type === "group" && userIsAdmin && (
+                <IconButton
+                    disableRipple
+                    size="large"
+                    sx={{
+                        ml: 1,
+                        "&.MuiButtonBase-root:hover": {
+                            bgcolor: "transparent",
+                        },
+                        width: "100%",
+                    }}
+                    onClick={handleDelete}
+                >
+                    <Stack
+                        direction="row"
+                        alignItems="center"
+                        spacing={1}
+                        sx={{
+                            width: "100%",
+                        }}
+                    >
+                        <DeleteOutline style={{ fill: "red" }} />
+
+                        <Typography variant="subtitle1" color="red">
+                            Delete group
                         </Typography>
                     </Stack>
                 </IconButton>

@@ -59,6 +59,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 return res.status(400).send(errorResponse("Room not found", userReq.lang));
             }
 
+            if (room.deleted) {
+                return res.status(403).send(errorResponse("Room is deleted", userReq.lang));
+            }
+
             // validation
             if (type === "image" || type === "audio" || type === "video" || type === "file") {
                 if (!body.fileId)

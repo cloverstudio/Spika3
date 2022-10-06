@@ -41,6 +41,11 @@ const roomApi = api.injectEndpoints({
                 return { url: `/messenger/rooms/${roomId}/leave`, data: {}, method: "POST" };
             },
         }),
+        deleteRoom: build.mutation<{ room: RoomType }, any>({
+            query: ({ roomId }) => {
+                return { url: `/messenger/rooms/${roomId}`, method: "DELETE" };
+            },
+        }),
     }),
     overrideExisting: true,
 });
@@ -54,6 +59,7 @@ export const {
     useMuteRoomMutation,
     useUnmuteRoomMutation,
     useLeaveRoomMutation,
+    useDeleteRoomMutation,
 } = roomApi;
 
 export default roomApi;

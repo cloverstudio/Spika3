@@ -7,7 +7,7 @@ import auth from "../lib/auth";
 import { UserRequest } from "../lib/types";
 import sanitize from "../../../components/sanitize";
 import * as Constants from "../../../components/consts";
-6;
+
 const prisma = new PrismaClient();
 
 export default (): Router => {
@@ -26,6 +26,7 @@ export default (): Router => {
                         name: {
                             startsWith: keyword,
                         },
+                        deleted: false,
                     },
                     userId,
                 },
