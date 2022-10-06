@@ -1,0 +1,211 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table user {
+  id Int [pk, increment]
+  emailAddress String [unique]
+  telephoneNumber String [unique]
+  telephoneNumberHashed String [unique]
+  displayName String
+  avatarUrl String
+  verificationCode String
+  verified Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  modifiedAt DateTime [default: `now()`, not null]
+  rooms room_user [not null]
+  device device [not null]
+  contacts contact [not null]
+  contactee contact [not null]
+  messages message [not null]
+  messagesRecords message_record [not null]
+  callHistory call_history [not null]
+  userSetting user_setting [not null]
+}
+
+Table device {
+  id Int [pk, increment]
+  userId Int [not null]
+  user user [not null]
+  deviceId String [unique, not null]
+  type String
+  deviceName String
+  osName String
+  osVersion String
+  appVersion String
+  token String
+  pushToken String
+  tokenExpiredAt DateTime
+  createdAt DateTime [default: `now()`, not null]
+  modifiedAt DateTime [default: `now()`, not null]
+  messages message [not null]
+}
+
+Table file {
+  id Int [pk, increment]
+  type String [not null]
+  relationId Int
+  path String [not null]
+  mimeType String [not null]
+  fileName String [not null]
+  size Int [not null]
+  clientId String [unique, not null]
+  createdAt DateTime [default: `now()`, not null]
+  modifiedAt DateTime [default: `now()`, not null]
+}
+
+Table contact {
+  id Int [pk, increment]
+  userId Int [not null]
+  user user [not null]
+  contactId Int [not null]
+  contact user [not null]
+  createdAt DateTime [default: `now()`, not null]
+  modifiedAt DateTime [default: `now()`, not null]
+}
+
+Table room {
+  id Int [pk, increment]
+  type String [not null]
+  name String [not null]
+  avatarUrl String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  modifiedAt DateTime [default: `now()`, not null]
+  deleted Boolean [not null, default: false]
+  users room_user [not null]
+  messages message [not null]
+  callHistory call_history [not null]
+}
+
+Table room_user {
+  id Int [pk, increment]
+  user user [not null]
+  userId Int [not null]
+  room room [not null]
+  roomId Int [not null]
+  isAdmin Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  modifiedAt DateTime [default: `now()`, not null]
+}
+
+Table message {
+  id Int [pk, increment]
+  fromUserId Int [not null]
+  fromUser user [not null]
+  fromDeviceId Int [not null]
+  fromDevice device [not null]
+  roomId Int [not null]
+  room room [not null]
+  type String [not null]
+  seenCount Int [not null, default: 0]
+  deliveredCount Int [not null, default: 0]
+  totalUserCount Int [not null]
+  createdAt DateTime [default: `now()`, not null]
+  modifiedAt DateTime [default: `now()`, not null]
+  deleted Boolean [not null, default: false]
+  reply Boolean [not null, default: false]
+  deviceMessages message_device [not null]
+  messageRecords message_record [not null]
+  localId String
+}
+
+Table message_device {
+  id Int [pk, increment]
+  deviceId Int [not null]
+  userId Int [not null]
+  fromUserId Int [not null]
+  fromDeviceId Int [not null]
+  messageId Int [not null]
+  message message [not null]
+  body Json [not null]
+  action String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  modifiedAt DateTime [default: `now()`, not null]
+}
+
+Table message_record {
+  id Int [pk, increment]
+  messageId Int [not null]
+  message message [not null]
+  userId Int [not null]
+  user user [not null]
+  type String [not null]
+  reaction String
+  createdAt DateTime [default: `now()`, not null]
+  modifiedAt DateTime [default: `now()`, not null]
+
+  indexes {
+    (messageId, userId, type) [unique]
+  }
+}
+
+Table note {
+  id Int [pk, increment]
+  roomId Int [not null]
+  content String [not null]
+  title String [not null, default: '']
+  createdAt DateTime [default: `now()`, not null]
+  modifiedAt DateTime [default: `now()`, not null]
+}
+
+Table call_session {
+  id Int [pk, increment]
+  roomId Int [not null]
+  isActive Boolean [not null, default: false]
+  staredAt DateTime [default: `now()`, not null]
+  finishedAt DateTime
+}
+
+Table call_history {
+  id Int [pk, increment]
+  room room [not null]
+  roomId Int [not null]
+  user user [not null]
+  userId Int [not null]
+  sessionId Int [not null]
+  isActive Boolean [not null, default: false]
+  isInitiator Boolean [not null, default: false]
+  joinedAt DateTime [default: `now()`, not null]
+  leftAt DateTime
+  callParameters Json
+}
+
+Table user_setting {
+  id Int [pk, increment]
+  user user [not null]
+  userId Int [not null]
+  key String [not null]
+  value String [not null]
+
+  indexes {
+    (userId, key) [unique]
+  }
+}
+
+Ref: device.userId > user.id
+
+Ref: contact.userId > user.id
+
+Ref: contact.contactId > user.id
+
+Ref: room_user.userId > user.id
+
+Ref: room_user.roomId > room.id
+
+Ref: message.fromUserId > user.id
+
+Ref: message.fromDeviceId > device.id
+
+Ref: message.roomId > room.id
+
+Ref: message_device.messageId > message.id
+
+Ref: message_record.messageId > message.id
+
+Ref: message_record.userId > user.id
+
+Ref: call_history.roomId > room.id
+
+Ref: call_history.userId > user.id
+
+Ref: user_setting.userId > user.id

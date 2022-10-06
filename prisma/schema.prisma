@@ -232,3 +232,6 @@ model UserSetting {
   @@map(name: "user_setting")
 }
 
+generator dbml {
+  provider = "prisma-dbml-generator"
+}
