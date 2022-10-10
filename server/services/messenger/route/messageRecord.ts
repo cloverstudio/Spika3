@@ -95,12 +95,16 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
                 const messageRecordSanitized = sanitize(messageRecord).messageRecord();
 
-                if (type === "reaction") {
-                    sseMessageRecordsNotify(
-                        [messageRecordSanitized],
-                        Constants.PUSH_TYPE_NEW_MESSAGE_RECORD
-                    );
-                }
+                const messageRecordsNotifyData = {
+                    types: [type],
+                    userId,
+                    messageIds: [message.id],
+                    pushType: Constants.PUSH_TYPE_NEW_MESSAGE_RECORD,
+                    reaction,
+                    justNotify: true,
+                };
+
+                sseMessageRecordsNotify(messageRecordsNotifyData);
 
                 res.send(successResponse({ messageRecord: messageRecordSanitized }, userReq.lang));
             } catch (e: any) {
@@ -129,10 +133,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             const messageRecordSanitized = sanitize(messageRecord).messageRecord();
 
-            sseMessageRecordsNotify(
+            /*  sseMessageRecordsNotify(
                 [messageRecordSanitized],
                 Constants.PUSH_TYPE_DELETED_MESSAGE_RECORD
-            );
+            ); */
 
             res.send(successResponse({ messageRecord: messageRecordSanitized }, userReq.lang));
         } catch (e: any) {

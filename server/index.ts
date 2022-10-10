@@ -9,6 +9,7 @@ import SMSService from "./services/sms";
 import UploadService from "./services/upload";
 import PushService from "./services/push";
 import SSEService from "./services/sse";
+import MessageRecordsSSEService from "./services/messageRecordsSse";
 import ConfcallService from "./services/confcall";
 import amqp from "amqplib";
 import fs from "fs";
@@ -115,6 +116,13 @@ const app: express.Express = express();
         });
 
         app.use("/api/sse", sseService.getRoutes());
+    }
+
+    if (process.env["USE_MESSAGE_RECORDS_SSE"]) {
+        const messageRecordsSSE: MessageRecordsSSEService = new MessageRecordsSSEService();
+        messageRecordsSSE.start({
+            rabbitMQChannel,
+        });
     }
 
     if (process.env["USE_CONFCALL"]) {

@@ -511,7 +511,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                             userId: userReq.user.id,
                         },
                     },
-                    deleted: false,
                 },
                 include: {
                     users: {

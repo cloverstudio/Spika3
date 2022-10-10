@@ -1,16 +1,10 @@
 import { Router } from "express";
-import { PrismaClient } from "@prisma/client";
 import amqp from "amqplib";
 import Service, { ServiceStartParams } from "../types/serviceInterface";
 import auth from "./lib/auth";
 import { UserRequest } from "./lib/types";
 import NotificationServer from "./notificationServer";
-import { formatMessageBody } from "../../components/message";
-import sanitize from "../../components/sanitize";
-import * as Constants from "../../components/consts";
 import { leaveCallLogicUser } from "../,,/../confcall/lib/leaveCallLogic";
-
-const prisma = new PrismaClient();
 
 export default class SSEService implements Service {
     notificationServer: NotificationServer;

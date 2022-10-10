@@ -448,6 +448,8 @@ describe("API", () => {
 
             expect(response.status).to.eqls(200);
 
+            await wait(0.1);
+
             const messageRecords = await globals.prisma.messageRecord.findMany({
                 where: {
                     messageId: { in: [messageOne.id, messageTwo.id] },
@@ -476,6 +478,8 @@ describe("API", () => {
                 .set({ accesstoken: globals.userToken });
 
             expect(response.status).to.eqls(200);
+
+            await wait(0.1);
 
             const messageRecords = await globals.prisma.messageRecord.findMany({
                 where: {
@@ -607,6 +611,8 @@ describe("API", () => {
                 .send({ messagesIds: messages.map((m) => m.id) });
 
             expect(response.status).to.eqls(200);
+
+            await wait(0.1);
 
             const messageRecords = await globals.prisma.messageRecord.findMany({
                 where: {

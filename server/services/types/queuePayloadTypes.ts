@@ -19,3 +19,12 @@ export type SendSSEPayload = {
     channelId: string;
     data: any;
 };
+
+export type SendMessageRecordSSEPayload = {
+    types: string[];
+    userId: number;
+    messageIds: number[];
+    pushType: string;
+    reaction?: string;
+    justNotify?: boolean;
+};

@@ -1,50 +1,21 @@
-import { PrismaClient } from "@prisma/client";
 import amqp from "amqplib";
 
 import * as Constants from "../../../components/consts";
-import { SanitizedMessageRecord } from "../../../components/sanitize";
-
-const prisma = new PrismaClient();
+import { warn as lw } from "../../../components/logger";
+import { SendMessageRecordSSEPayload } from "../../types/queuePayloadTypes";
 
 export default function createSSEMessageRecordsNotify(
     rabbitMQChannel: amqp.Channel | undefined | null
 ) {
-    return async (records: SanitizedMessageRecord[], type: string): Promise<void> => {
-        for (const record of records) {
-            const deviceIds = await getDeviceIdsFromMessageId(record.messageId);
-
-            for (const deviceId of deviceIds) {
-                rabbitMQChannel.sendToQueue(
-                    Constants.QUEUE_SSE,
-                    Buffer.from(
-                        JSON.stringify({
-                            channelId: deviceId,
-                            data: {
-                                type,
-                                messageRecord: record,
-                            },
-                        })
-                    )
-                );
-            }
+    return async (data: SendMessageRecordSSEPayload): Promise<void> => {
+        if (data.types.includes("reaction") && !data.reaction) {
+            lw("SSEMessageRecordsPayload missing reaction, can't send");
+            return;
         }
+
+        rabbitMQChannel.sendToQueue(
+            Constants.QUEUE_MESSAGE_RECORDS_SSE,
+            Buffer.from(JSON.stringify(data))
+        );
     };
-}
-
-async function getDeviceIdsFromMessageId(messageId: number): Promise<number[]> {
-    const message = await prisma.message.findUnique({
-        where: { id: messageId },
-        select: {
-            room: {
-                select: {
-                    users: { select: { user: { select: { device: { select: { id: true } } } } } },
-                },
-            },
-        },
-    });
-
-    return message.room.users.reduce(
-        (acc, curr) => [...acc, ...curr.user.device.map((d) => d.id)],
-        []
-    );
 }
