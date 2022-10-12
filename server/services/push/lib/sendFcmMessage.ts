@@ -28,7 +28,6 @@ function getAccessToken() {
             accessToken = tokens.access_token;
             accessTokenExpiryMS = tokens.expiry_date;
 
-            console.log("Getting access token \n\n", { accessToken, accessTokenExpiryMS });
             resolve(true);
         });
     });
@@ -37,10 +36,6 @@ function getAccessToken() {
 export type FcmMessagePayload = {
     message: {
         token: string;
-        //notification: {
-        //    title: string;
-        //    body: string;
-        //};
         data?: any;
     };
 };
@@ -76,10 +71,14 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
     });
 
     if (response.status !== 200) {
-        le("FCM error");
+        le(
+            `FCM ERROR, push token: ${fcmMessage.message.token}, status: ${
+                response.status
+            }, error: ${JSON.stringify(response.data, null, 4)}`
+        );
         throw new Error("FCM error");
     } else {
-        l("FCM sent");
+        l(`FCM sent, push token: ${fcmMessage.message.token}`);
     }
 
     return response.data;

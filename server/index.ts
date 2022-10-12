@@ -14,14 +14,20 @@ import ConfcallService from "./services/confcall";
 import amqp from "amqplib";
 import fs from "fs";
 import path from "path";
+import { createClient } from "redis";
 
 import { error as e } from "./components/logger";
 
 const app: express.Express = express();
+const redisClient = createClient();
 
 (async () => {
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
+
+    redisClient.on("error", (err) => console.log("Redis Client Error", err));
+
+    await redisClient.connect();
 
     // cors
     app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -82,6 +88,7 @@ const app: express.Express = express();
         const messengerAPIService: MessengerAPIService = new MessengerAPIService();
         messengerAPIService.start({
             rabbitMQChannel,
+            redisClient,
         });
         app.use("/api/messenger", messengerAPIService.getRoutes());
     }
@@ -106,6 +113,7 @@ const app: express.Express = express();
         const pushService: PushService = new PushService();
         pushService.start({
             rabbitMQChannel,
+            redisClient,
         });
     }
 
