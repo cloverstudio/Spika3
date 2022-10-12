@@ -1,3 +1,5 @@
+import { createClient } from "redis";
+
 export type SendSMSPayload = {
     telephoneNumber: string;
     content: string;
@@ -12,6 +14,7 @@ export type SendPushPayload = {
     type: string;
     token: string;
     data: any;
+    redisClient: ReturnType<typeof createClient>;
 };
 
 export type SendSSEPayload = {

@@ -166,6 +166,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                                         message: { ...sanitizedMessage },
                                         user: sanitize(userReq.user).user(),
                                         ...(room.type === "group" && { groupName: room.name }),
+                                        toUserId: deviceMessage.userId,
                                     },
                                 })
                             )

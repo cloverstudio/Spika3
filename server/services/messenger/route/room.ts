@@ -41,7 +41,7 @@ const leaveRoomSchema = yup.object().shape({
     }),
 });
 
-export default ({ rabbitMQChannel }: InitRouterParams): Router => {
+export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
     const router = Router();
     const sseRoomsNotify = createSSERoomsNotify(rabbitMQChannel);
 
@@ -654,6 +654,9 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     },
                 });
 
+                const key = `mute_${userReq.user.id}_${id}`;
+                await redisClient.set(key, 1);
+
                 res.send(successResponse({}, userReq.lang));
             } catch (e: any) {
                 le(e);
@@ -711,6 +714,9 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         },
                     },
                 });
+
+                const key = `mute_${userReq.user.id}_${id}`;
+                await redisClient.set(key, 0);
 
                 res.send(successResponse({}, userReq.lang));
             } catch (e: any) {
