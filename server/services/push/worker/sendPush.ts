@@ -53,7 +53,7 @@ function getFormattingFunction(type: string) {
 
 async function checkIfRoomIsMuted(payload: SendPushPayload) {
     const roomId = payload.data.message.roomId;
-    const userId = payload.data.user.id;
+    const userId = payload.data.toUserId;
     const key = `mute_${userId}_${roomId}`;
 
     let mutedString = await payload.redisClient.get(key);

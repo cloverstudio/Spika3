@@ -20,7 +20,7 @@ messaging.onBackgroundMessage(async function(payload) {
   const groupName = message.groupName || "";
   const isGroup = !!groupName
 
-  if(!message){
+  if(!message || message.muted){
     return;
   } 
 

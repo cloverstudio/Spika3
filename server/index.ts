@@ -19,7 +19,7 @@ import { createClient } from "redis";
 import { error as e } from "./components/logger";
 
 const app: express.Express = express();
-const redisClient = createClient();
+const redisClient = createClient({ url: process.env.REDIS_URL });
 
 (async () => {
     app.use(express.json());
