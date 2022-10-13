@@ -49,21 +49,23 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
         await getAccessToken();
     }
 
-    const response: AxiosResponse<any> = await axios({
-        method: "post",
-        url: "https://" + process.env.FCM_HOST + PATH,
-        data: {
-            message: {
-                ...fcmMessage.message,
-                apns: {
-                    payload: {
-                        aps: {
-                            "mutable-content": 1,
-                        },
+    const data = {
+        message: {
+            ...fcmMessage.message,
+            apns: {
+                payload: {
+                    aps: {
+                        "mutable-content": 1,
                     },
                 },
             },
         },
+    };
+
+    const response: AxiosResponse<any> = await axios({
+        method: "post",
+        url: "https://" + process.env.FCM_HOST + PATH,
+        data,
         headers: {
             Authorization: "Bearer " + accessToken,
         },
@@ -74,7 +76,7 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
         le(
             `FCM ERROR, push token: ${fcmMessage.message.token}, status: ${
                 response.status
-            }, error: ${JSON.stringify(response.data, null, 4)}`
+            }, error: ${JSON.stringify({ data, resData: response.data }, null, 4)}`
         );
         throw new Error("FCM error");
     } else {
