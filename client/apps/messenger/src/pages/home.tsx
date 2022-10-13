@@ -39,6 +39,16 @@ export default function Home(): React.ReactElement {
 
         window.addEventListener("resize", resizeEventListener);
 
+        if (window.innerWidth > theme.breakpoints.values.lg) {
+            if (!rightSidebarOpen) {
+                dispatch(show());
+            }
+        } else {
+            if (rightSidebarOpen) {
+                dispatch(hide());
+            }
+        }
+
         return () => {
             window.removeEventListener("resize", resizeEventListener);
         };
