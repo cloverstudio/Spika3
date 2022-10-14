@@ -8,9 +8,14 @@ import { selectRightSidebarActiveNoteId } from "../../../slice/rightSidebarSlice
 
 export default function RightSidebarNoteDetailContent() {
     const noteId = useSelector(selectRightSidebarActiveNoteId);
+
     const { data, isLoading } = useGetNoteByIdQuery(noteId);
 
     if (isLoading) {
+        return null;
+    }
+
+    if (!data) {
         return null;
     }
 

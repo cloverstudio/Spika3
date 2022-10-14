@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Box, IconButton, Typography, Dialog, DialogTitle, Button } from "@mui/material";
-import { ArrowBackIos, Close, Delete, Edit } from "@mui/icons-material";
+import { ArrowBackIos, Close, Delete, Edit, Share } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import {
     selectRightSidebarActiveNoteId,
@@ -8,24 +8,48 @@ import {
     setEditNoteId,
 } from "../../../slice/rightSidebarSlice";
 import { useDeleteNoteMutation, useGetNoteByIdQuery } from "../../../api/note";
+import { useParams } from "react-router-dom";
+import { useShowSnackBar } from "../../../../../hooks/useModal";
 
 export default function NoteDetailHeader() {
     const dispatch = useDispatch();
     const noteId = useSelector(selectRightSidebarActiveNoteId);
+    const roomId = +useParams().id;
+    const showSnackbar = useShowSnackBar();
     const { data, isLoading } = useGetNoteByIdQuery(noteId);
     const [deleteNoteOpenDialog, setDeleteNoteOpenDialog] = useState(false);
     const [deleteNote] = useDeleteNoteMutation();
-
-    if (isLoading) {
-        return null;
-    }
-
-    const { note } = data;
 
     const handleDelete = async () => {
         await deleteNote(noteId).unwrap();
         dispatch(setActiveTab("notes"));
     };
+
+    const handleCopyNoteLink = () => {
+        navigator.clipboard.writeText(`${window.origin}/messenger/rooms/${roomId}/notes/${noteId}`);
+
+        showSnackbar({
+            severity: "success",
+            text: "Link copied",
+        });
+    };
+
+    if (isLoading) {
+        return null;
+    }
+
+    if (!data) {
+        return (
+            <>
+                <IconButton size="large" onClick={() => dispatch(setActiveTab("notes"))}>
+                    <ArrowBackIos />
+                </IconButton>
+                <Typography variant="h6">Note not found!</Typography>
+            </>
+        );
+    }
+
+    const { note } = data;
 
     return (
         <>
@@ -34,11 +58,13 @@ export default function NoteDetailHeader() {
             </IconButton>
             <Typography variant="h6">{note.title}</Typography>
             <Box ml="auto" flex={1} textAlign="right">
-                <IconButton size="large" onClick={() => dispatch(setEditNoteId(note.id))}>
+                <IconButton onClick={handleCopyNoteLink}>
+                    <Share />
+                </IconButton>
+                <IconButton onClick={() => dispatch(setEditNoteId(note.id))}>
                     <Edit />
                 </IconButton>
                 <IconButton
-                    size="large"
                     sx={{ color: "error.main" }}
                     onClick={() => setDeleteNoteOpenDialog(true)}
                 >
