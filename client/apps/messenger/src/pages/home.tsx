@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Box, Drawer } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
@@ -18,11 +18,15 @@ import { selectUserId, fetchMe, fetchSettings } from "../../src/store/userSlice"
 export default function Home(): React.ReactElement {
     const theme = useTheme();
     const { pathname } = useLocation();
+    const roomId = +useParams().id;
 
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+    const isBigDesktop = useMediaQuery(theme.breakpoints.up("lg"));
     const dispatch = useDispatch();
     const open = useSelector(selectLeftSidebarOpen);
-    const rightSidebarOpen = useSelector(selectRightSidebarOpen) && !pathname.includes("/call");
+    const rightSidebarOpen =
+        ((useSelector(selectRightSidebarOpen) && !pathname.includes("/call")) || isBigDesktop) &&
+        roomId;
 
     useEffect(() => {
         const resizeEventListener = (e: UIEvent) => {

@@ -1,7 +1,8 @@
 import { AddCircleOutline, ArrowBackIos, Close } from "@mui/icons-material";
-import { Box, IconButton, Stack, Typography } from "@mui/material";
+import { Box, IconButton, Stack, Typography, useMediaQuery } from "@mui/material";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useTheme } from "@mui/material/styles";
 
 import {
     hide as hideRightSidebar,
@@ -18,14 +19,21 @@ type RightSidebarHeaderProps = {
 export default function RightSidebarHeader({ type }: RightSidebarHeaderProps): React.ReactElement {
     const activeTab = useSelector(selectRightSidebarActiveTab);
     const dispatch = useDispatch();
+    const theme = useTheme();
+
+    const isBigDesktop = useMediaQuery(theme.breakpoints.up("lg"));
 
     const getSidebarContent = () => {
         if (activeTab === "details") {
             return (
                 <>
-                    <IconButton size="large" onClick={() => dispatch(hideRightSidebar())}>
-                        <Close />
-                    </IconButton>
+                    {isBigDesktop ? (
+                        <Box width={48} height={48} />
+                    ) : (
+                        <IconButton size="large" onClick={() => dispatch(hideRightSidebar())}>
+                            <Close />
+                        </IconButton>
+                    )}
                     {type === "private" ? (
                         <Typography variant="h6">Chat details</Typography>
                     ) : (
