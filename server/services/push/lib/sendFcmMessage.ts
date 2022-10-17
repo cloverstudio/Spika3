@@ -57,6 +57,9 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
                     aps: {
                         "mutable-content": 1,
                     },
+                    alert: {
+                        title: "New message",
+                    },
                 },
             },
         },
