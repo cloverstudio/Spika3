@@ -55,12 +55,12 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
         payload: {
             aps: {
                 [muted ? "content-available" : "mutable-content"]: 1,
+                ...(!muted && {
+                    alert: {
+                        title: "New message",
+                    },
+                }),
             },
-            ...(!muted && {
-                alert: {
-                    title: "New message",
-                },
-            }),
         },
     };
 
