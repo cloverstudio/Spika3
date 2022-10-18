@@ -71,7 +71,7 @@ export default (): Router => {
             if (+process.env["TEAM_MODE"]) {
                 users = await prisma.user.findMany({
                     where: {
-                        modifiedAt: { gte: new Date(timestamp) },
+                        modifiedAt: { gt: new Date(timestamp) },
                     },
                 });
             } else {
