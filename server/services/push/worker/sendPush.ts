@@ -39,6 +39,7 @@ async function newMessageFormatter(payload: SendPushPayload) {
                 }),
             },
         },
+        muted,
     };
 }
 
@@ -68,7 +69,7 @@ async function checkIfRoomIsMuted(payload: SendPushPayload) {
         await payload.redisClient.set(key, mutedString);
     }
 
-    return Number(mutedString);
+    return Boolean(Number(mutedString));
 }
 
 export default new sendPushWorker();

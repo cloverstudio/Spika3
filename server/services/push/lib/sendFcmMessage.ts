@@ -38,6 +38,7 @@ export type FcmMessagePayload = {
         token: string;
         data?: any;
     };
+    muted: boolean;
 };
 
 export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Promise<any> {
@@ -49,19 +50,24 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
         await getAccessToken();
     }
 
+    const muted = fcmMessage.muted;
+    const apns = {
+        payload: {
+            aps: {
+                [muted ? "content-available" : "mutable-content"]: 1,
+            },
+            ...(!muted && {
+                alert: {
+                    title: "New message",
+                },
+            }),
+        },
+    };
+
     const data = {
         message: {
             ...fcmMessage.message,
-            apns: {
-                payload: {
-                    aps: {
-                        "mutable-content": 1,
-                    },
-                    alert: {
-                        title: "New message",
-                    },
-                },
-            },
+            apns,
         },
     };
 
