@@ -8,8 +8,7 @@ export function verificationCodeSMS({ verificationCode, osName }: verificationCo
 
     if (osName === "android") {
         message += `\n\n${process.env.ANDROID_SMS_VERIFICATION_HASH}`;
-    } else if (osName === "ios") {
-        message += `\n\n@${process.env.IOS_SMS_VERIFICATION_URL} #${verificationCode}`;
     }
+
     return message;
 }
