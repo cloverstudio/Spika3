@@ -1,4 +1,14 @@
-import { Room, User, Device, Message, RoomUser, File, MessageRecord, Note } from ".prisma/client";
+import {
+    Room,
+    User,
+    Device,
+    Message,
+    RoomUser,
+    File,
+    MessageRecord,
+    Note,
+    Webhook,
+} from ".prisma/client";
 
 type SanitizedUserType = Partial<
     Omit<User, "createdAt" | "modifiedAt"> & { createdAt: number; modifiedAt: number }
@@ -26,6 +36,9 @@ export type SanitizedMessageRecord = Partial<
 type SanitizedNoteType = Partial<
     Omit<Note, "createdAt" | "modifiedAt"> & { createdAt: number; modifiedAt: number }
 >;
+type SanitizedWebhookType = Partial<
+    Omit<Webhook, "createdAt" | "modifiedAt"> & { createdAt: number; modifiedAt: number }
+>;
 
 interface sanitizeTypes {
     user: () => SanitizedUserType;
@@ -35,6 +48,7 @@ interface sanitizeTypes {
     file: () => SanitizedFileType;
     messageRecord: () => SanitizedMessageRecord;
     note: () => SanitizedNoteType;
+    webhook: () => SanitizedWebhookType;
 }
 
 export default function sanitize(data: any): sanitizeTypes {
@@ -125,6 +139,18 @@ export default function sanitize(data: any): sanitizeTypes {
                 id,
                 title,
                 content,
+                roomId,
+                createdAt: +new Date(createdAt),
+                modifiedAt: +new Date(modifiedAt),
+            };
+        },
+        webhook: () => {
+            const { id, url, verifySignature, createdAt, modifiedAt, roomId } = data as Webhook;
+
+            return {
+                id,
+                url,
+                verifySignature,
                 roomId,
                 createdAt: +new Date(createdAt),
                 modifiedAt: +new Date(modifiedAt),

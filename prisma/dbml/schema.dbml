@@ -75,6 +75,7 @@ Table room {
   users room_user [not null]
   messages message [not null]
   callHistory call_history [not null]
+  webhooks webhook [not null]
 }
 
 Table room_user {
@@ -182,6 +183,16 @@ Table user_setting {
   }
 }
 
+Table webhook {
+  id Int [pk, increment]
+  verifySignature String [not null, default: '']
+  url String [not null, default: '']
+  roomId Int [not null]
+  room room [not null]
+  createdAt DateTime [default: `now()`, not null]
+  modifiedAt DateTime [default: `now()`, not null]
+}
+
 Ref: device.userId > user.id
 
 Ref: contact.userId > user.id
@@ -209,3 +220,5 @@ Ref: call_history.roomId > room.id
 Ref: call_history.userId > user.id
 
 Ref: user_setting.userId > user.id
+
+Ref: webhook.roomId > room.id

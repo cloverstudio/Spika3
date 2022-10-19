@@ -10,6 +10,7 @@ import {
     setActiveTab,
 } from "../../../slice/rightSidebarSlice";
 import EditNoteHeader from "./EditNoteHeader";
+import SettingsHeader from "./SettingsHeader";
 import NoteDetailHeader from "./NoteDetailHeader";
 
 type RightSidebarHeaderProps = {
@@ -79,6 +80,10 @@ export default function RightSidebarHeader({ type }: RightSidebarHeaderProps): R
 
         if (activeTab === "editNote") {
             return <EditNoteHeader />;
+        }
+
+        if (activeTab === "settings") {
+            return <SettingsHeader />;
         }
     };
 

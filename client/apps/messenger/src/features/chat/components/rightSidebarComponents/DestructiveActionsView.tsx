@@ -107,7 +107,7 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
                     </Stack>
                 </IconButton>
             )}
-            <IconButton
+            {/* <IconButton
                 disableRipple
                 size="large"
                 sx={{
@@ -140,7 +140,7 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
                         </Typography>
                     )}
                 </Stack>
-            </IconButton>
+            </IconButton> */}
             {type === "group" && (
                 <IconButton
                     disableRipple

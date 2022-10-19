@@ -15,6 +15,7 @@ import { InitRouterParams } from "../../types/serviceInterface";
 import sanitize from "../../../components/sanitize";
 import { formatMessageBody } from "../../../components/message";
 import createSSEMessageRecordsNotify from "../lib/sseMessageRecordsNotify";
+import axios from "axios";
 
 const prisma = new PrismaClient();
 
@@ -142,6 +143,21 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             const formattedBody = await formatMessageBody(body, type);
             const sanitizedMessage = sanitize({ ...message, body: formattedBody }).message();
 
+            const webhook = await prisma.webhook.findFirst({ where: { roomId } });
+
+            if (webhook) {
+                try {
+                    axios.post(webhook.url, {
+                        data: { message: sanitizedMessage },
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Verification-Signature": webhook.verifySignature,
+                        },
+                    });
+                } catch (error) {
+                    console.log({ webHookError: error });
+                }
+            }
             res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
 
             while (deviceMessages.length) {
