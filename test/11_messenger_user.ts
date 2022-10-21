@@ -100,7 +100,7 @@ describe("User API", () => {
         it("Gets users that are modified after timestamp", async () => {
             const user = await createFakeUser();
 
-            const timestamp = +new Date();
+            const timestamp = +new Date() - 100;
 
             await globals.prisma.user.update({
                 where: { id: user.id },

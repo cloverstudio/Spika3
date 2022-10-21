@@ -143,21 +143,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             const formattedBody = await formatMessageBody(body, type);
             const sanitizedMessage = sanitize({ ...message, body: formattedBody }).message();
 
-            const webhook = await prisma.webhook.findFirst({ where: { roomId } });
-
-            if (webhook) {
-                try {
-                    axios.post(webhook.url, {
-                        data: { message: sanitizedMessage },
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Verification-Signature": webhook.verifySignature,
-                        },
-                    });
-                } catch (error) {
-                    console.log({ webHookError: error });
-                }
-            }
             res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
 
             while (deviceMessages.length) {
@@ -212,6 +197,16 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             };
 
             sseMessageRecordsNotify(messageRecordsNotifyData);
+
+            rabbitMQChannel.sendToQueue(
+                Constants.QUEUE_WEBHOOK,
+                Buffer.from(
+                    JSON.stringify({
+                        messageId: message.id,
+                        body,
+                    })
+                )
+            );
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

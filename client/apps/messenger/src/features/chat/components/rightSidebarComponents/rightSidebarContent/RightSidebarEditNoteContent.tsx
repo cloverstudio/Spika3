@@ -1,81 +1,69 @@
-import { Alert, AlertTitle, Box, Button, TextField, Typography } from "@mui/material";
+import { Box, Button, TextField } from "@mui/material";
+
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import isValidURL from "../../../../../utils/isValidURL";
 
-import {
-    useCreateWebhookMutation,
-    useEditWebhookMutation,
-    useGetWebhookByRoomIdQuery,
-} from "../../../api/webhook";
-import { selectActiveRoomId } from "../../../slice/chatSlice";
+import { useEditNoteMutation, useGetNoteByIdQuery } from "../../../api/note";
+import { selectRightSidebarActiveNoteId, setActiveNoteId } from "../../../slice/rightSidebarSlice";
 
 export default function RightSidebarEditNoteContent(): React.ReactElement {
-    const roomId = useSelector(selectActiveRoomId);
-    const [url, setUrl] = useState("");
-    const [verifySignature, setVerifySignature] = useState("");
-    const [error, setError] = useState("");
-    const [editWebhook] = useEditWebhookMutation();
-    const [createWebhook] = useCreateWebhookMutation();
-    const { data: webhookData } = useGetWebhookByRoomIdQuery(roomId);
+    const noteId = useSelector(selectRightSidebarActiveNoteId);
+
+    const { data } = useGetNoteByIdQuery(noteId);
+
+    const dispatch = useDispatch();
+    const [title, setTitle] = useState("");
+    const [content, setContent] = useState("");
+    const [editNote, { isLoading }] = useEditNoteMutation();
 
     useEffect(() => {
-        console.log({ webhookData });
-        if (webhookData) {
-            setUrl(webhookData.url);
-            setVerifySignature(webhookData.verifySignature);
+        if (data && data.note) {
+            setTitle(data.note.title);
+            setContent(data.note.content);
         }
-    }, [webhookData]);
+    }, [data]);
 
     const handleSubmit = async () => {
-        if (!isValidURL(url)) {
-            setError("Not valid URL");
-            return;
+        const data = await editNote({ noteId, data: { title, content } }).unwrap();
+        if (data?.note?.id) {
+            dispatch(setActiveNoteId(data.note.id));
         }
-
-        if (!webhookData) {
-            await createWebhook({ url, roomId }).unwrap();
-        } else {
-            await editWebhook({ id: webhookData.id, data: { roomId, url } }).unwrap();
-        }
-    };
-
-    const handleChange = (value) => {
-        setUrl(value);
-        setError("");
     };
 
     return (
         <Box m={2}>
-            <Typography mb={2} variant="h6">
-                Webhook
-            </Typography>
-
             <TextField
-                sx={{ mb: 1 }}
+                sx={{ mb: 2 }}
                 required
                 fullWidth
-                size="small"
-                placeholder="Url"
-                id="url"
-                name="url"
+                placeholder="Title"
+                id="title"
+                name="title"
                 autoFocus
-                value={url}
-                error={!!error}
-                onChange={({ target }) => handleChange(target.value)}
+                value={title}
+                onChange={({ target }) => setTitle(target.value)}
             />
-
-            {verifySignature && <Typography mb={2}>Verify signature: {verifySignature}</Typography>}
-
-            <Button onClick={handleSubmit} disabled={!url} fullWidth variant="contained">
+            <TextField
+                sx={{ mb: 2 }}
+                required
+                fullWidth
+                placeholder="Description..."
+                id="content"
+                name="content"
+                rows={36}
+                multiline
+                value={content}
+                onChange={({ target }) => setContent(target.value)}
+            />
+            <Button
+                onClick={handleSubmit}
+                disabled={!title || !content || isLoading}
+                fullWidth
+                variant="contained"
+                sx={{ marginTop: "1em" }}
+            >
                 Save
             </Button>
-
-            {error && (
-                <Alert sx={{ mt: 2 }} severity="error">
-                    <AlertTitle sx={{ mb: 0 }}>{error}</AlertTitle>
-                </Alert>
-            )}
         </Box>
     );
 }

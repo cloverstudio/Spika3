@@ -1,6 +1,4 @@
 import { Router, Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
 
 import { UserRequest } from "../lib/types";
 import * as yup from "yup";
@@ -12,10 +10,11 @@ import { InitRouterParams } from "../../types/serviceInterface";
 import { successResponse, errorResponse } from "../../../components/response";
 import sanitize from "../../../components/sanitize";
 import utils from "../../../components/utils";
+import prisma from "../../../components/prisma";
 
 const postWebhookSchema = yup.object().shape({
     body: yup.object().shape({
-        url: yup.string().strict(),
+        url: yup.string().strict().required(),
     }),
 });
 
@@ -32,6 +31,10 @@ export default ({}: InitRouterParams): Router => {
             try {
                 const roomId = parseInt((req.params.roomId as string) || "");
                 const url = req.body.url as string;
+
+                if (!utils.isValidURL(url)) {
+                    return res.status(400).send(errorResponse("Url not valid", userReq.lang));
+                }
 
                 const canAccess = await canAccessRoomWebhooks(userReq.user.id, roomId);
 
@@ -97,6 +100,10 @@ export default ({}: InitRouterParams): Router => {
         try {
             const { url } = req.body;
             const id = parseInt(req.params.id || "");
+
+            if (!utils.isValidURL(url)) {
+                return res.status(400).send(errorResponse("Url not valid", userReq.lang));
+            }
 
             const webhook = await prisma.webhook.findUnique({ where: { id } });
 
@@ -173,8 +180,6 @@ async function canAccessRoomWebhooks(userId: number, roomId: number) {
             roomId,
         },
     });
-
-    console.log({ roomsUser });
 
     if (!roomsUser) {
         return false;
