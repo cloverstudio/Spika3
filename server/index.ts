@@ -17,6 +17,7 @@ import path from "path";
 import { createClient } from "redis";
 
 import { error as e } from "./components/logger";
+import WebhookService from "./services/webhook";
 
 const app: express.Express = express();
 const redisClient = createClient({ url: process.env.REDIS_URL });

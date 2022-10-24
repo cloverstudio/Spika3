@@ -195,6 +195,16 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             };
 
             sseMessageRecordsNotify(messageRecordsNotifyData);
+
+            rabbitMQChannel.sendToQueue(
+                Constants.QUEUE_WEBHOOK,
+                Buffer.from(
+                    JSON.stringify({
+                        messageId: message.id,
+                        body,
+                    })
+                )
+            );
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

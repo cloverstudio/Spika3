@@ -1,8 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { RootState } from "../../../store/store";
 
+type activeTabType = "details" | "notes" | "createNote" | "noteDetail" | "editNote" | "settings";
+
 interface RightSidebarState {
-    activeTab: "details" | "notes" | "createNote" | "noteDetail" | "editNote";
+    activeTab: activeTabType;
     isOpened: boolean;
     activeNoteId: number;
 }
@@ -23,7 +25,9 @@ export const rightSidebarSlice = createSlice({
         },
         setActiveTab(
             state,
-            action: { payload: "details" | "notes" | "createNote" | "noteDetail" | "editNote" }
+            action: {
+                payload: activeTabType;
+            }
         ) {
             state.activeTab = action.payload;
             state.activeNoteId = null;

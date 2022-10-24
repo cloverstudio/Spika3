@@ -31,3 +31,8 @@ export type SendMessageRecordSSEPayload = {
     reaction?: string;
     justNotify?: boolean;
 };
+
+export type CallWebhookPayload = {
+    messageId: number;
+    body: any;
+};

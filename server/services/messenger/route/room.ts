@@ -603,127 +603,117 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
         }
     });
 
-    router.post(
-        "/:id/mute",
-        auth,
-        validate(postRoomSchema),
-        async (req: Request, res: Response) => {
-            const userReq: UserRequest = req as UserRequest;
+    router.post("/:id/mute", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
 
-            try {
-                const id = parseInt((req.params.id as string) || "");
+        try {
+            const id = parseInt((req.params.id as string) || "");
 
-                const room = await prisma.room.findFirst({
-                    where: {
-                        id,
-                    },
-                });
+            const room = await prisma.room.findFirst({
+                where: {
+                    id,
+                },
+            });
 
-                if (!room) {
-                    return res.status(404).send(errorResponse("Room not found", userReq.lang));
-                }
-
-                const roomsUser = await prisma.roomUser.findFirst({
-                    where: {
-                        userId: userReq.user.id,
-                        roomId: id,
-                    },
-                });
-
-                if (!roomsUser) {
-                    return res
-                        .status(404)
-                        .send(errorResponse("User is not the member of the room.", userReq.lang));
-                }
-
-                await prisma.userSetting.upsert({
-                    create: {
-                        key: `${Constants.ROOM_MUTE_PREFIX}${id}`,
-                        value: "true",
-                        userId: userReq.user.id,
-                    },
-                    update: {
-                        value: "true",
-                    },
-                    where: {
-                        userId_key_unique_constraint: {
-                            userId: userReq.user.id,
-                            key: `${Constants.ROOM_MUTE_PREFIX}${id}`,
-                        },
-                    },
-                });
-
-                const key = `mute_${userReq.user.id}_${id}`;
-                await redisClient.set(key, 1);
-
-                res.send(successResponse({}, userReq.lang));
-            } catch (e: any) {
-                le(e);
-                res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+            if (!room) {
+                return res.status(404).send(errorResponse("Room not found", userReq.lang));
             }
-        }
-    );
 
-    router.post(
-        "/:id/unmute",
-        auth,
-        validate(postRoomSchema),
-        async (req: Request, res: Response) => {
-            const userReq: UserRequest = req as UserRequest;
+            const roomsUser = await prisma.roomUser.findFirst({
+                where: {
+                    userId: userReq.user.id,
+                    roomId: id,
+                },
+            });
 
-            try {
-                const id = parseInt((req.params.id as string) || "");
-
-                const room = await prisma.room.findFirst({
-                    where: {
-                        id,
-                    },
-                });
-
-                if (!room) {
-                    return res.status(404).send(errorResponse("Room not found", userReq.lang));
-                }
-
-                const roomsUser = await prisma.roomUser.findFirst({
-                    where: {
-                        userId: userReq.user.id,
-                        roomId: id,
-                    },
-                });
-
-                if (!roomsUser) {
-                    return res
-                        .status(404)
-                        .send(errorResponse("User is not the member of the room.", userReq.lang));
-                }
-
-                await prisma.userSetting.upsert({
-                    create: {
-                        key: `${Constants.ROOM_MUTE_PREFIX}${id}`,
-                        value: "false",
-                        userId: userReq.user.id,
-                    },
-                    update: {
-                        value: "false",
-                    },
-                    where: {
-                        userId_key_unique_constraint: {
-                            userId: userReq.user.id,
-                            key: `${Constants.ROOM_MUTE_PREFIX}${id}`,
-                        },
-                    },
-                });
-
-                const key = `mute_${userReq.user.id}_${id}`;
-                await redisClient.set(key, 0);
-
-                res.send(successResponse({}, userReq.lang));
-            } catch (e: any) {
-                le(e);
-                res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+            if (!roomsUser) {
+                return res
+                    .status(404)
+                    .send(errorResponse("User is not the member of the room.", userReq.lang));
             }
+
+            await prisma.userSetting.upsert({
+                create: {
+                    key: `${Constants.ROOM_MUTE_PREFIX}${id}`,
+                    value: "true",
+                    userId: userReq.user.id,
+                },
+                update: {
+                    value: "true",
+                },
+                where: {
+                    userId_key_unique_constraint: {
+                        userId: userReq.user.id,
+                        key: `${Constants.ROOM_MUTE_PREFIX}${id}`,
+                    },
+                },
+            });
+
+            const key = `mute_${userReq.user.id}_${id}`;
+            await redisClient.set(key, 1);
+
+            res.send(successResponse({}, userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
         }
-    );
+    });
+
+    router.post("/:id/unmute", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+
+        try {
+            const id = parseInt((req.params.id as string) || "");
+
+            const room = await prisma.room.findFirst({
+                where: {
+                    id,
+                },
+            });
+
+            if (!room) {
+                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+            }
+
+            const roomsUser = await prisma.roomUser.findFirst({
+                where: {
+                    userId: userReq.user.id,
+                    roomId: id,
+                },
+            });
+
+            if (!roomsUser) {
+                return res
+                    .status(404)
+                    .send(errorResponse("User is not the member of the room.", userReq.lang));
+            }
+
+            await prisma.userSetting.upsert({
+                create: {
+                    key: `${Constants.ROOM_MUTE_PREFIX}${id}`,
+                    value: "false",
+                    userId: userReq.user.id,
+                },
+                update: {
+                    value: "false",
+                },
+                where: {
+                    userId_key_unique_constraint: {
+                        userId: userReq.user.id,
+                        key: `${Constants.ROOM_MUTE_PREFIX}${id}`,
+                    },
+                },
+            });
+
+            const key = `mute_${userReq.user.id}_${id}`;
+            await redisClient.set(key, 0);
+
+            res.send(successResponse({}, userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
 
     return router;
 };
