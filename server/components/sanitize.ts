@@ -191,12 +191,14 @@ function sanitizeRoom({
     users,
     createdAt,
     modifiedAt,
+    deleted,
 }: Partial<Room & { users: (RoomUser & { user: User })[] }>): SanitizedRoomType {
     return {
         id,
         type,
         name,
         avatarUrl,
+        deleted,
         users: users.map(sanitizeRoomUser),
         createdAt: +new Date(createdAt),
         modifiedAt: +new Date(modifiedAt),
