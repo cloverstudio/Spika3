@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { PrismaClient, RoomUser, Room, User } from "@prisma/client";
+import { RoomUser, Room, User } from "@prisma/client";
 
 import { UserRequest } from "../lib/types";
 import { error as le } from "../../../components/logger";
@@ -12,8 +12,7 @@ import * as Constants from "../../../components/consts";
 import sanitize from "../../../components/sanitize";
 import { InitRouterParams } from "../../types/serviceInterface";
 import createSSERoomsNotify from "../lib/sseRoomsNotify";
-
-const prisma = new PrismaClient();
+import prisma from "../../../components/prisma";
 
 const postRoomSchema = yup.object().shape({
     body: yup.object().shape({

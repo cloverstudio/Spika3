@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { PrismaClient, User } from "@prisma/client";
+import { User } from "@prisma/client";
 
 import Utils from "../../../components/utils";
 import * as Constants from "../../../components/consts";
@@ -12,9 +12,7 @@ import * as yup from "yup";
 import { successResponse, errorResponse } from "../../../components/response";
 import sanitize from "../../../components/sanitize";
 import * as constants from "../lib/constants";
-import device from "./device";
-
-const prisma = new PrismaClient();
+import prisma from "../../../components/prisma";
 
 const authSchema = yup.object().shape({
     body: yup.object().shape({

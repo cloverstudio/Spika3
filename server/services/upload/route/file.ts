@@ -1,5 +1,4 @@
 import { Router, Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
 import * as yup from "yup";
 import util from "util";
 import fs from "fs";
@@ -11,6 +10,7 @@ import { error as le } from "../../../components/logger";
 import validate from "../../../components/validateMiddleware";
 import sanitize from "../../../components/sanitize";
 import { UserRequest } from "../lib/types";
+import prisma from "../../../components/prisma";
 
 const mkdir = util.promisify(fs.mkdir);
 const readDir = util.promisify(fs.readdir);
@@ -18,8 +18,6 @@ const removeDir = util.promisify(fs.rmdir);
 const writeFile = util.promisify(fs.writeFile);
 const readFile = util.promisify(fs.readFile);
 const removeFile = util.promisify(fs.unlink);
-
-const prisma = new PrismaClient();
 
 const postFilesSchema = yup.object().shape({
     body: yup.object().shape({

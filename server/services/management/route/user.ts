@@ -1,6 +1,4 @@
 import { Router, Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
 import adminAuth from "../lib/adminAuth";
 import Utils from "../../../components/utils";
 import * as consts from "../../../components/consts";
@@ -10,6 +8,7 @@ import { successResponse, errorResponse } from "../../../components/response";
 import { UserRequest } from "../../messenger/lib/types";
 import { User } from "@prisma/client";
 import sanitize from "../../../components/sanitize";
+import prisma from "../../../components/prisma";
 
 export default (params: InitRouterParams) => {
     const router = Router();
@@ -18,7 +17,7 @@ export default (params: InitRouterParams) => {
         const searchTerm: string = req.query.searchTerm ? (req.query.searchTerm as string) : "";
         const userReq: UserRequest = req as UserRequest;
         try {
-            var allUsers: User[] = [];
+            let allUsers: User[] = [];
             if (onlyNumbers(searchTerm)) {
                 const phoneUsers: User[] = await prisma.user.findMany({
                     where: {

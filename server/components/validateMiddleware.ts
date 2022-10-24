@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { User, Device } from "@prisma/client";
-import { warn as lw } from "./logger";
+import { error as le } from "./logger";
 import * as yup from "yup";
 import { errorResponse } from "./response";
 
@@ -27,7 +27,7 @@ export default function validateMiddleware(schema: yup.AnySchema) {
 
             return next();
         } catch (err: any) {
-            lw({ validationError: err });
+            le({ validationError: err });
             return res.status(400).send(errorResponse(`Invalid params ${err}`, userReq.lang));
         }
     };

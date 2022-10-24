@@ -1,6 +1,6 @@
 import QueueWorkerInterface from "../../types/queueWorkerInterface";
 import { SendPushPayload } from "../../types/queuePayloadTypes";
-import { warn as lw } from "../../../components/logger";
+import { warn as lw, error as le } from "../../../components/logger";
 import sendFcmMessage, { FcmMessagePayload } from "../lib/sendFcmMessage";
 import { PUSH_TYPE_NEW_MESSAGE } from "../../../components/consts";
 import prisma from "../../../components/prisma";
@@ -17,9 +17,7 @@ class sendPushWorker implements QueueWorkerInterface {
             const fcmMessagePayload = await formattingFunction(payload);
             await sendFcmMessage(fcmMessagePayload);
         } catch (error) {
-            console.error({ pushSendError: error });
-            // handle push sending failed case
-            lw("push sending failed");
+            lw({ pushSendError: error });
         }
     }
 }

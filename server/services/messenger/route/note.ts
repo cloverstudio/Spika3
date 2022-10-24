@@ -1,6 +1,4 @@
 import { Router, Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
 
 import { UserRequest } from "../lib/types";
 import * as yup from "yup";
@@ -11,6 +9,7 @@ import auth from "../lib/auth";
 import { InitRouterParams } from "../../types/serviceInterface";
 import { successResponse, errorResponse } from "../../../components/response";
 import sanitize from "../../../components/sanitize";
+import prisma from "../../../components/prisma";
 
 const createNoteSchema = yup.object().shape({
     body: yup.object().shape({

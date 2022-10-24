@@ -1,12 +1,10 @@
-import { PrismaClient } from "@prisma/client";
 import QueueWorkerInterface from "../../types/queueWorkerInterface";
 import { SendMessageRecordSSEPayload } from "../../types/queuePayloadTypes";
 import { warn as lw } from "../../../components/logger";
 import { QUEUE_SSE } from "../../../components/consts";
 import { Channel } from "amqplib";
 import sanitize, { SanitizedMessageRecord } from "../../../components/sanitize";
-
-const prisma = new PrismaClient();
+import prisma from "../../../components/prisma";
 
 class sendMessageRecordWorker implements QueueWorkerInterface {
     async run(payload: SendMessageRecordSSEPayload, channel: Channel) {
@@ -61,7 +59,7 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
 
                             messageRecords.push(sanitize(record).messageRecord());
                         } catch (error) {
-                            console.error({ error });
+                            lw("create message record failed", error.message);
                         }
                     }
                 }
@@ -86,7 +84,6 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
                 }
             }
         } catch (error) {
-            console.error({ sendMessageRecordWorkerError: error });
             lw("sendMessageRecordWorker failed");
         }
     }

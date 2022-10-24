@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { MessageRecord, PrismaClient } from "@prisma/client";
+import { MessageRecord } from "@prisma/client";
 
 import { UserRequest } from "../lib/types";
 import { error as le } from "../../../components/logger";
@@ -15,8 +15,7 @@ import { InitRouterParams } from "../../types/serviceInterface";
 import sanitize from "../../../components/sanitize";
 import { formatMessageBody } from "../../../components/message";
 import createSSEMessageRecordsNotify from "../lib/sseMessageRecordsNotify";
-
-const prisma = new PrismaClient();
+import prisma from "../../../components/prisma";
 
 const postMessageSchema = yup.object().shape({
     body: yup.object().shape({

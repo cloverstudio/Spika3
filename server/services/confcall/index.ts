@@ -1,8 +1,5 @@
-import express, { Router, Request, Response } from "express";
+import { Router } from "express";
 import amqp from "amqplib";
-
-import { PrismaClient, CallHistory, CallSession } from "@prisma/client";
-const prisma = new PrismaClient();
 
 import joinRouter from "./route/join";
 import participantsRouter from "./route/participants";
