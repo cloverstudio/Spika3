@@ -1,8 +1,10 @@
-import { PrismaClient } from "@prisma/client";
+import prisma from "./prisma";
 
-const prisma = new PrismaClient();
-
-export async function formatMessageBody(body: any, messageType: string): Promise<any> {
+export async function formatMessageBody(
+    body: any,
+    messageType: string,
+    fullPath?: boolean
+): Promise<any> {
     if (messageType === "text") {
         return body;
     }
@@ -30,6 +32,16 @@ export async function formatMessageBody(body: any, messageType: string): Promise
             size: true,
         },
     });
+
+    if (fullPath) {
+        if (file && file.path) {
+            file.path = `${process.env.UPLOADS_BASE_URL}${file.path}`;
+        }
+
+        if (thumb && thumb.path) {
+            thumb.path = `${process.env.UPLOADS_BASE_URL}${thumb.path}`;
+        }
+    }
 
     return { ...body, file, thumb };
 }

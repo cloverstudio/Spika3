@@ -50,4 +50,8 @@ export default function RightSidebarContent({
     if (activeTab === "editNote") {
         return <RightSidebarEditNoteContent />;
     }
+
+    if (activeTab === "settings") {
+        return <RightSidebarEditNoteContent />;
+    }
 }

@@ -3,6 +3,7 @@ import sendPush from "../server/services/push/worker/sendPush";
 import * as sendFcmMessage from "../server/services/push/lib/sendFcmMessage";
 import { PUSH_TYPE_NEW_MESSAGE } from "../server/components/consts";
 import { afterEach, beforeEach } from "mocha";
+import globals from "./global";
 
 describe("Send Push Worker", () => {
     beforeEach(() => {
@@ -32,6 +33,7 @@ describe("Send Push Worker", () => {
                     displayName: "test",
                 },
             },
+            redisClient: globals.redisClient,
         });
 
         expect(sendFcmMessage.default).to.have.been.called.once;
@@ -42,6 +44,7 @@ describe("Send Push Worker", () => {
             type: "NOT_IMPLEMENTED",
             token: "dummy_token",
             data: {},
+            redisClient: globals.redisClient,
         });
 
         expect(sendFcmMessage.default).to.not.have.been.called();

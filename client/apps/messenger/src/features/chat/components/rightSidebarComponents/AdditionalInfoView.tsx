@@ -8,7 +8,7 @@ import { setActiveTab } from "../../slice/rightSidebarSlice";
 import { useShowSnackBar } from "../../../../hooks/useModal";
 import { useMuteRoomMutation, useUnmuteRoomMutation } from "../../api/room";
 
-import { settings as storeSettings } from "../../../../../src/store/userSlice";
+import { selectUserId, settings as storeSettings } from "../../../../../src/store/userSlice";
 import { fetchSettings } from "../../../../../src/store/userSlice";
 
 import * as constants from "../../../../../../../lib/constants";
@@ -21,9 +21,13 @@ export function DetailsAdditionalInfoView(props: Props) {
     const room: RoomType = props.roomData;
     const dispatch = useDispatch();
     const showSnackBar = useShowSnackBar();
-    const [muteRoom, muteRoomMutation] = useMuteRoomMutation();
-    const [unmuteRoom, unmuteRoomMutation] = useUnmuteRoomMutation();
+    const [muteRoom] = useMuteRoomMutation();
+    const [unmuteRoom] = useUnmuteRoomMutation();
     const settings = useSelector(storeSettings);
+
+    const { type, users } = room;
+    const userId = useSelector(selectUserId);
+    const userIsAdmin = users.find((u) => u.userId === userId).isAdmin;
 
     return (
         <Box>
@@ -39,7 +43,7 @@ export function DetailsAdditionalInfoView(props: Props) {
                     paddingTop: "15px",
                 }}
             >
-                <Stack
+                {/* <Stack
                     direction="row"
                     alignItems="center"
                     spacing={1}
@@ -69,7 +73,7 @@ export function DetailsAdditionalInfoView(props: Props) {
                 >
                     <Box component="span">Call history</Box>
                     <ChevronRight />
-                </Stack>
+                </Stack> */}
                 <Stack
                     direction="row"
                     alignItems="center"
@@ -87,7 +91,26 @@ export function DetailsAdditionalInfoView(props: Props) {
                     <Box component="span">Notes</Box>
                     <ChevronRight />
                 </Stack>
-                <Stack
+                {type === "group" && userIsAdmin && (
+                    <Stack
+                        direction="row"
+                        alignItems="center"
+                        spacing={1}
+                        onClick={() => dispatch(setActiveTab("settings"))}
+                        sx={{
+                            height: "40px",
+                            display: "flex",
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            width: "100%",
+                            cursor: "pointer",
+                        }}
+                    >
+                        <Box component="span">Settings</Box>
+                        <ChevronRight />
+                    </Stack>
+                )}
+                {/* <Stack
                     direction="row"
                     alignItems="center"
                     spacing={1}
@@ -116,7 +139,7 @@ export function DetailsAdditionalInfoView(props: Props) {
                 >
                     <Box component="span">Pin chat</Box>
                     <Switch />
-                </Stack>
+                </Stack> */}
                 <Stack
                     direction="row"
                     alignItems="center"
