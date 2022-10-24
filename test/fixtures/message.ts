@@ -1,6 +1,4 @@
-import { PrismaClient, Message, Room, DeviceMessage } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { Message, Room, DeviceMessage } from "@prisma/client";
 
 export default async function createFakeMessage({
     fromUserId,
@@ -15,15 +13,15 @@ export default async function createFakeMessage({
     type?: string;
     modifiedAt?: Date;
 }): Promise<Message> {
-    const roomUsers = await prisma.roomUser.findMany({ where: { roomId: room.id } });
+    const roomUsers = await global.prisma.roomUser.findMany({ where: { roomId: room.id } });
 
-    const devices = await prisma.device.findMany({
+    const devices = await global.prisma.device.findMany({
         where: {
             userId: { in: roomUsers.map((u) => u.userId) },
         },
     });
 
-    const message = await prisma.message.create({
+    const message = await global.prisma.message.create({
         data: {
             type,
             roomId: room.id,
@@ -60,7 +58,7 @@ async function createFakeDeviceMessage({
     deviceId: number;
     userId: number;
 }): Promise<DeviceMessage> {
-    return prisma.deviceMessage.create({
+    return global.prisma.deviceMessage.create({
         data: {
             fromUserId,
             fromDeviceId,

@@ -1,10 +1,7 @@
-import { PrismaClient } from "@prisma/client";
-
 import QueueWorkerInterface from "../../types/queueWorkerInterface";
 import { CreateContactPayload } from "../../types/queuePayloadTypes";
 import { error as le } from "../../../components/logger";
-
-const prisma = new PrismaClient();
+import prisma from "../../../components/prisma";
 
 class saveContactWorker implements QueueWorkerInterface {
     async run(payload: CreateContactPayload) {

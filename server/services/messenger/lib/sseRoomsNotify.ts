@@ -1,10 +1,8 @@
-import { PrismaClient } from "@prisma/client";
 import amqp from "amqplib";
 
 import * as Constants from "../../../components/consts";
+import prisma from "../../../components/prisma";
 import { SanitizedRoomType } from "../../../components/sanitize";
-
-const prisma = new PrismaClient();
 
 export default function createSSERoomsNotify(rabbitMQChannel: amqp.Channel | undefined | null) {
     return async (room: SanitizedRoomType, type: string): Promise<void> => {

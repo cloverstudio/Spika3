@@ -76,7 +76,7 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
     );
     const rabbitMQChannel: amqp.Channel = await rabbitMQConnection.createChannel();
 
-    if (process.env["USE_MNG_API"]) {
+    if (+process.env["USE_MNG_API"]) {
         const userManagementAPIService: UserManagementAPIService = new UserManagementAPIService();
         userManagementAPIService.start({
             rabbitMQChannel,
@@ -85,7 +85,7 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
         app.use("/api/management", userManagementAPIService.getRoutes());
     }
 
-    if (process.env["USE_MSG_API"]) {
+    if (+process.env["USE_MSG_API"]) {
         const messengerAPIService: MessengerAPIService = new MessengerAPIService();
         messengerAPIService.start({
             rabbitMQChannel,
@@ -94,14 +94,14 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
         app.use("/api/messenger", messengerAPIService.getRoutes());
     }
 
-    if (process.env["USE_SMS"]) {
+    if (+process.env["USE_SMS"]) {
         const smsService: SMSService = new SMSService();
         smsService.start({
             rabbitMQChannel,
         });
     }
 
-    if (process.env["USE_UPLOAD"]) {
+    if (+process.env["USE_UPLOAD"]) {
         const uploadService: UploadService = new UploadService();
         uploadService.start({
             rabbitMQChannel,
@@ -110,7 +110,7 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
         app.use("/api/upload", uploadService.getRoutes());
     }
 
-    if (process.env["USE_PUSH"]) {
+    if (+process.env["USE_PUSH"]) {
         const pushService: PushService = new PushService();
         pushService.start({
             rabbitMQChannel,
@@ -118,7 +118,7 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
         });
     }
 
-    if (process.env["USE_SSE"]) {
+    if (+process.env["USE_SSE"]) {
         const sseService: SSEService = new SSEService();
         sseService.start({
             rabbitMQChannel,
@@ -127,21 +127,21 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
         app.use("/api/sse", sseService.getRoutes());
     }
 
-    if (process.env["USE_MESSAGE_RECORDS_SSE"]) {
+    if (+process.env["USE_MESSAGE_RECORDS_SSE"]) {
         const messageRecordsSSE: MessageRecordsSSEService = new MessageRecordsSSEService();
         messageRecordsSSE.start({
             rabbitMQChannel,
         });
     }
 
-    if (process.env["USE_WEBHOOK"]) {
+    if (+process.env["USE_WEBHOOK"]) {
         const webhook: WebhookService = new WebhookService();
         webhook.start({
             rabbitMQChannel,
         });
     }
 
-    if (process.env["USE_CONFCALL"]) {
+    if (+process.env["USE_CONFCALL"]) {
         const confcallService: ConfcallService = new ConfcallService();
         confcallService.start({
             rabbitMQChannel,

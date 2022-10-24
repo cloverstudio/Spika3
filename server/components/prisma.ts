@@ -23,7 +23,7 @@ prisma.$on('query' as any, async (e: any) => {
 });
 */
 
-const enviroment: any = process.env.BRANCH;
-if (enviroment !== "production" && enviroment !== "staging") global.prisma = prisma;
+const environment: any = process.env.BRANCH;
+if (environment !== "production" && environment !== "staging") global.prisma = prisma;
 
 export default prisma;

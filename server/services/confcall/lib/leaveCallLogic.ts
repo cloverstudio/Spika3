@@ -1,10 +1,10 @@
 import amqp from "amqplib";
-import { PrismaClient, CallHistory, CallSession, User } from "@prisma/client";
-const prisma = new PrismaClient();
+import { CallHistory, CallSession, User } from "@prisma/client";
 
 import * as Constants from "../../../components/consts";
 import notifyRoomUsersLogic from "./notifyRoomUsersLogic";
 import sanitize from "../../../components/sanitize";
+import prisma from "../../../components/prisma";
 
 export default async function leaveCallLogic(
     userId: number,

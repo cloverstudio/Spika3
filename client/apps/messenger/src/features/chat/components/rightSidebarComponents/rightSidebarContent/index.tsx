@@ -10,6 +10,7 @@ import { DetailsMemberView } from "../MembersView";
 
 import RightSidebarCreateNoteContent from "./RightSidebarCreateNoteContent";
 import RightSidebarEditNoteContent from "./RightSidebarEditNoteContent";
+import RightSidebarSettingsContent from "./RightSidebarSettingsContent";
 import RightSidebarNoteDetailContent from "./RightSidebarNoteDetailContent";
 import RightSidebarNotesContent from "./RightSidebarNotesContent";
 
@@ -52,6 +53,6 @@ export default function RightSidebarContent({
     }
 
     if (activeTab === "settings") {
-        return <RightSidebarEditNoteContent />;
+        return <RightSidebarSettingsContent />;
     }
 }

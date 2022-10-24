@@ -1,9 +1,7 @@
 import amqp from "amqplib";
-import { PrismaClient, CallHistory, CallSession } from "@prisma/client";
 
 import * as Constants from "../../../components/consts";
-
-const prisma = new PrismaClient();
+import prisma from "../../../components/prisma";
 
 export default async (roomId: number, rabbitMQChannel: amqp.Channel, data: any): Promise<void> => {
     // get device list which belongs to the room

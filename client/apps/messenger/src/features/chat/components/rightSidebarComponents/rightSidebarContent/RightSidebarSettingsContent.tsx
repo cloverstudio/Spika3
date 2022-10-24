@@ -5,6 +5,7 @@ import isValidURL from "../../../../../utils/isValidURL";
 
 import {
     useCreateWebhookMutation,
+    useDeleteWebhookMutation,
     useEditWebhookMutation,
     useGetWebhookByRoomIdQuery,
 } from "../../../api/webhook";
@@ -17,14 +18,12 @@ export default function RightSidebarEditNoteContent(): React.ReactElement {
     const [error, setError] = useState("");
     const [editWebhook] = useEditWebhookMutation();
     const [createWebhook] = useCreateWebhookMutation();
+    const [removeWebhook] = useDeleteWebhookMutation();
     const { data: webhookData } = useGetWebhookByRoomIdQuery(roomId);
 
     useEffect(() => {
-        console.log({ webhookData });
-        if (webhookData) {
-            setUrl(webhookData.url);
-            setVerifySignature(webhookData.verifySignature);
-        }
+        setUrl(webhookData?.url || "");
+        setVerifySignature(webhookData?.verifySignature || "");
     }, [webhookData]);
 
     const handleSubmit = async () => {
@@ -37,6 +36,12 @@ export default function RightSidebarEditNoteContent(): React.ReactElement {
             await createWebhook({ url, roomId }).unwrap();
         } else {
             await editWebhook({ id: webhookData.id, data: { roomId, url } }).unwrap();
+        }
+    };
+
+    const handleRemove = async () => {
+        if (webhookData?.id) {
+            removeWebhook(webhookData.id);
         }
     };
 
@@ -70,6 +75,11 @@ export default function RightSidebarEditNoteContent(): React.ReactElement {
             <Button onClick={handleSubmit} disabled={!url} fullWidth variant="contained">
                 Save
             </Button>
+            {webhookData?.id && (
+                <Button onClick={handleRemove} fullWidth variant="outlined">
+                    Remove
+                </Button>
+            )}
 
             {error && (
                 <Alert sx={{ mt: 2 }} severity="error">

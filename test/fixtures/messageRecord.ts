@@ -1,6 +1,4 @@
-import { PrismaClient, MessageRecord } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { MessageRecord } from "@prisma/client";
 
 export default async function createFakeMessageRecord({
     messageId,
@@ -11,7 +9,7 @@ export default async function createFakeMessageRecord({
     userId: number;
     type: string;
 }): Promise<MessageRecord> {
-    const message = await prisma.messageRecord.create({
+    const message = await global.prisma.messageRecord.create({
         data: {
             type,
             messageId,

@@ -9,7 +9,8 @@
     "scripts": {
         "test": "./test/start.sh",
         "dev:server": "nodemon server/index.ts",
-        "start:server": "npx tsc -p tsconfig.server.json && node tmp/server/index.js",
+        "build:server": "npx tsc -p tsconfig.server.json",
+        "start:server": "node tmp/server/index.js",
         "dev:management": "concurrently --kill-others \"nodemon server/index.ts\" \"vite --mode management\"",
         "build:management": "vite build --mode management --emptyOutDir",
         "dev:messenger": "vite --mode messenger",
