@@ -62,6 +62,7 @@ export default function Chat(): React.ReactElement {
 
     const desktopProps = {
         height: "100vh",
+        overflow: "hidden",
     };
 
     return (

@@ -119,6 +119,7 @@ export default function MessageRow({
                 setMouseOver(false);
                 setShowReactionMenu(false);
             }}
+            maxWidth="100%"
         >
             {roomType === "group" && !isUsersMessage && isFirstMessage && (
                 <Typography color="text.tertiary" fontWeight={600} pl="34px" mb={0.5} mt={2}>
@@ -130,12 +131,14 @@ export default function MessageRow({
                 display="flex"
                 justifyContent={isUsersMessage ? "flex-end" : "flex-start"}
                 mb={messageReactions.length ? "1.5rem" : "0.25rem"}
+                maxWidth="100%"
             >
                 <Box
                     position="relative"
                     display="inline-flex"
                     alignItems="end"
                     justifyContent={isUsersMessage ? "flex-end" : "flex-start"}
+                    maxWidth="90%"
                 >
                     {roomType === "group" && !isUsersMessage && isLastMessage ? (
                         <Avatar
@@ -151,6 +154,7 @@ export default function MessageRow({
                         onMouseEnter={() => {
                             setMouseOver(true);
                         }}
+                        maxWidth="100%"
                     >
                         <MessageBody
                             id={id}
