@@ -8,6 +8,7 @@ const MESSAGING_SCOPE = "https://www.googleapis.com/auth/firebase.messaging";
 const SCOPES = [MESSAGING_SCOPE];
 
 let accessToken = null;
+let accessTokenExpiryMS = null;
 
 function getAccessToken() {
     return new Promise(function (resolve, reject) {
@@ -18,12 +19,16 @@ function getAccessToken() {
             SCOPES,
             null
         );
+
         jwtClient.authorize(function (err, tokens) {
             if (err) {
                 reject(err);
                 return;
             }
-            resolve(tokens.access_token);
+            accessToken = tokens.access_token;
+            accessTokenExpiryMS = tokens.expiry_date;
+
+            resolve(true);
         });
     });
 }
@@ -31,12 +36,9 @@ function getAccessToken() {
 export type FcmMessagePayload = {
     message: {
         token: string;
-        //notification: {
-        //    title: string;
-        //    body: string;
-        //};
         data?: any;
     };
+    muted: boolean;
 };
 
 export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Promise<any> {
@@ -44,23 +46,35 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
         return;
     }
 
-    if (!accessToken) accessToken = await getAccessToken();
+    if (!accessToken || +new Date() > accessTokenExpiryMS - 1000) {
+        await getAccessToken();
+    }
+
+    const muted = fcmMessage.muted;
+    const apns = {
+        payload: {
+            aps: {
+                [muted ? "content-available" : "mutable-content"]: 1,
+                ...(!muted && {
+                    alert: {
+                        title: "New message",
+                    },
+                }),
+            },
+        },
+    };
+
+    const data = {
+        message: {
+            ...fcmMessage.message,
+            apns,
+        },
+    };
 
     const response: AxiosResponse<any> = await axios({
         method: "post",
         url: "https://" + process.env.FCM_HOST + PATH,
-        data: {
-            message: {
-                ...fcmMessage.message,
-                apns: {
-                    payload: {
-                        aps: {
-                            "mutable-content": 1,
-                        },
-                    },
-                },
-            },
-        },
+        data,
         headers: {
             Authorization: "Bearer " + accessToken,
         },
@@ -68,10 +82,14 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
     });
 
     if (response.status !== 200) {
-        le("FCM error");
+        le(
+            `FCM ERROR, push token: ${fcmMessage.message.token}, status: ${
+                response.status
+            }, error: ${JSON.stringify({ data, resData: response.data }, null, 4)}`
+        );
         throw new Error("FCM error");
     } else {
-        l("FCM sent");
+        l(`FCM sent, push token: ${fcmMessage.message.token}`);
     }
 
     return response.data;

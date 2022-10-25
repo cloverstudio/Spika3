@@ -1,13 +1,7 @@
 import { Router, Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
 
 import { UserRequest } from "../lib/types";
-import Utils from "../../../components/utils";
-import * as consts from "../../../components/consts";
-import l, { error as le } from "../../../components/logger";
-import auth from "../lib/auth";
-import { InitRouterParams } from "../../types/serviceInterface";
+import { error as le } from "../../../components/logger";
 import { successResponse, errorResponse } from "../../../components/response";
 
 export default () => {

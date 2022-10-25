@@ -1,25 +1,23 @@
 import React, { ReactElement, useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Box } from "@mui/material";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
-import * as utils from "../../../../../../lib/utils";
 import {
     selectRoomMessages,
     fetchMessagesByRoomId,
     selectRoomMessagesCount,
     selectLoading,
     setEditMessage,
+    setReplyMessage,
 } from "../slice/chatSlice";
 
 import MessageRow from "./MessageRow";
 import DeleteMessageDialog from "./DeleteMessageDialog";
-import { MessageMenu, MessageDetailDialog } from "./MessageMenu";
+import { MessageDetailDialog } from "./MessageMenu";
 import { useGetUserQuery } from "../../auth/api/auth";
 import AttachmentManager from "../lib/AttachmentManager";
-import { deletedMessageText } from "../lib/consts";
 import NewMessageAlert from "./NewMessageAlert";
-import { async } from "@firebase/util";
 type RoomMessagesProps = {
     roomId: number;
 };
@@ -57,11 +55,9 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
     const isFetching = loading !== "idle";
     const hasMoreContactsToLoad = count > messages.length;
 
-    const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>();
     const [openMessageDetails, setOpenMessageDetails] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedMessageId, setMessageId] = useState<number>();
-    const open = Boolean(anchorEl);
     const messageId = parseInt(urlParams.messageId || "") || null;
 
     useEffect(() => {
@@ -69,7 +65,7 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
         // it is needed to handle the case when message id is specified
         if (page * constants.MESSAGE_PAGING_LIMIT <= messages.length) return;
         dispatch(fetchMessagesByRoomId({ roomId, page, messageId: page === 1 ? messageId : null }));
-    }, [page, dispatch, roomId]);
+    }, [page, dispatch, roomId, messageId]);
 
     const messagesSorted: MessageType[] = [...messages].sort((a, b) => {
         if (a && b) return a.createdAt > b.createdAt ? 1 : -1;
@@ -80,10 +76,10 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
     const isUsersLastMessage = lastMessageFromUserId === userData?.user?.id;
 
     useEffect(() => {
-        if (messages.length > 0 && messageId && page === 1) {
-            setPage(Math.ceil(messages.length / constants.MESSAGE_PAGING_LIMIT));
+        if (count > 0 && messageId && !messages.some((m) => m.id === messageId)) {
+            setPage(Math.ceil(count / constants.MESSAGE_PAGING_LIMIT));
         }
-    }, [messages]);
+    }, [messages, messageId, count]);
 
     useEffect(() => {
         if (!scrollableConversation.current) {
@@ -107,7 +103,7 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
         } else {
             if (messageId) {
                 setTimeout(() => {
-                    document.getElementById(`message_${messageId}`).scrollIntoView();
+                    document.getElementById(`message_${messageId}`)?.scrollIntoView();
                 }, 500);
             } else if (scrollableConversation.current.scrollHeight !== lastScrollHeight) {
                 onScrollDown();
@@ -115,15 +111,10 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
         }
 
         messagesLengthRef.current = messages.length;
-    }, [messagesSorted.length, isUsersLastMessage]);
+    }, [messagesSorted.length, isUsersLastMessage, messageId]);
 
     const handleClick = (event: React.MouseEvent<HTMLDivElement>, messageId: number) => {
         setMessageId(messageId);
-        setAnchorEl(event.currentTarget);
-    };
-
-    const handleCloseMessageMenu = () => {
-        setAnchorEl(null);
     };
 
     const showModalMessageDetails = () => {
@@ -227,15 +218,20 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
         ? messagesSorted.find((m) => m.id === selectedMessageId)
         : null;
     const selectedUsersMessage = selectedMessage?.fromUserId === userData.user.id;
-    const deletedMessage =
-        selectedMessage?.deleted || selectedMessage?.body?.text === deletedMessageText;
-    const isEditable = selectedMessage?.type === "text" && selectedUsersMessage && !deletedMessage;
 
     const handleOnEdit = (id: number) => {
         const selectedMessage = messagesSorted.find((m) => m.id === id);
 
         if (selectedMessage) {
             dispatch(setEditMessage(selectedMessage));
+        }
+    };
+
+    const handleOnReply = (id: number) => {
+        const selectedMessage = messagesSorted.find((m) => m.id === id);
+
+        if (selectedMessage) {
+            dispatch(setReplyMessage(selectedMessage));
         }
     };
 
@@ -257,7 +253,7 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
                     overflowY: "auto",
                     overflowX: "hidden",
                     height: "100%",
-                    paddingTop: "20px",
+                    paddingTop: "50px",
                     paddingBottom: "50px",
                 }}
                 ref={scrollableConversation}
@@ -326,11 +322,16 @@ export default function RoomMessages({ roomId }: RoomMessagesProps): React.React
                                     setMessageId(id);
                                     handleOnEdit(id);
                                 }}
+                                onReply={(id) => {
+                                    setMessageId(id);
+                                    handleOnReply(id);
+                                }}
                                 user={user}
                                 data={data}
                                 isDeleted={m.deleted}
                                 messageRecordsData={m.messageRecords}
                                 highlight={messageId === m.id}
+                                isReply={m.reply}
                             />
                         </div>
                     );

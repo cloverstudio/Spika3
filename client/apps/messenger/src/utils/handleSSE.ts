@@ -19,6 +19,7 @@ const VALID_SSE_EVENT_TYPES = [
     "CALL_LEAVE",
     "CALL_UPDATE",
     "UPDATE_ROOM",
+    "DELETE_ROOM",
     "USER_UPDATE",
 ];
 
@@ -76,14 +77,6 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                         (r) => r.key === `${constants.SETTINGS_ROOM_MUTE_PREFIX}${message.roomId}`
                     )?.value === constants.SETTINGS_TRUE;
 
-            console.log(
-                "isMute",
-                store
-                    .getState()
-                    .user.settings?.find(
-                        (r) => r.key === `${constants.SETTINGS_ROOM_MUTE_PREFIX}${message.roomId}`
-                    )?.value
-            );
             // play sound logic
             if (
                 !isMute &&
@@ -207,6 +200,19 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
             }
 
             store.dispatch(fetchHistory({ page: 1, keyword: "" }));
+
+            return;
+        }
+
+        case "DELETE_ROOM": {
+            const room = data.room;
+
+            if (!room) {
+                console.log("Invalid DELETE_ROOM payload");
+                return;
+            }
+
+            store.dispatch(api.util.invalidateTags([{ type: "Rooms", id: room.id }]));
 
             return;
         }

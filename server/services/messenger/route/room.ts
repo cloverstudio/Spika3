@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { PrismaClient, RoomUser, Room, User } from "@prisma/client";
+import { RoomUser, Room, User } from "@prisma/client";
 
 import { UserRequest } from "../lib/types";
 import { error as le } from "../../../components/logger";
@@ -12,8 +12,7 @@ import * as Constants from "../../../components/consts";
 import sanitize from "../../../components/sanitize";
 import { InitRouterParams } from "../../types/serviceInterface";
 import createSSERoomsNotify from "../lib/sseRoomsNotify";
-
-const prisma = new PrismaClient();
+import prisma from "../../../components/prisma";
 
 const postRoomSchema = yup.object().shape({
     body: yup.object().shape({
@@ -41,7 +40,7 @@ const leaveRoomSchema = yup.object().shape({
     }),
 });
 
-export default ({ rabbitMQChannel }: InitRouterParams): Router => {
+export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
     const router = Router();
     const sseRoomsNotify = createSSERoomsNotify(rabbitMQChannel);
 
@@ -195,7 +194,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     adminUserIds.push(userReq.user.id);
                 }
 
-                await updateRoomUsers({ room, newIds: adminUserIds, updatingAdmins: true });
+                await updateRoomAdminUsers({ room, newAdminIds: adminUserIds });
             }
 
             const userCount = await prisma.roomUser.count({ where: { roomId: id } });
@@ -511,7 +510,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                             userId: userReq.user.id,
                         },
                     },
-                    deleted: false,
                 },
                 include: {
                     users: {
@@ -605,121 +603,117 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         }
     });
 
-    router.post(
-        "/:id/mute",
-        auth,
-        validate(postRoomSchema),
-        async (req: Request, res: Response) => {
-            const userReq: UserRequest = req as UserRequest;
+    router.post("/:id/mute", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
 
-            try {
-                const id = parseInt((req.params.id as string) || "");
+        try {
+            const id = parseInt((req.params.id as string) || "");
 
-                const room = await prisma.room.findFirst({
-                    where: {
-                        id,
-                    },
-                });
+            const room = await prisma.room.findFirst({
+                where: {
+                    id,
+                },
+            });
 
-                if (!room) {
-                    return res.status(404).send(errorResponse("Room not found", userReq.lang));
-                }
-
-                const roomsUser = await prisma.roomUser.findFirst({
-                    where: {
-                        userId: userReq.user.id,
-                        roomId: id,
-                    },
-                });
-
-                if (!roomsUser) {
-                    return res
-                        .status(404)
-                        .send(errorResponse("User is not the member of the room.", userReq.lang));
-                }
-
-                await prisma.userSetting.upsert({
-                    create: {
-                        key: `${Constants.ROOM_MUTE_PREFIX}${id}`,
-                        value: "true",
-                        userId: userReq.user.id,
-                    },
-                    update: {
-                        value: "true",
-                    },
-                    where: {
-                        userId_key_unique_constraint: {
-                            userId: userReq.user.id,
-                            key: `${Constants.ROOM_MUTE_PREFIX}${id}`,
-                        },
-                    },
-                });
-
-                res.send(successResponse({}, userReq.lang));
-            } catch (e: any) {
-                le(e);
-                res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+            if (!room) {
+                return res.status(404).send(errorResponse("Room not found", userReq.lang));
             }
-        }
-    );
 
-    router.post(
-        "/:id/unmute",
-        auth,
-        validate(postRoomSchema),
-        async (req: Request, res: Response) => {
-            const userReq: UserRequest = req as UserRequest;
+            const roomsUser = await prisma.roomUser.findFirst({
+                where: {
+                    userId: userReq.user.id,
+                    roomId: id,
+                },
+            });
 
-            try {
-                const id = parseInt((req.params.id as string) || "");
-
-                const room = await prisma.room.findFirst({
-                    where: {
-                        id,
-                    },
-                });
-
-                if (!room) {
-                    return res.status(404).send(errorResponse("Room not found", userReq.lang));
-                }
-
-                const roomsUser = await prisma.roomUser.findFirst({
-                    where: {
-                        userId: userReq.user.id,
-                        roomId: id,
-                    },
-                });
-
-                if (!roomsUser) {
-                    return res
-                        .status(404)
-                        .send(errorResponse("User is not the member of the room.", userReq.lang));
-                }
-
-                await prisma.userSetting.upsert({
-                    create: {
-                        key: `${Constants.ROOM_MUTE_PREFIX}${id}`,
-                        value: "false",
-                        userId: userReq.user.id,
-                    },
-                    update: {
-                        value: "false",
-                    },
-                    where: {
-                        userId_key_unique_constraint: {
-                            userId: userReq.user.id,
-                            key: `${Constants.ROOM_MUTE_PREFIX}${id}`,
-                        },
-                    },
-                });
-
-                res.send(successResponse({}, userReq.lang));
-            } catch (e: any) {
-                le(e);
-                res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+            if (!roomsUser) {
+                return res
+                    .status(404)
+                    .send(errorResponse("User is not the member of the room.", userReq.lang));
             }
+
+            await prisma.userSetting.upsert({
+                create: {
+                    key: `${Constants.ROOM_MUTE_PREFIX}${id}`,
+                    value: "true",
+                    userId: userReq.user.id,
+                },
+                update: {
+                    value: "true",
+                },
+                where: {
+                    userId_key_unique_constraint: {
+                        userId: userReq.user.id,
+                        key: `${Constants.ROOM_MUTE_PREFIX}${id}`,
+                    },
+                },
+            });
+
+            const key = `mute_${userReq.user.id}_${id}`;
+            await redisClient.set(key, 1);
+
+            res.send(successResponse({}, userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
         }
-    );
+    });
+
+    router.post("/:id/unmute", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+
+        try {
+            const id = parseInt((req.params.id as string) || "");
+
+            const room = await prisma.room.findFirst({
+                where: {
+                    id,
+                },
+            });
+
+            if (!room) {
+                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+            }
+
+            const roomsUser = await prisma.roomUser.findFirst({
+                where: {
+                    userId: userReq.user.id,
+                    roomId: id,
+                },
+            });
+
+            if (!roomsUser) {
+                return res
+                    .status(404)
+                    .send(errorResponse("User is not the member of the room.", userReq.lang));
+            }
+
+            await prisma.userSetting.upsert({
+                create: {
+                    key: `${Constants.ROOM_MUTE_PREFIX}${id}`,
+                    value: "false",
+                    userId: userReq.user.id,
+                },
+                update: {
+                    value: "false",
+                },
+                where: {
+                    userId_key_unique_constraint: {
+                        userId: userReq.user.id,
+                        key: `${Constants.ROOM_MUTE_PREFIX}${id}`,
+                    },
+                },
+            });
+
+            const key = `mute_${userReq.user.id}_${id}`;
+            await redisClient.set(key, 0);
+
+            res.send(successResponse({}, userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
 
     return router;
 };
@@ -771,14 +765,9 @@ function canLeaveRoomCheck(userId: number, roomUsers: RoomUser[]) {
 interface UpdateRoomUsersParams {
     room: Room & { users: RoomUser[] };
     newIds: number[];
-    updatingAdmins?: boolean;
 }
 
-async function updateRoomUsers({
-    newIds,
-    room,
-    updatingAdmins = false,
-}: UpdateRoomUsersParams): Promise<void> {
+async function updateRoomUsers({ newIds, room }: UpdateRoomUsersParams): Promise<void> {
     const currentIds = room.users.map((u) => u.userId);
 
     const foundUsers = await prisma.user.findMany({
@@ -789,11 +778,40 @@ async function updateRoomUsers({
 
     const userIdsToRemove = currentIds.filter((id) => !foundUserIds.includes(id));
     await prisma.roomUser.deleteMany({
-        where: { roomId: room.id, userId: { in: userIdsToRemove }, isAdmin: updatingAdmins },
+        where: { roomId: room.id, userId: { in: userIdsToRemove }, isAdmin: false },
     });
 
     const userIdsToAdd = foundUserIds.filter((id) => !currentIds.includes(id));
     await prisma.roomUser.createMany({
-        data: userIdsToAdd.map((userId) => ({ userId, roomId: room.id, isAdmin: updatingAdmins })),
+        data: userIdsToAdd.map((userId) => ({ userId, roomId: room.id, isAdmin: false })),
+    });
+}
+
+interface UpdateRoomAdminUsersParams {
+    room: Room & { users: RoomUser[] };
+    newAdminIds: number[];
+}
+
+async function updateRoomAdminUsers({
+    newAdminIds,
+    room,
+}: UpdateRoomAdminUsersParams): Promise<void> {
+    const currentAdminIds = room.users.filter((u) => u.isAdmin).map((u) => u.userId);
+
+    const newAdmins = await prisma.user.findMany({
+        where: { id: { in: newAdminIds } },
+        select: { id: true },
+    });
+    const newAdminUserIds = newAdmins.map((u) => u.id);
+
+    const userAdminIdsToRemove = currentAdminIds.filter((id) => !newAdminUserIds.includes(id));
+    await prisma.roomUser.updateMany({
+        where: { roomId: room.id, userId: { in: userAdminIdsToRemove }, isAdmin: true },
+        data: { isAdmin: false },
+    });
+
+    await prisma.roomUser.updateMany({
+        where: { roomId: room.id, userId: { in: newAdminUserIds }, isAdmin: false },
+        data: { isAdmin: true },
     });
 }

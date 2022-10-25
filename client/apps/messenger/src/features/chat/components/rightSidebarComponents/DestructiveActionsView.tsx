@@ -1,20 +1,83 @@
 import React from "react";
 import { Box, Stack, IconButton, Typography } from "@mui/material";
-import { ExitToApp, WarningAmber, DoDisturb } from "@mui/icons-material";
+import { ExitToApp, WarningAmber, DoDisturb, DeleteOutline } from "@mui/icons-material";
 
-import { RoomUserType } from "../../../../types/Rooms";
+import { RoomType } from "../../../../types/Rooms";
+import { useShowBasicDialog } from "../../../../hooks/useModal";
+import { useDeleteRoomMutation, useLeaveRoomMutation } from "../../api/room";
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { hide } from "../../slice/rightSidebarSlice";
+import { removeRoom } from "../../slice/roomSlice";
+import { selectUserId } from "../../../../store/userSlice";
 
 export interface DetailsDestructiveActionsProps {
-    isItPrivateChat: boolean;
-    otherUser: RoomUserType;
+    room: RoomType;
 }
 
-export function DetailsDestructiveActionsView(props: DetailsDestructiveActionsProps) {
-    const { isItPrivateChat, otherUser } = props;
+export function DetailsDestructiveActionsView({ room }: DetailsDestructiveActionsProps) {
+    const { type, id, users } = room;
+
+    const userId = useSelector(selectUserId);
+    const showBasicDialog = useShowBasicDialog();
+    const [leaveRoom] = useLeaveRoomMutation();
+    const [deleteRoom] = useDeleteRoomMutation();
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+
+    const userIsAdmin = users.find((u) => u.userId === userId).isAdmin;
+
+    const handleLeave = () => {
+        const haveOtherAdmins = users.filter((u) => u.isAdmin && u.userId !== userId).length > 0;
+
+        if (!haveOtherAdmins) {
+            return showBasicDialog({
+                text: "Can't leave group where you are only admin",
+                title: "Unavailable action",
+                allowButtonLabel: "OK",
+            });
+        }
+
+        showBasicDialog(
+            {
+                text: "Leave group?",
+                title: "Confirmation",
+                allowButtonLabel: "OK",
+                denyButtonLabel: "Cancel",
+            },
+            () =>
+                leaveRoom({ roomId: id })
+                    .unwrap()
+                    .then(() => {
+                        dispatch(hide());
+                        dispatch(removeRoom(id));
+                        navigate("/app");
+                    })
+        );
+    };
+
+    const handleDelete = () => {
+        showBasicDialog(
+            {
+                text: "Delete group?",
+                title: "Confirmation",
+                allowButtonLabel: "YES",
+                denyButtonLabel: "Cancel",
+            },
+            () =>
+                deleteRoom({ roomId: id })
+                    .unwrap()
+                    .then(() => {
+                        dispatch(hide());
+                        dispatch(removeRoom(id));
+                        navigate("/app");
+                    })
+        );
+    };
 
     return (
         <Box>
-            {isItPrivateChat ? (
+            {type === "private" && (
                 <IconButton
                     disableRipple
                     size="large"
@@ -39,12 +102,12 @@ export function DetailsDestructiveActionsView(props: DetailsDestructiveActionsPr
                     >
                         <DoDisturb style={{ fill: "red" }} />
                         <Typography variant="subtitle1" color="red">
-                            Block {otherUser.user.displayName}
+                            Block user
                         </Typography>
                     </Stack>
                 </IconButton>
-            ) : null}
-            <IconButton
+            )}
+            {/* <IconButton
                 disableRipple
                 size="large"
                 sx={{
@@ -67,9 +130,9 @@ export function DetailsDestructiveActionsView(props: DetailsDestructiveActionsPr
                     }}
                 >
                     <WarningAmber style={{ fill: "red" }} />
-                    {isItPrivateChat ? (
+                    {type === "private" ? (
                         <Typography variant="subtitle1" color="red">
-                            Report {otherUser.user.displayName}
+                            Report user
                         </Typography>
                     ) : (
                         <Typography variant="subtitle1" color="red">
@@ -77,41 +140,66 @@ export function DetailsDestructiveActionsView(props: DetailsDestructiveActionsPr
                         </Typography>
                     )}
                 </Stack>
-            </IconButton>
-            <IconButton
-                disableRipple
-                size="large"
-                sx={{
-                    ml: 1,
-                    "&.MuiButtonBase-root:hover": {
-                        bgcolor: "transparent",
-                    },
-                    width: "100%",
-                }}
-            >
-                <Stack
-                    direction="row"
-                    alignItems="center"
-                    spacing={1}
+            </IconButton> */}
+            {type === "group" && (
+                <IconButton
+                    disableRipple
+                    size="large"
                     sx={{
-                        display: "flex",
-                        flexDirection: "row",
-                        justifyContent: "flex-start",
+                        ml: 1,
+                        "&.MuiButtonBase-root:hover": {
+                            bgcolor: "transparent",
+                        },
                         width: "100%",
                     }}
+                    onClick={handleLeave}
                 >
-                    <ExitToApp style={{ fill: "red" }} />
-                    {isItPrivateChat ? (
-                        <Typography variant="subtitle1" color="red">
-                            Leave conversation
-                        </Typography>
-                    ) : (
+                    <Stack
+                        direction="row"
+                        alignItems="center"
+                        spacing={1}
+                        sx={{
+                            width: "100%",
+                        }}
+                    >
+                        <ExitToApp style={{ fill: "red" }} />
+
                         <Typography variant="subtitle1" color="red">
                             Exit group
                         </Typography>
-                    )}
-                </Stack>
-            </IconButton>
+                    </Stack>
+                </IconButton>
+            )}
+
+            {type === "group" && userIsAdmin && (
+                <IconButton
+                    disableRipple
+                    size="large"
+                    sx={{
+                        ml: 1,
+                        "&.MuiButtonBase-root:hover": {
+                            bgcolor: "transparent",
+                        },
+                        width: "100%",
+                    }}
+                    onClick={handleDelete}
+                >
+                    <Stack
+                        direction="row"
+                        alignItems="center"
+                        spacing={1}
+                        sx={{
+                            width: "100%",
+                        }}
+                    >
+                        <DeleteOutline style={{ fill: "red" }} />
+
+                        <Typography variant="subtitle1" color="red">
+                            Delete group
+                        </Typography>
+                    </Stack>
+                </IconButton>
+            )}
         </Box>
     );
 }

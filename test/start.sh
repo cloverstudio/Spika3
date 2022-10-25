@@ -18,6 +18,10 @@ export LOG_INFO=1
 export LOG_WARN=0
 export LOG_ERROR=1
 export TEAM_MODE=1
+export USE_MESSAGE_RECORDS_SSE=1
+export USE_WEBHOOK=1
+export USE_SSE=1
+export REDIS_URL="redis://localhost:6379"
 
 
 npx prisma migrate reset --force && prisma migrate dev --name init --preview-feature

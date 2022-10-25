@@ -94,6 +94,7 @@ model Room {
   users RoomUser[]
   messages Message[]
   callHistory CallHistory[]
+  webhooks Webhook[]
 
   @@map(name: "room")
 }
@@ -130,6 +131,7 @@ model Message {
   createdAt  DateTime @default(now()) @map(name: "created_at")
   modifiedAt DateTime @default(now()) @map(name: "modified_at")
   deleted Boolean @default(false) @map(name: "deleted")
+  reply Boolean @default(false) @map(name: "reply")
 
   deviceMessages DeviceMessage[]
   messageRecords MessageRecord[]
@@ -231,3 +233,20 @@ model UserSetting {
   @@map(name: "user_setting")
 }
 
+model Webhook {
+  id Int @id @default(autoincrement()) @map(name: "id")
+  verifySignature String @default("") @map("verify_signature")
+  url String @default("") @map("url")
+
+  roomId Int @map(name: "room_id")
+  room Room @relation(fields: [roomId], references: [id])
+
+  createdAt  DateTime @default(now()) @map(name: "created_at")
+  modifiedAt DateTime @default(now()) @map(name: "modified_at")
+
+  @@map(name: "webhook")
+}
+
+generator dbml {
+  provider = "prisma-dbml-generator"
+}

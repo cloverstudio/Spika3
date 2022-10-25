@@ -1,20 +1,16 @@
 import { Router, Request, Response } from "express";
-import { PrismaClient, CallHistory, CallSession, Room, Prisma } from "@prisma/client";
-const prisma = new PrismaClient();
+import { CallHistory, CallSession, Room, Prisma } from "@prisma/client";
 import amqp from "amqplib";
 
 import { UserRequest } from "../../messenger/lib/types";
-import Utils from "../../../components/utils";
-import * as consts from "../../../components/consts";
 import l, { error as le } from "../../../components/logger";
 import { InitRouterParams } from "../../types/serviceInterface";
 import { successResponse, errorResponse } from "../../../components/response";
 import auth from "../../messenger/lib/auth";
-import leaveCallLogic from "../lib/leaveCallLogic";
 import notifyRoomUsersLogic from "../lib/notifyRoomUsersLogic";
-import sanitize from "../../../components/sanitize";
 import * as Constants from "../../../components/consts";
 import mediasoupHandler, { CallParamsInDB } from "../lib/mediasoupHandler";
+import prisma from "../../../components/prisma";
 
 // handle and save all mediasoup variables here
 
