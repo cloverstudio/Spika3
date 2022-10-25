@@ -109,6 +109,10 @@ export const chatSlice = createSlice({
     reducers: {
         setActiveRoomId: (state, { payload }: { payload: number | null }) => {
             state.activeRoomId = payload;
+            state.replyMessage = null;
+            state.editMessage = null;
+            state.inputType = "text";
+            state.messageText = "";
         },
 
         setMessageText: (state, { payload }: { payload: string }) => {

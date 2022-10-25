@@ -24,9 +24,10 @@ export default function Home(): React.ReactElement {
     const isBigDesktop = useMediaQuery(theme.breakpoints.up("lg"));
     const dispatch = useDispatch();
     const open = useSelector(selectLeftSidebarOpen);
+    const isCall = /^.+\/call.*$/.test(pathname);
+
     const rightSidebarOpen =
-        ((useSelector(selectRightSidebarOpen) && !pathname.includes("/call")) || isBigDesktop) &&
-        roomId;
+        (useSelector(selectRightSidebarOpen) || isBigDesktop) && !isCall && roomId;
 
     useEffect(() => {
         const resizeEventListener = (e: UIEvent) => {
