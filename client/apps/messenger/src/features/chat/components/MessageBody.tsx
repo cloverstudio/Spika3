@@ -391,8 +391,13 @@ function TextMessage({
         text = text.replace(/\n{3,}/g, "\n");
 
         // auto link
-        const autolinkRegex = /(?![^<]*>|[^<>]*<\/)((https?:)\/\/[a-z0-9&#=.\/\-?_]+)/gi;
-        text = text.replace(autolinkRegex, '<a href="$1" target="_blank">$1</a>');
+        const autolinkRegex = /(?![^<]*>|[^<>]*<\/)((https?:)\/\/[a-z0-9&#%;:=.\/\-?_]+)/gi;
+        const internalLink = text.includes(window.origin);
+
+        text = text.replace(
+            autolinkRegex,
+            `<a href="$1" ${!internalLink ? 'target="_blank"' : ""} >$1</a>`
+        );
 
         return text;
     };

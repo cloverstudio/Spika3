@@ -9,15 +9,17 @@ type Code = {
 type Props = {
     codeArr: Code[];
     setCodeArr: React.Dispatch<React.SetStateAction<Code[]>>;
+    handleSubmit: () => void;
 };
 
-export default function PinInput({ codeArr, setCodeArr }: Props): React.ReactElement {
+export default function PinInput({ codeArr, setCodeArr, handleSubmit }: Props): React.ReactElement {
     return (
         <Box
             display="grid"
             gap={1}
             gridTemplateColumns="repeat(6, 1fr)"
             justifyContent="space-between"
+            minHeight={{ xs: "160px", sm: "0px" }}
         >
             {codeArr.map((c, i) => {
                 return (
@@ -25,6 +27,7 @@ export default function PinInput({ codeArr, setCodeArr }: Props): React.ReactEle
                         key={i}
                         value={c.value}
                         inputRef={c.ref}
+                        handleSubmit={handleSubmit}
                         handleChange={(value) => {
                             const isDelete = !value;
                             const previousValue = c.value;
@@ -65,16 +68,22 @@ function NumberInput({
     value,
     handleChange,
     inputRef,
+    handleSubmit,
 }: {
     value: string;
     handleChange: (v: string) => void;
     inputRef: React.MutableRefObject<any>;
+    handleSubmit: () => void;
 }): React.ReactElement {
     const handleKeyDown: React.KeyboardEventHandler<HTMLInputElement | HTMLTextAreaElement> = (
         event
     ) => {
         if (event.key === "Backspace") {
             handleChange("");
+        }
+
+        if (event.key === "Enter") {
+            handleSubmit();
         }
     };
     return (

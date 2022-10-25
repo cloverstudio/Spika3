@@ -70,11 +70,8 @@ export const editMessageThunk = createAsyncThunk(
 export const replyMessageThunk = createAsyncThunk(
     "messages/replyMessage",
     async (type: string, thunkAPI): Promise<{ message: MessageType }> => {
-        const {
-            replyMessage: referenceMessage,
-            messageText,
-            activeRoomId: roomId,
-        } = (thunkAPI.getState() as RootState).chat;
+        const { replyMessage: referenceMessage, messageText } = (thunkAPI.getState() as RootState)
+            .chat;
 
         if (!messageText.trim()) {
             return;
@@ -83,7 +80,7 @@ export const replyMessageThunk = createAsyncThunk(
         const response = await dynamicBaseQuery({
             url: "/messenger/messages/",
             data: {
-                roomId,
+                roomId: referenceMessage.roomId,
                 type,
                 body: { referenceMessage, text: messageText.trim() },
                 reply: true,
@@ -266,30 +263,37 @@ export const chatSlice = createSlice({
         },
     },
     extraReducers: (builder) => {
-        builder.addCase(fetchMessagesByRoomId.fulfilled, (state, { payload }: any) => {
-            const messagesIds = state.messages.map((m) => m.id);
-            const notAdded = payload.list.filter(
-                (m: { id: number }) => !messagesIds.includes(m.id)
-            );
+        builder.addCase(
+            fetchMessagesByRoomId.fulfilled,
+            (
+                state,
+                {
+                    payload,
+                    meta: {
+                        arg: { roomId },
+                    },
+                }: any
+            ) => {
+                const messagesIds = state.messages.map((m) => m.id);
+                const notAdded = payload.list.filter(
+                    (m: { id: number }) => !messagesIds.includes(m.id)
+                );
 
-            if (
-                state.activeRoomId &&
-                state.count.findIndex((c) => c.roomId === state.activeRoomId) < 0
-            ) {
-                state.count.push({
-                    roomId: state.activeRoomId,
-                    count: payload.count,
-                });
+                if (roomId && state.count.findIndex((c) => c.roomId === roomId) < 0) {
+                    state.count.push({
+                        roomId: roomId,
+                        count: payload.count,
+                    });
+                }
+                state.messages = [...state.messages, ...notAdded];
+
+                if (!state.messagesByRoom[roomId]) state.messagesByRoom[roomId] = [];
+
+                state.messagesByRoom[roomId].push(...notAdded);
+
+                state.loading = "idle";
             }
-            state.messages = [...state.messages, ...notAdded];
-
-            if (!state.messagesByRoom[state.activeRoomId])
-                state.messagesByRoom[state.activeRoomId] = [];
-
-            state.messagesByRoom[state.activeRoomId].push(...notAdded);
-
-            state.loading = "idle";
-        });
+        );
         builder.addCase(fetchMessagesByRoomId.pending, (state) => {
             state.loading = "pending";
         });
