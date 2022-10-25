@@ -1,12 +1,9 @@
 import { Router, Request, Response } from "express";
-import { PrismaClient, Room, CallSession } from "@prisma/client";
-const prisma = new PrismaClient();
+import { Room, CallSession } from "@prisma/client";
 import amqp from "amqplib";
 
 import { UserRequest } from "../../messenger/lib/types";
-import Utils from "../../../components/utils";
-import * as consts from "../../../components/consts";
-import l, { error as le } from "../../../components/logger";
+import { error as le } from "../../../components/logger";
 import { InitRouterParams } from "../../types/serviceInterface";
 import { successResponse, errorResponse } from "../../../components/response";
 import auth from "../../messenger/lib/auth";
@@ -14,6 +11,7 @@ import leaveCallLogic from "../lib/leaveCallLogic";
 import notifyRoomUsersLogic from "../lib/notifyRoomUsersLogic";
 import sanitize from "../../../components/sanitize";
 import * as Constants from "../../../components/consts";
+import prisma from "../../../components/prisma";
 
 export default (params: InitRouterParams) => {
     const router = Router();
@@ -40,8 +38,8 @@ export default (params: InitRouterParams) => {
                 user: sanitize(userReq.user).user(),
             });
 
-            let sessionId: number = 0;
-            let isInitiator: boolean = false;
+            let sessionId = 0;
+            let isInitiator = false;
 
             // check existing session
             const callSession: CallSession = await prisma.callSession.findFirst({

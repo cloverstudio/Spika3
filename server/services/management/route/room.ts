@@ -1,6 +1,4 @@
 import { Router, Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
 
 import adminAuth from "../lib/adminAuth";
 import * as consts from "../../../components/consts";
@@ -10,7 +8,8 @@ import l, { error as le } from "../../../components/logger";
 import { InitRouterParams } from "../../types/serviceInterface";
 import { successResponse, errorResponse } from "../../../components/response";
 import { UserRequest } from "../../messenger/lib/types";
-import { Room, RoomUser, User } from "@prisma/client";
+import { Room } from "@prisma/client";
+import prisma from "../../../components/prisma";
 
 export default (params: InitRouterParams) => {
     const router = Router();
@@ -92,7 +91,7 @@ export default (params: InitRouterParams) => {
     });
 
     router.get("/users", adminAuth, async (req: Request, res: Response) => {
-        const roomId: number = Number(req.query.roomId);
+        const roomId = Number(req.query.roomId);
         const userReq: UserRequest = req as UserRequest;
 
         try {
@@ -227,7 +226,7 @@ export default (params: InitRouterParams) => {
         const userId: number = parseInt(req.query.userId ? (req.query.userId as string) : "") || 0;
         const deleted: boolean = req.query.deleted == "true";
         try {
-            var rooms: Room[] = null;
+            let rooms: Room[] = null;
             if (userId == 0) {
                 const clause = !deleted ? {} : { deleted: true };
                 rooms = await prisma.room.findMany({

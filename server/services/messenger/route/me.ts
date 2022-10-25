@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { Device, PrismaClient, User } from "@prisma/client";
+import { Device, User, UserSetting } from "@prisma/client";
 
 import { error as le } from "../../../components/logger";
 import validate from "../../../components/validateMiddleware";
@@ -11,8 +11,7 @@ import sanitize from "../../../components/sanitize";
 import Utils from "../../../components/utils";
 import { InitRouterParams } from "../../types/serviceInterface";
 import * as Constants from "../../../components/consts";
-
-const prisma = new PrismaClient();
+import prisma from "../../../components/prisma";
 
 const updateSchema = yup.object().shape({
     body: yup.object().shape({
@@ -103,6 +102,23 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     );
                 }
             }
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.get("/settings", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+
+        try {
+            const settings: UserSetting[] = await prisma.userSetting.findMany({
+                where: {
+                    userId: userReq.user.id,
+                },
+            });
+
+            res.send(successResponse({ settings }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

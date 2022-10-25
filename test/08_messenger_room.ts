@@ -444,7 +444,10 @@ describe("API", () => {
         it("adds users to admin list", async () => {
             const users = await createManyFakeUsers(3);
             const adminUserIds = users.map((u) => u.id);
-            const room = await createFakeRoom([{ userId: globals.userId, isAdmin: true }]);
+            const room = await createFakeRoom([
+                { userId: globals.userId, isAdmin: true },
+                ...adminUserIds.map((userId) => ({ userId, isAdmin: false })),
+            ]);
 
             const response = await supertest(app)
                 .put("/api/messenger/rooms/" + room.id)
@@ -524,13 +527,16 @@ describe("API", () => {
         });
 
         it("updates are saved in db", async () => {
-            const room = await createFakeRoom([{ userId: globals.userId, isAdmin: true }]);
-            const avatarUrl = "/some/new/path";
-            const name = "Kool kids room";
-            const users = await createManyFakeUsers(2);
-            const userIds = users.map((u) => u.id);
             const admins = await createManyFakeUsers(2);
             const adminUserIds = admins.map((u) => u.id);
+            const users = await createManyFakeUsers(2);
+            const userIds = users.map((u) => u.id).concat(...adminUserIds, globals.userId);
+            const room = await createFakeRoom([
+                { userId: globals.userId, isAdmin: true },
+                ...adminUserIds.map((userId) => ({ userId, isAdmin: false })),
+            ]);
+            const avatarUrl = "/some/new/path";
+            const name = "Cool kids room";
 
             const response = await supertest(app)
                 .put("/api/messenger/rooms/" + room.id)
@@ -551,11 +557,11 @@ describe("API", () => {
             expect(roomFromDb).to.has.property("users");
             expect(roomFromDb.users).to.be.an("array");
             expect(
+                roomFromDb.users.filter((u: RoomUser) => !u.isAdmin).map((u: RoomUser) => u.userId)
+            ).to.include.members(users.map((u) => u.id));
+            expect(
                 roomFromDb.users.filter((u: RoomUser) => u.isAdmin).map((u: RoomUser) => u.userId)
             ).to.include.members([globals.userId, ...adminUserIds]);
-            expect(
-                roomFromDb.users.filter((u: RoomUser) => !u.isAdmin).map((u: RoomUser) => u.userId)
-            ).to.include.members(userIds);
         });
     });
 
@@ -638,6 +644,58 @@ describe("API", () => {
 
             expect(roomFromDb).to.has.property("deleted");
             expect(roomFromDb.deleted).to.eqls(true);
+        });
+    });
+
+    describe("/api/messenger/rooms/:id/mute PUT", () => {
+        it("returns 404 if there is no room with that id", async () => {
+            const id = 865454588;
+
+            const response = await supertest(app)
+                .post(`/api/messenger/rooms/${id}/mute`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(404);
+        });
+
+        it("user can leave mute room", async () => {
+            const user = await createFakeUser();
+            const room = await createFakeRoom([
+                { userId: user.id, isAdmin: true },
+                { userId: globals.userId },
+            ]);
+
+            const response = await supertest(app)
+                .post(`/api/messenger/rooms/${room.id}/mute`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(200);
+        });
+    });
+
+    describe("/api/messenger/rooms/:id/unmute PUT", () => {
+        it("returns 404 if there is no room with that id", async () => {
+            const id = 865454588;
+
+            const response = await supertest(app)
+                .post(`/api/messenger/rooms/${id}/unmute`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(404);
+        });
+
+        it("user can leave unmute room", async () => {
+            const user = await createFakeUser();
+            const room = await createFakeRoom([
+                { userId: user.id, isAdmin: true },
+                { userId: globals.userId },
+            ]);
+
+            const response = await supertest(app)
+                .post(`/api/messenger/rooms/${room.id}/unmute`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(200);
         });
     });
 

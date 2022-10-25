@@ -19,6 +19,7 @@ const VALID_SSE_EVENT_TYPES = [
     "CALL_LEAVE",
     "CALL_UPDATE",
     "UPDATE_ROOM",
+    "DELETE_ROOM",
     "USER_UPDATE",
 ];
 
@@ -26,6 +27,7 @@ import { notify as notifyCallEvent } from "../features/confcall/lib/callEventLis
 import { fetchContact } from "../features/chat/slice/contactsSlice";
 import { RoomType } from "../types/Rooms";
 import newMessageSound from "../../../../assets/newmessage.mp3";
+import * as constants from "../../../../lib/constants";
 
 export default async function handleSSE(event: MessageEvent): Promise<void> {
     const data = event.data ? JSON.parse(event.data) : {};
@@ -68,15 +70,25 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                 });
             }
 
+            const isMute =
+                store
+                    .getState()
+                    .user.settings?.find(
+                        (r) => r.key === `${constants.SETTINGS_ROOM_MUTE_PREFIX}${message.roomId}`
+                    )?.value === constants.SETTINGS_TRUE;
+
             // play sound logic
             if (
+                !isMute &&
                 !document.hidden &&
                 store.getState().chat.activeRoomId !== message.roomId &&
                 message.fromUserId !== store.getState().user.id
             ) {
                 new Audio(newMessageSound).play();
-            } else if (document.hidden) {
+            } else if (!isMute && document.hidden) {
                 new Audio(newMessageSound).play();
+            } else {
+                console.log("muted !");
             }
 
             return;
@@ -188,6 +200,19 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
             }
 
             store.dispatch(fetchHistory({ page: 1, keyword: "" }));
+
+            return;
+        }
+
+        case "DELETE_ROOM": {
+            const room = data.room;
+
+            if (!room) {
+                console.log("Invalid DELETE_ROOM payload");
+                return;
+            }
+
+            store.dispatch(api.util.invalidateTags([{ type: "Rooms", id: room.id }]));
 
             return;
         }

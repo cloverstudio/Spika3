@@ -9,11 +9,15 @@ export const LSKEY_SELECTEDMIC = "selectedmic";
 export const LSKEY_LASTROOM = "lastroom";
 export const LSKEY_ENABLECAM = "enablecam";
 export const LSKEY_ENABLEMIC = "enablemic";
-export const LSKEY_DISABLEPUSHALER: string = "disable_pushnotificationalert";
+export const LSKEY_DISABLEPUSHALER = "disable_pushnotificationalert";
 export const LSKEY_CROPSIZE = 512;
 
-export const LSKEY_ACCESSTOKEN: string = "access-token";
-export const LSKEY_DEVICEID: string = "deviceId";
+export const LSKEY_ACCESSTOKEN = "access-token";
+export const LSKEY_DEVICEID = "deviceId";
 export const ADMIN_ACCESS_TOKEN = "admin-accesstoken";
 export const THUMB_WIDTH = 256;
 export const MESSAGE_PAGING_LIMIT = 50;
+
+export const SETTINGS_ROOM_MUTE_PREFIX = "mute_";
+export const SETTINGS_TRUE = "true";
+export const SETTINGS_FALSE = "false";

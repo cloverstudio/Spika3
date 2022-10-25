@@ -67,7 +67,16 @@ export const dynamicBaseQuery = async (args: any, options?: { dispatch: any }) =
 export default createApi({
     reducerPath: "api",
     baseQuery: dynamicBaseQuery,
-    tagTypes: ["User", "Auth", "Contacts", "Rooms", "Device", "Notes", "MessageRecords"],
+    tagTypes: [
+        "User",
+        "Auth",
+        "Contacts",
+        "Rooms",
+        "Device",
+        "Notes",
+        "MessageRecords",
+        "Webhooks",
+    ],
 
     endpoints: () => ({}),
 });

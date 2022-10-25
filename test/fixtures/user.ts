@@ -1,8 +1,6 @@
-import { PrismaClient, User } from "@prisma/client";
+import { User } from "@prisma/client";
 import crypto from "crypto";
 import faker from "faker";
-
-const prisma = new PrismaClient();
 
 export default async function createFakeUser(overrides?: any): Promise<User> {
     const telephoneNumber = `+385${faker.datatype.number({ min: 911111111, max: 999999999 })}`;
@@ -19,7 +17,7 @@ export default async function createFakeUser(overrides?: any): Promise<User> {
         ...(overrides && { ...overrides }),
     };
 
-    return prisma.user.create({ data: user });
+    return global.prisma.user.create({ data: user });
 }
 
 export async function createManyFakeUsers(count: number): Promise<User[]> {

@@ -1,6 +1,6 @@
 import express, { Router } from "express";
-import amqp from "amqplib";
+import { Channel } from "amqplib";
 
 export default interface QueueWorker {
-    run(param: any): Promise<any>;
+    run(param: any, channel?: Channel): Promise<any>;
 }

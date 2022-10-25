@@ -14,6 +14,8 @@ export const QUEUE_SMS = "QUEUE_SMS";
 export const QUEUE_CREATE_CONTACT = "QUEUE_CREATE_CONTACT";
 export const QUEUE_PUSH = "QUEUE_PUSH";
 export const QUEUE_SSE = "QUEUE_SSE";
+export const QUEUE_MESSAGE_RECORDS_SSE = "QUEUE_MESSAGE_RECORDS_SSE";
+export const QUEUE_WEBHOOK = "QUEUE_WEBHOOK";
 
 export const MESSAGE_ACTION_NEW_MESSAGE = "NEW_MESSAGE";
 export const PUSH_TYPE_NEW_MESSAGE = "NEW_MESSAGE";
@@ -32,3 +34,5 @@ export const PUSH_TYPE_CALL_UPDATE = "CALL_UPDATE";
 
 export const EXCHANGE_NAME = "NOTIFICATION";
 export const MESSAGE_RECORD_VALID_TYPES = ["seen", "delivered", "reaction"];
+
+export const ROOM_MUTE_PREFIX = "mute_";

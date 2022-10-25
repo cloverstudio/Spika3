@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { MessageRecord, PrismaClient } from "@prisma/client";
+import { MessageRecord } from "@prisma/client";
 
 import { UserRequest } from "../lib/types";
 import { error as le } from "../../../components/logger";
@@ -15,9 +15,7 @@ import { InitRouterParams } from "../../types/serviceInterface";
 import sanitize from "../../../components/sanitize";
 import { formatMessageBody } from "../../../components/message";
 import createSSEMessageRecordsNotify from "../lib/sseMessageRecordsNotify";
-import message from "../../management/route/message";
-
-const prisma = new PrismaClient();
+import prisma from "../../../components/prisma";
 
 const postMessageSchema = yup.object().shape({
     body: yup.object().shape({
@@ -25,6 +23,7 @@ const postMessageSchema = yup.object().shape({
         type: yup.string().strict().required(),
         body: yup.object().required(),
         localId: yup.string().strict(),
+        reply: yup.boolean().default(false),
     }),
 });
 
@@ -46,6 +45,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             const type = req.body.type;
             const body = req.body.body;
             const localId = req.body.localId;
+            const reply = req.body.reply;
             const fromUserId = userReq.user.id;
             const fromDeviceId = userReq.device.id;
 
@@ -58,6 +58,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 return res.status(400).send(errorResponse("Room not found", userReq.lang));
             }
 
+            if (room.deleted) {
+                return res.status(403).send(errorResponse("Room is deleted", userReq.lang));
+            }
+
             // validation
             if (type === "image" || type === "audio" || type === "video" || type === "file") {
                 if (!body.fileId)
@@ -66,7 +70,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 const fileId: number = body.fileId;
                 const thumbId: number = body.thumbId;
 
-                // check existance
+                // check existence
                 const exists = await prisma.file.findFirst({ where: { id: fileId } });
                 if (!exists)
                     return res.status(400).send(errorResponse("Invalid fileId", userReq.lang));
@@ -78,6 +82,26 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     if (!exists)
                         return res.status(400).send(errorResponse("Invalid thumbId", userReq.lang));
                 }
+            } else if (reply) {
+                if (!body.referenceMessage)
+                    return res
+                        .status(400)
+                        .send(errorResponse("referenceMessage is missing", userReq.lang));
+                if (!body.referenceMessage.id)
+                    return res
+                        .status(400)
+                        .send(errorResponse("referenceMessage id is missing", userReq.lang));
+
+                if (!body.text)
+                    return res.status(400).send(errorResponse("Text is missing", userReq.lang));
+                const referenceMessageFound = await prisma.message.findUnique({
+                    where: { id: body.referenceMessage.id },
+                });
+
+                if (!referenceMessageFound)
+                    return res
+                        .status(400)
+                        .send(errorResponse("referenceMessage not found", userReq.lang));
             } else if (type === "text") {
                 if (!body.text)
                     return res.status(400).send(errorResponse("Text is missing", userReq.lang));
@@ -110,6 +134,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     deliveredCount: 0,
                     seenCount: 0,
                     localId,
+                    reply,
                 },
             });
 
@@ -137,8 +162,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                                     token: devices.find((d) => d.id == deviceMessage.deviceId)
                                         ?.pushToken,
                                     data: {
-                                        message: sanitizedMessage,
+                                        message: { ...sanitizedMessage },
                                         user: sanitize(userReq.user).user(),
+                                        ...(room.type === "group" && { groupName: room.name }),
+                                        toUserId: deviceMessage.userId,
                                     },
                                 })
                             )
@@ -160,25 +187,24 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 );
             }
 
-            const messageRecords = (
-                await Promise.all(
-                    ["delivered", "seen"].map(async (type) =>
-                        prisma.messageRecord.create({
-                            data: { type, userId: fromUserId, messageId: message.id },
-                        })
-                    )
+            const messageRecordsNotifyData = {
+                types: ["delivered", "seen"],
+                userId: fromUserId,
+                messageIds: [message.id],
+                pushType: Constants.PUSH_TYPE_NEW_MESSAGE_RECORD,
+            };
+
+            sseMessageRecordsNotify(messageRecordsNotifyData);
+
+            rabbitMQChannel.sendToQueue(
+                Constants.QUEUE_WEBHOOK,
+                Buffer.from(
+                    JSON.stringify({
+                        messageId: message.id,
+                        body,
+                    })
                 )
-            ).map((mr) => sanitize(mr).messageRecord());
-
-            await prisma.message.update({
-                where: { id: message.id },
-                data: {
-                    deliveredCount: { increment: 1 },
-                    seenCount: { increment: 1 },
-                },
-            });
-
-            //sseMessageRecordsNotify(messageRecords, Constants.PUSH_TYPE_NEW_MESSAGE_RECORD);
+            );
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -296,35 +322,14 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 take: take,
             });
 
-            for (const message of messages) {
-                const record = message.messageRecords.find(
-                    (mr) => mr.type === "delivered" && mr.userId === userId
-                );
+            const messageRecordsNotifyData = {
+                types: ["delivered"],
+                userId,
+                messageIds: messages.map((m) => m.id),
+                pushType: Constants.PUSH_TYPE_NEW_MESSAGE_RECORD,
+            };
 
-                if (!record) {
-                    try {
-                        await prisma.messageRecord.create({
-                            data: { type: "delivered", userId, messageId: message.id },
-                        });
-
-                        await prisma.message.update({
-                            where: { id: message.id },
-                            data: {
-                                deliveredCount: { increment: 1 },
-                            },
-                        });
-
-                        /*
-                        sseMessageRecordsNotify(
-                            [sanitize(record).messageRecord()],
-                            Constants.PUSH_TYPE_NEW_MESSAGE_RECORD
-                        );
-                        */
-                    } catch (error) {
-                        console.error({ error });
-                    }
-                }
-            }
+            sseMessageRecordsNotify(messageRecordsNotifyData);
 
             const list = await Promise.all(
                 messages.map(async (m) => {
@@ -414,38 +419,14 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     }
                 >[] = [];
 
-                for (const message of messages) {
-                    let record = await prisma.messageRecord.findUnique({
-                        where: {
-                            messageId_userId_type_unique_constraint: {
-                                messageId: message.id,
-                                type: "delivered",
-                                userId,
-                            },
-                        },
-                    });
+                const messageRecordsNotifyData = {
+                    types: ["delivered"],
+                    userId,
+                    messageIds: messages.map((m) => m.id),
+                    pushType: Constants.PUSH_TYPE_NEW_MESSAGE_RECORD,
+                };
 
-                    if (!record) {
-                        try {
-                            record = await prisma.messageRecord.create({
-                                data: { type: "delivered", userId, messageId: message.id },
-                            });
-
-                            await prisma.message.update({
-                                where: { id: message.id },
-                                data: {
-                                    deliveredCount: { increment: 1 },
-                                },
-                            });
-
-                            messageRecords.push(sanitize(record).messageRecord());
-                        } catch (error) {
-                            console.error({ error });
-                        }
-                    }
-                }
-
-                //sseMessageRecordsNotify(messageRecords, Constants.PUSH_TYPE_NEW_MESSAGE_RECORD);
+                sseMessageRecordsNotify(messageRecordsNotifyData);
 
                 res.send(successResponse({ messageRecords }, userReq.lang));
             } catch (e: any) {
@@ -455,33 +436,33 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         }
     );
 
-    router.get("/sync", auth, async (req: Request, res: Response) => {
+    router.get("/sync/:lastUpdate", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
-        const deviceId = userReq.device.id;
         const userId = userReq.user.id;
+        const lastUpdate = parseInt(req.params.lastUpdate as string);
 
         try {
-            const undeliveredMessages = await prisma.message.findMany({
+            if (isNaN(lastUpdate)) {
+                return res
+                    .status(400)
+                    .send(errorResponse("lastUpdate must be number", userReq.lang));
+            }
+
+            const roomsUser = await prisma.roomUser.findMany({ where: { userId } });
+            const roomsIds = roomsUser.map((ru) => ru.roomId);
+
+            const messages = await prisma.message.findMany({
                 where: {
-                    deviceMessages: {
-                        some: {
-                            deviceId,
-                        },
-                    },
-                    messageRecords: {
-                        none: {
-                            type: "delivered",
-                            userId,
-                        },
-                    },
+                    modifiedAt: { gt: new Date(lastUpdate) },
+                    roomId: { in: roomsIds },
                 },
                 include: {
                     deviceMessages: true,
                 },
             });
 
-            const sanitizedUndeliveredMessages = await Promise.all(
-                undeliveredMessages.map(async (message) =>
+            const sanitizedMessages = await Promise.all(
+                messages.map(async (message) =>
                     sanitize({
                         ...message,
                         body: await formatMessageBody(message.deviceMessages[0].body, message.type),
@@ -489,7 +470,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 )
             );
 
-            res.send(successResponse({ messages: sanitizedUndeliveredMessages }, userReq.lang));
+            res.send(successResponse({ messages: sanitizedMessages }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -528,65 +509,14 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 }
             >[] = [];
 
-            for (const message of messages) {
-                let record = await prisma.messageRecord.findUnique({
-                    where: {
-                        messageId_userId_type_unique_constraint: {
-                            messageId: message.id,
-                            type: "seen",
-                            userId,
-                        },
-                    },
-                });
+            const messageRecordsNotifyData = {
+                types: ["seen", "delivered"],
+                userId,
+                messageIds: messages.map((m) => m.id),
+                pushType: Constants.PUSH_TYPE_NEW_MESSAGE_RECORD,
+            };
 
-                if (!record) {
-                    try {
-                        record = await prisma.messageRecord.create({
-                            data: { type: "seen", userId, messageId: message.id },
-                        });
-
-                        await prisma.message.update({
-                            where: { id: message.id },
-                            data: {
-                                seenCount: { increment: 1 },
-                            },
-                        });
-
-                        messageRecords.push(sanitize(record).messageRecord());
-                    } catch (error) {
-                        console.error({ error });
-                    }
-                }
-
-                const deliveredMessageRecord = await prisma.messageRecord.findUnique({
-                    where: {
-                        messageId_userId_type_unique_constraint: {
-                            messageId: message.id,
-                            type: "delivered",
-                            userId,
-                        },
-                    },
-                });
-
-                if (!deliveredMessageRecord) {
-                    try {
-                        await prisma.messageRecord.create({
-                            data: { type: "delivered", userId, messageId: message.id },
-                        });
-
-                        await prisma.message.update({
-                            where: { id: message.id },
-                            data: {
-                                deliveredCount: { increment: 1 },
-                            },
-                        });
-                    } catch (error) {
-                        console.error({ error });
-                    }
-                }
-            }
-
-            //sseMessageRecordsNotify(messageRecords, Constants.PUSH_TYPE_NEW_MESSAGE_RECORD);
+            sseMessageRecordsNotify(messageRecordsNotifyData);
 
             res.send(successResponse({ messageRecords }, userReq.lang));
         } catch (e: any) {
@@ -723,7 +653,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             for (const deviceMessage of message.deviceMessages) {
                 await prisma.deviceMessage.update({
                     where: { id: deviceMessage.id },
-                    data: { modifiedAt: new Date(), body: { text } },
+                    data: {
+                        modifiedAt: new Date(),
+                        body: { ...(deviceMessage.body as Record<string, unknown>), text },
+                    },
                 });
             }
 
@@ -733,7 +666,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 include: { deviceMessages: true },
             });
 
-            const sanitizedMessage = sanitize({ ...message, body: { text } }).message();
+            const sanitizedMessage = sanitize({
+                ...message,
+                body: { ...(message.deviceMessages[0].body as Record<string, unknown>), text },
+            }).message();
 
             res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
 

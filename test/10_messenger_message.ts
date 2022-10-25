@@ -114,6 +114,18 @@ describe("API", () => {
             expect(responseValid.status).to.eqls(200);
         });
 
+        it("requires room to not be deleted", async () => {
+            const room = await createFakeRoom([{ userId: globals.userId, isAdmin: true }], {
+                deleted: true,
+            });
+            const response = await supertest(app)
+                .post("/api/messenger/messages")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, roomId: room.id });
+
+            expect(response.status).to.eqls(403);
+        });
+
         it("creates message model", async () => {
             const response = await supertest(app)
                 .post("/api/messenger/messages")
@@ -321,6 +333,53 @@ describe("API", () => {
             // -1 is because we don't send push to user who send the message
             expect(sendPush.run).to.have.been.called.min(deviceMessagesCount - 1);
         });
+
+        it("if message is reply it requires referenceMessage and text", async () => {
+            const responseInvalidOne = await supertest(app)
+                .post("/api/messenger/messages")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, reply: true });
+
+            const responseInvalidTwo = await supertest(app)
+                .post("/api/messenger/messages")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, reply: true, body: { referenceMessage: true } });
+
+            const responseInvalidThree = await supertest(app)
+                .post("/api/messenger/messages")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, reply: true, body: { referenceMessage: {}, text: "foo" } });
+
+            const responseInvalidFour = await supertest(app)
+                .post("/api/messenger/messages")
+                .set({ accesstoken: globals.userToken })
+                .send({
+                    ...validParams,
+                    reply: true,
+                    body: { referenceMessage: { id: 12365478987154154 }, text: "foo" },
+                });
+
+            const message = await createFakeMessage({
+                room,
+                fromUserId: globals.userId,
+                fromDeviceId: globals.deviceId,
+            });
+
+            const response = await supertest(app)
+                .post("/api/messenger/messages")
+                .set({ accesstoken: globals.userToken })
+                .send({
+                    ...validParams,
+                    reply: true,
+                    body: { referenceMessage: message, text: "foo" },
+                });
+
+            expect(responseInvalidOne.status).to.eqls(400);
+            expect(responseInvalidTwo.status).to.eqls(400);
+            expect(responseInvalidThree.status).to.eqls(400);
+            expect(responseInvalidFour.status).to.eqls(400);
+            expect(response.status).to.eqls(200);
+        });
     });
 
     describe("/api/messenger/messages/:roomId/seen POST", () => {
@@ -389,6 +448,8 @@ describe("API", () => {
 
             expect(response.status).to.eqls(200);
 
+            await wait(0.1);
+
             const messageRecords = await globals.prisma.messageRecord.findMany({
                 where: {
                     messageId: { in: [messageOne.id, messageTwo.id] },
@@ -417,6 +478,8 @@ describe("API", () => {
                 .set({ accesstoken: globals.userToken });
 
             expect(response.status).to.eqls(200);
+
+            await wait(0.1);
 
             const messageRecords = await globals.prisma.messageRecord.findMany({
                 where: {
@@ -549,6 +612,8 @@ describe("API", () => {
 
             expect(response.status).to.eqls(200);
 
+            await wait(0.1);
+
             const messageRecords = await globals.prisma.messageRecord.findMany({
                 where: {
                     messageId: { in: messages.map((m) => m.id) },
@@ -647,8 +712,17 @@ describe("API", () => {
         });
     });
 
-    describe("/api/messenger/messages/sync GET", () => {
-        it("gets messages that are not delivered", async () => {
+    describe("/api/messenger/messages/sync/:lastUpdate GET", () => {
+        it("Requires lastUpdate to be number", async () => {
+            const response = await supertest(app)
+                .get("/api/messenger/messages/sync/abc58")
+                .set({ accesstoken: globals.userToken });
+            expect(response.status).to.eqls(400);
+        });
+
+        it("Returns messages from lastUpdate", async () => {
+            const lastUpdate = +new Date();
+
             const user = await createFakeUser();
             const device = await createFakeDevice(user.id);
             const room = await createFakeRoom([
@@ -666,22 +740,19 @@ describe("API", () => {
                 )
             );
 
-            const deliveredMessage = await createFakeMessage({
-                fromUserId: user.id,
-                room,
-                fromDeviceId: device.id,
-            });
-
-            await globals.prisma.messageRecord.create({
-                data: {
-                    messageId: deliveredMessage.id,
-                    userId: globals.userId,
-                    type: "delivered",
-                },
-            });
+            const olderMessages = await Promise.all(
+                new Array(18).fill(true).map(() =>
+                    createFakeMessage({
+                        fromUserId: user.id,
+                        room,
+                        fromDeviceId: device.id,
+                        modifiedAt: new Date(+new Date() - 10000),
+                    })
+                )
+            );
 
             const response = await supertest(app)
-                .get("/api/messenger/messages/sync")
+                .get("/api/messenger/messages/sync/" + lastUpdate)
                 .set({ accesstoken: globals.userToken });
 
             expect(response.status).to.eqls(200);
@@ -691,8 +762,10 @@ describe("API", () => {
                 messages.every((m) => response.body.data.messages.find((bm: any) => bm.id === m.id))
             ).to.be.true;
             expect(
-                response.body.data.messages.filter((mb: any) => mb.id === deliveredMessage.id)
-            ).to.have.lengthOf(0);
+                olderMessages.every(
+                    (m) => !response.body.data.messages.find((bm: any) => bm.id === m.id)
+                )
+            ).to.be.true;
         });
     });
 

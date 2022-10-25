@@ -7,7 +7,7 @@ import { SendPushPayload } from "../types/queuePayloadTypes";
 import sendPushWorker from "./worker/sendPush";
 
 export default class PushService implements Service {
-    async start({ rabbitMQChannel }: ServiceStartParams): Promise<void> {
+    async start({ rabbitMQChannel, redisClient }: ServiceStartParams): Promise<void> {
         await rabbitMQChannel.assertQueue(Constants.QUEUE_PUSH, {
             durable: false,
         });
@@ -15,7 +15,7 @@ export default class PushService implements Service {
         rabbitMQChannel.consume(Constants.QUEUE_PUSH, async (msg: amqp.ConsumeMessage) => {
             rabbitMQChannel.ack(msg);
             const payload: SendPushPayload = JSON.parse(msg.content.toString());
-            await sendPushWorker.run(payload);
+            await sendPushWorker.run({ ...payload, redisClient });
         });
     }
 

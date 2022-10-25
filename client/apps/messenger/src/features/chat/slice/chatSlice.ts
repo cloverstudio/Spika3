@@ -57,6 +57,26 @@ export const editMessageThunk = createAsyncThunk(
     }
 );
 
+export const replyMessageThunk = createAsyncThunk(
+    "messages/replyMessage",
+    async (type: string, thunkAPI): Promise<{ message: MessageType }> => {
+        const {
+            replyMessage: referenceMessage,
+            messageText,
+            activeRoomId: roomId,
+        } = (thunkAPI.getState() as RootState).chat;
+
+        const response = await dynamicBaseQuery({
+            url: "/messenger/messages/",
+            data: { roomId, type, body: { referenceMessage, text: messageText }, reply: true },
+            method: "POST",
+        });
+
+        thunkAPI.dispatch(fetchHistory({ page: 1, keyword: "" }));
+        return response.data;
+    }
+);
+
 interface ChatState {
     activeRoomId: number | null;
     messages: MessageType[];
@@ -67,6 +87,7 @@ interface ChatState {
     sendingMessage: "idle" | "pending" | "succeeded" | "failed";
     messageText: string;
     editMessage: MessageType | null;
+    replyMessage: MessageType | null;
     inputType: "text" | "emoji" | "files";
 }
 
@@ -82,6 +103,7 @@ export const chatSlice = createSlice({
         sendingMessage: "idle",
         messageText: "",
         editMessage: null,
+        replyMessage: null,
         inputType: "text",
     },
     reducers: {
@@ -95,9 +117,16 @@ export const chatSlice = createSlice({
 
         setEditMessage: (state, { payload }: { payload: MessageType | null }) => {
             state.editMessage = payload;
+            state.replyMessage = null;
+
             if (payload) {
                 state.messageText = payload.body.text;
             }
+        },
+
+        setReplyMessage: (state, { payload }: { payload: MessageType | null }) => {
+            state.replyMessage = payload;
+            state.editMessage = null;
         },
 
         addMessage: (state, { payload }: { payload: MessageType }) => {
@@ -265,6 +294,15 @@ export const chatSlice = createSlice({
             state.inputType = "text";
             state.editMessage = null;
         });
+
+        builder.addCase(replyMessageThunk.fulfilled, (state, { payload }) => {
+            state.messages = [...state.messages, payload.message];
+            state.messagesByRoom[payload.message.roomId].push(payload.message);
+
+            state.messageText = "";
+            state.inputType = "text";
+            state.replyMessage = null;
+        });
     },
 });
 
@@ -276,6 +314,7 @@ export const {
     editMessage,
     setMessageText,
     setEditMessage,
+    setReplyMessage,
     setInputType,
     addEmoji,
 } = chatSlice.actions;
@@ -283,11 +322,10 @@ export const {
 export const selectActiveRoomId = (state: RootState): number | null => state.chat.activeRoomId;
 export const selectMessageText = (state: RootState): string => state.chat.messageText;
 export const selectEditMessage = (state: RootState): MessageType | null => state.chat.editMessage;
+export const selectReplyMessage = (state: RootState): MessageType | null => state.chat.replyMessage;
 export const selectRoomMessages =
     (roomId: number) =>
     (state: RootState): MessageType[] => {
-        const messages = state.chat.messages.filter((m) => m.roomId === roomId);
-
         if (!state.chat.messagesByRoom[roomId]) return [];
 
         return state.chat.messagesByRoom[roomId];

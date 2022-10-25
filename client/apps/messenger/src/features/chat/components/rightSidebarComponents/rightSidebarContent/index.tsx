@@ -1,7 +1,6 @@
 import React from "react";
 import { useSelector } from "react-redux";
 
-import { selectUser } from "../../../../../store/userSlice";
 import { RoomType } from "../../../../../types/Rooms";
 import { selectRightSidebarActiveTab } from "../../../slice/rightSidebarSlice";
 import { DetailsAdditionalInfoView } from "../AdditionalInfoView";
@@ -11,6 +10,7 @@ import { DetailsMemberView } from "../MembersView";
 
 import RightSidebarCreateNoteContent from "./RightSidebarCreateNoteContent";
 import RightSidebarEditNoteContent from "./RightSidebarEditNoteContent";
+import RightSidebarSettingsContent from "./RightSidebarSettingsContent";
 import RightSidebarNoteDetailContent from "./RightSidebarNoteDetailContent";
 import RightSidebarNotesContent from "./RightSidebarNotesContent";
 
@@ -21,19 +21,17 @@ type RightSidebarContentProps = {
 export default function RightSidebarContent({
     room,
 }: RightSidebarContentProps): React.ReactElement {
-    const user = useSelector(selectUser);
     const activeTab = useSelector(selectRightSidebarActiveTab);
-
-    const otherUser = room.users.find((u) => u.userId !== user.id);
-    const isPrivate = room.type === "private";
 
     if (activeTab === "details") {
         return (
             <>
                 <DetailsBasicInfoView roomData={room} />
-                <DetailsAdditionalInfoView />
-                {!isPrivate ? <DetailsMemberView members={room.users} roomId={room.id} /> : null}
-                <DetailsDestructiveActionsView isItPrivateChat={isPrivate} otherUser={otherUser} />
+                <DetailsAdditionalInfoView roomData={room} />
+                {room.type === "group" && (
+                    <DetailsMemberView members={room.users} roomId={room.id} />
+                )}
+                <DetailsDestructiveActionsView room={room} />
             </>
         );
     }
@@ -52,5 +50,9 @@ export default function RightSidebarContent({
 
     if (activeTab === "editNote") {
         return <RightSidebarEditNoteContent />;
+    }
+
+    if (activeTab === "settings") {
+        return <RightSidebarSettingsContent />;
     }
 }

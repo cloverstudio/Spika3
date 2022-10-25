@@ -10,7 +10,6 @@ import Playground from "./pages/playground";
 declare const BASE_URL: string;
 
 export default function App(): React.ReactElement {
-    const handleClose = () => {};
     return (
         <>
             <Router basename={BASE_URL}>
@@ -21,6 +20,7 @@ export default function App(): React.ReactElement {
 
                     <Route path="rooms" element={<HomePage />}>
                         <Route path=":id" element={<RoomPage />} />
+                        <Route path=":id/notes/:noteId" element={<RoomPage />} />
                         <Route path=":id/:messageId" element={<RoomPage />} />
                         <Route path=":id/call/lobby/:media" element={<RoomPage />} />
                         <Route path=":id/call" element={<RoomPage />} />

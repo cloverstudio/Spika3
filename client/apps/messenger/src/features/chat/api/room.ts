@@ -26,6 +26,26 @@ const roomApi = api.injectEndpoints({
             },
             invalidatesTags: (result, error, arg) => [{ type: "Rooms", id: arg.roomId }],
         }),
+        muteRoom: build.mutation<{ room: RoomType }, any>({
+            query: ({ roomId }) => {
+                return { url: `/messenger/rooms/${roomId}/mute`, data: {}, method: "POST" };
+            },
+        }),
+        unmuteRoom: build.mutation<{ room: RoomType }, any>({
+            query: ({ roomId }) => {
+                return { url: `/messenger/rooms/${roomId}/unmute`, data: {}, method: "POST" };
+            },
+        }),
+        leaveRoom: build.mutation<{ room: RoomType }, any>({
+            query: ({ roomId }) => {
+                return { url: `/messenger/rooms/${roomId}/leave`, data: {}, method: "POST" };
+            },
+        }),
+        deleteRoom: build.mutation<{ room: RoomType }, any>({
+            query: ({ roomId }) => {
+                return { url: `/messenger/rooms/${roomId}`, method: "DELETE" };
+            },
+        }),
     }),
     overrideExisting: true,
 });
@@ -36,6 +56,10 @@ export const {
     useGetRoomQuery,
     useCreateRoomMutation,
     useUpdateRoomMutation,
+    useMuteRoomMutation,
+    useUnmuteRoomMutation,
+    useLeaveRoomMutation,
+    useDeleteRoomMutation,
 } = roomApi;
 
 export default roomApi;

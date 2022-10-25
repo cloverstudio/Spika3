@@ -1,6 +1,5 @@
 import { Router, Request, Response } from "express";
-import { PrismaClient, CallHistory, CallSession, Room, Prisma } from "@prisma/client";
-const prisma = new PrismaClient();
+import { Room } from "@prisma/client";
 import amqp from "amqplib";
 
 import { UserRequest } from "../../messenger/lib/types";
@@ -14,6 +13,7 @@ import leaveCallLogic from "../lib/leaveCallLogic";
 import notifyRoomUsersLogic from "../lib/notifyRoomUsersLogic";
 import sanitize from "../../../components/sanitize";
 import * as Constants from "../../../components/consts";
+import prisma from "../../../components/prisma";
 
 export default (params: InitRouterParams) => {
     const router = Router();

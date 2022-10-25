@@ -1,10 +1,8 @@
-import { PrismaClient, Prisma, File } from "@prisma/client";
+import { File } from "@prisma/client";
 import faker from "faker";
 
-const prisma = new PrismaClient();
-
 export default async function createFakeFile(overrides?: any): Promise<File> {
-    return prisma.file.create({
+    return global.prisma.file.create({
         data: {
             type: "type",
             relationId: faker.datatype.number({ min: 1, max: 500 }),

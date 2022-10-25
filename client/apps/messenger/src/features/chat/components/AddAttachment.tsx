@@ -1,5 +1,5 @@
 import React, { ChangeEvent, ReactElement, useEffect, useRef, useState } from "react";
-import { Box, Paper, Stack, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { useParams } from "react-router-dom";
 
 import AddIcon from "@mui/icons-material/Add";
@@ -26,34 +26,49 @@ export default function AddAttachment(): ReactElement {
     };
 
     useEffect(() => {
-        setContainerBoxRect(boxRef.current.getBoundingClientRect());
-    },[boxRef])
+        const handleResize = () => {
+            setContainerBoxRect(boxRef.current.getBoundingClientRect());
+        };
 
-    return <Box ref={boxRef} sx={{ display: "flex", justifyContent: "center", alignContent:"center"}}>
-            {attachmentMenuOpen ? 
+        handleResize();
+
+        window.addEventListener("resize", handleResize);
+
+        return () => {
+            window.removeEventListener("resize", handleResize);
+        };
+    }, [boxRef]);
+
+    return (
+        <Box
+            ref={boxRef}
+            sx={{ display: "flex", justifyContent: "center", alignContent: "center" }}
+        >
+            {attachmentMenuOpen ? (
                 <>
-                    <Box sx={{
-                        position: "absolute",
-                        left: `${containerBoxRect.left - 20}px`,
-                        top: `${containerBoxRect.bottom - 200}px`,
-                        border: "1px solid #C9C9CA",
-                        borderRadius: "5px",
-                        width : "75px",
-                        height: "200px",
-                        backgroundColor: "#fff",
-                        zIndex: 900
-                    }}>
+                    <Box
+                        sx={{
+                            position: "absolute",
+                            left: `${containerBoxRect.left - 20}px`,
+                            top: `${containerBoxRect.bottom - 220}px`,
+                            border: "1px solid #C9C9CA",
+                            borderRadius: "5px",
+                            width: "75px",
+                            height: "220px",
+                            backgroundColor: "#fff",
+                            zIndex: 900,
+                        }}
+                    >
                         <Box
-                            mt={"25px"}
-                            sx={{ 
-                                cursor: "pointer", 
+                            mt="25px"
+                            sx={{
+                                cursor: "pointer",
                                 textAlign: "center",
                                 "&:hover": {
-                                    opacity: 0.8
-                                } 
+                                    opacity: 0.8,
+                                },
                             }}
                             onClick={() => uploadFilesRef.current?.click()}
-
                         >
                             <InsertDriveFileIcon color="primary" fontSize="large" />
                             <Typography fontWeight="medium" color="primary">
@@ -68,12 +83,13 @@ export default function AddAttachment(): ReactElement {
                             />
                         </Box>
                         <Box
-                            sx={{ 
-                                cursor: "pointer", 
+                            mt="10px"
+                            sx={{
+                                cursor: "pointer",
                                 textAlign: "center",
                                 "&:hover": {
-                                    opacity: 0.8
-                                } 
+                                    opacity: 0.8,
+                                },
                             }}
                             onClick={() => uploadImagesRef.current?.click()}
                         >
@@ -92,113 +108,20 @@ export default function AddAttachment(): ReactElement {
                         </Box>
                     </Box>
                     <CloseIcon
-                            color="primary"
-                            fontSize="large"
-                            onClick={() => setAttachmentMenuOpen(false)}
-                            sx={{ cursor: "pointer",zIndex: 1000 }}
+                        color="primary"
+                        fontSize="large"
+                        onClick={() => setAttachmentMenuOpen(false)}
+                        sx={{ cursor: "pointer", zIndex: 1000 }}
                     />
-                </> :
+                </>
+            ) : (
                 <AddIcon
                     color="primary"
                     fontSize="large"
                     onClick={() => setAttachmentMenuOpen(true)}
                     sx={{ cursor: "pointer" }}
                 />
-            }
+            )}
         </Box>
-    if (!attachmentMenuOpen) {
-        return (
-            <Box sx={{ display: "flex", justifyContent: "center", alignContent:"center"}}>
-                <AddIcon
-                    color="primary"
-                    fontSize="large"
-                    onClick={() => setAttachmentMenuOpen(true)}
-                    sx={{ cursor: "pointer" }}
-                />
-            </Box>
-        );
-    }
-
-    return (
-
-        <Box sx={{ display: "flex", justifyContent: "center", alignContent:"center"}}>
-            <CloseIcon
-                color="primary"
-                fontSize="large"
-                onClick={() => setAttachmentMenuOpen(false)}
-                sx={{ cursor: "pointer" }}
-            />
-        </Box>
-
     );
 }
-
-
-
-{/*
-1px solid #C9C9CA
-
-        <Box sx={{ display: "flex", justifyContent: "center", alignContent:"center"}}>
-            <CloseIcon
-                color="primary"
-                fontSize="large"
-                onClick={() => setAttachmentMenuOpen(false)}
-                sx={{ cursor: "pointer" }}
-            />
-        </Box>
-        <Box position="relative" minWidth="3.75rem" minHeight="53.7px">
-            <Paper
-                elevation={2}
-                sx={{
-                    p: 1,
-                    position: "absolute",
-                    bottom: "0",
-                    textAlign: "center",
-                    borderRadius: "0.625rem",
-                }}
-            >
-                <Stack mb={3}>
-                    <Box
-                        my={2}
-                        sx={{ cursor: "pointer" }}
-                        onClick={() => uploadFilesRef.current?.click()}
-                    >
-                        <InsertDriveFileIcon color="primary" fontSize="large" />
-                        <Typography fontWeight="medium" color="primary">
-                            Files
-                        </Typography>
-                        <input
-                            onChange={handleFilesUpload}
-                            type="file"
-                            style={{ display: "none" }}
-                            ref={uploadFilesRef}
-                            multiple
-                        />
-                    </Box>
-                    <Box
-                        sx={{ cursor: "pointer" }}
-                        onClick={() => uploadImagesRef.current?.click()}
-                    >
-                        <ImageIcon color="primary" fontSize="large" />
-                        <Typography fontWeight="medium" color="primary">
-                            Images
-                        </Typography>
-                        <input
-                            onChange={handleFilesUpload}
-                            type="file"
-                            style={{ display: "none" }}
-                            ref={uploadImagesRef}
-                            accept="image/*"
-                            multiple
-                        />
-                    </Box>
-                </Stack>
-                <CloseIcon
-                    color="primary"
-                    fontSize="large"
-                    onClick={() => setAttachmentMenuOpen(false)}
-                    sx={{ cursor: "pointer" }}
-                />
-            </Paper>
-        </Box>
-*/}

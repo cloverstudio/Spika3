@@ -1,20 +1,16 @@
 import { Router, Request, Response } from "express";
-import { PrismaClient, CallHistory, CallSession, Room, Prisma } from "@prisma/client";
-const prisma = new PrismaClient();
+import { CallHistory, CallSession, Room, Prisma } from "@prisma/client";
 import amqp from "amqplib";
 
 import { UserRequest } from "../../messenger/lib/types";
-import Utils from "../../../components/utils";
-import * as consts from "../../../components/consts";
 import l, { error as le } from "../../../components/logger";
 import { InitRouterParams } from "../../types/serviceInterface";
 import { successResponse, errorResponse } from "../../../components/response";
 import auth from "../../messenger/lib/auth";
-import leaveCallLogic from "../lib/leaveCallLogic";
 import notifyRoomUsersLogic from "../lib/notifyRoomUsersLogic";
-import sanitize from "../../../components/sanitize";
 import * as Constants from "../../../components/consts";
 import mediasoupHandler, { CallParamsInDB } from "../lib/mediasoupHandler";
+import prisma from "../../../components/prisma";
 
 // handle and save all mediasoup variables here
 
@@ -33,6 +29,7 @@ export default (params: InitRouterParams) => {
                 },
             });
             if (!room) {
+                le(`room not found ${roomId}`);
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
@@ -43,8 +40,10 @@ export default (params: InitRouterParams) => {
                     isActive: true,
                 },
             });
-            if (!callSession)
-                res.status(404).send(errorResponse("Not active session", userReq.lang));
+            if (!callSession) {
+                le(`no active session ${roomId}`);
+                return res.status(404).send(errorResponse("Not active session", userReq.lang));
+            }
 
             const { peerId, transportParams, rtpCapabilities } = await mediasoupHandler.join(
                 roomId,
@@ -78,6 +77,7 @@ export default (params: InitRouterParams) => {
                 },
             });
             if (!room) {
+                le(`room not found ${roomId}`);
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
@@ -96,7 +96,11 @@ export default (params: InitRouterParams) => {
         const peerId: string = req.body.peerId;
         const dtlsParameters: any = req.body.dtlsParameters;
 
-        if (!peerId) return res.status(400).send(errorResponse("Invalid peerId", userReq.lang));
+        if (!peerId) {
+            le(`Invalid peerId ${peerId}`);
+            return res.status(400).send(errorResponse("Invalid peerId", userReq.lang));
+        }
+
         if (!dtlsParameters)
             return res.status(400).send(errorResponse("Invalid dtlsParameters", userReq.lang));
 
@@ -107,6 +111,7 @@ export default (params: InitRouterParams) => {
                 },
             });
             if (!room) {
+                le(`room not found ${roomId}`);
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
@@ -117,8 +122,10 @@ export default (params: InitRouterParams) => {
                     isActive: true,
                 },
             });
-            if (!callSession)
-                res.status(404).send(errorResponse("Not active session", userReq.lang));
+            if (!callSession) {
+                le(`no active session ${roomId}`);
+                return res.status(404).send(errorResponse("Not active session", userReq.lang));
+            }
 
             await mediasoupHandler.transportConnect(roomId, peerId, dtlsParameters);
 
@@ -138,8 +145,10 @@ export default (params: InitRouterParams) => {
         const appData: any = req.body.appData;
         const kind: "audio" | "video" = req.body.kind;
 
-        if (!peerId) return res.status(400).send(errorResponse("Invalid peerId", userReq.lang));
-
+        if (!peerId) {
+            le(`Invalid peerId ${peerId}`);
+            return res.status(400).send(errorResponse("Invalid peerId", userReq.lang));
+        }
         if (!rtpParameters)
             return res.status(400).send(errorResponse("Invalid rtpParameters", userReq.lang));
 
@@ -155,6 +164,7 @@ export default (params: InitRouterParams) => {
                 },
             });
             if (!room) {
+                le(`room not found ${roomId}`);
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
@@ -165,8 +175,10 @@ export default (params: InitRouterParams) => {
                     isActive: true,
                 },
             });
-            if (!callSession)
-                res.status(404).send(errorResponse("Not active session", userReq.lang));
+            if (!callSession) {
+                le(`no active session ${roomId}`);
+                return res.status(404).send(errorResponse("Not active session", userReq.lang));
+            }
 
             // get history
             const callHistory: CallHistory = await prisma.callHistory.findFirst({
@@ -181,7 +193,7 @@ export default (params: InitRouterParams) => {
                 },
             });
             if (!callHistory)
-                res.status(404).send(errorResponse("Not active calllog", userReq.lang));
+                return res.status(404).send(errorResponse("Not active calllog", userReq.lang));
 
             const producerId = await mediasoupHandler.produce(
                 roomId,
@@ -241,7 +253,10 @@ export default (params: InitRouterParams) => {
         const userId: number = userReq.user.id;
         const peerId: string = req.body.peerId;
 
-        if (!peerId) return res.status(400).send(errorResponse("Invalid peerId", userReq.lang));
+        if (!peerId) {
+            le(`Invalid peerId ${peerId}`);
+            return res.status(400).send(errorResponse("Invalid peerId", userReq.lang));
+        }
 
         try {
             const room: Room = await prisma.room.findFirst({
@@ -250,6 +265,7 @@ export default (params: InitRouterParams) => {
                 },
             });
             if (!room) {
+                le(`room not found ${roomId}`);
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
@@ -260,8 +276,10 @@ export default (params: InitRouterParams) => {
                     isActive: true,
                 },
             });
-            if (!callSession)
-                res.status(404).send(errorResponse("Not active session", userReq.lang));
+            if (!callSession) {
+                le(`no active session ${roomId}`);
+                return res.status(404).send(errorResponse("Not active session", userReq.lang));
+            }
 
             // get history
             const callHistory: CallHistory = await prisma.callHistory.findFirst({
@@ -276,7 +294,7 @@ export default (params: InitRouterParams) => {
                 },
             });
             if (!callHistory)
-                res.status(404).send(errorResponse("Not active calllog", userReq.lang));
+                return res.status(404).send(errorResponse("Not active calllog", userReq.lang));
 
             const transport = await mediasoupHandler.newConsumerTransport(roomId, peerId);
 
@@ -304,7 +322,10 @@ export default (params: InitRouterParams) => {
         const peerId: string = req.body.peerId;
         const dtlsParameters: any = req.body.dtlsParameters;
 
-        if (!peerId) return res.status(400).send(errorResponse("Invalid peerId", userReq.lang));
+        if (!peerId) {
+            le(`Invalid peerId ${peerId}`);
+            return res.status(400).send(errorResponse("Invalid peerId", userReq.lang));
+        }
         if (!dtlsParameters)
             return res.status(400).send(errorResponse("Invalid dtlsParameters", userReq.lang));
 
@@ -315,6 +336,7 @@ export default (params: InitRouterParams) => {
                 },
             });
             if (!room) {
+                le(`room not found ${roomId}`);
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
@@ -325,8 +347,10 @@ export default (params: InitRouterParams) => {
                     isActive: true,
                 },
             });
-            if (!callSession)
-                res.status(404).send(errorResponse("Not active session", userReq.lang));
+            if (!callSession) {
+                le(`no active session ${roomId}`);
+                return res.status(404).send(errorResponse("Not active session", userReq.lang));
+            }
 
             // get history
             const callHistory: CallHistory = await prisma.callHistory.findFirst({
@@ -341,7 +365,7 @@ export default (params: InitRouterParams) => {
                 },
             });
             if (!callHistory)
-                res.status(404).send(errorResponse("Not active calllog", userReq.lang));
+                return res.status(404).send(errorResponse("Not active calllog", userReq.lang));
 
             const transport = await mediasoupHandler.consumerTransportConnect(
                 roomId,
@@ -365,7 +389,10 @@ export default (params: InitRouterParams) => {
         const producerId: any = req.body.producerId;
         const kind: any = req.body.kind;
 
-        if (!peerId) return res.status(400).send(errorResponse("Invalid peerId", userReq.lang));
+        if (!peerId) {
+            le(`Invalid peerId ${peerId}`);
+            return res.status(400).send(errorResponse("Invalid peerId", userReq.lang));
+        }
         if (!rtpCapabilities)
             return res.status(400).send(errorResponse("Invalid rtpCapabilities", userReq.lang));
         if (!producerId)
@@ -379,6 +406,7 @@ export default (params: InitRouterParams) => {
                 },
             });
             if (!room) {
+                le(`room not found ${roomId}`);
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
@@ -389,8 +417,10 @@ export default (params: InitRouterParams) => {
                     isActive: true,
                 },
             });
-            if (!callSession)
-                res.status(404).send(errorResponse("Not active session", userReq.lang));
+            if (!callSession) {
+                le(`no active session ${roomId}`);
+                return res.status(404).send(errorResponse("Not active session", userReq.lang));
+            }
 
             // get history
             const callHistory: CallHistory = await prisma.callHistory.findFirst({
@@ -405,7 +435,7 @@ export default (params: InitRouterParams) => {
                 },
             });
             if (!callHistory)
-                res.status(404).send(errorResponse("Not active calllog", userReq.lang));
+                return res.status(404).send(errorResponse("Not active calllog", userReq.lang));
 
             const consumer = await mediasoupHandler.startConsuming(
                 roomId,
@@ -439,7 +469,10 @@ export default (params: InitRouterParams) => {
         const peerId: string = req.body.peerId;
         const kind: "video" | "audio" = req.body.kind;
 
-        if (!peerId) return res.status(400).send(errorResponse("Invalid peerId", userReq.lang));
+        if (!peerId) {
+            le(`Invalid peerId ${peerId}`);
+            return res.status(400).send(errorResponse("Invalid peerId", userReq.lang));
+        }
         if (!kind) return res.status(400).send(errorResponse("Invalid kind", userReq.lang));
 
         if (kind !== "video" && kind !== "audio")
@@ -452,6 +485,7 @@ export default (params: InitRouterParams) => {
                 },
             });
             if (!room) {
+                le(`room not found ${roomId}`);
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
@@ -462,8 +496,10 @@ export default (params: InitRouterParams) => {
                     isActive: true,
                 },
             });
-            if (!callSession)
-                res.status(404).send(errorResponse("Not active session", userReq.lang));
+            if (!callSession) {
+                le(`no active session ${roomId}`);
+                return res.status(404).send(errorResponse("Not active session", userReq.lang));
+            }
 
             // get history
             const callHistory: CallHistory = await prisma.callHistory.findFirst({
@@ -478,7 +514,7 @@ export default (params: InitRouterParams) => {
                 },
             });
             if (!callHistory)
-                res.status(404).send(errorResponse("Not active calllog", userReq.lang));
+                return res.status(404).send(errorResponse("Not active calllog", userReq.lang));
 
             await mediasoupHandler.pause(roomId, peerId, kind);
 
@@ -513,7 +549,10 @@ export default (params: InitRouterParams) => {
         const peerId: string = req.body.peerId;
         const kind: "video" | "audio" = req.body.kind;
 
-        if (!peerId) return res.status(400).send(errorResponse("Invalid peerId", userReq.lang));
+        if (!peerId) {
+            le(`Invalid peerId ${peerId}`);
+            return res.status(400).send(errorResponse("Invalid peerId", userReq.lang));
+        }
         if (!kind) return res.status(400).send(errorResponse("Invalid kind", userReq.lang));
 
         if (kind !== "video" && kind !== "audio")
@@ -526,6 +565,7 @@ export default (params: InitRouterParams) => {
                 },
             });
             if (!room) {
+                le(`room not found ${roomId}`);
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
@@ -536,8 +576,10 @@ export default (params: InitRouterParams) => {
                     isActive: true,
                 },
             });
-            if (!callSession)
-                res.status(404).send(errorResponse("Not active session", userReq.lang));
+            if (!callSession) {
+                le(`no active session ${roomId}`);
+                return res.status(404).send(errorResponse("Not active session", userReq.lang));
+            }
 
             // get history
             const callHistory: CallHistory = await prisma.callHistory.findFirst({
@@ -552,7 +594,7 @@ export default (params: InitRouterParams) => {
                 },
             });
             if (!callHistory)
-                res.status(404).send(errorResponse("Not active calllog", userReq.lang));
+                return res.status(404).send(errorResponse("Not active calllog", userReq.lang));
 
             await mediasoupHandler.resume(roomId, peerId, kind);
 
@@ -586,7 +628,10 @@ export default (params: InitRouterParams) => {
         const userId: number = userReq.user.id;
         const peerId: string = req.body.peerId;
 
-        if (!peerId) return res.status(400).send(errorResponse("Invalid peerId", userReq.lang));
+        if (!peerId) {
+            le(`Invalid peerId ${peerId}`);
+            return res.status(400).send(errorResponse("Invalid peerId", userReq.lang));
+        }
 
         try {
             const room: Room = await prisma.room.findFirst({
@@ -595,6 +640,7 @@ export default (params: InitRouterParams) => {
                 },
             });
             if (!room) {
+                le(`room not found ${roomId}`);
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
@@ -605,8 +651,10 @@ export default (params: InitRouterParams) => {
                     isActive: true,
                 },
             });
-            if (!callSession)
-                res.status(404).send(errorResponse("Not active session", userReq.lang));
+            if (!callSession) {
+                le(`no active session ${roomId}`);
+                return res.status(404).send(errorResponse("Not active session", userReq.lang));
+            }
 
             // get history
             const callHistory: CallHistory = await prisma.callHistory.findFirst({
@@ -621,7 +669,7 @@ export default (params: InitRouterParams) => {
                 },
             });
             if (!callHistory)
-                res.status(404).send(errorResponse("Not active calllog", userReq.lang));
+                return res.status(404).send(errorResponse("Not active calllog", userReq.lang));
 
             await mediasoupHandler.stopScreenshare(roomId, peerId);
 

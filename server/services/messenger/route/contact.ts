@@ -1,5 +1,4 @@
 import { Router, Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
 
 import { UserRequest, errorParams } from "../lib/types";
 import { error as le } from "../../../components/logger";
@@ -11,8 +10,7 @@ import * as yup from "yup";
 import validate from "../../../components/validateMiddleware";
 import { successResponse, errorResponse } from "../../../components/response";
 import sanitize from "../../../components/sanitize";
-
-const prisma = new PrismaClient();
+import prisma from "../../../components/prisma";
 
 const postContactsSchema = yup.object().shape({
     body: yup.object().shape({

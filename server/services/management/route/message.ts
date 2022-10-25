@@ -1,13 +1,11 @@
 import { Router, Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
 import { InitRouterParams } from "../../types/serviceInterface";
 
 import adminAuth from "../lib/adminAuth";
 import * as consts from "../../../components/consts";
-import { successResponse, errorResponse } from "../../../components/response";
+import { successResponse } from "../../../components/response";
 import { UserRequest } from "../../messenger/lib/types";
-import moment from "moment";
+import prisma from "../../../components/prisma";
 
 export default (params: InitRouterParams) => {
     const router = Router();

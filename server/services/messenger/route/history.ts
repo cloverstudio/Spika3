@@ -1,5 +1,4 @@
 import { Router, Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
 
 import { error as le } from "../../../components/logger";
 import { successResponse, errorResponse } from "../../../components/response";
@@ -7,8 +6,7 @@ import auth from "../lib/auth";
 import { UserRequest } from "../lib/types";
 import sanitize from "../../../components/sanitize";
 import * as Constants from "../../../components/consts";
-6;
-const prisma = new PrismaClient();
+import prisma from "../../../components/prisma";
 
 export default (): Router => {
     const router = Router();
@@ -26,6 +24,7 @@ export default (): Router => {
                         name: {
                             startsWith: keyword,
                         },
+                        deleted: false,
                     },
                     userId,
                 },

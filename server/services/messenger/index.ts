@@ -1,5 +1,6 @@
 import { Router } from "express";
 import amqp from "amqplib";
+import { createClient } from "redis";
 
 import testRouter from "./route/test";
 import signupRouter from "./route/auth";
@@ -13,6 +14,7 @@ import userRouter from "./route/user";
 import settingsRouter from "./route/settings";
 import messageRecordRouter from "./route/messageRecord";
 import noteRouter from "./route/note";
+import webhookRouter from "./route/webhook";
 
 import * as Constants from "../../components/consts";
 import Service, { ServiceStartParams } from "../types/serviceInterface";
@@ -22,9 +24,11 @@ import saveContactWorker from "./workers/saveContact";
 
 export default class Messenger implements Service {
     rabbitMQChannel: amqp.Channel | null | undefined = null;
+    redisClient: ReturnType<typeof createClient>;
 
-    async start({ rabbitMQChannel }: ServiceStartParams): Promise<void> {
+    async start({ rabbitMQChannel, redisClient }: ServiceStartParams): Promise<void> {
         this.rabbitMQChannel = rabbitMQChannel;
+        this.redisClient = redisClient;
 
         await this.rabbitMQChannel.assertQueue(Constants.QUEUE_CREATE_CONTACT, {
             durable: false,
@@ -45,7 +49,10 @@ export default class Messenger implements Service {
         messengerRouter.use("/test", testRouter({}));
         messengerRouter.use("/auth", signupRouter({ rabbitMQChannel: this.rabbitMQChannel }));
         messengerRouter.use("/contacts", contactRouter({ rabbitMQChannel: this.rabbitMQChannel }));
-        messengerRouter.use("/rooms", roomRouter({ rabbitMQChannel: this.rabbitMQChannel }));
+        messengerRouter.use(
+            "/rooms",
+            roomRouter({ rabbitMQChannel: this.rabbitMQChannel, redisClient: this.redisClient })
+        );
         messengerRouter.use("/messages", messageRouter({ rabbitMQChannel: this.rabbitMQChannel }));
         messengerRouter.use("/me", meRouter({ rabbitMQChannel: this.rabbitMQChannel }));
         messengerRouter.use("/device", deviceRouter());
@@ -57,6 +64,8 @@ export default class Messenger implements Service {
             "/message-records",
             messageRecordRouter({ rabbitMQChannel: this.rabbitMQChannel })
         );
+        messengerRouter.use("/webhooks", webhookRouter({}));
+
         return messengerRouter;
     }
 

@@ -1,0 +1,652 @@
+swagger: "2.0"
+info:
+  description: "This is the api specification for spika ultimate"
+  version: "1.0.0"
+  title: "Spika3 management API"
+  termsOfService: "http://swagger.io/terms/"
+  contact:
+    email: "apiteam@swagger.io"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "spika.ultimate.com"
+basePath: "/api"
+tags:
+- name: "Auth"
+- name: "User"
+
+schemes:
+- "https"
+- "http"
+paths:
+
+  /management/auth:
+    post:
+      tags:
+      - "Auth"
+      summary: "Signin to user management console"
+      description: "Signin to user management console with static login/pass"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "username"
+        in: "body"
+        required: true
+        type: "string"
+      - name: "password"
+        in: "body"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            type: object
+            properties:
+              token:
+                type: "string"
+              expireDate:
+                type: "integer"
+        "403":
+          description: "invalid username or password"
+        "404":
+          description: "Not found"
+
+  /management/auth/check:
+    get:
+      tags:
+      - "Auth"
+      summary: "Check the access token in the request header is valid"
+      description: "Check the access token is valid"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        "200":
+          description: "successful operation"
+        "403":
+          description: "Wrong access token"
+        "404":
+          description: "Not found"
+          
+  /management/user:
+    get:
+      tags:
+      - "User"
+      summary: "Get user list"
+      description: "all devices, public keysm profiles"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "order"
+        in: "query"
+        description: "Sort by param"
+        type: "string"
+      - name: "page"
+        in: "query"
+        description: "Page to show"
+        type: "integer"
+        required: true
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/User"
+        "403":
+          description: "No access to the info"
+        "404":
+          description: "Not found"
+    post:
+      tags:
+      - "User"
+      summary: "Create new user"
+      description: "Create new user"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "emailAddress"
+        in: "body"
+        type: "string"
+      - name: "telephoneNumber"
+        in: "body"
+        type: "string"
+      - name: "countryCode"
+        in: "body"
+        type: "string"
+      - name: "displayName"
+        in: "body"
+        type: "string"
+      - name: "avatarUrl"
+        in: "body"
+        type: "string"
+      - name: "verified"
+        in: "body"
+        type: "bool"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            type: "object"
+            $ref: "#/definitions/User"
+        "403":
+          description: "No access to the info"
+        "404":
+          description: "Not found"
+          
+  /management/user/{userId}:
+    get:
+      tags:
+      - "User"
+      summary: "Get user detail"
+      description: "all devices, public keysm profiles"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "userId"
+        in: "path"
+        description: "ID of user to return"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            type: "object"
+            $ref: "#/definitions/User"
+        "403":
+          description: "No access to the info"
+        "404":
+          description: "Not found"
+    put:
+      tags:
+      - "User"
+      summary: "Update user profile"
+      description: "update user profile"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "emailAddress"
+        in: "body"
+        type: "string"
+      - name: "telephoneNumber"
+        in: "body"
+        type: "string"
+      - name: "countryCode"
+        in: "body"
+        type: "string"
+      - name: "displayName"
+        in: "body"
+        type: "string"
+      - name: "avatarUrl"
+        in: "body"
+        type: "string"
+      - name: "verified"
+        in: "body"
+        type: "bool"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            type: "object"
+            $ref: "#/definitions/User"
+        "403":
+          description: "No access to the info"
+        "404":
+          description: "Not found"
+          
+    delete:
+      tags:
+      - "User"
+      summary: "Delete user profile"
+      description: "delete user profile"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "userId"
+        in: "path"
+        description: "ID of user to delete"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        "200":
+          description: "successful operation"
+        "403":
+          description: "No access to the info"
+        "404":
+          description: "Not found"
+
+          
+  /management/device:
+    get:
+      tags:
+      - "Device"
+      summary: "Get device list"
+      description: "all devices"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "order"
+        in: "query"
+        description: "Sort by param"
+        type: "string"
+      - name: "page"
+        in: "query"
+        description: "Page to show"
+        type: "integer"
+        required: true
+      - name: "userId"
+        in: "query"
+        description: "If added GET lists all devices for specifc user"
+        type: "integer"
+        required: false
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Device"
+        "403":
+          description: "No access to the info"
+        "404":
+          description: "Not found"
+    post:
+      tags:
+      - "Device"
+      summary: "Create new device"
+      description: "Create new device"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "userId"
+        in: "body"
+        type: "integer"
+      - name: "deviceId"
+        in: "body"
+        type: "string"
+      - name: "type"
+        in: "body"
+        type: "string"
+      - name: "deviceName"
+        in: "body"
+        type: "string"
+      - name: "osName"
+        in: "body"
+        type: "string"
+      - name: "osName"
+        in: "body"
+        type: "integer"
+      - name: "appVersion"
+        in: "body"
+        type: "string"
+      - name: "token"
+        in: "body"
+        type: "string"
+      - name: "pushToken"
+        in: "body"
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            type: "object"
+            items:
+              $ref: "#/definitions/Device"
+        "403":
+          description: "No access to the info"
+        "404":
+          description: "Not found"
+  /management/device/{deviceId}:
+    get:
+      tags:
+      - "Device"
+      summary: "Get device detail"
+      description: "specific device"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "deviceId"
+        in: "path"
+        description: "ID of device to return"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            type: "object"
+            $ref: "#/definitions/Device"
+        "403":
+          description: "No access to the info"
+        "404":
+          description: "Not found"
+    put:
+      tags:
+      - "Device"
+      summary: "Update device profile"
+      description: "update device profile"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "userId"
+        in: "body"
+        type: "integer"
+      - name: "deviceId"
+        in: "body"
+        type: "string"
+      - name: "type"
+        in: "body"
+        type: "string"
+      - name: "deviceName"
+        in: "body"
+        type: "string"
+      - name: "osName"
+        in: "body"
+        type: "string"
+      - name: "osName"
+        in: "body"
+        type: "integer"
+      - name: "appVersion"
+        in: "body"
+        type: "string"
+      - name: "token"
+        in: "body"
+        type: "string"
+      - name: "pushToken"
+        in: "body"
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            type: "object"
+            $ref: "#/definitions/Device"
+        "403":
+          description: "No access to the info"
+        "404":
+          description: "Not found"
+          
+    delete:
+      tags:
+      - "Device"
+      summary: "Delete device profile"
+      description: "delete device profile"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "deviceId"
+        in: "path"
+        description: "ID of device to delete"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        "200":
+          description: "successful operation"
+        "403":
+          description: "No access to the info"
+        "404":
+          description: "Not found"
+
+          
+  /management/room:
+    get:
+      tags:
+      - "Room"
+      summary: "Get room list"
+      description: "all room"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "order"
+        in: "query"
+        description: "Sort by param"
+        type: "string"
+      - name: "page"
+        in: "query"
+        description: "Page to show"
+        type: "integer"
+        required: true
+      - name: "userId"
+        in: "query"
+        description: "If added GET lists all rooms for specifc user"
+        type: "integer"
+      - name: "deleted"
+        in: "query"
+        description: "Show deleted room if this param is 1"
+        type: "integer"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Room"
+        "403":
+          description: "No access to the info"
+        "404":
+          description: "Not found"
+
+    post:
+      tags:
+      - "Room"
+      summary: "Create new room"
+      description: "Create new room"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "name"
+        in: "body"
+        type: "string"
+      - name: "type"
+        in: "body"
+        type: "string"
+      - name: "avatarUrl"
+        in: "body"
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            type: "object"
+            items:
+              $ref: "#/definitions/Room"
+        "403":
+          description: "No access to the info"
+        "404":
+          description: "Not found"
+  /management/room/{roomId}:
+    get:
+      tags:
+      - "Room"
+      summary: "Get room detail"
+      description: "specific room"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "roomId"
+        in: "path"
+        description: "ID of room to return"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            type: "object"
+            $ref: "#/definitions/Room"
+        "403":
+          description: "No access to the info"
+        "404":
+          description: "Not found"
+    put:
+      tags:
+      - "Room"
+      summary: "Update room"
+      description: "update room"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "name"
+        in: "body"
+        type: "string"
+      - name: "type"
+        in: "body"
+        type: "string"
+      - name: "avatarUrl"
+        in: "body"
+        type: "string"
+      - name: "deleted"
+        in: "body"
+        type: "bool"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            type: "object"
+            $ref: "#/definitions/Room"
+        "403":
+          description: "No access to the info"
+        "404":
+          description: "Not found"
+          
+ 
+securityDefinitions:
+  petstore_auth:
+    type: "oauth2"
+    authorizationUrl: "http://petstore.swagger.io/oauth/dialog"
+    flow: "implicit"
+    scopes:
+      write:pets: "modify pets in your account"
+      read:pets: "read your pets"
+  api_key:
+    type: "apiKey"
+    name: "api_key"
+    in: "header"
+definitions:
+  User:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int32"
+      emailAddress:
+        type: "string"
+        format: "string"
+      telephoneNumber:
+        type: "string"
+        format: "string"
+      telephoneNumberHashed:
+        type: "string"
+        format: "string"
+      countryCode:
+        type: "string"
+        format: "string"
+      displayName:
+        type: "string"
+        format: "string"
+      avatarUrl:
+        type: "string"
+        format: "string"
+      verificationCode:
+        type: "string"
+        format: "string"
+      verified:
+        type: "boolean"
+        format: "boolean"
+  Device:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int32"
+      userId:
+        type: "integer"
+        format: "int32"
+      deviceId:
+        type: "string"
+        format: "string"
+      type:
+        type: "string"
+        format: "string"
+      deviceName:
+        type: "string"
+        format: "string"
+      osName:
+        type: "string"
+        format: "string"
+      osVersion:
+        type: "string"
+        format: "string"
+      appVersion:
+        type: "string"
+        format: "string"
+      token:
+        type: "string"
+        format: "string"
+      pushToken:
+        type: "string"
+        format: "string"
+        
+  Room:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int32"
+      name:
+        type: "string"
+        format: "string"
+      type:
+        type: "string"
+        format: "string"
+      avatarUrl:
+        type: "string"
+        format: "string"
+      verified:
+        type: "boolean"
+        format: "boolean"
+      
+externalDocs:
+  description: "Find out more about Swagger"
+  url: "http://swagger.com"
+dummy:
+  etst : "asdfasdflkasdlfkjasdlf kjasdflk ajsdflkasjfdalksdfjasdlfkjasdflkajsdflaksjdflaksdfjaldskfjsdlfkj aldskfj lk"
+  tesd : 1231231231231231231231231
