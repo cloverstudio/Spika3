@@ -26,8 +26,14 @@ export const sendMessage = createAsyncThunk(
         },
         thunkAPI
     ): Promise<{ message: MessageType }> => {
+        const text = (thunkAPI.getState() as RootState).chat.messageText.trim();
+
+        if (!text) {
+            return;
+        }
+
         if (data.type === "text" || data.type === "emoji") {
-            data.body = { text: (thunkAPI.getState() as RootState).chat.messageText };
+            data.body = { text };
         }
 
         const response = await dynamicBaseQuery({
@@ -46,9 +52,13 @@ export const editMessageThunk = createAsyncThunk(
     async (_, thunkAPI): Promise<{ message: MessageType }> => {
         const { editMessage: message, messageText } = (thunkAPI.getState() as RootState).chat;
 
+        if (!messageText.trim()) {
+            return;
+        }
+
         const response = await dynamicBaseQuery({
             url: `/messenger/messages/${message.id}`,
-            data: { text: messageText },
+            data: { text: messageText.trim() },
             method: "PUT",
         });
 
@@ -66,9 +76,18 @@ export const replyMessageThunk = createAsyncThunk(
             activeRoomId: roomId,
         } = (thunkAPI.getState() as RootState).chat;
 
+        if (!messageText.trim()) {
+            return;
+        }
+
         const response = await dynamicBaseQuery({
             url: "/messenger/messages/",
-            data: { roomId, type, body: { referenceMessage, text: messageText }, reply: true },
+            data: {
+                roomId,
+                type,
+                body: { referenceMessage, text: messageText.trim() },
+                reply: true,
+            },
             method: "POST",
         });
 
@@ -279,12 +298,14 @@ export const chatSlice = createSlice({
         });
 
         builder.addCase(sendMessage.fulfilled, (state, { payload }) => {
-            state.messages = [...state.messages, payload.message];
-            state.messagesByRoom[payload.message.roomId].push(payload.message);
+            if (payload?.message) {
+                state.messages = [...state.messages, payload.message];
+                state.messagesByRoom[payload.message.roomId].push(payload.message);
 
-            state.sendingMessage = "idle";
-            state.messageText = "";
+                state.messageText = "";
+            }
             state.inputType = "text";
+            state.sendingMessage = "idle";
         });
         builder.addCase(sendMessage.pending, (state) => {
             state.sendingMessage = "pending";
@@ -293,19 +314,23 @@ export const chatSlice = createSlice({
             state.sendingMessage = "failed";
         });
 
-        builder.addCase(editMessageThunk.fulfilled, (state) => {
-            state.messageText = "";
-            state.inputType = "text";
-            state.editMessage = null;
+        builder.addCase(editMessageThunk.fulfilled, (state, { payload }) => {
+            if (payload?.message) {
+                state.messageText = "";
+                state.inputType = "text";
+                state.editMessage = null;
+            }
         });
 
         builder.addCase(replyMessageThunk.fulfilled, (state, { payload }) => {
-            state.messages = [...state.messages, payload.message];
-            state.messagesByRoom[payload.message.roomId].push(payload.message);
+            if (payload?.message) {
+                state.messages = [...state.messages, payload.message];
+                state.messagesByRoom[payload.message.roomId].push(payload.message);
+                state.messageText = "";
+                state.inputType = "text";
 
-            state.messageText = "";
-            state.inputType = "text";
-            state.replyMessage = null;
+                state.replyMessage = null;
+            }
         });
     },
 });

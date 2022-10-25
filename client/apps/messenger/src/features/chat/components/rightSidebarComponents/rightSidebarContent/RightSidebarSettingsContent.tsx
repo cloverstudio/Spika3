@@ -78,9 +78,10 @@ export default function RightSidebarEditNoteContent(): React.ReactElement {
             {webhookData?.id && (
                 <Button
                     onClick={handleRemove}
-                    sx={{ mt: 1, color: "red" }}
+                    sx={{ mt: 1 }}
                     fullWidth
                     variant="outlined"
+                    color="error"
                 >
                     Remove
                 </Button>
