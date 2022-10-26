@@ -145,9 +145,6 @@ function RoomRow({
         lastMessageText = `${senderUser?.displayName || "Removed user"}: ${lastMessageText}`;
     }
 
-    if (lastMessageText?.length > 17) {
-        lastMessageText = lastMessageText.slice(0, 17) + "...";
-    }
     return (
         <Link to={`/rooms/${id}`} onClick={handleClick} style={{ textDecoration: "none" }}>
             <Box
@@ -167,8 +164,9 @@ function RoomRow({
                     alignItems="center"
                     ml={2}
                     flexGrow={1}
+                    overflow="hidden"
                 >
-                    <Box flexGrow={1}>
+                    <Box flexGrow={1} overflow="hidden">
                         <Typography mb={1} fontWeight="600">
                             {name}
                             {roomIsMuted && (
@@ -177,17 +175,31 @@ function RoomRow({
                                 </Box>
                             )}
                         </Typography>
-                        <Typography color="text.secondary" lineHeight="1.0625rem">
+                        <Typography
+                            sx={{
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                            }}
+                            color="text.secondary"
+                            lineHeight="1.0625rem"
+                        >
                             {lastMessageText}
                         </Typography>
                     </Box>
                     <Box minWidth="90px" textAlign="right">
-                        <Typography mb={1} color="text.tertiary" fontWeight="500" lineHeight="1rem">
-                            {time}
+                        <Typography
+                            fontSize="small"
+                            color="text.tertiary"
+                            fontWeight="500"
+                            lineHeight="1rem"
+                        >
+                            {time === "a few seconds ago" ? "now" : time}
                         </Typography>
                         {unreadCount ? (
                             <Badge
                                 sx={{
+                                    mt: 1,
                                     "& .MuiBadge-badge": {
                                         position: "relative",
                                         transform: "none",

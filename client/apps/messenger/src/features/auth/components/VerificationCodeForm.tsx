@@ -57,6 +57,10 @@ export default function VerificationCodeForm({
         }
     }, [codeArr]);
 
+    useEffect(() => {
+        refs[0].current?.focus();
+    }, []);
+
     const codeFilled = codeArr.every((o) => !!o.value);
     const someCodeEntered = codeArr.some((o) => !!o.value);
 
@@ -99,7 +103,11 @@ export default function VerificationCodeForm({
                     <Box display="flex" justifyContent="space-between" mb={2}>
                         <CountdownTimer timeLeft={timeLeft} />
                     </Box>
-                    <PinInput setCodeArr={setCodeArr} codeArr={codeArr} />
+                    <PinInput
+                        setCodeArr={setCodeArr}
+                        codeArr={codeArr}
+                        handleSubmit={tryToSubmit}
+                    />
                     <Box display="flex" justifyContent="space-between" mb={2}>
                         <Link
                             fontWeight="bold"

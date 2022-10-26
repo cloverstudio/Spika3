@@ -559,6 +559,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                             avatarUrl: true,
                             createdAt: true,
                             modifiedAt: true,
+                            deleted: true,
                             users: {
                                 select: {
                                     user: true,

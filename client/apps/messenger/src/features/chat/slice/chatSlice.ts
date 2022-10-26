@@ -26,8 +26,14 @@ export const sendMessage = createAsyncThunk(
         },
         thunkAPI
     ): Promise<{ message: MessageType }> => {
+        const text = (thunkAPI.getState() as RootState).chat.messageText.trim();
+
+        if (!text) {
+            return;
+        }
+
         if (data.type === "text" || data.type === "emoji") {
-            data.body = { text: (thunkAPI.getState() as RootState).chat.messageText };
+            data.body = { text };
         }
 
         const response = await dynamicBaseQuery({
@@ -46,9 +52,13 @@ export const editMessageThunk = createAsyncThunk(
     async (_, thunkAPI): Promise<{ message: MessageType }> => {
         const { editMessage: message, messageText } = (thunkAPI.getState() as RootState).chat;
 
+        if (!messageText.trim()) {
+            return;
+        }
+
         const response = await dynamicBaseQuery({
             url: `/messenger/messages/${message.id}`,
-            data: { text: messageText },
+            data: { text: messageText.trim() },
             method: "PUT",
         });
 
@@ -60,15 +70,21 @@ export const editMessageThunk = createAsyncThunk(
 export const replyMessageThunk = createAsyncThunk(
     "messages/replyMessage",
     async (type: string, thunkAPI): Promise<{ message: MessageType }> => {
-        const {
-            replyMessage: referenceMessage,
-            messageText,
-            activeRoomId: roomId,
-        } = (thunkAPI.getState() as RootState).chat;
+        const { replyMessage: referenceMessage, messageText } = (thunkAPI.getState() as RootState)
+            .chat;
+
+        if (!messageText.trim()) {
+            return;
+        }
 
         const response = await dynamicBaseQuery({
             url: "/messenger/messages/",
-            data: { roomId, type, body: { referenceMessage, text: messageText }, reply: true },
+            data: {
+                roomId: referenceMessage.roomId,
+                type,
+                body: { referenceMessage, text: messageText.trim() },
+                reply: true,
+            },
             method: "POST",
         });
 
@@ -109,6 +125,10 @@ export const chatSlice = createSlice({
     reducers: {
         setActiveRoomId: (state, { payload }: { payload: number | null }) => {
             state.activeRoomId = payload;
+            state.replyMessage = null;
+            state.editMessage = null;
+            state.inputType = "text";
+            state.messageText = "";
         },
 
         setMessageText: (state, { payload }: { payload: string }) => {
@@ -243,30 +263,37 @@ export const chatSlice = createSlice({
         },
     },
     extraReducers: (builder) => {
-        builder.addCase(fetchMessagesByRoomId.fulfilled, (state, { payload }: any) => {
-            const messagesIds = state.messages.map((m) => m.id);
-            const notAdded = payload.list.filter(
-                (m: { id: number }) => !messagesIds.includes(m.id)
-            );
+        builder.addCase(
+            fetchMessagesByRoomId.fulfilled,
+            (
+                state,
+                {
+                    payload,
+                    meta: {
+                        arg: { roomId },
+                    },
+                }: any
+            ) => {
+                const messagesIds = state.messages.map((m) => m.id);
+                const notAdded = payload.list.filter(
+                    (m: { id: number }) => !messagesIds.includes(m.id)
+                );
 
-            if (
-                state.activeRoomId &&
-                state.count.findIndex((c) => c.roomId === state.activeRoomId) < 0
-            ) {
-                state.count.push({
-                    roomId: state.activeRoomId,
-                    count: payload.count,
-                });
+                if (roomId && state.count.findIndex((c) => c.roomId === roomId) < 0) {
+                    state.count.push({
+                        roomId: roomId,
+                        count: payload.count,
+                    });
+                }
+                state.messages = [...state.messages, ...notAdded];
+
+                if (!state.messagesByRoom[roomId]) state.messagesByRoom[roomId] = [];
+
+                state.messagesByRoom[roomId].push(...notAdded);
+
+                state.loading = "idle";
             }
-            state.messages = [...state.messages, ...notAdded];
-
-            if (!state.messagesByRoom[state.activeRoomId])
-                state.messagesByRoom[state.activeRoomId] = [];
-
-            state.messagesByRoom[state.activeRoomId].push(...notAdded);
-
-            state.loading = "idle";
-        });
+        );
         builder.addCase(fetchMessagesByRoomId.pending, (state) => {
             state.loading = "pending";
         });
@@ -275,12 +302,14 @@ export const chatSlice = createSlice({
         });
 
         builder.addCase(sendMessage.fulfilled, (state, { payload }) => {
-            state.messages = [...state.messages, payload.message];
-            state.messagesByRoom[payload.message.roomId].push(payload.message);
+            if (payload?.message) {
+                state.messages = [...state.messages, payload.message];
+                state.messagesByRoom[payload.message.roomId].push(payload.message);
 
-            state.sendingMessage = "idle";
-            state.messageText = "";
+                state.messageText = "";
+            }
             state.inputType = "text";
+            state.sendingMessage = "idle";
         });
         builder.addCase(sendMessage.pending, (state) => {
             state.sendingMessage = "pending";
@@ -289,19 +318,23 @@ export const chatSlice = createSlice({
             state.sendingMessage = "failed";
         });
 
-        builder.addCase(editMessageThunk.fulfilled, (state) => {
-            state.messageText = "";
-            state.inputType = "text";
-            state.editMessage = null;
+        builder.addCase(editMessageThunk.fulfilled, (state, { payload }) => {
+            if (payload?.message) {
+                state.messageText = "";
+                state.inputType = "text";
+                state.editMessage = null;
+            }
         });
 
         builder.addCase(replyMessageThunk.fulfilled, (state, { payload }) => {
-            state.messages = [...state.messages, payload.message];
-            state.messagesByRoom[payload.message.roomId].push(payload.message);
+            if (payload?.message) {
+                state.messages = [...state.messages, payload.message];
+                state.messagesByRoom[payload.message.roomId].push(payload.message);
+                state.messageText = "";
+                state.inputType = "text";
 
-            state.messageText = "";
-            state.inputType = "text";
-            state.replyMessage = null;
+                state.replyMessage = null;
+            }
         });
     },
 });

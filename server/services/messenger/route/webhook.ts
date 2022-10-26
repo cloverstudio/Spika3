@@ -186,7 +186,13 @@ async function canAccessRoomWebhooks(userId: number, roomId: number) {
     }
 
     if (!roomsUser.isAdmin) {
-        return false;
+        // check if it is private room
+        const room = await prisma.room.findUnique({
+            where: { id: roomId },
+            select: { type: true },
+        });
+
+        return room?.type === "private";
     }
 
     return true;

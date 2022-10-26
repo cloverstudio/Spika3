@@ -8,6 +8,8 @@ import ImageIcon from "@mui/icons-material/Image";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 
 import AttachmentManager from "../lib/AttachmentManager";
+import { useSelector } from "react-redux";
+import { selectInputType } from "../slice/chatSlice";
 
 export default function AddAttachment(): ReactElement {
     const roomId = parseInt(useParams().id || "");
@@ -16,6 +18,7 @@ export default function AddAttachment(): ReactElement {
     const uploadImagesRef = useRef(null);
     const boxRef = useRef(null);
     const [containerBoxRect, setContainerBoxRect] = React.useState<DOMRect>(null);
+    const inputType = useSelector(selectInputType);
 
     const handleFilesUpload = (e: ChangeEvent<HTMLInputElement>) => {
         const uploadedFiles = e.target.files;
@@ -38,6 +41,10 @@ export default function AddAttachment(): ReactElement {
             window.removeEventListener("resize", handleResize);
         };
     }, [boxRef]);
+
+    if (inputType === "emoji") {
+        return null;
+    }
 
     return (
         <Box

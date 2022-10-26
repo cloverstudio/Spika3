@@ -17,13 +17,17 @@ export default function generateThumbFile(
             img.onload = function () {
                 canvas.height = (img.height * THUMB_WIDTH) / img.width;
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                canvas.toBlob(async (blob) => {
-                    const thumbFile = new File([blob], "thumb - " + originalFile.name, {
-                        type: "image/jpeg",
-                    });
+                canvas.toBlob(
+                    async (blob) => {
+                        const thumbFile = new File([blob], "thumb - " + originalFile.name, {
+                            type: "image/jpeg",
+                        });
 
-                    res(thumbFile);
-                }, "image/jpeg");
+                        res(thumbFile);
+                    },
+                    "image/jpeg",
+                    1
+                );
             };
 
             img.src = URL.createObjectURL(originalFile);

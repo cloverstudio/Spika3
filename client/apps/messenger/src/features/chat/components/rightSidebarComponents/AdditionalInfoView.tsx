@@ -91,7 +91,7 @@ export function DetailsAdditionalInfoView(props: Props) {
                     <Box component="span">Notes</Box>
                     <ChevronRight />
                 </Stack>
-                {type === "group" && userIsAdmin && (
+                {((type === "group" && userIsAdmin) || type === "private") && (
                     <Stack
                         direction="row"
                         alignItems="center"

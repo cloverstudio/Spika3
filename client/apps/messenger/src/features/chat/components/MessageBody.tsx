@@ -105,9 +105,9 @@ function ImageMessage({
                 onClick={handleOpen}
                 component="img"
                 borderRadius="0.625rem"
-                maxWidth="35rem"
-                height="10rem"
-                width="auto"
+                maxWidth="256px"
+                height="auto"
+                width="100%"
                 src={`${API_BASE_URL}/upload/files/${body.thumbId}`}
                 pb="0.8125"
                 sx={{ cursor: "pointer", objectFit: "contain" }}
@@ -391,8 +391,13 @@ function TextMessage({
         text = text.replace(/\n{3,}/g, "\n");
 
         // auto link
-        const autolinkRegex = /(?![^<]*>|[^<>]*<\/)((https?:)\/\/[a-z0-9&#=.\/\-?_]+)/gi;
-        text = text.replace(autolinkRegex, '<a href="$1" target="_blank">$1</a>');
+        const autolinkRegex = /(?![^<]*>|[^<>]*<\/)((https?:)\/\/[a-z0-9&#%;:=.\/\-?_]+)/gi;
+        const internalLink = text.includes(window.origin);
+
+        text = text.replace(
+            autolinkRegex,
+            `<a href="$1" ${!internalLink ? 'target="_blank"' : ""} >$1</a>`
+        );
 
         return text;
     };
@@ -402,7 +407,7 @@ function TextMessage({
             component={"div"}
             sx={{
                 minWidth: "50px",
-                maxWidth: "50rem",
+                maxWidth: "100%",
                 backgroundColor: isUsersMessage
                     ? "common.myMessageBackground"
                     : "common.chatBackground",
@@ -421,7 +426,10 @@ function TextMessage({
                     {sender.displayName}
                 </Box>
             )}
-            <Box dangerouslySetInnerHTML={{ __html: filterText(body.text) }} />
+            <Box
+                sx={{ overflowWrap: "break-word" }}
+                dangerouslySetInnerHTML={{ __html: filterText(body.text) }}
+            />
         </Box>
     );
 }
