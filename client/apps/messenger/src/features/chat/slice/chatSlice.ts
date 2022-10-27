@@ -28,7 +28,7 @@ export const sendMessage = createAsyncThunk(
     ): Promise<{ message: MessageType }> => {
         const text = (thunkAPI.getState() as RootState).chat.messageText.trim();
 
-        if (!text) {
+        if (!text && (data.type === "text" || data.type === "emoji")) {
             return;
         }
 
