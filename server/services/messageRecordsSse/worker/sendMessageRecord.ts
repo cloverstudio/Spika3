@@ -1,6 +1,6 @@
 import QueueWorkerInterface from "../../types/queueWorkerInterface";
 import { SendMessageRecordSSEPayload } from "../../types/queuePayloadTypes";
-import { warn as lw } from "../../../components/logger";
+import log, { warn as lw } from "../../../components/logger";
 import { QUEUE_SSE } from "../../../components/consts";
 import { Channel } from "amqplib";
 import sanitize, { SanitizedMessageRecord } from "../../../components/sanitize";
@@ -67,7 +67,7 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
 
             for (const record of messageRecords) {
                 const deviceIds = await getDeviceIdsFromMessageId(record.messageId);
-
+                log("Sending mr to devices with ids: ", deviceIds.join(","));
                 for (const deviceId of deviceIds) {
                     channel.sendToQueue(
                         QUEUE_SSE,
@@ -93,18 +93,23 @@ async function getDeviceIdsFromMessageId(messageId: number): Promise<number[]> {
     const message = await prisma.message.findUnique({
         where: { id: messageId },
         select: {
+            createdAt: true,
             room: {
                 select: {
-                    users: { select: { user: { select: { device: { select: { id: true } } } } } },
+                    users: {
+                        select: {
+                            user: { select: { device: { select: { id: true, createdAt: true } } } },
+                        },
+                    },
                 },
             },
         },
     });
 
-    return message.room.users.reduce(
-        (acc, curr) => [...acc, ...curr.user.device.map((d) => d.id)],
-        []
-    );
+    return message.room.users
+        .reduce((acc, curr) => [...acc, ...curr.user.device], [])
+        .filter((d) => +d.createdAt <= +message.createdAt)
+        .map((d) => d.id);
 }
 
 export default new sendMessageRecordWorker();

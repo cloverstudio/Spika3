@@ -163,6 +163,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     createdAt: { gt: new Date(lastUpdate) },
                     message: {
                         roomId: { in: roomsIds },
+                        createdAt: { gte: userReq.device.createdAt },
                     },
                 },
             });
