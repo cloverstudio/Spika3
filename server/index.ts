@@ -18,6 +18,7 @@ import { createClient } from "redis";
 
 import { error as e } from "./components/logger";
 import WebhookService from "./services/webhook";
+import MessagingService from "./services/messaging";
 
 const app: express.Express = express();
 const redisClient = createClient({ url: process.env.REDIS_URL });
@@ -139,6 +140,15 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
         webhook.start({
             rabbitMQChannel,
         });
+    }
+
+    if (+process.env["USE_MESSAGING"]) {
+        const messaging: MessagingService = new MessagingService();
+        messaging.start({
+            rabbitMQChannel,
+        });
+
+        app.use("/api/messaging", messaging.getRoutes());
     }
 
     if (+process.env["USE_CONFCALL"]) {

@@ -1,0 +1,1419 @@
+swagger: "2.0"
+info:
+    description: "This is the api specification for spika ultimate"
+    version: "1.0.0"
+    title: "Spika3 messenger API"
+    termsOfService: "http://swagger.io/terms/"
+    contact:
+        email: "apiteam@swagger.io"
+    license:
+        name: "Apache 2.0"
+        url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "spika.ultimate.com"
+basePath: "/api/messenger"
+tags:
+    - name: "Auth"
+    - name: "Contact"
+    - name: "File"
+    - name: "Room"
+    - name: "Message"
+    - name: "Settings"
+    - name: "Sync"
+schemes:
+    - "https"
+    - "http"
+paths:
+    /messenger/auth:
+        post:
+            tags:
+                - "Auth"
+            summary: "The first step of signup process"
+            description: "The first step of signup process"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "telephoneNumber"
+                  in: body
+                  required: true
+                  schema:
+                      type: string
+                - name: "deviceId"
+                  in: body
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: object
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: object
+                                properties:
+                                    isNewUser:
+                                        type: "boolean"
+                                    user:
+                                        type: "object"
+                                        $ref: "#/definitions/User"
+                                    device:
+                                        type: "object"
+                                        $ref: "#/definitions/Device"
+                "400":
+                    description: "invalid param"
+    /messenger/auth/verify:
+        post:
+            tags:
+                - "Auth"
+            summary: "Verfiy SMS code"
+            description: "Verfiy SMS code"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "code"
+                  in: body
+                  required: true
+                  schema:
+                      type: string
+                - name: "deviceId"
+                  in: body
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: object
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: object
+                                properties:
+                                    isNewUser:
+                                        type: "boolean"
+                                    user:
+                                        type: "object"
+                                        $ref: "#/definitions/User"
+                                    device:
+                                        type: "object"
+                                        $ref: "#/definitions/Device"
+                "400":
+                    description: "Bad request"
+                "422":
+                    description: "invalid pin"
+                "404":
+                    description: "Device Not found"
+    /messenger/contacts:
+        post:
+            tags:
+                - "Contact"
+            summary: "Update user contact."
+            description: "Client sents hashed phone number list to the server."
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "contacts"
+                  in: body
+                  required: true
+                  schema:
+                      type: array
+                      items:
+                          type: string
+                      minItems: 1
+                      maxItems: 500
+            responses:
+                "200":
+                    description: "Return list of users which is already in the system"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                            data:
+                                type: "object"
+                                properties:
+                                    list:
+                                        type: "array"
+                                        items:
+                                            type: "object"
+                                            $ref: "#/definitions/User"
+                                    limit:
+                                        type: "number"
+                                    count:
+                                        type: "number"
+                "400":
+                    description: "invalid param"
+                "403":
+                    description: "invalid access token"
+        get:
+            tags:
+                - "Contact"
+            summary: "Get contacts"
+            description: "Get contacts"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - in: query
+                  name: page
+                  type: "number"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    list:
+                                        type: "array"
+                                        items:
+                                            type: "object"
+                                            $ref: "#/definitions/User"
+                                    count:
+                                        type: "number"
+                                    limit:
+                                        type: "number"
+                "400":
+                    description: "invalid param"
+                "403":
+                    description: "invalid access token"
+    /messenger/contacts/all:
+        get:
+            tags:
+                - "Contact"
+            summary: "Get all contacts"
+            description: "Get all contacts for team mode"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - in: query
+                  name: keyword
+                  type: "string"
+                - in: query
+                  name: page
+                  type: "number"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    list:
+                                        type: "array"
+                                        items:
+                                            type: "object"
+                                            $ref: "#/definitions/User"
+                                    count:
+                                        type: "number"
+                                    limit:
+                                        type: "number"
+                "400":
+                    description: "invalid param"
+                "403":
+                    description: "invalid access token"
+    /upload/files:
+        post:
+            tags:
+                - "File"
+            summary: "Upload file chunk"
+            description: "Upload file by chunks"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "chunk"
+                  in: body
+                  required: true
+                  schema:
+                      type: string
+                  description: "Base64 encoded text of the chunk"
+                - name: "offset"
+                  in: body
+                  required: true
+                  schema:
+                      type: number
+                  description: "The position of the chunk in the entire file"
+                - name: "clientId"
+                  in: body
+                  required: true
+                  schema:
+                      type: string
+                  description: "The random string to identifiy upload."
+            responses:
+                "200":
+                    description: "Returns list of chunks uploaded"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                            data:
+                                type: "object"
+                                properties:
+                                    uploadedChunks:
+                                        type: "array"
+                                        items:
+                                            type: "number"
+                                            example: 1
+                "400":
+                    description: "invalid param"
+                "403":
+                    description: "invalid access token"
+        get:
+            tags:
+                - "File"
+            summary: "Download file"
+            description: "Download file"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - in: path
+                  name: fileId
+                  type: "number"
+                  required: true
+            responses:
+                "200":
+                    description: "binary file"
+                "400":
+                    description: "invalid param"
+                "403":
+                    description: "invalid access token"
+    /upload/files/verify:
+        post:
+            tags:
+                - "File"
+            summary: "Verify file"
+            description: "Creates file if all chunks are uploaded and fileHash matches"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "total"
+                  in: body
+                  required: true
+                  schema:
+                      type: number
+                  description: "Total number of chunks"
+                - name: "size"
+                  in: body
+                  required: true
+                  schema:
+                      type: number
+                  description: "File size in bytes"
+                - name: "mimeType"
+                  in: body
+                  required: true
+                  schema:
+                      type: string
+                  description: "mimeType"
+                - name: "fileName"
+                  in: body
+                  required: true
+                  schema:
+                      type: string
+                  description: "File name"
+                - name: "clientId"
+                  in: body
+                  required: true
+                  schema:
+                      type: string
+                  description: "The random string to identify upload."
+                - name: "fileHash"
+                  in: body
+                  required: true
+                  schema:
+                      type: string
+                  description: "sha256 hash of the file"
+                - name: "type"
+                  in: body
+                  required: true
+                  schema:
+                      type: string
+                  description: "The name of the another model which the file refers ex) avatar, message, group avatar"
+                - name: "relationId"
+                  in: body
+                  schema:
+                      type: number
+                  description: "The id of model the file refers to."
+
+            responses:
+                "200":
+                    description: "Returns file object"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                            data:
+                                type: "object"
+                                properties:
+                                    file:
+                                        type: "object"
+                                        $ref: "#/definitions/File"
+                "400":
+                    description: "invalid param"
+                "403":
+                    description: "invalid access token"
+
+    /messenger/rooms:
+        get:
+            tags:
+                - "Room"
+            summary: "Get rooms"
+            description: "Get all rooms belongs to the user"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - in: query
+                  name: page
+                  type: "number"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    list:
+                                        type: "array"
+                                        items:
+                                            type: "object"
+                                            $ref: "#/definitions/Room"
+                                    count:
+                                        type: "number"
+                                    limit:
+                                        type: "number"
+                "403":
+                    description: "invalid access token"
+
+        post:
+            tags:
+                - "Room"
+            summary: "Add new room"
+            description: "Add new room"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "name"
+                  in: body
+                  schema:
+                      type: string
+                - name: "avatarUrl"
+                  in: body
+                  schema:
+                      type: array
+                - name: "userIds"
+                  in: body
+                  schema:
+                      type: array
+                - name: "adminUserIds"
+                  in: body
+                  schema:
+                      type: array
+                - name: "type"
+                  in: body
+                  schema:
+                      type: string
+
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: object
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    room:
+                                        type: "object"
+                                        $ref: "#/definitions/Room"
+                "409":
+                    description: "Already exists"
+                "400":
+                    description: "invalid param"
+    /messenger/rooms/users/{userId}:
+        get:
+            tags:
+                - "Room"
+            summary: "Get private room"
+            description: "Use this API to check if there is private room with user"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: object
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    room:
+                                        type: "object"
+                                        $ref: "#/definitions/Room"
+                "403":
+                    description: "invalid access token"
+                "404":
+                    description: "room doesn't exist"
+    /messenger/rooms/{id}:
+        get:
+            tags:
+                - "Room"
+            summary: "Get room detail"
+            description: "Get detail by id"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "id"
+                  in: path
+                  required: true
+                  description: The user id of the user to start conversation
+                  type: string
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: "object"
+                        $ref: "#/definitions/Room"
+                "403":
+                    description: "invalid access token"
+        put:
+            tags:
+                - "Room"
+            summary: "update a room"
+            description: "update a room"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "name"
+                  in: body
+                  schema:
+                      type: string
+                - name: "avatarUrl"
+                  in: body
+                  schema:
+                      type: string
+                - name: "userIds"
+                  in: body
+                  schema:
+                      type: array
+                - name: "adminUserIds"
+                  in: body
+                  schema:
+                      type: array
+
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: object
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    room:
+                                        type: "object"
+                                        $ref: "#/definitions/Room"
+                "400":
+                    description: "invalid param"
+        delete:
+            tags:
+                - "Room"
+            summary: "Delete room"
+            description: "Delete room"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "id"
+                  in: path
+                  type: number
+                  required: true
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: object
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    room:
+                                        type: "object"
+                                        $ref: "#/definitions/Room"
+                "400":
+                    description: "invalid param"
+    /messenger/rooms/leave:
+        post:
+            tags:
+                - "Room"
+            summary: "Leave from room"
+            description: "Leave from room"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "adminUserIds"
+                  in: body
+                  schema:
+                      type: array
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: object
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    room:
+                                        type: "object"
+                                        $ref: "#/definitions/Room"
+                "400":
+                    description: "invalid param"
+
+    /messenger/messages:
+        post:
+            tags:
+                - "Message"
+            summary: "Send message"
+            description: "Send messsage"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "roomId"
+                  in: body
+                  required: true
+                  schema:
+                      type: integer
+                - name: "type"
+                  in: body
+                  required: true
+                  schema:
+                      type: string
+                - name: "body"
+                  in: body
+                  required: true
+                  schema:
+                      type: object
+                      properties:
+                          text:
+                              type: string
+                          fileId:
+                              type: number
+                          thumbId:
+                              type: number
+                - name: "localId"
+                  in: body
+                  schema:
+                      type: string
+
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    message:
+                                        type: "object"
+                                        $ref: "#/definitions/Message"
+                "400":
+                    description: "invalid param"
+    /messenger/messages/{id}:
+        put:
+            tags:
+                - "Message"
+            summary: "Update message"
+            description: "Update messsage"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "id"
+                  in: path
+                  required: true
+                  type: number
+                - name: "roomId"
+                  in: body
+                  required: true
+                  schema:
+                      type: integer
+                - name: "type"
+                  in: body
+                  required: true
+                  schema:
+                      type: string
+                - name: "body"
+                  in: body
+                  required: true
+                  schema:
+                      type: object
+                      properties:
+                          text:
+                              type: string
+                          fileId:
+                              type: number
+                          thumbId:
+                              type: number
+                - name: "localId"
+                  in: body
+                  schema:
+                      type: string
+
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    message:
+                                        type: "object"
+                                        $ref: "#/definitions/Message"
+                "400":
+                    description: "invalid param"
+        delete:
+            tags:
+                - "Message"
+            summary: "delete message"
+            description: "delete messsage"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            responses:
+                "200":
+                    description: "successful operation"
+                "400":
+                    description: "invalid param"
+    /messenger/messages/roomId/{roomId}:
+        get:
+            tags:
+                - "Message"
+            summary: "Get room messages"
+            description: "Get messages from specific room"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - in: path
+                  name: roomId
+                  type: "string"
+                  required: true
+                - in: query
+                  name: page
+                  type: "number"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    list:
+                                        type: "array"
+                                        items:
+                                            type: "object"
+                                            $ref: "#/definitions/Message"
+                                    count:
+                                        type: "number"
+                                    limit:
+                                        type: "number"
+                "403":
+                    description: "invalid access token"
+    /messenger/messages/{timestamp}:
+        get:
+            tags:
+                - "Message"
+            summary: "Get all messages received after the timestamp"
+            description: "Get all messages received after the timestamp"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - in: path
+                  name: timestamp
+                  type: "number"
+                  required: true
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    list:
+                                        type: "array"
+                                        items:
+                                            type: "object"
+                                            $ref: "#/definitions/Message"
+                                    count:
+                                        type: "number"
+                                    limit:
+                                        type: "number"
+
+    /messenger/messages/{messageId}/message-records:
+        get:
+            tags:
+                - "Message"
+            summary: "Get all message records for specific message"
+            description: "Get all message records for specific message"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - in: path
+                  name: messageId
+                  type: "string"
+                  required: true
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    messageRecords:
+                                        type: "array"
+                                        items:
+                                            type: "object"
+                                            $ref: "#/definitions/MessageRecord"
+    /messenger/messages/delivered:
+        post:
+            tags:
+                - "Message"
+            summary: "Notify backend messages are saved in client side."
+            description: "Notify backend messages are saved in client side."
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "messagesIds"
+                  in: body
+                  required: true
+                  schema:
+                      type: array
+                      items:
+                          type: number
+                      minItems: 1
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    messageRecords:
+                                        type: "array"
+                                        items:
+                                            type: "object"
+                                            $ref: "#/definitions/MessageRecord"
+                "400":
+                    description: "invalid param"
+
+    /messenger/messages/{roomId}/seen:
+        post:
+            tags:
+                - "Message"
+            summary: "Notify backend when message are shown in the client side first time."
+            description: "Notify backend when message are shown in the client side first time."
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    messageRecords:
+                                        type: "array"
+                                        items:
+                                            type: "object"
+                                            $ref: "#/definitions/MessageRecord"
+                "400":
+                    description: "invalid param"
+    /messenger/message-records:
+        post:
+            tags:
+                - "MessageRecord"
+            summary: "Add message record"
+            description: "Add message record"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "messageId"
+                  in: body
+                  required: true
+                  schema:
+                      type: number
+                - name: "type"
+                  in: body
+                  required: true
+                  schema:
+                      type: string
+                - name: "reaction"
+                  in: body
+                  schema:
+                      type: string
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    messageRecord:
+                                        type: "object"
+                                        $ref: "#/definitions/MessageRecord"
+                "400":
+                    description: "invalid param"
+    /messenger/message-records/sync/{lastUpdate}:
+        get:
+            tags:
+                - "Sync"
+            summary: "Get all message records updated and created since last update"
+            description: "Get all message records updated and created since last update"
+            produces:
+                - "application/json"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    messageRecords:
+                                        type: "array"
+                                        items:
+                                            type: "object"
+                                            $ref: "#/definitions/MessageRecord"
+    /messenger/me:
+        get:
+            tags:
+                - "User"
+            summary: "Get authenticated user"
+            description: "Returns user model"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: object
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    user:
+                                        type: "object"
+                                        $ref: "#/definitions/User"
+                "400":
+                    description: "invalid param"
+
+        put:
+            tags:
+                - "User"
+            summary: "Update authenticated user"
+            description: "Updates and returns user model"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "telephoneNumber"
+                  in: body
+                  schema:
+                      type: string
+                - name: "emailAddress"
+                  in: body
+                  schema:
+                      type: string
+                - name: "displayName"
+                  in: body
+                  schema:
+                      type: string
+                - name: "avatarUrl"
+                  in: body
+                  schema:
+                      type: string
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: object
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    user:
+                                        type: "object"
+                                        $ref: "#/definitions/User"
+                "400":
+                    description: "invalid param"
+    /messenger/users/{id}:
+        get:
+            tags:
+                - "User"
+            summary: "Get use detail"
+            description: "Returns user model"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: object
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    user:
+                                        type: "object"
+                                        $ref: "#/definitions/User"
+                "400":
+                    description: "invalid param"
+    /messenger/users/sync/{timestamp}:
+        get:
+            tags:
+                - "User"
+            summary: "Get updated users from specified time"
+            description: "Returns users models"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: object
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    users:
+                                        type: "array"
+                                        items:
+                                            $ref: "#/definitions/User"
+                "400":
+                    description: "invalid param"
+    /messenger/history:
+        get:
+            tags:
+                - "History"
+            summary: "Get last updated rooms"
+            description: "Returns last updated rooms"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - in: query
+                  name: page
+                  type: "number"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    list:
+                                        type: "array"
+                                        items:
+                                            allOf:
+                                                - $ref: "#/definitions/Room"
+                                                - type: "object"
+                                                  properties:
+                                                      lastMessage:
+                                                          type: "object"
+                                                          $ref: "#/definitions/Message"
+                                    count:
+                                        type: "number"
+                                    limit:
+                                        type: "number"
+                "400":
+                    description: "invalid param"
+
+    /messenger/device:
+        get:
+            tags:
+                - "Device"
+            summary: "Get current device"
+            description: "Returns device tied to current access token"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    device:
+                                        type: "object"
+                                        $ref: "#/definitions/Device"
+                "400":
+                    description: "invalid param"
+
+        put:
+            tags:
+                - "Device"
+            summary: "Update push token"
+            description: "Returns device tied to current access token"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - in: body
+                  name: pushToken
+                  type: "string"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            status:
+                                type: "string"
+                                enum: [success, error]
+                            data:
+                                type: "object"
+                                properties:
+                                    device:
+                                        type: "object"
+                                        $ref: "#/definitions/Device"
+                "400":
+                    description: "invalid param"
+
+    /messenger/settings:
+        get:
+            tags:
+                - "Settings"
+            summary: "Return server settings to client"
+            description: "Return server settings to client"
+            produces:
+                - "application/json"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        type: "object"
+                        properties:
+                            teamMode:
+                                type: "boolean"
+
+                "403":
+                    description: "invalid access token"
+securityDefinitions:
+    api_key:
+        type: "apiKey"
+        name: "accesstoken"
+        in: "header"
+
+definitions:
+    User:
+        type: "object"
+        properties:
+            id:
+                type: "integer"
+                format: "int32"
+            dispayName:
+                type: "string"
+                format: "string"
+            avatarUrl:
+                type: "string"
+                format: "string"
+            telephoneNumber:
+                type: "string"
+                format: "string"
+            telephoneNumberHashed:
+                type: "string"
+                format: "string"
+            emailAddress:
+                type: "string"
+                format: "string"
+            createdAt:
+                type: "integer"
+                format: "int32"
+    Device:
+        type: "object"
+        properties:
+            id:
+                type: "integer"
+                format: "int32"
+            userId:
+                type: "integer"
+                format: "int32"
+            token:
+                type: "string"
+                format: "string"
+            tokenExpiredAt:
+                type: "integer"
+                format: "int32"
+            osName:
+                type: "string"
+                format: "string"
+            osVersion:
+                type: "integer"
+                format: "int32"
+            appVersion:
+                type: "integer"
+                format: "int32"
+            pushToken:
+                type: "string"
+                format: "string"
+    File:
+        type: "object"
+        properties:
+            id:
+                type: "integer"
+                format: "int32"
+            fileName:
+                type: "string"
+            size:
+                type: "integer"
+                format: "int32"
+            mimeType:
+                type: "string"
+            type:
+                type: "string"
+            relationId:
+                type: "integer"
+                format: "int32"
+    Room:
+        type: "object"
+        properties:
+            id:
+                type: "integer"
+                format: "int32"
+            name:
+                type: "string"
+            users:
+                type: "array"
+                items:
+                    type: "object"
+                    properties:
+                        userId:
+                            type: "integer"
+                            format: "int32"
+                        isAdmin:
+                            type: boolean
+                        user:
+                            type: "object"
+                            $ref: "#/definitions/User"
+            avatarUrl:
+                type: "string"
+            type:
+                type: "string"
+            createdAt:
+                type: "integer"
+                format: "int32"
+    Message:
+        type: "object"
+        properties:
+            id:
+                type: "integer"
+                format: "int32"
+            roomId:
+                type: "integer"
+                format: "int32"
+            fromUserId:
+                type: "integer"
+                format: "int32"
+            totalUserCount:
+                type: "integer"
+                format: "int32"
+            deliveredCount:
+                type: "integer"
+                format: "int32"
+            seenCount:
+                type: "integer"
+                format: "int32"
+            type:
+                type: "integer"
+                format: "int32"
+            body:
+                type: "object"
+            createdAt:
+                type: "integer"
+                format: "int32"
+            localId:
+                type: "string"
+
+    MessageRecord:
+        type: "object"
+        properties:
+            id:
+                type: "integer"
+                format: "int32"
+            messageId:
+                type: "integer"
+                format: "int32"
+            userId:
+                type: "integer"
+                format: "int32"
+            type:
+                type: "string"
+            reaction:
+                type: "string"
+            modifiedAt:
+                type: "integer"
+                format: "int32"
+            createdAt:
+                type: "integer"
+                format: "int32"
+
+externalDocs:
+    description: "Find out more about Swagger"
+    url: "http://swagger.io/terms"
+    test: 112312312312312312312312312312313123121231212312312

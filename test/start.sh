@@ -21,6 +21,7 @@ export TEAM_MODE=1
 export USE_MESSAGE_RECORDS_SSE=1
 export USE_WEBHOOK=1
 export USE_SSE=1
+export USE_MESSAGING=1
 export REDIS_URL="redis://localhost:6379"
 
 

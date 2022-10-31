@@ -11,6 +11,7 @@ Table user {
   avatarUrl String
   verificationCode String
   verified Boolean [not null, default: false]
+  isBot Boolean [not null, default: false]
   createdAt DateTime [default: `now()`, not null]
   modifiedAt DateTime [default: `now()`, not null]
   rooms room_user [not null]
@@ -76,6 +77,7 @@ Table room {
   messages message [not null]
   callHistory call_history [not null]
   webhooks webhook [not null]
+  apiKeys api_key [not null]
 }
 
 Table room_user {
@@ -193,6 +195,16 @@ Table webhook {
   modifiedAt DateTime [default: `now()`, not null]
 }
 
+Table api_key {
+  id Int [pk, increment]
+  key String [not null]
+  userId Int [not null]
+  roomId Int [not null]
+  room room [not null]
+  createdAt DateTime [default: `now()`, not null]
+  modifiedAt DateTime [default: `now()`, not null]
+}
+
 Ref: device.userId > user.id
 
 Ref: contact.userId > user.id
@@ -222,3 +234,5 @@ Ref: call_history.userId > user.id
 Ref: user_setting.userId > user.id
 
 Ref: webhook.roomId > room.id
+
+Ref: api_key.roomId > room.id
