@@ -8,6 +8,7 @@ import {
     MessageRecord,
     Note,
     Webhook,
+    ApiKey,
 } from ".prisma/client";
 
 type SanitizedUserType = Partial<
@@ -39,6 +40,9 @@ type SanitizedNoteType = Partial<
 type SanitizedWebhookType = Partial<
     Omit<Webhook, "createdAt" | "modifiedAt"> & { createdAt: number; modifiedAt: number }
 >;
+type SanitizedApiKeyType = Partial<
+    Omit<ApiKey, "createdAt" | "modifiedAt"> & { createdAt: number; modifiedAt: number }
+>;
 
 interface sanitizeTypes {
     user: () => SanitizedUserType;
@@ -49,6 +53,7 @@ interface sanitizeTypes {
     messageRecord: () => SanitizedMessageRecord;
     note: () => SanitizedNoteType;
     webhook: () => SanitizedWebhookType;
+    apiKey: () => SanitizedApiKeyType;
 }
 
 export default function sanitize(data: any): sanitizeTypes {
@@ -156,6 +161,20 @@ export default function sanitize(data: any): sanitizeTypes {
                 modifiedAt: +new Date(modifiedAt),
             };
         },
+        apiKey: () => {
+            const { id, displayName, token, avatarUrl, createdAt, modifiedAt, roomId } =
+                data as ApiKey & { displayName: string; avatarUrl?: string };
+
+            return {
+                id,
+                displayName,
+                token,
+                avatarUrl,
+                roomId,
+                createdAt: +new Date(createdAt),
+                modifiedAt: +new Date(modifiedAt),
+            };
+        },
     };
 }
 
@@ -169,6 +188,7 @@ function sanitizeUser({
     verified,
     createdAt,
     modifiedAt,
+    isBot,
 }: Partial<User>): SanitizedUserType {
     return {
         id,
@@ -180,6 +200,7 @@ function sanitizeUser({
         verified,
         createdAt: +new Date(createdAt),
         modifiedAt: +new Date(modifiedAt),
+        isBot,
     };
 }
 

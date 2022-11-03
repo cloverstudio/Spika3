@@ -139,6 +139,8 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                             <Box>
                                 {roomUser.isAdmin ? (
                                     <span>Admin</span>
+                                ) : user.isBot ? (
+                                    <span>Bot</span>
                                 ) : (
                                     userIsAdmin && (
                                         <Box display="flex">

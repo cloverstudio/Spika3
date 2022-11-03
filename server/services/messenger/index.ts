@@ -15,6 +15,7 @@ import settingsRouter from "./route/settings";
 import messageRecordRouter from "./route/messageRecord";
 import noteRouter from "./route/note";
 import webhookRouter from "./route/webhook";
+import apiKeyRouter from "./route/apiKey";
 
 import * as Constants from "../../components/consts";
 import Service, { ServiceStartParams } from "../types/serviceInterface";
@@ -65,6 +66,7 @@ export default class Messenger implements Service {
             messageRecordRouter({ rabbitMQChannel: this.rabbitMQChannel })
         );
         messengerRouter.use("/webhooks", webhookRouter({}));
+        messengerRouter.use("/api-keys", apiKeyRouter({}));
 
         return messengerRouter;
     }

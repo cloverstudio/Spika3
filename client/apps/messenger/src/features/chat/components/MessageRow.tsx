@@ -123,7 +123,9 @@ export default function MessageRow({
         >
             {roomType === "group" && !isUsersMessage && isFirstMessage && (
                 <Typography color="text.tertiary" fontWeight={600} pl="34px" mb={0.5} mt={2}>
-                    {sender?.displayName || "Removed group user"}
+                    {`${sender?.displayName || "Removed group user"} ${
+                        sender?.isBot ? " (bot)" : ""
+                    }`}
                 </Typography>
             )}
 

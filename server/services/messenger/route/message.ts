@@ -49,6 +49,14 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             const fromUserId = userReq.user.id;
             const fromDeviceId = userReq.device.id;
 
+            const roomUser = await prisma.roomUser.findFirst({
+                where: { roomId, userId: fromUserId },
+            });
+
+            if (!roomUser) {
+                return res.status(400).send(errorResponse("Room user not found", userReq.lang));
+            }
+
             const room = await prisma.room.findUnique({
                 where: { id: roomId },
                 include: { users: true },
