@@ -50,7 +50,7 @@ export default ({}: InitRouterParams): Router => {
                 });
 
                 const apiKey = await prisma.apiKey.create({
-                    data: { roomId, userId: botUser.id, key: utils.randomString(12) },
+                    data: { roomId, userId: botUser.id, token: utils.randomString(16) },
                 });
 
                 await prisma.roomUser.create({ data: { userId: botUser.id, roomId } });

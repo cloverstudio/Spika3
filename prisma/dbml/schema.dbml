@@ -95,8 +95,8 @@ Table message {
   id Int [pk, increment]
   fromUserId Int [not null]
   fromUser user [not null]
-  fromDeviceId Int [not null]
-  fromDevice device [not null]
+  fromDeviceId Int
+  fromDevice device
   roomId Int [not null]
   room room [not null]
   type String [not null]
@@ -117,7 +117,7 @@ Table message_device {
   deviceId Int [not null]
   userId Int [not null]
   fromUserId Int [not null]
-  fromDeviceId Int [not null]
+  fromDeviceId Int
   messageId Int [not null]
   message message [not null]
   body Json [not null]
@@ -197,7 +197,7 @@ Table webhook {
 
 Table api_key {
   id Int [pk, increment]
-  key String [not null]
+  token String [not null]
   userId Int [not null]
   roomId Int [not null]
   room room [not null]

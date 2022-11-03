@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import dayjs from "dayjs";
 import * as constants from "../../../components/consts";
 
 import { UserRequest } from "./types";
@@ -22,7 +21,7 @@ export default async (
 
         const apiKey = await prisma.apiKey.findFirst({
             where: {
-                key: accessToken,
+                token: accessToken,
             },
         });
 

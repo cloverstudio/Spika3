@@ -15,19 +15,19 @@ const apiKeyApi = api.injectEndpoints({
                       ]
                     : [{ type: "ApiKeys", id: "LIST" }],
         }),
-        createApiKey: build.mutation<{ webhook: ApiKeyType }, any>({
+        createApiKey: build.mutation<{ apiKey: ApiKeyType }, any>({
             query: (data) => {
                 return { url: `/messenger/api-keys/roomId/${data.roomId}`, data, method: "POST" };
             },
             invalidatesTags: () => [{ type: "ApiKeys", id: "LIST" }],
         }),
-        editApiKey: build.mutation<{ webhook: ApiKeyType }, { id: number; data: any }>({
+        editApiKey: build.mutation<{ apiKey: ApiKeyType }, { id: number; data: any }>({
             query: ({ id, data }) => {
                 return { url: `/messenger/api-keys/${id}`, method: "PUT", data };
             },
-            invalidatesTags: (result) => [{ type: "ApiKeys", id: result.webhook.id }],
+            invalidatesTags: (result) => [{ type: "ApiKeys", id: result.apiKey.id }],
         }),
-        deleteApiKey: build.mutation<{ webhook: ApiKeyType }, number>({
+        deleteApiKey: build.mutation<{ apiKey: ApiKeyType }, number>({
             query: (id) => {
                 return { url: `/messenger/api-keys/${id}`, method: "DELETE" };
             },

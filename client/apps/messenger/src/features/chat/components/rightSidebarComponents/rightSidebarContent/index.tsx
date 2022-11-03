@@ -53,6 +53,6 @@ export default function RightSidebarContent({
     }
 
     if (activeTab === "settings") {
-        return <RightSidebarSettingsContent />;
+        return <RightSidebarSettingsContent showApiKeySettings={room.type === "group"} />;
     }
 }

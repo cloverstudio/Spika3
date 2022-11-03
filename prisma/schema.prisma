@@ -120,8 +120,8 @@ model Message {
   fromUserId Int  @map(name: "from_user_id")
   fromUser   User @relation(fields: [fromUserId], references: [id])
 
-  fromDeviceId Int    @map(name: "from_device_id")
-  fromDevice   Device @relation(fields: [fromDeviceId], references: [id])
+  fromDeviceId Int?    @map(name: "from_device_id")
+  fromDevice   Device? @relation(fields: [fromDeviceId], references: [id])
 
   roomId Int  @map(name: "room_id")
   room   Room @relation(fields: [roomId], references: [id])
@@ -145,11 +145,11 @@ model Message {
 }
 
 model DeviceMessage {
-  id           Int @id @default(autoincrement()) @map(name: "id")
-  deviceId     Int @map(name: "device_id")
-  userId       Int @map(name: "user_id")
-  fromUserId   Int @map(name: "from_user_id")
-  fromDeviceId Int @map(name: "from_device_id")
+  id           Int  @id @default(autoincrement()) @map(name: "id")
+  deviceId     Int  @map(name: "device_id")
+  userId       Int  @map(name: "user_id")
+  fromUserId   Int  @map(name: "from_user_id")
+  fromDeviceId Int? @map(name: "from_device_id")
 
   messageId Int     @map(name: "message_id")
   message   Message @relation(fields: [messageId], references: [id])
@@ -251,8 +251,8 @@ model Webhook {
 }
 
 model ApiKey {
-  id  Int    @id @default(autoincrement()) @map(name: "id")
-  key String @map("key")
+  id    Int    @id @default(autoincrement()) @map(name: "id")
+  token String @map("token")
 
   userId Int  @map(name: "user_id")
   roomId Int  @map(name: "room_id")

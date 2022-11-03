@@ -162,13 +162,13 @@ export default function sanitize(data: any): sanitizeTypes {
             };
         },
         apiKey: () => {
-            const { id, displayName, key, avatarUrl, createdAt, modifiedAt, roomId } =
+            const { id, displayName, token, avatarUrl, createdAt, modifiedAt, roomId } =
                 data as ApiKey & { displayName: string; avatarUrl?: string };
 
             return {
                 id,
                 displayName,
-                key,
+                token,
                 avatarUrl,
                 roomId,
                 createdAt: +new Date(createdAt),

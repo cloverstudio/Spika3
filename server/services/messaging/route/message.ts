@@ -38,7 +38,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             const localId = req.body.localId;
             const reply = req.body.reply;
             const fromUserId = userReq.user.id;
-            const fromDeviceId = (await prisma.device.findFirst())?.id;
 
             const roomUser = await prisma.roomUser.findFirst({
                 where: { roomId, userId: fromUserId },
@@ -118,7 +117,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 deviceId: device.id,
                 userId: device.userId,
                 fromUserId,
-                fromDeviceId,
                 body,
                 action: MESSAGE_ACTION_NEW_MESSAGE,
             }));
@@ -128,7 +126,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     type,
                     roomId,
                     fromUserId: userReq.user.id,
-                    fromDeviceId,
                     totalUserCount: room.users.length,
                     deliveredCount: 0,
                     seenCount: 0,
@@ -148,10 +145,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         await prisma.deviceMessage.create({
                             data: { ...deviceMessage, messageId: message.id },
                         });
-
-                        if (deviceMessage.deviceId === fromDeviceId) {
-                            return;
-                        }
 
                         rabbitMQChannel.sendToQueue(
                             Constants.QUEUE_PUSH,

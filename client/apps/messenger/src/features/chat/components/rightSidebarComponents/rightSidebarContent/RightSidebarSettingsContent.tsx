@@ -17,11 +17,15 @@ import {
 } from "../../../api/webhook";
 import { selectActiveRoomId } from "../../../slice/chatSlice";
 
-export default function RightSidebarEditNoteContent(): React.ReactElement {
+export default function RightSidebarEditNoteContent({
+    showApiKeySettings,
+}: {
+    showApiKeySettings?: boolean;
+}): React.ReactElement {
     return (
         <Box>
             <WebhookSettings />
-            <ApiKeySettings />
+            {showApiKeySettings && <ApiKeySettings />}
         </Box>
     );
 }
@@ -123,7 +127,7 @@ function ApiKeySettings(): React.ReactElement {
 
     useEffect(() => {
         setDisplayName(apiKeyData?.displayName || "");
-        setKey(apiKeyData?.key || "");
+        setKey(apiKeyData?.token || "");
     }, [apiKeyData]);
 
     const handleSubmit = async () => {
@@ -166,6 +170,7 @@ function ApiKeySettings(): React.ReactElement {
             />
 
             {key && <Typography mb={2}>Api key: {key}</Typography>}
+            {key && <Typography mb={2}>POST url: {API_BASE_URL}/messaging/messages</Typography>}
 
             <Button onClick={handleSubmit} disabled={!displayName} fullWidth variant="contained">
                 {apiKeyData?.id ? "Save" : "Create"}
