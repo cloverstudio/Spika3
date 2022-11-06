@@ -8,7 +8,6 @@ module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
   name                             = "${var.namespace}-vpc"
   cidr                             = "10.0.0.0/16"
-  #azs                              = ["${var.retion}a","${var.retion}b"]
   azs                              = data.aws_availability_zones.available.names
   private_subnets                  = ["10.0.1.0/24", "10.0.2.0/24"]
   public_subnets                   = ["10.0.101.0/24", "10.0.102.0/24"]
@@ -86,16 +85,16 @@ resource "aws_security_group" "allow_pub" {
 
   ingress {
     description = "RabbitMQ"
-    from_port   = 5671
-    to_port     = 5671
+    from_port   = 5672
+    to_port     = 5672
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
     description = "RabbitMQ admin"
-    from_port   = 15671
-    to_port     = 15671
+    from_port   = 15672
+    to_port     = 15672
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }

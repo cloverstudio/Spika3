@@ -19,12 +19,9 @@ module "alb" {
       targets = {
         instance_1 = {
           target_id = var.instances.0
-          port = 8080
-        },
-        instance_2 = {
-          target_id = var.instances.1
-          port = 8080
-        },
+          path      = "/api/test"
+          port      = 8080
+        }
       }
     }
   ]
