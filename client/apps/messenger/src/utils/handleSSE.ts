@@ -78,19 +78,19 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                     )?.value === constants.SETTINGS_TRUE;
 
             // play sound logic
+
             if (
-                !isMute &&
-                !document.hidden &&
-                store.getState().chat.activeRoomId !== message.roomId &&
-                message.fromUserId !== store.getState().user.id
+                isMute ||
+                (!document.hidden && store.getState().chat.activeRoomId === message.roomId) ||
+                message.fromUserId === store.getState().user.id
             ) {
-                new Audio(newMessageSound).play();
-            } else if (!isMute && document.hidden) {
-                new Audio(newMessageSound).play();
-            } else {
-                console.log("muted !");
+                return;
             }
 
+            const audio = new Audio(newMessageSound);
+            audio.volume = 0.5;
+
+            audio.play();
             return;
         }
 
@@ -102,7 +102,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                 return;
             }
 
-            store.dispatch(addMessageRecord(messageRecord));
+            //    store.dispatch(addMessageRecord(messageRecord));
 
             return;
         }
