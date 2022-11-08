@@ -8,6 +8,10 @@ import callReducer from "../features/confcall/slice/callSlice";
 import roomReducer from "../features/chat/slice/roomSlice";
 import sidebarReducer from "../features/chat/slice/sidebarSlice";
 import rightSidebarReducer from "../features/chat/slice/rightSidebarSlice";
+import rightSidebar2Reducer from "../features/room/slices/rightSidebar";
+import leftSidebar2Reducer from "../features/room/slices/leftSidebar";
+import inputReducer from "../features/room/slices/input";
+import messagesReducer from "../features/room/slices/messages";
 import userReducer from "./userSlice";
 import modalReducer from "./modalSlice";
 
@@ -21,6 +25,10 @@ const rootReducer = combineReducers({
     user: userReducer,
     modal: modalReducer,
     call: callReducer,
+    rightSidebar2: rightSidebar2Reducer,
+    leftSidebar2: leftSidebar2Reducer,
+    input: inputReducer,
+    messages: messagesReducer,
     [api.reducerPath]: api.reducer,
 });
 

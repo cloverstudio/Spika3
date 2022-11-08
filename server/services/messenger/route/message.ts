@@ -362,6 +362,110 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         }
     });
 
+    // only web should call this route
+    router.get("/roomId2/:roomId", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        const userId = userReq.user.id;
+        const deviceId = userReq.device.id;
+        const targetMessageId = +((req.query.targetMessageId as string) || "");
+        const cursor = +((req.query.cursor as string) || "");
+        const roomId = +((req.params.roomId as string) || "");
+
+        let take = Constants.MESSAGE_PAGING_LIMIT;
+
+        try {
+            // find how many messages needs to reach to the target message
+            if (targetMessageId) {
+                const targetMessage = await prisma.message.findFirst({
+                    where: {
+                        id: targetMessageId,
+                    },
+                });
+
+                if (targetMessage) {
+                    take = await prisma.message.count({
+                        where: {
+                            createdAt: { gte: targetMessage.createdAt },
+                        },
+                    });
+                }
+            }
+
+            const count = await prisma.message.count({
+                where: {
+                    roomId,
+                    deviceMessages: {
+                        some: {
+                            deviceId,
+                        },
+                    },
+                },
+            });
+
+            const messages = await prisma.message.findMany({
+                where: {
+                    roomId,
+                    deviceMessages: {
+                        some: {
+                            deviceId,
+                        },
+                    },
+                },
+                include: {
+                    deviceMessages: true,
+                    messageRecords: true,
+                },
+                orderBy: {
+                    createdAt: "desc",
+                },
+                ...(cursor && {
+                    cursor: {
+                        id: cursor,
+                    },
+                }),
+                take,
+            });
+
+            const messageRecordsNotifyData = {
+                types: ["delivered"],
+                userId,
+                messageIds: messages.map((m) => m.id),
+                pushType: Constants.PUSH_TYPE_NEW_MESSAGE_RECORD,
+            };
+
+            sseMessageRecordsNotify(messageRecordsNotifyData);
+
+            const list = await Promise.all(
+                messages.map(async (m) => {
+                    const body = m.deviceMessages.find(
+                        (dm) => dm.messageId === m.id && dm.deviceId === deviceId
+                    )?.body;
+
+                    const formattedBody = await formatMessageBody(body, m.type);
+                    return sanitize({ ...m, body: formattedBody }).message();
+                })
+            );
+
+            const nextCursor = list.length ? list[list.length - 1].id : null;
+            console.log({ list, cursor, nextCursor });
+
+            res.send(
+                successResponse(
+                    {
+                        list,
+                        count,
+                        limit: take,
+                        nextCursor: list.length ? list[list.length - 1].id : null,
+                    },
+                    userReq.lang
+                )
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
     router.post(
         "/delivered",
         auth,

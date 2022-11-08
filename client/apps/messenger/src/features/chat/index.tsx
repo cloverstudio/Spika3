@@ -71,7 +71,7 @@ export default function Chat(): React.ReactElement {
             <RoomMessages roomId={roomId} />
             <ChatInput />
             {isCall && <ConfCall />}
-            <TitleUpdater {...formatRoomInfo(room, user.id)} roomId={roomId} />
+            {/*  <TitleUpdater {...formatRoomInfo(room, user.id)} roomId={roomId} /> */}
         </Box>
     );
 }

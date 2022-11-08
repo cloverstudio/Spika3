@@ -72,6 +72,7 @@ export default createApi({
         "Auth",
         "Contacts",
         "Rooms",
+        "Rooms2",
         "Device",
         "Notes",
         "MessageRecords",
