@@ -11,6 +11,7 @@ export type MessageListType = {
     list: MessageType[];
     count: number;
     limit: number;
+    nextCursor?: number;
 };
 
 export type MessageRecordListType = {

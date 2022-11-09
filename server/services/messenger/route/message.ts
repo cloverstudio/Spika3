@@ -372,6 +372,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         const roomId = +((req.params.roomId as string) || "");
 
         let take = Constants.MESSAGE_PAGING_LIMIT;
+        const limit = Constants.MESSAGE_PAGING_LIMIT;
 
         try {
             // find how many messages needs to reach to the target message
@@ -423,7 +424,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         id: cursor,
                     },
                 }),
-                take,
+                take: cursor ? take + 1 : take,
             });
 
             const messageRecordsNotifyData = {
@@ -436,18 +437,28 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             sseMessageRecordsNotify(messageRecordsNotifyData);
 
             const list = await Promise.all(
-                messages.map(async (m) => {
-                    const body = m.deviceMessages.find(
-                        (dm) => dm.messageId === m.id && dm.deviceId === deviceId
-                    )?.body;
+                messages
+                    .map(async (m) => {
+                        const body = m.deviceMessages.find(
+                            (dm) => dm.messageId === m.id && dm.deviceId === deviceId
+                        )?.body;
 
-                    const formattedBody = await formatMessageBody(body, m.type);
-                    return sanitize({ ...m, body: formattedBody }).message();
-                })
+                        const formattedBody = await formatMessageBody(body, m.type);
+                        return sanitize({ ...m, body: formattedBody }).message();
+                    })
+                    .reverse()
             );
 
-            const nextCursor = list.length ? list[list.length - 1].id : null;
-            console.log({ list, cursor, nextCursor });
+            const nextCursor = list.length && list.length >= take ? list[0].id : null;
+            console.log({
+                list: list.map((l) => l.id),
+                length: list.length,
+                take,
+                limit,
+                count,
+                cursor,
+                nextCursor,
+            });
 
             res.send(
                 successResponse(
@@ -455,7 +466,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         list,
                         count,
                         limit: take,
-                        nextCursor: list.length ? list[list.length - 1].id : null,
+                        nextCursor,
                     },
                     userReq.lang
                 )
