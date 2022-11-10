@@ -195,7 +195,6 @@ export default function MessageRow({
                         mouseOver={mouseOver}
                         isUsersMessage={isUsersMessage}
                         createdAt={createdAt}
-                        handleClose={() => setMouseOver(false)}
                     />
                     <MessageContextMenu
                         iconConfig={contextMenuIcons}

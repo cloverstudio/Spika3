@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Box, Popover, Stack, Typography } from "@mui/material";
 
-import { MessageRecordType } from "../../../types/Message";
-import { useGetUserByIdQuery } from "../api/user";
+import { MessageRecordType } from "../../../../../types/Message";
+import { useGetUserByIdQuery } from "../../../api/user";
 
 type MessageReactionsProps = {
     isUsersMessage: boolean;
@@ -35,6 +35,8 @@ export default function MessageReactions({
             return acc;
         }, {});
 
+    console.log({ messageReactions });
+
     if (!messageReactions.length) {
         return null;
     }
@@ -47,6 +49,7 @@ export default function MessageReactions({
             onMouseLeave={handleMouseLeave}
             justifyContent={isUsersMessage ? "flex-end" : "flex-start"}
             position="absolute"
+            bottom={0}
             sx={{
                 ...(isUsersMessage ? { left: 0 } : { right: 0 }),
             }}

@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { generateRandomString } from "../../../../../../lib/utils";
 import { dynamicBaseQuery } from "../../../api/api";
 import type { RootState } from "../../../store/store";
-import MessageType, { MessageListType } from "../../../types/Message";
+import MessageType, { MessageListType, MessageRecordType } from "../../../types/Message";
 
 export const fetchMessages = createAsyncThunk(
     "messages/fetchMessages",
@@ -121,6 +121,9 @@ type InitialState = {
                     [localId: string]: SendingMessageType;
                 };
             };
+            showDetails: boolean;
+            showDelete: boolean;
+            activeMessageId: number | null;
         };
     };
 };
@@ -146,6 +149,90 @@ export const messagesSlice = createSlice({
 
             room.sending.list[localId] = { status, body, localId, type };
         },
+        addMessage(state, action: { payload: MessageType }) {
+            const message = action.payload;
+            const { roomId } = message;
+
+            const room = state.list[roomId];
+
+            room.messages[message.id] = { ...message, messageRecords: [] };
+        },
+
+        addMessageRecord(state, action: { payload: MessageRecordType }) {
+            const messageRecord = action.payload;
+
+            const { roomId, messageId } = messageRecord;
+
+            const room = state.list[roomId];
+
+            room.messages[messageId].messageRecords.push(messageRecord);
+        },
+
+        showMessageDetails(state, action: { payload: { roomId: number; messageId: number } }) {
+            const { roomId, messageId } = action.payload;
+            const room = state.list[roomId];
+
+            if (room) {
+                room.activeMessageId = messageId;
+                room.showDetails = true;
+            }
+        },
+
+        hideMessageDetails(state, action: { payload: number }) {
+            const roomId = action.payload;
+            const room = state.list[roomId];
+
+            if (room) {
+                room.activeMessageId = null;
+                room.showDetails = false;
+            }
+        },
+        showDeleteModal(state, action: { payload: { roomId: number; messageId: number } }) {
+            const { roomId, messageId } = action.payload;
+            const room = state.list[roomId];
+
+            if (room) {
+                room.activeMessageId = messageId;
+                room.showDetails = false;
+                room.showDelete = true;
+            }
+        },
+
+        hideDeleteModal(state, action: { payload: number }) {
+            const roomId = action.payload;
+            const room = state.list[roomId];
+
+            if (room) {
+                room.activeMessageId = null;
+                room.showDelete = false;
+            }
+        },
+
+        deleteMessage: (state, { payload }: { payload: MessageType }) => {
+            const roomId = payload.roomId;
+            const room = state.list[roomId];
+
+            if (room) {
+                room.messages[payload.id] = { ...payload, messageRecords: [] };
+            }
+        },
+
+        /*   editMessage: (state, { payload }: { payload: MessageType }) => {
+            const messageIndex = state.messages.findIndex((m) => m.id === payload.id);
+
+            if (messageIndex > -1) {
+                state.messages.splice(messageIndex, 1, payload);
+            }
+
+            const roomId = payload.roomId;
+            const messageRoomIndex = state.messagesByRoom[roomId].findIndex(
+                (m) => m.id === payload.id
+            );
+
+            if (messageRoomIndex > -1) {
+                state.messagesByRoom[roomId].splice(messageRoomIndex, 1, payload);
+            }
+        }, */
     },
     extraReducers: (builder) => {
         builder.addCase(
@@ -167,7 +254,15 @@ export const messagesSlice = createSlice({
             const room = state.list[roomId];
 
             if (!room) {
-                state.list[roomId] = { roomId, messages: {}, loading: true, sending: { list: {} } };
+                state.list[roomId] = {
+                    roomId,
+                    messages: {},
+                    loading: true,
+                    sending: { list: {} },
+                    activeMessageId: null,
+                    showDetails: false,
+                    showDelete: false,
+                };
             } else {
                 room.loading = true;
             }
@@ -181,19 +276,27 @@ export const messagesSlice = createSlice({
         });
 
         builder.addCase(sendMessage.fulfilled, (state, { payload }) => {
-            console.log({ payload });
             const { message } = payload;
             const { roomId } = message;
 
             const room = state.list[roomId];
 
-            room.messages[payload.message.id] = payload.message;
+            room.messages[payload.message.id] = { ...payload.message, messageRecords: [] };
             delete room.sending.list[message.localId];
         });
     },
 });
 
-export const { setSending } = messagesSlice.actions;
+export const {
+    setSending,
+    addMessage,
+    addMessageRecord,
+    showMessageDetails,
+    hideMessageDetails,
+    showDeleteModal,
+    hideDeleteModal,
+    deleteMessage,
+} = messagesSlice.actions;
 
 export const selectRoomMessages =
     (roomId: number) =>
@@ -257,6 +360,46 @@ export const selectMessageById =
         }
 
         return message;
+    };
+
+export const selectShowMessageDetails =
+    (roomId: number) =>
+    (state: RootState): boolean => {
+        const room = state.messages.list[roomId];
+
+        if (!room) {
+            return false;
+        }
+
+        return room.showDetails;
+    };
+
+export const selectShowDeleteMessage =
+    (roomId: number) =>
+    (state: RootState): boolean => {
+        const room = state.messages.list[roomId];
+
+        if (!room) {
+            return false;
+        }
+
+        return room.showDelete;
+    };
+
+export const selectActiveMessage =
+    (roomId: number) =>
+    (state: RootState): MessageType | null => {
+        const room = state.messages.list[roomId];
+
+        if (!room) {
+            return null;
+        }
+
+        if (!room.activeMessageId) {
+            return null;
+        }
+
+        return room.messages[room.activeMessageId] || null;
     };
 
 export default messagesSlice.reducer;

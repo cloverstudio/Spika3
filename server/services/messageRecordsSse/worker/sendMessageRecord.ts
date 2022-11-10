@@ -23,11 +23,17 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
                                 userId,
                             },
                         },
+                        include: { message: true },
                     });
 
                     if (justNotify) {
                         if (record) {
-                            messageRecords.push(sanitize(record).messageRecord());
+                            messageRecords.push(
+                                sanitize({
+                                    ...record,
+                                    roomId: record.message.roomId,
+                                }).messageRecord()
+                            );
                         } else {
                             lw("Can't find messageRecord to justNotify about it!");
                         }
@@ -43,6 +49,7 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
                                     messageId,
                                     ...(type === "reaction" && { reaction }),
                                 },
+                                include: { message: true },
                             });
 
                             if (["delivered", "seen"].includes(type)) {
@@ -57,7 +64,12 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
                                 });
                             }
 
-                            messageRecords.push(sanitize(record).messageRecord());
+                            messageRecords.push(
+                                sanitize({
+                                    ...record,
+                                    roomId: record.message.roomId,
+                                }).messageRecord()
+                            );
                         } catch (error) {
                             lw("create message record failed", error.message);
                         }

@@ -437,16 +437,14 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             sseMessageRecordsNotify(messageRecordsNotifyData);
 
             const list = await Promise.all(
-                messages
-                    .map(async (m) => {
-                        const body = m.deviceMessages.find(
-                            (dm) => dm.messageId === m.id && dm.deviceId === deviceId
-                        )?.body;
+                messages.map(async (m) => {
+                    const body = m.deviceMessages.find(
+                        (dm) => dm.messageId === m.id && dm.deviceId === deviceId
+                    )?.body;
 
-                        const formattedBody = await formatMessageBody(body, m.type);
-                        return sanitize({ ...m, body: formattedBody }).message();
-                    })
-                    .reverse()
+                    const formattedBody = await formatMessageBody(body, m.type);
+                    return sanitize({ ...m, body: formattedBody }).messageWithReactionRecords();
+                })
             );
 
             const nextCursor = list.length && list.length >= take ? list[0].id : null;
