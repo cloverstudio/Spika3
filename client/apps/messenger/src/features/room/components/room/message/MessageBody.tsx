@@ -59,10 +59,10 @@ export default function MessageBody({
         case "audio": {
             return <AudioMessage body={body} isUsersMessage={isUsersMessage} />;
         }
-
+*/
         default: {
-            return <FileMessage body={body} isUsersMessage={isUsersMessage} />;
-        } */
+            return "not impl type" || <FileMessage body={body} isUsersMessage={isUsersMessage} />;
+        }
     }
 }
 
