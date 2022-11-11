@@ -5,9 +5,10 @@ import getFileIcon from "../../../lib/getFileIcon";
 import DownloadIcon from "@mui/icons-material/Download";
 import { CloseOutlined } from "@mui/icons-material";
 import { deletedMessageText } from "../../../lib/consts";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import UserType from "../../../../../types/User";
+import { useGetRoom2Query } from "../../../api/room";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -27,46 +28,46 @@ export default function MessageBody({
     isReply,
     onImageMessageClick,
 }: MessageBodyProps): React.ReactElement {
-    /* const isDeleted = body?.text === deletedMessageText;
+    const isDeleted = body?.text === deletedMessageText;
 
     if (isDeleted) {
-        return <TextMessage body={body} isUsersMessage={isUsersMessage} />;
+        return <TextMessage body={body} isUsersMessage={side === "right"} />;
     }
- */
-    /*   if (isReply) {
-        return <ReplyMessage body={body} isUsersMessage={isUsersMessage} />;
-    } */
+
+    if (isReply) {
+        return <ReplyMessage body={body} isUsersMessage={side === "right"} />;
+    }
 
     switch (type) {
         case "text": {
             return <TextMessage body={body} isUsersMessage={side === "right"} />;
         }
-        /* 
+
         case "image": {
             return (
                 <ImageMessage
                     body={body}
-                    isUsersMessage={isUsersMessage}
+                    isUsersMessage={side === "right"}
                     onClick={onImageMessageClick}
                 />
             );
         }
 
         case "video": {
-            return <VideoMessage body={body} isUsersMessage={isUsersMessage} />;
+            return <VideoMessage body={body} isUsersMessage={side === "right"} />;
         }
 
         case "audio": {
-            return <AudioMessage body={body} isUsersMessage={isUsersMessage} />;
+            return <AudioMessage body={body} isUsersMessage={side === "right"} />;
         }
-*/
+
         default: {
-            return "not impl type" || <FileMessage body={body} isUsersMessage={isUsersMessage} />;
+            return <FileMessage body={body} isUsersMessage={side === "right"} />;
         }
     }
 }
 
-/* function ImageMessage({
+function ImageMessage({
     body,
     isUsersMessage,
     onClick,
@@ -218,13 +219,13 @@ function AudioMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
 
 function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boolean }) {
     const navigate = useNavigate();
-    const roomId = useSelector(selectActiveRoomId);
-    const { data } = useGetRoomQuery(roomId);
+    const roomId = parseInt(useParams().id || "");
+    const { data: room } = useGetRoom2Query(roomId);
 
     const renderReplyMessage = () => {
         const { type: replyMsgType, body: replyMsgBody } = body.referenceMessage;
 
-        const sender = data.room.users?.find(
+        const sender = room?.users?.find(
             (u) => u.userId === body.referenceMessage.fromUserId
         )?.user;
         switch (replyMsgType) {
@@ -365,7 +366,7 @@ function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boo
             <Box>{body.text}</Box>
         </Box>
     );
-} */
+}
 
 function TextMessage({
     isUsersMessage,

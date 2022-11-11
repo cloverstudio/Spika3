@@ -1,20 +1,16 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 
 import { Box, useMediaQuery } from "@mui/material";
 import Header from "./components/room/Header";
 import { useTheme } from "@mui/material/styles";
-import { useDispatch, useSelector } from "react-redux";
-import { selectInputText, setInputText } from "./slices/input";
-import { useParams } from "react-router-dom";
-import { sendMessage } from "./slices/messages";
-import MessagesList from "./components/room/MessagesList";
+import Messages from "./components/room/Messages";
 import ChatInput from "./components/room/ChatInput";
 
 export default function Room(): React.ReactElement {
     return (
         <RoomContainer>
             <Header />
-            <MessagesList />
+            <Messages />
             <ChatInput />
         </RoomContainer>
     );

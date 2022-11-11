@@ -5,6 +5,7 @@ type MessageType = Omit<Message, "createdAt" | "modifiedAt"> & {
     modifiedAt: number;
     body: any;
     messageRecords?: MessageRecordType[];
+    status?: string;
 };
 export type MessageRecordType = Omit<MessageRecord, "createdAt"> & {
     createdAt: number;

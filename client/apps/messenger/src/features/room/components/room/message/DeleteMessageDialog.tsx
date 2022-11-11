@@ -27,7 +27,7 @@ export default function DeleteMessageDialogContainer() {
     const dispatch = useDispatch();
     const activeMessage = useSelector(selectActiveMessage(roomId));
     const showDeleteMessage = useSelector(selectShowDeleteMessage(roomId));
-    console.log({ activeMessage, showDeleteMessage });
+
     if (!activeMessage || !showDeleteMessage) {
         return null;
     }

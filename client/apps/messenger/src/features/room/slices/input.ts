@@ -1,86 +1,7 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { dynamicBaseQuery } from "../../../api/api";
+import { createSlice } from "@reduxjs/toolkit";
 import type { RootState } from "../../../store/store";
 import MessageType from "../../../types/Message";
-import { fetchHistory } from "../../chat/slice/roomSlice";
 import { setSending } from "./messages";
-
-export const sendMessage = createAsyncThunk(
-    "messages/sendMessage",
-    async (
-        data: {
-            roomId: number;
-            type: string;
-            body: any;
-        },
-        thunkAPI
-    ): Promise<{ message: MessageType }> => {
-        const text = (thunkAPI.getState() as RootState).chat.messageText.trim();
-
-        if (!text && (data.type === "text" || data.type === "emoji")) {
-            return;
-        }
-
-        if (data.type === "text" || data.type === "emoji") {
-            data.body = { text };
-        }
-
-        const response = await dynamicBaseQuery({
-            url: "/messenger/messages",
-            data,
-            method: "POST",
-        });
-
-        thunkAPI.dispatch(fetchHistory({ page: 1, keyword: "" }));
-        return response.data;
-    }
-);
-
-export const editMessageThunk = createAsyncThunk(
-    "messages/editMessage",
-    async (_, thunkAPI): Promise<{ message: MessageType }> => {
-        const { editMessage: message, messageText } = (thunkAPI.getState() as RootState).chat;
-
-        if (!messageText.trim()) {
-            return;
-        }
-
-        const response = await dynamicBaseQuery({
-            url: `/messenger/messages/${message.id}`,
-            data: { text: messageText.trim() },
-            method: "PUT",
-        });
-
-        thunkAPI.dispatch(fetchHistory({ page: 1, keyword: "" }));
-        return response.data;
-    }
-);
-
-export const replyMessageThunk = createAsyncThunk(
-    "messages/replyMessage",
-    async (type: string, thunkAPI): Promise<{ message: MessageType }> => {
-        const { replyMessage: referenceMessage, messageText } = (thunkAPI.getState() as RootState)
-            .chat;
-
-        if (!messageText.trim()) {
-            return;
-        }
-
-        const response = await dynamicBaseQuery({
-            url: "/messenger/messages/",
-            data: {
-                roomId: referenceMessage.roomId,
-                type,
-                body: { referenceMessage, text: messageText.trim() },
-                reply: true,
-            },
-            method: "POST",
-        });
-
-        thunkAPI.dispatch(fetchHistory({ page: 1, keyword: "" }));
-        return response.data;
-    }
-);
 
 interface InitialState {
     list: {
@@ -144,6 +65,8 @@ export const inputSlice = createSlice({
             if (state.list[roomId]) {
                 state.list[roomId].text = "";
                 state.list[roomId].type = "text";
+                state.list[roomId].editMessage = null;
+                state.list[roomId].replyMessage = null;
             } else {
                 console.error("input slice error, send message can't find room input state");
             }

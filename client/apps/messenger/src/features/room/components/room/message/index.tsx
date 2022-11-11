@@ -4,9 +4,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { useShowSnackBar } from "../../../../../hooks/useModal";
 import { selectUser } from "../../../../../store/userSlice";
-import { MessageRecordType } from "../../../../../types/Message";
+import MessageType, { MessageRecordType } from "../../../../../types/Message";
 import { useGetRoom2Query } from "../../../api/room";
 import getMessageStatus from "../../../lib/getMessageStatus";
+import { setEditMessage, setReplyMessage } from "../../../slices/input";
 import { selectMessageById, showDeleteModal, showMessageDetails } from "../../../slices/messages";
 import DatePopover from "./DatePopover";
 import MessageBody from "./MessageBody";
@@ -60,12 +61,11 @@ function Message({
         createdAt,
         deleted,
         type,
+        status,
     } = message;
 
     const sender = useSender(fromUserId);
     const roomType = useRoomType();
-
-    console.log("message rendr", { sender, message });
 
     const isUsersMessage = message.fromUserId === user.id;
     const isFirstMessage = fromUserId !== previousMessageFromUserId;
@@ -79,8 +79,9 @@ function Message({
         `${sender?.displayName || "Removed group user"} ${sender?.isBot ? " (bot)" : ""}`;
 
     const side = isUsersMessage ? "right" : "left";
-    const status =
-        isUsersMessage && getMessageStatus({ totalUserCount, deliveredCount, seenCount });
+    const messageStatus = status
+        ? status
+        : isUsersMessage && getMessageStatus({ totalUserCount, deliveredCount, seenCount });
 
     let contextMenuIcons = IconConfigs.showInfo;
 
@@ -104,17 +105,18 @@ function Message({
     }
 
     return (
-        <MessageContainer side={isUsersMessage ? "right" : "left"}>
+        <MessageContainer id={id} side={isUsersMessage ? "right" : "left"}>
             {roomType === "group" ? (
                 <GroupMessage
                     side={side}
                     id={id}
                     displayName={displayName}
                     avatarUrl={avatarUrl}
-                    status={status}
+                    status={messageStatus}
                     messageReactions={messageRecords.filter((mr) => mr.type === "reaction")}
                     createdAt={createdAt}
                     contextMenuIcons={contextMenuIcons}
+                    message={message}
                 />
             ) : (
                 <PrivateMessage body={body} />
@@ -124,14 +126,16 @@ function Message({
 }
 
 type MessageContainerProps = {
+    id: number;
     side: "left" | "right";
     children: React.ReactNode;
 };
 
-function MessageContainer({ side, children }: MessageContainerProps) {
+function MessageContainer({ side, children, id }: MessageContainerProps) {
     return (
         <Box
             maxWidth="80%"
+            id={`message_${id}`}
             sx={{
                 display: "flex",
                 ...(side === "right"
@@ -157,6 +161,7 @@ type GroupMessageProps = {
     displayName?: string;
     avatarUrl?: string;
     status?: string;
+    message: MessageType;
 };
 
 function GroupMessage({
@@ -168,6 +173,7 @@ function GroupMessage({
     messageReactions,
     createdAt,
     contextMenuIcons,
+    message,
 }: GroupMessageProps) {
     const roomId = parseInt(useParams().id || "");
     const dispatch = useDispatch();
@@ -235,14 +241,13 @@ function GroupMessage({
                         handleDelete={() => {
                             dispatch(showDeleteModal({ roomId, messageId: id }));
                         }}
-                        /* 
-                        handleEdit={(e) => {
-                            if (onEdit) onEdit(id);
+                        handleEdit={() => {
+                            dispatch(setEditMessage({ roomId, message }));
                         }}
-                        handleReply={(e) => {
-                            if (onReply) onReply(id);
-                        }} */
-                        handleShare={async (e) => {
+                        handleReply={() => {
+                            dispatch(setReplyMessage({ roomId, message }));
+                        }}
+                        handleShare={async () => {
                             const parsedUrl = new URL(window.location.href);
 
                             const url = `${parsedUrl.origin}/messenger/rooms/${roomId}/${id}`;
@@ -279,12 +284,12 @@ function MessageBodyContainer({ id }: { id: number }) {
     const user = useSelector(selectUser);
 
     const message = useSelector(selectMessageById(roomId, id));
-    const { fromUserId, body, type } = message;
+    const { fromUserId, body, type, reply } = message;
 
     const isUsersMessage = fromUserId === user.id;
     const side = isUsersMessage ? "right" : "left";
 
-    return <MessageBody body={body} id={id} type={type} side={side} />;
+    return <MessageBody body={body} id={id} type={type} side={side} isReply={reply} />;
 }
 
 export default memo(Message);

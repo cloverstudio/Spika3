@@ -11,7 +11,6 @@ import uploadFile from "../../../../utils/uploadFile";
 import SendIcon from "@mui/icons-material/Send";
 import { useShowBasicDialog } from "../../../../hooks/useModal";
 import {
-    sendMessage,
     selectEditMessage,
     selectReplyMessage,
     selectInputText,
@@ -19,9 +18,7 @@ import {
     setInputText,
     selectInputType,
     setInputType,
-    editMessageThunk,
     addEmoji,
-    replyMessageThunk,
     setReplyMessage,
 } from "../../slices/input";
 import getFileType from "../../lib/getFileType";
@@ -33,60 +30,7 @@ import Close from "@mui/icons-material/Close";
 import { useGetRoom2Query } from "../../api/room";
 import MessageType from "../../../../types/Message";
 import getFileIcon from "../../lib/getFileIcon";
-
-/* function Input() {
-    const roomId = parseInt(useParams().id || "");
-    const ref = useRef<HTMLTextAreaElement>();
-
-    const dispatch = useDispatch();
-    const text = useSelector(selectInputText(roomId));
-
-    useEffect(() => {
-        ref.current.focus();
-    });
-
-    const handleChange = (text: string) => {
-        dispatch(setInputText({ text, roomId }));
-    };
-
-    const handleSend = () => {
-        dispatch(sendMessage(roomId));
-    };
-
-    return (
-        <Box borderTop="1px solid #C9C9CA" px={2} py={1}>
-            <textarea
-                ref={ref}
-                value={text}
-                //   disabled={loading}
-                onChange={({ target }) => {
-                    handleChange(target.value);
-                }}
-                onKeyDown={(e) => {
-                    if (e.key === "Enter" && e.shiftKey === true) {
-                        handleChange(e.currentTarget.value);
-                    } else if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleSend();
-                    } else {
-                    }
-                }}
-                placeholder="Type here..."
-                style={{
-                    border: "none",
-                    padding: "10px",
-                    display: "block",
-                    width: "100%",
-                    outline: "none",
-                    fontSize: "0.9em",
-                    paddingRight: "32px",
-                    resize: "vertical",
-                }}
-                rows={1}
-            />
-        </Box>
-    );
-} */
+import { editMessageThunk, replyMessageThunk, sendMessage } from "../../slices/messages";
 
 export default function ChatInputContainer(): React.ReactElement {
     const dispatch = useDispatch();
@@ -244,10 +188,10 @@ function ChatInput({
         }
 
         if (replyMessage) {
-            return dispatch(replyMessageThunk("text"));
+            return dispatch(replyMessageThunk({ type: "text", roomId }));
         }
 
-        dispatch(editMessageThunk());
+        dispatch(editMessageThunk(roomId));
     };
 
     const handleCloseEdit = () => {
@@ -283,7 +227,7 @@ function ChatInput({
         <>
             <Box width="100%" position="relative">
                 {inputType === "emoji" && (
-                    <EmojiPicker onSelect={(emoji) => dispatch(addEmoji(emoji))} />
+                    <EmojiPicker onSelect={(emoji) => dispatch(addEmoji({ roomId, emoji }))} />
                 )}
 
                 {replyMessage && <ReplyMessage message={replyMessage} />}
@@ -441,7 +385,7 @@ function ReplyMessage({ message }: { message: MessageType }): React.ReactElement
             {message.type === "file" && <Icon fontSize="large" />}
             <IconButton
                 size="small"
-                onClick={() => dispatch(setReplyMessage(null))}
+                onClick={() => dispatch(setReplyMessage({ message: null, roomId }))}
                 sx={{ position: "absolute", right: "4px", top: "4px" }}
             >
                 <Close fontSize="inherit" />

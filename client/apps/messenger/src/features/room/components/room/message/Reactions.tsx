@@ -35,8 +35,6 @@ export default function MessageReactions({
             return acc;
         }, {});
 
-    console.log({ messageReactions });
-
     if (!messageReactions.length) {
         return null;
     }

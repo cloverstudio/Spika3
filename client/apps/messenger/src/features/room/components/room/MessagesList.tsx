@@ -4,15 +4,8 @@ import React, { memo, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import MessageType from "../../../../types/Message";
-import {
-    canLoadMoreMessages,
-    fetchMessages,
-    selectRoomMessages,
-    selectRoomSendingMessages,
-} from "../../slices/messages";
+import { fetchMessages, selectRoomMessages } from "../../slices/messages";
 import Message from "./message";
-import DeleteMessageDialog from "./message/DeleteMessageDialog";
-import MessageDetailDialog from "./message/MessageDetailsModal";
 import MessagesContainer from "./MessagesContainer";
 
 const Date = memo(function Date({ day }: { day: string }) {
@@ -23,13 +16,11 @@ const Date = memo(function Date({ day }: { day: string }) {
     );
 });
 
-export default function RoomMessages(): React.ReactElement {
+export default function MessagesList(): React.ReactElement {
     const roomId = parseInt(useParams().id || "");
 
     const dispatch = useDispatch();
     const messages = useSelector(selectRoomMessages(roomId));
-    const sendingMessages = useSelector(selectRoomSendingMessages(roomId));
-    const canLoadMore = useSelector(canLoadMoreMessages(roomId));
 
     const messagesSorted = useMemo(() => {
         console.log("Calc mesages sorted");
@@ -61,18 +52,10 @@ export default function RoomMessages(): React.ReactElement {
         dispatch(fetchMessages({ roomId }));
     }, [dispatch, roomId]);
 
-    const handleLoadMore = () => {
-        if (canLoadMore) {
-            dispatch(fetchMessages({ roomId }));
-            return true;
-        }
-
-        return false;
-    };
-
+    console.log("rendered list", { messagesSorted });
     return (
-        <MessagesContainer onLoadMore={handleLoadMore}>
-            {Object.entries(messagesSorted).map(([day, messages], i) => {
+        <MessagesContainer>
+            {Object.entries(messagesSorted).map(([day, messages]) => {
                 return (
                     <Box key={day}>
                         <Date day={day} />
@@ -90,17 +73,6 @@ export default function RoomMessages(): React.ReactElement {
                     </Box>
                 );
             })}
-            {Object.values(sendingMessages).map((m) => (
-                <Box
-                    id={`sending_message_${m.localId}`}
-                    bgcolor={m.status === "sending" ? "green" : "red"}
-                    key={m.localId}
-                >
-                    {m.body.text}
-                </Box>
-            ))}
-            <MessageDetailDialog />
-            <DeleteMessageDialog />
         </MessagesContainer>
     );
 }

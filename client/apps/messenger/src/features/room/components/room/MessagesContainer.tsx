@@ -1,85 +1,51 @@
 import { Box } from "@mui/material";
 import React, { useEffect, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
+import {
+    canLoadMoreMessages,
+    fetchMessages,
+    selectCursor,
+    selectRoomMessagesLength,
+} from "../../slices/messages";
 
 export default function MessagesContainer({
     children,
-    onLoadMore,
 }: {
     children: React.ReactNode;
-    onLoadMore: () => boolean;
 }): React.ReactElement {
     const roomId = parseInt(useParams().id || "");
+    const messagesLength = useSelector(selectRoomMessagesLength(roomId));
+    const canLoadMore = useSelector(canLoadMoreMessages(roomId));
+    const cursor = useSelector(selectCursor(roomId));
+    const dispatch = useDispatch();
+    const messagesLengthRef = useRef(0);
 
     const ref = useRef<HTMLDivElement>();
 
     useEffect(() => {
-        ref.current.dataset.scrollHeight = "";
-        ref.current.dataset.locked = "0";
-        const observed = new Map();
+        const locked = +ref.current.dataset.locked;
+        const lastScrollHeight = +ref.current.dataset.scrollHeight;
 
-        let lastMessageCount = Array.from(ref.current.children).filter(
-            (e) => !e.id.includes("sending")
-        ).length;
-
-        const resizeObserver = new ResizeObserver(() => {
-            const lockedForScroll = +ref.current.dataset.locked;
-
-            if (!lockedForScroll) onScrollDown();
-        });
-
-        const config = { childList: true, subtree: true };
-
-        const onChildListChange = () => {
-            const newChildrenCount = ref.current.children.length;
-
-            if (newChildrenCount) {
-                for (let i = 0; i < newChildrenCount; i++) {
-                    const element = ref.current.children[i];
-                    if (!observed.get(element.id)) {
-                        resizeObserver.observe(element);
-                        observed.set(element.id, element);
-                    }
-                }
-
-                const lockedForScroll = +ref.current.dataset.locked;
-                const newMessageCount = Array.from(ref.current.children).filter(
-                    (e) => !e.id.includes("sending")
-                ).length;
-                console.log({ lastMessageCount, newMessageCount, lockedForScroll });
-
-                if (lastMessageCount === newMessageCount) {
-                    return;
-                }
-
-                if (lockedForScroll && lastMessageCount + 1 !== newMessageCount) {
-                    console.log("run");
-                    const lastScrollHeight = +ref.current.dataset.scrollHeight;
-                    if (ref.current.scrollHeight > lastScrollHeight) {
-                        ref.current.scrollTop = ref.current.scrollHeight - lastScrollHeight;
-                    }
-                }
-
-                lastMessageCount = newMessageCount;
+        if (locked) {
+            if (
+                ref.current.scrollHeight > lastScrollHeight &&
+                messagesLength - messagesLengthRef.current > 1
+            ) {
+                ref.current.scrollTop = ref.current.scrollHeight - lastScrollHeight;
             }
-        };
 
-        const mutationObserver = new MutationObserver((mutationList) => {
-            if (mutationList.some((m) => m.type === "childList")) {
-                onChildListChange();
+            if (messagesLength - messagesLengthRef.current === 1) {
+                console.log("TODO: set notif");
             }
-        });
+        } else {
+            if (ref.current.scrollHeight !== lastScrollHeight) {
+                onScrollDown();
+            }
+        }
 
-        mutationObserver.observe(ref.current, config);
-
-        console.log("msg contain oberve");
-
-        return () => {
-            console.log("msg contain leave");
-            mutationObserver.disconnect();
-            resizeObserver.disconnect();
-        };
-    }, [roomId]);
+        messagesLengthRef.current = messagesLength;
+    }, [roomId, messagesLength]);
 
     const onScrollDown = () => {
         if (!ref.current) {
@@ -98,9 +64,9 @@ export default function MessagesContainer({
         const target = e.target as HTMLDivElement;
 
         if (target.scrollTop === 0) {
-            const loaded = onLoadMore();
-            if (loaded) {
+            if (canLoadMore) {
                 ref.current.dataset.locked = "1";
+                dispatch(fetchMessages({ roomId, cursor }));
             }
         }
 

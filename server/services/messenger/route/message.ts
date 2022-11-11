@@ -447,7 +447,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 })
             );
 
-            const nextCursor = list.length && list.length >= take ? list[0].id : null;
+            const nextCursor = list.length && list.length >= take ? list[list.length - 1].id : null;
             console.log({
                 list: list.map((l) => l.id),
                 length: list.length,

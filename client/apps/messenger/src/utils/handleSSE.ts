@@ -1,5 +1,4 @@
 import api, { dynamicBaseQuery } from "../api/api";
-import { editMessage } from "../features/chat/slice/chatSlice";
 
 import { updateLastMessage } from "../features/chat/slice/roomSlice";
 import { fetchHistory } from "../features/chat/slice/roomSlice";
@@ -23,7 +22,12 @@ import { fetchContact } from "../features/chat/slice/contactsSlice";
 import { RoomType } from "../types/Rooms";
 import newMessageSound from "../../../../assets/newmessage.mp3";
 import * as constants from "../../../../lib/constants";
-import { addMessage, addMessageRecord, deleteMessage } from "../features/room/slices/messages";
+import {
+    addMessage,
+    addMessageRecord,
+    deleteMessage,
+    editMessage,
+} from "../features/room/slices/messages";
 
 export default async function handleSSE(event: MessageEvent): Promise<void> {
     const data = event.data ? JSON.parse(event.data) : {};
