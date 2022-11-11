@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Avatar, Badge, Box, Typography } from "@mui/material";
 import { isRoomMuted, selectUser } from "../../../store/userSlice";
-import { selectActiveRoomId } from "../slice/chatSlice";
 import { fetchHistory, selectHistory, selectHistoryLoading } from "../slice/roomSlice";
 
 import useIsInViewport from "../../../hooks/useIsInViewport";
@@ -22,11 +21,11 @@ declare const UPLOADS_BASE_URL: string;
 
 export default function SidebarChatList(): React.ReactElement {
     const dispatch = useDispatch();
+    const activeRoomId = parseInt(useParams().id || "");
 
-    const { list, count } = useSelector(selectHistory, (bfr, aft) => false);
-    const loading = useSelector(selectHistoryLoading(), (bfr, aft) => true);
-    const activeRoomId = useSelector(selectActiveRoomId, (bfr, aft) => false);
-    const user = useSelector(selectUser, (bfr, aft) => true);
+    const { list, count } = useSelector(selectHistory);
+    const loading = useSelector(selectHistoryLoading());
+    const user = useSelector(selectUser);
 
     const [page, setPage] = useState(1);
     const { isInViewPort, elementRef } = useIsInViewport();
