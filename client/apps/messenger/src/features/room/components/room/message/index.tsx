@@ -1,12 +1,11 @@
 import { Avatar, Box, Typography } from "@mui/material";
-import React, { memo, useState } from "react";
+import React, { memo, ReactElement, ReactNode, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { useShowSnackBar } from "../../../../../hooks/useModal";
 import { selectUser } from "../../../../../store/userSlice";
-import MessageType, { MessageRecordType } from "../../../../../types/Message";
+import MessageType from "../../../../../types/Message";
 import { useGetRoom2Query } from "../../../api/room";
-import getMessageStatus from "../../../lib/getMessageStatus";
 import { setEditMessage, setReplyMessage } from "../../../slices/input";
 import {
     selectHasMessageReactions,
@@ -57,6 +56,13 @@ function Message({
     const user = useSelector(selectUser);
     const status = useSelector(selectMessageStatus(roomId, id));
     const message = useSelector(selectMessageById(roomId, id));
+
+    const dispatch = useDispatch();
+    const [mouseOver, setMouseOver] = useState(false);
+    const [showReactionMenu, setShowReactionMenu] = useState(false);
+
+    const showSnackBar = useShowSnackBar();
+
     const { fromUserId, body, createdAt, deleted, type } = message;
 
     const sender = useSender(fromUserId);
@@ -96,8 +102,71 @@ function Message({
         contextMenuIcons = IconConfigs.showEmoticon | IconConfigs.showInfo | IconConfigs.showReply;
     }
 
+    const handleMouseLeave = () => {
+        setMouseOver(false);
+        setShowReactionMenu(false);
+    };
+
+    const handleMouseEnter = () => {
+        setMouseOver(true);
+    };
+
+    const Menu = () => (
+        <MessageContextMenu
+            iconConfig={contextMenuIcons}
+            mouseOver={mouseOver}
+            isUsersMessage={side === "right"}
+            handleClose={() => setMouseOver(false)}
+            handleEmoticon={() => {
+                setShowReactionMenu(true);
+                setMouseOver(false);
+            }}
+            handleInfo={() => {
+                dispatch(showMessageDetails({ roomId, messageId: id }));
+            }}
+            handleDelete={() => {
+                dispatch(showDeleteModal({ roomId, messageId: id }));
+            }}
+            handleEdit={() => {
+                dispatch(setEditMessage({ roomId, message }));
+            }}
+            handleReply={() => {
+                dispatch(setReplyMessage({ roomId, message }));
+            }}
+            handleShare={async () => {
+                const parsedUrl = new URL(window.location.href);
+
+                const url = `${parsedUrl.origin}/messenger/rooms/${roomId}/${id}`;
+                await navigator.clipboard.writeText(url);
+
+                showSnackBar({
+                    severity: "info",
+                    text: "Permalink Copied",
+                });
+            }}
+        />
+    );
+    const ReactionOptions = () => (
+        <ReactionOptionsPopover
+            isUsersMessage={side === "right"}
+            show={showReactionMenu}
+            messageId={id}
+            handleClose={() => setShowReactionMenu(false)}
+        />
+    );
+    const DateInfo = () => (
+        <DatePopover
+            mouseOver={mouseOver}
+            isUsersMessage={side === "right"}
+            createdAt={createdAt}
+        />
+    );
     return (
-        <MessageContainer id={id} side={isUsersMessage ? "right" : "left"}>
+        <MessageContainer
+            id={id}
+            side={isUsersMessage ? "right" : "left"}
+            handleMouseLeave={handleMouseLeave}
+        >
             {roomType === "group" ? (
                 <GroupMessage
                     side={side}
@@ -108,9 +177,13 @@ function Message({
                     createdAt={createdAt}
                     contextMenuIcons={contextMenuIcons}
                     message={message}
+                    handleMouseEnter={handleMouseEnter}
+                    Menu={Menu}
+                    ReactionOptions={ReactionOptions}
+                    DateInfo={DateInfo}
                 />
             ) : (
-                <PrivateMessage body={body} />
+                <PrivateMessage message={message} />
             )}
         </MessageContainer>
     );
@@ -120,9 +193,13 @@ type MessageContainerProps = {
     id: number;
     side: "left" | "right";
     children: React.ReactNode;
+    handleMouseLeave: () => void;
 };
 
-function MessageContainer({ side, children, id }: MessageContainerProps) {
+function MessageContainer({ side, children, id, handleMouseLeave }: MessageContainerProps) {
+    const roomId = parseInt(useParams().id || "");
+    const hasReactions = useSelector(selectHasMessageReactions(roomId, id));
+
     return (
         <Box
             maxWidth="80%"
@@ -138,7 +215,16 @@ function MessageContainer({ side, children, id }: MessageContainerProps) {
                     : { textAlign: "left", mr: "auto", justifyContent: "start" }),
             }}
         >
-            {children}
+            <Box
+                display="grid"
+                gap={1}
+                mb={hasReactions ? 3.5 : 0.5}
+                onMouseLeave={handleMouseLeave}
+                width="100%"
+                sx={{ justifyContent: side === "right" ? "end" : "start" }}
+            >
+                {children}
+            </Box>
         </Box>
     );
 }
@@ -152,6 +238,10 @@ type GroupMessageProps = {
     avatarUrl?: string;
     status?: string;
     message: MessageType;
+    handleMouseEnter: () => void;
+    Menu: ReactNode;
+    ReactionOptions: ReactNode;
+    DateInfo: ReactNode;
 };
 
 function GroupMessage({
@@ -160,30 +250,13 @@ function GroupMessage({
     avatarUrl,
     side,
     status,
-    createdAt,
-    contextMenuIcons,
-    message,
+    handleMouseEnter,
+    Menu,
+    ReactionOptions,
+    DateInfo,
 }: GroupMessageProps) {
-    const roomId = parseInt(useParams().id || "");
-    const hasReactions = useSelector(selectHasMessageReactions(roomId, id));
-    const dispatch = useDispatch();
-    const [mouseOver, setMouseOver] = useState(false);
-    const [showReactionMenu, setShowReactionMenu] = useState(false);
-
-    const showSnackBar = useShowSnackBar();
-
     return (
-        <Box
-            display="grid"
-            gap={1}
-            mb={hasReactions ? 3.5 : 0.5}
-            onMouseLeave={() => {
-                setMouseOver(false);
-                setShowReactionMenu(false);
-            }}
-            width="100%"
-            sx={{ justifyContent: side === "right" ? "end" : "start" }}
-        >
+        <>
             {displayName && (
                 <Typography lineHeight={1} color="text.tertiary" fontWeight={600} pl="34px" mt={2}>
                     {displayName}
@@ -199,71 +272,28 @@ function GroupMessage({
                     side === "left" && <Box />
                 )}
                 <Box display="flex" position="relative">
-                    <Box
-                        onMouseEnter={() => {
-                            setMouseOver(true);
-                        }}
-                    >
+                    <Box onMouseEnter={handleMouseEnter}>
                         <MessageBodyContainer id={id} />
                     </Box>
                     {status && <StatusIcon status={status} />}
                     <MessageReactions id={id} />
-                    <DatePopover
-                        mouseOver={mouseOver}
-                        isUsersMessage={side === "right"}
-                        createdAt={createdAt}
-                    />
-                    <MessageContextMenu
-                        iconConfig={contextMenuIcons}
-                        mouseOver={mouseOver}
-                        isUsersMessage={side === "right"}
-                        handleClose={() => setMouseOver(false)}
-                        handleEmoticon={() => {
-                            setShowReactionMenu(true);
-                            setMouseOver(false);
-                        }}
-                        handleInfo={() => {
-                            dispatch(showMessageDetails({ roomId, messageId: id }));
-                        }}
-                        handleDelete={() => {
-                            dispatch(showDeleteModal({ roomId, messageId: id }));
-                        }}
-                        handleEdit={() => {
-                            dispatch(setEditMessage({ roomId, message }));
-                        }}
-                        handleReply={() => {
-                            dispatch(setReplyMessage({ roomId, message }));
-                        }}
-                        handleShare={async () => {
-                            const parsedUrl = new URL(window.location.href);
-
-                            const url = `${parsedUrl.origin}/messenger/rooms/${roomId}/${id}`;
-                            await navigator.clipboard.writeText(url);
-
-                            showSnackBar({
-                                severity: "info",
-                                text: "Permalink Copied",
-                            });
-                        }}
-                    />
-                    <ReactionOptionsPopover
-                        isUsersMessage={side === "right"}
-                        show={showReactionMenu}
-                        messageId={id}
-                        handleClose={() => setShowReactionMenu(false)}
-                    />
                 </Box>
+                <DateInfo />
+                <Menu />
+                <ReactionOptions />
             </Box>
-        </Box>
+        </>
     );
 }
 
 type PrivateMessageProps = {
-    body: any;
+    message: MessageType;
 };
 
-function PrivateMessage({ body }: PrivateMessageProps) {
-    return <Box>{body.text}</Box>;
+function PrivateMessage({ message }: PrivateMessageProps) {
+    const { id } = message;
+
+    return <Box>{id}</Box>;
 }
 
 function MessageBodyContainer({ id }: { id: number }) {
