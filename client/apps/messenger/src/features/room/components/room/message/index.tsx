@@ -63,7 +63,7 @@ function Message({
 
     const showSnackBar = useShowSnackBar();
 
-    const { fromUserId, body, createdAt, deleted, type } = message;
+    const { fromUserId, createdAt, deleted, type } = message;
 
     const sender = useSender(fromUserId);
     const roomType = useRoomType();
@@ -154,6 +154,7 @@ function Message({
             handleClose={() => setShowReactionMenu(false)}
         />
     );
+
     const DateInfo = () => (
         <DatePopover
             mouseOver={mouseOver}
@@ -161,30 +162,25 @@ function Message({
             createdAt={createdAt}
         />
     );
+
     return (
         <MessageContainer
             id={id}
             side={isUsersMessage ? "right" : "left"}
             handleMouseLeave={handleMouseLeave}
         >
-            {roomType === "group" ? (
-                <GroupMessage
-                    side={side}
-                    id={id}
-                    displayName={displayName}
-                    avatarUrl={avatarUrl}
-                    status={isUsersMessage ? status : ""}
-                    createdAt={createdAt}
-                    contextMenuIcons={contextMenuIcons}
-                    message={message}
-                    handleMouseEnter={handleMouseEnter}
-                    Menu={Menu}
-                    ReactionOptions={ReactionOptions}
-                    DateInfo={DateInfo}
-                />
-            ) : (
-                <PrivateMessage message={message} />
-            )}
+            <MessageContent
+                side={side}
+                id={id}
+                displayName={displayName}
+                avatarUrl={avatarUrl}
+                status={isUsersMessage ? status : ""}
+                message={message}
+                handleMouseEnter={handleMouseEnter}
+                Menu={<Menu />}
+                ReactionOptions={<ReactionOptions />}
+                DateInfo={<DateInfo />}
+            />
         </MessageContainer>
     );
 }
@@ -229,11 +225,9 @@ function MessageContainer({ side, children, id, handleMouseLeave }: MessageConta
     );
 }
 
-type GroupMessageProps = {
+type MessageContentProps = {
     id: number;
     side: "left" | "right";
-    createdAt: number;
-    contextMenuIcons: any;
     displayName?: string;
     avatarUrl?: string;
     status?: string;
@@ -244,7 +238,7 @@ type GroupMessageProps = {
     DateInfo: ReactNode;
 };
 
-function GroupMessage({
+function MessageContent({
     id,
     displayName,
     avatarUrl,
@@ -254,7 +248,7 @@ function GroupMessage({
     Menu,
     ReactionOptions,
     DateInfo,
-}: GroupMessageProps) {
+}: MessageContentProps) {
     return (
         <>
             {displayName && (
@@ -262,7 +256,11 @@ function GroupMessage({
                     {displayName}
                 </Typography>
             )}
-            <Box display="grid" gap={1} gridTemplateColumns={side === "right" ? "1fr" : "26px 1fr"}>
+            <Box
+                display="grid"
+                gap={1}
+                gridTemplateColumns={side === "right" || !avatarUrl ? "1fr" : "26px 1fr"}
+            >
                 {avatarUrl ? (
                     <Avatar
                         sx={{ width: 26, height: 26, mr: 1, mb: "0.375rem" }}
@@ -277,23 +275,13 @@ function GroupMessage({
                     </Box>
                     {status && <StatusIcon status={status} />}
                     <MessageReactions id={id} />
+                    {DateInfo}
+                    {Menu}
+                    {ReactionOptions}
                 </Box>
-                <DateInfo />
-                <Menu />
-                <ReactionOptions />
             </Box>
         </>
     );
-}
-
-type PrivateMessageProps = {
-    message: MessageType;
-};
-
-function PrivateMessage({ message }: PrivateMessageProps) {
-    const { id } = message;
-
-    return <Box>{id}</Box>;
 }
 
 function MessageBodyContainer({ id }: { id: number }) {
