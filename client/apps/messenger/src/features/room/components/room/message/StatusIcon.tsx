@@ -3,7 +3,6 @@ import SendingIcon from "../../../../../assets/sending-icon.svg";
 import SentIcon from "../../../../../assets/sent-icon.svg";
 import DeliveredIcon from "../../../../../assets/delivered-icon.svg";
 import SeenIcon from "../../../../../assets/seen-icon.svg";
-import PendingIcon from "../../../../../assets/pending-icon.svg";
 import FailedIcon from "../../../../../assets/failed-icon.svg";
 import { Box } from "@mui/material";
 
@@ -28,10 +27,6 @@ export default function StatusIcon({ status }: StatusIconProps): React.ReactElem
 
             case "seen": {
                 return SeenIcon;
-            }
-
-            case "sending": {
-                return PendingIcon;
             }
 
             case "failed": {

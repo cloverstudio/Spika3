@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { dynamicBaseQuery } from "../../../api/api";
 import type { RootState } from "../../../store/store";
 import MessageType, { MessageListType, MessageRecordType } from "../../../types/Message";
+import getMessageStatus from "../../chat/lib/getMessageStatus";
 
 export const fetchMessages = createAsyncThunk(
     "messages/fetchMessages",
@@ -17,7 +18,7 @@ export const fetchMessages = createAsyncThunk(
         },
         thunkAPI
     ) => {
-        const room = (thunkAPI.getState() as RootState).messages.list[roomId];
+        const room = (thunkAPI.getState() as RootState).messages[roomId];
         const { count } = room || {};
         console.log("Fetch messages: ", { room });
 
@@ -229,17 +230,23 @@ export const replyMessageThunk = createAsyncThunk(
 );
 
 type InitialState = {
-    list: {
-        [roomId: number]: {
-            roomId: number;
-            loading: boolean;
-            messages: { [id: string]: MessageType };
-            showDetails: boolean;
-            showDelete: boolean;
-            activeMessageId: number | null;
-            count?: number;
-            cursor?: number;
+    [roomId: number]: {
+        roomId: number;
+        loading: boolean;
+        messages: { [id: string]: MessageType };
+        reactions: { [messageId: string]: MessageRecordType[] };
+        statusCounts: {
+            [messageId: string]: {
+                seenCount: number;
+                deliveredCount: number;
+                totalUserCount: number;
+            };
         };
+        showDetails: boolean;
+        showDelete: boolean;
+        activeMessageId: number | null;
+        count?: number;
+        cursor?: number;
     };
 };
 
@@ -272,7 +279,7 @@ export const messagesSlice = createSlice({
                 reply = false,
                 createdAt = +Date.now(),
             } = action.payload;
-            const room = state.list[roomId];
+            const room = state[roomId];
 
             room.messages[localId] = {
                 status,
@@ -295,35 +302,49 @@ export const messagesSlice = createSlice({
         },
         addMessage(state, action: { payload: MessageType }) {
             const message = action.payload;
-            const { roomId } = message;
+            const { roomId, totalUserCount, deliveredCount, seenCount } = message;
 
-            const room = state.list[roomId];
+            const room = state[roomId];
 
-            room.messages[message.id] = { ...message, messageRecords: [] };
+            room.messages[message.id] = message;
+            room.reactions[message.id] = [];
+            room.statusCounts[message.id] = { totalUserCount, deliveredCount, seenCount };
         },
 
         addMessageRecord(state, action: { payload: MessageRecordType }) {
             const messageRecord = action.payload;
 
-            const { roomId, messageId } = messageRecord;
+            const { roomId, messageId, type } = messageRecord;
 
-            const room = state.list[roomId];
+            const room = state[roomId];
 
-            if (!room.messages[messageId]) {
-                console.log("mr faster than message :S");
-                return;
-            }
-
-            if (!room.messages[messageId].messageRecords) {
-                room.messages[messageId].messageRecords = [messageRecord];
-            } else {
-                room.messages[messageId].messageRecords.push(messageRecord);
+            if (type === "reaction") {
+                if (room.reactions[messageId]) {
+                    room.reactions[messageId] = room.reactions[messageId].filter(
+                        (r) => r.userId !== messageRecord.userId
+                    );
+                    room.reactions[messageId].push(messageRecord);
+                } else {
+                    room.reactions[messageId] = [messageRecord];
+                }
+            } else if (type === "seen") {
+                if (room.statusCounts[messageId]?.seenCount) {
+                    room.statusCounts[messageId].seenCount += 1;
+                } else {
+                    room.statusCounts[messageId].seenCount = 1;
+                }
+            } else if (type === "delivered") {
+                if (room.statusCounts[messageId]?.deliveredCount) {
+                    room.statusCounts[messageId].deliveredCount += 1;
+                } else {
+                    room.statusCounts[messageId].deliveredCount = 1;
+                }
             }
         },
 
         showMessageDetails(state, action: { payload: { roomId: number; messageId: number } }) {
             const { roomId, messageId } = action.payload;
-            const room = state.list[roomId];
+            const room = state[roomId];
 
             if (room) {
                 room.activeMessageId = messageId;
@@ -333,16 +354,17 @@ export const messagesSlice = createSlice({
 
         hideMessageDetails(state, action: { payload: number }) {
             const roomId = action.payload;
-            const room = state.list[roomId];
+            const room = state[roomId];
 
             if (room) {
                 room.activeMessageId = null;
                 room.showDetails = false;
             }
         },
+
         showDeleteModal(state, action: { payload: { roomId: number; messageId: number } }) {
             const { roomId, messageId } = action.payload;
-            const room = state.list[roomId];
+            const room = state[roomId];
 
             if (room) {
                 room.activeMessageId = messageId;
@@ -353,7 +375,7 @@ export const messagesSlice = createSlice({
 
         hideDeleteModal(state, action: { payload: number }) {
             const roomId = action.payload;
-            const room = state.list[roomId];
+            const room = state[roomId];
 
             if (room) {
                 room.activeMessageId = null;
@@ -363,7 +385,7 @@ export const messagesSlice = createSlice({
 
         deleteMessage: (state, { payload }: { payload: MessageType }) => {
             const roomId = payload.roomId;
-            const room = state.list[roomId];
+            const room = state[roomId];
 
             if (room) {
                 room.messages[payload.id] = { ...payload, messageRecords: [] };
@@ -372,7 +394,7 @@ export const messagesSlice = createSlice({
 
         editMessage: (state, { payload }: { payload: MessageType }) => {
             const roomId = payload.roomId;
-            const room = state.list[roomId];
+            const room = state[roomId];
 
             if (room) {
                 room.messages[payload.id] = { ...payload, messageRecords: [] };
@@ -384,24 +406,29 @@ export const messagesSlice = createSlice({
             fetchMessages.fulfilled,
             (state, { payload, meta }: { payload: MessageListType; meta: any }) => {
                 const roomId = meta.arg.roomId;
-                console.log({ payload });
-                state.list[roomId].count = payload.count;
-                state.list[roomId].cursor = payload.nextCursor;
-                state.list[roomId].loading = false;
+
+                state[roomId].count = payload.count;
+                state[roomId].cursor = payload.nextCursor;
+                state[roomId].loading = false;
 
                 payload.list.forEach((m) => {
-                    state.list[roomId].messages[m.id] = m;
+                    const { messageRecords, totalUserCount, deliveredCount, seenCount, id } = m;
+                    state[roomId].messages[id] = m;
+                    state[roomId].reactions[id] = messageRecords || [];
+                    state[roomId].statusCounts[id] = { totalUserCount, deliveredCount, seenCount };
                 });
             }
         );
         builder.addCase(fetchMessages.pending, (state, { meta }) => {
             const roomId = meta.arg.roomId;
-            const room = state.list[roomId];
+            const room = state[roomId];
 
             if (!room) {
-                state.list[roomId] = {
+                state[roomId] = {
                     roomId,
                     messages: {},
+                    reactions: {},
+                    statusCounts: {},
                     loading: true,
                     activeMessageId: null,
                     showDetails: false,
@@ -414,29 +441,49 @@ export const messagesSlice = createSlice({
 
         builder.addCase(fetchMessages.rejected, (state, { meta }) => {
             const roomId = meta.arg.roomId;
-            const room = state.list[roomId];
+            const room = state[roomId];
 
             room.loading = false;
         });
 
         builder.addCase(sendMessage.fulfilled, (state, { payload }) => {
             const { message } = payload;
-            const { roomId } = message;
+            const {
+                id,
+                roomId,
+                localId,
+                messageRecords,
+                totalUserCount,
+                deliveredCount,
+                seenCount,
+            } = message;
 
-            const room = state.list[roomId];
+            const room = state[roomId];
 
-            delete room.messages[message.localId];
-            room.messages[payload.message.id] = { ...payload.message, messageRecords: [] };
+            delete room.messages[localId];
+            room.messages[id] = message;
+            room.reactions[id] = messageRecords || [];
+            room.statusCounts[id] = { totalUserCount, deliveredCount, seenCount };
         });
 
         builder.addCase(replyMessageThunk.fulfilled, (state, { payload }) => {
             const { message } = payload;
-            const { roomId } = message;
+            const {
+                id,
+                roomId,
+                localId,
+                messageRecords,
+                totalUserCount,
+                deliveredCount,
+                seenCount,
+            } = message;
 
-            const room = state.list[roomId];
+            const room = state[roomId];
 
-            delete room.messages[message.localId];
-            room.messages[payload.message.id] = { ...payload.message, messageRecords: [] };
+            delete room.messages[localId];
+            room.messages[id] = message;
+            room.reactions[id] = messageRecords || [];
+            room.statusCounts[id] = { totalUserCount, deliveredCount, seenCount };
         });
     },
 });
@@ -460,24 +507,24 @@ export const selectRoomMessages =
     ): {
         [id: string]: MessageType;
     } => {
-        return state.messages.list[roomId]?.messages || {};
+        return state.messages[roomId]?.messages || {};
     };
 
 export const selectRoomMessagesLength =
     (roomId: number) =>
     (state: RootState): number => {
-        return Object.keys(state.messages.list[roomId]?.messages || {}).length;
+        return Object.keys(state.messages[roomId]?.messages || {}).length;
     };
 export const selectRoomMessagesIsLoading =
     (roomId: number) =>
     (state: RootState): boolean => {
-        return state.messages.list[roomId]?.loading;
+        return state.messages[roomId]?.loading;
     };
 
 export const canLoadMoreMessages =
     (roomId: number) =>
     (state: RootState): boolean => {
-        const room = state.messages.list[roomId];
+        const room = state.messages[roomId];
 
         if (!room) {
             return true;
@@ -497,7 +544,7 @@ export const canLoadMoreMessages =
 export const selectMessageById =
     (roomId: number, id: number) =>
     (state: RootState): MessageType | null => {
-        const room = state.messages.list[roomId];
+        const room = state.messages[roomId];
 
         if (!room) {
             return null;
@@ -512,10 +559,54 @@ export const selectMessageById =
         return message;
     };
 
+export const selectMessageReactions =
+    (roomId: number, id: number) =>
+    (state: RootState): MessageRecordType[] => {
+        const room = state.messages[roomId];
+
+        if (!room) {
+            return null;
+        }
+
+        return room.reactions[id] || [];
+    };
+
+export const selectHasMessageReactions =
+    (roomId: number, id: number) =>
+    (state: RootState): boolean => {
+        const room = state.messages[roomId];
+
+        if (!room || !room.reactions[id]) {
+            return false;
+        }
+
+        return !!room.reactions[id].length;
+    };
+
+export const selectMessageStatus =
+    (roomId: number, id: number) =>
+    (state: RootState): string => {
+        const room = state.messages[roomId];
+
+        if (!room) {
+            return "";
+        }
+
+        if (room.messages[id].status) {
+            return room.messages[id].status;
+        }
+
+        if (room.statusCounts[id]) {
+            return getMessageStatus(room.statusCounts[id]);
+        }
+
+        return "";
+    };
+
 export const selectShowMessageDetails =
     (roomId: number) =>
     (state: RootState): boolean => {
-        const room = state.messages.list[roomId];
+        const room = state.messages[roomId];
 
         if (!room) {
             return false;
@@ -527,7 +618,7 @@ export const selectShowMessageDetails =
 export const selectShowDeleteMessage =
     (roomId: number) =>
     (state: RootState): boolean => {
-        const room = state.messages.list[roomId];
+        const room = state.messages[roomId];
 
         if (!room) {
             return false;
@@ -539,7 +630,7 @@ export const selectShowDeleteMessage =
 export const selectActiveMessage =
     (roomId: number) =>
     (state: RootState): MessageType | null => {
-        const room = state.messages.list[roomId];
+        const room = state.messages[roomId];
 
         if (!room) {
             return null;
@@ -555,7 +646,7 @@ export const selectActiveMessage =
 export const selectCursor =
     (roomId: number) =>
     (state: RootState): number => {
-        const room = state.messages.list[roomId];
+        const room = state.messages[roomId];
 
         return room?.cursor;
     };

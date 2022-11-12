@@ -8,7 +8,13 @@ import MessageType, { MessageRecordType } from "../../../../../types/Message";
 import { useGetRoom2Query } from "../../../api/room";
 import getMessageStatus from "../../../lib/getMessageStatus";
 import { setEditMessage, setReplyMessage } from "../../../slices/input";
-import { selectMessageById, showDeleteModal, showMessageDetails } from "../../../slices/messages";
+import {
+    selectHasMessageReactions,
+    selectMessageById,
+    selectMessageStatus,
+    showDeleteModal,
+    showMessageDetails,
+} from "../../../slices/messages";
 import DatePopover from "./DatePopover";
 import MessageBody from "./MessageBody";
 import MessageContextMenu, { IconConfigs } from "./MessageContextMenu";
@@ -49,20 +55,9 @@ function Message({
 }) {
     const roomId = parseInt(useParams().id || "");
     const user = useSelector(selectUser);
-
+    const status = useSelector(selectMessageStatus(roomId, id));
     const message = useSelector(selectMessageById(roomId, id));
-    const {
-        fromUserId,
-        body,
-        totalUserCount,
-        deliveredCount,
-        seenCount,
-        messageRecords,
-        createdAt,
-        deleted,
-        type,
-        status,
-    } = message;
+    const { fromUserId, body, messageRecords, createdAt, deleted, type } = message;
 
     const sender = useSender(fromUserId);
     const roomType = useRoomType();
@@ -79,9 +74,6 @@ function Message({
         `${sender?.displayName || "Removed group user"} ${sender?.isBot ? " (bot)" : ""}`;
 
     const side = isUsersMessage ? "right" : "left";
-    const messageStatus = status
-        ? status
-        : isUsersMessage && getMessageStatus({ totalUserCount, deliveredCount, seenCount });
 
     let contextMenuIcons = IconConfigs.showInfo;
 
@@ -112,7 +104,7 @@ function Message({
                     id={id}
                     displayName={displayName}
                     avatarUrl={avatarUrl}
-                    status={messageStatus}
+                    status={isUsersMessage && status}
                     messageReactions={messageRecords.filter((mr) => mr.type === "reaction")}
                     createdAt={createdAt}
                     contextMenuIcons={contextMenuIcons}
@@ -170,12 +162,12 @@ function GroupMessage({
     avatarUrl,
     side,
     status,
-    messageReactions,
     createdAt,
     contextMenuIcons,
     message,
 }: GroupMessageProps) {
     const roomId = parseInt(useParams().id || "");
+    const hasReactions = useSelector(selectHasMessageReactions(roomId, id));
     const dispatch = useDispatch();
     const [mouseOver, setMouseOver] = useState(false);
     const [showReactionMenu, setShowReactionMenu] = useState(false);
@@ -186,7 +178,7 @@ function GroupMessage({
         <Box
             display="grid"
             gap={1}
-            mb={messageReactions.length ? 3.5 : 0.5}
+            mb={hasReactions ? 3.5 : 0.5}
             onMouseLeave={() => {
                 setMouseOver(false);
                 setShowReactionMenu(false);
@@ -217,10 +209,7 @@ function GroupMessage({
                         <MessageBodyContainer id={id} />
                     </Box>
                     {status && <StatusIcon status={status} />}
-                    <MessageReactions
-                        messageReactions={messageReactions}
-                        isUsersMessage={side === "right"}
-                    />
+                    <MessageReactions id={id} />
                     <DatePopover
                         mouseOver={mouseOver}
                         isUsersMessage={side === "right"}

@@ -3,16 +3,20 @@ import { Box, Popover, Stack, Typography } from "@mui/material";
 
 import { MessageRecordType } from "../../../../../types/Message";
 import { useGetUserByIdQuery } from "../../../api/user";
+import { useSelector } from "react-redux";
+import { selectMessageReactions } from "../../../slices/messages";
+import { useParams } from "react-router-dom";
+import useIsUsersMessage from "../../../hooks/useIsUsersMessage";
 
 type MessageReactionsProps = {
-    isUsersMessage: boolean;
-    messageReactions: MessageRecordType[];
+    id: number;
 };
 
-export default function MessageReactions({
-    isUsersMessage,
-    messageReactions,
-}: MessageReactionsProps): React.ReactElement {
+export default function MessageReactions({ id }: MessageReactionsProps): React.ReactElement {
+    const roomId = parseInt(useParams().id || "");
+
+    const isUsersMessage = useIsUsersMessage(roomId, id);
+    const reactions = useSelector(selectMessageReactions(roomId, id));
     const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
 
     const handleMouseEnter = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -25,17 +29,19 @@ export default function MessageReactions({
 
     const open = Boolean(anchorEl);
 
-    const messageRecordsByReaction: { [key: string]: MessageRecordType[] } =
-        messageReactions.reduce((acc, curr) => {
+    const messageRecordsByReaction: { [key: string]: MessageRecordType[] } = reactions.reduce(
+        (acc, curr) => {
             if (acc[curr.reaction]) {
                 acc[curr.reaction].push(curr);
             } else {
                 acc[curr.reaction] = [curr];
             }
             return acc;
-        }, {});
+        },
+        {}
+    );
 
-    if (!messageReactions.length) {
+    if (!reactions.length) {
         return null;
     }
 
@@ -86,7 +92,7 @@ export default function MessageReactions({
                 disableRestoreFocus
             >
                 <Box p={0.5}>
-                    {messageReactions.map((r) => (
+                    {reactions.map((r) => (
                         <ReactionUser key={r.userId} userId={r.userId} reaction={r.reaction} />
                     ))}
                 </Box>
