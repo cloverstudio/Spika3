@@ -57,7 +57,7 @@ function Message({
     const user = useSelector(selectUser);
     const status = useSelector(selectMessageStatus(roomId, id));
     const message = useSelector(selectMessageById(roomId, id));
-    const { fromUserId, body, messageRecords, createdAt, deleted, type } = message;
+    const { fromUserId, body, createdAt, deleted, type } = message;
 
     const sender = useSender(fromUserId);
     const roomType = useRoomType();
@@ -104,8 +104,7 @@ function Message({
                     id={id}
                     displayName={displayName}
                     avatarUrl={avatarUrl}
-                    status={isUsersMessage && status}
-                    messageReactions={messageRecords.filter((mr) => mr.type === "reaction")}
+                    status={isUsersMessage ? status : ""}
                     createdAt={createdAt}
                     contextMenuIcons={contextMenuIcons}
                     message={message}
@@ -147,7 +146,6 @@ function MessageContainer({ side, children, id }: MessageContainerProps) {
 type GroupMessageProps = {
     id: number;
     side: "left" | "right";
-    messageReactions: MessageRecordType[];
     createdAt: number;
     contextMenuIcons: any;
     displayName?: string;

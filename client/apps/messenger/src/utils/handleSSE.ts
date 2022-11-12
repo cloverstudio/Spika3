@@ -60,7 +60,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
 
             store.dispatch(addMessage(message));
 
-            if (document.hidden || store.getState().chat.activeRoomId !== message.roomId) {
+            if (document.hidden) {
                 store.dispatch(fetchHistory({ page: 1, keyword: "" }));
             } else {
                 store.dispatch(updateLastMessage(message));
