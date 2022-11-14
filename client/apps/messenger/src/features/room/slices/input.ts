@@ -36,6 +36,10 @@ export const inputSlice = createSlice({
         setEditMessage: (state, action: { payload: { roomId: number; message?: MessageType } }) => {
             const { message, roomId } = action.payload;
 
+            if (!state.list[roomId]) {
+                state.list[roomId] = { type: "text", roomId, text: "" };
+            }
+
             state.list[roomId].editMessage = message;
             state.list[roomId].replyMessage = null;
 
@@ -48,6 +52,10 @@ export const inputSlice = createSlice({
             action: { payload: { roomId: number; message?: MessageType } }
         ) => {
             const { message, roomId } = action.payload;
+
+            if (!state.list[roomId]) {
+                state.list[roomId] = { type: "text", roomId, text: "" };
+            }
 
             state.list[roomId].replyMessage = message;
             state.list[roomId].editMessage = null;

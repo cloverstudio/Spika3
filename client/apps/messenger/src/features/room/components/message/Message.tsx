@@ -52,6 +52,8 @@ function Message({
     nextMessageFromUserId: number | null;
 }) {
     const roomId = parseInt(useParams().id || "");
+    const targetMessageId = parseInt(useParams().messageId || "");
+
     const user = useSelector(selectUser);
     const status = useSelector(selectMessageStatus(roomId, id));
     const message = useSelector(selectMessageById(roomId, id));
@@ -90,6 +92,8 @@ function Message({
         setMouseOver(false);
     };
 
+    const highlighted = id === targetMessageId;
+
     return (
         <MessageContainer
             id={id}
@@ -116,7 +120,11 @@ function Message({
                     side === "left" && isGroup && <Box />
                 )}
                 <Box display="flex" position="relative">
-                    <Box onMouseEnter={handleMouseEnter}>
+                    <Box
+                        onMouseEnter={handleMouseEnter}
+                        border={highlighted ? "1px solid red" : ""}
+                        sx={{ borderRadius: "0.3rem" }}
+                    >
                         <MessageBodyContainer
                             id={id}
                             onImageMessageClick={handleImageMessageClick}

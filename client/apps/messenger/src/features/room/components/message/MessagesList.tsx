@@ -18,6 +18,7 @@ const Date = memo(function Date({ day }: { day: string }) {
 
 export default function MessagesList(): React.ReactElement {
     const roomId = parseInt(useParams().id || "");
+    const messageId = parseInt(useParams().messageId || "");
 
     const dispatch = useDispatch();
     const messages = useSelector(selectRoomMessages(roomId));
@@ -48,8 +49,8 @@ export default function MessagesList(): React.ReactElement {
     }, [messages]);
 
     useEffect(() => {
-        dispatch(fetchMessages({ roomId }));
-    }, [dispatch, roomId]);
+        dispatch(fetchMessages({ roomId, targetMessageId: messageId }));
+    }, [dispatch, roomId, messageId]);
 
     return (
         <MessagesContainer>
