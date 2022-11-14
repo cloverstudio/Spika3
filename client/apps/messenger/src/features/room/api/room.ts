@@ -16,10 +16,15 @@ const roomApi = api.injectEndpoints({
             },
             providesTags: (res) => res && res?.id && [{ type: "Rooms2", id: res.id }],
         }),
+        createRoom2: build.mutation<{ room: RoomType }, any>({
+            query: (data) => {
+                return { url: "/messenger/rooms", data, method: "POST" };
+            },
+        }),
     }),
     overrideExisting: true,
 });
 
-export const { useGetRoom2Query } = roomApi;
+export const { useGetRoom2Query, useCreateRoom2Mutation } = roomApi;
 
 export default roomApi;

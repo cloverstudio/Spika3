@@ -7,9 +7,9 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 
 import Base from "../components/Base";
 import PushnotificationPermissionDialog from "../components/PushnotificationPermissionDialog";
-import LeftSidebar from "../features/chat/LeftSidebar";
+import LeftSidebar from "../features/room/LeftSidebar";
 import RightSidebar from "../features/chat/RightSidebar";
-import { selectLeftSidebarOpen, setLeftSidebar } from "../features/chat/slice/sidebarSlice";
+import { selectLeftSidebarOpen, setLeftSidebar } from "../features/room/slices/leftSidebar";
 
 import { hide, selectRightSidebarOpen, show } from "../features/chat/slice/rightSidebarSlice";
 

@@ -3,6 +3,7 @@ import { dynamicBaseQuery } from "../../../api/api";
 import type { RootState } from "../../../store/store";
 import MessageType, { MessageListType, MessageRecordType } from "../../../types/Message";
 import getMessageStatus from "../../chat/lib/getMessageStatus";
+import { fetchHistory } from "./leftSidebar";
 
 export const fetchMessages = createAsyncThunk(
     "messages/fetchMessages",
@@ -91,6 +92,8 @@ export const sendMessage = createAsyncThunk(
                 method: "POST",
             });
 
+            thunkAPI.dispatch(fetchHistory({ page: 1, keyword: "" }));
+
             return response.data;
         } catch (error) {
             thunkAPI.dispatch(
@@ -106,7 +109,6 @@ export const sendMessage = createAsyncThunk(
 
             throw error;
         }
-        // thunkAPI.dispatch(fetchHistory({ page: 1, keyword: "" }));
     }
 );
 
@@ -144,6 +146,8 @@ export const editMessageThunk = createAsyncThunk(
                 method: "PUT",
             });
 
+            thunkAPI.dispatch(fetchHistory({ page: 1, keyword: "" }));
+
             return response.data;
         } catch (error) {
             thunkAPI.dispatch(
@@ -161,8 +165,6 @@ export const editMessageThunk = createAsyncThunk(
 
             throw error;
         }
-
-        //  thunkAPI.dispatch(fetchHistory({ page: 1, keyword: "" }));
     }
 );
 
@@ -208,6 +210,8 @@ export const replyMessageThunk = createAsyncThunk(
                 method: "POST",
             });
 
+            thunkAPI.dispatch(fetchHistory({ page: 1, keyword: "" }));
+
             return response.data;
         } catch (error) {
             thunkAPI.dispatch(
@@ -224,8 +228,6 @@ export const replyMessageThunk = createAsyncThunk(
 
             throw error;
         }
-
-        //  thunkAPI.dispatch(fetchHistory({ page: 1, keyword: "" }));
     }
 );
 
@@ -305,10 +307,11 @@ export const messagesSlice = createSlice({
             const { roomId, totalUserCount, deliveredCount, seenCount } = message;
 
             const room = state[roomId];
-
-            room.messages[message.id] = message;
-            room.reactions[message.id] = [];
-            room.statusCounts[message.id] = { totalUserCount, deliveredCount, seenCount };
+            if (room) {
+                room.messages[message.id] = message;
+                room.reactions[message.id] = [];
+                room.statusCounts[message.id] = { totalUserCount, deliveredCount, seenCount };
+            }
         },
 
         addMessageRecord(state, action: { payload: MessageRecordType }) {
@@ -317,6 +320,10 @@ export const messagesSlice = createSlice({
             const { roomId, messageId, type } = messageRecord;
 
             const room = state[roomId];
+
+            if (!room) {
+                return;
+            }
 
             if (type === "reaction") {
                 if (room.reactions[messageId]) {
@@ -327,17 +334,21 @@ export const messagesSlice = createSlice({
                 } else {
                     room.reactions[messageId] = [messageRecord];
                 }
-            } else if (type === "seen") {
-                if (room.statusCounts[messageId]?.seenCount) {
-                    room.statusCounts[messageId].seenCount += 1;
-                } else {
-                    room.statusCounts[messageId].seenCount = 1;
-                }
-            } else if (type === "delivered") {
-                if (room.statusCounts[messageId]?.deliveredCount) {
-                    room.statusCounts[messageId].deliveredCount += 1;
-                } else {
-                    room.statusCounts[messageId].deliveredCount = 1;
+            } else {
+                if (room.statusCounts[messageId]) {
+                    if (type === "seen") {
+                        if (room.statusCounts[messageId]?.seenCount) {
+                            room.statusCounts[messageId].seenCount += 1;
+                        } else {
+                            room.statusCounts[messageId].seenCount = 1;
+                        }
+                    } else if (type === "delivered") {
+                        if (room.statusCounts[messageId]?.deliveredCount) {
+                            room.statusCounts[messageId].deliveredCount += 1;
+                        } else {
+                            room.statusCounts[messageId].deliveredCount = 1;
+                        }
+                    }
                 }
             }
         },

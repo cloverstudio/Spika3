@@ -1,7 +1,6 @@
 import api, { dynamicBaseQuery } from "../api/api";
 
-import { updateLastMessage } from "../features/chat/slice/roomSlice";
-import { fetchHistory } from "../features/chat/slice/roomSlice";
+import { fetchHistory, updateLastMessage } from "../features/room/slices/leftSidebar";
 import { store } from "../store/store";
 
 const VALID_SSE_EVENT_TYPES = [
