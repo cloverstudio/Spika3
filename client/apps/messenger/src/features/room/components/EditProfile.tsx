@@ -18,13 +18,13 @@ import {
 } from "@mui/material";
 
 import { ArrowBackIos, CameraAlt, Close } from "@mui/icons-material";
-import uploadFile from "../../../../utils/uploadFile";
+import uploadFile from "../../../utils/uploadFile";
 
-import { useUpdateMutation } from "../../../auth/api/auth";
+import { useUpdateMutation } from "../../auth/api/auth";
 
-import { crop } from "../../../../utils/crop";
+import { crop } from "../../../utils/crop";
 
-import * as Constants from "../../../../../../../lib/constants";
+import * as Constants from "../../../../../../lib/constants";
 import { useNavigate } from "react-router-dom";
 
 declare const UPLOADS_BASE_URL: string;

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Box, Button, Badge, Avatar, Typography, TextField } from "@mui/material";
 import ClearIcon from "@mui/icons-material/ClearRounded";
 
-import { useCreateRoom2Mutation } from "./api/room";
+import { useCreateRoomMutation } from "./api/room";
 
 import User from "../../types/User";
 
@@ -62,7 +62,7 @@ function LeftSidebarNewGroup({
     const [file, setFile] = useState<File>();
     const uploadFileRef = React.useRef(null);
 
-    const [createRoom] = useCreateRoom2Mutation();
+    const [createRoom] = useCreateRoomMutation();
     const navigate = useNavigate();
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -5,7 +5,7 @@ import formatRoomInfo from "../../chat/lib/formatRoomInfo";
 
 const roomApi = api.injectEndpoints({
     endpoints: (build) => ({
-        getRoom2: build.query<RoomType, number>({
+        getRoom: build.query<RoomType, number>({
             query: (id) => `/messenger/rooms/${id}`,
             transformResponse: (base) => {
                 if (base.room) {
@@ -16,15 +16,54 @@ const roomApi = api.injectEndpoints({
             },
             providesTags: (res) => res && res?.id && [{ type: "Rooms2", id: res.id }],
         }),
-        createRoom2: build.mutation<{ room: RoomType }, any>({
+        createRoom: build.mutation<{ room: RoomType }, any>({
             query: (data) => {
                 return { url: "/messenger/rooms", data, method: "POST" };
+            },
+        }),
+        muteRoom: build.mutation<{ room: RoomType }, any>({
+            query: ({ roomId }) => {
+                return { url: `/messenger/rooms/${roomId}/mute`, data: {}, method: "POST" };
+            },
+        }),
+        unmuteRoom: build.mutation<{ room: RoomType }, any>({
+            query: ({ roomId }) => {
+                return { url: `/messenger/rooms/${roomId}/unmute`, data: {}, method: "POST" };
+            },
+        }),
+        getRoomByUserId: build.query<{ room: RoomType }, number>({
+            query: (userId) => `/messenger/rooms/users/${userId}`,
+            providesTags: (res) => res && res.room?.id && [{ type: "Rooms", id: res.room.id }],
+        }),
+        updateRoom: build.mutation<{ room: RoomType }, { roomId: number; data: any }>({
+            query: ({ roomId, data }) => {
+                return { url: `/messenger/rooms/${roomId}`, method: "PUT", data };
+            },
+            invalidatesTags: (result, error, arg) => [{ type: "Rooms", id: arg.roomId }],
+        }),
+        leaveRoom: build.mutation<{ room: RoomType }, any>({
+            query: ({ roomId }) => {
+                return { url: `/messenger/rooms/${roomId}/leave`, data: {}, method: "POST" };
+            },
+        }),
+        deleteRoom: build.mutation<{ room: RoomType }, any>({
+            query: ({ roomId }) => {
+                return { url: `/messenger/rooms/${roomId}`, method: "DELETE" };
             },
         }),
     }),
     overrideExisting: true,
 });
 
-export const { useGetRoom2Query, useCreateRoom2Mutation } = roomApi;
+export const {
+    useGetRoomQuery,
+    useCreateRoomMutation,
+    useMuteRoomMutation,
+    useUnmuteRoomMutation,
+    useGetRoomByUserIdQuery,
+    useUpdateRoomMutation,
+    useDeleteRoomMutation,
+    useLeaveRoomMutation,
+} = roomApi;
 
 export default roomApi;

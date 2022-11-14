@@ -27,7 +27,7 @@ import generateThumbFile from "../../lib/generateThumbFile";
 import Attachments from "./Attachments";
 import EmojiPicker from "./emojiPicker";
 import Close from "@mui/icons-material/Close";
-import { useGetRoom2Query } from "../../api/room";
+import { useGetRoomQuery } from "../../api/room";
 import MessageType from "../../../../types/Message";
 import getFileIcon from "../../lib/getFileIcon";
 import { editMessageThunk, replyMessageThunk, sendMessage } from "../../slices/messages";
@@ -330,7 +330,7 @@ function ReplyMessage({ message }: { message: MessageType }): React.ReactElement
     const dispatch = useDispatch();
     const roomId = parseInt(useParams().id || "");
 
-    const { data: room } = useGetRoom2Query(roomId);
+    const { data: room } = useGetRoomQuery(roomId);
 
     const sender = room.users?.find((u) => u.userId === message.fromUserId)?.user;
     const Icon = getFileIcon(message.body?.file?.mimeType);

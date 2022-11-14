@@ -5,7 +5,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Call, Search, Videocam, ChevronLeft } from "@mui/icons-material";
 import { Avatar, Box, Skeleton, Typography, useMediaQuery } from "@mui/material";
 
-import { useGetRoom2Query } from "../../api/room";
+import { useGetRoomQuery } from "../../api/room";
 import { showLeftSidebar } from "../../slices/leftSidebar";
 import { toggleRightSidebar } from "../../slices/rightSidebar";
 import { RoomType } from "../../../../types/Rooms";
@@ -13,7 +13,7 @@ import { RoomType } from "../../../../types/Rooms";
 export default function Header() {
     const roomId = parseInt(useParams().id || "");
 
-    const { data: room, isLoading } = useGetRoom2Query(roomId);
+    const { data: room, isLoading } = useGetRoomQuery(roomId);
 
     return (
         <Box px={2} borderBottom="0.5px solid #C9C9CA">

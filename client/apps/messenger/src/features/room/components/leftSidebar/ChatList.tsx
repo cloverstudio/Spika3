@@ -145,7 +145,7 @@ function RoomRow({
     }
 
     return (
-        <Link to={`/rooms-2/${id}`} onClick={handleClick} style={{ textDecoration: "none" }}>
+        <Link to={`/rooms/${id}`} onClick={handleClick} style={{ textDecoration: "none" }}>
             <Box
                 bgcolor={isActive ? "action.hover" : "transparent"}
                 px={2.5}

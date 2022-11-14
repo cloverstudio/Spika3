@@ -89,7 +89,7 @@ export const selectContactById =
 export const selectContactLoading =
     () =>
     (state: RootState): "idle" | "pending" | "succeeded" | "failed" =>
-        state.room.loading;
+        state.contacts.loading;
 
 export const { resetContacts } = contactsSlice.actions;
 export default contactsSlice.reducer;

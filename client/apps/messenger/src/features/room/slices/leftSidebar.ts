@@ -122,12 +122,12 @@ export const leftSidebarSlice = createSlice({
 });
 
 export const selectActiveTab = (state: RootState): "chat" | "call" | "contact" =>
-    state.leftSidebar2.activeTab;
+    state.leftSidebar.activeTab;
 
-export const selectLeftSidebarOpen = (state: RootState): boolean => state.leftSidebar2.show;
+export const selectLeftSidebarOpen = (state: RootState): boolean => state.leftSidebar.show;
 
 export const shouldShowProfileEditor = (state: RootState): boolean =>
-    state.leftSidebar2.showProfileEditing;
+    state.leftSidebar.showProfileEditing;
 
 export const {
     show: showLeftSidebar,
@@ -140,10 +140,10 @@ export const {
     removeRoom,
 } = leftSidebarSlice.actions;
 
-export const selectHistory = (state: RootState): HistoryState => state.leftSidebar2.history;
+export const selectHistory = (state: RootState): HistoryState => state.leftSidebar.history;
 export const selectHistoryLoading =
     () =>
     (state: RootState): "idle" | "pending" | "succeeded" | "failed" =>
-        state.leftSidebar2.history.loading;
+        state.leftSidebar.history.loading;
 
 export default leftSidebarSlice.reducer;

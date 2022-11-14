@@ -8,7 +8,7 @@ import { deletedMessageText } from "../../../lib/consts";
 import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import UserType from "../../../../../types/User";
-import { useGetRoom2Query } from "../../../api/room";
+import { useGetRoomQuery } from "../../../api/room";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -220,7 +220,7 @@ function AudioMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
 function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boolean }) {
     const navigate = useNavigate();
     const roomId = parseInt(useParams().id || "");
-    const { data: room } = useGetRoom2Query(roomId);
+    const { data: room } = useGetRoomQuery(roomId);
 
     const renderReplyMessage = () => {
         const { type: replyMsgType, body: replyMsgBody } = body.referenceMessage;

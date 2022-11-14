@@ -5,7 +5,7 @@ import { useParams } from "react-router-dom";
 import { useShowSnackBar } from "../../../../../hooks/useModal";
 import { selectUser } from "../../../../../store/userSlice";
 import MessageType from "../../../../../types/Message";
-import { useGetRoom2Query } from "../../../api/room";
+import { useGetRoomQuery } from "../../../api/room";
 import { setEditMessage, setReplyMessage } from "../../../slices/input";
 import {
     selectHasMessageReactions,
@@ -23,7 +23,7 @@ import StatusIcon from "./StatusIcon";
 
 function useSender(id: number) {
     const roomId = parseInt(useParams().id || "");
-    const { data: room } = useGetRoom2Query(roomId);
+    const { data: room } = useGetRoomQuery(roomId);
 
     if (!room) {
         return null;
@@ -34,7 +34,7 @@ function useSender(id: number) {
 
 function useRoomType() {
     const roomId = parseInt(useParams().id || "");
-    const { data: room } = useGetRoom2Query(roomId);
+    const { data: room } = useGetRoomQuery(roomId);
 
     if (!room) {
         return null;

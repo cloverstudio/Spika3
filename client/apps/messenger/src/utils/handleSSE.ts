@@ -17,7 +17,7 @@ const VALID_SSE_EVENT_TYPES = [
 ];
 
 import { notify as notifyCallEvent } from "../features/confcall/lib/callEventListener";
-import { fetchContact } from "../features/chat/slice/contactsSlice";
+import { fetchContact } from "../features/room/slices/contacts";
 import { RoomType } from "../types/Rooms";
 import newMessageSound from "../../../../assets/newmessage.mp3";
 import * as constants from "../../../../lib/constants";
@@ -78,11 +78,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
 
             // play sound logic
 
-            if (
-                isMute ||
-                (!document.hidden && store.getState().chat.activeRoomId === message.roomId) ||
-                message.fromUserId === store.getState().user.id
-            ) {
+            if (isMute || !document.hidden || message.fromUserId === store.getState().user.id) {
                 return;
             }
 

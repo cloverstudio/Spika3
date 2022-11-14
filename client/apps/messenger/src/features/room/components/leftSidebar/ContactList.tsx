@@ -5,8 +5,8 @@ import { Avatar, Box, Typography } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 
 import { dynamicBaseQuery } from "../../../../api/api";
-import { useCreateRoom2Mutation } from "../../api/room";
-import { fetchContact, selectContacts, selectContactLoading } from "../../slices/contactsSlice";
+import { useCreateRoomMutation } from "../../api/room";
+import { fetchContact, selectContacts, selectContactLoading } from "../../slices/contacts";
 
 import User from "../../../../types/User";
 
@@ -33,7 +33,7 @@ export default function SidebarContactList({
     const [keyword, setKeyword] = useState("");
     const { isInViewPort, elementRef } = useIsInViewport();
     const navigate = useNavigate();
-    const [createRoom] = useCreateRoom2Mutation();
+    const [createRoom] = useCreateRoomMutation();
     const onChatClick = () => dispatch(hideLeftSidebar());
 
     const hasMoreContactsToLoad = count > list.length;

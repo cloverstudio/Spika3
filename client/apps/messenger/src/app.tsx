@@ -4,7 +4,6 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import AuthPage from "./pages/auth";
 import HomePage from "./pages/home";
 import RoomPage from "./pages/room";
-import NewRoomPage from "./pages/new-room";
 import Confcall from "./pages/confcall";
 import Playground from "./pages/playground";
 
@@ -25,9 +24,6 @@ export default function App(): React.ReactElement {
                         <Route path=":id/:messageId" element={<RoomPage />} />
                         <Route path=":id/call/lobby/:media" element={<RoomPage />} />
                         <Route path=":id/call" element={<RoomPage />} />
-                    </Route>
-                    <Route path="rooms-2" element={<HomePage />}>
-                        <Route path=":id" element={<NewRoomPage />} />
                     </Route>
                     <Route path="/playground" element={<Playground />} />
                 </Routes>
