@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { Box, Popover, Stack, Typography } from "@mui/material";
 
-import { MessageRecordType } from "../../../../../types/Message";
-import { useGetUserByIdQuery } from "../../../api/user";
+import { MessageRecordType } from "../../../../types/Message";
+import { useGetUserByIdQuery } from "../../api/user";
 import { useSelector } from "react-redux";
-import { selectMessageReactions } from "../../../slices/messages";
+import { selectMessageReactions } from "../../slices/messages";
 import { useParams } from "react-router-dom";
-import useIsUsersMessage from "../../../hooks/useIsUsersMessage";
+import useIsUsersMessage from "../../hooks/useIsUsersMessage";
 
 type MessageReactionsProps = {
     id: number;

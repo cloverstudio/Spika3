@@ -3,8 +3,8 @@ import dayjs from "dayjs";
 import React, { memo, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import MessageType from "../../../../types/Message";
-import { fetchMessages, selectRoomMessages } from "../../slices/messages";
+import MessageType from "../../../types/Message";
+import { fetchMessages, selectRoomMessages } from "../slices/messages";
 import Message from "./message";
 import MessagesContainer from "./MessagesContainer";
 

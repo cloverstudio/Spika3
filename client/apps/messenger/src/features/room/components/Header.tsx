@@ -5,10 +5,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Call, Search, Videocam, ChevronLeft } from "@mui/icons-material";
 import { Avatar, Box, Skeleton, Typography, useMediaQuery } from "@mui/material";
 
-import { useGetRoomQuery } from "../../api/room";
-import { showLeftSidebar } from "../../slices/leftSidebar";
-import { toggleRightSidebar } from "../../slices/rightSidebar";
-import { RoomType } from "../../../../types/Rooms";
+import { useGetRoomQuery } from "../api/room";
+import { showLeftSidebar } from "../slices/leftSidebar";
+import { toggleRightSidebar } from "../slices/rightSidebar";
+import { RoomType } from "../../../types/Rooms";
 
 export default function Header() {
     const roomId = parseInt(useParams().id || "");

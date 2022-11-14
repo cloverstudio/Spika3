@@ -14,17 +14,17 @@ import {
 } from "@mui/material";
 import { Close, DoneAll } from "@mui/icons-material";
 
-import MessageType, { MessageRecordType } from "../../../../../types/Message";
-import { selectUser } from "../../../../../store/userSlice";
-import { useGetMessageRecordsByIdQuery } from "../../../api/message";
+import MessageType, { MessageRecordType } from "../../../../types/Message";
+import { selectUser } from "../../../../store/userSlice";
+import { useGetMessageRecordsByIdQuery } from "../../api/message";
 import dayjs from "dayjs";
-import { useGetUserByIdQuery } from "../../../api/user";
+import { useGetUserByIdQuery } from "../../api/user";
 import { useParams } from "react-router-dom";
 import {
     hideMessageDetails,
     selectActiveMessage,
     selectShowMessageDetails,
-} from "../../../slices/messages";
+} from "../../slices/messages";
 
 declare const UPLOADS_BASE_URL: string;
 

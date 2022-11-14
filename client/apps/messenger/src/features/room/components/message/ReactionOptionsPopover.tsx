@@ -1,9 +1,9 @@
 import React from "react";
 import { Button, Stack } from "@mui/material";
 
-import { reactionEmojis } from "../../../lib/consts";
+import { reactionEmojis } from "../../lib/consts";
 import { Box } from "@mui/system";
-import { useCreateReactionMutation } from "../../../api/message";
+import { useCreateReactionMutation } from "../../api/message";
 
 type ReactionOptionsPopoverProps = {
     isUsersMessage: boolean;

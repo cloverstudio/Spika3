@@ -1,10 +1,10 @@
 import React from "react";
 
 import { Box, useMediaQuery } from "@mui/material";
-import Header from "./components/room/Header";
+import Header from "./components/Header";
 import { useTheme } from "@mui/material/styles";
-import Messages from "./components/room/Messages";
-import ChatInput from "./components/room/ChatInput";
+import Messages from "./components/Messages";
+import ChatInput from "./components/ChatInput";
 
 export default function Room(): React.ReactElement {
     return (

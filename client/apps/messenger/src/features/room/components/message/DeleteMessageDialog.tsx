@@ -11,16 +11,16 @@ import {
     Button,
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
-import { useDeleteMessageMutation } from "../../../api/message";
-import MessageType from "../../../../../types/Message";
+import { useDeleteMessageMutation } from "../../api/message";
+import MessageType from "../../../../types/Message";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
     hideDeleteModal,
     selectActiveMessage,
     selectShowDeleteMessage,
-} from "../../../slices/messages";
-import { selectUser } from "../../../../../store/userSlice";
+} from "../../slices/messages";
+import { selectUser } from "../../../../store/userSlice";
 
 export default function DeleteMessageDialogContainer() {
     const roomId = parseInt(useParams().id || "");

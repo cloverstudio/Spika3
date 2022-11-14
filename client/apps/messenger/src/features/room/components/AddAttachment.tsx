@@ -7,9 +7,9 @@ import CloseIcon from "@mui/icons-material/Close";
 import ImageIcon from "@mui/icons-material/Image";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 
-import AttachmentManager from "../../lib/AttachmentManager";
+import AttachmentManager from "../lib/AttachmentManager";
 import { useSelector } from "react-redux";
-import { selectInputType } from "../../slices/input";
+import { selectInputType } from "../slices/input";
 
 export default function AddAttachment(): ReactElement {
     const roomId = parseInt(useParams().id || "");

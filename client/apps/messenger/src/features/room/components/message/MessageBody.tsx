@@ -1,14 +1,13 @@
 import React, { useState } from "react";
 import { Box, Modal, Typography } from "@mui/material";
 
-import getFileIcon from "../../../lib/getFileIcon";
+import getFileIcon from "../../lib/getFileIcon";
 import DownloadIcon from "@mui/icons-material/Download";
 import { CloseOutlined } from "@mui/icons-material";
-import { deletedMessageText } from "../../../lib/consts";
+import { deletedMessageText } from "../../lib/consts";
 import { useNavigate, useParams } from "react-router-dom";
-import { useSelector } from "react-redux";
-import UserType from "../../../../../types/User";
-import { useGetRoomQuery } from "../../../api/room";
+import UserType from "../../../../types/User";
+import { useGetRoomQuery } from "../../api/room";
 
 declare const UPLOADS_BASE_URL: string;
 

@@ -1,9 +1,9 @@
 import React from "react";
-import SendingIcon from "../../../../../assets/sending-icon.svg";
-import SentIcon from "../../../../../assets/sent-icon.svg";
-import DeliveredIcon from "../../../../../assets/delivered-icon.svg";
-import SeenIcon from "../../../../../assets/seen-icon.svg";
-import FailedIcon from "../../../../../assets/failed-icon.svg";
+import SendingIcon from "../../../../assets/sending-icon.svg";
+import SentIcon from "../../../../assets/sent-icon.svg";
+import DeliveredIcon from "../../../../assets/delivered-icon.svg";
+import SeenIcon from "../../../../assets/seen-icon.svg";
+import FailedIcon from "../../../../assets/failed-icon.svg";
 import { Box } from "@mui/material";
 
 type StatusIconProps = {

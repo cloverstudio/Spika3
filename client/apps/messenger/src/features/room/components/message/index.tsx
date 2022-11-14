@@ -1,19 +1,18 @@
 import { Avatar, Box, Typography } from "@mui/material";
-import React, { memo, ReactElement, ReactNode, useState } from "react";
+import React, { memo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { useShowSnackBar } from "../../../../../hooks/useModal";
-import { selectUser } from "../../../../../store/userSlice";
-import MessageType from "../../../../../types/Message";
-import { useGetRoomQuery } from "../../../api/room";
-import { setEditMessage, setReplyMessage } from "../../../slices/input";
+import { useShowSnackBar } from "../../../../hooks/useModal";
+import { selectUser } from "../../../../store/userSlice";
+import { useGetRoomQuery } from "../../api/room";
+import { setEditMessage, setReplyMessage } from "../../slices/input";
 import {
     selectHasMessageReactions,
     selectMessageById,
     selectMessageStatus,
     showDeleteModal,
     showMessageDetails,
-} from "../../../slices/messages";
+} from "../../slices/messages";
 import DatePopover from "./DatePopover";
 import MessageBody from "./MessageBody";
 import MessageContextMenu, { IconConfigs } from "./MessageContextMenu";
@@ -107,7 +106,7 @@ function Message({
                 {shouldDisplayAvatar ? (
                     <Avatar
                         sx={{ width: 26, height: 26, mr: 1, mb: "0.375rem" }}
-                        src={`${UPLOADS_BASE_URL}${sender.avatarUrl}`}
+                        src={`${UPLOADS_BASE_URL}${sender?.avatarUrl}`}
                     />
                 ) : (
                     side === "left" && isGroup && <Box />

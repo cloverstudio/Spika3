@@ -6,10 +6,10 @@ import { makeStyles } from "@mui/styles";
 import KeyboardVoiceIcon from "@mui/icons-material/KeyboardVoice";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import { useParams } from "react-router-dom";
-import AttachmentManager from "../../lib/AttachmentManager";
-import uploadFile from "../../../../utils/uploadFile";
+import AttachmentManager from "../lib/AttachmentManager";
+import uploadFile from "../../../utils/uploadFile";
 import SendIcon from "@mui/icons-material/Send";
-import { useShowBasicDialog } from "../../../../hooks/useModal";
+import { useShowBasicDialog } from "../../../hooks/useModal";
 import {
     selectEditMessage,
     selectReplyMessage,
@@ -20,17 +20,17 @@ import {
     setInputType,
     addEmoji,
     setReplyMessage,
-} from "../../slices/input";
-import getFileType from "../../lib/getFileType";
+} from "../slices/input";
+import getFileType from "../lib/getFileType";
 import AddAttachment from "./AddAttachment";
-import generateThumbFile from "../../lib/generateThumbFile";
+import generateThumbFile from "../lib/generateThumbFile";
 import Attachments from "./Attachments";
 import EmojiPicker from "./emojiPicker";
 import Close from "@mui/icons-material/Close";
-import { useGetRoomQuery } from "../../api/room";
-import MessageType from "../../../../types/Message";
-import getFileIcon from "../../lib/getFileIcon";
-import { editMessageThunk, replyMessageThunk, sendMessage } from "../../slices/messages";
+import { useGetRoomQuery } from "../api/room";
+import MessageType from "../../../types/Message";
+import getFileIcon from "../lib/getFileIcon";
+import { editMessageThunk, replyMessageThunk, sendMessage } from "../slices/messages";
 
 export default function ChatInputContainer(): React.ReactElement {
     const dispatch = useDispatch();
