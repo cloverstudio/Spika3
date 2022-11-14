@@ -3,9 +3,9 @@ import dayjs from "dayjs";
 import React, { memo, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import MessageType from "../../../types/Message";
-import { fetchMessages, selectRoomMessages } from "../slices/messages";
-import Message from "./message";
+import MessageType from "../../../../types/Message";
+import { fetchMessages, selectRoomMessages } from "../../slices/messages";
+import Message from "./Message";
 import MessagesContainer from "./MessagesContainer";
 
 const Date = memo(function Date({ day }: { day: string }) {
@@ -23,7 +23,6 @@ export default function MessagesList(): React.ReactElement {
     const messages = useSelector(selectRoomMessages(roomId));
 
     const messagesSorted = useMemo(() => {
-        console.log("Calc mesages sorted");
         const sorted = Object.values(messages).sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1));
 
         return sorted.reduce((acc, curr, i) => {
@@ -52,7 +51,6 @@ export default function MessagesList(): React.ReactElement {
         dispatch(fetchMessages({ roomId }));
     }, [dispatch, roomId]);
 
-    console.log("rendered list", { messagesSorted });
     return (
         <MessagesContainer>
             {Object.entries(messagesSorted).map(([day, messages]) => {

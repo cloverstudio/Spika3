@@ -59,7 +59,7 @@ function Message({
     const [mouseOver, setMouseOver] = useState(false);
     const [showReactionMenu, setShowReactionMenu] = useState(false);
 
-    const { fromUserId, createdAt, deleted, type } = message;
+    const { fromUserId, createdAt } = message;
 
     const sender = useSender(fromUserId);
     const roomType = useRoomType();
@@ -84,6 +84,10 @@ function Message({
 
     const handleMouseEnter = () => {
         setMouseOver(true);
+    };
+
+    const handleImageMessageClick = () => {
+        setMouseOver(false);
     };
 
     return (
@@ -113,7 +117,10 @@ function Message({
                 )}
                 <Box display="flex" position="relative">
                     <Box onMouseEnter={handleMouseEnter}>
-                        <MessageBodyContainer id={id} />
+                        <MessageBodyContainer
+                            id={id}
+                            onImageMessageClick={handleImageMessageClick}
+                        />
                     </Box>
                     {shouldDisplayStatusIcons && <StatusIcon status={status} />}
                     <MessageReactions id={id} />
@@ -180,7 +187,13 @@ function MessageContainer({ side, children, id, handleMouseLeave }: MessageConta
     );
 }
 
-function MessageBodyContainer({ id }: { id: number }) {
+function MessageBodyContainer({
+    id,
+    onImageMessageClick,
+}: {
+    id: number;
+    onImageMessageClick: () => void;
+}) {
     const roomId = parseInt(useParams().id || "");
     const user = useSelector(selectUser);
 
@@ -190,7 +203,16 @@ function MessageBodyContainer({ id }: { id: number }) {
     const isUsersMessage = fromUserId === user.id;
     const side = isUsersMessage ? "right" : "left";
 
-    return <MessageBody body={body} id={id} type={type} side={side} isReply={reply} />;
+    return (
+        <MessageBody
+            body={body}
+            id={id}
+            type={type}
+            side={side}
+            isReply={reply}
+            onImageMessageClick={onImageMessageClick}
+        />
+    );
 }
 
 type MenuProps = {

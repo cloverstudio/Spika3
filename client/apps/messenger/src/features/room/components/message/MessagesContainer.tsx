@@ -7,7 +7,7 @@ import {
     fetchMessages,
     selectCursor,
     selectRoomMessagesLength,
-} from "../slices/messages";
+} from "../../slices/messages";
 
 export default function MessagesContainer({
     children,
