@@ -119,3 +119,5 @@ tmp
 
 package-lock.json
 
+# Terraform
+.terraform
