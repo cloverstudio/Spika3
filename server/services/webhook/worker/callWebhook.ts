@@ -43,6 +43,8 @@ class CallWebhookWorker implements QueueWorkerInterface {
                             "Content-Type": "application/json",
                             "Verification-Signature": webhook.verifySignature,
                         },
+                    }).catch((e)=> {
+                        le({ webHookError: e });
                     });
                 } catch (error) {
                     le({ webHookError: error });
