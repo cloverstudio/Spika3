@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import {
@@ -8,6 +8,7 @@ import {
     selectCursor,
     selectRoomMessagesLength,
 } from "../../slices/messages";
+import NewMessageAlert from "./NewMessageAlert";
 
 export default function MessagesContainer({
     children,
@@ -21,6 +22,7 @@ export default function MessagesContainer({
     const cursor = useSelector(selectCursor(roomId));
     const dispatch = useDispatch();
     const messagesLengthRef = useRef(0);
+    const [newMessages, setNewMessages] = useState(0);
 
     const ref = useRef<HTMLDivElement>();
 
@@ -43,7 +45,7 @@ export default function MessagesContainer({
             }
 
             if (messagesLength - messagesLengthRef.current === 1) {
-                console.log("TODO: set notif");
+                setNewMessages((m) => m + 1);
             }
         } else {
             if (targetMessageId) {
@@ -81,12 +83,20 @@ export default function MessagesContainer({
             }
         }
 
+        if (getScrollBottom(ref.current) < 500) {
+            setNewMessages(0);
+        }
+
         ref.current.dataset.scrollHeight = target.scrollHeight.toString();
     };
 
     const onWheel = () => {
         if (!ref.current) {
             return;
+        }
+
+        if (getScrollBottom(ref.current) < 500) {
+            setNewMessages(0);
         }
 
         const newLockedForScroll = getScrollBottom(ref.current) > 800;
@@ -102,6 +112,9 @@ export default function MessagesContainer({
             position="relative"
             sx={{ overflowY: "hidden" }}
         >
+            {newMessages > 0 && (
+                <NewMessageAlert newMessages={newMessages} onScrollDown={onScrollDown} />
+            )}
             <Box
                 ref={ref}
                 sx={{
