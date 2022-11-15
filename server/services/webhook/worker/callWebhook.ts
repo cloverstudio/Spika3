@@ -38,7 +38,8 @@ class CallWebhookWorker implements QueueWorkerInterface {
             if (webhook) {
                 try {
                     axios.post(webhook.url, {
-                        data: { message: sanitizedMessage, fromUser, room },
+                        message: sanitizedMessage, fromUser, room 
+                    },{
                         headers: {
                             "Content-Type": "application/json",
                             "Verification-Signature": webhook.verifySignature,
