@@ -15,6 +15,7 @@ export default function MessagesContainer({
     children: React.ReactNode;
 }): React.ReactElement {
     const roomId = parseInt(useParams().id || "");
+    const targetMessageId = parseInt(useParams().messageId || "");
     const messagesLength = useSelector(selectRoomMessagesLength(roomId));
     const canLoadMore = useSelector(canLoadMoreMessages(roomId));
     const cursor = useSelector(selectCursor(roomId));
@@ -22,6 +23,12 @@ export default function MessagesContainer({
     const messagesLengthRef = useRef(0);
 
     const ref = useRef<HTMLDivElement>();
+
+    useEffect(() => {
+        ref.current.dataset.locked = "0";
+        ref.current.dataset.scrollHeight = "";
+        messagesLengthRef.current = 0;
+    }, []);
 
     useEffect(() => {
         const locked = +ref.current.dataset.locked;
@@ -39,13 +46,17 @@ export default function MessagesContainer({
                 console.log("TODO: set notif");
             }
         } else {
-            if (ref.current.scrollHeight !== lastScrollHeight) {
+            if (targetMessageId) {
+                setTimeout(() => {
+                    document.getElementById(`message_${targetMessageId}`)?.scrollIntoView();
+                }, 500);
+            } else if (ref.current.scrollHeight !== lastScrollHeight) {
                 onScrollDown();
             }
         }
 
         messagesLengthRef.current = messagesLength;
-    }, [roomId, messagesLength]);
+    }, [roomId, messagesLength, targetMessageId]);
 
     const onScrollDown = () => {
         if (!ref.current) {
