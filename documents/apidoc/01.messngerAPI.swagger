@@ -634,6 +634,36 @@ paths:
                     $ref: "#/definitions/Room"
         "400":
           description: "invalid param"
+  /messenger/rooms/{id}/mute:
+    post:
+      tags:
+        - "Room"
+      summary: "Mute the room"
+      description: "Mute the room"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      responses:
+        "200":
+          description: "successful operation"
+        "400":
+          description: "invalid param"
+  /messenger/rooms/{id}/unmute:
+    post:
+      tags:
+        - "Room"
+      summary: "Mute the room"
+      description: "Mute the room"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      responses:
+        "200":
+          description: "successful operation"
+        "400":
+          description: "invalid param"
   /messenger/rooms/sync/{lastUpdate}:
     get:
       tags:
