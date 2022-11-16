@@ -4,7 +4,7 @@ import React, { memo, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import MessageType from "../../../../types/Message";
-import { fetchMessages, selectRoomMessages } from "../../slices/messages";
+import { fetchMessages, selectCursor, selectRoomMessages } from "../../slices/messages";
 import Message from "./Message";
 import MessagesContainer from "./MessagesContainer";
 
@@ -22,6 +22,7 @@ export default function MessagesList(): React.ReactElement {
 
     const dispatch = useDispatch();
     const messages = useSelector(selectRoomMessages(roomId));
+    const cursor = useSelector(selectCursor(roomId));
 
     const messagesSorted = useMemo(() => {
         const sorted = Object.values(messages).sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1));
@@ -49,11 +50,13 @@ export default function MessagesList(): React.ReactElement {
     }, [messages]);
 
     useEffect(() => {
-        dispatch(fetchMessages({ roomId, targetMessageId: messageId }));
-    }, [dispatch, roomId, messageId]);
+        if (typeof cursor === "undefined") {
+            dispatch(fetchMessages({ roomId, targetMessageId: messageId }));
+        }
+    }, [dispatch, roomId, messageId, cursor]);
 
     return (
-        <MessagesContainer>
+        <MessagesContainer roomId={roomId}>
             {Object.entries(messagesSorted).map(([day, messages]) => {
                 return (
                     <Box key={day}>

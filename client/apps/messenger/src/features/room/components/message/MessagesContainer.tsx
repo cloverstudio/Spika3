@@ -12,10 +12,11 @@ import NewMessageAlert from "./NewMessageAlert";
 
 export default function MessagesContainer({
     children,
+    roomId,
 }: {
     children: React.ReactNode;
+    roomId: number;
 }): React.ReactElement {
-    const roomId = parseInt(useParams().id || "");
     const targetMessageId = parseInt(useParams().messageId || "");
     const messagesLength = useSelector(selectRoomMessagesLength(roomId));
     const canLoadMore = useSelector(canLoadMoreMessages(roomId));
@@ -28,9 +29,12 @@ export default function MessagesContainer({
 
     useEffect(() => {
         ref.current.dataset.locked = "0";
-        ref.current.dataset.scrollHeight = "";
+        ref.current.dataset.scrollHeight = ref.current.scrollHeight.toString();
         messagesLengthRef.current = 0;
-    }, []);
+
+        onScrollDown();
+        console.log("RoomId shange");
+    }, [roomId]);
 
     useEffect(() => {
         const locked = +ref.current.dataset.locked;
@@ -56,9 +60,10 @@ export default function MessagesContainer({
                 onScrollDown();
             }
         }
+        console.log("messagesLength or targetMessageId shange");
 
         messagesLengthRef.current = messagesLength;
-    }, [roomId, messagesLength, targetMessageId]);
+    }, [messagesLength, targetMessageId]);
 
     const onScrollDown = () => {
         if (!ref.current) {
@@ -67,6 +72,7 @@ export default function MessagesContainer({
 
         scrollElemBottom(ref.current);
         ref.current.dataset.locked = "0";
+        console.log("Scroll down");
     };
 
     const onScroll = (e: React.UIEvent<HTMLElement, UIEvent>) => {
@@ -75,9 +81,14 @@ export default function MessagesContainer({
         }
 
         const target = e.target as HTMLDivElement;
+        console.log("onscroll", e.type, e.detail, { e });
 
-        if (target.scrollTop === 0) {
+        if (target.scrollTop === 0 && messagesLength) {
+            console.log("onscroll top 0");
+
             if (canLoadMore) {
+                console.log("onscroll top 0 FETCH");
+
                 ref.current.dataset.locked = "1";
                 dispatch(fetchMessages({ roomId, cursor }));
             }
@@ -94,6 +105,7 @@ export default function MessagesContainer({
         if (!ref.current) {
             return;
         }
+        console.log("onwheel");
 
         if (getScrollBottom(ref.current) < 500) {
             setNewMessages(0);
