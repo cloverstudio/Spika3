@@ -91,20 +91,28 @@ function WebhookSettings(): React.ReactElement {
 
             {verifySignature && <Typography mb={2}>Verify signature: {verifySignature}</Typography>}
 
-            <Button onClick={handleSubmit} disabled={!url} fullWidth variant="contained">
-                {webhookData?.id ? "Save" : "Create"}
-            </Button>
-            {webhookData?.id && (
-                <Button
-                    onClick={handleRemove}
-                    sx={{ mt: 1 }}
-                    fullWidth
-                    variant="outlined"
-                    color="error"
-                >
-                    Remove
+            <Box sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "end"
+            }}> 
+                <Button onClick={handleSubmit} sx={{ mr: 1 }} disabled={!url} variant="contained">
+                    {webhookData?.id ? "Save" : "Create"}
                 </Button>
-            )}
+
+
+                {webhookData?.id && (
+                    <Button
+                        onClick={handleRemove}
+                        variant="outlined"
+                        color="error"
+                    >
+                        Remove
+                    </Button>
+                )}
+
+
+            </Box>
 
             {error && (
                 <Alert sx={{ mt: 2 }} severity="error">
@@ -172,20 +180,28 @@ function ApiKeySettings(): React.ReactElement {
             {key && <Typography mb={2}>Api key: {key}</Typography>}
             {key && <Typography mb={2}>POST url: {API_BASE_URL}/messaging/messages</Typography>}
 
-            <Button onClick={handleSubmit} disabled={!displayName} fullWidth variant="contained">
-                {apiKeyData?.id ? "Save" : "Create"}
-            </Button>
-            {apiKeyData?.id && (
-                <Button
-                    onClick={handleRemove}
-                    sx={{ mt: 1 }}
-                    fullWidth
-                    variant="outlined"
-                    color="error"
-                >
-                    Remove
+            <Box sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "end"
+            }}> 
+                <Button onClick={handleSubmit} sx={{ mr: 1 }} disabled={!displayName} variant="contained">
+                    {apiKeyData?.id ? "Save" : "Create"}
                 </Button>
-            )}
+
+                {apiKeyData?.id && (
+                    <Button
+                        onClick={handleRemove}
+                        variant="outlined"
+                        color="error"
+                    >
+                        Remove
+                    </Button>
+                )}
+
+
+            </Box>
+            
 
             {error && (
                 <Alert sx={{ mt: 2 }} severity="error">
