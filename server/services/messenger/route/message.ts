@@ -59,7 +59,13 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             const room = await prisma.room.findUnique({
                 where: { id: roomId },
-                include: { users: true },
+                include: {
+                    users: {
+                        include: {
+                            user: true,
+                        },
+                    },
+                },
             });
 
             if (!room) {
@@ -138,7 +144,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     roomId,
                     fromUserId: userReq.user.id,
                     fromDeviceId: userReq.device.id,
-                    totalUserCount: room.users.length,
+                    totalUserCount: room.users.filter((u) => !u.user.isBot).length,
                     deliveredCount: 0,
                     seenCount: 0,
                     localId,
@@ -264,38 +270,27 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         const userReq: UserRequest = req as UserRequest;
         const userId = userReq.user.id;
         const deviceId = userReq.device.id;
-        let page = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
-        const messageId: number =
-            parseInt(req.query.messageId ? (req.query.messageId as string) : "") || 0;
+        const targetMessageId = +((req.query.targetMessageId as string) || "");
+        const cursor = +((req.query.cursor as string) || "");
+        const roomId = +((req.params.roomId as string) || "");
 
-        let skip = Constants.MESSAGE_PAGING_LIMIT * (page - 1);
         let take = Constants.MESSAGE_PAGING_LIMIT;
 
         try {
-            const roomId = parseInt(req.params.roomId as string);
-
             // find how many messages needs to reach to the target message
-            if (messageId) {
+            if (targetMessageId) {
                 const targetMessage = await prisma.message.findFirst({
                     where: {
-                        id: messageId,
+                        id: targetMessageId,
                     },
                 });
 
                 if (targetMessage) {
-                    const countToSkip = await prisma.message.count({
+                    take = await prisma.message.count({
                         where: {
                             createdAt: { gte: targetMessage.createdAt },
                         },
                     });
-
-                    if (countToSkip > Constants.MESSAGE_PAGING_LIMIT)
-                        take =
-                            Math.ceil(countToSkip / Constants.MESSAGE_PAGING_LIMIT) *
-                            Constants.MESSAGE_PAGING_LIMIT;
-
-                    skip = 0;
-                    page = take / Math.ceil(countToSkip / Constants.MESSAGE_PAGING_LIMIT);
                 }
             }
 
@@ -324,10 +319,14 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     messageRecords: true,
                 },
                 orderBy: {
-                    modifiedAt: "desc",
+                    createdAt: "desc",
                 },
-                skip: skip,
-                take: take,
+                ...(cursor && {
+                    cursor: {
+                        id: cursor,
+                    },
+                }),
+                take: cursor ? take + 1 : take,
             });
 
             const messageRecordsNotifyData = {
@@ -346,13 +345,20 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     )?.body;
 
                     const formattedBody = await formatMessageBody(body, m.type);
-                    return sanitize({ ...m, body: formattedBody }).message();
+                    return sanitize({ ...m, body: formattedBody }).messageWithReactionRecords();
                 })
             );
 
+            const nextCursor = list.length && list.length >= take ? list[list.length - 1].id : null;
+
             res.send(
                 successResponse(
-                    { list, count, limit: Constants.MESSAGE_PAGING_LIMIT, page },
+                    {
+                        list,
+                        count,
+                        limit: take,
+                        nextCursor,
+                    },
                     userReq.lang
                 )
             );

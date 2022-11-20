@@ -30,9 +30,17 @@ export type SanitizedRoomType = Partial<
 type SanitizedMessageType = Partial<
     Omit<Message, "createdAt" | "modifiedAt"> & { createdAt: number; modifiedAt: number; body: any }
 >;
+type SanitizedMessageWithReactionRecordsType = Partial<
+    Omit<Message, "createdAt" | "modifiedAt"> & {
+        createdAt: number;
+        modifiedAt: number;
+        body: any;
+        messageRecords: SanitizedMessageRecord[];
+    }
+>;
 type SanitizedFileType = Partial<Omit<File, "createdAt"> & { createdAt: number }>;
 export type SanitizedMessageRecord = Partial<
-    Omit<MessageRecord, "createdAt" | "modifiedAt"> & { createdAt: number }
+    Omit<MessageRecord, "createdAt" | "modifiedAt"> & { createdAt: number; roomId?: number }
 >;
 type SanitizedNoteType = Partial<
     Omit<Note, "createdAt" | "modifiedAt"> & { createdAt: number; modifiedAt: number }
@@ -49,6 +57,7 @@ interface sanitizeTypes {
     device: () => SanitizedDeviceType;
     room: () => SanitizedRoomType;
     message: () => SanitizedMessageType;
+    messageWithReactionRecords: () => SanitizedMessageWithReactionRecordsType;
     file: () => SanitizedFileType;
     messageRecord: () => SanitizedMessageRecord;
     note: () => SanitizedNoteType;
@@ -106,7 +115,51 @@ export default function sanitize(data: any): sanitizeTypes {
                 localId,
                 deleted,
                 reply,
-                messageRecords: data.messageRecords?.filter((m) => m.type === "reaction"),
+            };
+        },
+        messageWithReactionRecords: () => {
+            const {
+                id,
+                fromUserId,
+                totalUserCount,
+                deliveredCount,
+                seenCount,
+                roomId,
+                type,
+                body,
+                createdAt,
+                modifiedAt,
+                localId,
+                deleted,
+                reply,
+                messageRecords,
+            } = data as Message & { body: any; messageRecords: MessageRecord[] };
+
+            return {
+                id,
+                fromUserId,
+                totalUserCount,
+                deliveredCount,
+                seenCount,
+                roomId,
+                type,
+                body,
+                createdAt: +new Date(createdAt),
+                modifiedAt: +new Date(modifiedAt),
+                localId,
+                deleted,
+                reply,
+                messageRecords: messageRecords
+                    .filter((m) => m.type === "reaction")
+                    .map(({ id, type, messageId, userId, createdAt, reaction }) => ({
+                        id,
+                        type,
+                        messageId,
+                        userId,
+                        reaction,
+                        roomId,
+                        createdAt: +new Date(createdAt),
+                    })),
             };
         },
         file: () => {
@@ -126,7 +179,8 @@ export default function sanitize(data: any): sanitizeTypes {
             };
         },
         messageRecord: () => {
-            const { id, type, messageId, userId, createdAt, reaction } = data as MessageRecord;
+            const { id, type, messageId, userId, createdAt, reaction, roomId } =
+                data as MessageRecord & { roomId?: number };
 
             return {
                 id,
@@ -134,6 +188,7 @@ export default function sanitize(data: any): sanitizeTypes {
                 messageId,
                 userId,
                 reaction,
+                roomId,
                 createdAt: +new Date(createdAt),
             };
         },

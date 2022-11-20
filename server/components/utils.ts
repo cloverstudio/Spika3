@@ -14,7 +14,7 @@ export default class utils {
     };
 
     static isEmptyNumber = (val: number): boolean => {
-        return val === undefined || val === null || val === NaN;
+        return val === undefined || val === null;
     };
 
     static randomString = (length: number) => {
