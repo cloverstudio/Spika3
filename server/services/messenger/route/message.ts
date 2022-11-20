@@ -59,7 +59,13 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             const room = await prisma.room.findUnique({
                 where: { id: roomId },
-                include: { users: true },
+                include: {
+                    users: {
+                        include: {
+                            user: true,
+                        },
+                    },
+                },
             });
 
             if (!room) {
@@ -138,7 +144,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     roomId,
                     fromUserId: userReq.user.id,
                     fromDeviceId: userReq.device.id,
-                    totalUserCount: room.users.length,
+                    totalUserCount: room.users.filter((u) => !u.user.isBot).length,
                     deliveredCount: 0,
                     seenCount: 0,
                     localId,
@@ -264,115 +270,11 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         const userReq: UserRequest = req as UserRequest;
         const userId = userReq.user.id;
         const deviceId = userReq.device.id;
-        let page = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
-        const messageId: number =
-            parseInt(req.query.messageId ? (req.query.messageId as string) : "") || 0;
-
-        let skip = Constants.MESSAGE_PAGING_LIMIT * (page - 1);
-        let take = Constants.MESSAGE_PAGING_LIMIT;
-
-        try {
-            const roomId = parseInt(req.params.roomId as string);
-
-            // find how many messages needs to reach to the target message
-            if (messageId) {
-                const targetMessage = await prisma.message.findFirst({
-                    where: {
-                        id: messageId,
-                    },
-                });
-
-                if (targetMessage) {
-                    const countToSkip = await prisma.message.count({
-                        where: {
-                            createdAt: { gte: targetMessage.createdAt },
-                        },
-                    });
-
-                    if (countToSkip > Constants.MESSAGE_PAGING_LIMIT)
-                        take =
-                            Math.ceil(countToSkip / Constants.MESSAGE_PAGING_LIMIT) *
-                            Constants.MESSAGE_PAGING_LIMIT;
-
-                    skip = 0;
-                    page = take / Math.ceil(countToSkip / Constants.MESSAGE_PAGING_LIMIT);
-                }
-            }
-
-            const count = await prisma.message.count({
-                where: {
-                    roomId,
-                    deviceMessages: {
-                        some: {
-                            deviceId,
-                        },
-                    },
-                },
-            });
-
-            const messages = await prisma.message.findMany({
-                where: {
-                    roomId,
-                    deviceMessages: {
-                        some: {
-                            deviceId,
-                        },
-                    },
-                },
-                include: {
-                    deviceMessages: true,
-                    messageRecords: true,
-                },
-                orderBy: {
-                    modifiedAt: "desc",
-                },
-                skip: skip,
-                take: take,
-            });
-
-            const messageRecordsNotifyData = {
-                types: ["delivered"],
-                userId,
-                messageIds: messages.map((m) => m.id),
-                pushType: Constants.PUSH_TYPE_NEW_MESSAGE_RECORD,
-            };
-
-            sseMessageRecordsNotify(messageRecordsNotifyData);
-
-            const list = await Promise.all(
-                messages.map(async (m) => {
-                    const body = m.deviceMessages.find(
-                        (dm) => dm.messageId === m.id && dm.deviceId === deviceId
-                    )?.body;
-
-                    const formattedBody = await formatMessageBody(body, m.type);
-                    return sanitize({ ...m, body: formattedBody }).message();
-                })
-            );
-
-            res.send(
-                successResponse(
-                    { list, count, limit: Constants.MESSAGE_PAGING_LIMIT, page },
-                    userReq.lang
-                )
-            );
-        } catch (e: any) {
-            le(e);
-            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
-        }
-    });
-
-    // only web should call this route
-    router.get("/roomId2/:roomId", auth, async (req: Request, res: Response) => {
-        const userReq: UserRequest = req as UserRequest;
-        const userId = userReq.user.id;
-        const deviceId = userReq.device.id;
         const targetMessageId = +((req.query.targetMessageId as string) || "");
         const cursor = +((req.query.cursor as string) || "");
         const roomId = +((req.params.roomId as string) || "");
 
         let take = Constants.MESSAGE_PAGING_LIMIT;
-        const limit = Constants.MESSAGE_PAGING_LIMIT;
 
         try {
             // find how many messages needs to reach to the target message
@@ -448,15 +350,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             );
 
             const nextCursor = list.length && list.length >= take ? list[list.length - 1].id : null;
-            console.log({
-                list: list.map((l) => l.id),
-                length: list.length,
-                take,
-                limit,
-                count,
-                cursor,
-                nextCursor,
-            });
 
             res.send(
                 successResponse(

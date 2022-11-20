@@ -9,8 +9,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import UserType from "../../../../types/User";
 import { useGetRoomQuery } from "../../api/room";
 
-declare const UPLOADS_BASE_URL: string;
-
 type MessageBodyProps = {
     id: number;
     type: string;
@@ -104,8 +102,7 @@ function ImageMessage({
                 component="img"
                 borderRadius="0.625rem"
                 maxWidth="256px"
-                height="auto"
-                width="100%"
+                height="10vh"
                 src={`${API_BASE_URL}/upload/files/${body.thumbId}`}
                 pb="0.8125"
                 sx={{ cursor: "pointer", objectFit: "contain" }}
@@ -189,14 +186,13 @@ function VideoMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
     return (
         <>
             {body.text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
-            <Box
-                component="video"
-                borderRadius="0.625rem"
-                maxWidth="35rem"
-                controls
-                src={`${API_BASE_URL}/upload/files/${body.fileId}`}
-                pb="0.8125"
-            />
+            <Box component="video" borderRadius="0.625rem" height="20vh" controls pb="0.8125">
+                <source
+                    type={body.file.mimeType}
+                    src={`${API_BASE_URL}/upload/files/${body.fileId}`}
+                />
+                Your browser does not support the video tag.
+            </Box>
         </>
     );
 }
@@ -209,8 +205,18 @@ function AudioMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
     return (
         <>
             {body.text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
-            <Box component="audio" controls borderRadius="0.625rem" maxWidth="35rem" pb="0.8125">
-                <source type={body.file.type} src={`${API_BASE_URL}/upload/files/${body.fileId}`} />
+            <Box
+                component="audio"
+                controls
+                borderRadius="0.625rem"
+                maxWidth="35rem"
+                height="5vh"
+                pb="0.8125"
+            >
+                <source
+                    type={body.file.mimeType || "audio/mpeg"}
+                    src={`${API_BASE_URL}/upload/files/${body.fileId}`}
+                />
             </Box>
         </>
     );

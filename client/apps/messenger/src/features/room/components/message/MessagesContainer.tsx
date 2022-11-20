@@ -2,30 +2,34 @@ import { Box } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
+import AttachmentManager from "../../lib/AttachmentManager";
 import {
     canLoadMoreMessages,
     fetchMessages,
     selectCursor,
+    selectIsLastMessageFromUser,
     selectRoomMessagesLength,
 } from "../../slices/messages";
 import NewMessageAlert from "./NewMessageAlert";
 
 export default function MessagesContainer({
     children,
-    roomId,
 }: {
     children: React.ReactNode;
-    roomId: number;
 }): React.ReactElement {
+    const roomId = parseInt(useParams().id || "");
     const targetMessageId = parseInt(useParams().messageId || "");
+
     const messagesLength = useSelector(selectRoomMessagesLength(roomId));
+    const isLastMessageFromUser = useSelector(selectIsLastMessageFromUser(roomId));
     const canLoadMore = useSelector(canLoadMoreMessages(roomId));
     const cursor = useSelector(selectCursor(roomId));
     const dispatch = useDispatch();
-    const messagesLengthRef = useRef(0);
-    const [newMessages, setNewMessages] = useState(0);
 
+    const messagesLengthRef = useRef(0);
     const ref = useRef<HTMLDivElement>();
+    const [newMessages, setNewMessages] = useState(0);
+    const [dragCounter, setDragCounter] = useState(0);
 
     useEffect(() => {
         ref.current.dataset.locked = "0";
@@ -33,7 +37,6 @@ export default function MessagesContainer({
         messagesLengthRef.current = 0;
 
         onScrollDown();
-        console.log("RoomId shange");
     }, [roomId]);
 
     useEffect(() => {
@@ -48,7 +51,7 @@ export default function MessagesContainer({
                 ref.current.scrollTop = ref.current.scrollHeight - lastScrollHeight;
             }
 
-            if (messagesLength - messagesLengthRef.current === 1) {
+            if (messagesLength - messagesLengthRef.current === 1 && !isLastMessageFromUser) {
                 setNewMessages((m) => m + 1);
             }
         } else {
@@ -60,7 +63,6 @@ export default function MessagesContainer({
                 onScrollDown();
             }
         }
-        console.log("messagesLength or targetMessageId shange");
 
         messagesLengthRef.current = messagesLength;
     }, [messagesLength, targetMessageId]);
@@ -72,7 +74,6 @@ export default function MessagesContainer({
 
         scrollElemBottom(ref.current);
         ref.current.dataset.locked = "0";
-        console.log("Scroll down");
     };
 
     const onScroll = (e: React.UIEvent<HTMLElement, UIEvent>) => {
@@ -81,14 +82,9 @@ export default function MessagesContainer({
         }
 
         const target = e.target as HTMLDivElement;
-        console.log("onscroll", e.type, e.detail, { e });
 
         if (target.scrollTop === 0 && messagesLength) {
-            console.log("onscroll top 0");
-
             if (canLoadMore) {
-                console.log("onscroll top 0 FETCH");
-
                 ref.current.dataset.locked = "1";
                 dispatch(fetchMessages({ roomId, cursor }));
             }
@@ -105,7 +101,6 @@ export default function MessagesContainer({
         if (!ref.current) {
             return;
         }
-        console.log("onwheel");
 
         if (getScrollBottom(ref.current) < 500) {
             setNewMessages(0);
@@ -113,6 +108,48 @@ export default function MessagesContainer({
 
         const newLockedForScroll = getScrollBottom(ref.current) > 800;
         ref.current.dataset.locked = (+newLockedForScroll).toString();
+    };
+
+    const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+
+        setDragCounter((c) => c + 1);
+    };
+
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+
+        setDragCounter((c) => c - 1);
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+
+        const transfer = e.nativeEvent.dataTransfer;
+
+        if (!transfer) {
+            return;
+        }
+        if (transfer.items) {
+            for (let i = 0; i < transfer.items.length; i++) {
+                if (transfer.items[i].kind === "file") {
+                    const file = transfer.items[i].getAsFile();
+                    if (file) {
+                        AttachmentManager.addFiles({ roomId, files: [file] });
+                    }
+                }
+            }
+        } else if (transfer.files) {
+            AttachmentManager.addFiles({
+                roomId,
+                files: Array.from(transfer.files),
+            });
+        }
+
+        setDragCounter(0);
+    };
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
     };
 
     return (
@@ -140,7 +177,26 @@ export default function MessagesContainer({
                 px={1}
                 onScroll={onScroll}
                 onWheel={onWheel}
+                onDragEnter={handleDragEnter}
+                onDrop={handleDrop}
+                onDragLeave={handleDragLeave}
+                onDragOver={handleDragOver}
             >
+                <Box
+                    position="absolute"
+                    left="0"
+                    right="0"
+                    top="0"
+                    bottom="0"
+                    display={dragCounter > 0 ? "flex" : "none"}
+                    justifyContent="center"
+                    alignItems="center"
+                    bgcolor="action.hover"
+                    zIndex={9999}
+                >
+                    <i className="fa fa-cloud-upload"></i>
+                    <p> Drop files here!</p>
+                </Box>
                 {children}
             </Box>
         </Box>

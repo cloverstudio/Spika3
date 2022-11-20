@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { dynamicBaseQuery } from "../../../api/api";
 import type { RootState } from "../../../store/store";
 import MessageType, { MessageListType, MessageRecordType } from "../../../types/Message";
-import getMessageStatus from "../../chat/lib/getMessageStatus";
+import getMessageStatus from "../lib/getMessageStatus";
 import { fetchHistory } from "./leftSidebar";
 
 export const fetchMessages = createAsyncThunk(
@@ -21,15 +21,14 @@ export const fetchMessages = createAsyncThunk(
     ) => {
         const room = (thunkAPI.getState() as RootState).messages[roomId];
         const { count } = room || {};
-        console.log("Fetch messages: ", { room });
 
-        if (count && !cursor) {
+        if (count && !cursor && !targetMessageId) {
             console.error("fetchMessagesError: Nothing to load");
 
             throw new Error("fetchMessagesError: Nothing to load");
         }
 
-        let url = `/messenger/messages/roomId2/${roomId}?`;
+        let url = `/messenger/messages/roomId/${roomId}?`;
         if (targetMessageId) {
             url += `&targetMessageId=${targetMessageId}`;
         }
@@ -660,6 +659,27 @@ export const selectCursor =
         const room = state.messages[roomId];
 
         return room?.cursor;
+    };
+
+export const selectIsLastMessageFromUser =
+    (roomId: number) =>
+    (state: RootState): boolean => {
+        const room = state.messages[roomId];
+        const userId = state.user.id;
+
+        if (!room) {
+            return false;
+        }
+
+        const messages = Object.values(room.messages || {});
+
+        if (!messages || !messages.length) {
+            return false;
+        }
+
+        const sortedMessages = messages.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+
+        return sortedMessages[0].fromUserId === userId;
     };
 
 export default messagesSlice.reducer;

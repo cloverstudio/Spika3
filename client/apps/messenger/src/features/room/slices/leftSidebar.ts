@@ -58,7 +58,6 @@ export const leftSidebarSlice = createSlice({
         setOpenEditProfile(state, action: { payload: boolean }) {
             state.showProfileEditing = action.payload;
         },
-
         refreshOne(state, { payload: updatedRoom }: { payload: RoomType }) {
             const list = state.history.list.map((room) => {
                 if (updatedRoom.id === room.id) {
@@ -85,6 +84,17 @@ export const leftSidebarSlice = createSlice({
         },
         removeRoom(state, { payload: roomId }: { payload: number }) {
             const list = state.history.list.filter((room) => room.id !== roomId);
+
+            state.history.list = [...list];
+        },
+        resetUnreadCount(state, { payload: roomId }: { payload: number }) {
+            const list = state.history.list.map((room) => {
+                if (roomId === room.id) {
+                    room.unreadCount = 0;
+                }
+
+                return room;
+            });
 
             state.history.list = [...list];
         },
@@ -138,6 +148,7 @@ export const {
     refreshOne,
     updateLastMessage,
     removeRoom,
+    resetUnreadCount,
 } = leftSidebarSlice.actions;
 
 export const selectHistory = (state: RootState): HistoryState => state.leftSidebar.history;

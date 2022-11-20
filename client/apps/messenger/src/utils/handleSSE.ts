@@ -51,15 +51,17 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                 return;
             }
 
-            await dynamicBaseQuery({
-                url: "/messenger/messages/delivered",
-                method: "POST",
-                data: { messagesIds: [message.id] },
-            });
-
             store.dispatch(addMessage(message));
 
-            if (document.hidden) {
+            const userIsInRoom = document.URL.includes(`/rooms/${message.roomId}`);
+
+            if (document.hidden || !userIsInRoom) {
+                await dynamicBaseQuery({
+                    url: "/messenger/messages/delivered",
+                    method: "POST",
+                    data: { messagesIds: [message.id] },
+                });
+
                 store.dispatch(fetchHistory({ page: 1, keyword: "" }));
             } else {
                 store.dispatch(updateLastMessage(message));
@@ -110,6 +112,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
             }
 
             store.dispatch(deleteMessage(message));
+            store.dispatch(fetchHistory({ page: 1, keyword: "" }));
 
             return;
         }
@@ -122,6 +125,8 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
             }
 
             store.dispatch(editMessage(message));
+
+            store.dispatch(fetchHistory({ page: 1, keyword: "" }));
 
             return;
         }

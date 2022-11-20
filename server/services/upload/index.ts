@@ -4,7 +4,6 @@ import amqp from "amqplib";
 import testRouter from "./route/test";
 import fileRouter from "./route/file";
 
-import * as Constants from "../../components/consts";
 import Service, { ServiceStartParams } from "../types/serviceInterface";
 
 export default class Upload implements Service {

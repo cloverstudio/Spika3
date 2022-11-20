@@ -38,9 +38,7 @@ export default (): React.ReactElement => {
         const permission = await Notification.requestPermission();
 
         if (permission === "granted") {
-            console.log("Notification permission granted.");
             const pushToken = await setupPushnotification();
-            console.log("Retrivbed push token", pushToken);
             if (pushToken && pushToken.length > 0) updateDevice({ pushToken });
         } else {
         }

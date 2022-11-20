@@ -50,13 +50,13 @@ export default function MessagesList(): React.ReactElement {
     }, [messages]);
 
     useEffect(() => {
-        if (typeof cursor === "undefined") {
+        if (typeof cursor === "undefined" || messageId) {
             dispatch(fetchMessages({ roomId, targetMessageId: messageId }));
         }
     }, [dispatch, roomId, messageId, cursor]);
 
     return (
-        <MessagesContainer roomId={roomId}>
+        <MessagesContainer>
             {Object.entries(messagesSorted).map(([day, messages]) => {
                 return (
                     <Box key={day}>

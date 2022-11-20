@@ -123,7 +123,15 @@ function Message({
                     <Box
                         onMouseEnter={handleMouseEnter}
                         border={highlighted ? "1px solid red" : ""}
-                        sx={{ borderRadius: "0.3rem" }}
+                        sx={{
+                            borderRadius: "0.3rem",
+                            maxWidth: {
+                                xs: "75vw",
+                                md: "50vw",
+                                lg: "30vw",
+                                xl: "45vw",
+                            },
+                        }}
                     >
                         <MessageBodyContainer
                             id={id}
@@ -174,11 +182,10 @@ function MessageContainer({ side, children, id, handleMouseLeave }: MessageConta
                 display: "flex",
                 ...(side === "right"
                     ? {
-                          textAlign: "right",
                           ml: "auto",
                           justifyContent: "end",
                       }
-                    : { textAlign: "left", mr: "auto", justifyContent: "start" }),
+                    : { mr: "auto", justifyContent: "start" }),
             }}
         >
             <Box

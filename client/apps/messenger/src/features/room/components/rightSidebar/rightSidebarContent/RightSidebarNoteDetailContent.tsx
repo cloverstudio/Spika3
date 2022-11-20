@@ -20,7 +20,12 @@ export default function RightSidebarNoteDetailContent() {
     }
 
     return (
-        <Box m={2}>
+        <Box
+            m={2}
+            sx={{
+                whiteSpace: "pre-wrap",
+            }}
+        >
             <MuiMarkdown
                 overrides={{
                     h1: {

@@ -1,7 +1,7 @@
-import Rooms, { RoomType } from "../../../types/Rooms";
+import { RoomType } from "../../../types/Rooms";
 import api from "../../../api/api";
 import { store } from "../../../store/store";
-import formatRoomInfo from "../../chat/lib/formatRoomInfo";
+import formatRoomInfo from "../lib/formatRoomInfo";
 
 const roomApi = api.injectEndpoints({
     endpoints: (build) => ({

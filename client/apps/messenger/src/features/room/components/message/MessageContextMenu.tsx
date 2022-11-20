@@ -47,8 +47,8 @@ export default function MessageContextMenu({
     const styleModifier: any = {
         opacity: 0,
     };
-    if (!isUsersMessage) styleModifier.left = "40px";
-    else styleModifier.right = "40px";
+    if (!isUsersMessage) styleModifier.left = "0";
+    else styleModifier.right = "18px";
 
     if (mouseOver) styleModifier.opacity = 1;
     const itemStyle = {

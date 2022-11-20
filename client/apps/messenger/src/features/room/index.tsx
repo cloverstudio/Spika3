@@ -5,13 +5,19 @@ import Header from "./components/Header";
 import { useTheme } from "@mui/material/styles";
 import Messages from "./components/Messages";
 import ChatInput from "./components/ChatInput";
+import ConfCall from "../confcall";
+import TitleUpdater from "./components/TitleUpdater";
 
 export default function Room(): React.ReactElement {
+    const isCall = /^.+\/call.*$/.test(window.location.pathname);
+
     return (
         <RoomContainer>
             <Header />
             <Messages />
             <ChatInput />
+            {isCall && <ConfCall />}
+            <TitleUpdater />
         </RoomContainer>
     );
 }
