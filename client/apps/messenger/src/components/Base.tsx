@@ -86,8 +86,10 @@ export default function AuthBase({ children }: Props): React.ReactElement {
     return <Base>{children}</Base>;
 }
 
+const initialTheme: ThemeType = window.localStorage.getItem(constants.LSKEY_THEME) as ThemeType || "light";
+
 export function Base({ children }: Props): React.ReactElement {
-    const [theme, setTheme] = useState<ThemeType>("light");
+    const [theme, setTheme] = useState<ThemeType>(initialTheme);
 
     return (
         <ThemeContext.Provider value={{ theme, setTheme }}>
