@@ -217,6 +217,7 @@ export default (): Router => {
             );
 
             if (!fs.existsSync(pathToFile)) {
+                console.error(`File doesn't exists - ${pathToFile}`);
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
