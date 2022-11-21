@@ -1,15 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Box, Button, CircularProgress, IconButton, LinearProgress, Stack } from "@mui/material";
+import { Box, Button, IconButton, Stack } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 
 import KeyboardVoiceIcon from "@mui/icons-material/KeyboardVoice";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import { useParams } from "react-router-dom";
 import AttachmentManager from "../lib/AttachmentManager";
-import uploadFile from "../../../utils/uploadFile";
 import SendIcon from "@mui/icons-material/Send";
-import { useShowBasicDialog } from "../../../hooks/useModal";
 import {
     selectEditMessage,
     selectReplyMessage,
@@ -21,9 +19,7 @@ import {
     addEmoji,
     setReplyMessage,
 } from "../slices/input";
-import getFileType from "../lib/getFileType";
 import AddAttachment from "./AddAttachment";
-import generateThumbFile from "../lib/generateThumbFile";
 import Attachments from "./Attachments";
 import EmojiPicker from "./emojiPicker";
 import Close from "@mui/icons-material/Close";
@@ -36,13 +32,8 @@ export default function ChatInputContainer(): React.ReactElement {
     const dispatch = useDispatch();
     const roomId = parseInt(useParams().id || "");
     const inputType = useSelector(selectInputType(roomId));
-    const [loading, setLoading] = useState(false);
 
-    const [filesSent, setFilesSent] = useState(0);
     const [files, setFiles] = useState(AttachmentManager.getFiles(roomId) || []);
-    const [failedToUploadFiles, setFailedToUploadFiles] = useState<File[]>([]);
-
-    const showBasicDialog = useShowBasicDialog();
     const canvasRef = useRef<HTMLCanvasElement>();
 
     const inputTypeIsFiles = inputType === "files";
@@ -53,65 +44,11 @@ export default function ChatInputContainer(): React.ReactElement {
         } else {
             dispatch(setInputType({ roomId, type: "text" }));
         }
-    }, [files.length]);
+    }, [files.length, dispatch, roomId]);
 
     const handleSend = async () => {
-        const failed: File[] = [];
-
         if (inputTypeIsFiles) {
-            setLoading(true);
-            for (const file of files) {
-                try {
-                    const uploaded = await uploadFile({
-                        file,
-                        type: file.type || "unknown",
-                    });
-                    let thumbFileUploaded:
-                        | {
-                              path: string;
-                              id: number;
-                          }
-                        | undefined;
-
-                    const fileType = getFileType(file.type);
-
-                    if (fileType === "image" && canvasRef.current) {
-                        const thumbFile = await generateThumbFile(file, canvasRef.current);
-                        if (thumbFile) {
-                            thumbFileUploaded = await uploadFile({
-                                file: thumbFile,
-                                type: thumbFile.type || "unknown",
-                            });
-                        }
-                    }
-
-                    const sent = await dispatch(
-                        sendMessage({
-                            roomId,
-                            type: fileType,
-                            body: {
-                                fileId: uploaded.id,
-                                thumbId: thumbFileUploaded ? thumbFileUploaded.id : uploaded.id,
-                            },
-                        })
-                    );
-
-                    if ((sent as { error?: any })?.error) {
-                        throw Error("Send message error");
-                    }
-
-                    setFilesSent((filesSent) => filesSent + 1);
-                } catch (error) {
-                    showBasicDialog({ text: "Some files are not sent!", title: "Upload error" });
-                    failed.push(file);
-                    console.error({ failed: file, error });
-                }
-            }
-
-            AttachmentManager.setFiles({ roomId, files: failed });
-            setFailedToUploadFiles(failed);
-            setLoading(false);
-            setFilesSent(0);
+            AttachmentManager.send({ roomId });
         } else {
             dispatch(
                 sendMessage({
@@ -136,23 +73,15 @@ export default function ChatInputContainer(): React.ReactElement {
     return (
         <Box borderTop="1px solid #C9C9CA" px={2} py={1}>
             <canvas ref={canvasRef} style={{ display: "none" }} />
-            {loading && (
-                <LinearProgress
-                    sx={{ mb: 1 }}
-                    variant="determinate"
-                    value={(filesSent / files.length) * 100}
-                />
-            )}
+
             <Box display="flex" flexDirection="column" justifyContent="center">
                 <Stack spacing={2} direction="row" alignItems="center" width="100%">
                     <AddAttachment />
 
                     <ChatInput
-                        loading={loading}
                         handleSetMessageText={handleSetMessageText}
                         handleSend={handleSend}
                         files={files}
-                        failedToUploadFiles={failedToUploadFiles}
                     />
                 </Stack>
             </Box>
@@ -161,20 +90,12 @@ export default function ChatInputContainer(): React.ReactElement {
 }
 
 type ChatInputProps = {
-    loading: boolean;
     handleSetMessageText: (string) => void;
     handleSend: () => void;
     files: File[];
-    failedToUploadFiles: File[];
 };
 
-function ChatInput({
-    loading,
-    handleSetMessageText,
-    handleSend,
-    files,
-    failedToUploadFiles,
-}: ChatInputProps) {
+function ChatInput({ handleSetMessageText, handleSend, files }: ChatInputProps) {
     const roomId = parseInt(useParams().id || "");
 
     const dispatch = useDispatch();
@@ -202,23 +123,14 @@ function ChatInput({
     if (inputType === "files") {
         return (
             <>
-                <Attachments
-                    files={files}
-                    failedToUploadFileNames={failedToUploadFiles.map((f) => f.name)}
-                />
+                <Attachments files={files} />
 
-                {loading ? (
-                    <Box>
-                        <CircularProgress sx={{ ml: 0 }} />
-                    </Box>
-                ) : (
-                    <SendIcon
-                        onClick={() => handleSend()}
-                        fontSize="large"
-                        color="primary"
-                        sx={{ cursor: "pointer" }}
-                    />
-                )}
+                <SendIcon
+                    onClick={() => handleSend()}
+                    fontSize="large"
+                    color="primary"
+                    sx={{ cursor: "pointer" }}
+                />
             </>
         );
     }

@@ -1,7 +1,11 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { wait } from "../../../../../../lib/utils";
 import { dynamicBaseQuery } from "../../../api/api";
 import type { RootState } from "../../../store/store";
 import MessageType, { MessageListType, MessageRecordType } from "../../../types/Message";
+import uploadFile from "../../../utils/uploadFile";
+import generateThumbFile from "../lib/generateThumbFile";
+import getFileType from "../lib/getFileType";
 import getMessageStatus from "../lib/getMessageStatus";
 import { fetchHistory } from "./leftSidebar";
 
@@ -43,7 +47,7 @@ export const fetchMessages = createAsyncThunk(
 );
 
 export const sendMessage = createAsyncThunk(
-    "messages/sendMessage2",
+    "messages/sendMessage",
     async (
         data: {
             roomId: number;
@@ -105,14 +109,95 @@ export const sendMessage = createAsyncThunk(
                     fromUserId,
                 })
             );
+            console.error({ error });
+            throw error;
+        }
+    }
+);
 
+export const sendFileMessage = createAsyncThunk(
+    "messages/sendFileMessage",
+    async (
+        data: {
+            roomId: number;
+            file: File;
+        },
+        thunkAPI
+    ): Promise<{ message: MessageType }> => {
+        const { roomId, file } = data;
+        const fromUserId = (thunkAPI.getState() as RootState).user.id;
+
+        const localId = Math.round(Math.random() * 1000000000000000000000).toString();
+        const type = getFileType(file.type);
+        const body: any = {};
+
+        thunkAPI.dispatch(
+            messagesSlice.actions.setSending({
+                roomId,
+                type,
+                body: {
+                    uploadingFileName: file.name,
+                },
+                status: "sending",
+                localId,
+                fromUserId,
+            })
+        );
+
+        try {
+            const uploaded = await uploadFile({
+                file,
+                type: file.type || "unknown",
+            });
+
+            body.fileId = uploaded.id;
+
+            if (type === "image") {
+                const thumbFile = await generateThumbFile(file);
+                if (thumbFile) {
+                    const thumbFileUploaded = await uploadFile({
+                        file: thumbFile,
+                        type: thumbFile.type || "unknown",
+                    });
+
+                    body.thumbId = thumbFileUploaded.id;
+                }
+            }
+            const response = await dynamicBaseQuery({
+                url: "/messenger/messages",
+                data: {
+                    roomId,
+                    type,
+                    body,
+                    localId,
+                },
+                method: "POST",
+            });
+
+            thunkAPI.dispatch(fetchHistory({ page: 1, keyword: "" }));
+
+            return response.data;
+        } catch (error) {
+            thunkAPI.dispatch(
+                messagesSlice.actions.setSending({
+                    roomId,
+                    type,
+                    body: {
+                        uploadingFileName: file.name,
+                    },
+                    status: "failed",
+                    localId,
+                    fromUserId,
+                })
+            );
+            console.error({ error });
             throw error;
         }
     }
 );
 
 export const editMessageThunk = createAsyncThunk(
-    "messages/editMessage2",
+    "messages/editMessage",
     async (roomId: number, thunkAPI): Promise<{ message: MessageType }> => {
         const { editMessage: message, text } = (thunkAPI.getState() as RootState).input.list[
             roomId
@@ -162,13 +247,14 @@ export const editMessageThunk = createAsyncThunk(
                 })
             );
 
+            console.error({ error });
             throw error;
         }
     }
 );
 
 export const replyMessageThunk = createAsyncThunk(
-    "messages/replyMessage2",
+    "messages/replyMessage",
     async (
         { type, roomId }: { type: string; roomId: number },
         thunkAPI
@@ -225,6 +311,7 @@ export const replyMessageThunk = createAsyncThunk(
                 })
             );
 
+            console.error({ error });
             throw error;
         }
     }
@@ -457,6 +544,26 @@ export const messagesSlice = createSlice({
         });
 
         builder.addCase(sendMessage.fulfilled, (state, { payload }) => {
+            const { message } = payload;
+            const {
+                id,
+                roomId,
+                localId,
+                messageRecords,
+                totalUserCount,
+                deliveredCount,
+                seenCount,
+            } = message;
+
+            const room = state[roomId];
+
+            delete room.messages[localId];
+            room.messages[id] = message;
+            room.reactions[id] = messageRecords || [];
+            room.statusCounts[id] = { totalUserCount, deliveredCount, seenCount };
+        });
+
+        builder.addCase(sendFileMessage.fulfilled, (state, { payload }) => {
             const { message } = payload;
             const {
                 id,

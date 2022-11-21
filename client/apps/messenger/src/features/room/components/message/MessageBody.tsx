@@ -8,6 +8,7 @@ import { deletedMessageText } from "../../lib/consts";
 import { useNavigate, useParams } from "react-router-dom";
 import UserType from "../../../../types/User";
 import { useGetRoomQuery } from "../../api/room";
+import AttachmentManager from "../../lib/AttachmentManager";
 
 type MessageBodyProps = {
     id: number;
@@ -17,6 +18,8 @@ type MessageBodyProps = {
     isReply?: boolean;
     onImageMessageClick?: () => void;
 };
+
+const BASE_URL = `${API_BASE_URL}/upload/files`;
 
 export default function MessageBody({
     type,
@@ -73,6 +76,7 @@ function ImageMessage({
     isUsersMessage: boolean;
     onClick: () => void;
 }) {
+    const roomId = parseInt(useParams().id || "");
     const [open, setOpen] = useState(false);
     const handleOpen = () => {
         setOpen(true);
@@ -80,9 +84,21 @@ function ImageMessage({
     };
     const handleClose = () => setOpen(false);
 
-    if (!body.file) {
+    if (!body.file && !body.uploadingFileName) {
         return null;
     }
+
+    const { file: fileFromServer, uploadingFileName, thumbId, fileId, text } = body;
+
+    const localFile =
+        uploadingFileName && AttachmentManager.getFile({ roomId, fileName: uploadingFileName });
+    const file = localFile || fileFromServer;
+
+    if (!file) {
+        return null;
+    }
+    const thumbSrc = localFile ? URL.createObjectURL(file) : `${BASE_URL}/${thumbId}`;
+    const imgSrc = localFile ? URL.createObjectURL(file) : `${BASE_URL}/${fileId}`;
 
     const style = {
         position: "absolute",
@@ -96,14 +112,14 @@ function ImageMessage({
 
     return (
         <>
-            {body.text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
+            {text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
             <Box
                 onClick={handleOpen}
                 component="img"
                 borderRadius="0.625rem"
                 maxWidth="256px"
                 height="10vh"
-                src={`${API_BASE_URL}/upload/files/${body.thumbId}`}
+                src={thumbSrc}
                 pb="0.8125"
                 sx={{ cursor: "pointer", objectFit: "contain" }}
             />
@@ -124,7 +140,7 @@ function ImageMessage({
                             maxWidth="92vw"
                             maxHeight="92vh"
                             height="auto"
-                            src={`${API_BASE_URL}/upload/files/${body.fileId}`}
+                            src={imgSrc}
                         />
                     </Box>
                 </>
@@ -134,18 +150,28 @@ function ImageMessage({
 }
 
 function FileMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boolean }) {
-    if (!body.file) {
+    const roomId = parseInt(useParams().id || "");
+
+    if (!body.file && !body.uploadingFileName) {
         return null;
     }
 
-    const file = body.file;
+    const { file: fileFromServer, uploadingFileName, text } = body;
+    const localFile =
+        uploadingFileName && AttachmentManager.getFile({ roomId, fileName: uploadingFileName });
+    const file = localFile || fileFromServer;
+
+    const href = localFile ? URL.createObjectURL(file) : `${BASE_URL}/${body.fileId}`;
+    const mimeType = localFile ? file.type : file.mimeType;
+    const name = localFile ? file.name : file.fileName;
+
     const sizeInMB = (file.size / 1024 / 1024).toFixed(2);
     const sizeInKB = (file.size / 1024).toFixed(2);
 
-    const Icon = getFileIcon(file.mimeType);
+    const Icon = getFileIcon(mimeType);
     return (
         <>
-            {body.text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
+            {text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
             <Box
                 display="flex"
                 alignItems="center"
@@ -158,7 +184,7 @@ function FileMessage({ body, isUsersMessage }: { body: any; isUsersMessage: bool
                 <Icon fontSize="large" />
                 <Box>
                     <Typography fontSize="1rem" fontWeight={800} lineHeight="1.1rem" mb={0.25}>
-                        {file.fileName}
+                        {name}
                     </Typography>
                     <Typography textAlign="left">
                         {+sizeInMB > 0 ? `${sizeInMB} MB` : `${sizeInKB} KB`}
@@ -166,7 +192,7 @@ function FileMessage({ body, isUsersMessage }: { body: any; isUsersMessage: bool
                 </Box>
                 <Box
                     component="a"
-                    href={`${API_BASE_URL}/upload/files/${body.fileId}`}
+                    href={href}
                     target="_blank"
                     download
                     sx={{ display: "block", color: "inherit" }}
@@ -179,18 +205,25 @@ function FileMessage({ body, isUsersMessage }: { body: any; isUsersMessage: bool
 }
 
 function VideoMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boolean }) {
-    if (!body.file) {
+    const roomId = parseInt(useParams().id || "");
+
+    if (!body.file && !body.uploadingFileName) {
         return null;
     }
 
+    const { file: fileFromServer, text, uploadingFileName } = body;
+    const localFile =
+        uploadingFileName && AttachmentManager.getFile({ roomId, fileName: uploadingFileName });
+    const file = localFile || fileFromServer;
+
+    const src = localFile ? URL.createObjectURL(file) : `${BASE_URL}/${body.fileId}`;
+    const mimeType = localFile ? file.type : file.mimeType;
+
     return (
         <>
-            {body.text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
+            {text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
             <Box component="video" borderRadius="0.625rem" height="20vh" controls pb="0.8125">
-                <source
-                    type={body.file.mimeType}
-                    src={`${API_BASE_URL}/upload/files/${body.fileId}`}
-                />
+                <source type={mimeType} src={src} />
                 Your browser does not support the video tag.
             </Box>
         </>
@@ -198,13 +231,23 @@ function VideoMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
 }
 
 function AudioMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boolean }) {
-    if (!body.file) {
+    const roomId = parseInt(useParams().id || "");
+
+    if (!body.file && !body.uploadingFileName) {
         return null;
     }
 
+    const { file: fileFromServer, text, uploadingFileName } = body;
+    const localFile =
+        uploadingFileName && AttachmentManager.getFile({ roomId, fileName: uploadingFileName });
+    const file = localFile || fileFromServer;
+
+    const src = localFile ? URL.createObjectURL(file) : `${BASE_URL}/${body.fileId}`;
+    const mimeType = localFile ? file.type : file.mimeType;
+
     return (
         <>
-            {body.text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
+            {text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
             <Box
                 component="audio"
                 controls
@@ -213,10 +256,7 @@ function AudioMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
                 height="5vh"
                 pb="0.8125"
             >
-                <source
-                    type={body.file.mimeType || "audio/mpeg"}
-                    src={`${API_BASE_URL}/upload/files/${body.fileId}`}
-                />
+                <source type={mimeType} src={src} />
             </Box>
         </>
     );
@@ -345,6 +385,7 @@ function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boo
     const handleReplyClick = () => {
         navigate(`/rooms/${roomId}/${body.referenceMessage.id}`);
     };
+
     return (
         <Box
             component={"div"}
