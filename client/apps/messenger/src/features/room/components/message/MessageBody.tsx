@@ -10,6 +10,7 @@ import UserType from "../../../../types/User";
 import { useGetRoomQuery } from "../../api/room";
 import AttachmentManager from "../../lib/AttachmentManager";
 
+
 type MessageBodyProps = {
     id: number;
     type: string;
