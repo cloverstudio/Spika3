@@ -65,7 +65,8 @@ export default function MessageReactions({ id }: MessageReactionsProps): React.R
                 top="23px"
                 sx={{
                     borderRadius: "1rem",
-                    border: "1px solid white",
+                    border: "1px solid",
+                    borderColor:"divider",
                     cursor: "default",
                 }}
             >

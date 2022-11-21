@@ -457,7 +457,7 @@ function TextMessage({
                 maxWidth: "100%",
                 backgroundColor: isUsersMessage
                     ? "common.myMessageBackground"
-                    : "background.paper",
+                    : "common.otherMessageBackground",
                 borderRadius: "0.3rem",
                 padding: "0.4rem",
                 cursor: "pointer",

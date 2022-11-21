@@ -94,10 +94,12 @@ export function Base({ children }: Props): React.ReactElement {
     return (
         <ThemeContext.Provider value={{ theme, setTheme }}>
             <ThemeProvider theme={theme === "light" ? lightTheme : darkTheme}>
-                <CssBaseline />
-                {children}
-                <SnackBar />
-                <BasicDialog />
+                <div className={theme === "light" ? "light": "dark"}>
+                    <CssBaseline />
+                    {children}
+                    <SnackBar />
+                    <BasicDialog />
+                </div>
             </ThemeProvider>
         </ThemeContext.Provider>
     );

@@ -70,8 +70,9 @@ export default function MessageContextMenu({
                 ...{
                     position: "absolute",
                     minWidth: "100px",
-                    backgroundColor: "#fff",
-                    border: "2px solid #9995",
+                    backgroundColor: "background.paper",
+                    border: "2px solid",
+                    borderColor:"divider",
                     display: "flex",
                     justifyContent: "space-between",
                     borderRadius: "5px",

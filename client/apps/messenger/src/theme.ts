@@ -17,6 +17,7 @@ declare module "@mui/material/styles/createPalette" {
         white: string;
         chatBackground: string;
         myMessageBackground: string;
+        otherMessageBackground: string;
         darkBlue: string;
         confCallBackground: string;
         videoBackground: string;
@@ -167,6 +168,7 @@ export const lightTheme = createTheme({
         },
         common: {
             myMessageBackground: "#C8EBFE",
+            otherMessageBackground: "#f0f0f0",
         },
     },
 });
@@ -196,7 +198,8 @@ export const darkTheme = createTheme({
             navigation: "#fff",
         },
         common: {
-            myMessageBackground: "#00476A",
+            myMessageBackground: "#252530",
+            otherMessageBackground: "#303030",
         },
     },
 });

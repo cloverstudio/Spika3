@@ -153,7 +153,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
 
     return (
         <Box>
-            <Box px={2.5} borderBottom="0.5px solid #C9C9CA">
+            <Box px={2.5} borderBottom="0.5px solid" sx={{borderColor:"divider"}} >
                 <Box display="flex" height="80px" justifyContent="space-between">
                     <Stack
                         direction="row"

@@ -72,7 +72,7 @@ export default function LeftSidebarHome({
                 <EditProfileView user={userData?.user} onClose={closeEditor} />
             ) : (
                 <>
-                    <Box px={2.5} borderBottom="0.5px solid #C9C9CA">
+                    <Box px={2.5} borderBottom="0.5px solid" sx={{borderColor:"divider"}} >
                         <Box display="flex" height="80px" justifyContent="space-between">
                             <Box display="flex" flexDirection="column" justifyContent="center">
                                 <img width="40px" height="40px" src={logo} />

@@ -63,7 +63,7 @@ export default function AddAttachment(): ReactElement {
                             borderColor: "divider",
                             width: "75px",
                             height: "220px",
-                            backgroundColor: "#fff",
+                            backgroundColor: "background.default",
                             zIndex: 900,
                         }}
                     >
