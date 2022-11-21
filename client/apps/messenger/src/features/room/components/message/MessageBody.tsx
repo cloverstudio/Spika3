@@ -10,6 +10,7 @@ import UserType from "../../../../types/User";
 import { useGetRoomQuery } from "../../api/room";
 import AttachmentManager from "../../lib/AttachmentManager";
 
+
 type MessageBodyProps = {
     id: number;
     type: string;
@@ -19,6 +20,7 @@ type MessageBodyProps = {
     onImageMessageClick?: () => void;
 };
 
+declare const API_BASE_URL: string;
 const BASE_URL = `${API_BASE_URL}/upload/files`;
 
 export default function MessageBody({
