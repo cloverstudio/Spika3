@@ -294,9 +294,10 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                 )}
                 <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
                     Color schema
-                    <ThemeSwitch onChange={(e)=>{
+                    <ThemeSwitch checked={theme === "dark"} onChange={(e)=>{
                         const mode: ThemeType  = e.target.checked ? "dark" : "light";
-                        setTheme(mode)
+                        setTheme(mode);
+                        window.localStorage.setItem(Constants.LSKEY_THEME, mode);
                     }} />
                 </Stack>
 
