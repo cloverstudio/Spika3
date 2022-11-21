@@ -7,13 +7,9 @@ import getFileIcon from "../lib/getFileIcon";
 
 type AttachmentsProps = {
     files: File[];
-    failedToUploadFileNames: string[];
 };
 
-export default function Attachments({
-    files,
-    failedToUploadFileNames,
-}: AttachmentsProps): React.ReactElement {
+export default function Attachments({ files }: AttachmentsProps): React.ReactElement {
     const roomId = parseInt(useParams().id || "");
 
     return (
@@ -29,7 +25,6 @@ export default function Attachments({
             {files.length > 0 &&
                 files.map((file) => {
                     const Icon = getFileIcon(file.type);
-                    const isFailed = failedToUploadFileNames.includes(file.name);
                     return (
                         <Box key={file.name} position="relative">
                             <Box
@@ -44,7 +39,7 @@ export default function Attachments({
                                 alignItems="center"
                                 sx={{
                                     borderWidth: "2px",
-                                    borderColor: isFailed ? "red" : "transparent",
+                                    borderColor: "transparent",
                                     borderStyle: "solid",
                                 }}
                             >

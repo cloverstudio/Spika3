@@ -1,11 +1,9 @@
 import { THUMB_WIDTH } from "../../../../../../lib/constants";
 
-export default function generateThumbFile(
-    originalFile: File,
-    canvas: HTMLCanvasElement
-): Promise<File | null> {
+export default function generateThumbFile(originalFile: File): Promise<File | null> {
     return new Promise((res) => {
         try {
+            const canvas = document.createElement("canvas");
             if (!canvas) {
                 return res(null);
             }
