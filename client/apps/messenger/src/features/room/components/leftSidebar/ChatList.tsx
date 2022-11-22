@@ -97,6 +97,7 @@ type RoomRowProps = {
     unreadCount?: number;
     lastMessage?: MessageType;
     avatarUrl?: string;
+    avatarFileId?: number;
     users: RoomUserType[];
 };
 
@@ -105,6 +106,7 @@ function RoomRow({
     isActive,
     name,
     avatarUrl,
+    avatarFileId,
     lastMessage,
     handleClick,
     unreadCount,
@@ -155,7 +157,7 @@ function RoomRow({
                 <Avatar
                     alt={name}
                     sx={{ width: 50, height: 50 }}
-                    src={`${UPLOADS_BASE_URL}${avatarUrl}`}
+                    src={`${UPLOADS_BASE_URL}/${avatarFileId}`}
                 />
                 <Box
                     display="flex"

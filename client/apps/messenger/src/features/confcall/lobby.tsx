@@ -309,7 +309,7 @@ export default function ConfCall() {
                                         key={participant.user.id}
                                         sx={{ width: 50, height: 50 }}
                                         alt={participant.user.displayName}
-                                        src={`${UPLOADS_BASE_URL}${participant.user.avatarUrl}`}
+                                        src={`${UPLOADS_BASE_URL}/${participant.user.avatarFileId}`}
                                     />
                                 );
                             })}
