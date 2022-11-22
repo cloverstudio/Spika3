@@ -129,7 +129,7 @@ function Message({
                                 xs: "75vw",
                                 md: "50vw",
                                 lg: "30vw",
-                                xl: "45vw",
+                                xl: "30vw",
                             },
                         }}
                     >
