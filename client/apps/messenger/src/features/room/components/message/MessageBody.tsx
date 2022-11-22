@@ -20,7 +20,7 @@ type MessageBodyProps = {
 };
 
 declare const API_BASE_URL: string;
-const BASE_URL = `${API_BASE_URL}/upload/files`;
+const DOWNLOAD_URL = `${API_BASE_URL}/upload/files`;
 
 export default function MessageBody({
     type,
@@ -98,8 +98,8 @@ function ImageMessage({
     if (!file) {
         return null;
     }
-    const thumbSrc = localFile ? URL.createObjectURL(file) : `${BASE_URL}/${thumbId}`;
-    const imgSrc = localFile ? URL.createObjectURL(file) : `${BASE_URL}/${fileId}`;
+    const thumbSrc = localFile ? URL.createObjectURL(file) : `${DOWNLOAD_URL}/${thumbId}`;
+    const imgSrc = localFile ? URL.createObjectURL(file) : `${DOWNLOAD_URL}/${fileId}`;
 
     const style = {
         position: "absolute",
@@ -162,7 +162,7 @@ function FileMessage({ body, isUsersMessage }: { body: any; isUsersMessage: bool
         uploadingFileName && AttachmentManager.getFile({ roomId, fileName: uploadingFileName });
     const file = localFile || fileFromServer;
 
-    const href = localFile ? URL.createObjectURL(file) : `${BASE_URL}/${body.fileId}`;
+    const href = localFile ? URL.createObjectURL(file) : `${DOWNLOAD_URL}/${body.fileId}`;
     const mimeType = localFile ? file.type : file.mimeType;
     const name = localFile ? file.name : file.fileName;
 
@@ -217,7 +217,7 @@ function VideoMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
         uploadingFileName && AttachmentManager.getFile({ roomId, fileName: uploadingFileName });
     const file = localFile || fileFromServer;
 
-    const src = localFile ? URL.createObjectURL(file) : `${BASE_URL}/${body.fileId}`;
+    const src = localFile ? URL.createObjectURL(file) : `${DOWNLOAD_URL}/${body.fileId}`;
     const mimeType = localFile ? file.type : file.mimeType;
 
     return (
@@ -243,7 +243,7 @@ function AudioMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
         uploadingFileName && AttachmentManager.getFile({ roomId, fileName: uploadingFileName });
     const file = localFile || fileFromServer;
 
-    const src = localFile ? URL.createObjectURL(file) : `${BASE_URL}/${body.fileId}`;
+    const src = localFile ? URL.createObjectURL(file) : `${DOWNLOAD_URL}/${body.fileId}`;
     const mimeType = localFile ? file.type : file.mimeType;
 
     return (
