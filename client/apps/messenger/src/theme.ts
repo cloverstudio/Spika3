@@ -29,21 +29,6 @@ declare module "@mui/material/styles/createPalette" {
 
 
 const basePalette: PaletteOptions = {
-    primary: {
-        main: "#4696F0",
-    },
-    mode: "dark",
-    action: {
-        disabled: "#fff",
-        disabledBackground: "#a3cbf8",
-        hover: "#E6F4FF",
-    },
-    text: {
-        primary: "#141414",
-        secondary: "#4A4A4A",
-        tertiary: "#9AA0A6",
-        navigation: "#9BB4CF",
-    },
     common: {
         darkBlue: "#131940",
         chatBackground: "#F2F2F2",
@@ -162,6 +147,23 @@ export const lightTheme = createTheme({
     palette: {
         ...basePalette,
         mode: "light",
+        primary: {
+            main: "#4696F0",
+        },
+        background: {
+            default: "#fafafa"
+        },
+        action: {
+            disabled: "#fff",
+            disabledBackground: "#a3cbf8",
+            hover: "#E6F4FF",
+        },
+        text: {
+            primary: "#141414",
+            secondary: "#4A4A4A",
+            tertiary: "#9AA0A6",
+            navigation: "#9BB4CF",
+        },
     },
 });
 
@@ -171,6 +173,23 @@ export const darkTheme = createTheme({
     palette: {
         ...basePalette,
         mode: "dark",
+        primary: {
+            main: "#4696F0",
+        },
+        background: {
+            default: "#303030"
+        },
+        action: {
+            disabled: "#fff",
+            disabledBackground: "#a3cbf8",
+            hover: "#E6F4FF",
+        },
+        text: {
+            primary: "#fff",
+            secondary: "rgba(255,255,255,0.7)",
+            tertiary: "#9AA0A6",
+            navigation: "#fff",
+        },
     },
 });
 
