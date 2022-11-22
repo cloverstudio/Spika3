@@ -104,6 +104,7 @@ export default function SidebarContactList({
                                 key={u.id}
                                 name={u.displayName}
                                 avatarUrl={u.avatarUrl}
+                                avatarFileId={u.avatarFileId}
                                 onClick={() => onUserClick(u)}
                                 selected={selectedUsersIds && selectedUsersIds.includes(u.id)}
                             />
@@ -121,6 +122,7 @@ type ContactRowProps = {
     onClick?: () => any;
     selected: boolean;
     avatarUrl?: string;
+    avatarFileId?: number,
     SelectedIcon?: () => React.ReactElement;
 };
 
@@ -129,6 +131,7 @@ export function ContactRow({
     onClick,
     selected,
     avatarUrl,
+    avatarFileId,
     SelectedIcon = () => <CheckIcon />,
 }: ContactRowProps): React.ReactElement {
     return (
@@ -136,7 +139,7 @@ export function ContactRow({
             <Avatar
                 sx={{ width: 50, height: 50 }}
                 alt={name}
-                src={`${UPLOADS_BASE_URL}${avatarUrl}`}
+                src={`${UPLOADS_BASE_URL}/${avatarFileId}`}
             />
             <Box
                 ml={2}

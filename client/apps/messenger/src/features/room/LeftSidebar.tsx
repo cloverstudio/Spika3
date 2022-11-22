@@ -165,7 +165,7 @@ function LeftSidebarNewGroup({
                                     >
                                         <Avatar
                                             alt={user.displayName}
-                                            src={`${UPLOADS_BASE_URL}${user.avatarUrl}`}
+                                            src={`${UPLOADS_BASE_URL}/${user.avatarFileId}`}
                                             sx={{ width: 48, height: 48 }}
                                         />
                                     </Badge>

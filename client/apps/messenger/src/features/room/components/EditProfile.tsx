@@ -39,6 +39,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
     const [name, setName] = React.useState(user.displayName);
     const [proposedName, setProposedName] = React.useState(user.displayName);
     const [profileAvatarUrl, setProfileAvatarUrl] = React.useState(user.avatarUrl);
+    const [profileAvatarFileId, setProfileAvatarFileId] = React.useState(user.avatarFileId);
     const [file, setFile] = useState<File>();
     const [editProfileName, setEditProfileName] = useState(false);
     const [editProfilePicture, setEditProfilePicture] = useState(false);
@@ -106,7 +107,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
     const removeProfilePhoto = async () => {
         try {
             setLoading(true);
-            await update({ displayName: proposedName, avatarUrl: "" }).unwrap();
+            await update({ displayName: proposedName, avatarUrl: "", avatarFileId: 0 }).unwrap();
             setProfileAvatarUrl("");
             setLoading(false);
             closeEditName();
@@ -128,8 +129,9 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                     relationId: user.id,
                 });
 
-                await update({ displayName: proposedName, avatarUrl: uploadedFile.path }).unwrap();
+                await update({ displayName: proposedName, avatarUrl: uploadedFile.path, avatarFileId: uploadedFile.id  }).unwrap();
                 setProfileAvatarUrl(uploadedFile.path);
+                setProfileAvatarFileId(uploadedFile.id)
             } else {
                 await update({ displayName: proposedName }).unwrap();
             }
@@ -186,7 +188,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                     <Box sx={{ position: "relative" }}>
                         <Avatar
                             alt={user.displayName}
-                            src={`${UPLOADS_BASE_URL}${profileAvatarUrl}`}
+                            src={`${UPLOADS_BASE_URL}/${profileAvatarFileId}`}
                             sx={{ width: 100, height: 100 }}
                         />
                         <IconButton

@@ -9,6 +9,7 @@ Table user {
   telephoneNumberHashed String [unique]
   displayName String
   avatarUrl String
+  avatarFileId Int [not null, default: 0]
   verificationCode String
   verified Boolean [not null, default: false]
   isBot Boolean [not null, default: false]
@@ -70,6 +71,7 @@ Table room {
   type String [not null]
   name String [not null]
   avatarUrl String [not null]
+  avatarFileId Int [not null, default: 0]
   createdAt DateTime [default: `now()`, not null]
   modifiedAt DateTime [default: `now()`, not null]
   deleted Boolean [not null, default: false]

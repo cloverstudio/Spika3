@@ -127,7 +127,7 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                             >
                                 <Avatar
                                     alt={user.displayName}
-                                    src={`${UPLOADS_BASE_URL}${user.avatarUrl}`}
+                                    src={`${UPLOADS_BASE_URL}/${user.avatarFileId}`}
                                     sx={{
                                         marginRight: "5px",
                                     }}
@@ -335,7 +335,7 @@ export function AddMemberRow({
             <Avatar
                 sx={{ width: 50, height: 50 }}
                 alt={user.displayName}
-                src={`${UPLOADS_BASE_URL}${user.avatarUrl}`}
+                src={`${UPLOADS_BASE_URL}/${user.avatarFileId}`}
             />
             <Box
                 ml={2}

@@ -81,7 +81,7 @@ export default function LeftSidebarHome({
                                 <Box mr={3}>
                                     <Avatar
                                         alt={userData?.user.displayName}
-                                        src={`${UPLOADS_BASE_URL}${userData?.user.avatarUrl}`}
+                                        src={`${UPLOADS_BASE_URL}/${userData?.user.avatarFileId}`}
                                     />
                                 </Box>
                                 <Box mr={3}>

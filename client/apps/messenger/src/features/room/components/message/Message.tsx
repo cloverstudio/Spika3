@@ -114,7 +114,7 @@ function Message({
                 {shouldDisplayAvatar ? (
                     <Avatar
                         sx={{ width: 26, height: 26, mr: 1, mb: "0.375rem" }}
-                        src={`${UPLOADS_BASE_URL}${sender?.avatarUrl}`}
+                        src={`${UPLOADS_BASE_URL}/${sender?.avatarFileId}`}
                     />
                 ) : (
                     side === "left" && isGroup && <Box />

@@ -42,7 +42,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         const id = userReq.user.id;
 
         try {
-            const { telephoneNumber, emailAddress, displayName, avatarUrl } = req.body;
+            const { telephoneNumber, emailAddress, displayName, avatarUrl, avatarFileId } = req.body;
 
             const userWithSameEmailAddress =
                 emailAddress &&
@@ -73,6 +73,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     emailAddress,
                     displayName,
                     avatarUrl,
+                    avatarFileId: parseInt(avatarFileId || "0"),
                     ...(telephoneNumber && {
                         telephoneNumberHashed: Utils.sha256(telephoneNumber),
                     }),
