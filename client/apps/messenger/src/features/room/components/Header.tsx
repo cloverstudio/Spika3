@@ -46,7 +46,7 @@ function HeaderContent({ room }: { room: RoomType }) {
                         onClick={() => dispatch(showLeftSidebar())}
                     />
                 )}
-                <Avatar alt={room?.name} src={`${UPLOADS_BASE_URL}${room.avatarUrl}`} />
+                <Avatar alt={room?.name} src={`${UPLOADS_BASE_URL}/${room.avatarFileId}`} />
 
                 <Typography
                     fontWeight="500"

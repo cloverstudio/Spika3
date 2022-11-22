@@ -142,7 +142,7 @@ function MessageDetailRow({ record }: MessageDetailsRowProps) {
                         {isLoading ? (
                             <Skeleton variant="circular" width={40} height={40} />
                         ) : (
-                            <Avatar src={`${UPLOADS_BASE_URL}${data?.user.avatarUrl}`} />
+                            <Avatar src={`${UPLOADS_BASE_URL}/${data?.user.avatarFileId}`} />
                         )}
                     </ListItemAvatar>
                     {isLoading ? (

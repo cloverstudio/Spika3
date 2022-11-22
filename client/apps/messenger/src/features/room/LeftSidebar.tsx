@@ -115,6 +115,7 @@ function LeftSidebarNewGroup({
                     name,
                     type: "group",
                     avatarUrl: uploadedFile?.path || "",
+                    avatarFileId: uploadedFile?.id || 0,
                 }).unwrap();
 
                 if (res && res.room?.id) {
@@ -165,7 +166,7 @@ function LeftSidebarNewGroup({
                                     >
                                         <Avatar
                                             alt={user.displayName}
-                                            src={`${UPLOADS_BASE_URL}${user.avatarUrl}`}
+                                            src={`${UPLOADS_BASE_URL}/${user.avatarFileId}`}
                                             sx={{ width: 48, height: 48 }}
                                         />
                                     </Badge>
@@ -234,6 +235,7 @@ function LeftSidebarNewGroup({
                                 name={user.displayName}
                                 selected={true}
                                 avatarUrl={user.avatarUrl}
+                                avatarFileId={user.avatarFileId}
                                 SelectedIcon={() => (
                                     <ClearIcon onClick={() => handleUserClick(user)} />
                                 )}

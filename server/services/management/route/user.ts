@@ -108,6 +108,7 @@ export default (params: InitRouterParams) => {
             const emailAddress: string = req.body.emailAddress;
             const telephoneNumber: string = req.body.telephoneNumber;
             const avatarUrl: string = req.body.avatarUrl;
+            const avatarFileId: number = parseInt(req.body.avatarFileId);
             const verified: boolean = req.body.verified;
 
             if (Utils.isEmpty(displayName))
@@ -143,6 +144,7 @@ export default (params: InitRouterParams) => {
                     emailAddress: emailAddress,
                     telephoneNumber: telephoneNumber,
                     avatarUrl: avatarUrl,
+                    avatarFileId: avatarFileId,
                     verified: verified,
                 },
             });
@@ -219,6 +221,7 @@ export default (params: InitRouterParams) => {
             const emailAddress: string = req.body.emailAddress;
             const telephoneNumber: string = req.body.telephoneNumber;
             const avatarUrl: string = req.body.avatarUrl;
+            const avatarFileId: string = req.body.avatarFileId;
             const verified: boolean = req.body.verified;
             const verificationCode: string = req.body.verificationCode;
 
@@ -264,6 +267,7 @@ export default (params: InitRouterParams) => {
             if (emailAddress) updateValues.emailAddress = emailAddress;
             if (telephoneNumber) updateValues.telephoneNumber = telephoneNumber;
             if (avatarUrl) updateValues.avatarUrl = avatarUrl;
+            if (avatarFileId) updateValues.avatarUrl = avatarFileId;
             if (verified != null) updateValues.verified = verified;
             if (verificationCode) updateValues.verificationCode = verificationCode;
 

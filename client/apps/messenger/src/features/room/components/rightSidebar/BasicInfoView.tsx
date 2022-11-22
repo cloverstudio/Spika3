@@ -36,6 +36,7 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
     const [editGroupPicture, setEditGroupPicture] = useState(false);
     const [editGroupName, setEditGroupName] = useState(false);
     const [profileAvatarUrl, setProfileAvatarUrl] = useState(roomData.avatarUrl);
+    const [profileAvatarFileId, setProfileAvatarFileId] = useState(roomData.avatarFileId);
     const [proposedName, setProposedName] = useState(roomData.name);
     const [name, setName] = useState(roomData.name);
     const imageRef = useRef(null);
@@ -48,6 +49,7 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
     useEffect(() => {
         if (roomData) {
             setProfileAvatarUrl(roomData.avatarUrl);
+            setProfileAvatarFileId(roomData.avatarFileId);
             setProposedName(roomData.name);
             setName(roomData.name);
         }
@@ -109,12 +111,13 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
             setLoading(true);
             const { room } = await update({
                 roomId: roomData.id,
-                data: { name: proposedName, avatarUrl: "" },
+                data: { name: proposedName, avatarUrl: "", avatarFileId: 0 },
             }).unwrap();
 
             dispatch(refreshOneRoom(room));
 
             setProfileAvatarUrl("");
+            setProfileAvatarFileId(0);
             setLoading(false);
             closeEditName();
         } catch (error) {
@@ -139,12 +142,13 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
 
                 const { room } = await update({
                     roomId: roomData.id,
-                    data: { name: proposedName, avatarUrl: uploadedFile.path },
+                    data: { name: proposedName, avatarUrl: uploadedFile.path, avatarFileId: uploadedFile.id },
                 }).unwrap();
 
                 updatedRoom = room;
 
                 setProfileAvatarUrl(uploadedFile.path);
+                setProfileAvatarFileId(uploadedFile.id);
             } else {
                 const { room } = await update({
                     roomId: roomData.id,
@@ -186,12 +190,12 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
                 }}
             >
                 {isItPrivateGroup ? (
-                    <Avatar alt={otherUser.user.displayName} src={otherUser.user.avatarUrl} />
+                    <Avatar alt={otherUser.user.displayName} src={`${UPLOADS_BASE_URL}/${otherUser.user.avatarFileId}`} />
                 ) : (
                     <Box sx={{ position: "relative" }}>
                         <Avatar
                             alt={profileAvatarUrl}
-                            src={`${UPLOADS_BASE_URL}${profileAvatarUrl}`}
+                            src={`${UPLOADS_BASE_URL}/${profileAvatarFileId}`}
                             sx={{ width: 100, height: 100 }}
                         />
                         <>

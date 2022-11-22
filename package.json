@@ -17,6 +17,7 @@
         "build:messenger": "vite build --mode messenger --emptyOutDir",
         "dev:template": "vite --mode template",
         "build:template": "vite build --mode template",
+        "build:script": "npx tsc -p tsconfig.script.json",
         "format": "prettier --write --ignore-unknown ."
     },
     "repository": {

@@ -50,6 +50,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
         try {
             const {
                 avatarUrl,
+                avatarFileId,
                 type: userDefinedType,
                 userIds,
                 adminUserIds,
@@ -131,6 +132,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     name,
                     type,
                     avatarUrl,
+                    avatarFileId: parseInt(avatarFileId || "0"),
                     users: {
                         create: users,
                     },
@@ -167,7 +169,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
 
         try {
             const id = parseInt((req.params.id as string) || "");
-            const { userIds, adminUserIds, name, avatarUrl } = req.body;
+            const { userIds, adminUserIds, name, avatarUrl, avatarFileId } = req.body;
 
             const room = await prisma.room.findFirst({
                 where: { id, deleted: false },
@@ -203,6 +205,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 modifiedAt: new Date(),
                 ...(name && { name }),
                 ...((avatarUrl || avatarUrl === "") && { avatarUrl }),
+                ...((avatarFileId || avatarFileId === "") && { avatarFileId: parseInt(avatarFileId) }),
                 ...(userCount > 2 && { type: "group" }),
             };
 
