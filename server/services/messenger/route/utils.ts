@@ -1,17 +1,11 @@
 import { Router, Request, Response } from "express";
-import { Device, User, UserSetting } from "@prisma/client";
 
 import { error as le } from "../../../components/logger";
 import validate from "../../../components/validateMiddleware";
 import * as yup from "yup";
 import { successResponse, errorResponse } from "../../../components/response";
-import auth from "../lib/auth";
 import { UserRequest } from "../lib/types";
-import sanitize from "../../../components/sanitize";
-import Utils from "../../../components/utils";
 import { InitRouterParams } from "../../types/serviceInterface";
-import * as Constants from "../../../components/consts";
-import prisma from "../../../components/prisma";
 import axios from "axios";
 
 const getCitiesSchema = yup.object().shape({
@@ -27,7 +21,6 @@ export default ({}: InitRouterParams): Router => {
     router.get("/get-cities", validate(getCitiesSchema), async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         const { country, inputText } = req.query;
-        console.log({ country, inputText });
 
         if (!country || !inputText) {
             return res.send(successResponse({ cities: [] }));
@@ -41,7 +34,7 @@ export default ({}: InitRouterParams): Router => {
             const response = await axios.get(
                 `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(
                     inputText as string
-                )},${country}&type=locality&key=AIzaSyAIE_s2qXDt4witmMTfZbgj42FpXvKBj0Y`
+                )},${country}&type=locality&key=${process.env.PLACES_API_KEY}`
             );
 
             const citiesUnique = (response.data?.results || []).map((r) => r.name);
