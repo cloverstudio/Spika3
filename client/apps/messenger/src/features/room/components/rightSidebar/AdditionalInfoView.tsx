@@ -35,12 +35,11 @@ export function DetailsAdditionalInfoView(props: Props) {
                 direction="column"
                 alignItems="center"
                 spacing={1}
+                px={1.5}
                 sx={{
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "center",
-                    padding: "10px",
-                    paddingTop: "15px",
                 }}
             >
                 {/* <Stack

@@ -79,6 +79,9 @@ theme = createTheme(theme, {
                     textTransform: "none",
                     fontWeight: theme.typography.fontWeightBold,
                 },
+                contained: {
+                    minWidth: "8rem",
+                },
             },
         },
         MuiFormLabel: {
@@ -149,6 +152,13 @@ theme = createTheme(theme, {
                         color: "rgba(255,0,0,0.7)",
                         fontSize: 40,
                     },
+                },
+            },
+        },
+        MuiPaper: {
+            styleOverrides: {
+                root: {
+                    borderRadius: "0.625rem",
                 },
             },
         },

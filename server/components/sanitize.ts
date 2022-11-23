@@ -12,7 +12,11 @@ import {
 } from ".prisma/client";
 
 type SanitizedUserType = Partial<
-    Omit<User, "createdAt" | "modifiedAt"> & { createdAt: number; modifiedAt: number }
+    Omit<User, "createdAt" | "modifiedAt" | "dob"> & {
+        createdAt: number;
+        modifiedAt: number;
+        dob: number;
+    }
 >;
 type SanitizedDeviceType = Partial<Omit<Device, "tokenExpiredAt"> & { tokenExpiredAt?: number }>;
 type SanitizedRoomUserType = {
@@ -239,6 +243,12 @@ function sanitizeUser({
     telephoneNumber,
     telephoneNumberHashed,
     displayName,
+    firstName,
+    lastName,
+    city,
+    dob,
+    country,
+    gender,
     avatarFileId,
     avatarUrl,
     verified,
@@ -258,6 +268,12 @@ function sanitizeUser({
         createdAt: +new Date(createdAt),
         modifiedAt: +new Date(modifiedAt),
         isBot,
+        firstName,
+        lastName,
+        city,
+        dob: +new Date(dob),
+        country,
+        gender,
     };
 }
 

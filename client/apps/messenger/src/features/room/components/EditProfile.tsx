@@ -6,7 +6,6 @@ import {
     Typography,
     Stack,
     Link,
-    TextField,
     Button,
     Dialog,
     DialogTitle,
@@ -17,15 +16,16 @@ import {
     CircularProgress,
 } from "@mui/material";
 
-import { ArrowBackIos, CameraAlt, Close } from "@mui/icons-material";
+import { ArrowBackIos, CameraAlt, ChevronRight, Close } from "@mui/icons-material";
 import uploadFile from "../../../utils/uploadFile";
 
-import { useUpdateMutation } from "../../auth/api/auth";
+import { useUpdateUserAvatarMutation } from "../../auth/api/auth";
 
 import { crop } from "../../../utils/crop";
 
 import * as Constants from "../../../../../../lib/constants";
 import { useNavigate } from "react-router-dom";
+import EditPersonalInfoDialog from "./EditPersonalInfoDialog";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -36,116 +36,58 @@ export interface EditProfileProps {
 
 export function EditProfileView({ onClose, user }: EditProfileProps) {
     const imageRef = useRef(null);
-    const [name, setName] = React.useState(user.displayName);
-    const [proposedName, setProposedName] = React.useState(user.displayName);
-    const [profileAvatarUrl, setProfileAvatarUrl] = React.useState(user.avatarUrl);
-    const [profileAvatarFileId, setProfileAvatarFileId] = React.useState(user.avatarFileId);
-    const [file, setFile] = useState<File>();
-    const [editProfileName, setEditProfileName] = useState(false);
-    const [editProfilePicture, setEditProfilePicture] = useState(false);
+    const [editingProfilePicture, setEditingProfilePicture] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [update] = useUpdateMutation();
+    const [editingPersonalInfo, setEditingPersonalInfo] = useState(false);
+    const [updateAvatar] = useUpdateUserAvatarMutation();
     const navigate = useNavigate();
 
-    const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setProposedName(event.target.value);
-    };
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        try {
+            setLoading(true);
 
-    const closeEditor = () => {
-        onClose();
-    };
+            const selectedFile = e.target.files && e.target.files[0];
+            const objectUrl = URL.createObjectURL(selectedFile);
 
-    const showOpenFileDialog = () => {
-        imageRef.current.click();
-    };
+            const croppedImage = await crop(
+                objectUrl,
+                1,
+                Constants.LSKEY_CROPSIZE,
+                Constants.LSKEY_CROPSIZE
+            );
 
-    const openEditName = () => {
-        setEditProfileName(true);
-    };
-    const closeEditName = () => {
-        setEditProfileName(false);
-    };
+            const file = new File([croppedImage], "image.png");
 
-    const openEditPicture = () => {
-        setEditProfilePicture(true);
-    };
-    const closeEditPicture = () => {
-        setEditProfilePicture(false);
-    };
+            const uploadedFile = await uploadFile({
+                file,
+                type: "avatar",
+                relationId: user.id,
+            });
 
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const uploadedFile = e.target.files && e.target.files[0];
-        const objectUrl = URL.createObjectURL(uploadedFile);
-        cropAndResizeSelectedFile(objectUrl);
-    };
-
-    const cropAndResizeSelectedFile = async (selectedFileUrl: string) => {
-        const croppedImage = await crop(
-            selectedFileUrl,
-            1,
-            Constants.LSKEY_CROPSIZE,
-            Constants.LSKEY_CROPSIZE
-        );
-        const file = new File([croppedImage], "image.png");
-        setFile(file);
-    };
-
-    useEffect(() => {
-        if (file) {
-            handleUpdateUser();
+            await updateAvatar({
+                avatarUrl: uploadedFile.path,
+                avatarFileId: uploadedFile.id,
+            }).unwrap();
+        } catch (error) {
+            console.error("Update failed ", error);
         }
-    }, [file]);
+        setLoading(false);
+    };
 
-    const selectedEditAction = (editAction: string) => {
+    const selectedEditAction = async (editAction: string) => {
         if (editAction === "upload") {
-            showOpenFileDialog();
+            imageRef.current.click();
         } else {
-            removeProfilePhoto();
-        }
-    };
-
-    const removeProfilePhoto = async () => {
-        try {
-            setLoading(true);
-            await update({ displayName: proposedName, avatarUrl: "", avatarFileId: 0 }).unwrap();
-            setProfileAvatarUrl("");
-            setLoading(false);
-            closeEditName();
-        } catch (error) {
-            setLoading(false);
-
-            console.error("Update failed ", error);
-        }
-    };
-
-    const handleUpdateUser = async () => {
-        try {
-            setLoading(true);
-
-            if (file) {
-                const uploadedFile = await uploadFile({
-                    file,
-                    type: "avatar",
-                    relationId: user.id,
-                });
-
-                await update({ displayName: proposedName, avatarUrl: uploadedFile.path, avatarFileId: uploadedFile.id  }).unwrap();
-                setProfileAvatarUrl(uploadedFile.path);
-                setProfileAvatarFileId(uploadedFile.id)
-            } else {
-                await update({ displayName: proposedName }).unwrap();
+            try {
+                setLoading(true);
+                await updateAvatar({ avatarUrl: "", avatarFileId: 0 }).unwrap();
+            } catch (error) {
+                console.error("Update failed ", error);
             }
-
-            setName(proposedName);
             setLoading(false);
-            closeEditName();
-        } catch (error) {
-            setLoading(false);
-
-            console.error("Update failed ", error);
         }
     };
-
+    console.log({ user: `${UPLOADS_BASE_URL}/${user.avatarFileId}` });
     return (
         <Box>
             <Box px={2.5} borderBottom="0.5px solid #C9C9CA">
@@ -161,11 +103,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                             width: "100%",
                         }}
                     >
-                        <IconButton
-                            onClick={(e) => {
-                                closeEditor();
-                            }}
-                        >
+                        <IconButton onClick={onClose}>
                             <ArrowBackIos />
                         </IconButton>
                         <Typography variant="h6">Settings</Typography>
@@ -188,16 +126,14 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                     <Box sx={{ position: "relative" }}>
                         <Avatar
                             alt={user.displayName}
-                            src={`${UPLOADS_BASE_URL}/${profileAvatarFileId}`}
+                            src={`${UPLOADS_BASE_URL}/${user.avatarFileId}`}
                             sx={{ width: 100, height: 100 }}
                         />
                         <IconButton
                             color="primary"
                             sx={{ position: "absolute", bottom: "0", right: "0" }}
                             size="large"
-                            onClick={(e) => {
-                                openEditPicture();
-                            }}
+                            onClick={() => setEditingProfilePicture(true)}
                         >
                             <CameraAlt />
                         </IconButton>
@@ -210,65 +146,30 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                         />
                     </Box>
                 )}
-
-                {editProfileName ? (
-                    <Box
-                        sx={{
-                            width: "90%",
-                            margin: "2em",
-                        }}
-                    >
-                        <Stack
-                            direction="row"
-                            alignItems="center"
-                            spacing={1}
-                            sx={{
-                                display: "flex",
-                                flexDirection: "row",
-                                justifyContent: "flex-start",
-                                width: "100%",
-                            }}
-                        >
-                            <TextField
-                                id="outlined-basic"
-                                label="User name"
-                                variant="outlined"
-                                sx={{ width: "70%" }}
-                                value={proposedName}
-                                onChange={handleNameChange}
-                            />
-                            {loading ? (
-                                <CircularProgress />
-                            ) : (
-                                <Button
-                                    variant="contained"
-                                    size="small"
-                                    onClick={() => {
-                                        if (name.length > 0) {
-                                            handleUpdateUser();
-                                        }
-                                    }}
-                                >
-                                    Save
-                                </Button>
-                            )}
-                        </Stack>
-                    </Box>
-                ) : (
-                    <Link
-                        component="button"
-                        variant="h6"
-                        underline="none"
-                        onClick={() => {
-                            openEditName();
-                        }}
-                    >
-                        {name}
-                    </Link>
-                )}
+                <Link variant="h6" underline="none">
+                    {user.displayName}
+                </Link>
             </Stack>
 
             <Box p={2} mt={2}>
+                <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                    onClick={() => setEditingPersonalInfo(true)}
+                    sx={{
+                        height: "40px",
+                        display: "flex",
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        width: "100%",
+                        cursor: "pointer",
+                    }}
+                >
+                    <Box component="span">Personal information</Box>
+                    <ChevronRight />
+                </Stack>
+
                 {localStorage.getItem(Constants.LSKEY_DISABLEPUSHALER) && (
                     <>
                         <Link
@@ -302,13 +203,17 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                     Logout
                 </Link>
             </Box>
-            {editProfilePicture ? (
+            {editingProfilePicture && (
                 <EditPhotoDialog
-                    open={editProfilePicture}
-                    onClose={closeEditPicture}
+                    open={editingProfilePicture}
+                    onClose={() => setEditingProfilePicture(false)}
                     onConfirm={selectedEditAction}
                 />
-            ) : null}
+            )}
+
+            {editingPersonalInfo && (
+                <EditPersonalInfoDialog onClose={() => setEditingPersonalInfo(false)} user={user} />
+            )}
         </Box>
     );
 }

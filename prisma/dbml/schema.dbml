@@ -4,6 +4,12 @@
 
 Table user {
   id Int [pk, increment]
+  firstName String
+  lastName String
+  gender String
+  country String
+  city String
+  dob DateTime
   emailAddress String [unique]
   telephoneNumber String [unique]
   telephoneNumberHashed String [unique]

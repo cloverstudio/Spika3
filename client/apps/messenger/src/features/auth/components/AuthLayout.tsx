@@ -34,7 +34,7 @@ export default function AuthLayout({
     return (
         <Base>
             <Box
-                minHeight={{ xs: "85vh", md: "100vh" }}
+                height="100vh"
                 display="flex"
                 flexDirection="column"
                 justifyContent="center"
@@ -54,7 +54,13 @@ export default function AuthLayout({
                         <img src={logo} />
                     </Box>
                 ) : (
-                    <Box py={2} textAlign={{ xs: "center", md: "left" }} maxWidth="350px">
+                    <Box
+                        py={2}
+                        pr={2}
+                        textAlign={{ xs: "center", md: "left" }}
+                        maxWidth="350px"
+                        sx={{ overflowX: "auto" }}
+                    >
                         <Box
                             mb={{ xs: 3, md: 4 }}
                             display="flex"

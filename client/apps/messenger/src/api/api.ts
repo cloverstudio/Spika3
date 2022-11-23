@@ -78,6 +78,7 @@ export default createApi({
         "MessageRecords",
         "Webhooks",
         "ApiKeys",
+        "Cities",
     ],
 
     endpoints: () => ({}),

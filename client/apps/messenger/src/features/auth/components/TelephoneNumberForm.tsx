@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { Button, FormLabel, Box, Typography } from "@mui/material";
 import CountryPicker from "./CountryPicker";
+import countries from "../lib/countries";
 
 type TelephoneNumberFormProps = {
-    onSubmit: (telephoneNumber: string) => void;
+    onSubmit: (telephoneNumber: string, country?: string) => void;
 };
 
 export default function TelephoneNumberForm({
@@ -18,7 +19,10 @@ export default function TelephoneNumberForm({
             ? phoneNumber.substring(1)
             : phoneNumber;
 
-        onSubmit(`+${countryCode}${formattedPhoneNumber}`);
+        onSubmit(
+            `+${countryCode}${formattedPhoneNumber}`,
+            countries.find((c) => c.phone === countryCode)?.code
+        );
     };
 
     return (

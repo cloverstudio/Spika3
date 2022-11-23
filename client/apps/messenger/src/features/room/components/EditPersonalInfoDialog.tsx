@@ -1,73 +1,49 @@
 import React, { useState } from "react";
 import {
-    Button,
-    TextField,
-    FormLabel,
     Box,
-    Alert,
-    AlertTitle,
-    Stack,
+    Button,
+    Dialog,
+    DialogTitle,
     RadioGroup,
-    Radio,
     FormControlLabel,
+    Radio,
+    Stack,
+    FormLabel,
+    TextField,
+    IconButton,
 } from "@mui/material";
 
-import uploadImage from "../../../assets/upload-image.svg";
+import { useUpdateMutation } from "../../auth/api/auth";
+
+import UserType, { UpdateUserFormType } from "../../../types/User";
 import useStrings from "../../../hooks/useStrings";
-import { UpdateUserFormType } from "../../../types/User";
 import CountryAutocompletePicker from "../../../components/CountryAutocompletePicker";
 import CityAutocompletePicker from "../../../components/CityAutocompletePicker";
+import { Close } from "@mui/icons-material";
 
-type UpdateUserFormProps = {
-    onSubmit: ({
-        file,
-        firstName,
-        lastName,
-        dob,
-        city,
-        country,
-        gender,
-    }: {
-        file: File;
-        firstName: string;
-        lastName: string;
-        country: string;
-        gender: string;
-        city: string;
-        email: string;
-        dob: number;
-    }) => void;
-    error?: any;
-    initialCountry?: string;
-};
+export interface EditPersonalInfoDialogProps {
+    onClose: () => void;
+    user: UserType;
+}
 
-export default function UpdateUserForm({
-    onSubmit,
-    error,
-    initialCountry,
-}: UpdateUserFormProps): React.ReactElement {
+export default function EditPersonalInfoDialog({ onClose, user }: EditPersonalInfoDialogProps) {
     const strings = useStrings("en");
+    const [updateUser] = useUpdateMutation();
+
     const [form, setForm] = useState<UpdateUserFormType>({
-        firstName: "",
-        lastName: "",
-        country: initialCountry || "",
-        city: "",
-        dob: "",
-        gender: "male",
-        email: "",
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        country: user.country || "",
+        city: user.city || "",
+        dob: new Date(user.dob).toISOString().split("T")[0] || "",
+        gender: user.gender || "male",
+        email: user.emailAddress || "",
     });
-    const [file, setFile] = useState<File>();
-    const uploadFileRef = React.useRef(null);
-
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const uploadedFile = e.target.files && e.target.files[0];
-
-        setFile(uploadedFile);
-    };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        onSubmit({ ...form, file, dob: +new Date(form.dob) });
+        await updateUser({ ...form, dob: +new Date(form.dob) }).unwrap();
+        onClose();
     };
 
     const handleChange = (key, value) => {
@@ -81,35 +57,35 @@ export default function UpdateUserForm({
     };
 
     return (
-        <>
-            <Box minWidth="310px" textAlign="center" mb={error ? 2 : 4}>
-                <img
-                    width="100px"
-                    height="100px"
-                    style={{ objectFit: "cover", borderRadius: "50%" }}
-                    src={file ? URL.createObjectURL(file) : uploadImage}
-                    onClick={() => uploadFileRef.current?.click()}
-                />
-                <input
-                    onChange={handleFileUpload}
-                    type="file"
-                    style={{ display: "none" }}
-                    ref={uploadFileRef}
-                    accept="image/*"
-                />
-            </Box>
-            {error && (
-                <Alert sx={{ mb: 2 }} severity="error">
-                    <AlertTitle sx={{ mb: 0 }}>{error.message}</AlertTitle>
-                </Alert>
-            )}
-            <Box
-                textAlign="left"
-                mb={{ xs: 3, md: 6 }}
-                component="form"
-                onSubmit={(e) => handleSubmit(e)}
+        <Dialog onClose={onClose} open={true} maxWidth="lg">
+            <DialogTitle sx={{ textAlign: "center" }}>{strings.personalInformation}</DialogTitle>
+            <IconButton
+                disableRipple
+                size="large"
+                sx={{
+                    ml: 1,
+                    "&.MuiButtonBase-root:hover": {
+                        bgcolor: "transparent",
+                    },
+                    margin: "0",
+                    padding: "5px",
+                    position: "absolute",
+                    right: "10px",
+                    top: "12px",
+                }}
+                onClick={onClose}
             >
-                <Stack spacing={2} mb={4}>
+                <Close />
+            </IconButton>
+            <Box textAlign="left" component="form" p={4} onSubmit={(e) => handleSubmit(e)}>
+                <Box
+                    sx={{
+                        display: "grid",
+                        gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+                        gap: 2,
+                    }}
+                    mb={4}
+                >
                     <Box>
                         <FormLabel sx={{ mb: 1, display: "block" }}>{strings.firstName}</FormLabel>
                         <TextField
@@ -208,11 +184,11 @@ export default function UpdateUserForm({
                             onChange={(v) => handleChange("city", v)}
                         />
                     )}
-                </Stack>
-                <Button type="submit" fullWidth variant="contained">
-                    Next
+                </Box>
+                <Button type="submit" variant="contained">
+                    {strings.save}
                 </Button>
             </Box>
-        </>
+        </Dialog>
     );
 }

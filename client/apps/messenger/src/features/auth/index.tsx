@@ -19,12 +19,14 @@ export default function Auth(): React.ReactElement {
     const deviceId = getDeviceId();
     const [step, setStep] = useState(0);
     const [loading, setLoading] = useState(false);
+    const [infoMsg, setInfoMsg] = useState("");
+    const [errorMsg, setErrorMsg] = useState("");
+    const [country, setCountry] = useState("");
+    const [sentCount, setSentCount] = useState(0);
+
     const [signUp, signUpMutation] = useSignUpMutation();
     const [verify, verifyMutation] = useVerifyMutation();
     const [update, updateMutation] = useUpdateMutation();
-    const [infoMsg, setInfoMsg] = useState<string>("");
-    const [errorMsg, setErrorMsg] = useState<string>("");
-    const [sentCount, setSentCount] = useState<number>(0);
 
     const timer = useCountdownTimer(60);
 
@@ -33,7 +35,7 @@ export default function Auth(): React.ReactElement {
         verifyMutation.error && setErrorMsg((verifyMutation.error as any).message);
     }, [verifyMutation]);
 
-    const handleSignUp = async (telephoneNumber: string) => {
+    const handleSignUp = async (telephoneNumber: string, countryFromPhoneNumber?: string) => {
         try {
             setSentCount(sentCount + 1);
 
@@ -50,6 +52,10 @@ export default function Auth(): React.ReactElement {
             }
 
             if (sentCount > 0) setInfoMsg("Verification code resent");
+
+            if (countryFromPhoneNumber) {
+                setCountry(countryFromPhoneNumber);
+            }
 
             setStep(1);
         } catch (error) {
@@ -77,7 +83,25 @@ export default function Auth(): React.ReactElement {
         }
     };
 
-    const handleUpdateUser = async ({ username, file }: { username: string; file: File }) => {
+    const handleUpdateUser = async ({
+        file,
+        firstName,
+        lastName,
+        dob,
+        city,
+        country,
+        gender,
+        email,
+    }: {
+        file: File;
+        firstName: string;
+        lastName: string;
+        country: string;
+        gender: string;
+        city: string;
+        email: string;
+        dob: number;
+    }) => {
         try {
             setLoading(true);
             const uploadedFile =
@@ -89,8 +113,15 @@ export default function Auth(): React.ReactElement {
                 }));
 
             await update({
-                displayName: username,
                 avatarUrl: uploadedFile?.path || "",
+                firstName,
+                lastName,
+                dob,
+                city,
+                country,
+                gender,
+                email,
+                telephoneNumber: signUpMutation.data?.user.telephoneNumber,
             }).unwrap();
             setLoading(false);
 
@@ -126,6 +157,7 @@ export default function Auth(): React.ReactElement {
 
                 {step === 2 && (
                     <UpdateUserForm
+                        initialCountry={country}
                         onSubmit={handleUpdateUser}
                         error={updateMutation.error as any}
                     />

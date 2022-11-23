@@ -17,9 +17,21 @@ const updateSchema = yup.object().shape({
     body: yup.object().shape({
         telephoneNumber: yup.string().strict(),
         telephoneNumberHashed: yup.string().strict(),
-        emailAddress: yup.string().strict(),
-        displayName: yup.string().strict(),
         avatarUrl: yup.string().strict(),
+        firstName: yup.string().strict().required(),
+        lastName: yup.string().strict().required(),
+        country: yup.string().strict().required(),
+        city: yup.string().strict().required(),
+        gender: yup.string().strict().required(),
+        email: yup.string().strict().required(),
+        dob: yup.number().strict().required(),
+    }),
+});
+
+const updateAvatarSchema = yup.object().shape({
+    body: yup.object().shape({
+        avatarUrl: yup.string().strict(),
+        avatarFileId: yup.number().strict(),
     }),
 });
 
@@ -42,7 +54,20 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         const id = userReq.user.id;
 
         try {
-            const { telephoneNumber, emailAddress, displayName, avatarUrl, avatarFileId } = req.body;
+            const {
+                telephoneNumber,
+                avatarUrl,
+                avatarFileId,
+                firstName,
+                lastName,
+                country,
+                city,
+                gender,
+                dob,
+                email: emailAddress,
+            } = req.body;
+
+            const displayName = `${firstName} ${lastName}`;
 
             const userWithSameEmailAddress =
                 emailAddress &&
@@ -73,11 +98,17 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     emailAddress,
                     displayName,
                     avatarUrl,
+                    firstName,
+                    lastName,
+                    country,
+                    city,
+                    gender,
                     avatarFileId: parseInt(avatarFileId || "0"),
+                    dob: new Date(dob),
+                    modifiedAt: new Date(),
                     ...(telephoneNumber && {
                         telephoneNumberHashed: Utils.sha256(telephoneNumber),
                     }),
-                    modifiedAt: new Date(),
                 },
             });
 
@@ -108,6 +139,54 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
         }
     });
+
+    router.put(
+        "/avatar-url",
+        auth,
+        validate(updateAvatarSchema),
+        async (req: Request, res: Response) => {
+            const userReq: UserRequest = req as UserRequest;
+            const id = userReq.user.id;
+
+            try {
+                const { avatarUrl, avatarFileId } = req.body;
+
+                const user = await prisma.user.update({
+                    where: { id },
+                    data: {
+                        avatarUrl,
+                        avatarFileId,
+                    },
+                });
+
+                res.send(successResponse({ user: sanitize(user).user() }));
+
+                const contacts = +process.env["TEAM_MODE"]
+                    ? await prisma.user.findMany({ include: { device: true } })
+                    : await getUserContacts(userReq.user.id);
+
+                for (const contact of contacts) {
+                    for (const device of contact.device) {
+                        rabbitMQChannel.sendToQueue(
+                            Constants.QUEUE_SSE,
+                            Buffer.from(
+                                JSON.stringify({
+                                    channelId: device.id,
+                                    data: {
+                                        type: Constants.PUSH_TYPE_USER_UPDATE,
+                                        user: sanitize(user).user(),
+                                    },
+                                })
+                            )
+                        );
+                    }
+                }
+            } catch (e: any) {
+                le(e);
+                res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+            }
+        }
+    );
 
     router.get("/settings", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
