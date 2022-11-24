@@ -20,8 +20,7 @@ type MessageBodyProps = {
     onImageMessageClick?: () => void;
 };
 
-declare const API_BASE_URL: string;
-const DOWNLOAD_URL = `${API_BASE_URL}/upload/files`;
+const BASE_URL = `${API_BASE_URL}/upload/files`;
 
 export default function MessageBody({
     type,
