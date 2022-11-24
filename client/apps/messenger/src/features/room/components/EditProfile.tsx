@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import {
     Avatar,
     Box,
@@ -15,8 +15,9 @@ import {
     FormControlLabel,
     Radio,
     CircularProgress,
+    Switch
 } from "@mui/material";
-
+import { useTheme } from "@mui/material/styles";
 import { ArrowBackIos, CameraAlt, Close } from "@mui/icons-material";
 import uploadFile from "../../../utils/uploadFile";
 
@@ -26,6 +27,9 @@ import { crop } from "../../../utils/crop";
 
 import * as Constants from "../../../../../../lib/constants";
 import { useNavigate } from "react-router-dom";
+
+import ThemeSwitch from "./leftSidebar/ThemeSwitch";
+import { ThemeContext, ThemeType } from "../../../theme";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -46,6 +50,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
     const [loading, setLoading] = useState(false);
     const [update] = useUpdateMutation();
     const navigate = useNavigate();
+    const { theme, setTheme } = useContext(ThemeContext);
 
     const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setProposedName(event.target.value);
@@ -287,6 +292,15 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                         <br />
                     </>
                 )}
+                <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
+                    Color schema
+                    <ThemeSwitch checked={theme === "dark"} onChange={(e)=>{
+                        const mode: ThemeType  = e.target.checked ? "dark" : "light";
+                        setTheme(mode);
+                        window.localStorage.setItem(Constants.LSKEY_THEME, mode);
+                    }} />
+                </Stack>
+
                 <Link
                     component="button"
                     align="left"

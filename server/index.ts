@@ -110,6 +110,7 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
         });
 
         app.use("/api/upload", uploadService.getRoutes());
+        app.use("/api/uploads", uploadService.getRoutes());
     }
 
     if (+process.env["USE_PUSH"]) {

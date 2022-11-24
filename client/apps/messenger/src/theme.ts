@@ -1,4 +1,5 @@
-import { createTheme } from "@mui/material/styles";
+import React, { useEffect, useState } from "react";
+import { createTheme, PaletteOptions, TypographyVariantsOptions } from "@mui/material/styles";
 
 declare module "@mui/material/styles" {
     interface TypeText {
@@ -26,49 +27,34 @@ declare module "@mui/material/styles/createPalette" {
     }
 }
 
-let theme = createTheme({
-    typography: {
-        fontFamily: `"Roboto" , sans-serif`,
-        fontSize: 14,
-        fontWeightLight: 300,
-        fontWeightRegular: 400,
-        fontWeightMedium: 500,
-        fontWeightBold: 600,
-        body1: {
-            color: "#141414",
-        },
-    },
-    palette: {
-        primary: {
-            main: "#4696F0",
-        },
-        mode: "light",
-        action: {
-            disabled: "#fff",
-            disabledBackground: "#a3cbf8",
-            hover: "#E6F4FF",
-        },
-        text: {
-            primary: "#141414",
-            secondary: "#4A4A4A",
-            tertiary: "#9AA0A6",
-            navigation: "#9BB4CF",
-        },
-        common: {
-            darkBlue: "#131940",
-            chatBackground: "#F2F2F2",
-            myMessageBackground: "#C8EBFE",
-            videoBackground: "#222",
-            videoLabelBackground: "#fff9",
-            confCallControls: "#fff",
-            confCallControlsHoverBackground: "#fff1",
-            confCallBackground: "#111111f4",
-            confCallFirstLetterColor: "#fff",
-        },
-    },
-});
 
-theme = createTheme(theme, {
+const basePalette: PaletteOptions = {
+    common: {
+        darkBlue: "#131940",
+        chatBackground: "#F2F2F2",
+        myMessageBackground: "#C8EBFE",
+        videoBackground: "#222",
+        videoLabelBackground: "#fff9",
+        confCallControls: "#fff",
+        confCallControlsHoverBackground: "#fff1",
+        confCallBackground: "#111111f4",
+        confCallFirstLetterColor: "#fff",
+    },
+    text: {
+        tertiary: "#9AA0A6",
+    },
+}
+
+const typography : TypographyVariantsOptions = {
+    fontFamily: `"Roboto" , sans-serif`,
+    fontSize: 14,
+    fontWeightLight: 300,
+    fontWeightRegular: 400,
+    fontWeightMedium: 500,
+    fontWeightBold: 600,
+};
+
+const components : any =  {
     components: {
         MuiButton: {
             styleOverrides: {
@@ -77,15 +63,15 @@ theme = createTheme(theme, {
                     borderRadius: "0.625rem",
                     boxShadow: "none",
                     textTransform: "none",
-                    fontWeight: theme.typography.fontWeightBold,
+                    fontWeight: typography.fontWeightBold,
                 },
             },
         },
         MuiFormLabel: {
             styleOverrides: {
                 root: {
-                    color: theme.palette.text.tertiary,
-                    fontWeight: theme.typography.fontWeightMedium,
+                    color: basePalette.text.tertiary,
+                    fontWeight: typography.fontWeightMedium,
                 },
             },
         },
@@ -94,25 +80,23 @@ theme = createTheme(theme, {
                 root: {
                     "& .MuiOutlinedInput-notchedOutline": {
                         borderRadius: "0.625rem",
-                        borderColor: theme.palette.text.tertiary,
+                        borderColor: basePalette.text.tertiary,
                     },
                     input: {
                         "&::placeholder": {
-                            color: theme.palette.text.tertiary,
-                            fontWeight: theme.typography.fontWeightMedium,
+                            color: basePalette.text.tertiary,
+                            fontWeight: typography.fontWeightMedium,
                             opacity: "1",
                         },
-                        color: theme.typography.body1.color,
-                        fontWeight: theme.typography.fontWeightMedium,
+                        fontWeight: typography.fontWeightMedium,
                     },
                     textarea: {
                         "&::placeholder": {
-                            color: theme.palette.text.tertiary,
-                            fontWeight: theme.typography.fontWeightMedium,
+                            color: basePalette.text.tertiary,
+                            fontWeight: typography.fontWeightMedium,
                             opacity: "1",
                         },
-                        color: theme.typography.body1.color,
-                        fontWeight: theme.typography.fontWeightMedium,
+                        fontWeight: typography.fontWeightMedium,
                     },
                 },
             },
@@ -123,12 +107,11 @@ theme = createTheme(theme, {
                     borderRadius: "0.625rem",
                     input: {
                         "&::placeholder": {
-                            color: theme.palette.text.tertiary,
-                            fontWeight: theme.typography.fontWeightMedium,
+                            color: basePalette.text.tertiary,
+                            fontWeight: typography.fontWeightMedium,
                             opacity: "1",
                         },
-                        color: theme.typography.body1.color,
-                        fontWeight: theme.typography.fontWeightMedium,
+                        fontWeight: typography.fontWeightMedium,
                     },
                 },
             },
@@ -136,7 +119,7 @@ theme = createTheme(theme, {
         MuiAlertTitle: {
             styleOverrides: {
                 root: {
-                    fontWeight: theme.typography.fontWeightBold,
+                    fontWeight: typography.fontWeightBold,
                     color: "#ef5350",
                 },
             },
@@ -153,6 +136,76 @@ theme = createTheme(theme, {
             },
         },
     },
+};
+
+export const lightTheme = createTheme({
+    components: components,
+    typography: typography,
+    palette: {
+        ...basePalette,
+        mode: "light",
+        primary: {
+            main: "#4696F0",
+            light: "#f2f2f2",
+            dark: "#f2f2f2",
+            contrastText: "#f2f2f2",
+        },
+        background: {
+            default: "#fff",
+            paper: "#f0f0f0"
+        },
+        action: {
+            disabled: "#fff",
+            disabledBackground: "#a3cbf8",
+            hover: "#E6F4FF",
+        },
+        text: {
+            primary: "#141414",
+            secondary: "#4A4A4A",
+            tertiary: "#9AA0A6",
+            navigation: "#9BB4CF",
+        },
+        common: {
+            myMessageBackground: "#C8EBFE",
+        },
+    },
 });
 
-export default theme;
+export const darkTheme = createTheme({
+    components: components,
+    typography: typography,
+    palette: {
+        ...basePalette,
+        mode: "dark",
+        primary: {
+            main: "#4696F0",
+        },
+        background: {
+            default: "#202020",
+            paper: "#404040"
+        },
+        action: {
+            disabled: "#222",
+            disabledBackground: "#323E4C",
+            hover: "#414549",
+        },
+        text: {
+            primary: "#fff",
+            secondary: "rgba(255,255,255,0.7)",
+            tertiary: "#9AA0A6",
+            navigation: "#fff",
+        },
+        common: {
+            myMessageBackground: "#00476A",
+        },
+    },
+});
+
+
+export type ThemeType = "light" | "dark";
+export type ThemeContextType = { theme: ThemeType; setTheme: (theme: ThemeType) => void };
+
+export const ThemeContext = React.createContext<ThemeContextType>(
+    {} as ThemeContextType
+);
+

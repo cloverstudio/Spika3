@@ -10,6 +10,7 @@ import UserType from "../../../../types/User";
 import { useGetRoomQuery } from "../../api/room";
 import AttachmentManager from "../../lib/AttachmentManager";
 
+
 type MessageBodyProps = {
     id: number;
     type: string;
@@ -180,7 +181,7 @@ function FileMessage({ body, isUsersMessage }: { body: any; isUsersMessage: bool
                 maxWidth="35rem"
                 p="1.25rem"
                 gap="1.25rem"
-                bgcolor={isUsersMessage ? "common.myMessageBackground" : "common.chatBackground"}
+                bgcolor={isUsersMessage ? "common.myMessageBackground" : "background.paper"}
             >
                 <Icon fontSize="large" />
                 <Box>
@@ -291,7 +292,7 @@ function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boo
                         sx={{
                             backgroundColor: !isUsersMessage
                                 ? "common.myMessageBackground"
-                                : "common.chatBackground",
+                                : "background.paper",
                             borderRadius: "0.3rem",
                             padding: "0.4rem",
                             cursor: "pointer",
@@ -318,7 +319,7 @@ function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boo
                         sx={{
                             backgroundColor: !isUsersMessage
                                 ? "common.myMessageBackground"
-                                : "common.chatBackground",
+                                : "background.paper",
                             borderRadius: "0.3rem",
                             padding: "0.4rem",
                             cursor: "pointer",
@@ -341,7 +342,7 @@ function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boo
                         sx={{
                             backgroundColor: !isUsersMessage
                                 ? "common.myMessageBackground"
-                                : "common.chatBackground",
+                                : "background.paper",
                             borderRadius: "0.3rem",
                             padding: "0.4rem",
                             cursor: "pointer",
@@ -364,7 +365,7 @@ function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boo
                         sx={{
                             backgroundColor: !isUsersMessage
                                 ? "common.myMessageBackground"
-                                : "common.chatBackground",
+                                : "background.paper",
                             borderRadius: "0.3rem",
                             padding: "0.4rem",
                             cursor: "pointer",
@@ -395,7 +396,7 @@ function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boo
                 maxWidth: "50rem",
                 backgroundColor: isUsersMessage
                     ? "common.myMessageBackground"
-                    : "common.chatBackground",
+                    : "background.paper",
                 borderRadius: "0.3rem",
                 padding: "0.4rem",
                 cursor: "pointer",
@@ -456,7 +457,7 @@ function TextMessage({
                 maxWidth: "100%",
                 backgroundColor: isUsersMessage
                     ? "common.myMessageBackground"
-                    : "common.chatBackground",
+                    : "background.paper",
                 borderRadius: "0.3rem",
                 padding: "0.4rem",
                 cursor: "pointer",
