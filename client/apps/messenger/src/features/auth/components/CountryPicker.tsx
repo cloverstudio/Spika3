@@ -174,7 +174,7 @@ const CountryPicker = (props: any) => {
                             fullWidth
                             autoFocus
                             sx={{
-                                backgroundColor: "common.chatBackground",
+                                backgroundColor: "background.paper",
                                 borderRadius: "1em",
                                 marginTop: "1.0em",
                                 marginBottom: "2em",

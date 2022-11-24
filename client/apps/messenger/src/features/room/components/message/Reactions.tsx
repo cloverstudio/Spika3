@@ -60,7 +60,7 @@ export default function MessageReactions({ id }: MessageReactionsProps): React.R
         >
             <Stack
                 direction="row"
-                bgcolor={isUsersMessage ? "common.myMessageBackground" : "common.chatBackground"}
+                bgcolor={isUsersMessage ? "common.myMessageBackground" : "background.paper"}
                 position="relative"
                 top="23px"
                 sx={{

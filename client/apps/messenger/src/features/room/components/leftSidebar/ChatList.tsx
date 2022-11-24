@@ -166,7 +166,9 @@ function RoomRow({
                     overflow="hidden"
                 >
                     <Box flexGrow={1} overflow="hidden">
-                        <Typography mb={1} fontWeight="600">
+                        <Typography mb={1} 
+                            fontWeight="600"
+                            color="text.primary">
                             {name}
                             {roomIsMuted && (
                                 <Box component="span" display="inline-flex" ml={1}>

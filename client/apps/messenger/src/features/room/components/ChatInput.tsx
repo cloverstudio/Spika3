@@ -215,26 +215,37 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
     });
 
     return (
-        <textarea
-            autoFocus={true}
-            ref={inputRef}
-            value={message}
-            onChange={({ target }) => {
-                handleSetMessageText(target.value);
-            }}
-            onKeyDown={(e) => {
-                if (e.key === "Enter" && e.shiftKey === true) {
-                    handleSetMessageText(e.currentTarget.value);
-                } else if (e.key === "Enter") {
-                    e.preventDefault();
-                    onSend();
-                } else {
-                }
-            }}
-            placeholder="Type here..."
-            className={style.input}
-            rows={1}
-        />
+        <Box
+            sx={{
+                color:"text.primary",
+                backgroundColor:"background.paper"
+            }}>
+            <textarea
+                autoFocus={true}
+                ref={inputRef}
+                value={message}
+                onChange={({ target }) => {
+                    handleSetMessageText(target.value);
+                }}
+                onKeyDown={(e) => {
+                    if (e.key === "Enter" && e.shiftKey === true) {
+                        handleSetMessageText(e.currentTarget.value);
+                    } else if (e.key === "Enter") {
+                        e.preventDefault();
+                        onSend();
+                    } else {
+                    }
+                }}
+                placeholder="Type here..."
+                className={style.input}
+                rows={1}
+                style={{
+                    color:"inherit",
+                    backgroundColor:"transparent"
+                }}
+            />
+        </Box>
+
     );
 }
 
@@ -252,7 +263,7 @@ function ReplyMessage({ message }: { message: MessageType }): React.ReactElement
             width="100%"
             position="relative"
             sx={{
-                backgroundColor: "common.chatBackground",
+                backgroundColor: "background.paper",
                 borderRadius: "0.3rem",
                 padding: "0.4rem",
                 color: "common.darkBlue",

@@ -95,9 +95,9 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                 component={"ul"}
                 sx={{
                     width: "100%",
-                    maxWidth: 360,
-                    bgcolor: "background.paper",
+                    maxWidth: 720,
                     paddingLeft: "0",
+                    borderBottomColor: "background.paper"
                 }}
             >
                 {members.map((roomUser, i) => {

@@ -39,7 +39,10 @@ const basePalette: PaletteOptions = {
         confCallControlsHoverBackground: "#fff1",
         confCallBackground: "#111111f4",
         confCallFirstLetterColor: "#fff",
-    }
+    },
+    text: {
+        tertiary: "#9AA0A6",
+    },
 }
 
 const typography : TypographyVariantsOptions = {
@@ -49,9 +52,6 @@ const typography : TypographyVariantsOptions = {
     fontWeightRegular: 400,
     fontWeightMedium: 500,
     fontWeightBold: 600,
-    body1: {
-        color: "#141414",
-    },
 };
 
 const components : any =  {
@@ -88,7 +88,6 @@ const components : any =  {
                             fontWeight: typography.fontWeightMedium,
                             opacity: "1",
                         },
-                        color: typography.body1.color,
                         fontWeight: typography.fontWeightMedium,
                     },
                     textarea: {
@@ -97,7 +96,6 @@ const components : any =  {
                             fontWeight: typography.fontWeightMedium,
                             opacity: "1",
                         },
-                        color: typography.body1.color,
                         fontWeight: typography.fontWeightMedium,
                     },
                 },
@@ -113,7 +111,6 @@ const components : any =  {
                             fontWeight: typography.fontWeightMedium,
                             opacity: "1",
                         },
-                        color: typography.body1.color,
                         fontWeight: typography.fontWeightMedium,
                     },
                 },
@@ -149,9 +146,13 @@ export const lightTheme = createTheme({
         mode: "light",
         primary: {
             main: "#4696F0",
+            light: "#f2f2f2",
+            dark: "#f2f2f2",
+            contrastText: "#f2f2f2",
         },
         background: {
-            default: "#fafafa"
+            default: "#fff",
+            paper: "#f0f0f0"
         },
         action: {
             disabled: "#fff",
@@ -163,6 +164,9 @@ export const lightTheme = createTheme({
             secondary: "#4A4A4A",
             tertiary: "#9AA0A6",
             navigation: "#9BB4CF",
+        },
+        common: {
+            myMessageBackground: "#C8EBFE",
         },
     },
 });
@@ -177,18 +181,22 @@ export const darkTheme = createTheme({
             main: "#4696F0",
         },
         background: {
-            default: "#303030"
+            default: "#202020",
+            paper: "#404040"
         },
         action: {
-            disabled: "#fff",
-            disabledBackground: "#a3cbf8",
-            hover: "#E6F4FF",
+            disabled: "#222",
+            disabledBackground: "#323E4C",
+            hover: "#414549",
         },
         text: {
             primary: "#fff",
             secondary: "rgba(255,255,255,0.7)",
             tertiary: "#9AA0A6",
             navigation: "#fff",
+        },
+        common: {
+            myMessageBackground: "#00476A",
         },
     },
 });

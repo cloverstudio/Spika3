@@ -31,7 +31,7 @@ export default function Attachments({ files }: AttachmentsProps): React.ReactEle
                                 width="74px"
                                 height="74px"
                                 borderRadius="0.625rem"
-                                bgcolor="common.chatBackground"
+                                bgcolor="background.paper"
                                 textAlign="center"
                                 display="flex"
                                 flexDirection="column"
