@@ -21,7 +21,7 @@ export default function SearchBox({ onSearch }: SearchBoxProos): React.ReactElem
                 fullWidth
                 placeholder="Search"
                 sx={{
-                    backgroundColor: "common.chatBackground",
+                    backgroundColor: "background.paper",
                     px: "20px",
                     py: "9px",
                     input: {

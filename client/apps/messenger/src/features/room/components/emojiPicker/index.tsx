@@ -59,7 +59,7 @@ export default function EmojiPickerContainer({ onSelect }: EmojiPickerProps): Re
                             placeholder="Search Emoji"
                             fullWidth
                             sx={{
-                                backgroundColor: "common.chatBackground",
+                                backgroundColor: "background.paper",
                                 px: "20px",
                                 py: "9px",
                                 input: {
