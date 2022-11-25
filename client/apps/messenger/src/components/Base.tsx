@@ -93,7 +93,7 @@ export function Base({ children }: Props): React.ReactElement {
 
     return (
         <ThemeContext.Provider value={{ theme, setTheme }}>
-            <ThemeProvider theme={theme === "light" ? lightTheme : darkTheme}>
+            <ThemeProvider theme={theme === "light" ? lightTheme : darkTheme}>`
                 <div className={theme === "light" ? "light": "dark"}>
                     <CssBaseline />
                     {children}

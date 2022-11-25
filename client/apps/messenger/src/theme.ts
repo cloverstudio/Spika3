@@ -198,8 +198,8 @@ export const darkTheme = createTheme({
             navigation: "#fff",
         },
         common: {
-            myMessageBackground: "#252530",
             otherMessageBackground: "#303030",
+            myMessageBackground: "#00476A",
         },
     },
 });
