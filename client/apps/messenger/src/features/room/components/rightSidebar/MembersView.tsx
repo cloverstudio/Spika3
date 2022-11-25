@@ -132,14 +132,14 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                                         marginRight: "5px",
                                     }}
                                 />
-                                <Box>{user.displayName}</Box>
+                                <Box>{user.displayName}  {roomUser.isAdmin?" (Admin) ":""} {roomUser.isBot?" (Bot) " :""} </Box>
                             </Box>
 
                             <Box>
                                 {roomUser.isAdmin ? (
-                                    <span>Admin</span>
+                                    <></>
                                 ) : user.isBot ? (
-                                    <span>Bot</span>
+                                    <></>
                                 ) : (
                                     userIsAdmin && (
                                         <Box display="flex">
