@@ -48,5 +48,8 @@ header.top-bar-box {
     
     ::-webkit-scrollbar-thumb {
         background: #111;
-    }    
+    }
+    :visited {
+        color: inherit;
+    }
 }
