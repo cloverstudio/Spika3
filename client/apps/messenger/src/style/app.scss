@@ -38,3 +38,15 @@ div.chat-new {
 header.top-bar-box {
     background-color: #f2f2f2;
 }
+
+.dark {
+    ::-webkit-scrollbar {
+        height: 12px;
+        width: 12px;
+        background: transparent;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: #111;
+    }    
+}

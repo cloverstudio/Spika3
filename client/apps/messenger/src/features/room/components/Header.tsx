@@ -16,7 +16,7 @@ export default function Header() {
     const { data: room, isLoading } = useGetRoomQuery(roomId);
 
     return (
-        <Box px={2} borderBottom="0.5px solid #C9C9CA">
+        <Box px={2} borderBottom="0.5px solid" sx={{borderColor:"divider"}} >
             <Box display="flex" justifyContent="space-between" height="80px">
                 {isLoading && <HeaderContentSkeleton />}
                 {room && <HeaderContent room={room} />}

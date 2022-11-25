@@ -100,7 +100,7 @@ const CountryPicker = (props: any) => {
                 sx={{
                     border: "solid",
                     borderWidth: "1px",
-                    borderColor: "text.tertiary",
+                    borderColor: "divider",
                     borderRadius: 1,
                     width: "100%",
                 }}
@@ -118,7 +118,7 @@ const CountryPicker = (props: any) => {
                     </Button>
                     <Divider
                         orientation="vertical"
-                        sx={{ borderColor: "text.tertiary" }}
+                        sx={{ borderColor: "divider"}}
                         flexItem
                     />
                     <TextField
@@ -165,7 +165,7 @@ const CountryPicker = (props: any) => {
                             padding: "0.5em",
                             borderStyle: "none solid solid solid",
                             borderWidth: "1px",
-                            borderColor: "text.tertiary",
+                            borderColor: "divider",
                             borderRadius: 1,
                         }}
                     >

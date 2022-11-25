@@ -17,6 +17,7 @@ declare module "@mui/material/styles/createPalette" {
         white: string;
         chatBackground: string;
         myMessageBackground: string;
+        otherMessageBackground: string;
         darkBlue: string;
         confCallBackground: string;
         videoBackground: string;
@@ -80,7 +81,7 @@ const components : any =  {
                 root: {
                     "& .MuiOutlinedInput-notchedOutline": {
                         borderRadius: "0.625rem",
-                        borderColor: basePalette.text.tertiary,
+                        borderColor: "divider",
                     },
                     input: {
                         "&::placeholder": {
@@ -167,6 +168,7 @@ export const lightTheme = createTheme({
         },
         common: {
             myMessageBackground: "#C8EBFE",
+            otherMessageBackground: "#f0f0f0",
         },
     },
 });
@@ -196,6 +198,7 @@ export const darkTheme = createTheme({
             navigation: "#fff",
         },
         common: {
+            otherMessageBackground: "#303030",
             myMessageBackground: "#00476A",
         },
     },

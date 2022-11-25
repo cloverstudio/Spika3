@@ -98,7 +98,7 @@ function RightSidebarHeaderContainer({
     children,
 }: RightSidebarHeaderContainerProps): React.ReactElement {
     return (
-        <Box height="80.5px" borderBottom="0.5px solid #C9C9CA">
+        <Box height="80.5px" borderBottom="0.5px solid" sx={{borderColor:"divider"}}>
             <Stack
                 direction="row"
                 alignItems="center"

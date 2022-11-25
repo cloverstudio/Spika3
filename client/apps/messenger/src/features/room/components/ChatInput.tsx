@@ -71,7 +71,7 @@ export default function ChatInputContainer(): React.ReactElement {
     };
 
     return (
-        <Box borderTop="1px solid #C9C9CA" px={2} py={1}>
+        <Box borderTop="1px solid" sx={{borderColor:"divider"}} px={2} py={1}>
             <canvas ref={canvasRef} style={{ display: "none" }} />
 
             <Box display="flex" flexDirection="column" justifyContent="center">

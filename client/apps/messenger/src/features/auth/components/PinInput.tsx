@@ -102,7 +102,7 @@ function NumberInput({
                 sx={{
                     input: {
                         border: "1px solid",
-                        borderColor: "text.tertiary",
+                        borderColor: "divider",
                         borderRadius: "0.625rem",
                         height: "34px",
                         padding: "5px",

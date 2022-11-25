@@ -8,12 +8,12 @@ export default function LeftSidebarLayout({
 }): React.ReactElement {
     return (
         <Box
-            borderRight="1px solid #C9C9CA"
+            borderRight="1px solid"
             height="100vh"
             overflow="hidden"
             display="flex"
             flexDirection="column"
-            sx={{ width: { xs: "100vw", md: "auto" } }}
+            sx={{ width: { xs: "100vw", md: "auto" },borderColor:"divider" }}
         >
             {children}
         </Box>

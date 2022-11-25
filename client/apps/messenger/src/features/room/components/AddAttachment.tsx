@@ -58,11 +58,12 @@ export default function AddAttachment(): ReactElement {
                             position: "absolute",
                             left: `${containerBoxRect.left - 20}px`,
                             top: `${containerBoxRect.bottom - 220}px`,
-                            border: "1px solid #C9C9CA",
+                            border: "1px solid",
                             borderRadius: "5px",
+                            borderColor: "divider",
                             width: "75px",
                             height: "220px",
-                            backgroundColor: "#fff",
+                            backgroundColor: "background.default",
                             zIndex: 900,
                         }}
                     >
