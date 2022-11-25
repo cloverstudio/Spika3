@@ -199,7 +199,7 @@ export const darkTheme = createTheme({
         },
         common: {
             otherMessageBackground: "#303030",
-            myMessageBackground: "#00476A",
+            myMessageBackground: "#303040",
         },
     },
 });
