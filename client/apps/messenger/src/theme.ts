@@ -80,7 +80,7 @@ const components : any =  {
                 root: {
                     "& .MuiOutlinedInput-notchedOutline": {
                         borderRadius: "0.625rem",
-                        borderColor: basePalette.text.tertiary,
+                        borderColor: "divider",
                     },
                     input: {
                         "&::placeholder": {
