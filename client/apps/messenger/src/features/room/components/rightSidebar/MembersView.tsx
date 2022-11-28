@@ -97,7 +97,7 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                     width: "100%",
                     maxWidth: 720,
                     paddingLeft: "0",
-                    borderBottomColor: "background.paper"
+                    borderBottomColor: "background.paper",
                 }}
             >
                 {members.map((roomUser, i) => {

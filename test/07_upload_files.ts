@@ -125,6 +125,7 @@ describe("API", () => {
             const fileName = "test File";
             const chunk = Buffer.from("101").toString("base64");
             const offset = 0;
+            const clientId = encodeURIComponent(faker.datatype.string(52));
 
             const responseValid = await supertest(app)
                 .post("/api/upload/files")
@@ -135,6 +136,7 @@ describe("API", () => {
                     chunk,
                     offset,
                     total: 2,
+                    clientId,
                 });
 
             expect(responseValid.status).to.eqls(200);
@@ -143,10 +145,15 @@ describe("API", () => {
             expect(responseValid.body.data.uploadedChunks).to.be.an("array").that.does.include(0);
             expect(responseValid.body.data.uploadedChunks).to.have.lengthOf(1);
 
-            const tempFileDir = path.join(
+            const tempFileDir = path.resolve(
+                __dirname,
+                "../../",
                 process.env["UPLOAD_FOLDER"],
-                `.temp/${validParams.clientId}`
+                `.temp/${clientId}`
             );
+
+            console.log("tempFileDir", tempFileDir);
+
             const tempFileDirExists = fs.existsSync(tempFileDir);
 
             expect(tempFileDirExists).to.eqls(true);

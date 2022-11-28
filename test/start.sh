@@ -14,9 +14,9 @@ export USE_PUSH=1
 export USE_SSE=1
 export IS_TEST=1
 export UPLOAD_FOLDER=./test/upload
-export LOG_INFO=1
+export LOG_INFO=0
 export LOG_WARN=0
-export LOG_ERROR=1
+export LOG_ERROR=0
 export TEAM_MODE=1
 export USE_MESSAGE_RECORDS_SSE=1
 export USE_WEBHOOK=1
@@ -26,7 +26,7 @@ export REDIS_URL="redis://localhost:6379"
 
 
 npx prisma migrate reset --force && prisma migrate dev --name init --preview-feature
-rm -rf ./test/upload
+rm -rf ../test/upload
 
 export TS_NODE_COMPILER_OPTIONS='{"module": "commonjs" , "noUnusedLocals": false}' 
 mocha -r ts-node/register --file 'test/setup.ts' 'test/**/*.ts'
