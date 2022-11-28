@@ -448,7 +448,7 @@ describe("API", () => {
 
             expect(response.status).to.eqls(200);
 
-            await wait(0.1);
+            await wait(0.2);
 
             const messageRecords = await globals.prisma.messageRecord.findMany({
                 where: {
@@ -474,12 +474,13 @@ describe("API", () => {
             });
 
             const response = await supertest(app)
-                .post(`/api/messenger/messages/${room.id}/seen`)
-                .set({ accesstoken: globals.userToken });
+                .post(`/api/messenger/messages/delivered`)
+                .set({ accesstoken: globals.userToken })
+                .send({ messagesIds: [messageOne.id, messageTwo.id] });
 
             expect(response.status).to.eqls(200);
 
-            await wait(0.1);
+            await wait(0.2);
 
             const messageRecords = await globals.prisma.messageRecord.findMany({
                 where: {
@@ -488,6 +489,7 @@ describe("API", () => {
                 },
             });
 
+            console.log(messageRecords);
             expect(messageRecords.filter((mr) => mr.type === "delivered")).to.have.lengthOf(2);
         });
 

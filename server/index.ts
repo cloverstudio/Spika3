@@ -16,7 +16,7 @@ import fs from "fs";
 import path from "path";
 import { createClient } from "redis";
 
-import { error as e } from "./components/logger";
+import l, { error as e } from "./components/logger";
 import WebhookService from "./services/webhook";
 import MessagingService from "./services/messaging";
 
@@ -41,7 +41,7 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
             "Content-Type, Authorization, access-token, admin-accesstoken, accesstoken, device-name, os-name, os-version, device-type, app-version"
         );
 
-        console.log(`${req.url} ${req.method}`)
+        l(`${req.url} ${req.method}`);
         // intercept OPTIONS method
         if ("OPTIONS" === req.method) {
             res.sendStatus(200);

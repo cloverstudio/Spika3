@@ -97,7 +97,7 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                     width: "100%",
                     maxWidth: 720,
                     paddingLeft: "0",
-                    borderBottomColor: "background.paper"
+                    borderBottomColor: "background.paper",
                 }}
             >
                 {members.map((roomUser, i) => {
@@ -132,7 +132,10 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                                         marginRight: "5px",
                                     }}
                                 />
-                                <Box>{user.displayName}  {roomUser.isAdmin?" (Admin) ":""} {roomUser.isBot?" (Bot) " :""} </Box>
+                                <Box>
+                                    {user.displayName} {roomUser.isAdmin ? " (Admin) " : ""}{" "}
+                                    {user.isBot ? " (Bot) " : ""}{" "}
+                                </Box>
                             </Box>
 
                             <Box>
