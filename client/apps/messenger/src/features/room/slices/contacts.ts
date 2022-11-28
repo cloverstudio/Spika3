@@ -3,24 +3,82 @@ import User from "../../../types/User";
 import { dynamicBaseQuery } from "../../../api/api";
 
 import type { RootState } from "../../../store/store";
+import { FiltersFormType } from "../components/leftSidebar/EditFiltersDialog";
 
 interface ContactsState {
     list: User[];
     count: number;
     loading: "idle" | "pending" | "succeeded" | "failed";
-    keyword: string;
 }
 
 export const fetchContact = createAsyncThunk(
     "user/fetchContact",
-    async (args: { page: number; keyword: string }) => {
-        const response = await dynamicBaseQuery(
-            `/messenger/contacts?page=${args.page}&keyword=${args.keyword}`
-        );
+    async (args: { page: number; filters?: FiltersFormType }) => {
+        const { page, filters } = args;
+        let url = `/messenger/contacts?page=${args.page}`;
+
+        if (filters) {
+            const {
+                keyword,
+                country,
+                city,
+                email,
+                minAge,
+                maxAge,
+                maleGender,
+                femaleGender,
+                otherGender,
+            } = filters;
+
+            if (keyword) {
+                url += `&keyword=${keyword}`;
+            }
+
+            if (country) {
+                url += `&country=${country}`;
+            }
+
+            if (city) {
+                url += `&city=${city}`;
+            }
+
+            if (minAge) {
+                url += `&minAge=${minAge}`;
+            }
+
+            if (maxAge) {
+                url += `&maxAge=${maxAge}`;
+            }
+
+            if (email) {
+                url += `&emailAddress=${email}`;
+            }
+
+            if (maleGender || femaleGender || otherGender) {
+                const gender = [];
+
+                if (maleGender) {
+                    gender.push("male");
+                }
+
+                if (femaleGender) {
+                    gender.push("female");
+                }
+
+                if (otherGender) {
+                    gender.push("other");
+                }
+
+                if (gender.length < 3) {
+                    url += `&gender=${gender.join(",")}`;
+                }
+            }
+        }
+
+        const response = await dynamicBaseQuery(url);
         return {
             data: response.data,
-            keyword: args.keyword,
-            page: args.page,
+            page,
         };
     }
 );
@@ -35,12 +93,11 @@ export const contactsSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder.addCase(fetchContact.fulfilled, (state, { payload }) => {
-            const userIds = state.list.map((u) => u.id);
-            const notAdded = payload.data.list.filter((u: User) => !userIds.includes(u.id));
-
-            if (state.keyword !== payload.keyword && payload.page === 1) {
+            if (payload.page === 1) {
                 state.list = [...payload.data.list];
             } else {
+                const userIds = state.list.map((u) => u.id);
+                const notAdded = payload.data.list.filter((u: User) => !userIds.includes(u.id));
                 state.list = [...state.list, ...notAdded];
             }
 

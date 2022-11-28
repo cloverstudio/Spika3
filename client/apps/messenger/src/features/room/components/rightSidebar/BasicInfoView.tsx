@@ -10,12 +10,16 @@ import {
     TextField,
     Typography,
 } from "@mui/material";
+import dayjs from "dayjs";
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import * as Constants from "../../../../../../../lib/constants";
+import countries from "../../../../../../../lib/countries";
+import useStrings from "../../../../hooks/useStrings";
 import { selectUser } from "../../../../store/userSlice";
 import { RoomType } from "../../../../types/Rooms";
+import UserType from "../../../../types/User";
 import { crop } from "../../../../utils/crop";
 import uploadFile from "../../../../utils/uploadFile";
 import { useUpdateRoomMutation } from "../../api/room";
@@ -142,7 +146,11 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
 
                 const { room } = await update({
                     roomId: roomData.id,
-                    data: { name: proposedName, avatarUrl: uploadedFile.path, avatarFileId: uploadedFile.id },
+                    data: {
+                        name: proposedName,
+                        avatarUrl: uploadedFile.path,
+                        avatarFileId: uploadedFile.id,
+                    },
                 }).unwrap();
 
                 updatedRoom = room;
@@ -182,15 +190,19 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
                 direction="column"
                 alignItems="center"
                 spacing={1}
+                pt={2}
                 sx={{
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "center",
-                    paddingTop: "15px",
                 }}
             >
                 {isItPrivateGroup ? (
-                    <Avatar alt={otherUser.user.displayName} src={`${UPLOADS_BASE_URL}/${otherUser.user.avatarFileId}`} />
+                    <Avatar
+                        alt={otherUser.user.displayName}
+                        src={`${UPLOADS_BASE_URL}/${otherUser.user.avatarFileId}`}
+                        sx={{ width: 100, height: 100 }}
+                    />
                 ) : (
                     <Box sx={{ position: "relative" }}>
                         <Avatar
@@ -298,6 +310,48 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
                     onConfirm={selectedEditAction}
                 />
             ) : null}
+
+            {isItPrivateGroup && <PersonalInfo user={otherUser.user} />}
         </Box>
+    );
+}
+
+function PersonalInfo({ user }: { user: UserType }) {
+    const strings = useStrings("en");
+    return (
+        <Stack px={1.5} my={4} spacing={1}>
+            <Box display="grid" gridTemplateColumns="1fr 2fr" gap={2}>
+                <Typography color="text.tertiary" fontSize="0.75rem">
+                    {strings.dob}
+                </Typography>
+                <Typography fontWeight="medium" color="text.secondary" fontSize="0.8rem">
+                    {user.dob ? dayjs(user.dob).format("DD/MM/YYYY") : ""}
+                </Typography>
+            </Box>
+            <Box display="grid" gridTemplateColumns="1fr 2fr" gap={2}>
+                <Typography color="text.tertiary" fontSize="0.75rem">
+                    {strings.email}
+                </Typography>
+                <Typography fontWeight="medium" color="text.secondary" fontSize="0.8rem">
+                    {user.emailAddress}
+                </Typography>
+            </Box>
+            <Box display="grid" gridTemplateColumns="1fr 2fr" gap={2}>
+                <Typography color="text.tertiary" fontSize="0.75rem">
+                    {strings.country}
+                </Typography>
+                <Typography fontWeight="medium" color="text.secondary" fontSize="0.8rem">
+                    {countries.find((c) => c.code === user.country)?.label || ""}
+                </Typography>
+            </Box>
+            <Box display="grid" gridTemplateColumns="1fr 2fr" gap={2}>
+                <Typography color="text.tertiary" fontSize="0.75rem">
+                    {strings.city}
+                </Typography>
+                <Typography fontWeight="medium" color="text.secondary" fontSize="0.8rem">
+                    {user.city}
+                </Typography>
+            </Box>
+        </Stack>
     );
 }

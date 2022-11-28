@@ -8,9 +8,11 @@ export default function CityAutocompletePicker({
     value,
     onChange,
     country,
+    required = true,
 }: {
     country: string;
     value: string;
+    required: boolean;
     onChange: (string) => void;
 }) {
     const strings = useStrings("en");
@@ -62,7 +64,7 @@ export default function CityAutocompletePicker({
                 renderInput={(params) => (
                     <TextField
                         {...params}
-                        required
+                        required={required}
                         placeholder={strings.startTyping}
                         inputProps={{
                             ...params.inputProps,

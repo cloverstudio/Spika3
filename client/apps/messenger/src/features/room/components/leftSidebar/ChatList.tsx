@@ -53,7 +53,7 @@ export default function SidebarChatList(): React.ReactElement {
 
     return (
         <Box sx={{ overflowY: "auto", maxHeight: "100%" }}>
-            <Box mt={3}>
+            <Box my={3}>
                 <SearchBox
                     onSearch={(keyword: string) => {
                         setKeyword(keyword);

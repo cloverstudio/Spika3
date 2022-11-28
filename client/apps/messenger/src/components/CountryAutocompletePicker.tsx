@@ -6,8 +6,10 @@ import useStrings from "../hooks/useStrings";
 export default function CountryAutocompletePicker({
     value,
     onChange,
+    required = true,
 }: {
     value: string;
+    required: boolean;
     onChange: (string) => void;
 }) {
     const strings = useStrings("en");
@@ -42,7 +44,7 @@ export default function CountryAutocompletePicker({
                 renderInput={(params) => (
                     <TextField
                         {...params}
-                        required
+                        required={required}
                         placeholder={strings.select}
                         inputProps={{
                             ...params.inputProps,

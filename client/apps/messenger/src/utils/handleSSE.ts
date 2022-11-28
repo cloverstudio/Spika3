@@ -171,7 +171,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                 return;
             }
 
-            store.dispatch(fetchContact({ page: 1, keyword: "" }));
+            store.dispatch(fetchContact({ page: 1 }));
             const queries = store.getState().api.queries;
 
             if (!queries) {

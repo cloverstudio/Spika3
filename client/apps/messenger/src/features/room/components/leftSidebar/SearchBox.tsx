@@ -10,7 +10,7 @@ let timer: NodeJS.Timeout;
 
 export default function SearchBox({ onSearch }: SearchBoxProos): React.ReactElement {
     return (
-        <Box px={2.5} mb={2}>
+        <Box px={2.5}>
             <Input
                 disableUnderline={true}
                 startAdornment={

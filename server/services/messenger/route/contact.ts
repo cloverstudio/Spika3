@@ -39,6 +39,13 @@ const postContactsSchema = yup.object().shape({
 const getContactsSchema = yup.object().shape({
     query: yup.object().shape({
         page: yup.number().default(1),
+        keyword: yup.string(),
+        country: yup.string(),
+        city: yup.string(),
+        emailAddress: yup.string(),
+        minAge: yup.string(),
+        maxAge: yup.string(),
+        gender: yup.string(),
     }),
 });
 
@@ -50,7 +57,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
         try {
             if (+process.env["TEAM_MODE"]) {
-                const keyword = req.query.keyword;
+                const { country, city, keyword, emailAddress } = req.query;
+                const minAge = +(req.query.minAge || "");
+                const maxAge = +(req.query.maxAge || "");
+                const gender = `${req.query.gender || ""}`.split(",").filter(Boolean);
 
                 const page: number =
                     parseInt(req.query.page ? (req.query.page as string) : "") || 1;
@@ -60,12 +70,66 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     id: {
                         not: userReq.user.id,
                     },
+                    OR: [],
                 };
 
-                if (keyword && keyword.length > 0)
-                    condition.displayName = {
-                        startsWith: keyword,
+                if (keyword && keyword.length > 0) {
+                    condition.OR.push(
+                        ...[
+                            {
+                                lastName: {
+                                    startsWith: keyword,
+                                },
+                            },
+                            {
+                                displayName: {
+                                    startsWith: keyword,
+                                },
+                            },
+                        ]
+                    );
+                }
+
+                if (gender.length) {
+                    condition.gender = {
+                        in: gender,
                     };
+                }
+
+                if (country) {
+                    condition.country = country;
+                }
+
+                if (city) {
+                    condition.city = city;
+                }
+
+                if (emailAddress) {
+                    condition.emailAddress = {
+                        startsWith: emailAddress,
+                    };
+                }
+
+                if (minAge) {
+                    const minDate = new Date(+new Date() - minAge * 365 * 24 * 60 * 60 * 1000);
+                    console.log(minDate.toLocaleDateString());
+                    condition.dob = {
+                        lte: minDate,
+                    };
+                }
+
+                if (maxAge) {
+                    const maxDate = new Date(+new Date() - maxAge * 365 * 24 * 60 * 60 * 1000);
+                    console.log(maxDate.toLocaleDateString());
+                    condition.dob = {
+                        ...(condition.dob || {}),
+                        gte: maxDate,
+                    };
+                }
+
+                if (!condition.OR.length) {
+                    delete condition.OR;
+                }
 
                 const users = await prisma.user.findMany({
                     where: condition,

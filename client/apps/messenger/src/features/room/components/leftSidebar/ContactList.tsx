@@ -9,11 +9,15 @@ import { useCreateRoomMutation } from "../../api/room";
 import { fetchContact, selectContacts, selectContactLoading } from "../../slices/contacts";
 
 import User from "../../../../types/User";
+import { FilterAltOutlined } from "@mui/icons-material";
 
 import useIsInViewport from "../../../../hooks/useIsInViewport";
 import { hideLeftSidebar } from "../../slices/leftSidebar";
 
 import SearchBox from "./SearchBox";
+import EditFiltersDialog, { defaultFilters, FiltersFormType } from "./EditFiltersDialog";
+import useStrings from "../../../../hooks/useStrings";
+import FilterPills from "./FilterPills";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -24,13 +28,17 @@ export default function SidebarContactList({
     handleUserClick?: (user: User) => void;
     selectedUsersIds?: number[];
 }): React.ReactElement {
+    const strings = useStrings("en");
+
+    const [filters, setFilters] = useState<FiltersFormType>(defaultFilters);
+    const [filtersLength, setFiltersLength] = useState(0);
+    const [editingFilters, setEditingFilters] = useState(false);
     const dispatch = useDispatch();
     const { list, count, sortedByDisplayName } = useSelector(selectContacts);
     const loading = useSelector(selectContactLoading());
     const isFetching = loading !== "idle";
 
     const [page, setPage] = useState(1);
-    const [keyword, setKeyword] = useState("");
     const { isInViewPort, elementRef } = useIsInViewport();
     const navigate = useNavigate();
     const [createRoom] = useCreateRoomMutation();
@@ -39,23 +47,14 @@ export default function SidebarContactList({
     const hasMoreContactsToLoad = count > list.length;
 
     useEffect(() => {
-        dispatch(fetchContact({ page: page, keyword }));
-    }, [dispatch, page]);
-
-    useEffect(() => {
-        dispatch(fetchContact({ page: 1, keyword }));
-    }, [keyword]);
+        dispatch(fetchContact({ page, filters }));
+    }, [dispatch, filters, page]);
 
     useEffect(() => {
         if (isInViewPort && hasMoreContactsToLoad) {
             setPage((page) => page + 1);
         }
     }, [isInViewPort, isFetching, hasMoreContactsToLoad]);
-
-    useEffect(() => {
-        if (page === 1) dispatch(fetchContact({ page: 1, keyword }));
-        else setPage(1);
-    }, [keyword]);
 
     const defaultHandleUserClick = async (user: User) => {
         try {
@@ -78,21 +77,73 @@ export default function SidebarContactList({
         onChatClick();
     };
 
+    const onSaveFilters = (filters: FiltersFormType) => {
+        setPage(1);
+        setFilters(filters);
+    };
+
     const onUserClick = handleUserClick || defaultHandleUserClick;
 
     return (
         <Box sx={{ overflowY: "auto", maxHeight: "100%" }}>
-            <Box mt={3}>
+            <Box
+                display="flex"
+                pr={3}
+                mb={2}
+                justifyContent="space-between"
+                alignItems="center"
+                mt={3}
+            >
                 <SearchBox
                     onSearch={(keyword: string) => {
-                        setKeyword(keyword);
+                        setPage(1);
+                        setFilters({ ...filters, keyword });
                     }}
                 />
+                <Box
+                    height="100%"
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    flexShrink={0}
+                    sx={{ cursor: "pointer" }}
+                    onClick={() => setEditingFilters(true)}
+                >
+                    <FilterAltOutlined sx={{ width: "22px", color: "primary.main" }} />
+                    <Typography sx={{ flexShrink: 0 }} color="primary.main">{`${strings.filters}${
+                        filtersLength ? ` (${filtersLength})` : ""
+                    }`}</Typography>
+                </Box>
             </Box>
 
-            {!list.length && !isFetching && <Typography align="center">No contacts</Typography>}
+            <FilterPills filters={filters} setFiltersLength={setFiltersLength} />
+
+            {!list.length && !isFetching && (
+                <Typography mt={3} align="center">
+                    {strings.noContacts}
+                </Typography>
+            )}
+
+            {list.length > 0 && !isFetching && filtersLength > 0 && (
+                <Typography mt={4} mb={2} fontWeight="bold" ml={3}>
+                    {count} results
+                </Typography>
+            )}
 
             {sortedByDisplayName.map(([letter, contactList]) => {
+                if (filtersLength) {
+                    return (contactList as User[]).map((u) => (
+                        <ContactRow
+                            key={u.id}
+                            name={u.displayName}
+                            avatarUrl={u.avatarUrl}
+                            avatarFileId={u.avatarFileId}
+                            onClick={() => onUserClick(u)}
+                            selected={selectedUsersIds && selectedUsersIds.includes(u.id)}
+                        />
+                    ));
+                }
+
                 return (
                     <Box key={letter} mb={2}>
                         <Typography ml={4.75} py={1.5} fontWeight="bold">
@@ -112,6 +163,13 @@ export default function SidebarContactList({
                     </Box>
                 );
             })}
+            {editingFilters && (
+                <EditFiltersDialog
+                    onSave={onSaveFilters}
+                    initialFilters={filters}
+                    onClose={() => setEditingFilters(false)}
+                />
+            )}
             <div ref={elementRef}></div>
         </Box>
     );
@@ -122,7 +180,7 @@ type ContactRowProps = {
     onClick?: () => any;
     selected: boolean;
     avatarUrl?: string;
-    avatarFileId?: number,
+    avatarFileId?: number;
     SelectedIcon?: () => React.ReactElement;
 };
 
@@ -130,7 +188,6 @@ export function ContactRow({
     name,
     onClick,
     selected,
-    avatarUrl,
     avatarFileId,
     SelectedIcon = () => <CheckIcon />,
 }: ContactRowProps): React.ReactElement {

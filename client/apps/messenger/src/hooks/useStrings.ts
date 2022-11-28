@@ -18,6 +18,13 @@ const en = {
     loadingText: "Loading...",
     personalInformation: "Personal information",
     save: "Save",
+    apply: "Apply",
+    ageRange: "Age range",
+    minAge: "Min age",
+    maxAge: "Max age",
+    filters: "Filters",
+    noContacts: "No contacts",
+    reset: "Reset",
 };
 
 const strings = {

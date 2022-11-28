@@ -42,6 +42,9 @@ let theme = createTheme({
         primary: {
             main: "#4696F0",
         },
+        info: {
+            main: "#141414",
+        },
         mode: "light",
         action: {
             disabled: "#fff",
@@ -70,10 +73,14 @@ let theme = createTheme({
 
 theme = createTheme(theme, {
     components: {
+        MuiButtonBase: {
+            defaultProps: {
+                disableRipple: true,
+            },
+        },
         MuiButton: {
             styleOverrides: {
                 root: {
-                    padding: "16px 24px",
                     borderRadius: "0.625rem",
                     boxShadow: "none",
                     textTransform: "none",
@@ -81,6 +88,9 @@ theme = createTheme(theme, {
                 },
                 contained: {
                     minWidth: "8rem",
+                },
+                sizeMedium: {
+                    padding: "16px 24px",
                 },
             },
         },
