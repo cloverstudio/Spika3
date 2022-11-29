@@ -24,12 +24,6 @@ type Props = {
     children?: React.ReactNode;
 };
 
-async function checkPermission() {
-    if (Notification?.permission !== "granted") {
-        // ask for permission
-    }
-}
-
 export default function AuthBase({ children }: Props): React.ReactElement {
     const dispatch = useDispatch();
     const navigate = useNavigate();
