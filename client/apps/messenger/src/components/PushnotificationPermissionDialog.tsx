@@ -25,7 +25,7 @@ export default (): React.ReactElement => {
     useEffect(() => {
         if (
             !localStorage.getItem(constants.LSKEY_DISABLEPUSHALER) &&
-            Notification.permission !== "granted"
+            Notification?.permission !== "granted"
         ) {
             // show permission dialog
             return setShowPermissionDialog(true);
@@ -35,7 +35,7 @@ export default (): React.ReactElement => {
     }, []);
 
     const initPushnotification = async () => {
-        const permission = await Notification.requestPermission();
+        const permission = await Notification?.requestPermission();
 
         if (permission === "granted") {
             const pushToken = await setupPushnotification();

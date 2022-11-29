@@ -5,7 +5,7 @@ import { useDispatch } from "react-redux";
 import { CssBaseline } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 
-import {lightTheme, darkTheme, ThemeType, ThemeContext} from "../theme";
+import { lightTheme, darkTheme, ThemeType, ThemeContext } from "../theme";
 
 import SnackBar from "./SnackBar";
 import BasicDialog from "./BasicDialog";
@@ -20,13 +20,12 @@ import * as constants from "../../../../lib/constants";
 
 declare const API_BASE_URL: string;
 
-
 type Props = {
     children?: React.ReactNode;
 };
 
 async function checkPermission() {
-    if (Notification.permission !== "granted") {
+    if (Notification?.permission !== "granted") {
         // ask for permission
     }
 }
@@ -86,7 +85,8 @@ export default function AuthBase({ children }: Props): React.ReactElement {
     return <Base>{children}</Base>;
 }
 
-const initialTheme: ThemeType = window.localStorage.getItem(constants.LSKEY_THEME) as ThemeType || "light";
+const initialTheme: ThemeType =
+    (window.localStorage.getItem(constants.LSKEY_THEME) as ThemeType) || "light";
 
 export function Base({ children }: Props): React.ReactElement {
     const [theme, setTheme] = useState<ThemeType>(initialTheme);
@@ -94,7 +94,7 @@ export function Base({ children }: Props): React.ReactElement {
     return (
         <ThemeContext.Provider value={{ theme, setTheme }}>
             <ThemeProvider theme={theme === "light" ? lightTheme : darkTheme}>
-                <div className={theme === "light" ? "light": "dark"}>
+                <div className={theme === "light" ? "light" : "dark"}>
                     <CssBaseline />
                     {children}
                     <SnackBar />
