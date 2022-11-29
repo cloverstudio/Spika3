@@ -3,6 +3,7 @@ import { Box, Button } from "@mui/material";
 import { FiltersFormType } from "./EditFiltersDialog";
 import countries from "../../../../../../../lib/countries";
 import { Email } from "@mui/icons-material";
+import useStrings from "../../../../hooks/useStrings";
 
 export default function FilterPills({
     filters,
@@ -11,14 +12,15 @@ export default function FilterPills({
     setFiltersLength: (number) => void;
     filters: FiltersFormType;
 }) {
+    const strings = useStrings();
     const myFilters = { ...filters, ageFilter: "" };
 
     if (filters.minAge && filters.maxAge) {
-        myFilters.ageFilter = `${filters.minAge}-${filters.maxAge} years old`;
+        myFilters.ageFilter = `${filters.minAge}-${filters.maxAge} ${strings.yearsOld}`;
     } else if (filters.minAge) {
-        myFilters.ageFilter = `>${filters.minAge} years old`;
+        myFilters.ageFilter = `>${filters.minAge} ${strings.yearsOld}`;
     } else if (filters.maxAge) {
-        myFilters.ageFilter = `<${filters.maxAge} years old`;
+        myFilters.ageFilter = `<${filters.maxAge} ${strings.yearsOld}`;
     }
 
     delete myFilters.minAge;
@@ -40,6 +42,8 @@ export default function FilterPills({
 }
 
 function FilterInfoPill({ type, value }) {
+    const strings = useStrings();
+
     const generateText = () => {
         switch (type) {
             case "email": {
@@ -59,13 +63,13 @@ function FilterInfoPill({ type, value }) {
                 return value;
             }
             case "femaleGender": {
-                return "Female";
+                return strings.female;
             }
             case "maleGender": {
-                return "Male";
+                return strings.male;
             }
             case "otherGender": {
-                return "Other";
+                return strings.other;
             }
 
             default:

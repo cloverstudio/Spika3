@@ -91,6 +91,7 @@ const en = {
     title: "Title",
     description: "Description",
     noNotes: "No notes here!",
+    yearsOld: "years old",
 };
 
 const hr = {
@@ -184,6 +185,7 @@ const hr = {
     title: "Naslov",
     description: "Opis",
     noNotes: "Ovdje nema bilješki!",
+    yearsOld: "godina",
 };
 
 const strings = {
