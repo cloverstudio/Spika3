@@ -12,12 +12,14 @@ import { selectUserId, settings as storeSettings } from "../../../../../src/stor
 import { fetchSettings } from "../../../../../src/store/userSlice";
 
 import * as constants from "../../../../../../../lib/constants";
+import useStrings from "../../../../hooks/useStrings";
 
 export interface Props {
     roomData: RoomType;
 }
 
 export function DetailsAdditionalInfoView(props: Props) {
+    const strings = useStrings();
     const room: RoomType = props.roomData;
     const dispatch = useDispatch();
     const showSnackBar = useShowSnackBar();
@@ -87,7 +89,7 @@ export function DetailsAdditionalInfoView(props: Props) {
                         cursor: "pointer",
                     }}
                 >
-                    <Box component="span">Notes</Box>
+                    <Box component="span">{strings.notes}</Box>
                     <ChevronRight />
                 </Stack>
                 {((type === "group" && userIsAdmin) || type === "private") && (
@@ -105,7 +107,7 @@ export function DetailsAdditionalInfoView(props: Props) {
                             cursor: "pointer",
                         }}
                     >
-                        <Box component="span">Settings</Box>
+                        <Box component="span">{strings.settings}</Box>
                         <ChevronRight />
                     </Stack>
                 )}
@@ -151,7 +153,7 @@ export function DetailsAdditionalInfoView(props: Props) {
                         width: "100%",
                     }}
                 >
-                    <Box component="span">Mute notifications</Box>
+                    <Box component="span">{strings.muteNotifications}</Box>
                     <Switch
                         checked={
                             settings?.find(

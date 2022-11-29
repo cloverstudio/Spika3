@@ -21,3 +21,5 @@ export const MESSAGE_PAGING_LIMIT = 50;
 export const SETTINGS_ROOM_MUTE_PREFIX = "mute_";
 export const SETTINGS_TRUE = "true";
 export const SETTINGS_FALSE = "false";
+export const APP_NAME = "Spika";
+export const APP_DEFAULT_LANG = "hr";

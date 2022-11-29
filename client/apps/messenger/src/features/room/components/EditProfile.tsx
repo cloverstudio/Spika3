@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import {
     Avatar,
     Box,
@@ -26,6 +26,7 @@ import { crop } from "../../../utils/crop";
 import * as Constants from "../../../../../../lib/constants";
 import { useNavigate } from "react-router-dom";
 import EditPersonalInfoDialog from "./EditPersonalInfoDialog";
+import useStrings from "../../../hooks/useStrings";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -35,6 +36,7 @@ export interface EditProfileProps {
 }
 
 export function EditProfileView({ onClose, user }: EditProfileProps) {
+    const strings = useStrings();
     const imageRef = useRef(null);
     const [editingProfilePicture, setEditingProfilePicture] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -87,7 +89,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
             setLoading(false);
         }
     };
-    console.log({ user: `${UPLOADS_BASE_URL}/${user.avatarFileId}` });
+
     return (
         <Box>
             <Box px={2.5} borderBottom="0.5px solid #C9C9CA">
@@ -106,7 +108,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                         <IconButton onClick={onClose}>
                             <ArrowBackIos />
                         </IconButton>
-                        <Typography variant="h6">Settings</Typography>
+                        <Typography variant="h6">{strings.settings}</Typography>
                     </Stack>
                 </Box>
             </Box>
@@ -166,7 +168,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                         cursor: "pointer",
                     }}
                 >
-                    <Box component="span">Personal information</Box>
+                    <Box component="span">{strings.personalInformation}</Box>
                     <ChevronRight />
                 </Stack>
 
@@ -183,7 +185,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                                 location.reload();
                             }}
                         >
-                            Enable desktop notification
+                            {strings.enableDesktopNotifications}
                         </Link>
                         <br />
                     </>
@@ -200,7 +202,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                         navigate("/");
                     }}
                 >
-                    Logout
+                    {strings.logout}
                 </Link>
             </Box>
             {editingProfilePicture && (
@@ -225,6 +227,8 @@ export interface EditPhotoDialogProps {
 }
 
 export function EditPhotoDialog(props: EditPhotoDialogProps) {
+    const strings = useStrings();
+
     const { onClose, open, onConfirm } = props;
     const [value, setValue] = React.useState("upload");
     const handleClose = () => {
@@ -240,7 +244,7 @@ export function EditPhotoDialog(props: EditPhotoDialogProps) {
 
     return (
         <Dialog onClose={handleClose} open={open}>
-            <DialogTitle sx={{ textAlign: "center" }}>Photo</DialogTitle>
+            <DialogTitle sx={{ textAlign: "center" }}>{strings.photo}</DialogTitle>
             <IconButton
                 disableRipple
                 size="large"
@@ -249,16 +253,13 @@ export function EditPhotoDialog(props: EditPhotoDialogProps) {
                     "&.MuiButtonBase-root:hover": {
                         bgcolor: "transparent",
                     },
-                    // width: "100%",
                     margin: "0",
                     padding: "5px",
                     position: "absolute",
                     right: "10px",
                     top: "12px",
                 }}
-                onClick={(e) => {
-                    handleClose();
-                }}
+                onClick={handleClose}
             >
                 <Close />
             </IconButton>
@@ -270,8 +271,16 @@ export function EditPhotoDialog(props: EditPhotoDialogProps) {
                         value={value}
                         onChange={handleChange}
                     >
-                        <FormControlLabel value="upload" control={<Radio />} label="Upload photo" />
-                        <FormControlLabel value="remove" control={<Radio />} label="Remove photo" />
+                        <FormControlLabel
+                            value="upload"
+                            control={<Radio />}
+                            label={strings.uploadPhoto}
+                        />
+                        <FormControlLabel
+                            value="remove"
+                            control={<Radio />}
+                            label={strings.removePhoto}
+                        />
                     </RadioGroup>
                 </FormControl>
             </Box>
@@ -284,7 +293,7 @@ export function EditPhotoDialog(props: EditPhotoDialogProps) {
                     handleClose();
                 }}
             >
-                Confirm
+                {strings.confirm}
             </Button>
         </Dialog>
     );

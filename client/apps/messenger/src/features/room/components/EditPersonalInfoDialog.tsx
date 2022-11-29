@@ -7,7 +7,6 @@ import {
     RadioGroup,
     FormControlLabel,
     Radio,
-    Stack,
     FormLabel,
     TextField,
     IconButton,
@@ -27,7 +26,7 @@ export interface EditPersonalInfoDialogProps {
 }
 
 export default function EditPersonalInfoDialog({ onClose, user }: EditPersonalInfoDialogProps) {
-    const strings = useStrings("en");
+    const strings = useStrings();
     const [updateUser] = useUpdateMutation();
 
     const [form, setForm] = useState<UpdateUserFormType>({
@@ -42,7 +41,7 @@ export default function EditPersonalInfoDialog({ onClose, user }: EditPersonalIn
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        await updateUser({ ...form, dob: +new Date(form.dob) }).unwrap();
+        await updateUser({ ...user, ...form, dob: +new Date(form.dob) }).unwrap();
         onClose();
     };
 

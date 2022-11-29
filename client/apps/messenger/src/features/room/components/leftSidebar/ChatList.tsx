@@ -15,11 +15,13 @@ import SearchBox from "./SearchBox";
 import { RoomUserType } from "../../../../types/Rooms";
 import { VolumeOffOutlined } from "@mui/icons-material";
 import formatRoomInfo from "../../lib/formatRoomInfo";
+import useStrings from "../../../../hooks/useStrings";
 
 dayjs.extend(relativeTime);
 declare const UPLOADS_BASE_URL: string;
 
 export default function SidebarChatList(): React.ReactElement {
+    const strings = useStrings();
     const dispatch = useDispatch();
     const activeRoomId = parseInt(useParams().id || "");
 
@@ -62,7 +64,7 @@ export default function SidebarChatList(): React.ReactElement {
             </Box>
 
             {list.length === 0 && !isFetching ? (
-                <Typography align="center">No rooms</Typography>
+                <Typography align="center">{strings.noChats}</Typography>
             ) : (
                 <>
                     {[...list]
@@ -105,7 +107,6 @@ function RoomRow({
     id,
     isActive,
     name,
-    avatarUrl,
     avatarFileId,
     lastMessage,
     handleClick,
@@ -113,6 +114,7 @@ function RoomRow({
     type,
     users,
 }: RoomRowProps) {
+    const strings = useStrings();
     const roomIsMuted = useSelector(isRoomMuted(id));
     const [time, setTime] = useState(
         lastMessage?.createdAt && dayjs(lastMessage.createdAt).fromNow()
@@ -195,7 +197,7 @@ function RoomRow({
                             fontWeight="500"
                             lineHeight="1rem"
                         >
-                            {time === "a few seconds ago" ? "now" : time}
+                            {time === "a few seconds ago" ? strings.now : time}
                         </Typography>
                         {unreadCount ? (
                             <Badge

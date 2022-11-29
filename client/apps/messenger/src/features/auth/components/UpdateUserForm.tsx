@@ -46,7 +46,7 @@ export default function UpdateUserForm({
     error,
     initialCountry,
 }: UpdateUserFormProps): React.ReactElement {
-    const strings = useStrings("en");
+    const strings = useStrings();
     const [form, setForm] = useState<UpdateUserFormType>({
         firstName: "",
         lastName: "",
@@ -210,7 +210,7 @@ export default function UpdateUserForm({
                     )}
                 </Stack>
                 <Button type="submit" fullWidth variant="contained">
-                    Next
+                    {strings.next}
                 </Button>
             </Box>
         </>

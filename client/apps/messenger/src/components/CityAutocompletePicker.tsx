@@ -12,10 +12,10 @@ export default function CityAutocompletePicker({
 }: {
     country: string;
     value: string;
-    required: boolean;
+    required?: boolean;
     onChange: (string) => void;
 }) {
-    const strings = useStrings("en");
+    const strings = useStrings();
     const [inputText, setInputText] = useState("");
     const [fetchCities, { data, isFetching, isLoading }] = useLazyGetCitiesQuery();
     const debouncedInputText = useDebounce(inputText, 500);

@@ -13,8 +13,10 @@ import useCountdownTimer from "./hooks/useCountdownTimer";
 import uploadFile from "../../utils/uploadFile";
 import * as constants from "../../../../../lib/constants";
 import { getDeviceId } from "../../../../../lib/utils";
+import useStrings from "../../hooks/useStrings";
 
 export default function Auth(): React.ReactElement {
+    const strings = useStrings();
     const navigate = useNavigate();
     const deviceId = getDeviceId();
     const [step, setStep] = useState(0);
@@ -51,7 +53,7 @@ export default function Auth(): React.ReactElement {
                 localStorage.setItem(constants.LSKEY_DEVICEID, signUpResponse.browserDeviceId);
             }
 
-            if (sentCount > 0) setInfoMsg("Verification code resent");
+            if (sentCount > 0) setInfoMsg(strings.verificationCodeResent);
 
             if (countryFromPhoneNumber) {
                 setCountry(countryFromPhoneNumber);

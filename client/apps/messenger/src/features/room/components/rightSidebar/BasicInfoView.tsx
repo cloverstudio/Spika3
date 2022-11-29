@@ -34,6 +34,7 @@ export interface DetailsBasicInfoProps {
 
 export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
     const { roomData } = props;
+    const strings = useStrings();
     const dispatch = useDispatch();
     const isItPrivateGroup = roomData.type === "private";
     const otherUser = roomData.users[1];
@@ -277,7 +278,7 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
                                                 }
                                             }}
                                         >
-                                            Save
+                                            {strings.save}
                                         </Button>
                                     )}
                                 </Stack>
@@ -317,7 +318,7 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
 }
 
 function PersonalInfo({ user }: { user: UserType }) {
-    const strings = useStrings("en");
+    const strings = useStrings();
     return (
         <Stack px={1.5} my={4} spacing={1}>
             <Box display="grid" gridTemplateColumns="1fr 2fr" gap={2}>

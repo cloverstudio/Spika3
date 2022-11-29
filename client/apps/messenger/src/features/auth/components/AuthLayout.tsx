@@ -8,6 +8,7 @@ import { Base } from "../../../components/Base";
 import useIsLoggedIn from "../../../hooks/useIsLoggedIn";
 import Loader from "../../../components/Loader";
 import { useNavigate } from "react-router-dom";
+import { APP_NAME } from "../../../../../../lib/constants";
 
 type AuthLayoutProps = {
     children: React.ReactElement | React.ReactElement[];
@@ -75,7 +76,7 @@ export default function AuthLayout({
                                 variant="body1"
                                 fontWeight="bold"
                             >
-                                Spika
+                                {APP_NAME}
                             </Typography>
                         </Box>
 

@@ -10,8 +10,11 @@ import {
 import { useDeleteNoteMutation, useGetNoteByIdQuery } from "../../../api/note";
 import { useParams } from "react-router-dom";
 import { useShowSnackBar } from "../../../../../hooks/useModal";
+import useStrings from "../../../../../hooks/useStrings";
 
 export default function NoteDetailHeader() {
+    const strings = useStrings();
+
     const dispatch = useDispatch();
     const noteId = useSelector(selectRightSidebarActiveNoteId);
     const roomId = +useParams().id;
@@ -30,7 +33,7 @@ export default function NoteDetailHeader() {
 
         showSnackbar({
             severity: "success",
-            text: "Link copied",
+            text: strings.linkCopied,
         });
     };
 
@@ -44,7 +47,7 @@ export default function NoteDetailHeader() {
                 <IconButton size="large" onClick={() => dispatch(setActiveTab("notes"))}>
                     <ArrowBackIos />
                 </IconButton>
-                <Typography variant="h6">Note not found!</Typography>
+                <Typography variant="h6">{strings.noteNotFound}</Typography>
             </>
         );
     }
@@ -87,9 +90,11 @@ type DeleteNoteDialogProps = {
 };
 
 function DeleteNoteDialog({ onClose, open, onConfirm }: DeleteNoteDialogProps) {
+    const strings = useStrings();
+
     return (
         <Dialog onClose={onClose} open={open}>
-            <DialogTitle sx={{ textAlign: "center" }}>Confirm</DialogTitle>
+            <DialogTitle sx={{ textAlign: "center" }}>{strings.confirm}</DialogTitle>
             <IconButton
                 disableRipple
                 size="large"
@@ -109,7 +114,7 @@ function DeleteNoteDialog({ onClose, open, onConfirm }: DeleteNoteDialogProps) {
                 <Close />
             </IconButton>
             <Box sx={{ width: "300px", margin: 2 }}>
-                <Typography variant="body1">Are you sure?</Typography>
+                <Typography variant="body1">{strings.areYouSure}</Typography>
             </Box>
             <Button
                 variant="contained"
@@ -120,7 +125,7 @@ function DeleteNoteDialog({ onClose, open, onConfirm }: DeleteNoteDialogProps) {
                     onClose();
                 }}
             >
-                Yes, delete
+                {strings.yesDelete}
             </Button>
         </Dialog>
     );

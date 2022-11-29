@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 
@@ -13,7 +13,7 @@ import Loader from "./Loader";
 
 import { useGetUserQuery } from "../features/auth/api/auth";
 
-import { useGetDeviceQuery, useUpdateDeviceMutation } from "../api/device";
+import { useGetDeviceQuery } from "../api/device";
 
 import handleSSE from "../utils/handleSSE";
 import * as constants from "../../../../lib/constants";
@@ -34,10 +34,7 @@ export default function AuthBase({ children }: Props): React.ReactElement {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { data: user, isFetching, isLoading } = useGetUserQuery();
-    const { data: deviceData, isLoading: deviceIsLoading } = useGetDeviceQuery();
-    const [updateDevice] = useUpdateDeviceMutation();
-
-    const hasPushToken = deviceData && deviceData.device.pushToken;
+    const { data: deviceData } = useGetDeviceQuery();
 
     useEffect(() => {
         if (!isFetching && !user) {

@@ -6,7 +6,7 @@ import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 
 import Base from "../components/Base";
-import PushNotificationPermissionDialog from "../components/PushnotificationPermissionDialog";
+import PushNotificationPermissionDialog from "../components/PushNotificationPermissionDialog";
 import LeftSidebar from "../features/room/LeftSidebar";
 import RightSidebar from "../features/room/RightSidebar";
 import { selectLeftSidebarOpen, setLeftSidebar } from "../features/room/slices/leftSidebar";

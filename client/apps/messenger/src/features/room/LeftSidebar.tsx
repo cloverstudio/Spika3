@@ -17,6 +17,7 @@ import uploadFile from "../../utils/uploadFile";
 
 import { crop } from "../../utils/crop";
 import * as Constants from "../../../../../lib/constants";
+import useStrings from "../../hooks/useStrings";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -39,12 +40,13 @@ function LeftSidebarNewChat({
 }: {
     setSidebar: (s: string) => void;
 }): React.ReactElement {
+    const strings = useStrings();
     return (
         <LeftSidebarLayout>
             <SidebarNavigationHeader handleBack={() => setSidebar("")} title="New chat" />
 
             <Box textAlign="center">
-                <Button onClick={() => setSidebar("new_group")}>New group chat</Button>
+                <Button onClick={() => setSidebar("new_group")}>{strings.newGroupChat}</Button>
             </Box>
             <SidebarContactList />
         </LeftSidebarLayout>
@@ -56,6 +58,7 @@ function LeftSidebarNewGroup({
 }: {
     setSidebar: (s: string) => void;
 }): React.ReactElement {
+    const strings = useStrings();
     const [step, setStep] = useState<"select_members" | "edit_group_info">("select_members");
     const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
     const [name, setName] = useState("");
@@ -128,8 +131,8 @@ function LeftSidebarNewGroup({
         }
     };
 
-    const title = step === "select_members" ? "Select members" : "Group members";
-    const buttonText = step === "select_members" ? "Next" : "Create";
+    const title = step === "select_members" ? strings.selectMembers : strings.groupMembers;
+    const buttonText = step === "select_members" ? strings.next : strings.create;
     const buttonIsDisabled = step === "edit_group_info" && !name;
 
     return (
@@ -212,7 +215,7 @@ function LeftSidebarNewGroup({
                         required
                         fullWidth
                         id="name"
-                        placeholder="Group name..."
+                        placeholder={strings.groupName}
                         name="name"
                         autoFocus
                         value={name}
@@ -226,7 +229,7 @@ function LeftSidebarNewGroup({
                         lineHeight="1.25rem"
                         sx={{ px: 2.5, py: 2 }}
                     >
-                        {selectedUsers.length} people selected
+                        {selectedUsers.length} {strings.peopleSelected}
                     </Typography>
                     <Box flexGrow={1} sx={{ overflowY: "auto" }}>
                         {selectedUsers.map((user) => (

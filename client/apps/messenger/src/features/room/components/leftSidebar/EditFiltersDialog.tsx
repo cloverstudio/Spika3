@@ -53,7 +53,7 @@ export default function EditFiltersDialog({
     initialFilters,
     onSave,
 }: EditFiltersDialogProps) {
-    const strings = useStrings("en");
+    const strings = useStrings();
 
     const [filters, setFilters] = useState<FiltersFormType>(initialFilters);
 

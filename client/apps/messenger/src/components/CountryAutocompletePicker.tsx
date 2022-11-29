@@ -9,10 +9,10 @@ export default function CountryAutocompletePicker({
     required = true,
 }: {
     value: string;
-    required: boolean;
+    required?: boolean;
     onChange: (string) => void;
 }) {
-    const strings = useStrings("en");
+    const strings = useStrings();
 
     const handleChange = (_, v: CountryType) => {
         onChange(v?.code || "");

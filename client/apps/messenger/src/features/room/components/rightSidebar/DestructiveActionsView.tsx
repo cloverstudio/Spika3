@@ -10,12 +10,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { hideRightSidebar } from "../../slices/rightSidebar";
 import { removeRoom } from "../../slices/leftSidebar";
 import { selectUserId } from "../../../../store/userSlice";
+import useStrings from "../../../../hooks/useStrings";
 
 export interface DetailsDestructiveActionsProps {
     room: RoomType;
 }
 
 export function DetailsDestructiveActionsView({ room }: DetailsDestructiveActionsProps) {
+    const strings = useStrings();
     const { type, id, users } = room;
 
     const userId = useSelector(selectUserId);
@@ -32,18 +34,18 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
 
         if (!haveOtherAdmins) {
             return showBasicDialog({
-                text: "Can't leave group where you are only admin",
-                title: "Unavailable action",
-                allowButtonLabel: "OK",
+                text: strings.cantLeaveAdminGroup,
+                title: strings.unavailableAction,
+                allowButtonLabel: strings.ok,
             });
         }
 
         showBasicDialog(
             {
-                text: "Leave group?",
-                title: "Confirmation",
-                allowButtonLabel: "OK",
-                denyButtonLabel: "Cancel",
+                text: strings.leaveGroupQuestion,
+                title: strings.confirm,
+                allowButtonLabel: strings.ok,
+                denyButtonLabel: strings.cancel,
             },
             () =>
                 leaveRoom({ roomId: id })
@@ -59,10 +61,10 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
     const handleDelete = () => {
         showBasicDialog(
             {
-                text: "Delete group?",
-                title: "Confirmation",
-                allowButtonLabel: "YES",
-                denyButtonLabel: "Cancel",
+                text: strings.deleteGroupQuestion,
+                title: strings.confirm,
+                allowButtonLabel: strings.yesDelete,
+                denyButtonLabel: strings.cancel,
             },
             () =>
                 deleteRoom({ roomId: id })
@@ -102,45 +104,11 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
                     >
                         <DoDisturb style={{ fill: "red" }} />
                         <Typography variant="subtitle1" color="red">
-                            Block user
+                            {strings.blockUser}
                         </Typography>
                     </Stack>
                 </IconButton>
             )}
-            {/* <IconButton
-                disableRipple
-                size="large"
-                sx={{
-                    ml: 1,
-                    "&.MuiButtonBase-root:hover": {
-                        bgcolor: "transparent",
-                    },
-                    width: "100%",
-                }}
-            >
-                <Stack
-                    direction="row"
-                    alignItems="center"
-                    spacing={1}
-                    sx={{
-                        display: "flex",
-                        flexDirection: "row",
-                        justifyContent: "flex-start",
-                        width: "100%",
-                    }}
-                >
-                    <WarningAmber style={{ fill: "red" }} />
-                    {type === "private" ? (
-                        <Typography variant="subtitle1" color="red">
-                            Report user
-                        </Typography>
-                    ) : (
-                        <Typography variant="subtitle1" color="red">
-                            Report group
-                        </Typography>
-                    )}
-                </Stack>
-            </IconButton> */}
             {type === "group" && (
                 <IconButton
                     disableRipple
@@ -165,7 +133,7 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
                         <ExitToApp style={{ fill: "red" }} />
 
                         <Typography variant="subtitle1" color="red">
-                            Exit group
+                            {strings.exitGroup}
                         </Typography>
                     </Stack>
                 </IconButton>
@@ -195,7 +163,7 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
                         <DeleteOutline style={{ fill: "red" }} />
 
                         <Typography variant="subtitle1" color="red">
-                            Delete group
+                            {strings.deleteGroup}
                         </Typography>
                     </Stack>
                 </IconButton>

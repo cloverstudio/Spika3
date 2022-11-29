@@ -28,7 +28,7 @@ export default function SidebarContactList({
     handleUserClick?: (user: User) => void;
     selectedUsersIds?: number[];
 }): React.ReactElement {
-    const strings = useStrings("en");
+    const strings = useStrings();
 
     const [filters, setFilters] = useState<FiltersFormType>(defaultFilters);
     const [filtersLength, setFiltersLength] = useState(0);
@@ -126,7 +126,7 @@ export default function SidebarContactList({
 
             {list.length > 0 && !isFetching && filtersLength > 0 && (
                 <Typography mt={4} mb={2} fontWeight="bold" ml={3}>
-                    {count} results
+                    {count} {strings.results}
                 </Typography>
             )}
 
