@@ -66,6 +66,7 @@ export default (): Router => {
             );
 
             if (!fs.existsSync(tempFileDir)) {
+                console.log("created", tempFileDir);
                 await mkdir(tempFileDir, { recursive: true });
             }
 
@@ -106,6 +107,7 @@ export default (): Router => {
             );
 
             if (!fs.existsSync(tempFileDir)) {
+                console.log("created", tempFileDir);
                 await mkdir(tempFileDir, { recursive: true });
             }
 

@@ -23,6 +23,8 @@ export default (): React.ReactElement => {
     const [updateDevice] = useUpdateDeviceMutation();
 
     useEffect(() => {
+        if (!window.Notification) return;
+
         if (
             !localStorage.getItem(constants.LSKEY_DISABLEPUSHALER) &&
             Notification.permission !== "granted"
@@ -35,6 +37,8 @@ export default (): React.ReactElement => {
     }, []);
 
     const initPushnotification = async () => {
+        if (!window.Notification) return;
+
         const permission = await Notification.requestPermission();
 
         if (permission === "granted") {

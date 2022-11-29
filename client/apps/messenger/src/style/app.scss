@@ -5,6 +5,7 @@
 
 body {
     font-family: "Roboto", sans-serif;
+    touch-action: pan-y;
 }
 
 img.mock {
@@ -45,7 +46,7 @@ header.top-bar-box {
         width: 12px;
         background: transparent;
     }
-    
+
     ::-webkit-scrollbar-thumb {
         background: #111;
     }
