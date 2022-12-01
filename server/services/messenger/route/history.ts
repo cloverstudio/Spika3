@@ -152,6 +152,13 @@ export default (): Router => {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
         }
+
+        await prisma.userActivity.create({
+            data: {
+                userId,
+                name: "get_history",
+            },
+        });
     });
 
     return router;

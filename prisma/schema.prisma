@@ -38,8 +38,20 @@ model User {
   messagesRecords MessageRecord[]
   callHistory     CallHistory[]
   userSetting     UserSetting[]
+  userActivities  UserActivity[]
 
   @@map(name: "user")
+}
+
+model UserActivity {
+  id        Int      @id @default(autoincrement()) @map(name: "id")
+  name      String   @map(name: "name")
+  createdAt DateTime @default(now()) @map(name: "created_at")
+
+  userId Int  @map(name: "user_id")
+  user   User @relation(fields: [userId], references: [id])
+
+  @@map(name: "acivity")
 }
 
 model Device {

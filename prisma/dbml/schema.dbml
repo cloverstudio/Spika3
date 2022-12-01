@@ -29,6 +29,15 @@ Table user {
   messagesRecords message_record [not null]
   callHistory call_history [not null]
   userSetting user_setting [not null]
+  userActivities acivity [not null]
+}
+
+Table acivity {
+  id Int [pk, increment]
+  name String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  userId Int [not null]
+  user user [not null]
 }
 
 Table device {
@@ -212,6 +221,8 @@ Table api_key {
   createdAt DateTime [default: `now()`, not null]
   modifiedAt DateTime [default: `now()`, not null]
 }
+
+Ref: acivity.userId > user.id
 
 Ref: device.userId > user.id
 
