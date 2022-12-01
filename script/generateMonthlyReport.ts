@@ -164,5 +164,3 @@ export default async function generateMonthlyReport(month: number, year: number)
     });
     workbook.write(`${__dirname}/${month}_${year}.xlsx`);
 }
-
-generateMonthlyReport(5, 2020);
