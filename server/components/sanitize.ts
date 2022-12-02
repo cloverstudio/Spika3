@@ -163,8 +163,18 @@ export default function sanitize(data: any): sanitizeTypes {
             };
         },
         file: () => {
-            const { id, fileName, size, mimeType, type, relationId, clientId, path, createdAt } =
-                data as File;
+            const {
+                id,
+                fileName,
+                size,
+                mimeType,
+                type,
+                relationId,
+                clientId,
+                path,
+                createdAt,
+                metaData,
+            } = data as File;
 
             return {
                 id,
@@ -175,6 +185,7 @@ export default function sanitize(data: any): sanitizeTypes {
                 relationId,
                 clientId,
                 path,
+                metaData,
                 createdAt: +new Date(createdAt),
             };
         },

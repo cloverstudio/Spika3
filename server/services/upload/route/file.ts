@@ -87,8 +87,19 @@ export default (): Router => {
         const userReq: UserRequest = req as UserRequest;
 
         try {
-            const { total, size, mimeType, fileName, fileHash, type, relationId, clientId } =
-                req.body;
+            const {
+                total,
+                size,
+                mimeType,
+                fileName,
+                fileHash,
+                type,
+                relationId,
+                clientId,
+                duration,
+                width,
+                height,
+            } = req.body;
 
             const exists = await prisma.file.findFirst({ where: { clientId } });
 
@@ -161,6 +172,10 @@ export default (): Router => {
                 return res.status(400).send(errorResponse("Hash doesn't match", userReq.lang));
             }
 
+            const durationInt: number = duration ? parseInt(duration) : 0;
+            const widthInt: number = duration ? parseInt(width) : 0;
+            const heightInt: number = duration ? parseInt(height) : 0;
+
             const file = await prisma.file.create({
                 data: {
                     fileName,
@@ -169,6 +184,11 @@ export default (): Router => {
                     type,
                     relationId,
                     clientId,
+                    metaData: {
+                        duration: durationInt,
+                        width: widthInt,
+                        height: heightInt,
+                    },
                     path: "/uploads/files/" + clientId,
                 },
             });
