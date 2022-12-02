@@ -90,9 +90,7 @@ export default (): Router => {
                 type,
                 relationId,
                 clientId,
-                duration,
-                width,
-                height,
+                metaData, // { duration,width,height}
             } = req.body;
 
             const exists = await prisma.file.findFirst({ where: { clientId } });
@@ -155,9 +153,9 @@ export default (): Router => {
                 return res.status(400).send(errorResponse("Hash doesn't match", userReq.lang));
             }
 
-            const durationInt: number = duration ? parseInt(duration) : 0;
-            const widthInt: number = duration ? parseInt(width) : 0;
-            const heightInt: number = duration ? parseInt(height) : 0;
+            const durationInt: number = metaData?.duration ? parseInt(metaData.duration) : 0;
+            const widthInt: number = metaData?.width ? parseInt(metaData.width) : 0;
+            const heightInt: number = metaData?.height ? parseInt(metaData.height) : 0;
 
             const file = await prisma.file.create({
                 data: {

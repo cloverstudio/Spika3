@@ -370,7 +370,7 @@ describe("API", () => {
             const responseValid = await supertest(app)
                 .post("/api/upload/files/verify")
                 .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, duration: 1, width: 2, height: 3 });
+                .send({ ...validParams, metaData: { duration: 1, width: 2, height: 3 } });
 
             expect(responseValid.status).to.eqls(200);
             expect(responseValid.body.data.file).to.has.property("metaData");

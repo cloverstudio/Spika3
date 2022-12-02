@@ -18,6 +18,7 @@ export async function formatMessageBody(
             mimeType: true,
             path: true,
             size: true,
+            metaData: true,
         },
     });
 
@@ -30,6 +31,7 @@ export async function formatMessageBody(
             mimeType: true,
             path: true,
             size: true,
+            metaData: true,
         },
     });
 

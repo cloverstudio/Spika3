@@ -1,6 +1,7 @@
 import CryptoJS from "crypto-js";
 import { dynamicBaseQuery } from "../api/api";
 import { encode } from "./base64";
+import { getImageDimention, getVideoInfo } from "./media";
 
 const chunkSize = 1024 * 54;
 
@@ -21,6 +22,7 @@ export default async function uploadFile({
     let hash: string;
     const clientId = String(Math.round(Math.random() * 100000000));
     let verificationStarted = false;
+    let metaData: { duration: number; width: number; height: number } = null;
 
     return new Promise((resolve, reject) => {
         try {
@@ -43,58 +45,70 @@ export default async function uploadFile({
                     data: {
                         total,
                         size: file.size,
-                        mimeType: file.type || "unknown",
+                        mimeType: file.type || type || "unknown",
                         fileName: file.name,
                         type,
                         fileHash: hash,
                         relationId,
                         clientId,
+                        metaData,
                     },
                 });
             };
 
             const SHA256 = CryptoJS.algo.SHA256.create();
 
-            loading(
-                file,
-                (data) => {
-                    handleChunk(encode(data), chunkOffset)
-                        .then((res) => {
-                            if (
-                                hash &&
-                                total === res.data.uploadedChunks.length &&
-                                !verificationStarted
-                            ) {
-                                verificationStarted = true;
-                                handleVerify(hash)
-                                    .then((res) => {
-                                        if (res && res.data && res.data.file) {
-                                            resolve(res.data.file);
-                                        } else {
-                                            reject("Upload error");
-                                        }
-
-                                        lastOffset = 0;
-                                        previous = [];
-                                    })
-                                    .catch((e) => {
-                                        console.log("verification error: ", { e });
-                                        reject(e);
-                                    });
-                            }
-                        })
-                        .catch((e) => {
-                            console.log("upload chunk error: ", { e });
-                            reject(e);
-                        });
-
-                    SHA256.update(CryptoJS.lib.WordArray.create(data));
-                    chunkOffset++;
-                },
-                () => {
-                    hash = SHA256.finalize().toString();
+            (async () => {
+                if (/^.*image.*$/.test(type)) {
+                    const dimension = await getImageDimention(file);
+                    metaData = { ...metaData, ...dimension };
                 }
-            );
+                if (/^.*video.*$/.test(type)) {
+                    const videoInfo = await getVideoInfo(file);
+                    metaData = { ...metaData, ...videoInfo };
+                }
+
+                loading(
+                    file,
+                    (data) => {
+                        handleChunk(encode(data), chunkOffset)
+                            .then((res) => {
+                                if (
+                                    hash &&
+                                    total === res.data.uploadedChunks.length &&
+                                    !verificationStarted
+                                ) {
+                                    verificationStarted = true;
+                                    handleVerify(hash)
+                                        .then((res) => {
+                                            if (res && res.data && res.data.file) {
+                                                resolve(res.data.file);
+                                            } else {
+                                                reject("Upload error");
+                                            }
+
+                                            lastOffset = 0;
+                                            previous = [];
+                                        })
+                                        .catch((e) => {
+                                            console.log("verification error: ", { e });
+                                            reject(e);
+                                        });
+                                }
+                            })
+                            .catch((e) => {
+                                console.log("upload chunk error: ", { e });
+                                reject(e);
+                            });
+
+                        SHA256.update(CryptoJS.lib.WordArray.create(data));
+                        chunkOffset++;
+                    },
+                    () => {
+                        hash = SHA256.finalize().toString();
+                    }
+                );
+            })();
         } catch (error) {
             console.log("Upload file error: ", error);
             reject(error);
