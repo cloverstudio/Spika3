@@ -57,13 +57,7 @@ export default (): Router => {
                     .send(errorResponse("File with that clientId already exists", userReq.lang));
             }
 
-            const tempFileDir = path.resolve(
-                __dirname,
-                "../../../../../",
-                process.env["UPLOAD_FOLDER"],
-                ".temp/",
-                clientId
-            );
+            const tempFileDir = path.resolve(process.env["UPLOAD_FOLDER"], ".temp/", clientId);
 
             if (!fs.existsSync(tempFileDir)) {
                 console.log("created", tempFileDir);
@@ -109,13 +103,7 @@ export default (): Router => {
                     .send(errorResponse("File with that clientId already exists", userReq.lang));
             }
 
-            const tempFileDir = path.resolve(
-                __dirname,
-                "../../../../../",
-                process.env["UPLOAD_FOLDER"],
-                ".temp/",
-                clientId
-            );
+            const tempFileDir = path.resolve(process.env["UPLOAD_FOLDER"], ".temp/", clientId);
 
             if (!fs.existsSync(tempFileDir)) {
                 console.log("created", tempFileDir);
@@ -136,12 +124,7 @@ export default (): Router => {
                     .send(errorResponse("Not all chunks are uploaded", userReq.lang));
             }
 
-            const filesDir = path.resolve(
-                __dirname,
-                "../../../../../",
-                process.env["UPLOAD_FOLDER"],
-                "files/"
-            );
+            const filesDir = path.resolve(process.env["UPLOAD_FOLDER"], "files/");
 
             if (!fs.existsSync(filesDir)) {
                 await mkdir(filesDir);
@@ -230,13 +213,7 @@ export default (): Router => {
                 return res.send(successResponse({}, userReq.lang));
             }
 
-            const pathToFile = path.resolve(
-                __dirname,
-                "../../../../../",
-                process.env["UPLOAD_FOLDER"],
-                "files/",
-                file.clientId
-            );
+            const pathToFile = path.resolve(process.env["UPLOAD_FOLDER"], "files/", file.clientId);
 
             if (!fs.existsSync(pathToFile)) {
                 le(`File doesn't exists - ${pathToFile}`);
@@ -256,13 +233,7 @@ export default (): Router => {
         try {
             const { fileName } = req.params;
 
-            const dirPath = path.resolve(
-                __dirname,
-                "../../../../../",
-                process.env["UPLOAD_FOLDER"],
-                ".temp/",
-                fileName
-            );
+            const dirPath = path.resolve(process.env["UPLOAD_FOLDER"], ".temp/", fileName);
 
             if (!fs.existsSync(dirPath)) {
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
