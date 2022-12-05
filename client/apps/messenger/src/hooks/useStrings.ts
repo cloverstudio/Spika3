@@ -92,6 +92,9 @@ const en = {
     description: "Description",
     noNotes: "No notes here!",
     yearsOld: "years old",
+    blockedUsers: "Blocked users",
+    blockUserQuestion: "Do you want to block user?",
+    yes: "Yes",
 };
 
 const hr = {
@@ -186,6 +189,9 @@ const hr = {
     description: "Opis",
     noNotes: "Ovdje nema bilješki!",
     yearsOld: "godina",
+    blockedUsers: "Blokirani korisnici",
+    blockUserQuestion: "Da li zaista želite blokirati tog korisnika?",
+    yes: "Da",
 };
 
 const strings = {

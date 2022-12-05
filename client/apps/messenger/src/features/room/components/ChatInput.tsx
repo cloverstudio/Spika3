@@ -23,7 +23,7 @@ import AddAttachment from "./AddAttachment";
 import Attachments from "./Attachments";
 import EmojiPicker from "./emojiPicker";
 import Close from "@mui/icons-material/Close";
-import { useGetRoomQuery } from "../api/room";
+import { useGetRoomBlockedQuery, useGetRoomQuery } from "../api/room";
 import MessageType from "../../../types/Message";
 import getFileIcon from "../lib/getFileIcon";
 import { editMessageThunk, replyMessageThunk, sendMessage } from "../slices/messages";
@@ -32,6 +32,7 @@ export default function ChatInputContainer(): React.ReactElement {
     const dispatch = useDispatch();
     const roomId = parseInt(useParams().id || "");
     const inputType = useSelector(selectInputType(roomId));
+    const { data: roomBlocked } = useGetRoomBlockedQuery(roomId);
 
     const [files, setFiles] = useState(AttachmentManager.getFiles(roomId) || []);
     const canvasRef = useRef<HTMLCanvasElement>();
@@ -69,6 +70,10 @@ export default function ChatInputContainer(): React.ReactElement {
     const handleSetMessageText = (message: string) => {
         dispatch(setInputText({ text: message, roomId }));
     };
+
+    if (roomBlocked) {
+        return <Box>Blocked</Box>;
+    }
 
     return (
         <Box borderTop="1px solid #C9C9CA" px={2} py={1}>

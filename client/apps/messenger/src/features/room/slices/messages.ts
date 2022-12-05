@@ -3,6 +3,7 @@ import { wait } from "../../../../../../lib/utils";
 import { dynamicBaseQuery } from "../../../api/api";
 import type { RootState } from "../../../store/store";
 import MessageType, { MessageListType, MessageRecordType } from "../../../types/Message";
+import { RoomType } from "../../../types/Rooms";
 import uploadFile from "../../../utils/uploadFile";
 import generateThumbFile from "../lib/generateThumbFile";
 import getFileType from "../lib/getFileType";
@@ -766,6 +767,43 @@ export const selectCursor =
         const room = state.messages[roomId];
 
         return room?.cursor;
+    };
+
+export const selectShouldDisplayBlockButton =
+    (roomId: number) =>
+    (state: RootState): boolean => {
+        const room = state.messages[roomId];
+        const roomData = state.api.queries[`getRoom(${roomId})`]?.data as RoomType;
+
+        if (!room || !roomData) {
+            return false;
+        }
+
+        const allMessagesLoaded = room.cursor === null;
+        const noUserMessages = Object.values(room.messages || {}).every(
+            (m) => m.fromUserId !== state.user.id
+        );
+
+        return allMessagesLoaded && noUserMessages && roomData.type === "private";
+    };
+
+export const selectIsRoomBlocked =
+    (roomId: number) =>
+    (state: RootState): boolean => {
+        const userId = state.user.id;
+        const room = state.messages[roomId];
+        const roomData = state.api.queries[`getRoom(${roomId})`]?.data as RoomType;
+
+        if (!room || !roomData) {
+            return false;
+        }
+
+        const allMessagesLoaded = room.cursor === null;
+        const noUserMessages = Object.values(room.messages || {}).every(
+            (m) => m.fromUserId !== state.user.id
+        );
+
+        return allMessagesLoaded && noUserMessages && roomData.type === "private";
     };
 
 export const selectIsLastMessageFromUser =

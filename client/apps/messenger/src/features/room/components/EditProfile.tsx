@@ -27,6 +27,8 @@ import * as Constants from "../../../../../../lib/constants";
 import { useNavigate } from "react-router-dom";
 import EditPersonalInfoDialog from "./EditPersonalInfoDialog";
 import useStrings from "../../../hooks/useStrings";
+import { useGetBlockedUsersQuery, useRemoveUserFromBlockListMutation } from "../api/user";
+import { ContactRow } from "./leftSidebar/ContactList";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -41,6 +43,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
     const [editingProfilePicture, setEditingProfilePicture] = useState(false);
     const [loading, setLoading] = useState(false);
     const [editingPersonalInfo, setEditingPersonalInfo] = useState(false);
+    const [editingBlockedList, setEditingBlockedList] = useState(false);
     const [updateAvatar] = useUpdateUserAvatarMutation();
     const navigate = useNavigate();
 
@@ -89,6 +92,34 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
             setLoading(false);
         }
     };
+
+    if (editingBlockedList) {
+        return (
+            <Box>
+                <Box px={2.5} borderBottom="0.5px solid #C9C9CA">
+                    <Box display="flex" height="80px" justifyContent="space-between">
+                        <Stack
+                            direction="row"
+                            alignItems="center"
+                            spacing={1}
+                            sx={{
+                                display: "flex",
+                                flexDirection: "row",
+                                justifyContent: "flex-start",
+                                width: "100%",
+                            }}
+                        >
+                            <IconButton onClick={() => setEditingBlockedList(false)}>
+                                <ArrowBackIos />
+                            </IconButton>
+                            <Typography variant="h6">{strings.blockedUsers}</Typography>
+                        </Stack>
+                    </Box>
+                </Box>
+                <BlockedUsersList />
+            </Box>
+        );
+    }
 
     return (
         <Box>
@@ -169,6 +200,24 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                     }}
                 >
                     <Box component="span">{strings.personalInformation}</Box>
+                    <ChevronRight />
+                </Stack>
+
+                <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                    onClick={() => setEditingBlockedList(true)}
+                    sx={{
+                        height: "40px",
+                        display: "flex",
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        width: "100%",
+                        cursor: "pointer",
+                    }}
+                >
+                    <Box component="span">{strings.blockedUsers}</Box>
                     <ChevronRight />
                 </Stack>
 
@@ -296,5 +345,44 @@ export function EditPhotoDialog(props: EditPhotoDialogProps) {
                 {strings.confirm}
             </Button>
         </Dialog>
+    );
+}
+
+function BlockedUsersList() {
+    const { data: blockedUsers, isLoading } = useGetBlockedUsersQuery();
+    const [remove] = useRemoveUserFromBlockListMutation();
+
+    if (isLoading) {
+        return null;
+    }
+
+    console.log({ blockedUsers });
+    if (!blockedUsers.length) {
+        return <Box px={2.5}>No blocked users</Box>;
+    }
+
+    return (
+        <Stack mt={3}>
+            {blockedUsers.map((user) => {
+                return (
+                    <Box
+                        key={user.id}
+                        display="flex"
+                        justifyContent="space-between"
+                        alignItems="center"
+                        pr={2.5}
+                    >
+                        <ContactRow
+                            name={user.displayName}
+                            selected={false}
+                            avatarFileId={user.avatarFileId}
+                        />
+                        <IconButton onClick={() => remove(user.id)}>
+                            <Close />
+                        </IconButton>
+                    </Box>
+                );
+            })}
+        </Stack>
     );
 }

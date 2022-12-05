@@ -30,6 +30,8 @@ Table user {
   callHistory call_history [not null]
   userSetting user_setting [not null]
   userActivities acivity [not null]
+  userBlocks block [not null]
+  blockedByUsers block [not null]
 }
 
 Table acivity {
@@ -38,6 +40,15 @@ Table acivity {
   createdAt DateTime [default: `now()`, not null]
   userId Int [not null]
   user user [not null]
+}
+
+Table block {
+  id Int [pk, increment]
+  createdAt DateTime [default: `now()`, not null]
+  userId Int [not null]
+  user user [not null]
+  blockedId Int [not null]
+  blocked user [not null]
 }
 
 Table device {
@@ -223,6 +234,10 @@ Table api_key {
 }
 
 Ref: acivity.userId > user.id
+
+Ref: block.userId > user.id
+
+Ref: block.blockedId > user.id
 
 Ref: device.userId > user.id
 

@@ -14,7 +14,7 @@ const roomApi = api.injectEndpoints({
                     return null;
                 }
             },
-            providesTags: (res) => res && res?.id && [{ type: "Rooms2", id: res.id }],
+            providesTags: (res) => res && res?.id && [{ type: "Rooms", id: res.id }],
         }),
         createRoom: build.mutation<{ room: RoomType }, any>({
             query: (data) => {
@@ -51,6 +51,13 @@ const roomApi = api.injectEndpoints({
                 return { url: `/messenger/rooms/${roomId}`, method: "DELETE" };
             },
         }),
+        getRoomBlocked: build.query<boolean, number>({
+            query: (roomId) => {
+                return `/messenger/blocks/rooms/${roomId}`;
+            },
+            transformResponse: (res) => res.blocked,
+            providesTags: [{ type: "BlockList", id: "Room" }],
+        }),
     }),
     overrideExisting: true,
 });
@@ -64,6 +71,7 @@ export const {
     useUpdateRoomMutation,
     useDeleteRoomMutation,
     useLeaveRoomMutation,
+    useGetRoomBlockedQuery,
 } = roomApi;
 
 export default roomApi;

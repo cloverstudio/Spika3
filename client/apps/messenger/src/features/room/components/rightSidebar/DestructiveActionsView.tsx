@@ -11,6 +11,7 @@ import { hideRightSidebar } from "../../slices/rightSidebar";
 import { removeRoom } from "../../slices/leftSidebar";
 import { selectUserId } from "../../../../store/userSlice";
 import useStrings from "../../../../hooks/useStrings";
+import { useBlockUserMutation } from "../../api/user";
 
 export interface DetailsDestructiveActionsProps {
     room: RoomType;
@@ -24,10 +25,12 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
     const showBasicDialog = useShowBasicDialog();
     const [leaveRoom] = useLeaveRoomMutation();
     const [deleteRoom] = useDeleteRoomMutation();
+    const [blockUser] = useBlockUserMutation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
     const userIsAdmin = users.find((u) => u.userId === userId).isAdmin;
+    const otherUserId = users.find((u) => u.userId !== userId)?.userId;
 
     const handleLeave = () => {
         const haveOtherAdmins = users.filter((u) => u.isAdmin && u.userId !== userId).length > 0;
@@ -77,11 +80,27 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
         );
     };
 
+    const handleBlock = () => {
+        showBasicDialog(
+            {
+                text: strings.blockUserQuestion,
+                title: strings.confirm,
+                allowButtonLabel: strings.yes,
+                denyButtonLabel: strings.cancel,
+            },
+            () =>
+                blockUser(otherUserId)
+                    .unwrap()
+                    .then(() => {
+                        console.log("done");
+                    })
+        );
+    };
+
     return (
         <Box>
             {type === "private" && (
                 <IconButton
-                    disableRipple
                     size="large"
                     sx={{
                         ml: 1,
@@ -90,6 +109,7 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
                         },
                         width: "100%",
                     }}
+                    onClick={handleBlock}
                 >
                     <Stack
                         direction="row"

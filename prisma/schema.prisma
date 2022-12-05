@@ -39,6 +39,8 @@ model User {
   callHistory     CallHistory[]
   userSetting     UserSetting[]
   userActivities  UserActivity[]
+  userBlocks      UserBlock[]     @relation("userBlocks")
+  blockedByUsers  UserBlock[]     @relation("blocked")
 
   @@map(name: "user")
 }
@@ -52,6 +54,19 @@ model UserActivity {
   user   User @relation(fields: [userId], references: [id])
 
   @@map(name: "acivity")
+}
+
+model UserBlock {
+  id        Int      @id @default(autoincrement()) @map(name: "id")
+  createdAt DateTime @default(now()) @map(name: "createdn_at")
+
+  userId Int  @map(name: "user_id")
+  user   User @relation(name: "userBlocks", fields: [userId], references: [id])
+
+  blockedId Int  @map(name: "blocked_id")
+  blocked   User @relation(name: "blocked", fields: [blockedId], references: [id])
+
+  @@map(name: "block")
 }
 
 model Device {

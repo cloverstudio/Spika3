@@ -17,6 +17,7 @@ import noteRouter from "./route/note";
 import webhookRouter from "./route/webhook";
 import apiKeyRouter from "./route/apiKey";
 import utilsRouter from "./route/utils";
+import blockRouter from "./route/block";
 
 import * as Constants from "../../components/consts";
 import Service, { ServiceStartParams } from "../types/serviceInterface";
@@ -69,6 +70,7 @@ export default class Messenger implements Service {
         messengerRouter.use("/webhooks", webhookRouter({}));
         messengerRouter.use("/api-keys", apiKeyRouter({}));
         messengerRouter.use("/utils", utilsRouter({}));
+        messengerRouter.use("/blocks", blockRouter());
 
         return messengerRouter;
     }
