@@ -152,8 +152,6 @@ describe("API", () => {
                 `.temp/${clientId}`
             );
 
-            console.log("tempFileDir", tempFileDir);
-
             const tempFileDirExists = fs.existsSync(tempFileDir);
 
             expect(tempFileDirExists).to.eqls(true);
@@ -366,6 +364,20 @@ describe("API", () => {
 
             expect(responseInvalidNotNumber.status).to.eqls(400);
             expect(responseNoParam.status).to.eqls(200);
+        });
+
+        it("Metadata", async () => {
+            const responseValid = await supertest(app)
+                .post("/api/upload/files/verify")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, metaData: { duration: 1, width: 2, height: 3 } });
+
+            expect(responseValid.status).to.eqls(200);
+            expect(responseValid.body.data.file).to.has.property("metaData");
+            expect(responseValid.body.data.file.metaData).to.has.property("duration");
+            expect(responseValid.body.data.file.metaData.duration).to.eqls(1);
+            expect(responseValid.body.data.file.metaData.width).to.eqls(2);
+            expect(responseValid.body.data.file.metaData.height).to.eqls(3);
         });
     });
 });

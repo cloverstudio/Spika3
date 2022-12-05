@@ -66,6 +66,7 @@ model File {
   fileName   String @map(name: "file_name")
   size       Int    @map(name: "size")
   clientId   String @unique @map(name: "client_id")
+  metaData   Json   @default("{}") @map(name: "meta_data")
 
   createdAt  DateTime @default(now()) @map(name: "created_at")
   modifiedAt DateTime @default(now()) @map(name: "modified_at")

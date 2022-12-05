@@ -52,6 +52,7 @@ Table file {
   fileName String [not null]
   size Int [not null]
   clientId String [unique, not null]
+  metaData Json [not null, default: '{}']
   createdAt DateTime [default: `now()`, not null]
   modifiedAt DateTime [default: `now()`, not null]
 }

@@ -57,13 +57,7 @@ export default (): Router => {
                     .send(errorResponse("File with that clientId already exists", userReq.lang));
             }
 
-            const tempFileDir = path.resolve(
-                __dirname,
-                "../../../../../",
-                process.env["UPLOAD_FOLDER"],
-                ".temp/",
-                clientId
-            );
+            const tempFileDir = path.resolve(process.env["UPLOAD_FOLDER"], ".temp/", clientId);
 
             if (!fs.existsSync(tempFileDir)) {
                 console.log("created", tempFileDir);
@@ -87,8 +81,17 @@ export default (): Router => {
         const userReq: UserRequest = req as UserRequest;
 
         try {
-            const { total, size, mimeType, fileName, fileHash, type, relationId, clientId } =
-                req.body;
+            const {
+                total,
+                size,
+                mimeType,
+                fileName,
+                fileHash,
+                type,
+                relationId,
+                clientId,
+                metaData, // { duration,width,height}
+            } = req.body;
 
             const exists = await prisma.file.findFirst({ where: { clientId } });
 
@@ -98,13 +101,7 @@ export default (): Router => {
                     .send(errorResponse("File with that clientId already exists", userReq.lang));
             }
 
-            const tempFileDir = path.resolve(
-                __dirname,
-                "../../../../../",
-                process.env["UPLOAD_FOLDER"],
-                ".temp/",
-                clientId
-            );
+            const tempFileDir = path.resolve(process.env["UPLOAD_FOLDER"], ".temp/", clientId);
 
             if (!fs.existsSync(tempFileDir)) {
                 console.log("created", tempFileDir);
@@ -125,12 +122,7 @@ export default (): Router => {
                     .send(errorResponse("Not all chunks are uploaded", userReq.lang));
             }
 
-            const filesDir = path.resolve(
-                __dirname,
-                "../../../../../",
-                process.env["UPLOAD_FOLDER"],
-                "files/"
-            );
+            const filesDir = path.resolve(process.env["UPLOAD_FOLDER"], "files/");
 
             if (!fs.existsSync(filesDir)) {
                 await mkdir(filesDir);
@@ -161,6 +153,10 @@ export default (): Router => {
                 return res.status(400).send(errorResponse("Hash doesn't match", userReq.lang));
             }
 
+            const durationInt: number = metaData?.duration ? parseInt(metaData.duration) : 0;
+            const widthInt: number = metaData?.width ? parseInt(metaData.width) : 0;
+            const heightInt: number = metaData?.height ? parseInt(metaData.height) : 0;
+
             const file = await prisma.file.create({
                 data: {
                     fileName,
@@ -169,6 +165,11 @@ export default (): Router => {
                     type,
                     relationId,
                     clientId,
+                    metaData: {
+                        duration: durationInt,
+                        width: widthInt,
+                        height: heightInt,
+                    },
                     path: "/uploads/files/" + clientId,
                 },
             });
@@ -210,13 +211,7 @@ export default (): Router => {
                 return res.send(successResponse({}, userReq.lang));
             }
 
-            const pathToFile = path.resolve(
-                __dirname,
-                "../../../../../",
-                process.env["UPLOAD_FOLDER"],
-                "files/",
-                file.clientId
-            );
+            const pathToFile = path.resolve(process.env["UPLOAD_FOLDER"], "files/", file.clientId);
 
             if (!fs.existsSync(pathToFile)) {
                 le(`File doesn't exists - ${pathToFile}`);
@@ -236,13 +231,7 @@ export default (): Router => {
         try {
             const { fileName } = req.params;
 
-            const dirPath = path.resolve(
-                __dirname,
-                "../../../../../",
-                process.env["UPLOAD_FOLDER"],
-                ".temp/",
-                fileName
-            );
+            const dirPath = path.resolve(process.env["UPLOAD_FOLDER"], ".temp/", fileName);
 
             if (!fs.existsSync(dirPath)) {
                 return res.status(404).send(errorResponse("Not found", userReq.lang));

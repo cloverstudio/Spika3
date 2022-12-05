@@ -4,6 +4,7 @@ import { dynamicBaseQuery } from "../../../api/api";
 import type { RootState } from "../../../store/store";
 import MessageType, { MessageListType, MessageRecordType } from "../../../types/Message";
 import uploadFile from "../../../utils/uploadFile";
+import { getVideoThumbnail } from "../../../utils/media";
 import generateThumbFile from "../lib/generateThumbFile";
 import getFileType from "../lib/getFileType";
 import getMessageStatus from "../lib/getMessageStatus";
@@ -158,6 +159,18 @@ export const sendFileMessage = createAsyncThunk(
                     const thumbFileUploaded = await uploadFile({
                         file: thumbFile,
                         type: thumbFile.type || "unknown",
+                    });
+
+                    body.thumbId = thumbFileUploaded.id;
+                }
+            }
+            if (/^.*video.*$/.test(file.type)) {
+                console.log("vide type", type, file.type);
+                const thumbFile = await getVideoThumbnail(file);
+                if (thumbFile) {
+                    const thumbFileUploaded = await uploadFile({
+                        file: thumbFile,
+                        type: thumbFile.type || "image/jpeg",
                     });
 
                     body.thumbId = thumbFileUploaded.id;
