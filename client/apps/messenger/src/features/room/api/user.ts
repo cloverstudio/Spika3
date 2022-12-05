@@ -17,7 +17,13 @@ const userApi = api.injectEndpoints({
         }),
         removeUserFromBlockList: build.mutation<void, number>({
             query: (userId) => {
-                return { method: "DELETE", url: `/messenger/blocks/${userId}` };
+                return { method: "DELETE", url: `/messenger/blocks/userId/${userId}` };
+            },
+            invalidatesTags: [{ type: "BlockList" }],
+        }),
+        removeBlockById: build.mutation<void, number>({
+            query: (id) => {
+                return { method: "DELETE", url: `/messenger/blocks/${id}` };
             },
             invalidatesTags: [{ type: "BlockList" }],
         }),
@@ -36,5 +42,6 @@ export const {
     useGetBlockedUsersQuery,
     useRemoveUserFromBlockListMutation,
     useBlockUserMutation,
+    useRemoveBlockByIdMutation,
 } = userApi;
 export default userApi;

@@ -351,14 +351,18 @@ export function EditPhotoDialog(props: EditPhotoDialogProps) {
 function BlockedUsersList() {
     const { data: blockedUsers, isLoading } = useGetBlockedUsersQuery();
     const [remove] = useRemoveUserFromBlockListMutation();
+    const strings = useStrings();
 
     if (isLoading) {
         return null;
     }
 
-    console.log({ blockedUsers });
     if (!blockedUsers.length) {
-        return <Box px={2.5}>No blocked users</Box>;
+        return (
+            <Box mt={3} px={2.5}>
+                {strings.noBlockedUsers}
+            </Box>
+        );
     }
 
     return (

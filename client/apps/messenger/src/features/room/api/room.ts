@@ -51,7 +51,7 @@ const roomApi = api.injectEndpoints({
                 return { url: `/messenger/rooms/${roomId}`, method: "DELETE" };
             },
         }),
-        getRoomBlocked: build.query<boolean, number>({
+        getRoomBlocked: build.query<{ id: number }, number>({
             query: (roomId) => {
                 return `/messenger/blocks/rooms/${roomId}`;
             },

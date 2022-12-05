@@ -95,6 +95,9 @@ const en = {
     blockedUsers: "Blocked users",
     blockUserQuestion: "Do you want to block user?",
     yes: "Yes",
+    noBlockedUsers: "No blocked users",
+    youBlockedThisContact: "You blocked this contact.",
+    clickHereToUnblock: "Click here to unblock.",
 };
 
 const hr = {
@@ -192,6 +195,9 @@ const hr = {
     blockedUsers: "Blokirani korisnici",
     blockUserQuestion: "Da li zaista želite blokirati tog korisnika?",
     yes: "Da",
+    noBlockedUsers: "Nema blokiranih korisnika",
+    youBlockedThisContact: "Ovaj kontakt je blokiran.",
+    clickHereToUnblock: "Klikni ovdje odblokiranje.",
 };
 
 const strings = {

@@ -16,6 +16,7 @@ import sanitize from "../../../components/sanitize";
 import { formatMessageBody } from "../../../components/message";
 import createSSEMessageRecordsNotify from "../lib/sseMessageRecordsNotify";
 import prisma from "../../../components/prisma";
+import { isRoomBlocked } from "./block";
 
 const postMessageSchema = yup.object().shape({
     body: yup.object().shape({
@@ -74,6 +75,12 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             if (room.deleted) {
                 return res.status(403).send(errorResponse("Room is deleted", userReq.lang));
+            }
+
+            const blocked = await isRoomBlocked(room.id, userReq.user.id);
+
+            if (blocked) {
+                return res.status(403).send(errorResponse("Room is blocked", userReq.lang));
             }
 
             // validation
@@ -662,6 +669,12 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     .send(
                         errorResponse("Only messages with type text can be edited", userReq.lang)
                     );
+            }
+
+            const blocked = await isRoomBlocked(message.roomId, userReq.user.id);
+
+            if (blocked) {
+                return res.status(403).send(errorResponse("Room is blocked", userReq.lang));
             }
 
             for (const deviceMessage of message.deviceMessages) {

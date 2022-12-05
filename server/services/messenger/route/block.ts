@@ -63,7 +63,7 @@ export default (): Router => {
         }
     });
 
-    router.delete("/:blockedId", auth, async (req: Request, res: Response) => {
+    router.delete("/userId/:blockedId", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         const blockedId = parseInt(req.params.blockedId as string);
 
@@ -81,35 +81,32 @@ export default (): Router => {
         }
     });
 
+    router.delete("/:id", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        const id = parseInt(req.params.id as string);
+        console.log({ id });
+        try {
+            if (isNaN(id)) {
+                return res.status(400).send(errorResponse("id must be number", userReq.lang));
+            }
+
+            await prisma.userBlock.deleteMany({ where: { id, userId: userReq.user.id } });
+
+            res.send(successResponse({ deleted: true }, userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
     router.get("/rooms/:roomId", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         const roomId = parseInt(req.params.roomId as string);
 
         try {
-            const room = await prisma.room.findUnique({
-                where: { id: roomId },
-                include: { users: true },
-            });
+            const block = await getRoomBlock(roomId, userReq.user.id);
 
-            if (!room) {
-                return res.send(successResponse({ blocked: false }, userReq.lang));
-            }
-
-            if (room.type !== "private") {
-                return res.send(successResponse({ blocked: false }, userReq.lang));
-            }
-
-            const otherUsers = room.users.filter((ru) => ru.userId !== userReq.user.id);
-            console.log({ otherUsers });
-            if (!otherUsers.length) {
-                return res.send(successResponse({ blocked: false }, userReq.lang));
-            }
-
-            const block = await prisma.userBlock.findFirst({
-                where: { userId: userReq.user.id, blockedId: otherUsers[0].userId },
-            });
-
-            res.send(successResponse({ blocked: !!block }, userReq.lang));
+            res.send(successResponse({ blocked: block }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -118,3 +115,36 @@ export default (): Router => {
 
     return router;
 };
+
+export async function isRoomBlocked(roomId: number, userId: number) {
+    const block = await getRoomBlock(roomId, userId);
+
+    return !!block;
+}
+
+async function getRoomBlock(roomId: number, userId: number) {
+    const room = await prisma.room.findUnique({
+        where: { id: roomId },
+        include: { users: true },
+    });
+
+    if (!room) {
+        return null;
+    }
+
+    if (room.type !== "private") {
+        return null;
+    }
+
+    const otherUsers = room.users.filter((ru) => ru.userId !== userId);
+
+    if (!otherUsers.length) {
+        return null;
+    }
+
+    const block = await prisma.userBlock.findFirst({
+        where: { userId: userId, blockedId: otherUsers[0].userId },
+    });
+
+    return block;
+}
