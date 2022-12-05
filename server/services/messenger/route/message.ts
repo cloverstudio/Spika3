@@ -77,7 +77,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 return res.status(403).send(errorResponse("Room is deleted", userReq.lang));
             }
 
-            const blocked = await isRoomBlocked(room.id, userReq.user.id);
+            const blocked = await isRoomBlocked(room.id, fromUserId);
 
             if (blocked) {
                 return res.status(403).send(errorResponse("Room is blocked", userReq.lang));
@@ -130,9 +130,23 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 return res.status(400).send(errorResponse("Invalid type", userReq.lang));
             }
 
+            const allReceivers = room.users.filter((u) => !u.user.isBot);
+
+            const usersWhoBlockedSender = await prisma.userBlock.findMany({
+                where: {
+                    userId: { in: allReceivers.map((u) => u.userId) },
+                    blockedId: fromUserId,
+                },
+                select: { userId: true },
+            });
+
+            const receivers = allReceivers.filter(
+                (u) => !usersWhoBlockedSender.map((u) => u.userId).includes(u.userId)
+            );
+
             const devices = await prisma.device.findMany({
                 where: {
-                    userId: { in: room.users.map((u) => u.userId) },
+                    userId: { in: receivers.map((u) => u.userId) },
                 },
             });
 
@@ -151,7 +165,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     roomId,
                     fromUserId: userReq.user.id,
                     fromDeviceId: userReq.device.id,
-                    totalUserCount: room.users.filter((u) => !u.user.isBot).length,
+                    totalUserCount: allReceivers.length,
                     deliveredCount: 0,
                     seenCount: 0,
                     localId,

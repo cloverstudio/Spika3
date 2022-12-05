@@ -110,15 +110,30 @@ async function getDeviceIdsFromMessageId(messageId: number): Promise<number[]> {
                 select: {
                     users: {
                         select: {
-                            user: { select: { device: { select: { id: true, createdAt: true } } } },
+                            user: {
+                                select: {
+                                    device: { select: { id: true, createdAt: true } },
+                                    id: true,
+                                },
+                            },
                         },
                     },
                 },
             },
+            fromUserId: true,
         },
     });
 
+    const usersWhoBlockedSender = await prisma.userBlock.findMany({
+        where: {
+            userId: { in: message.room.users.map((u) => u.user.id) },
+            blockedId: message.fromUserId,
+        },
+        select: { userId: true },
+    });
+
     return message.room.users
+        .filter((u) => !usersWhoBlockedSender.map((m) => m.userId).includes(u.user.id))
         .reduce((acc, curr) => [...acc, ...curr.user.device], [])
         .filter((d) => +d.createdAt <= +message.createdAt)
         .map((d) => d.id);

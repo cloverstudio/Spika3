@@ -774,6 +774,13 @@ export const selectShouldDisplayBlockButton =
     (state: RootState): boolean => {
         const room = state.messages[roomId];
         const roomData = state.api.queries[`getRoom(${roomId})`]?.data as RoomType;
+        const roomBlockData = state.api.queries[`getRoomBlocked(${roomId})`]?.data as {
+            id: number;
+        };
+
+        if (roomBlockData) {
+            return false;
+        }
 
         if (!room || !roomData) {
             return false;
@@ -787,23 +794,22 @@ export const selectShouldDisplayBlockButton =
         return allMessagesLoaded && noUserMessages && roomData.type === "private";
     };
 
-export const selectIsRoomBlocked =
+export const selectOtherUserIdInPrivateRoom =
     (roomId: number) =>
-    (state: RootState): boolean => {
-        const userId = state.user.id;
-        const room = state.messages[roomId];
+    (state: RootState): number => {
         const roomData = state.api.queries[`getRoom(${roomId})`]?.data as RoomType;
 
-        if (!room || !roomData) {
-            return false;
+        if (!roomData) {
+            return null;
         }
 
-        const allMessagesLoaded = room.cursor === null;
-        const noUserMessages = Object.values(room.messages || {}).every(
-            (m) => m.fromUserId !== state.user.id
-        );
+        if (roomData.type !== "private") {
+            return null;
+        }
 
-        return allMessagesLoaded && noUserMessages && roomData.type === "private";
+        const otherUser = roomData.users.find((m) => m.userId !== state.user.id);
+
+        return otherUser?.userId;
     };
 
 export const selectIsLastMessageFromUser =

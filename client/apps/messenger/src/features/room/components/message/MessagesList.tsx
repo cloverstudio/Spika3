@@ -4,11 +4,14 @@ import dayjs from "dayjs";
 import React, { memo, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
+import { useShowBasicDialog } from "../../../../hooks/useModal";
+import useStrings from "../../../../hooks/useStrings";
 import MessageType from "../../../../types/Message";
-import { useGetRoomBlockedQuery } from "../../api/room";
+import { useBlockUserMutation } from "../../api/user";
 import {
     fetchMessages,
     selectCursor,
+    selectOtherUserIdInPrivateRoom,
     selectRoomMessages,
     selectShouldDisplayBlockButton,
 } from "../../slices/messages";
@@ -26,14 +29,15 @@ const Date = memo(function Date({ day }: { day: string }) {
 export default function MessagesList(): React.ReactElement {
     const roomId = parseInt(useParams().id || "");
     const messageId = parseInt(useParams().messageId || "");
-    const roomBlock = useGetRoomBlockedQuery(roomId);
+    const strings = useStrings();
+    const showBasicDialog = useShowBasicDialog();
 
-    console.log({ roomBlock });
-
+    const [blockUser] = useBlockUserMutation();
     const dispatch = useDispatch();
     const messages = useSelector(selectRoomMessages(roomId));
     const cursor = useSelector(selectCursor(roomId));
     const shouldDisplayBlockButton = useSelector(selectShouldDisplayBlockButton(roomId));
+    const otherUserId = useSelector(selectOtherUserIdInPrivateRoom(roomId));
 
     const messagesSorted = useMemo(() => {
         const sorted = Object.values(messages).sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1));
@@ -66,7 +70,23 @@ export default function MessagesList(): React.ReactElement {
         }
     }, [dispatch, roomId, messageId, cursor]);
 
-    console.log({ shouldDisplayBlockButton });
+    const handleBlock = () => {
+        showBasicDialog(
+            {
+                text: strings.blockUserQuestion,
+                title: strings.confirm,
+                allowButtonLabel: strings.yes,
+                denyButtonLabel: strings.cancel,
+            },
+            () => {
+                blockUser(otherUserId)
+                    .unwrap()
+                    .then(() => {
+                        console.log("done");
+                    });
+            }
+        );
+    };
 
     return (
         <>
@@ -96,8 +116,9 @@ export default function MessagesList(): React.ReactElement {
                         color="error"
                         sx={{ bgcolor: "common.chatBackground" }}
                         startIcon={<DoDisturb />}
+                        onClick={handleBlock}
                     >
-                        Block
+                        {strings.blockUser}
                     </Button>
                 </Box>
             )}
