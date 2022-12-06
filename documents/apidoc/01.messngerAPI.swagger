@@ -366,6 +366,18 @@ paths:
           schema:
             type: number
           description: "The id of model the file refers to."
+        - name: "metaData"
+          in: body
+          required: false
+          schema:
+            type: "object"
+            properties:
+              width:
+                type: "integer"
+              height:
+                type: "integer"
+              duration:
+                type: "integer"
 
       responses:
         "200":
@@ -1577,6 +1589,15 @@ definitions:
       relationId:
         type: "integer"
         format: "int32"
+      metaData:
+        type: "object"
+        properties:
+          width:
+            type: "integer"
+          height:
+            type: "integer"
+          duration:
+            type: "integer"
   Room:
     type: "object"
     properties:
