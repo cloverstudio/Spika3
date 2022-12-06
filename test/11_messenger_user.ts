@@ -44,28 +44,41 @@ describe("User API", () => {
         });
 
         it("Updates user", async () => {
-            const displayName = "John";
-            const avatarUrl = "/new/avatar/url";
+            const updateObj = {
+                telephoneNumber: "+3859777789",
+                firstName: "žan",
+                lastName: "wan",
+                country: "HR",
+                city: "Zagreb",
+                gender: "male",
+                email: "email@email.com",
+                dob: +new Date(),
+            };
             const response = await supertest(app)
                 .put("/api/messenger/me/")
-                .send({
-                    displayName,
-                    avatarUrl,
-                })
+                .send(updateObj)
                 .set({ accesstoken: globals.userToken });
 
             expect(response.status).to.eqls(200);
             expect(response.body).to.has.property("data");
             expect(response.body.data).to.has.property("user");
-            expect(response.body.data.user.displayName).to.eqls(displayName);
-            expect(response.body.data.user.avatarUrl).to.eqls(avatarUrl);
+            expect(response.body.data.user.telephoneNumber).to.eqls(updateObj.telephoneNumber);
+            expect(response.body.data.user.firstName).to.eqls(updateObj.firstName);
+            expect(response.body.data.user.lastName).to.eqls(updateObj.lastName);
+            expect(response.body.data.user.country).to.eqls(updateObj.country);
+            expect(response.body.data.user.gender).to.eqls(updateObj.gender);
+            expect(response.body.data.user.emailAddress).to.eqls(updateObj.email);
 
             const userFromDb = await globals.prisma.user.findUnique({
                 where: { id: globals.userId },
             });
 
-            expect(userFromDb.displayName).to.eqls(displayName);
-            expect(userFromDb.avatarUrl).to.eqls(avatarUrl);
+            expect(userFromDb.telephoneNumber).to.eqls(updateObj.telephoneNumber);
+            expect(userFromDb.firstName).to.eqls(updateObj.firstName);
+            expect(userFromDb.lastName).to.eqls(updateObj.lastName);
+            expect(userFromDb.country).to.eqls(updateObj.country);
+            expect(userFromDb.gender).to.eqls(updateObj.gender);
+            expect(userFromDb.emailAddress).to.eqls(updateObj.email);
         });
 
         it("Gets user details", async () => {

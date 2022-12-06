@@ -535,6 +535,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     roomId,
                     createdAt: { gte: roomUser.createdAt },
                     messageRecords: { none: { userId, type: "seen" } },
+                    deviceMessages: { some: { userId } },
                 },
             });
 

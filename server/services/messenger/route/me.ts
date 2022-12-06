@@ -16,8 +16,7 @@ import prisma from "../../../components/prisma";
 const updateSchema = yup.object().shape({
     body: yup.object().shape({
         telephoneNumber: yup.string().strict(),
-        telephoneNumberHashed: yup.string().strict(),
-        avatarUrl: yup.string().strict(),
+        avatarFileId: yup.number().strict(),
         firstName: yup.string().strict().required(),
         lastName: yup.string().strict().required(),
         country: yup.string().strict().required(),
@@ -56,7 +55,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         try {
             const {
                 telephoneNumber,
-                avatarUrl,
                 avatarFileId,
                 firstName,
                 lastName,
@@ -97,7 +95,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     telephoneNumber,
                     emailAddress,
                     displayName,
-                    avatarUrl,
                     firstName,
                     lastName,
                     country,

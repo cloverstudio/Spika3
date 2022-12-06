@@ -8,7 +8,7 @@ const wait = (): Promise<void> => {
     return new Promise<void>((res, rej) => {
         setTimeout(() => {
             res();
-        }, 500);
+        }, 1000);
     });
 };
 

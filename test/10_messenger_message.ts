@@ -448,7 +448,7 @@ describe("API", () => {
 
             expect(response.status).to.eqls(200);
 
-            await wait(0.1);
+            await wait(0.2);
 
             const messageRecords = await globals.prisma.messageRecord.findMany({
                 where: {
@@ -479,7 +479,7 @@ describe("API", () => {
 
             expect(response.status).to.eqls(200);
 
-            await wait(0.1);
+            await wait(0.2);
 
             const messageRecords = await globals.prisma.messageRecord.findMany({
                 where: {

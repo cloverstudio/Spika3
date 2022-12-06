@@ -107,8 +107,8 @@ export default (params: InitRouterParams) => {
             const displayName: string = req.body.displayName;
             const emailAddress: string = req.body.emailAddress;
             const telephoneNumber: string = req.body.telephoneNumber;
-            const avatarUrl: string = req.body.avatarUrl;
-            const avatarFileId: number = parseInt(req.body.avatarFileId);
+            const avatarUrl: string = req.body.avatarUrl || "";
+            const avatarFileId: number = parseInt(req.body.avatarFileId || "0");
             const verified: boolean = req.body.verified;
 
             if (Utils.isEmpty(displayName))
@@ -220,8 +220,8 @@ export default (params: InitRouterParams) => {
             const displayName: string = req.body.displayName;
             const emailAddress: string = req.body.emailAddress;
             const telephoneNumber: string = req.body.telephoneNumber;
-            const avatarUrl: string = req.body.avatarUrl;
-            const avatarFileId: string = req.body.avatarFileId;
+            const avatarUrl: string = req.body.avatarUrl || "";
+            const avatarFileId: number = parseInt(req.body.avatarFileId || "0");
             const verified: boolean = req.body.verified;
             const verificationCode: string = req.body.verificationCode;
 

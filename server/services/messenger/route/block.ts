@@ -84,7 +84,7 @@ export default (): Router => {
     router.delete("/:id", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         const id = parseInt(req.params.id as string);
-        console.log({ id });
+
         try {
             if (isNaN(id)) {
                 return res.status(400).send(errorResponse("id must be number", userReq.lang));
