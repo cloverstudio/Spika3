@@ -1,7 +1,7 @@
 import { Alert, AlertTitle, Box, Button, TextField, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
+import useStrings from "../../../../../hooks/useStrings";
 import isValidURL from "../../../../../utils/isValidURL";
 import {
     useCreateApiKeyMutation,
@@ -31,6 +31,7 @@ export default function RightSidebarEditNoteContent({
 }
 
 function WebhookSettings(): React.ReactElement {
+    const strings = useStrings();
     const roomId = parseInt(useParams().id || "");
 
     const [url, setUrl] = useState("");
@@ -48,7 +49,7 @@ function WebhookSettings(): React.ReactElement {
 
     const handleSubmit = async () => {
         if (!isValidURL(url)) {
-            setError("Not valid URL");
+            setError(strings.notValidUrl);
             return;
         }
 
@@ -73,7 +74,7 @@ function WebhookSettings(): React.ReactElement {
     return (
         <Box p={2} mb={4}>
             <Typography mb={2} variant="h6">
-                Webhook
+                {strings.webhook}
             </Typography>
 
             <TextField
@@ -81,7 +82,7 @@ function WebhookSettings(): React.ReactElement {
                 required
                 fullWidth
                 size="small"
-                placeholder="Url"
+                placeholder={strings.url}
                 id="url"
                 name="url"
                 autoFocus
@@ -90,7 +91,11 @@ function WebhookSettings(): React.ReactElement {
                 onChange={({ target }) => handleChange(target.value)}
             />
 
-            {verifySignature && <Typography mb={2}>Verify signature: {verifySignature}</Typography>}
+            {verifySignature && (
+                <Typography mb={2}>
+                    {strings.verifySignature}: {verifySignature}
+                </Typography>
+            )}
 
             <Box
                 sx={{
@@ -100,11 +105,11 @@ function WebhookSettings(): React.ReactElement {
                 }}
             >
                 <Button onClick={handleSubmit} disabled={!url} sx={{ mr: 1 }} variant="contained">
-                    {webhookData?.id ? "Save" : "Create"}
+                    {webhookData?.id ? strings.save : strings.create}
                 </Button>
                 {webhookData?.id && (
                     <Button onClick={handleRemove} variant="outlined" color="error">
-                        Remove
+                        {strings.remove}
                     </Button>
                 )}
             </Box>
@@ -119,6 +124,8 @@ function WebhookSettings(): React.ReactElement {
 }
 
 function ApiKeySettings(): React.ReactElement {
+    const strings = useStrings();
+
     const roomId = parseInt(useParams().id || "");
     const [displayName, setDisplayName] = useState("");
     const [key, setKey] = useState("");
@@ -155,7 +162,7 @@ function ApiKeySettings(): React.ReactElement {
     return (
         <Box m={2}>
             <Typography mb={2} variant="h6">
-                API key
+                {strings.apiKey}
             </Typography>
 
             <TextField
@@ -163,7 +170,7 @@ function ApiKeySettings(): React.ReactElement {
                 required
                 fullWidth
                 size="small"
-                placeholder="Display name"
+                placeholder={strings.displayName}
                 id="displayName"
                 name="displayName"
                 autoFocus
@@ -172,8 +179,16 @@ function ApiKeySettings(): React.ReactElement {
                 onChange={({ target }) => handleChange(target.value)}
             />
 
-            {key && <Typography mb={2}>Api key: {key}</Typography>}
-            {key && <Typography mb={2}>POST url: {API_BASE_URL}/messaging/messages</Typography>}
+            {key && (
+                <Typography mb={2}>
+                    {strings.apiKey}: {key}
+                </Typography>
+            )}
+            {key && (
+                <Typography mb={2}>
+                    {strings.postUrl}: {API_BASE_URL}/messaging/messages
+                </Typography>
+            )}
 
             <Box
                 sx={{
@@ -188,12 +203,12 @@ function ApiKeySettings(): React.ReactElement {
                     sx={{ mr: 1 }}
                     variant="contained"
                 >
-                    {apiKeyData?.id ? "Save" : "Create"}
+                    {apiKeyData?.id ? strings.save : strings.create}
                 </Button>
 
                 {apiKeyData?.id && (
                     <Button onClick={handleRemove} variant="outlined" color="error">
-                        Remove
+                        {strings.remove}
                     </Button>
                 )}
             </Box>

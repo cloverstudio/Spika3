@@ -19,6 +19,7 @@ import { useGetContactsQuery, useGetContactsByKeywordQuery } from "../../api/con
 import User from "../../../../types/User";
 import Contacts from "../../../../types/Contacts";
 import { refreshOne as refreshOneRoom } from "../../slices/leftSidebar";
+import useStrings from "../../../../hooks/useStrings";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -28,6 +29,7 @@ export interface DetailsMembersProps {
 }
 
 export function DetailsMemberView(props: DetailsMembersProps) {
+    const strings = useStrings();
     const { members, roomId } = props;
 
     const userId = useSelector(selectUserId);
@@ -84,7 +86,9 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                     width: "100%",
                 }}
             >
-                <Typography variant="h6"> {members.length} Members</Typography>
+                <Typography variant="h6">
+                    {members.length} {strings.members}
+                </Typography>
                 {userIsAdmin && (
                     <IconButton size="large" color="primary" onClick={() => setOpenAddDialog(true)}>
                         <Add />
@@ -133,8 +137,9 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                                     }}
                                 />
                                 <Box>
-                                    {user.displayName} {roomUser.isAdmin ? " (Admin) " : ""}{" "}
-                                    {user.isBot ? " (Bot) " : ""}{" "}
+                                    {user.displayName}{" "}
+                                    {roomUser.isAdmin ? ` (${strings.admin}) ` : ""}{" "}
+                                    {user.isBot ? ` (${strings.bot}) ` : ""}{" "}
                                 </Box>
                             </Box>
 
@@ -153,7 +158,7 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                                                 onClick={() => handlePromoteToAdmin(user.id)}
                                                 sx={{ mr: 1 }}
                                             >
-                                                Make admin
+                                                {strings.makeAdmin}
                                             </Button>
 
                                             <IconButton
@@ -196,6 +201,7 @@ export interface AddMembersDialogProps {
 }
 
 export function AddMembersDialog(props: AddMembersDialogProps) {
+    const strings = useStrings();
     const [searchTerm, setSearchTerm] = React.useState("");
     const [searchTermDelay, setSearchTermDelay] = React.useState("");
     const [contacts, setContacts] = React.useState<Contacts>(null);
@@ -232,7 +238,7 @@ export function AddMembersDialog(props: AddMembersDialogProps) {
 
     return (
         <Dialog onClose={onClose} open={open}>
-            <DialogTitle sx={{ textAlign: "center" }}>Add Members</DialogTitle>
+            <DialogTitle sx={{ textAlign: "center" }}>{strings.addMembers}</DialogTitle>
             <IconButton
                 disableRipple
                 size="large"
@@ -264,7 +270,7 @@ export function AddMembersDialog(props: AddMembersDialogProps) {
             >
                 <TextField
                     id="outlined-basic"
-                    label="Search user"
+                    label={strings.search}
                     variant="outlined"
                     sx={{ width: "80%" }}
                     value={searchTerm}
@@ -306,7 +312,7 @@ export function AddMembersDialog(props: AddMembersDialogProps) {
                     handleSaveClick();
                 }}
             >
-                Add
+                {strings.add}
             </Button>
         </Dialog>
     );

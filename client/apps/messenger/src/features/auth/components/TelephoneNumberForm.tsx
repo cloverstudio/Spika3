@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Button, FormLabel, Box, Typography } from "@mui/material";
 import CountryPicker from "./CountryPicker";
+import useStrings from "../../../hooks/useStrings";
+import { APP_NAME } from "../../../../../../lib/constants";
 
 type TelephoneNumberFormProps = {
     onSubmit: (telephoneNumber: string) => void;
@@ -9,6 +11,7 @@ type TelephoneNumberFormProps = {
 export default function TelephoneNumberForm({
     onSubmit,
 }: TelephoneNumberFormProps): React.ReactElement {
+    const strings = useStrings();
     const [countryCode, setCountryCode] = useState("1");
     const [phoneNumber, setPhoneNumber] = useState("");
     const [validPhoneNumber, setValidPhoneNumber] = useState(false);
@@ -30,7 +33,7 @@ export default function TelephoneNumberForm({
                 variant="h3"
                 fontWeight="bold"
             >
-                Welcome!
+                {strings.welcome}
             </Typography>
 
             <Typography
@@ -41,11 +44,11 @@ export default function TelephoneNumberForm({
                 mb={{ xs: 5, md: 10 }}
                 fontWeight="medium"
             >
-                Enter your phone number to start using Spika
+                {`${strings.enterYourPhoneNumber} ${APP_NAME}`}
             </Typography>
 
             <Box textAlign="left" mb={{ xs: 3, md: 6 }}>
-                <FormLabel sx={{ mb: 1.5, display: "block" }}>Phone number</FormLabel>
+                <FormLabel sx={{ mb: 1.5, display: "block" }}>{strings.phoneNumber}</FormLabel>
                 <CountryPicker
                     code={setCountryCode}
                     setPhoneNumber={setPhoneNumber}
@@ -59,7 +62,7 @@ export default function TelephoneNumberForm({
                     variant="contained"
                     sx={{ marginTop: "1em" }}
                 >
-                    Next
+                    {strings.next}
                 </Button>
             </Box>
         </>

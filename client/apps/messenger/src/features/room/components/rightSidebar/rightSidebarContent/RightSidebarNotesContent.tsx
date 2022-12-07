@@ -5,10 +5,12 @@ import { useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
 
 import Loader from "../../../../../components/Loader";
+import useStrings from "../../../../../hooks/useStrings";
 import { useGetNotesByRoomIdQuery } from "../../../api/note";
 import { setActiveNoteId } from "../../../slices/rightSidebar";
 
 export default function RightSidebarNotesContent(): React.ReactElement {
+    const strings = useStrings();
     const roomId = +useParams().id;
     const dispatch = useDispatch();
 
@@ -19,7 +21,7 @@ export default function RightSidebarNotesContent(): React.ReactElement {
     }
 
     if (data.notes.length === 0) {
-        return <Box p={2}>No notes here!</Box>;
+        return <Box p={2}>{strings.noNotes}</Box>;
     }
 
     return (

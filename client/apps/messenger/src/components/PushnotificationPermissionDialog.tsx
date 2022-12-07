@@ -8,18 +8,17 @@ import {
     DialogTitle,
 } from "@mui/material";
 
-import setupPushnotification from "./firebaseInit";
-import { Stack } from "@mui/material";
-
-import logo from "../assets/logo.svg";
+import setupPushNotification from "./firebaseInit";
 
 import * as constants from "../../../../lib/constants";
-import PushnotificationInstructionImage from "../assets/pushnotification-instruction.gif";
+import PushNotificationInstructionImage from "../assets/pushnotification-instruction.gif";
 
-import { useGetDeviceQuery, useUpdateDeviceMutation } from "../api/device";
+import { useUpdateDeviceMutation } from "../api/device";
+import useStrings from "../hooks/useStrings";
 
-export default (): React.ReactElement => {
-    const [showPermissionDialog, setShowPermissionDialog] = useState<boolean>(false);
+export default function PushNotifPermissionDialog(): React.ReactElement {
+    const strings = useStrings();
+    const [showPermissionDialog, setShowPermissionDialog] = useState(false);
     const [updateDevice] = useUpdateDeviceMutation();
 
     useEffect(() => {
@@ -33,39 +32,37 @@ export default (): React.ReactElement => {
             return setShowPermissionDialog(true);
         }
 
-        initPushnotification();
-    }, []);
+        const initPushNotification = async () => {
+            if (!window.Notification) return;
 
-    const initPushnotification = async () => {
-        if (!window.Notification) return;
+            const permission = await Notification.requestPermission();
 
-        const permission = await Notification.requestPermission();
+            if (permission === "granted") {
+                const pushToken = await setupPushNotification();
+                if (pushToken && pushToken.length > 0) updateDevice({ pushToken });
+            }
+        };
 
-        if (permission === "granted") {
-            const pushToken = await setupPushnotification();
-            if (pushToken && pushToken.length > 0) updateDevice({ pushToken });
-        } else {
-        }
-    };
+        initPushNotification();
+    }, [updateDevice]);
 
     return (
         <Dialog
             open={showPermissionDialog}
-            onClose={() => {}}
             aria-labelledby="alert-dialog-title"
             aria-describedby="alert-dialog-description"
         >
-            <DialogTitle id="alert-dialog-title">{"Use push notification service ?"}</DialogTitle>
+            <DialogTitle id="alert-dialog-title">{strings.usePushNotificationService}</DialogTitle>
             <DialogContent>
                 <DialogContentText id="alert-dialog-description">
-                    Please enable push notification manually in your browser to use this feature.
+                    {strings.enablePushManually}
                 </DialogContentText>
                 <div
                     style={{
                         textAlign: "center",
                     }}
                 >
-                    <img src={PushnotificationInstructionImage} />
+                    <img src={PushNotificationInstructionImage} />
                 </div>
             </DialogContent>
             <DialogActions>
@@ -75,9 +72,9 @@ export default (): React.ReactElement => {
                         setShowPermissionDialog(false);
                     }}
                 >
-                    OK
+                    {strings.ok}
                 </Button>
             </DialogActions>
         </Dialog>
     );
-};
+}

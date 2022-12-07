@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { Button, Box, Typography, Link, Alert, AlertTitle } from "@mui/material";
 import PinInput from "./PinInput";
 import CountdownTimer from "./CountdownTimer";
+import useStrings from "../../../hooks/useStrings";
 
 type VerificationCodeFormProps = {
     onSubmit: (verificationCode: string) => void;
@@ -22,6 +23,7 @@ export default function VerificationCodeForm({
     timeLeft,
     info,
 }: VerificationCodeFormProps): React.ReactElement {
+    const strings = useStrings();
     const refs = [
         useRef(null),
         useRef(null),
@@ -73,7 +75,7 @@ export default function VerificationCodeForm({
                 variant="h3"
                 fontWeight="bold"
             >
-                Welcome!
+                {strings.welcome}
             </Typography>
 
             <Typography
@@ -84,7 +86,7 @@ export default function VerificationCodeForm({
                 mb={{ xs: error ? 1 : 5, md: error ? 4 : 10 }}
                 fontWeight="medium"
             >
-                We sent you verification code on {telephoneNumber}!
+                {strings.sentVerificationCode} {telephoneNumber}!
             </Typography>
             {error.length > 0 && !someCodeEntered && info.length === 0 && (
                 <Alert sx={{ mb: 4 }} severity="error">
@@ -115,8 +117,9 @@ export default function VerificationCodeForm({
                             sx={{ cursor: "pointer" }}
                             onClick={onBack}
                             variant="body1"
+                            textTransform="capitalize"
                         >
-                            Back
+                            {strings.back}
                         </Link>
                         <Link
                             fontWeight="bold"
@@ -127,7 +130,7 @@ export default function VerificationCodeForm({
                             }}
                             variant="body1"
                         >
-                            Resend code
+                            {strings.resendCode}
                         </Link>
                     </Box>
                 </Box>
@@ -137,7 +140,7 @@ export default function VerificationCodeForm({
                     fullWidth
                     variant="contained"
                 >
-                    Next
+                    {strings.next}
                 </Button>
             </Box>
         </>

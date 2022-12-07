@@ -2,11 +2,13 @@ import { Box, Button, TextField } from "@mui/material";
 
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import useStrings from "../../../../../hooks/useStrings";
 
 import { useEditNoteMutation, useGetNoteByIdQuery } from "../../../api/note";
 import { selectRightSidebarActiveNoteId, setActiveNoteId } from "../../../slices/rightSidebar";
 
 export default function RightSidebarEditNoteContent(): React.ReactElement {
+    const strings = useStrings();
     const noteId = useSelector(selectRightSidebarActiveNoteId);
 
     const { data } = useGetNoteByIdQuery(noteId);
@@ -36,7 +38,7 @@ export default function RightSidebarEditNoteContent(): React.ReactElement {
                 sx={{ mb: 2 }}
                 required
                 fullWidth
-                placeholder="Title"
+                placeholder={strings.title}
                 id="title"
                 name="title"
                 autoFocus
@@ -47,7 +49,7 @@ export default function RightSidebarEditNoteContent(): React.ReactElement {
                 sx={{ mb: 2 }}
                 required
                 fullWidth
-                placeholder="Description..."
+                placeholder={strings.description}
                 id="content"
                 name="content"
                 rows={36}
@@ -62,7 +64,7 @@ export default function RightSidebarEditNoteContent(): React.ReactElement {
                 variant="contained"
                 sx={{ marginTop: "1em" }}
             >
-                Save
+                {strings.save}
             </Button>
         </Box>
     );

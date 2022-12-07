@@ -14,6 +14,7 @@ import useIsInViewport from "../../../../hooks/useIsInViewport";
 import { hideLeftSidebar } from "../../slices/leftSidebar";
 
 import SearchBox from "./SearchBox";
+import useStrings from "../../../../hooks/useStrings";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -24,6 +25,7 @@ export default function SidebarContactList({
     handleUserClick?: (user: User) => void;
     selectedUsersIds?: number[];
 }): React.ReactElement {
+    const strings = useStrings();
     const dispatch = useDispatch();
     const { list, count, sortedByDisplayName } = useSelector(selectContacts);
     const loading = useSelector(selectContactLoading());
@@ -90,7 +92,9 @@ export default function SidebarContactList({
                 />
             </Box>
 
-            {!list.length && !isFetching && <Typography align="center">No contacts</Typography>}
+            {!list.length && !isFetching && (
+                <Typography align="center">{strings.noContacts}</Typography>
+            )}
 
             {sortedByDisplayName.map(([letter, contactList]) => {
                 return (
@@ -103,7 +107,6 @@ export default function SidebarContactList({
                             <ContactRow
                                 key={u.id}
                                 name={u.displayName}
-                                avatarUrl={u.avatarUrl}
                                 avatarFileId={u.avatarFileId}
                                 onClick={() => onUserClick(u)}
                                 selected={selectedUsersIds && selectedUsersIds.includes(u.id)}
@@ -121,8 +124,7 @@ type ContactRowProps = {
     name: string;
     onClick?: () => any;
     selected: boolean;
-    avatarUrl?: string;
-    avatarFileId?: number,
+    avatarFileId?: number;
     SelectedIcon?: () => React.ReactElement;
 };
 
@@ -130,7 +132,6 @@ export function ContactRow({
     name,
     onClick,
     selected,
-    avatarUrl,
     avatarFileId,
     SelectedIcon = () => <CheckIcon />,
 }: ContactRowProps): React.ReactElement {

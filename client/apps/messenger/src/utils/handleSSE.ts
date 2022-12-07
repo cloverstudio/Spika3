@@ -183,9 +183,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                     ([key, val]) =>
                         key.startsWith("getRoom(") &&
                         val?.data &&
-                        (val.data as { room: RoomType }).room.users.find(
-                            (u) => u.userId === user.id
-                        )
+                        (val.data as RoomType).users.find((u) => u.userId === user.id)
                 )
                 .map(([_, val]) => val);
 

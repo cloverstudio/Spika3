@@ -15,9 +15,7 @@ import {
     FormControlLabel,
     Radio,
     CircularProgress,
-    Switch
 } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
 import { ArrowBackIos, CameraAlt, Close } from "@mui/icons-material";
 import uploadFile from "../../../utils/uploadFile";
 
@@ -30,6 +28,7 @@ import { useNavigate } from "react-router-dom";
 
 import ThemeSwitch from "./leftSidebar/ThemeSwitch";
 import { ThemeContext, ThemeType } from "../../../theme";
+import useStrings from "../../../hooks/useStrings";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -39,11 +38,10 @@ export interface EditProfileProps {
 }
 
 export function EditProfileView({ onClose, user }: EditProfileProps) {
+    const strings = useStrings();
     const imageRef = useRef(null);
     const [name, setName] = React.useState(user.displayName);
     const [proposedName, setProposedName] = React.useState(user.displayName);
-    const [profileAvatarUrl, setProfileAvatarUrl] = React.useState(user.avatarUrl);
-    const [profileAvatarFileId, setProfileAvatarFileId] = React.useState(user.avatarFileId);
     const [file, setFile] = useState<File>();
     const [editProfileName, setEditProfileName] = useState(false);
     const [editProfilePicture, setEditProfilePicture] = useState(false);
@@ -113,7 +111,6 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
         try {
             setLoading(true);
             await update({ displayName: proposedName, avatarUrl: "", avatarFileId: 0 }).unwrap();
-            setProfileAvatarUrl("");
             setLoading(false);
             closeEditName();
         } catch (error) {
@@ -134,9 +131,10 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                     relationId: user.id,
                 });
 
-                await update({ displayName: proposedName, avatarUrl: uploadedFile.path, avatarFileId: uploadedFile.id  }).unwrap();
-                setProfileAvatarUrl(uploadedFile.path);
-                setProfileAvatarFileId(uploadedFile.id)
+                await update({
+                    displayName: proposedName,
+                    avatarFileId: uploadedFile.id,
+                }).unwrap();
             } else {
                 await update({ displayName: proposedName }).unwrap();
             }
@@ -153,7 +151,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
 
     return (
         <Box>
-            <Box px={2.5} borderBottom="0.5px solid" sx={{borderColor:"divider"}} >
+            <Box px={2.5} borderBottom="0.5px solid" sx={{ borderColor: "divider" }}>
                 <Box display="flex" height="80px" justifyContent="space-between">
                     <Stack
                         direction="row"
@@ -173,7 +171,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                         >
                             <ArrowBackIos />
                         </IconButton>
-                        <Typography variant="h6">Settings</Typography>
+                        <Typography variant="h6">{strings.settings}</Typography>
                     </Stack>
                 </Box>
             </Box>
@@ -193,7 +191,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                     <Box sx={{ position: "relative" }}>
                         <Avatar
                             alt={user.displayName}
-                            src={`${UPLOADS_BASE_URL}/${profileAvatarFileId}`}
+                            src={`${UPLOADS_BASE_URL}/${user.avatarFileId}`}
                             sx={{ width: 100, height: 100 }}
                         />
                         <IconButton
@@ -236,7 +234,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                         >
                             <TextField
                                 id="outlined-basic"
-                                label="User name"
+                                label={strings.username}
                                 variant="outlined"
                                 sx={{ width: "70%" }}
                                 value={proposedName}
@@ -254,7 +252,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                                         }
                                     }}
                                 >
-                                    Save
+                                    {strings.save}
                                 </Button>
                             )}
                         </Stack>
@@ -287,18 +285,26 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                                 location.reload();
                             }}
                         >
-                            Enable desktop notification
+                            {strings.enableDesktopNotifications}
                         </Link>
                         <br />
                     </>
                 )}
-                <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
-                    Color schema
-                    <ThemeSwitch checked={theme === "dark"} onChange={(e)=>{
-                        const mode: ThemeType  = e.target.checked ? "dark" : "light";
-                        setTheme(mode);
-                        window.localStorage.setItem(Constants.LSKEY_THEME, mode);
-                    }} />
+                <Stack
+                    direction="row"
+                    spacing={1}
+                    alignItems="center"
+                    justifyContent="space-between"
+                >
+                    {strings.colorSchema}
+                    <ThemeSwitch
+                        checked={theme === "dark"}
+                        onChange={(e) => {
+                            const mode: ThemeType = e.target.checked ? "dark" : "light";
+                            setTheme(mode);
+                            window.localStorage.setItem(Constants.LSKEY_THEME, mode);
+                        }}
+                    />
                 </Stack>
 
                 <Link
@@ -313,7 +319,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                         navigate("/");
                     }}
                 >
-                    Logout
+                    {strings.logout}
                 </Link>
             </Box>
             {editProfilePicture ? (
@@ -334,6 +340,7 @@ export interface EditPhotoDialogProps {
 }
 
 export function EditPhotoDialog(props: EditPhotoDialogProps) {
+    const strings = useStrings();
     const { onClose, open, onConfirm } = props;
     const [value, setValue] = React.useState("upload");
     const handleClose = () => {
@@ -379,8 +386,16 @@ export function EditPhotoDialog(props: EditPhotoDialogProps) {
                         value={value}
                         onChange={handleChange}
                     >
-                        <FormControlLabel value="upload" control={<Radio />} label="Upload photo" />
-                        <FormControlLabel value="remove" control={<Radio />} label="Remove photo" />
+                        <FormControlLabel
+                            value="upload"
+                            control={<Radio />}
+                            label={strings.uploadPhoto}
+                        />
+                        <FormControlLabel
+                            value="remove"
+                            control={<Radio />}
+                            label={strings.removePhoto}
+                        />
                     </RadioGroup>
                 </FormControl>
             </Box>
@@ -393,7 +408,7 @@ export function EditPhotoDialog(props: EditPhotoDialogProps) {
                     handleClose();
                 }}
             >
-                Confirm
+                {strings.confirm}
             </Button>
         </Dialog>
     );

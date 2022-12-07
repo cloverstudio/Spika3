@@ -21,6 +21,7 @@ import {
     selectShowDeleteMessage,
 } from "../../slices/messages";
 import { selectUser } from "../../../../store/userSlice";
+import useStrings from "../../../../hooks/useStrings";
 
 export default function DeleteMessageDialogContainer() {
     const roomId = parseInt(useParams().id || "");
@@ -40,6 +41,8 @@ export default function DeleteMessageDialogContainer() {
 }
 
 function DeleteMessageDialog({ message, onClose }: { message: MessageType; onClose: () => void }) {
+    const strings = useStrings();
+
     const me = useSelector(selectUser);
     const [deleteMessage, { isLoading }] = useDeleteMessageMutation();
     const [target, setTarget] = useState<"all" | "user">("user");
@@ -51,7 +54,7 @@ function DeleteMessageDialog({ message, onClose }: { message: MessageType; onClo
 
     return (
         <Dialog onClose={onClose} open={true}>
-            <DialogTitle sx={{ textAlign: "center" }}>Delete</DialogTitle>
+            <DialogTitle sx={{ textAlign: "center" }}>{strings.delete}</DialogTitle>
             <IconButton
                 disableRipple
                 size="large"
@@ -83,15 +86,19 @@ function DeleteMessageDialog({ message, onClose }: { message: MessageType; onClo
                         <FormControlLabel
                             value="all"
                             control={<Radio />}
-                            label="Delete for everyone"
+                            label={strings.deleteForEveryone}
                             disabled={me.id !== message.fromUserId}
                         />
-                        <FormControlLabel value="user" control={<Radio />} label="Delete for me" />
+                        <FormControlLabel
+                            value="user"
+                            control={<Radio />}
+                            label={strings.deleteForMe}
+                        />
                     </RadioGroup>
                 </FormControl>
 
                 <Button onClick={handleSubmit} fullWidth variant="contained" disabled={isLoading}>
-                    Delete
+                    {strings.delete}
                 </Button>
             </Box>
         </Dialog>

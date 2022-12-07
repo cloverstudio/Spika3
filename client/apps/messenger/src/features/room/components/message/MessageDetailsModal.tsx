@@ -25,6 +25,7 @@ import {
     selectActiveMessage,
     selectShowMessageDetails,
 } from "../../slices/messages";
+import useStrings from "../../../../hooks/useStrings";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -46,6 +47,7 @@ export default function MessageDetailsDialogContainer() {
 }
 
 function MessageDetailsDialog({ message, onClose }: { message: MessageType; onClose: () => void }) {
+    const strings = useStrings();
     const me = useSelector(selectUser);
 
     const { data } = useGetMessageRecordsByIdQuery(message.id);
@@ -67,7 +69,7 @@ function MessageDetailsDialog({ message, onClose }: { message: MessageType; onCl
                     width: "400px",
                 }}
             >
-                <DialogTitle sx={{ textAlign: "center" }}>Details</DialogTitle>
+                <DialogTitle sx={{ textAlign: "center" }}>{strings.details}</DialogTitle>
                 <IconButton
                     disableRipple
                     sx={{
@@ -86,19 +88,21 @@ function MessageDetailsDialog({ message, onClose }: { message: MessageType; onCl
                     <Close />
                 </IconButton>
                 <Box m="0px 10px 0px 10px">
-                    Message sent at{" "}
+                    {strings.messageSentAt}{" "}
                     {dayjs.unix(message.createdAt / 1000).format("hh:mm, dddd, MMM D")}
                 </Box>
                 {message.createdAt !== message.modifiedAt && (
                     <Box m="0px 10px 0px 10px">
-                        Message edited at{" "}
+                        {strings.messageEditedAt}{" "}
                         {dayjs.unix(message.modifiedAt / 1000).format("hh:mm, dddd, MMM D")}
                     </Box>
                 )}
                 {seenMembers.length > 0 && (
                     <Box m="10px 10px 0px 10px">
                         <Box display="flex" justifyContent="space-between">
-                            <Box sx={{ fontWeight: "bold", marginBottom: "5px" }}>Read by</Box>
+                            <Box sx={{ fontWeight: "bold", marginBottom: "5px" }}>
+                                {strings.readBy}
+                            </Box>
                             <DoneAll color="info" />
                         </Box>
                         <List sx={{ pt: 0 }}>
@@ -111,7 +115,9 @@ function MessageDetailsDialog({ message, onClose }: { message: MessageType; onCl
                 {deliveredMembers.length > 0 && (
                     <Box m="10px 10px 0px 10px">
                         <Box display="flex" justifyContent="space-between">
-                            <Box sx={{ fontWeight: "bold", marginBottom: "5px" }}>Delivered to</Box>
+                            <Box sx={{ fontWeight: "bold", marginBottom: "5px" }}>
+                                {strings.deliveredTo}
+                            </Box>
                             <DoneAll />
                         </Box>
 
