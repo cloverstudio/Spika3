@@ -15,11 +15,13 @@ import SearchBox from "./SearchBox";
 import { RoomUserType } from "../../../../types/Rooms";
 import { VolumeOffOutlined } from "@mui/icons-material";
 import formatRoomInfo from "../../lib/formatRoomInfo";
+import useStrings from "../../../../hooks/useStrings";
 
 dayjs.extend(relativeTime);
 declare const UPLOADS_BASE_URL: string;
 
 export default function SidebarChatList(): React.ReactElement {
+    const strings = useStrings();
     const dispatch = useDispatch();
     const activeRoomId = parseInt(useParams().id || "");
 
@@ -62,7 +64,7 @@ export default function SidebarChatList(): React.ReactElement {
             </Box>
 
             {list.length === 0 && !isFetching ? (
-                <Typography align="center">No rooms</Typography>
+                <Typography align="center">{strings.noRooms}</Typography>
             ) : (
                 <>
                     {[...list]
@@ -96,7 +98,6 @@ type RoomRowProps = {
     handleClick: () => void;
     unreadCount?: number;
     lastMessage?: MessageType;
-    avatarUrl?: string;
     avatarFileId?: number;
     users: RoomUserType[];
 };
@@ -105,7 +106,6 @@ function RoomRow({
     id,
     isActive,
     name,
-    avatarUrl,
     avatarFileId,
     lastMessage,
     handleClick,
@@ -113,6 +113,7 @@ function RoomRow({
     type,
     users,
 }: RoomRowProps) {
+    const strings = useStrings();
     const roomIsMuted = useSelector(isRoomMuted(id));
     const [time, setTime] = useState(
         lastMessage?.createdAt && dayjs(lastMessage.createdAt).fromNow()
@@ -137,13 +138,13 @@ function RoomRow({
     let lastMessageText = lastMessage?.body?.text;
 
     if (lastMessage && lastMessageType !== "text") {
-        lastMessageText = (lastMessageType || "") + " shared";
+        lastMessageText = (lastMessageType || "") + " " + strings.shared;
         lastMessageText = lastMessageText.charAt(0).toUpperCase() + lastMessageText.slice(1);
     }
 
     if (lastMessageText && type === "group") {
         const senderUser = users.find((u) => u.userId === lastMessage.fromUserId)?.user;
-        lastMessageText = `${senderUser?.displayName || "Removed user"}: ${lastMessageText}`;
+        lastMessageText = `${senderUser?.displayName || strings.removedUser}: ${lastMessageText}`;
     }
 
     return (
@@ -168,9 +169,7 @@ function RoomRow({
                     overflow="hidden"
                 >
                     <Box flexGrow={1} overflow="hidden">
-                        <Typography mb={1} 
-                            fontWeight="600"
-                            color="text.primary">
+                        <Typography mb={1} fontWeight="600" color="text.primary">
                             {name}
                             {roomIsMuted && (
                                 <Box component="span" display="inline-flex" ml={1}>
@@ -197,7 +196,7 @@ function RoomRow({
                             fontWeight="500"
                             lineHeight="1rem"
                         >
-                            {time === "a few seconds ago" ? "now" : time}
+                            {time === "a few seconds ago" ? strings.now : time}
                         </Typography>
                         {unreadCount ? (
                             <Badge

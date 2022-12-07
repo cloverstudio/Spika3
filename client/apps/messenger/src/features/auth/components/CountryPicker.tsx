@@ -15,6 +15,7 @@ import { KeyboardArrowDown, KeyboardArrowUp, Search } from "@mui/icons-material"
 import { FixedSizeList, ListChildComponentProps } from "react-window";
 import countries, { CountryType } from "../lib/countries";
 import { isValidPhoneNumber } from "libphonenumber-js";
+import useStrings from "../../../hooks/useStrings";
 
 const CountryPicker = (props: any) => {
     const [searchText, setSearchText] = React.useState("");
@@ -22,6 +23,7 @@ const CountryPicker = (props: any) => {
     const [countryCode, setCountryCode] = React.useState("1");
     const [openMenu, setOpenMenu] = React.useState(false);
     const [staticBoxCoordinates, setStaticBoxCoordinates] = React.useState<DOMRect>(null);
+    const strings = useStrings();
 
     const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchText(event.target.value);
@@ -116,11 +118,7 @@ const CountryPicker = (props: any) => {
                             <KeyboardArrowUp color="primary" />
                         )}
                     </Button>
-                    <Divider
-                        orientation="vertical"
-                        sx={{ borderColor: "divider"}}
-                        flexItem
-                    />
+                    <Divider orientation="vertical" sx={{ borderColor: "divider" }} flexItem />
                     <TextField
                         variant="outlined"
                         margin="normal"
@@ -128,7 +126,7 @@ const CountryPicker = (props: any) => {
                         fullWidth
                         autoFocus
                         size="small"
-                        placeholder="Eg. 98334234"
+                        placeholder={strings.phoneNumberExample}
                         InputProps={{
                             type: "number",
                         }}
@@ -181,7 +179,7 @@ const CountryPicker = (props: any) => {
                             }}
                             value={searchText}
                             onChange={handleSearch}
-                            placeholder="Search"
+                            placeholder={strings.search}
                             InputProps={{
                                 startAdornment: (
                                     <InputAdornment position="start">
@@ -196,8 +194,12 @@ const CountryPicker = (props: any) => {
                                 },
                             }}
                         />
-                        <Typography color="text.tertiary" marginLeft="1em">
-                            ALL COUNTRIES
+                        <Typography
+                            color="text.tertiary"
+                            textTransform="uppercase"
+                            marginLeft="1em"
+                        >
+                            {strings.allCountries}
                         </Typography>
                         <FixedSizeList
                             height={200}

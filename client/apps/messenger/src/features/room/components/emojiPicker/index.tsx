@@ -4,6 +4,7 @@ import { getGroupedEmojis, searchEmoji } from "./utils/getEmojis";
 import EmojiGrid from "./EmojiGrid";
 import { Emoji } from "./types";
 import Tabs from "./Tabs";
+import useStrings from "../../../../hooks/useStrings";
 
 type EmojiPickerProps = {
     onSelect: (string) => void;
@@ -14,6 +15,7 @@ const emojiSpacing = 1;
 const groupedEmojis = getGroupedEmojis("native", 12.0);
 
 export default function EmojiPickerContainer({ onSelect }: EmojiPickerProps): React.ReactElement {
+    const strings = useStrings();
     const [results, setResults] = useState<Emoji[] | undefined>(undefined);
     const [tabIndex, setTabIndex] = useState(0);
 
@@ -56,7 +58,7 @@ export default function EmojiPickerContainer({ onSelect }: EmojiPickerProps): Re
                     <Box maxWidth="32rem" width="100%">
                         <Input
                             disableUnderline={true}
-                            placeholder="Search Emoji"
+                            placeholder={strings.search}
                             fullWidth
                             sx={{
                                 backgroundColor: "background.paper",

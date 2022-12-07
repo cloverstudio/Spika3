@@ -27,6 +27,7 @@ import { useGetRoomQuery } from "../api/room";
 import MessageType from "../../../types/Message";
 import getFileIcon from "../lib/getFileIcon";
 import { editMessageThunk, replyMessageThunk, sendMessage } from "../slices/messages";
+import useStrings from "../../../hooks/useStrings";
 
 export default function ChatInputContainer(): React.ReactElement {
     const dispatch = useDispatch();
@@ -71,7 +72,7 @@ export default function ChatInputContainer(): React.ReactElement {
     };
 
     return (
-        <Box borderTop="1px solid" sx={{borderColor:"divider"}} px={2} py={1}>
+        <Box borderTop="1px solid" sx={{ borderColor: "divider" }} px={2} py={1}>
             <canvas ref={canvasRef} style={{ display: "none" }} />
 
             <Box display="flex" flexDirection="column" justifyContent="center">
@@ -202,6 +203,7 @@ const useStyles = makeStyles(() => ({
 }));
 
 function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
+    const strings = useStrings();
     const style = useStyles();
     const roomId = parseInt(useParams().id || "");
     const message = useSelector(selectInputText(roomId));
@@ -217,9 +219,10 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
     return (
         <Box
             sx={{
-                color:"text.primary",
-                backgroundColor:"background.paper"
-            }}>
+                color: "text.primary",
+                backgroundColor: "background.paper",
+            }}
+        >
             <textarea
                 autoFocus={true}
                 ref={inputRef}
@@ -236,16 +239,15 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
                     } else {
                     }
                 }}
-                placeholder="Type here..."
+                placeholder={strings.typeHere}
                 className={style.input}
                 rows={1}
                 style={{
-                    color:"inherit",
-                    backgroundColor:"transparent"
+                    color: "inherit",
+                    backgroundColor: "transparent",
                 }}
             />
         </Box>
-
     );
 }
 

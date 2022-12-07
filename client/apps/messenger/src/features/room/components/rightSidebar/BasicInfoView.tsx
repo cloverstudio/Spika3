@@ -14,6 +14,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import * as Constants from "../../../../../../../lib/constants";
+import useStrings from "../../../../hooks/useStrings";
 import { selectUser } from "../../../../store/userSlice";
 import { RoomType } from "../../../../types/Rooms";
 import { crop } from "../../../../utils/crop";
@@ -29,13 +30,13 @@ export interface DetailsBasicInfoProps {
 }
 
 export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
+    const strings = useStrings();
     const { roomData } = props;
     const dispatch = useDispatch();
     const isItPrivateGroup = roomData.type === "private";
     const otherUser = roomData.users[1];
     const [editGroupPicture, setEditGroupPicture] = useState(false);
     const [editGroupName, setEditGroupName] = useState(false);
-    const [profileAvatarUrl, setProfileAvatarUrl] = useState(roomData.avatarUrl);
     const [profileAvatarFileId, setProfileAvatarFileId] = useState(roomData.avatarFileId);
     const [proposedName, setProposedName] = useState(roomData.name);
     const [name, setName] = useState(roomData.name);
@@ -48,7 +49,6 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
 
     useEffect(() => {
         if (roomData) {
-            setProfileAvatarUrl(roomData.avatarUrl);
             setProfileAvatarFileId(roomData.avatarFileId);
             setProposedName(roomData.name);
             setName(roomData.name);
@@ -111,12 +111,11 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
             setLoading(true);
             const { room } = await update({
                 roomId: roomData.id,
-                data: { name: proposedName, avatarUrl: "", avatarFileId: 0 },
+                data: { name: proposedName, avatarFileId: 0 },
             }).unwrap();
 
             dispatch(refreshOneRoom(room));
 
-            setProfileAvatarUrl("");
             setProfileAvatarFileId(0);
             setLoading(false);
             closeEditName();
@@ -142,12 +141,15 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
 
                 const { room } = await update({
                     roomId: roomData.id,
-                    data: { name: proposedName, avatarUrl: uploadedFile.path, avatarFileId: uploadedFile.id },
+                    data: {
+                        name: proposedName,
+                        avatarUrl: uploadedFile.path,
+                        avatarFileId: uploadedFile.id,
+                    },
                 }).unwrap();
 
                 updatedRoom = room;
 
-                setProfileAvatarUrl(uploadedFile.path);
                 setProfileAvatarFileId(uploadedFile.id);
             } else {
                 const { room } = await update({
@@ -190,11 +192,13 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
                 }}
             >
                 {isItPrivateGroup ? (
-                    <Avatar alt={otherUser.user.displayName} src={`${UPLOADS_BASE_URL}/${otherUser.user.avatarFileId}`} />
+                    <Avatar
+                        alt={otherUser.user.displayName}
+                        src={`${UPLOADS_BASE_URL}/${otherUser.user.avatarFileId}`}
+                    />
                 ) : (
                     <Box sx={{ position: "relative" }}>
                         <Avatar
-                            alt={profileAvatarUrl}
                             src={`${UPLOADS_BASE_URL}/${profileAvatarFileId}`}
                             sx={{ width: 100, height: 100 }}
                         />
@@ -265,7 +269,7 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
                                                 }
                                             }}
                                         >
-                                            Save
+                                            {strings.save}
                                         </Button>
                                     )}
                                 </Stack>

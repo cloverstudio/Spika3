@@ -12,12 +12,14 @@ import {
 import EditNoteHeader from "./EditNoteHeader";
 import SettingsHeader from "./SettingsHeader";
 import NoteDetailHeader from "./NoteDetailHeader";
+import useStrings from "../../../../../hooks/useStrings";
 
 type RightSidebarHeaderProps = {
     type: string;
 };
 
 export default function RightSidebarHeader({ type }: RightSidebarHeaderProps): React.ReactElement {
+    const strings = useStrings();
     const activeTab = useSelector(selectRightSidebarActiveTab);
     const dispatch = useDispatch();
     const theme = useTheme();
@@ -36,9 +38,9 @@ export default function RightSidebarHeader({ type }: RightSidebarHeaderProps): R
                         </IconButton>
                     )}
                     {type === "private" ? (
-                        <Typography variant="h6">Chat details</Typography>
+                        <Typography variant="h6">{strings.chatDetails}</Typography>
                     ) : (
-                        <Typography variant="h6">Group details</Typography>
+                        <Typography variant="h6">{strings.groupDetails}</Typography>
                     )}
                 </>
             );
@@ -50,7 +52,7 @@ export default function RightSidebarHeader({ type }: RightSidebarHeaderProps): R
                     <IconButton size="large" onClick={() => dispatch(setActiveTab("details"))}>
                         <ArrowBackIos />
                     </IconButton>
-                    <Typography variant="h6">Notes</Typography>
+                    <Typography variant="h6">{strings.notes}</Typography>
                     <Box ml="auto" flex={1} textAlign="right">
                         <IconButton
                             size="large"
@@ -69,7 +71,7 @@ export default function RightSidebarHeader({ type }: RightSidebarHeaderProps): R
                     <IconButton size="large" onClick={() => dispatch(setActiveTab("notes"))}>
                         <ArrowBackIos />
                     </IconButton>
-                    <Typography variant="h6">New note</Typography>
+                    <Typography variant="h6">{strings.newNote}</Typography>
                 </>
             );
         }
@@ -98,7 +100,7 @@ function RightSidebarHeaderContainer({
     children,
 }: RightSidebarHeaderContainerProps): React.ReactElement {
     return (
-        <Box height="80.5px" borderBottom="0.5px solid" sx={{borderColor:"divider"}}>
+        <Box height="80.5px" borderBottom="0.5px solid" sx={{ borderColor: "divider" }}>
             <Stack
                 direction="row"
                 alignItems="center"

@@ -9,7 +9,6 @@ export default function SidebarCallList(): React.ReactElement {
             <Box mt={3}>
                 <SearchBox />
             </Box>
-            call
         </Box>
     );
 }

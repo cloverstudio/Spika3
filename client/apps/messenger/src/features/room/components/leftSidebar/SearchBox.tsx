@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Input, InputAdornment } from "@mui/material";
 import { Search } from "@mui/icons-material";
+import useStrings from "../../../../hooks/useStrings";
 
 type SearchBoxProos = {
     onSearch?: (keyword: string) => void;
@@ -9,6 +10,7 @@ type SearchBoxProos = {
 let timer: NodeJS.Timeout;
 
 export default function SearchBox({ onSearch }: SearchBoxProos): React.ReactElement {
+    const strings = useStrings();
     return (
         <Box px={2.5} mb={2}>
             <Input
@@ -19,7 +21,7 @@ export default function SearchBox({ onSearch }: SearchBoxProos): React.ReactElem
                     </InputAdornment>
                 }
                 fullWidth
-                placeholder="Search"
+                placeholder={strings.search}
                 sx={{
                     backgroundColor: "background.paper",
                     px: "20px",
