@@ -42,7 +42,6 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
     const imageRef = useRef(null);
     const [name, setName] = React.useState(user.displayName);
     const [proposedName, setProposedName] = React.useState(user.displayName);
-    const [profileAvatarFileId, setProfileAvatarFileId] = React.useState(user.avatarFileId);
     const [file, setFile] = useState<File>();
     const [editProfileName, setEditProfileName] = useState(false);
     const [editProfilePicture, setEditProfilePicture] = useState(false);
@@ -134,10 +133,8 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
 
                 await update({
                     displayName: proposedName,
-                    avatarUrl: uploadedFile.path,
                     avatarFileId: uploadedFile.id,
                 }).unwrap();
-                setProfileAvatarFileId(uploadedFile.id);
             } else {
                 await update({ displayName: proposedName }).unwrap();
             }
@@ -194,7 +191,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                     <Box sx={{ position: "relative" }}>
                         <Avatar
                             alt={user.displayName}
-                            src={`${UPLOADS_BASE_URL}/${profileAvatarFileId}`}
+                            src={`${UPLOADS_BASE_URL}/${user.avatarFileId}`}
                             sx={{ width: 100, height: 100 }}
                         />
                         <IconButton
