@@ -19,7 +19,7 @@ const updateSchema = yup.object().shape({
         telephoneNumberHashed: yup.string().strict(),
         emailAddress: yup.string().strict(),
         displayName: yup.string().strict(),
-        avatarUrl: yup.string().strict(),
+        avatarFileId: yup.number().strict(),
     }),
 });
 
@@ -42,7 +42,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         const id = userReq.user.id;
 
         try {
-            const { telephoneNumber, emailAddress, displayName, avatarUrl, avatarFileId } = req.body;
+            const { telephoneNumber, emailAddress, displayName, avatarFileId } = req.body;
 
             const userWithSameEmailAddress =
                 emailAddress &&
@@ -72,7 +72,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     telephoneNumber,
                     emailAddress,
                     displayName,
-                    avatarUrl,
                     avatarFileId: parseInt(avatarFileId || "0"),
                     ...(telephoneNumber && {
                         telephoneNumberHashed: Utils.sha256(telephoneNumber),

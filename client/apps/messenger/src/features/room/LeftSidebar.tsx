@@ -238,7 +238,6 @@ function LeftSidebarNewGroup({
                                 key={user.id}
                                 name={user.displayName}
                                 selected={true}
-                                avatarUrl={user.avatarUrl}
                                 avatarFileId={user.avatarFileId}
                                 SelectedIcon={() => (
                                     <ClearIcon onClick={() => handleUserClick(user)} />

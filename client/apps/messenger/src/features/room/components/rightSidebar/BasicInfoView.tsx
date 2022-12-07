@@ -37,7 +37,6 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
     const otherUser = roomData.users[1];
     const [editGroupPicture, setEditGroupPicture] = useState(false);
     const [editGroupName, setEditGroupName] = useState(false);
-    const [profileAvatarFileId, setProfileAvatarFileId] = useState(roomData.avatarFileId);
     const [proposedName, setProposedName] = useState(roomData.name);
     const [name, setName] = useState(roomData.name);
     const imageRef = useRef(null);
@@ -49,7 +48,6 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
 
     useEffect(() => {
         if (roomData) {
-            setProfileAvatarFileId(roomData.avatarFileId);
             setProposedName(roomData.name);
             setName(roomData.name);
         }
@@ -116,7 +114,6 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
 
             dispatch(refreshOneRoom(room));
 
-            setProfileAvatarFileId(0);
             setLoading(false);
             closeEditName();
         } catch (error) {
@@ -143,14 +140,11 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
                     roomId: roomData.id,
                     data: {
                         name: proposedName,
-                        avatarUrl: uploadedFile.path,
                         avatarFileId: uploadedFile.id,
                     },
                 }).unwrap();
 
                 updatedRoom = room;
-
-                setProfileAvatarFileId(uploadedFile.id);
             } else {
                 const { room } = await update({
                     roomId: roomData.id,
@@ -199,7 +193,7 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
                 ) : (
                     <Box sx={{ position: "relative" }}>
                         <Avatar
-                            src={`${UPLOADS_BASE_URL}/${profileAvatarFileId}`}
+                            src={`${UPLOADS_BASE_URL}/${roomData.avatarFileId}`}
                             sx={{ width: 100, height: 100 }}
                         />
                         <>

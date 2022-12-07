@@ -14,7 +14,7 @@ const roomApi = api.injectEndpoints({
                     return null;
                 }
             },
-            providesTags: (res) => res && res?.id && [{ type: "Rooms2", id: res.id }],
+            providesTags: (res) => res && res?.id && [{ type: "Rooms", id: res.id }],
         }),
         createRoom: build.mutation<{ room: RoomType }, any>({
             query: (data) => {

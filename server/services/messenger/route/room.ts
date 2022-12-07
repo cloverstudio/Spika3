@@ -17,7 +17,7 @@ import prisma from "../../../components/prisma";
 const postRoomSchema = yup.object().shape({
     body: yup.object().shape({
         name: yup.string().default(""),
-        avatarUrl: yup.string().default(""),
+        avatarFileId: yup.number().default(0),
         type: yup.string().strict(),
         userIds: yup.array().default([]).of(yup.number().strict().moreThan(0)),
         adminUserIds: yup.array().default([]).of(yup.number().strict().moreThan(0)),
@@ -27,7 +27,7 @@ const postRoomSchema = yup.object().shape({
 const patchRoomSchema = yup.object().shape({
     body: yup.object().shape({
         name: yup.string().strict(),
-        avatarUrl: yup.string().strict(),
+        avatarFileId: yup.number().strict(),
         type: yup.string().strict(),
         userIds: yup.array().of(yup.number().moreThan(0)).strict(),
         adminUserIds: yup.array().of(yup.number().moreThan(0)).strict(),
@@ -49,7 +49,6 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
 
         try {
             const {
-                avatarUrl,
                 avatarFileId,
                 type: userDefinedType,
                 userIds,
@@ -131,7 +130,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 data: {
                     name,
                     type,
-                    avatarUrl,
+                    avatarUrl: "",
                     avatarFileId: parseInt(avatarFileId || "0"),
                     users: {
                         create: users,
@@ -169,7 +168,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
 
         try {
             const id = parseInt((req.params.id as string) || "");
-            const { userIds, adminUserIds, name, avatarUrl, avatarFileId } = req.body;
+            const { userIds, adminUserIds, name, avatarFileId } = req.body;
 
             const room = await prisma.room.findFirst({
                 where: { id, deleted: false },
@@ -204,8 +203,9 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const update: Partial<Room> = {
                 modifiedAt: new Date(),
                 ...(name && { name }),
-                ...((avatarUrl || avatarUrl === "") && { avatarUrl }),
-                ...((avatarFileId || avatarFileId === "") && { avatarFileId: parseInt(avatarFileId) }),
+                ...((avatarFileId || avatarFileId === 0) && {
+                    avatarFileId: parseInt(avatarFileId),
+                }),
                 ...(userCount > 2 && { type: "group" }),
             };
 
