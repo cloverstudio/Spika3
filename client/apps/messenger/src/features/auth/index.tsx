@@ -92,7 +92,7 @@ export default function Auth(): React.ReactElement {
 
             await update({
                 displayName: username,
-                avatarUrl: uploadedFile?.path || "",
+                avatarFileId: uploadedFile?.id || 0,
             }).unwrap();
             setLoading(false);
 
