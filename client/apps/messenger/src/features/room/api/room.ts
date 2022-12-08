@@ -51,6 +51,13 @@ const roomApi = api.injectEndpoints({
                 return { url: `/messenger/rooms/${roomId}`, method: "DELETE" };
             },
         }),
+        getRoomBlocked: build.query<{ id: number }, number>({
+            query: (roomId) => {
+                return `/messenger/blocks/rooms/${roomId}`;
+            },
+            transformResponse: (res) => res.blocked,
+            providesTags: [{ type: "BlockList", id: "Room" }],
+        }),
     }),
     overrideExisting: true,
 });
@@ -64,6 +71,7 @@ export const {
     useUpdateRoomMutation,
     useDeleteRoomMutation,
     useLeaveRoomMutation,
+    useGetRoomBlockedQuery,
 } = roomApi;
 
 export default roomApi;

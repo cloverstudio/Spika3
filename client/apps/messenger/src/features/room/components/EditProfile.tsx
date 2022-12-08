@@ -16,7 +16,7 @@ import {
     Radio,
     CircularProgress,
 } from "@mui/material";
-import { ArrowBackIos, CameraAlt, Close } from "@mui/icons-material";
+import { ArrowBackIos, CameraAlt, ChevronRight, Close } from "@mui/icons-material";
 import uploadFile from "../../../utils/uploadFile";
 
 import { useUpdateMutation } from "../../auth/api/auth";
@@ -29,6 +29,8 @@ import { useNavigate } from "react-router-dom";
 import ThemeSwitch from "./leftSidebar/ThemeSwitch";
 import { ThemeContext, ThemeType } from "../../../theme";
 import useStrings from "../../../hooks/useStrings";
+import { ContactRow } from "./leftSidebar/ContactList";
+import { useGetBlockedUsersQuery, useRemoveUserFromBlockListMutation } from "../api/user";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -45,6 +47,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
     const [file, setFile] = useState<File>();
     const [editProfileName, setEditProfileName] = useState(false);
     const [editProfilePicture, setEditProfilePicture] = useState(false);
+    const [editingBlockedList, setEditingBlockedList] = useState(false);
     const [loading, setLoading] = useState(false);
     const [update] = useUpdateMutation();
     const navigate = useNavigate();
@@ -148,6 +151,34 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
             console.error("Update failed ", error);
         }
     };
+
+    if (editingBlockedList) {
+        return (
+            <Box>
+                <Box px={2.5} borderBottom="0.5px solid #C9C9CA">
+                    <Box display="flex" height="80px" justifyContent="space-between">
+                        <Stack
+                            direction="row"
+                            alignItems="center"
+                            spacing={1}
+                            sx={{
+                                display: "flex",
+                                flexDirection: "row",
+                                justifyContent: "flex-start",
+                                width: "100%",
+                            }}
+                        >
+                            <IconButton onClick={() => setEditingBlockedList(false)}>
+                                <ArrowBackIos />
+                            </IconButton>
+                            <Typography variant="h6">{strings.blockedUsers}</Typography>
+                        </Stack>
+                    </Box>
+                </Box>
+                <BlockedUsersList />
+            </Box>
+        );
+    }
 
     return (
         <Box>
@@ -307,6 +338,24 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                     />
                 </Stack>
 
+                <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                    onClick={() => setEditingBlockedList(true)}
+                    sx={{
+                        height: "40px",
+                        display: "flex",
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        width: "100%",
+                        cursor: "pointer",
+                    }}
+                >
+                    <Box component="span">{strings.blockedUsers}</Box>
+                    <ChevronRight />
+                </Stack>
+
                 <Link
                     component="button"
                     align="left"
@@ -411,5 +460,48 @@ export function EditPhotoDialog(props: EditPhotoDialogProps) {
                 {strings.confirm}
             </Button>
         </Dialog>
+    );
+}
+
+function BlockedUsersList() {
+    const { data: blockedUsers, isLoading } = useGetBlockedUsersQuery();
+    const [remove] = useRemoveUserFromBlockListMutation();
+    const strings = useStrings();
+
+    if (isLoading) {
+        return null;
+    }
+
+    if (!blockedUsers.length) {
+        return (
+            <Box mt={3} px={2.5}>
+                {strings.noBlockedUsers}
+            </Box>
+        );
+    }
+
+    return (
+        <Stack mt={3}>
+            {blockedUsers.map((user) => {
+                return (
+                    <Box
+                        key={user.id}
+                        display="flex"
+                        justifyContent="space-between"
+                        alignItems="center"
+                        pr={2.5}
+                    >
+                        <ContactRow
+                            name={user.displayName}
+                            selected={false}
+                            avatarFileId={user.avatarFileId}
+                        />
+                        <IconButton onClick={() => remove(user.id)}>
+                            <Close />
+                        </IconButton>
+                    </Box>
+                );
+            })}
+        </Stack>
     );
 }

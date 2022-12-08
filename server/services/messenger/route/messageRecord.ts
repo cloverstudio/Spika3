@@ -13,6 +13,7 @@ import { InitRouterParams } from "../../types/serviceInterface";
 import sanitize from "../../../components/sanitize";
 import createSSEMessageRecordsNotify from "../lib/sseMessageRecordsNotify";
 import prisma from "../../../components/prisma";
+import { isRoomBlocked } from "./block";
 
 const postMessageRecordSchema = yup.object().shape({
     body: yup.object().shape({
@@ -58,6 +59,12 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
                 if (!message) {
                     return res.status(404).send(errorResponse("Message not found", userReq.lang));
+                }
+
+                const blocked = await isRoomBlocked(message.roomId, userReq.user.id);
+
+                if (blocked) {
+                    return res.status(403).send(errorResponse("Room is blocked", userReq.lang));
                 }
 
                 if (type === "reaction" && !reaction) {

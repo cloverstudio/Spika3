@@ -24,7 +24,6 @@ describe("API", () => {
                 type: "type",
                 userIds: [users.map((u) => u.id)],
                 adminUserIds: [users.map((u) => u.id)],
-                avatarUrl: "/url/avatar",
             };
         });
 
@@ -174,24 +173,24 @@ describe("API", () => {
             expect(responseValid.status).to.eqls(200);
         });
 
-        it("avatarUrl param can be only string", async () => {
+        it("avatarFileId param can be only number", async () => {
             const responseUndefined = await supertest(app)
                 .post("/api/messenger/rooms")
                 .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, avatarUrl: undefined });
+                .send({ ...validParams, avatarFileId: undefined });
 
-            const responseInvalidNotString = await supertest(app)
+            const responseInvalidNotNumber = await supertest(app)
                 .post("/api/messenger/rooms")
                 .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, avatarUrl: [42] });
+                .send({ ...validParams, avatarFileId: "[42]" });
 
             const responseValid = await supertest(app)
                 .post("/api/messenger/rooms")
                 .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, avatarUrl: "string" });
+                .send({ ...validParams, avatarFileId: 42 });
 
             expect(responseUndefined.status).to.eqls(200);
-            expect(responseInvalidNotString.status).to.eqls(400);
+            expect(responseInvalidNotNumber.status).to.eqls(400);
             expect(responseValid.status).to.eqls(200);
         });
 
@@ -509,21 +508,21 @@ describe("API", () => {
             expect(roomFromRes.name).to.eqls(name);
         });
 
-        it("updates avatarUrl if defined", async () => {
+        it("updates avatarFileId if defined", async () => {
             const room = await createFakeRoom([{ userId: globals.userId, isAdmin: true }]);
-            const avatarUrl = "/some/new/path";
+            const avatarFileId = 55;
 
             const response = await supertest(app)
                 .put("/api/messenger/rooms/" + room.id)
                 .set({ accesstoken: globals.userToken })
-                .send({ avatarUrl });
+                .send({ avatarFileId });
 
             expect(response.status).to.eqls(200);
             expect(response.body).to.has.property("data");
             expect(response.body.data).to.has.property("room");
 
             const roomFromRes = response.body.data.room;
-            expect(roomFromRes.avatarUrl).to.eqls(avatarUrl);
+            expect(roomFromRes.avatarFileId).to.eqls(avatarFileId);
         });
 
         it("updates are saved in db", async () => {
@@ -535,13 +534,13 @@ describe("API", () => {
                 { userId: globals.userId, isAdmin: true },
                 ...adminUserIds.map((userId) => ({ userId, isAdmin: false })),
             ]);
-            const avatarUrl = "/some/new/path";
+            const avatarFileId = 88;
             const name = "Cool kids room";
 
             const response = await supertest(app)
                 .put("/api/messenger/rooms/" + room.id)
                 .set({ accesstoken: globals.userToken })
-                .send({ avatarUrl, name, userIds, adminUserIds });
+                .send({ avatarFileId, name, userIds, adminUserIds });
 
             expect(response.status).to.eqls(200);
 
@@ -550,8 +549,8 @@ describe("API", () => {
                 include: { users: true },
             });
 
-            expect(roomFromDb).to.has.property("avatarUrl");
-            expect(roomFromDb.avatarUrl).to.eqls(avatarUrl);
+            expect(roomFromDb).to.has.property("avatarFileId");
+            expect(roomFromDb.avatarFileId).to.eqls(avatarFileId);
             expect(roomFromDb).to.has.property("name");
             expect(roomFromDb.name).to.eqls(name);
             expect(roomFromDb).to.has.property("users");
