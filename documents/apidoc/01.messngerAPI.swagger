@@ -45,6 +45,17 @@ paths:
           required: true
           schema:
             type: string
+        - name: "osName"
+          in: body
+          required: true
+          schema:
+            type: string
+        - name: "deviceType"
+          in: body
+          required: true
+          schema:
+            type: string
+          description: "browser" / "iOS" / "Android"
       responses:
         "200":
           description: "successful operation"
@@ -168,48 +179,6 @@ paths:
       produces:
         - "application/json"
       parameters:
-        - in: query
-          name: page
-          type: "number"
-      responses:
-        "200":
-          description: "successful operation"
-          schema:
-            type: "object"
-            properties:
-              status:
-                type: "string"
-                enum: [success, error]
-              data:
-                type: "object"
-                properties:
-                  list:
-                    type: "array"
-                    items:
-                      type: "object"
-                      $ref: "#/definitions/User"
-                  count:
-                    type: "number"
-                  limit:
-                    type: "number"
-        "400":
-          description: "invalid param"
-        "403":
-          description: "invalid access token"
-  /messenger/contacts/all:
-    get:
-      tags:
-        - "Contact"
-      summary: "Get all contacts"
-      description: "Get all contacts for team mode"
-      consumes:
-        - "application/json"
-      produces:
-        - "application/json"
-      parameters:
-        - in: query
-          name: keyword
-          type: "string"
         - in: query
           name: page
           type: "number"
