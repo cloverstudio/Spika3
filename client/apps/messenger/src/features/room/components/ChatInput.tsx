@@ -75,7 +75,7 @@ export default function ChatInputContainer(): React.ReactElement {
     const handleSetMessageText = (message: string) => {
         dispatch(setInputText({ text: message, roomId }));
     };
-    console.log({ roomBlock });
+
     if (roomBlock) {
         return (
             <Box borderTop="1px solid #C9C9CA" px={2} py={2} bgcolor="common.chatBackground">
