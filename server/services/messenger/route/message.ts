@@ -16,6 +16,7 @@ import sanitize from "../../../components/sanitize";
 import { formatMessageBody } from "../../../components/message";
 import createSSEMessageRecordsNotify from "../lib/sseMessageRecordsNotify";
 import prisma from "../../../components/prisma";
+import { isRoomBlocked } from "./block";
 
 const postMessageSchema = yup.object().shape({
     body: yup.object().shape({
@@ -76,6 +77,12 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 return res.status(403).send(errorResponse("Room is deleted", userReq.lang));
             }
 
+            const blocked = await isRoomBlocked(room.id, fromUserId);
+
+            if (blocked) {
+                return res.status(403).send(errorResponse("Room is blocked", userReq.lang));
+            }
+
             // validation
             if (type === "image" || type === "audio" || type === "video" || type === "file") {
                 if (!body.fileId)
@@ -123,9 +130,26 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 return res.status(400).send(errorResponse("Invalid type", userReq.lang));
             }
 
+            const allReceivers = room.users.filter((u) => !u.user.isBot);
+
+            const usersWhoBlockedSender =
+                room.type === "private"
+                    ? await prisma.block.findMany({
+                          where: {
+                              userId: { in: allReceivers.map((u) => u.userId) },
+                              blockedId: fromUserId,
+                          },
+                          select: { userId: true },
+                      })
+                    : [];
+
+            const receivers = allReceivers.filter(
+                (u) => !usersWhoBlockedSender.map((u) => u.userId).includes(u.userId)
+            );
+
             const devices = await prisma.device.findMany({
                 where: {
-                    userId: { in: room.users.map((u) => u.userId) },
+                    userId: { in: receivers.map((u) => u.userId) },
                 },
             });
 
@@ -144,7 +168,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     roomId,
                     fromUserId: userReq.user.id,
                     fromDeviceId: userReq.device.id,
-                    totalUserCount: room.users.filter((u) => !u.user.isBot).length,
+                    totalUserCount: allReceivers.length,
                     deliveredCount: 0,
                     seenCount: 0,
                     localId,
@@ -514,6 +538,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     roomId,
                     createdAt: { gte: roomUser.createdAt },
                     messageRecords: { none: { userId, type: "seen" } },
+                    deviceMessages: { some: { userId } },
                 },
             });
 
@@ -662,6 +687,12 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     .send(
                         errorResponse("Only messages with type text can be edited", userReq.lang)
                     );
+            }
+
+            const blocked = await isRoomBlocked(message.roomId, userReq.user.id);
+
+            if (blocked) {
+                return res.status(403).send(errorResponse("Room is blocked", userReq.lang));
             }
 
             for (const deviceMessage of message.deviceMessages) {

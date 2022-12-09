@@ -78,7 +78,7 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
             }
 
             for (const record of messageRecords) {
-                const deviceIds = await getDeviceIdsFromMessageId(record.messageId);
+                const deviceIds = await getDeviceIdsFromMessageId(record.messageId, record.userId);
                 log("Sending mr to devices with ids: ", deviceIds.join(","));
                 for (const deviceId of deviceIds) {
                     channel.sendToQueue(
@@ -101,24 +101,43 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
     }
 }
 
-async function getDeviceIdsFromMessageId(messageId: number): Promise<number[]> {
+async function getDeviceIdsFromMessageId(messageId: number, fromUserId: number): Promise<number[]> {
     const message = await prisma.message.findUnique({
         where: { id: messageId },
         select: {
             createdAt: true,
+            fromUserId: true,
             room: {
                 select: {
                     users: {
                         select: {
-                            user: { select: { device: { select: { id: true, createdAt: true } } } },
+                            user: {
+                                select: {
+                                    device: { select: { id: true, createdAt: true } },
+                                    id: true,
+                                },
+                            },
                         },
                     },
+                    type: true,
                 },
             },
         },
     });
 
+    const usersWhoBlockedSender =
+        message.room.type === "private"
+            ? await prisma.block.findMany({
+                  where: {
+                      userId: { in: message.room.users.map((u) => u.user.id) },
+                      blockedId: fromUserId,
+                  },
+                  select: { userId: true },
+              })
+            : [];
+
     return message.room.users
+        .filter((u) => !usersWhoBlockedSender.map((m) => m.userId).includes(u.user.id))
         .reduce((acc, curr) => [...acc, ...curr.user.device], [])
         .filter((d) => +d.createdAt <= +message.createdAt)
         .map((d) => d.id);

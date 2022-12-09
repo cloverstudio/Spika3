@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { useShowSnackBar } from "../../../../hooks/useModal";
 import { selectUser } from "../../../../store/userSlice";
-import { useGetRoomQuery } from "../../api/room";
+import { useGetRoomBlockedQuery, useGetRoomQuery } from "../../api/room";
 import { setEditMessage, setReplyMessage } from "../../slices/input";
 import {
     selectHasMessageReactions,
@@ -241,6 +241,7 @@ function Menu({ id, mouseOver, setMouseOver, setShowReactionMenu }: MenuProps) {
     const roomId = parseInt(useParams().id || "");
     const user = useSelector(selectUser);
     const message = useSelector(selectMessageById(roomId, id));
+    const { data: roomBlock } = useGetRoomBlockedQuery(roomId);
 
     const { fromUserId, deleted, type } = message;
 
@@ -253,6 +254,8 @@ function Menu({ id, mouseOver, setMouseOver, setShowReactionMenu }: MenuProps) {
 
     if (deleted) {
         contextMenuIcons = IconConfigs.showInfo;
+    } else if (roomBlock) {
+        contextMenuIcons = IconConfigs.showInfo | IconConfigs.showDelete;
     } else if (isUsersMessage && type === "text") {
         contextMenuIcons =
             IconConfigs.showEmoticon |

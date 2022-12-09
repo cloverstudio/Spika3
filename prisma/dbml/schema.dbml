@@ -23,6 +23,17 @@ Table user {
   messagesRecords message_record [not null]
   callHistory call_history [not null]
   userSetting user_setting [not null]
+  blocks block [not null]
+  blockedBy block [not null]
+}
+
+Table block {
+  id Int [pk, increment]
+  createdAt DateTime [default: `now()`, not null]
+  userId Int [not null]
+  user user [not null]
+  blockedId Int [not null]
+  blocked user [not null]
 }
 
 Table device {
@@ -207,6 +218,10 @@ Table api_key {
   createdAt DateTime [default: `now()`, not null]
   modifiedAt DateTime [default: `now()`, not null]
 }
+
+Ref: block.userId > user.id
+
+Ref: block.blockedId > user.id
 
 Ref: device.userId > user.id
 

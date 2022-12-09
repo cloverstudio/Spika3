@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Box, Button, IconButton, Stack } from "@mui/material";
+import { Box, Button, IconButton, Stack, Typography } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 
 import KeyboardVoiceIcon from "@mui/icons-material/KeyboardVoice";
@@ -23,16 +23,21 @@ import AddAttachment from "./AddAttachment";
 import Attachments from "./Attachments";
 import EmojiPicker from "./emojiPicker";
 import Close from "@mui/icons-material/Close";
-import { useGetRoomQuery } from "../api/room";
+import { useGetRoomQuery, useGetRoomBlockedQuery } from "../api/room";
 import MessageType from "../../../types/Message";
 import getFileIcon from "../lib/getFileIcon";
 import { editMessageThunk, replyMessageThunk, sendMessage } from "../slices/messages";
 import useStrings from "../../../hooks/useStrings";
+import { useRemoveBlockByIdMutation } from "../api/user";
+import { DoDisturb } from "@mui/icons-material";
 
 export default function ChatInputContainer(): React.ReactElement {
     const dispatch = useDispatch();
     const roomId = parseInt(useParams().id || "");
     const inputType = useSelector(selectInputType(roomId));
+    const { data: roomBlock } = useGetRoomBlockedQuery(roomId);
+    const [removeBlock] = useRemoveBlockByIdMutation();
+    const strings = useStrings();
 
     const [files, setFiles] = useState(AttachmentManager.getFiles(roomId) || []);
     const canvasRef = useRef<HTMLCanvasElement>();
@@ -70,6 +75,35 @@ export default function ChatInputContainer(): React.ReactElement {
     const handleSetMessageText = (message: string) => {
         dispatch(setInputText({ text: message, roomId }));
     };
+
+    if (roomBlock) {
+        return (
+            <Box borderTop="1px solid #C9C9CA" px={2} py={2} bgcolor="common.chatBackground">
+                <Box display="flex" flexDirection="column" justifyContent="center">
+                    <Stack
+                        spacing={2}
+                        direction="row"
+                        alignItems="center"
+                        justifyContent="center"
+                        width="100%"
+                    >
+                        <DoDisturb />
+
+                        <Typography>
+                            {strings.youBlockedThisContact}{" "}
+                            <Box
+                                component="span"
+                                sx={{ textDecoration: "underline", cursor: "pointer" }}
+                                onClick={() => removeBlock(roomBlock.id)}
+                            >
+                                {strings.clickHereToUnblock}
+                            </Box>
+                        </Typography>
+                    </Stack>
+                </Box>
+            </Box>
+        );
+    }
 
     return (
         <Box borderTop="1px solid" sx={{ borderColor: "divider" }} px={2} py={1}>
@@ -157,7 +191,12 @@ function ChatInput({ handleSetMessageText, handleSend, files }: ChatInputProps) 
                                 )
                             )
                         }
-                        sx={{ position: "absolute", top: "11px", right: "20px", cursor: "pointer" }}
+                        sx={{
+                            position: "absolute",
+                            top: "11px",
+                            right: "20px",
+                            cursor: "pointer",
+                        }}
                     />
                 </Box>
             </Box>

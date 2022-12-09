@@ -9,6 +9,7 @@ import generateThumbFile from "../lib/generateThumbFile";
 import getFileType from "../lib/getFileType";
 import getMessageStatus from "../lib/getMessageStatus";
 import { fetchHistory } from "./leftSidebar";
+import { RoomType } from "../../../types/Rooms";
 
 export const fetchMessages = createAsyncThunk(
     "messages/fetchMessages",
@@ -800,6 +801,49 @@ export const selectIsLastMessageFromUser =
         const sortedMessages = messages.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 
         return sortedMessages[0].fromUserId === userId;
+    };
+
+export const selectShouldDisplayBlockButton =
+    (roomId: number) =>
+    (state: RootState): boolean => {
+        const room = state.messages[roomId];
+        const roomData = state.api.queries[`getRoom(${roomId})`]?.data as RoomType;
+        const roomBlockData = state.api.queries[`getRoomBlocked(${roomId})`]?.data as {
+            id: number;
+        };
+
+        if (roomBlockData) {
+            return false;
+        }
+
+        if (!room || !roomData) {
+            return false;
+        }
+
+        const allMessagesLoaded = room.cursor === null;
+        const noUserMessages = Object.values(room.messages || {}).every(
+            (m) => m.fromUserId !== state.user.id
+        );
+
+        return allMessagesLoaded && noUserMessages && roomData.type === "private";
+    };
+
+export const selectOtherUserIdInPrivateRoom =
+    (roomId: number) =>
+    (state: RootState): number => {
+        const roomData = state.api.queries[`getRoom(${roomId})`]?.data as RoomType;
+
+        if (!roomData) {
+            return null;
+        }
+
+        if (roomData.type !== "private") {
+            return null;
+        }
+
+        const otherUser = roomData.users.find((m) => m.userId !== state.user.id);
+
+        return otherUser?.userId;
     };
 
 export default messagesSlice.reducer;

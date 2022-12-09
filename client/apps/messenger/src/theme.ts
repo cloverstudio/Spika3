@@ -28,7 +28,6 @@ declare module "@mui/material/styles/createPalette" {
     }
 }
 
-
 const basePalette: PaletteOptions = {
     common: {
         darkBlue: "#131940",
@@ -44,9 +43,9 @@ const basePalette: PaletteOptions = {
     text: {
         tertiary: "#9AA0A6",
     },
-}
+};
 
-const typography : TypographyVariantsOptions = {
+const typography: TypographyVariantsOptions = {
     fontFamily: `"Roboto" , sans-serif`,
     fontSize: 14,
     fontWeightLight: 300,
@@ -55,8 +54,13 @@ const typography : TypographyVariantsOptions = {
     fontWeightBold: 600,
 };
 
-const components : any =  {
+const components: any = {
     components: {
+        MuiButtonBase: {
+            defaultProps: {
+                disableRipple: true,
+            },
+        },
         MuiButton: {
             styleOverrides: {
                 root: {
@@ -153,7 +157,7 @@ export const lightTheme = createTheme({
         },
         background: {
             default: "#fff",
-            paper: "#f0f0f0"
+            paper: "#f0f0f0",
         },
         action: {
             disabled: "#fff",
@@ -184,7 +188,7 @@ export const darkTheme = createTheme({
         },
         background: {
             default: "#202020",
-            paper: "#404040"
+            paper: "#404040",
         },
         action: {
             disabled: "#222",
@@ -204,11 +208,7 @@ export const darkTheme = createTheme({
     },
 });
 
-
 export type ThemeType = "light" | "dark";
 export type ThemeContextType = { theme: ThemeType; setTheme: (theme: ThemeType) => void };
 
-export const ThemeContext = React.createContext<ThemeContextType>(
-    {} as ThemeContextType
-);
-
+export const ThemeContext = React.createContext<ThemeContextType>({} as ThemeContextType);

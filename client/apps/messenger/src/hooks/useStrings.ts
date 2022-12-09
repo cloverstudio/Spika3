@@ -108,6 +108,12 @@ const en = {
     messageEditedAt: "Message edited at",
     readBy: "Read by",
     deliveredTo: "Delivered to",
+    blockedUsers: "Blocked users",
+    blockUserQuestion: "Do you want to block user?",
+    noBlockedUsers: "No blocked users",
+    youBlockedThisContact: "You blocked this contact.",
+    clickHereToUnblock: "Click here to unblock.",
+    yes: "Yes",
 };
 
 const strings = {
