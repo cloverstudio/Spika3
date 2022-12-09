@@ -1,7 +1,7 @@
 import { Box } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import AttachmentManager from "../../lib/AttachmentManager";
 import {
     canLoadMoreMessages,
@@ -18,7 +18,8 @@ export default function MessagesContainer({
     children: React.ReactNode;
 }): React.ReactElement {
     const roomId = parseInt(useParams().id || "");
-    const targetMessageId = parseInt(useParams().messageId || "");
+    const [searchParams] = useSearchParams();
+    const targetMessageId = searchParams.get("messageId");
 
     const messagesLength = useSelector(selectRoomMessagesLength(roomId));
     const isLastMessageFromUser = useSelector(selectIsLastMessageFromUser(roomId));
@@ -54,18 +55,25 @@ export default function MessagesContainer({
             if (messagesLength - messagesLengthRef.current === 1 && !isLastMessageFromUser) {
                 setNewMessages((m) => m + 1);
             }
-        } else {
-            if (targetMessageId) {
-                setTimeout(() => {
-                    document.getElementById(`message_${targetMessageId}`)?.scrollIntoView();
-                }, 500);
-            } else if (ref.current.scrollHeight !== lastScrollHeight) {
-                onScrollDown();
-            }
+        } else if (ref.current.scrollHeight !== lastScrollHeight) {
+            onScrollDown();
         }
 
         messagesLengthRef.current = messagesLength;
-    }, [messagesLength, targetMessageId]);
+    }, [isLastMessageFromUser, messagesLength]);
+
+    useEffect(() => {
+        const locked = +ref.current.dataset.locked;
+
+        if (!locked && targetMessageId) {
+            setTimeout(() => {
+                const ele = document.getElementById(`message_${targetMessageId}`);
+                if (ele) {
+                    ele.scrollIntoView();
+                }
+            }, 500);
+        }
+    }, [targetMessageId]);
 
     const onScrollDown = () => {
         if (!ref.current) {

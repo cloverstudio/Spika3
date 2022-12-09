@@ -1,5 +1,4 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { wait } from "../../../../../../lib/utils";
 import { dynamicBaseQuery } from "../../../api/api";
 import type { RootState } from "../../../store/store";
 import MessageType, { MessageListType, MessageRecordType } from "../../../types/Message";
@@ -20,7 +19,7 @@ export const fetchMessages = createAsyncThunk(
             cursor,
         }: {
             roomId: number;
-            targetMessageId?: number;
+            targetMessageId?: string;
             cursor?: number;
         },
         thunkAPI

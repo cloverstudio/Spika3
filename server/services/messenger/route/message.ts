@@ -48,7 +48,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             const body = req.body.body;
             const localId = req.body.localId;
             const reply = req.body.reply;
-            const replyId = parseInt(req.body.replyId as string);
+            const replyId = parseInt(req.body.replyId as string) || undefined;
             const fromUserId = userReq.user.id;
             const fromDeviceId = userReq.device.id;
 
@@ -343,6 +343,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     take = await prisma.message.count({
                         where: {
                             createdAt: { gte: targetMessage.createdAt },
+                            roomId,
                         },
                     });
                 }

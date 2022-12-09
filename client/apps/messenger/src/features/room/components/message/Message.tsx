@@ -1,7 +1,7 @@
 import { Avatar, Box, Typography } from "@mui/material";
 import React, { memo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { useShowSnackBar } from "../../../../hooks/useModal";
 import { selectUser } from "../../../../store/userSlice";
 import { useGetRoomBlockedQuery, useGetRoomQuery } from "../../api/room";
@@ -52,7 +52,8 @@ function Message({
     nextMessageFromUserId: number | null;
 }) {
     const roomId = parseInt(useParams().id || "");
-    const targetMessageId = parseInt(useParams().messageId || "");
+    const [searchParams] = useSearchParams();
+    const targetMessageId = searchParams.get("messageId");
 
     const user = useSelector(selectUser);
     const status = useSelector(selectMessageStatus(roomId, id));
@@ -92,7 +93,7 @@ function Message({
         setMouseOver(false);
     };
 
-    const highlighted = id === targetMessageId;
+    const highlighted = id === +targetMessageId;
 
     return (
         <MessageContainer
@@ -298,7 +299,7 @@ function Menu({ id, mouseOver, setMouseOver, setShowReactionMenu }: MenuProps) {
             handleShare={async () => {
                 const parsedUrl = new URL(window.location.href);
 
-                const url = `${parsedUrl.origin}/messenger/rooms/${roomId}/${id}`;
+                const url = `${parsedUrl.origin}/messenger/rooms/${roomId}?messageId=${id}`;
                 await navigator.clipboard.writeText(url);
 
                 showSnackBar({

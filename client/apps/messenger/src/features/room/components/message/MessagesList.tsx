@@ -3,7 +3,7 @@ import { Box, Button } from "@mui/material";
 import dayjs from "dayjs";
 import React, { memo, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { useShowBasicDialog } from "../../../../hooks/useModal";
 import useStrings from "../../../../hooks/useStrings";
 import MessageType from "../../../../types/Message";
@@ -28,7 +28,8 @@ const Date = memo(function Date({ day }: { day: string }) {
 
 export default function MessagesList(): React.ReactElement {
     const roomId = parseInt(useParams().id || "");
-    const messageId = parseInt(useParams().messageId || "");
+    const [searchParams] = useSearchParams();
+    const messageId = searchParams.get("messageId");
     const strings = useStrings();
     const showBasicDialog = useShowBasicDialog();
 
