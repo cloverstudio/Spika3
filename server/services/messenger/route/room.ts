@@ -13,6 +13,7 @@ import sanitize from "../../../components/sanitize";
 import { InitRouterParams } from "../../types/serviceInterface";
 import createSSERoomsNotify from "../lib/sseRoomsNotify";
 import prisma from "../../../components/prisma";
+import { createClient } from "redis";
 
 const postRoomSchema = yup.object().shape({
     body: yup.object().shape({
@@ -145,7 +146,13 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 },
             });
 
-            const sanitizedRoom = sanitize(room).room();
+            const muted = await isRoomMuted({
+                roomId: room.id,
+                userId: userReq.user.id,
+                redisClient,
+            });
+
+            const sanitizedRoom = sanitize({ ...room, muted }).room();
 
             sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_NEW_ROOM);
 
@@ -221,7 +228,9 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 },
             });
 
-            const sanitizedRoom = sanitize(updated).room();
+            const muted = await isRoomMuted({ roomId: id, userId: userReq.user.id, redisClient });
+
+            const sanitizedRoom = sanitize({ ...updated, muted }).room();
             sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_UPDATE_ROOM);
 
             res.send(successResponse({ room: sanitizedRoom }, userReq.lang));
@@ -259,7 +268,13 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 },
             });
 
-            const sanitizedRoom = sanitize(updated).room();
+            const muted = await isRoomMuted({
+                roomId: updated.id,
+                userId: userReq.user.id,
+                redisClient,
+            });
+
+            const sanitizedRoom = sanitize({ ...updated, muted }).room();
             sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_DELETE_ROOM);
 
             res.send(successResponse({ room: sanitizedRoom }, userReq.lang));
@@ -370,7 +385,12 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     });
                 }
 
-                const sanitizedRoom = sanitize(updated).room();
+                const muted = await isRoomMuted({
+                    roomId: updated.id,
+                    userId: userReq.user.id,
+                    redisClient,
+                });
+                const sanitizedRoom = sanitize({ ...updated, muted }).room();
                 sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_UPDATE_ROOM);
 
                 res.send(successResponse({ room: sanitizedRoom }, userReq.lang));
@@ -429,7 +449,17 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 },
             });
 
-            const list = rooms.map((room) => sanitize(room).room());
+            const list = await Promise.all(
+                rooms.map(async (room) => {
+                    const muted = await isRoomMuted({
+                        roomId: room.id,
+                        userId: userReq.user.id,
+                        redisClient,
+                    });
+
+                    return sanitize({ ...room, muted }).room();
+                })
+            );
 
             res.send(
                 successResponse(
@@ -492,7 +522,13 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 return res.status(404).send(errorResponse("Room not found", userReq.lang));
             }
 
-            res.send(successResponse({ room: sanitize(room).room() }, userReq.lang));
+            const muted = await isRoomMuted({
+                roomId: room.id,
+                userId: userReq.user.id,
+                redisClient,
+            });
+
+            res.send(successResponse({ room: sanitize({ ...room, muted }).room() }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -527,7 +563,13 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 return res.status(404).send(errorResponse("Room not found", userReq.lang));
             }
 
-            res.send(successResponse({ room: sanitize(room).room() }, userReq.lang));
+            const muted = await isRoomMuted({
+                roomId: room.id,
+                userId: userReq.user.id,
+                redisClient,
+            });
+
+            res.send(successResponse({ room: sanitize({ ...room, muted }).room() }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -575,32 +617,19 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 },
             });
 
-            const roomsSanitized = roomsUser.map((ru) => sanitize(ru.room).room());
+            const roomsSanitized = Promise.all(
+                roomsUser.map(async (ru) => {
+                    const muted = await isRoomMuted({
+                        roomId: ru.room.id,
+                        userId: userReq.user.id,
+                        redisClient,
+                    });
+
+                    return sanitize({ ...ru.room, muted }).room();
+                })
+            );
 
             res.send(successResponse({ rooms: roomsSanitized }, userReq.lang));
-        } catch (e: any) {
-            le(e);
-            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
-        }
-    });
-
-    router.post("/:id/markAsRead", auth, async (req: Request, res: Response) => {
-        const userReq: UserRequest = req as UserRequest;
-
-        try {
-            const id = parseInt((req.params.id as string) || "");
-
-            const room = await prisma.room.findFirst({
-                where: {
-                    id,
-                },
-            });
-
-            if (!room) {
-                return res.status(404).send(errorResponse("Room not found", userReq.lang));
-            }
-
-            res.send(successResponse({}, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -818,4 +847,30 @@ async function updateRoomAdminUsers({
         where: { roomId: room.id, userId: { in: newAdminUserIds }, isAdmin: false },
         data: { isAdmin: true },
     });
+}
+
+export async function isRoomMuted({
+    userId,
+    roomId,
+    redisClient,
+}: {
+    roomId: number;
+    userId: number;
+    redisClient: ReturnType<typeof createClient>;
+}): Promise<boolean> {
+    const key = `mute_${userId}_${roomId}`;
+
+    let mutedString = await redisClient.get(key);
+
+    if (!mutedString) {
+        const userSettings = await prisma.userSetting.findFirst({
+            where: { userId, key: `mute_${roomId}` },
+        });
+
+        mutedString = Number(userSettings?.value === "true").toString();
+
+        await redisClient.set(key, mutedString);
+    }
+
+    return Boolean(Number(mutedString));
 }

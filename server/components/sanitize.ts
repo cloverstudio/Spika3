@@ -25,6 +25,7 @@ export type SanitizedRoomType = Partial<
         createdAt: number;
         modifiedAt: number;
         users: SanitizedRoomUserType[];
+        muted: boolean;
     }
 >;
 type SanitizedMessageType = Partial<
@@ -282,7 +283,8 @@ function sanitizeRoom({
     createdAt,
     modifiedAt,
     deleted,
-}: Partial<Room & { users: (RoomUser & { user: User })[] }>): SanitizedRoomType {
+    muted,
+}: Partial<Room & { users: (RoomUser & { user: User })[]; muted: boolean }>): SanitizedRoomType {
     return {
         id,
         type,
@@ -293,6 +295,7 @@ function sanitizeRoom({
         users: users.map(sanitizeRoomUser),
         createdAt: +new Date(createdAt),
         modifiedAt: +new Date(modifiedAt),
+        muted,
     };
 }
 
