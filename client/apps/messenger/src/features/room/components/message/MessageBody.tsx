@@ -10,7 +10,6 @@ import UserType from "../../../../types/User";
 import { useGetRoomQuery } from "../../api/room";
 import AttachmentManager from "../../lib/AttachmentManager";
 
-
 type MessageBodyProps = {
     id: number;
     type: string;
@@ -394,9 +393,7 @@ function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boo
             sx={{
                 minWidth: "50px",
                 maxWidth: "50rem",
-                backgroundColor: isUsersMessage
-                    ? "common.myMessageBackground"
-                    : "background.paper",
+                backgroundColor: isUsersMessage ? "common.myMessageBackground" : "background.paper",
                 borderRadius: "0.3rem",
                 padding: "0.4rem",
                 cursor: "pointer",

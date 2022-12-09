@@ -24,6 +24,7 @@ const postMessageSchema = yup.object().shape({
         type: yup.string().strict().required(),
         body: yup.object().required(),
         localId: yup.string().strict(),
+        replyId: yup.number().strict(),
         reply: yup.boolean().default(false),
     }),
 });
@@ -47,6 +48,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             const body = req.body.body;
             const localId = req.body.localId;
             const reply = req.body.reply;
+            const replyId = parseInt(req.body.replyId as string);
             const fromUserId = userReq.user.id;
             const fromDeviceId = userReq.device.id;
 
@@ -123,6 +125,33 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     return res
                         .status(400)
                         .send(errorResponse("referenceMessage not found", userReq.lang));
+            } else if (replyId) {
+                const referenceMessage = await prisma.message.findUnique({
+                    where: { id: replyId },
+                });
+
+                if (!referenceMessage) {
+                    return res
+                        .status(400)
+                        .send(errorResponse("there is no message with replyId", userReq.lang));
+                }
+
+                if (!body.text) {
+                    return res.status(400).send(errorResponse("Text is missing", userReq.lang));
+                }
+
+                const deviceMessage = await prisma.deviceMessage.findFirst({
+                    where: { messageId: referenceMessage.id },
+                });
+
+                const formattedBody = await formatMessageBody(
+                    deviceMessage.body,
+                    referenceMessage.type
+                );
+                body.referenceMessage = sanitize({
+                    ...referenceMessage,
+                    body: formattedBody,
+                }).message();
             } else if (type === "text") {
                 if (!body.text)
                     return res.status(400).send(errorResponse("Text is missing", userReq.lang));
@@ -173,6 +202,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     seenCount: 0,
                     localId,
                     reply,
+                    replyId,
                 },
             });
 

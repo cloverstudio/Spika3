@@ -121,6 +121,7 @@ Table message {
   modifiedAt DateTime [default: `now()`, not null]
   deleted Boolean [not null, default: false]
   reply Boolean [not null, default: false]
+  replyId Int
   deviceMessages message_device [not null]
   messageRecords message_record [not null]
   localId String

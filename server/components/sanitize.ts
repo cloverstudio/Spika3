@@ -100,6 +100,7 @@ export default function sanitize(data: any): sanitizeTypes {
                 localId,
                 deleted,
                 reply,
+                replyId,
             } = data as Message & { body: any };
 
             return {
@@ -116,6 +117,7 @@ export default function sanitize(data: any): sanitizeTypes {
                 localId,
                 deleted,
                 reply,
+                replyId,
             };
         },
         messageWithReactionRecords: () => {
@@ -133,6 +135,7 @@ export default function sanitize(data: any): sanitizeTypes {
                 localId,
                 deleted,
                 reply,
+                replyId,
                 messageRecords,
             } = data as Message & { body: any; messageRecords: MessageRecord[] };
 
@@ -161,6 +164,7 @@ export default function sanitize(data: any): sanitizeTypes {
                         roomId,
                         createdAt: +new Date(createdAt),
                     })),
+                replyId,
             };
         },
         file: () => {

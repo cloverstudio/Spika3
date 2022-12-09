@@ -153,6 +153,7 @@ model Message {
   modifiedAt DateTime @default(now()) @map(name: "modified_at")
   deleted    Boolean  @default(false) @map(name: "deleted")
   reply      Boolean  @default(false) @map(name: "reply")
+  replyId    Int?     @map(name: "reply_id")
 
   deviceMessages DeviceMessage[]
   messageRecords MessageRecord[]
