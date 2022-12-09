@@ -1383,8 +1383,7 @@ definitions:
                 type: "integer"
                 format: "int32"
             type:
-                type: "integer"
-                format: "int32"
+                type: "string"
             body:
                 type: "object"
             createdAt:
@@ -1392,6 +1391,9 @@ definitions:
                 format: "int32"
             localId:
                 type: "string"
+            replyId:
+                type: "integer"
+                format: "int32"
 
     MessageRecord:
         type: "object"
