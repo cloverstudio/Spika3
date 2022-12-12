@@ -84,7 +84,7 @@ describe("User API", () => {
             });
 
             expect(userFromDb.displayName).to.eqls(userFromRes.displayName);
-            expect(userFromDb.avatarUrl).to.eqls(userFromRes.avatarUrl);
+            expect(userFromDb.avatarFileId).to.eqls(userFromRes.avatarFileId);
         });
     });
 

@@ -10,7 +10,6 @@ export default function formatRoomInfo(room: RoomType, currentUserId: number): R
 
     if (otherUser) {
         formattedRoom.name = otherUser?.user.displayName || "";
-        formattedRoom.avatarUrl = otherUser?.user.avatarUrl || "";
         formattedRoom.avatarFileId = otherUser?.user.avatarFileId || 0;
     }
 

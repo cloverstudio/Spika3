@@ -131,7 +131,6 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 data: {
                     name,
                     type,
-                    avatarUrl: "",
                     avatarFileId: parseInt(avatarFileId || "0"),
                     users: {
                         create: users,
@@ -601,7 +600,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                             id: true,
                             name: true,
                             type: true,
-                            avatarUrl: true,
+                            avatarFileId: true,
                             createdAt: true,
                             modifiedAt: true,
                             deleted: true,
@@ -617,7 +616,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 },
             });
 
-            const roomsSanitized = Promise.all(
+            const roomsSanitized = await Promise.all(
                 roomsUser.map(async (ru) => {
                     const muted = await isRoomMuted({
                         roomId: ru.room.id,

@@ -113,7 +113,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
     const removeProfilePhoto = async () => {
         try {
             setLoading(true);
-            await update({ displayName: proposedName, avatarUrl: "", avatarFileId: 0 }).unwrap();
+            await update({ displayName: proposedName, avatarFileId: 0 }).unwrap();
             setLoading(false);
             closeEditName();
         } catch (error) {

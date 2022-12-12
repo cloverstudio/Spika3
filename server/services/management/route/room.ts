@@ -195,7 +195,6 @@ export default (params: InitRouterParams) => {
         try {
             const name: string = req.body.name;
             const type: string = req.body.type;
-            const avatarUrl: string = req.body.avatarUrl;
             const deleted: boolean = req.body.verified;
 
             if (!name) return res.status(400).send(errorResponse(`Name is required`, userReq.lang));
@@ -205,7 +204,6 @@ export default (params: InitRouterParams) => {
                 data: {
                     name: name,
                     type: type,
-                    avatarUrl: avatarUrl,
                     deleted: deleted,
                 },
             });
@@ -316,7 +314,6 @@ export default (params: InitRouterParams) => {
             const roomId: number = parseInt(req.params.roomId);
             const name: string = req.body.name;
             const type: string = req.body.type;
-            const avatarUrl: string = req.body.avatarUrl;
             const deleted: boolean = req.body.deleted;
             const room = await prisma.room.findFirst({
                 where: {
@@ -331,7 +328,6 @@ export default (params: InitRouterParams) => {
             const updateValues: any = {};
             if (name) updateValues.name = name;
             if (type) updateValues.type = type;
-            if (avatarUrl) updateValues.avatarUrl = avatarUrl;
             if (deleted != null) updateValues.deleted = deleted;
             if (Object.keys(updateValues).length == 0)
                 return res.status(400).send(errorResponse(`Nothing to update`, userReq.lang));

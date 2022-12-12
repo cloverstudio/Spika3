@@ -107,7 +107,6 @@ export default (params: InitRouterParams) => {
             const displayName: string = req.body.displayName;
             const emailAddress: string = req.body.emailAddress;
             const telephoneNumber: string = req.body.telephoneNumber;
-            const avatarUrl: string = req.body.avatarUrl || "";
             const avatarFileId: number = parseInt(req.body.avatarFileId || "0");
             const verified: boolean = req.body.verified;
 
@@ -143,7 +142,6 @@ export default (params: InitRouterParams) => {
                     displayName: displayName,
                     emailAddress: emailAddress,
                     telephoneNumber: telephoneNumber,
-                    avatarUrl: avatarUrl,
                     avatarFileId: avatarFileId,
                     verified: verified,
                 },
@@ -220,7 +218,6 @@ export default (params: InitRouterParams) => {
             const displayName: string = req.body.displayName;
             const emailAddress: string = req.body.emailAddress;
             const telephoneNumber: string = req.body.telephoneNumber;
-            const avatarUrl: string = req.body.avatarUrl || "";
             const avatarFileId: number = parseInt(req.body.avatarFileId || "0");
             const verified: boolean = req.body.verified;
             const verificationCode: string = req.body.verificationCode;
@@ -266,8 +263,7 @@ export default (params: InitRouterParams) => {
             if (displayName) updateValues.displayName = displayName;
             if (emailAddress) updateValues.emailAddress = emailAddress;
             if (telephoneNumber) updateValues.telephoneNumber = telephoneNumber;
-            if (avatarUrl) updateValues.avatarUrl = avatarUrl;
-            if (avatarFileId) updateValues.avatarUrl = avatarFileId;
+            if (avatarFileId) updateValues.avatarFileId = avatarFileId;
             if (verified != null) updateValues.verified = verified;
             if (verificationCode) updateValues.verificationCode = verificationCode;
 

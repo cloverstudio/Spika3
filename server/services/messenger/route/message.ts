@@ -25,7 +25,6 @@ const postMessageSchema = yup.object().shape({
         body: yup.object().required(),
         localId: yup.string().strict(),
         replyId: yup.number().strict(),
-        reply: yup.boolean().default(false),
     }),
 });
 
@@ -47,7 +46,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             const type = req.body.type;
             const body = req.body.body;
             const localId = req.body.localId;
-            const reply = req.body.reply;
             const replyId = parseInt(req.body.replyId as string) || undefined;
             const fromUserId = userReq.user.id;
             const fromDeviceId = userReq.device.id;
@@ -105,26 +103,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     if (!exists)
                         return res.status(400).send(errorResponse("Invalid thumbId", userReq.lang));
                 }
-            } else if (reply) {
-                if (!body.referenceMessage)
-                    return res
-                        .status(400)
-                        .send(errorResponse("referenceMessage is missing", userReq.lang));
-                if (!body.referenceMessage.id)
-                    return res
-                        .status(400)
-                        .send(errorResponse("referenceMessage id is missing", userReq.lang));
-
-                if (!body.text)
-                    return res.status(400).send(errorResponse("Text is missing", userReq.lang));
-                const referenceMessageFound = await prisma.message.findUnique({
-                    where: { id: body.referenceMessage.id },
-                });
-
-                if (!referenceMessageFound)
-                    return res
-                        .status(400)
-                        .send(errorResponse("referenceMessage not found", userReq.lang));
             } else if (replyId) {
                 const referenceMessage = await prisma.message.findUnique({
                     where: { id: replyId },
@@ -201,7 +179,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     deliveredCount: 0,
                     seenCount: 0,
                     localId,
-                    reply,
                     replyId,
                 },
             });
