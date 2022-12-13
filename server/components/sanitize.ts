@@ -25,6 +25,7 @@ export type SanitizedRoomType = Partial<
         createdAt: number;
         modifiedAt: number;
         users: SanitizedRoomUserType[];
+        muted: boolean;
     }
 >;
 type SanitizedMessageType = Partial<
@@ -98,7 +99,7 @@ export default function sanitize(data: any): sanitizeTypes {
                 modifiedAt,
                 localId,
                 deleted,
-                reply,
+                replyId,
             } = data as Message & { body: any };
 
             return {
@@ -114,7 +115,7 @@ export default function sanitize(data: any): sanitizeTypes {
                 modifiedAt: +new Date(modifiedAt),
                 localId,
                 deleted,
-                reply,
+                replyId,
             };
         },
         messageWithReactionRecords: () => {
@@ -131,7 +132,7 @@ export default function sanitize(data: any): sanitizeTypes {
                 modifiedAt,
                 localId,
                 deleted,
-                reply,
+                replyId,
                 messageRecords,
             } = data as Message & { body: any; messageRecords: MessageRecord[] };
 
@@ -148,7 +149,6 @@ export default function sanitize(data: any): sanitizeTypes {
                 modifiedAt: +new Date(modifiedAt),
                 localId,
                 deleted,
-                reply,
                 messageRecords: messageRecords
                     .filter((m) => m.type === "reaction")
                     .map(({ id, type, messageId, userId, createdAt, reaction }) => ({
@@ -160,6 +160,7 @@ export default function sanitize(data: any): sanitizeTypes {
                         roomId,
                         createdAt: +new Date(createdAt),
                     })),
+                replyId,
             };
         },
         file: () => {
@@ -228,14 +229,14 @@ export default function sanitize(data: any): sanitizeTypes {
             };
         },
         apiKey: () => {
-            const { id, displayName, token, avatarUrl, createdAt, modifiedAt, roomId } =
-                data as ApiKey & { displayName: string; avatarUrl?: string };
+            const { id, displayName, token, avatarFileId, createdAt, modifiedAt, roomId } =
+                data as ApiKey & { displayName: string; avatarFileId?: number };
 
             return {
                 id,
                 displayName,
                 token,
-                avatarUrl,
+                avatarFileId,
                 roomId,
                 createdAt: +new Date(createdAt),
                 modifiedAt: +new Date(modifiedAt),
@@ -251,7 +252,6 @@ function sanitizeUser({
     telephoneNumberHashed,
     displayName,
     avatarFileId,
-    avatarUrl,
     verified,
     createdAt,
     modifiedAt,
@@ -263,7 +263,6 @@ function sanitizeUser({
         telephoneNumber,
         telephoneNumberHashed,
         displayName,
-        avatarUrl,
         avatarFileId,
         verified,
         createdAt: +new Date(createdAt),
@@ -276,23 +275,23 @@ function sanitizeRoom({
     id,
     type,
     name,
-    avatarUrl,
     avatarFileId,
     users,
     createdAt,
     modifiedAt,
     deleted,
-}: Partial<Room & { users: (RoomUser & { user: User })[] }>): SanitizedRoomType {
+    muted,
+}: Partial<Room & { users: (RoomUser & { user: User })[]; muted: boolean }>): SanitizedRoomType {
     return {
         id,
         type,
         name,
-        avatarUrl,
         avatarFileId,
         deleted,
         users: users.map(sanitizeRoomUser),
         createdAt: +new Date(createdAt),
         modifiedAt: +new Date(modifiedAt),
+        muted,
     };
 }
 

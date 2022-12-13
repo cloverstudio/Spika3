@@ -8,7 +8,6 @@ Table user {
   telephoneNumber String [unique]
   telephoneNumberHashed String [unique]
   displayName String
-  avatarUrl String
   avatarFileId Int [not null, default: 0]
   verificationCode String
   verified Boolean [not null, default: false]
@@ -82,7 +81,6 @@ Table room {
   id Int [pk, increment]
   type String [not null]
   name String [not null]
-  avatarUrl String [not null]
   avatarFileId Int [not null, default: 0]
   createdAt DateTime [default: `now()`, not null]
   modifiedAt DateTime [default: `now()`, not null]
@@ -120,7 +118,7 @@ Table message {
   createdAt DateTime [default: `now()`, not null]
   modifiedAt DateTime [default: `now()`, not null]
   deleted Boolean [not null, default: false]
-  reply Boolean [not null, default: false]
+  replyId Int
   deviceMessages message_device [not null]
   messageRecords message_record [not null]
   localId String

@@ -349,7 +349,7 @@ describe("API", () => {
             globals.roomId = response.body.data.room.id;
 
             expect(JSON.stringify(response.body.data.room)).to.eqls(
-                JSON.stringify(sanitize(room).room())
+                JSON.stringify(sanitize({ ...room, muted: false }).room())
             );
         });
 
@@ -805,6 +805,8 @@ describe("API", () => {
             const response = await supertest(app)
                 .get("/api/messenger/rooms/sync/" + lastUpdate)
                 .set({ accesstoken: globals.userToken });
+
+            console.log({ d: response.body.data });
 
             expect(response.status).to.eqls(200);
             expect(response.body.data).to.has.property("rooms");

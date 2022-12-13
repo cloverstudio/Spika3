@@ -1,5 +1,4 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { wait } from "../../../../../../lib/utils";
 import { dynamicBaseQuery } from "../../../api/api";
 import type { RootState } from "../../../store/store";
 import MessageType, { MessageListType, MessageRecordType } from "../../../types/Message";
@@ -20,7 +19,7 @@ export const fetchMessages = createAsyncThunk(
             cursor,
         }: {
             roomId: number;
-            targetMessageId?: number;
+            targetMessageId?: string;
             cursor?: number;
         },
         thunkAPI
@@ -221,7 +220,7 @@ export const editMessageThunk = createAsyncThunk(
             return;
         }
 
-        const { type, body: currentBody, fromUserId, id, reply, createdAt } = message;
+        const { type, body: currentBody, fromUserId, id, replyId, createdAt } = message;
         const body = { ...currentBody, text: text.trim() };
 
         thunkAPI.dispatch(
@@ -232,7 +231,7 @@ export const editMessageThunk = createAsyncThunk(
                 localId: id.toString(),
                 fromUserId,
                 status: "sending",
-                reply,
+                replyId,
                 createdAt,
             })
         );
@@ -256,7 +255,7 @@ export const editMessageThunk = createAsyncThunk(
                     localId: id.toString(),
                     fromUserId,
                     status: "failed",
-                    reply,
+                    replyId,
                     createdAt,
                 })
             );
@@ -282,7 +281,7 @@ export const replyMessageThunk = createAsyncThunk(
         }
 
         const localId = Math.round(Math.random() * 1000000000000000000000).toString();
-        const body = { referenceMessage, text: text.trim() };
+        const body = { text: text.trim(), referenceMessage };
 
         thunkAPI.dispatch(
             messagesSlice.actions.setSending({
@@ -292,7 +291,7 @@ export const replyMessageThunk = createAsyncThunk(
                 status: "sending",
                 localId,
                 fromUserId,
-                reply: true,
+                replyId: referenceMessage.id,
             })
         );
 
@@ -303,7 +302,7 @@ export const replyMessageThunk = createAsyncThunk(
                     roomId,
                     type,
                     body,
-                    reply: true,
+                    replyId: referenceMessage.id,
                     localId,
                 },
                 method: "POST",
@@ -321,7 +320,7 @@ export const replyMessageThunk = createAsyncThunk(
                     status: "failed",
                     localId,
                     fromUserId,
-                    reply: true,
+                    replyId: referenceMessage.id,
                 })
             );
 
@@ -366,7 +365,7 @@ export const messagesSlice = createSlice({
                     localId: string;
                     roomId: number;
                     fromUserId: number;
-                    reply?: boolean;
+                    replyId?: number;
                     createdAt?: number;
                 };
             }
@@ -378,7 +377,7 @@ export const messagesSlice = createSlice({
                 localId,
                 type,
                 fromUserId,
-                reply = false,
+                replyId,
                 createdAt = +Date.now(),
             } = action.payload;
             const room = state[roomId];
@@ -397,7 +396,8 @@ export const messagesSlice = createSlice({
                 deleted: false,
                 deliveredCount: 0,
                 seenCount: 0,
-                reply,
+                replyId,
+                reply: false,
                 totalUserCount: 100,
                 messageRecords: [],
             };

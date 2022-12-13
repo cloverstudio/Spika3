@@ -19,34 +19,36 @@ class CallWebhookWorker implements QueueWorkerInterface {
             const sanitizedMessage = sanitize({ ...message, body: formattedBody }).message();
             const fromUser = await prisma.user.findUnique({
                 where: { id: message.fromUserId },
-                select: { displayName: true, avatarUrl: true },
+                select: { displayName: true, avatarFileId: true },
             });
 
-            if (fromUser && fromUser.avatarUrl) {
-                fromUser.avatarUrl = `${process.env.UPLOADS_BASE_URL}${fromUser.avatarUrl}`;
-            }
             const room = await prisma.room.findUnique({
                 where: { id: message.roomId },
-                select: { name: true, avatarUrl: true },
+                select: { name: true, avatarFileId: true },
             });
-            if (room && room.avatarUrl) {
-                room.avatarUrl = `${process.env.UPLOADS_BASE_URL}${room.avatarUrl}`;
-            }
 
             const webhook = await prisma.webhook.findFirst({ where: { roomId: message.roomId } });
 
             if (webhook) {
                 try {
-                    axios.post(webhook.url, {
-                        message: sanitizedMessage, fromUser, room 
-                    },{
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Verification-Signature": webhook.verifySignature,
-                        },
-                    }).catch((e)=> {
-                        le({ webHookError: e });
-                    });
+                    axios
+                        .post(
+                            webhook.url,
+                            {
+                                message: sanitizedMessage,
+                                fromUser,
+                                room,
+                            },
+                            {
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "Verification-Signature": webhook.verifySignature,
+                                },
+                            }
+                        )
+                        .catch((e) => {
+                            le({ webHookError: e });
+                        });
                 } catch (error) {
                     le({ webHookError: error });
                 }

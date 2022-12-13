@@ -16,7 +16,6 @@ model User {
   telephoneNumber       String?  @unique @map(name: "telephone_number")
   telephoneNumberHashed String?  @unique @map(name: "telephone_number_hashed")
   displayName           String?  @map(name: "display_name")
-  avatarUrl             String?  @map(name: "avatar_url")
   avatarFileId          Int      @default(0) @map(name: "avatar_file_id")
   verificationCode      String?  @map(name: "verification_code")
   verified              Boolean  @default(false) @map(name: "verified")
@@ -105,7 +104,6 @@ model Room {
   id           Int      @id @default(autoincrement()) @map(name: "id")
   type         String   @map(name: "type")
   name         String   @map(name: "name")
-  avatarUrl    String   @map(name: "avatar_url")
   avatarFileId Int      @default(0) @map(name: "avatar_file_id")
   createdAt    DateTime @default(now()) @map(name: "created_at")
   modifiedAt   DateTime @default(now()) @map(name: "modified_at")
@@ -152,7 +150,7 @@ model Message {
   createdAt  DateTime @default(now()) @map(name: "created_at")
   modifiedAt DateTime @default(now()) @map(name: "modified_at")
   deleted    Boolean  @default(false) @map(name: "deleted")
-  reply      Boolean  @default(false) @map(name: "reply")
+  replyId    Int?     @map(name: "reply_id")
 
   deviceMessages DeviceMessage[]
   messageRecords MessageRecord[]

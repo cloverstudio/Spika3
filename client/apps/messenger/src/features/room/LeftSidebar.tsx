@@ -118,7 +118,6 @@ function LeftSidebarNewGroup({
                     userIds: selectedUsers.map((u) => u.id),
                     name,
                     type: "group",
-                    avatarUrl: uploadedFile?.path || "",
                     avatarFileId: uploadedFile?.id || 0,
                 }).unwrap();
 

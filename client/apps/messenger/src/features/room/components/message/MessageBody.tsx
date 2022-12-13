@@ -5,11 +5,10 @@ import getFileIcon from "../../lib/getFileIcon";
 import DownloadIcon from "@mui/icons-material/Download";
 import { CloseOutlined } from "@mui/icons-material";
 import { deletedMessageText } from "../../lib/consts";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import UserType from "../../../../types/User";
 import { useGetRoomQuery } from "../../api/room";
 import AttachmentManager from "../../lib/AttachmentManager";
-
 
 type MessageBodyProps = {
     id: number;
@@ -265,8 +264,8 @@ function AudioMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
 }
 
 function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boolean }) {
-    const navigate = useNavigate();
     const roomId = parseInt(useParams().id || "");
+    const [_, setSearchParams] = useSearchParams();
     const { data: room } = useGetRoomQuery(roomId);
 
     const renderReplyMessage = () => {
@@ -385,7 +384,7 @@ function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boo
     };
 
     const handleReplyClick = () => {
-        navigate(`/rooms/${roomId}/${body.referenceMessage.id}`);
+        setSearchParams(`?messageId=${body.referenceMessage.id}`);
     };
 
     return (
@@ -394,9 +393,7 @@ function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boo
             sx={{
                 minWidth: "50px",
                 maxWidth: "50rem",
-                backgroundColor: isUsersMessage
-                    ? "common.myMessageBackground"
-                    : "background.paper",
+                backgroundColor: isUsersMessage ? "common.myMessageBackground" : "background.paper",
                 borderRadius: "0.3rem",
                 padding: "0.4rem",
                 cursor: "pointer",

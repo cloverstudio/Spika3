@@ -61,7 +61,6 @@ export const leftSidebarSlice = createSlice({
         refreshOne(state, { payload: updatedRoom }: { payload: RoomType }) {
             const list = state.history.list.map((room) => {
                 if (updatedRoom.id === room.id) {
-                    room.avatarUrl = updatedRoom.avatarUrl;
                     room.avatarFileId = updatedRoom.avatarFileId;
                     room.name = updatedRoom.name;
                     room.users = updatedRoom.users;
