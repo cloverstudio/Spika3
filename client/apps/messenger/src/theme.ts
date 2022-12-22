@@ -19,12 +19,8 @@ declare module "@mui/material/styles/createPalette" {
         myMessageBackground: string;
         otherMessageBackground: string;
         darkBlue: string;
-        confCallBackground: string;
-        videoBackground: string;
-        videoLabelBackground: string;
+        confCallControlsLobby: string;
         confCallControls: string;
-        confCallControlsHoverBackground: string;
-        confCallFirstLetterColor: string;
     }
 }
 
@@ -33,12 +29,8 @@ const basePalette: PaletteOptions = {
         darkBlue: "#131940",
         chatBackground: "#F2F2F2",
         myMessageBackground: "#C8EBFE",
-        videoBackground: "#222",
-        videoLabelBackground: "#fff9",
-        confCallControls: "#fff",
-        confCallControlsHoverBackground: "#fff1",
-        confCallBackground: "#111111f4",
-        confCallFirstLetterColor: "#fff",
+        confCallControls: "#4696F0",
+        confCallControlsLobby: "#4696F0",
     },
     text: {
         tertiary: "#9AA0A6",
@@ -151,8 +143,14 @@ export const lightTheme = createTheme({
         mode: "light",
         primary: {
             main: "#4696F0",
-            light: "#f2f2f2",
-            dark: "#f2f2f2",
+            light: "#69A3E6",
+            dark: "#3169A8",
+            contrastText: "#f2f2f2",
+        },
+        secondary: {
+            main: "#F04675",
+            light: "#F36B90",
+            dark: "#A83151",
             contrastText: "#f2f2f2",
         },
         background: {
@@ -173,6 +171,8 @@ export const lightTheme = createTheme({
         common: {
             myMessageBackground: "#C8EBFE",
             otherMessageBackground: "#f0f0f0",
+            confCallControls: "#f0f0f0",
+            confCallControlsLobby: "#4696F0",
         },
     },
 });
@@ -185,6 +185,15 @@ export const darkTheme = createTheme({
         mode: "dark",
         primary: {
             main: "#4696F0",
+            light: "#69A3E6",
+            dark: "#3169A8",
+            contrastText: "#f2f2f2",
+        },
+        secondary: {
+            main: "#F04675",
+            light: "#F36B90",
+            dark: "#A83151",
+            contrastText: "#f2f2f2",
         },
         background: {
             default: "#202020",
@@ -204,6 +213,8 @@ export const darkTheme = createTheme({
         common: {
             otherMessageBackground: "#303030",
             myMessageBackground: "#303040",
+            confCallControls: "#fff",
+            confCallControlsLobby: "#4696F0",
         },
     },
 });

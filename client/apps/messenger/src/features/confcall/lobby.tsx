@@ -184,7 +184,7 @@ export default function ConfCall() {
                 top: 0,
                 width: "100vw",
                 height: "100vh",
-                backgroundColor: "common.confCallBackground",
+                backgroundColor: "background.default",
                 border: "none",
                 zIndex: 500,
                 display: "flex",
@@ -237,6 +237,7 @@ export default function ConfCall() {
                                 display: "flex",
                                 flexDirection: "row",
                                 justifyContent: "center",
+                                color: "common.confCallControlsLobby",
                             }}
                         >
                             <ButtonsHolder>
@@ -295,7 +296,7 @@ export default function ConfCall() {
                 >
                     <Box
                         sx={{
-                            color: "common.confCallControls",
+                            color: "",
                             display: "flex",
                             flexDirection: "row",
                             marginBottom: "10px",
@@ -317,7 +318,7 @@ export default function ConfCall() {
                             <span>No one is in the call yet.</span>
                         )}
                     </Box>
-                    <Box sx={{ color: "common.confCallControls", padding: "0px 0px 0px 15px" }}>
+                    <Box sx={{ color: "text.primary", padding: "0px 0px 0px 15px" }}>
                         Join to the meeting
                         <br />
                         <Button
@@ -341,7 +342,7 @@ export default function ConfCall() {
                     top: 15,
                     right: 15,
                     cursor: "pointer",
-                    color: "common.confCallControls",
+                    color: "primary.main",
                 }}
                 fontSize="large"
                 onClick={() => {

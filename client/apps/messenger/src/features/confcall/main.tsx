@@ -146,13 +146,9 @@ export default function ConfCall() {
             await updateParticipants();
         })();
 
-        const timerId = setInterval(() => {
-            updateParticipants();
-        },2000);
-
         const clearListner = listenCallEvent(async (data: callEventPayload) => {
             try {
-                //{await updateParticipants();
+                await updateParticipants();
             } catch (e) {
                 //This happens when component doesn't exists but this listener is called
                 //It happens often when user leave the room. I ignore this because its annoying.
@@ -162,8 +158,7 @@ export default function ConfCall() {
         dispatch(setScreenshareEnabled(false));
 
         return () => {
-            //clearListner();
-            clearInterval(timerId);
+            clearListner();
         };
     }, []);
 
@@ -252,7 +247,7 @@ export default function ConfCall() {
                 top: 0,
                 width: "100vw",
                 height: "100vh",
-                backgroundColor: "common.confCallBackground",
+                backgroundColor: "background.default",
                 border: "none",
                 zIndex: 500,
                 overflowY: "auto",
@@ -285,6 +280,7 @@ export default function ConfCall() {
                             opacity: showControllBar ? "1" : "0",
                             transition: "all 0.5s ease;",
                             zIndex: 700,
+                            color: "common.confCallControls",
                         }}
                     >
                         <ButtonsHolder>
@@ -416,12 +412,11 @@ export default function ConfCall() {
                             <CloseIcon
                                 sx={Styles.controlIconDefaultStyle}
                                 onClick={async () => {
-
-                                    if(screenshareEnabled){
+                                    if (screenshareEnabled) {
                                         await mediasoupHander.stopScreenshare();
                                         dispatch(setScreenshareEnabled(false));
                                     }
-                                    
+
                                     await mediasoupHander.stop();
                                     await leaveApi(callState.roomId);
                                     navigate(`/rooms/${callState.roomId}`);

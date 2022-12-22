@@ -6,14 +6,13 @@ export default (props: any) => {
         <Box
             sx={{
                 textAlign: "center",
-                color: "common.confCallControls",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 width: "100px",
                 height: "100px",
                 "&:hover": {
-                    backgroundColor: "common.confCallControlsHoverBackground",
+                    opacity: 0.8,
                 },
             }}
         >
