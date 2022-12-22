@@ -185,7 +185,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             });
 
             if (!requestDevice) {
-                return res.status(403).send(errorResponse("Invalid device id"));
+                return res.status(404).send(errorResponse("Device not found"));
             }
 
             const requestUser = await prisma.user.findMany({

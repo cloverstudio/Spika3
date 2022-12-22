@@ -15,7 +15,7 @@ class CallWebhookWorker implements QueueWorkerInterface {
                 return;
             }
 
-            const formattedBody = await formatMessageBody(body, message.type, true);
+            const formattedBody = await formatMessageBody(body, message.type);
             const sanitizedMessage = sanitize({ ...message, body: formattedBody }).message();
             const fromUser = await prisma.user.findUnique({
                 where: { id: message.fromUserId },

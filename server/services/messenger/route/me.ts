@@ -16,7 +16,6 @@ import prisma from "../../../components/prisma";
 const updateSchema = yup.object().shape({
     body: yup.object().shape({
         telephoneNumber: yup.string().strict(),
-        telephoneNumberHashed: yup.string().strict(),
         emailAddress: yup.string().strict(),
         displayName: yup.string().strict(),
         avatarFileId: yup.number().strict(),
