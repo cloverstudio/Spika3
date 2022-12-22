@@ -156,7 +156,7 @@ const CountryPicker = (props: any) => {
                     <Box
                         sx={{
                             position: "absolute",
-                            backgroundColor: "white",
+                            backgroundColor: "background.default",
                             zIndex: 10,
                             width: staticBoxCoordinates.width,
                             left: staticBoxCoordinates.left,
