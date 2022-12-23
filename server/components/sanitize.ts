@@ -104,18 +104,18 @@ export default function sanitize(data: any): sanitizeTypes {
 
             return {
                 id,
+                roomId,
                 fromUserId,
                 totalUserCount,
                 deliveredCount,
                 seenCount,
-                roomId,
                 type,
                 body,
                 createdAt: +new Date(createdAt),
                 modifiedAt: +new Date(modifiedAt),
                 localId,
-                deleted,
                 replyId,
+                deleted,
             };
         },
         messageWithReactionRecords: () => {
@@ -259,11 +259,11 @@ function sanitizeUser({
 }: Partial<User>): SanitizedUserType {
     return {
         id,
-        emailAddress,
-        telephoneNumber,
-        telephoneNumberHashed,
         displayName,
         avatarFileId,
+        telephoneNumber,
+        telephoneNumberHashed,
+        emailAddress,
         verified,
         createdAt: +new Date(createdAt),
         modifiedAt: +new Date(modifiedAt),
@@ -284,14 +284,14 @@ function sanitizeRoom({
 }: Partial<Room & { users: (RoomUser & { user: User })[]; muted: boolean }>): SanitizedRoomType {
     return {
         id,
-        type,
         name,
-        avatarFileId,
-        deleted,
         users: users.map(sanitizeRoomUser),
+        avatarFileId,
+        muted,
+        type,
+        deleted,
         createdAt: +new Date(createdAt),
         modifiedAt: +new Date(modifiedAt),
-        muted,
     };
 }
 

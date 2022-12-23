@@ -37,6 +37,11 @@ const verifyFilesSchema = yup.object().shape({
         total: yup.number().strict().min(1).required(),
         fileHash: yup.string().required(),
         relationId: yup.number().strict(),
+        metaData: yup.object().shape({
+            duration: yup.number().strict(),
+            height: yup.number().strict(),
+            width: yup.number().strict(),
+        }),
     }),
 });
 
@@ -97,7 +102,7 @@ export default (): Router => {
 
             if (exists) {
                 return res
-                    .status(400)
+                    .status(409)
                     .send(errorResponse("File with that clientId already exists", userReq.lang));
             }
 
@@ -118,7 +123,7 @@ export default (): Router => {
 
             if (!allChunksUploaded) {
                 return res
-                    .status(400)
+                    .status(410)
                     .send(errorResponse("Not all chunks are uploaded", userReq.lang));
             }
 
@@ -150,7 +155,7 @@ export default (): Router => {
             const hashMatches = await checkHashes(fileHash, filePath);
             if (!hashMatches) {
                 await removeFile(filePath);
-                return res.status(400).send(errorResponse("Hash doesn't match", userReq.lang));
+                return res.status(411).send(errorResponse("Hash doesn't match", userReq.lang));
             }
 
             const durationInt: number = metaData?.duration ? parseInt(metaData.duration) : 0;

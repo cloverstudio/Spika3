@@ -106,7 +106,7 @@ export default (): Router => {
         try {
             const block = await getRoomBlock(roomId, userReq.user.id);
 
-            res.send(successResponse({ blocked: block }, userReq.lang));
+            res.send(successResponse({ block }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

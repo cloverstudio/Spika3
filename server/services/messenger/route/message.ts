@@ -284,7 +284,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 successResponse(
                     {
                         messageRecords: message.messageRecords.map((record) =>
-                            sanitize(record).messageRecord()
+                            sanitize({ ...record, roomId: message.roomId }).messageRecord()
                         ),
                     },
                     userReq.lang

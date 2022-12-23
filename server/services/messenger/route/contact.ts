@@ -39,6 +39,7 @@ const postContactsSchema = yup.object().shape({
 const getContactsSchema = yup.object().shape({
     query: yup.object().shape({
         page: yup.number().default(1),
+        keyword: yup.string().strict(),
     }),
 });
 
@@ -47,26 +48,23 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
     router.get("/", auth, validate(getContactsSchema), async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
+        const keyword = req.query.keyword;
+        const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
+
+        const condition: any = {
+            verified: true,
+            id: {
+                not: userReq.user.id,
+            },
+        };
+
+        if (keyword && keyword.length > 0)
+            condition.displayName = {
+                startsWith: keyword,
+            };
 
         try {
             if (+process.env["TEAM_MODE"]) {
-                const keyword = req.query.keyword;
-
-                const page: number =
-                    parseInt(req.query.page ? (req.query.page as string) : "") || 1;
-
-                const condition: any = {
-                    verified: true,
-                    id: {
-                        not: userReq.user.id,
-                    },
-                };
-
-                if (keyword && keyword.length > 0)
-                    condition.displayName = {
-                        startsWith: keyword,
-                    };
-
                 const users = await prisma.user.findMany({
                     where: condition,
                     orderBy: [
@@ -93,12 +91,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     )
                 );
             } else {
-                const page: number =
-                    parseInt(req.query.page ? (req.query.page as string) : "") || 1;
-
                 const contacts = await prisma.contact.findMany({
                     where: {
                         user: userReq.user,
+                        contact: condition,
                     },
                     include: {
                         contact: true,
@@ -117,6 +113,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 const count = await prisma.contact.count({
                     where: {
                         user: userReq.user,
+                        contact: condition,
                     },
                 });
 

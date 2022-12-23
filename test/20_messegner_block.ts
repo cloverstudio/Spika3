@@ -93,8 +93,8 @@ describe("API", () => {
                 .set({ accesstoken: globals.userToken });
 
             expect(response.status).to.eqls(200);
-            expect(response.body.data).to.has.property("blocked");
-            expect(response.body.data.blocked).not.to.be.null;
+            expect(response.body.data).to.has.property("block");
+            expect(response.body.data.block).not.to.be.null;
         });
     });
 

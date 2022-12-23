@@ -40,6 +40,7 @@ export default (): Router => {
                 where: { id },
                 data: {
                     pushToken,
+                    modifiedAt: new Date(),
                 },
             });
 

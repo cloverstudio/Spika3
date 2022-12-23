@@ -98,7 +98,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     },
                 });
 
-                const messageRecordSanitized = sanitize(messageRecord).messageRecord();
+                const messageRecordSanitized = sanitize({
+                    ...messageRecord,
+                    roomId: message.roomId,
+                }).messageRecord();
 
                 const messageRecordsNotifyData = {
                     types: [type],
@@ -128,6 +131,9 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             const messageRecord = await prisma.messageRecord.findFirst({
                 where: { id, userId },
+                include: {
+                    message: true,
+                },
             });
 
             if (!messageRecord) {
@@ -136,7 +142,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             await prisma.messageRecord.delete({ where: { id } });
 
-            const messageRecordSanitized = sanitize(messageRecord).messageRecord();
+            const messageRecordSanitized = sanitize({
+                ...messageRecord,
+                roomId: messageRecord.message.roomId,
+            }).messageRecord();
 
             /*  sseMessageRecordsNotify(
                 [messageRecordSanitized],
@@ -173,10 +182,11 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         createdAt: { gte: userReq.device.createdAt },
                     },
                 },
+                include: { message: true },
             });
 
             const messageRecordsSanitized = messageRecords.map((messageRecord) =>
-                sanitize(messageRecord).messageRecord()
+                sanitize({ ...messageRecord, roomId: messageRecord.message.roomId }).messageRecord()
             );
 
             res.send(successResponse({ messageRecords: messageRecordsSanitized }, userReq.lang));

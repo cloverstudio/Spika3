@@ -306,7 +306,7 @@ describe("API", () => {
                 .set({ accesstoken: globals.userToken })
                 .send({ ...validParams, clientId });
 
-            expect(responseInvalid.status).to.eqls(400);
+            expect(responseInvalid.status).to.eqls(409);
         });
 
         it("Requires mimeType param to be string", async () => {
@@ -346,7 +346,7 @@ describe("API", () => {
                 .set({ accesstoken: globals.userToken })
                 .send({ ...validParams });
 
-            expect(responseInvalidNotString.status).to.eqls(400);
+            expect(responseInvalidNotString.status).to.eqls(411);
             expect(responseNoParam.status).to.eqls(400);
             expect(responseValid.status).to.eqls(200);
         });

@@ -55,7 +55,7 @@ const roomApi = api.injectEndpoints({
             query: (roomId) => {
                 return `/messenger/blocks/rooms/${roomId}`;
             },
-            transformResponse: (res) => res.blocked,
+            transformResponse: (res) => res.block,
             providesTags: [{ type: "BlockList", id: "Room" }],
         }),
     }),
