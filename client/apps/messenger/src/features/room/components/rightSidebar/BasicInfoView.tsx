@@ -21,6 +21,7 @@ import { crop } from "../../../../utils/crop";
 import uploadFile from "../../../../utils/uploadFile";
 import { useUpdateRoomMutation } from "../../api/room";
 import { refreshOne as refreshOneRoom } from "../../slices/leftSidebar";
+import { selectOtherUserIdInPrivateRoom } from "../../slices/messages";
 import { EditPhotoDialog } from "../EditProfile";
 
 declare const UPLOADS_BASE_URL: string;
@@ -34,7 +35,7 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
     const { roomData } = props;
     const dispatch = useDispatch();
     const isItPrivateGroup = roomData.type === "private";
-    const otherUser = roomData.users[1];
+    const otherUserId = useSelector(selectOtherUserIdInPrivateRoom(roomData.id));
     const [editGroupPicture, setEditGroupPicture] = useState(false);
     const [editGroupName, setEditGroupName] = useState(false);
     const [proposedName, setProposedName] = useState(roomData.name);
@@ -45,6 +46,8 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
     const [update] = useUpdateRoomMutation();
     const me = useSelector(selectUser);
     let amIAdmin = false;
+
+    const otherUser = roomData.users.find((u) => u.userId === otherUserId)?.user;
 
     useEffect(() => {
         if (roomData) {
@@ -187,8 +190,8 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
             >
                 {isItPrivateGroup ? (
                     <Avatar
-                        alt={otherUser.user.displayName}
-                        src={`${UPLOADS_BASE_URL}/${otherUser.user.avatarFileId}`}
+                        alt={otherUser.displayName}
+                        src={`${UPLOADS_BASE_URL}/${otherUser.avatarFileId}`}
                     />
                 ) : (
                     <Box sx={{ position: "relative" }}>
@@ -222,7 +225,7 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
                     </Box>
                 )}
                 {isItPrivateGroup ? (
-                    <Typography variant="h6">{otherUser.user.displayName}</Typography>
+                    <Typography variant="h6">{otherUser.displayName}</Typography>
                 ) : (
                     <>
                         {editGroupName ? (

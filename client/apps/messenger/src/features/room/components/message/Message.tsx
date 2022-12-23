@@ -1,7 +1,7 @@
 import { Avatar, Box, Typography } from "@mui/material";
 import React, { memo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useShowSnackBar } from "../../../../hooks/useModal";
 import { selectUser } from "../../../../store/userSlice";
 import { useGetRoomBlockedQuery, useGetRoomQuery } from "../../api/room";
@@ -10,6 +10,7 @@ import {
     selectHasMessageReactions,
     selectMessageById,
     selectMessageStatus,
+    selectTargetMessage,
     showDeleteModal,
     showMessageDetails,
 } from "../../slices/messages";
@@ -52,8 +53,7 @@ function Message({
     nextMessageFromUserId: number | null;
 }) {
     const roomId = parseInt(useParams().id || "");
-    const [searchParams] = useSearchParams();
-    const targetMessageId = searchParams.get("messageId");
+    const targetMessageId = useSelector(selectTargetMessage(roomId));
 
     const user = useSelector(selectUser);
     const status = useSelector(selectMessageStatus(roomId, id));
@@ -214,7 +214,7 @@ function MessageBodyContainer({
     const user = useSelector(selectUser);
 
     const message = useSelector(selectMessageById(roomId, id));
-    const { fromUserId, body, type, reply, replyId } = message;
+    const { fromUserId, body, type, replyId } = message;
 
     const isUsersMessage = fromUserId === user.id;
     const side = isUsersMessage ? "right" : "left";
@@ -225,7 +225,7 @@ function MessageBodyContainer({
             id={id}
             type={type}
             side={side}
-            isReply={reply || !!replyId}
+            isReply={!!replyId}
             onImageMessageClick={onImageMessageClick}
         />
     );

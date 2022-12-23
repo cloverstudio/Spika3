@@ -14,6 +14,9 @@ import {
     selectOtherUserIdInPrivateRoom,
     selectRoomMessages,
     selectShouldDisplayBlockButton,
+    selectTargetMessage,
+    selectTargetMessageIsInList,
+    setTargetMessage,
 } from "../../slices/messages";
 import Message from "./Message";
 import MessagesContainer from "./MessagesContainer";
@@ -30,6 +33,8 @@ export default function MessagesList(): React.ReactElement {
     const roomId = parseInt(useParams().id || "");
     const [searchParams] = useSearchParams();
     const messageId = searchParams.get("messageId");
+    const targetMessageId = useSelector(selectTargetMessage(roomId));
+    const targetMessageIsInMessageList = useSelector(selectTargetMessageIsInList(roomId));
     const strings = useStrings();
     const showBasicDialog = useShowBasicDialog();
 
@@ -67,10 +72,18 @@ export default function MessagesList(): React.ReactElement {
     }, [messages]);
 
     useEffect(() => {
-        if (typeof cursor === "undefined" || messageId) {
-            dispatch(fetchMessages({ roomId, targetMessageId: messageId }));
+        if (messageId) {
+            dispatch(setTargetMessage({ roomId, messageId: +messageId }));
         }
-    }, [dispatch, roomId, messageId, cursor]);
+    }, [dispatch, messageId, roomId]);
+
+    useEffect(() => {
+        if (typeof cursor === "undefined" && !targetMessageId) {
+            dispatch(fetchMessages({ roomId }));
+        } else if (targetMessageId && !targetMessageIsInMessageList) {
+            dispatch(fetchMessages({ roomId, targetMessageId }));
+        }
+    }, [dispatch, roomId, targetMessageId, cursor, targetMessageIsInMessageList]);
 
     const handleBlock = () => {
         showBasicDialog(
