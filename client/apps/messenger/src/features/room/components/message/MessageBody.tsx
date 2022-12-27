@@ -5,10 +5,12 @@ import getFileIcon from "../../lib/getFileIcon";
 import DownloadIcon from "@mui/icons-material/Download";
 import { CloseOutlined } from "@mui/icons-material";
 import { deletedMessageText } from "../../lib/consts";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import UserType from "../../../../types/User";
 import { useGetRoomQuery } from "../../api/room";
 import AttachmentManager from "../../lib/AttachmentManager";
+import { useDispatch } from "react-redux";
+import { setTargetMessage } from "../../slices/messages";
 
 type MessageBodyProps = {
     id: number;
@@ -265,7 +267,7 @@ function AudioMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
 
 function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boolean }) {
     const roomId = parseInt(useParams().id || "");
-    const [_, setSearchParams] = useSearchParams();
+    const dispatch = useDispatch();
     const { data: room } = useGetRoomQuery(roomId);
 
     const renderReplyMessage = () => {
@@ -384,7 +386,7 @@ function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boo
     };
 
     const handleReplyClick = () => {
-        setSearchParams(`?messageId=${body.referenceMessage.id}`);
+        dispatch(setTargetMessage({ roomId, messageId: body.referenceMessage.id }));
     };
 
     return (
@@ -408,7 +410,10 @@ function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boo
                 {renderReplyMessage()}
             </Box>
 
-            <Box>{body.text}</Box>
+            <Box
+                sx={{ overflowWrap: "break-word" }}
+                dangerouslySetInnerHTML={{ __html: filterText(body.text) }}
+            />
         </Box>
     );
 }
@@ -422,30 +427,6 @@ function TextMessage({
     isUsersMessage: boolean;
     sender?: UserType;
 }) {
-    const filterText = (text: string): string => {
-        // escape html
-        text = text
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#39;");
-
-        // fold multiple new line in one
-        text = text.replace(/\n{3,}/g, "\n");
-
-        // auto link
-        const autolinkRegex = /(?![^<]*>|[^<>]*<\/)((https?:)\/\/[a-z0-9&#%;:=.\/\-?_]+)/gi;
-        const internalLink = text.includes(window.origin);
-
-        text = text.replace(
-            autolinkRegex,
-            `<a href="$1" ${!internalLink ? 'target="_blank"' : ""} >$1</a>`
-        );
-
-        return text;
-    };
-
     return (
         <Box
             component={"div"}
@@ -476,4 +457,28 @@ function TextMessage({
             />
         </Box>
     );
+}
+
+function filterText(text: string): string {
+    // escape html
+    text = text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+
+    // fold multiple new line in one
+    text = text.replace(/\n{3,}/g, "\n");
+
+    // auto link
+    const autolinkRegex = /(?![^<]*>|[^<>]*<\/)((https?:)\/\/[a-z0-9&#%;:~=.\/\-?_]+)/gi;
+    const internalLink = text.includes(window.origin);
+
+    text = text.replace(
+        autolinkRegex,
+        `<a href="$1" ${!internalLink ? 'target="_blank"' : ""} >$1</a>`
+    );
+
+    return text;
 }

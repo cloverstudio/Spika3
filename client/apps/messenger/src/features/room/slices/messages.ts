@@ -19,7 +19,7 @@ export const fetchMessages = createAsyncThunk(
             cursor,
         }: {
             roomId: number;
-            targetMessageId?: string;
+            targetMessageId?: number;
             cursor?: number;
         },
         thunkAPI
@@ -346,6 +346,7 @@ type InitialState = {
         showDetails: boolean;
         showDelete: boolean;
         activeMessageId: number | null;
+        targetMessageId: number | null;
         count?: number;
         cursor?: number;
     };
@@ -397,7 +398,6 @@ export const messagesSlice = createSlice({
                 deliveredCount: 0,
                 seenCount: 0,
                 replyId,
-                reply: false,
                 totalUserCount: 100,
                 messageRecords: [],
             };
@@ -408,6 +408,7 @@ export const messagesSlice = createSlice({
 
             const room = state[roomId];
             if (room) {
+                room.targetMessageId = null;
                 room.messages[message.id] = message;
                 room.reactions[message.id] = [];
                 room.statusCounts[message.id] = { totalUserCount, deliveredCount, seenCount };
@@ -511,6 +512,27 @@ export const messagesSlice = createSlice({
                 room.messages[payload.id] = { ...payload, messageRecords: [] };
             }
         },
+
+        setTargetMessage: (state, action: { payload: { roomId: number; messageId: number } }) => {
+            const roomId = action.payload.roomId;
+            const room = state[roomId];
+
+            if (!room) {
+                state[roomId] = {
+                    roomId,
+                    messages: {},
+                    reactions: {},
+                    statusCounts: {},
+                    loading: true,
+                    activeMessageId: null,
+                    targetMessageId: action.payload.messageId,
+                    showDetails: false,
+                    showDelete: false,
+                };
+            } else {
+                room.targetMessageId = action.payload.messageId;
+            }
+        },
     },
     extraReducers: (builder) => {
         builder.addCase(
@@ -542,6 +564,7 @@ export const messagesSlice = createSlice({
                     statusCounts: {},
                     loading: true,
                     activeMessageId: null,
+                    targetMessageId: null,
                     showDetails: false,
                     showDelete: false,
                 };
@@ -572,6 +595,7 @@ export const messagesSlice = createSlice({
             const room = state[roomId];
 
             delete room.messages[localId];
+            room.targetMessageId = null;
             room.messages[id] = message;
             room.reactions[id] = messageRecords || [];
             room.statusCounts[id] = { totalUserCount, deliveredCount, seenCount };
@@ -592,6 +616,7 @@ export const messagesSlice = createSlice({
             const room = state[roomId];
 
             delete room.messages[localId];
+            room.targetMessageId = null;
             room.messages[id] = message;
             room.reactions[id] = messageRecords || [];
             room.statusCounts[id] = { totalUserCount, deliveredCount, seenCount };
@@ -612,6 +637,7 @@ export const messagesSlice = createSlice({
             const room = state[roomId];
 
             delete room.messages[localId];
+            room.targetMessageId = null;
             room.messages[id] = message;
             room.reactions[id] = messageRecords || [];
             room.statusCounts[id] = { totalUserCount, deliveredCount, seenCount };
@@ -629,6 +655,7 @@ export const {
     hideDeleteModal,
     deleteMessage,
     editMessage,
+    setTargetMessage,
 } = messagesSlice.actions;
 
 export const selectRoomMessages =
@@ -772,6 +799,34 @@ export const selectActiveMessage =
         }
 
         return room.messages[room.activeMessageId] || null;
+    };
+
+export const selectTargetMessage =
+    (roomId: number) =>
+    (state: RootState): number | null => {
+        const room = state.messages[roomId];
+
+        if (!room) {
+            return null;
+        }
+
+        return room.targetMessageId;
+    };
+
+export const selectTargetMessageIsInList =
+    (roomId: number) =>
+    (state: RootState): boolean => {
+        const room = state.messages[roomId];
+
+        if (!room) {
+            return false;
+        }
+
+        if (!room.targetMessageId) {
+            return false;
+        }
+
+        return !!room.messages[room.targetMessageId];
     };
 
 export const selectCursor =

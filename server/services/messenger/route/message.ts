@@ -317,12 +317,16 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 });
 
                 if (targetMessage) {
-                    take = await prisma.message.count({
+                    const takeToTargetMessage = await prisma.message.count({
                         where: {
                             createdAt: { gte: targetMessage.createdAt },
                             roomId,
                         },
                     });
+
+                    if (takeToTargetMessage > take) {
+                        take = takeToTargetMessage;
+                    }
                 }
             }
 
