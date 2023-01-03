@@ -573,7 +573,10 @@ export const messagesSlice = createSlice({
             }
         },
 
-        setTargetMessage: (state, action: { payload: { roomId: number; messageId: number } }) => {
+        setTargetMessage: (
+            state,
+            action: { payload: { roomId: number; messageId: number | null } }
+        ) => {
             const roomId = action.payload.roomId;
             const room = state[roomId];
 
