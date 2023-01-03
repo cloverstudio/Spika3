@@ -221,6 +221,7 @@ export const sendFileMessage = createAsyncThunk(
                     body.thumbId = thumbFileUploaded.id;
                 }
             }
+
             if (/^.*video.*$/.test(file.type)) {
                 console.log("vide type", type, file.type);
                 const thumbFile = await getVideoThumbnail(file);
@@ -233,6 +234,7 @@ export const sendFileMessage = createAsyncThunk(
                     body.thumbId = thumbFileUploaded.id;
                 }
             }
+
             const response = await dynamicBaseQuery({
                 url: "/messenger/messages",
                 data: {
@@ -253,6 +255,7 @@ export const sendFileMessage = createAsyncThunk(
                     roomId,
                     type,
                     body: {
+                        ...body,
                         uploadingFileName: file.name,
                     },
                     status: "failed",
