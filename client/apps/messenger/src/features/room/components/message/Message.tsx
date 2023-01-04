@@ -139,7 +139,7 @@ function Message({
                             onImageMessageClick={handleImageMessageClick}
                         />
                     </Box>
-                    {shouldDisplayStatusIcons && <StatusIcon status={status} />}
+                    {shouldDisplayStatusIcons && <StatusIcon status={status} id={id} />}
                     <MessageReactions id={id} />
                     <DatePopover
                         mouseOver={mouseOver}

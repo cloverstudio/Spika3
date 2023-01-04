@@ -75,6 +75,10 @@ export default function MessagesList(): React.ReactElement {
         if (messageId) {
             dispatch(setTargetMessage({ roomId, messageId: +messageId }));
         }
+
+        return () => {
+            dispatch(setTargetMessage({ roomId, messageId: null }));
+        };
     }, [dispatch, messageId, roomId]);
 
     useEffect(() => {

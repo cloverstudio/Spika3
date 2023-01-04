@@ -116,6 +116,63 @@ export const sendMessage = createAsyncThunk(
     }
 );
 
+export const resendMessage = createAsyncThunk(
+    "messages/resendMessage",
+    async (
+        data: {
+            messageId: number;
+            roomId: number;
+        },
+        thunkAPI
+    ): Promise<{ message: MessageType }> => {
+        const { roomId, messageId } = data;
+        const message = (thunkAPI.getState() as RootState).messages[roomId].messages[messageId];
+
+        const { type, body, localId, fromUserId } = message;
+
+        thunkAPI.dispatch(
+            messagesSlice.actions.setSending({
+                roomId,
+                type,
+                body,
+                status: "sending",
+                localId,
+                fromUserId,
+            })
+        );
+
+        try {
+            const response = await dynamicBaseQuery({
+                url: "/messenger/messages",
+                data: {
+                    roomId,
+                    type,
+                    body,
+                    localId,
+                },
+                method: "POST",
+            });
+
+            thunkAPI.dispatch(fetchHistory({ page: 1, keyword: "" }));
+
+            return response.data;
+        } catch (error) {
+            thunkAPI.dispatch(
+                messagesSlice.actions.setSending({
+                    roomId,
+                    type,
+                    body,
+                    status: "failed",
+                    localId,
+                    fromUserId,
+                })
+            );
+            console.error({ error });
+            throw error;
+        }
+    }
+);
+
 export const sendFileMessage = createAsyncThunk(
     "messages/sendFileMessage",
     async (
@@ -164,6 +221,7 @@ export const sendFileMessage = createAsyncThunk(
                     body.thumbId = thumbFileUploaded.id;
                 }
             }
+
             if (/^.*video.*$/.test(file.type)) {
                 console.log("vide type", type, file.type);
                 const thumbFile = await getVideoThumbnail(file);
@@ -176,6 +234,7 @@ export const sendFileMessage = createAsyncThunk(
                     body.thumbId = thumbFileUploaded.id;
                 }
             }
+
             const response = await dynamicBaseQuery({
                 url: "/messenger/messages",
                 data: {
@@ -196,6 +255,7 @@ export const sendFileMessage = createAsyncThunk(
                     roomId,
                     type,
                     body: {
+                        ...body,
                         uploadingFileName: file.name,
                     },
                     status: "failed",
@@ -513,7 +573,10 @@ export const messagesSlice = createSlice({
             }
         },
 
-        setTargetMessage: (state, action: { payload: { roomId: number; messageId: number } }) => {
+        setTargetMessage: (
+            state,
+            action: { payload: { roomId: number; messageId: number | null } }
+        ) => {
             const roomId = action.payload.roomId;
             const room = state[roomId];
 
@@ -581,6 +644,27 @@ export const messagesSlice = createSlice({
         });
 
         builder.addCase(sendMessage.fulfilled, (state, { payload }) => {
+            const { message } = payload;
+            const {
+                id,
+                roomId,
+                localId,
+                messageRecords,
+                totalUserCount,
+                deliveredCount,
+                seenCount,
+            } = message;
+
+            const room = state[roomId];
+
+            delete room.messages[localId];
+            room.targetMessageId = null;
+            room.messages[id] = message;
+            room.reactions[id] = messageRecords || [];
+            room.statusCounts[id] = { totalUserCount, deliveredCount, seenCount };
+        });
+
+        builder.addCase(resendMessage.fulfilled, (state, { payload }) => {
             const { message } = payload;
             const {
                 id,

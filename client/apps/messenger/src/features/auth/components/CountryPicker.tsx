@@ -74,7 +74,10 @@ const CountryPicker = (props: any) => {
                         ].code.toLowerCase()}.png 2x`}
                         alt=""
                     />
-                    <ListItemText sx={{ marginLeft: 1 }} primary={tempCountries[index].label} />
+                    <ListItemText
+                        sx={{ marginLeft: 1, color: "text.tertiary" }}
+                        primary={tempCountries[index].label}
+                    />
                 </ListItemButton>
             </ListItem>
         );
