@@ -1,7 +1,7 @@
 import CryptoJS from "crypto-js";
 import { dynamicBaseQuery } from "../api/api";
 import { encode } from "./base64";
-import { getImageDimention, getVideoInfo } from "./media";
+import { getImageDimension, getVideoInfo } from "./media";
 
 const chunkSize = 1024 * 54;
 
@@ -60,7 +60,7 @@ export default async function uploadFile({
 
             (async () => {
                 if (/^.*image.*$/.test(type)) {
-                    const dimension = await getImageDimention(file);
+                    const dimension = await getImageDimension(file);
                     metaData = { ...metaData, ...dimension };
                 }
                 if (/^.*video.*$/.test(type)) {

@@ -1,5 +1,6 @@
 import React from "react";
 import { useSelector } from "react-redux";
+import { Box } from "@mui/material";
 
 import { RoomType } from "../../../../../types/Rooms";
 import { selectRightSidebarActiveTab } from "../../../slices/rightSidebar";
@@ -18,9 +19,17 @@ type RightSidebarContentProps = {
     room: RoomType;
 };
 
-export default function RightSidebarContent({
+export default function RightSidebarContentContainer({
     room,
 }: RightSidebarContentProps): React.ReactElement {
+    return (
+        <Box pt={3} px={2.5}>
+            <RightSidebarContent room={room} />
+        </Box>
+    );
+}
+
+function RightSidebarContent({ room }: RightSidebarContentProps): React.ReactElement {
     const activeTab = useSelector(selectRightSidebarActiveTab);
 
     if (activeTab === "details") {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { createTheme, PaletteOptions, TypographyVariantsOptions } from "@mui/material/styles";
 
 declare module "@mui/material/styles" {
@@ -55,88 +55,86 @@ const typography: TypographyVariantsOptions = {
 };
 
 const components: any = {
-    components: {
-        MuiButtonBase: {
-            defaultProps: {
-                disableRipple: true,
+    MuiButtonBase: {
+        defaultProps: {
+            disableRipple: true,
+        },
+    },
+    MuiButton: {
+        styleOverrides: {
+            root: {
+                padding: "16px 24px",
+                borderRadius: "0.625rem",
+                boxShadow: "none",
+                textTransform: "none",
+                fontWeight: typography.fontWeightBold,
             },
         },
-        MuiButton: {
-            styleOverrides: {
-                root: {
-                    padding: "16px 24px",
+    },
+    MuiFormLabel: {
+        styleOverrides: {
+            root: {
+                color: basePalette.text.tertiary,
+                fontWeight: typography.fontWeightMedium,
+            },
+        },
+    },
+    MuiOutlinedInput: {
+        styleOverrides: {
+            root: {
+                "& .MuiOutlinedInput-notchedOutline": {
                     borderRadius: "0.625rem",
-                    boxShadow: "none",
-                    textTransform: "none",
-                    fontWeight: typography.fontWeightBold,
+                    borderColor: "divider",
                 },
-            },
-        },
-        MuiFormLabel: {
-            styleOverrides: {
-                root: {
-                    color: basePalette.text.tertiary,
+                input: {
+                    "&::placeholder": {
+                        color: basePalette.text.tertiary,
+                        fontWeight: typography.fontWeightMedium,
+                        opacity: "1",
+                    },
+                    fontWeight: typography.fontWeightMedium,
+                },
+                textarea: {
+                    "&::placeholder": {
+                        color: basePalette.text.tertiary,
+                        fontWeight: typography.fontWeightMedium,
+                        opacity: "1",
+                    },
                     fontWeight: typography.fontWeightMedium,
                 },
             },
         },
-        MuiOutlinedInput: {
-            styleOverrides: {
-                root: {
-                    "& .MuiOutlinedInput-notchedOutline": {
-                        borderRadius: "0.625rem",
-                        borderColor: "divider",
-                    },
-                    input: {
-                        "&::placeholder": {
-                            color: basePalette.text.tertiary,
-                            fontWeight: typography.fontWeightMedium,
-                            opacity: "1",
-                        },
+    },
+    MuiInput: {
+        styleOverrides: {
+            root: {
+                borderRadius: "0.625rem",
+                input: {
+                    "&::placeholder": {
+                        color: basePalette.text.tertiary,
                         fontWeight: typography.fontWeightMedium,
+                        opacity: "1",
                     },
-                    textarea: {
-                        "&::placeholder": {
-                            color: basePalette.text.tertiary,
-                            fontWeight: typography.fontWeightMedium,
-                            opacity: "1",
-                        },
-                        fontWeight: typography.fontWeightMedium,
-                    },
+                    fontWeight: typography.fontWeightMedium,
                 },
             },
         },
-        MuiInput: {
-            styleOverrides: {
-                root: {
-                    borderRadius: "0.625rem",
-                    input: {
-                        "&::placeholder": {
-                            color: basePalette.text.tertiary,
-                            fontWeight: typography.fontWeightMedium,
-                            opacity: "1",
-                        },
-                        fontWeight: typography.fontWeightMedium,
-                    },
-                },
+    },
+    MuiAlertTitle: {
+        styleOverrides: {
+            root: {
+                fontWeight: typography.fontWeightBold,
+                color: "#ef5350",
             },
         },
-        MuiAlertTitle: {
-            styleOverrides: {
-                root: {
-                    fontWeight: typography.fontWeightBold,
-                    color: "#ef5350",
-                },
-            },
-        },
-        MuiDataGrid: {
-            styleOverrides: {
-                root: {
-                    "& .MuiDataGrid-columnHeaders": {
-                        backgroundColor: "red",
-                        color: "rgba(255,0,0,0.7)",
-                        fontSize: 40,
-                    },
+    },
+    MuiDataGrid: {
+        styleOverrides: {
+            root: {
+                "& .MuiDataGrid-columnHeaders": {
+                    backgroundColor: "red",
+                    color: "rgba(255,0,0,0.7)",
+                    fontSize: 40,
                 },
             },
         },
@@ -144,8 +142,8 @@ const components: any = {
 };
 
 export const lightTheme = createTheme({
-    components: components,
-    typography: typography,
+    components,
+    typography,
     palette: {
         ...basePalette,
         mode: "light",
@@ -178,8 +176,8 @@ export const lightTheme = createTheme({
 });
 
 export const darkTheme = createTheme({
-    components: components,
-    typography: typography,
+    components,
+    typography,
     palette: {
         ...basePalette,
         mode: "dark",

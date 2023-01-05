@@ -98,12 +98,12 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
     };
 
     return (
-        <Box>
+        <Stack pt={5.5} spacing={1}>
             {type === "private" && (
                 <IconButton
                     size="large"
                     sx={{
-                        ml: 1,
+                        p: 1,
                         "&.MuiButtonBase-root:hover": {
                             bgcolor: "transparent",
                         },
@@ -129,46 +129,13 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
                     </Stack>
                 </IconButton>
             )}
-            {/* <IconButton
-                disableRipple
-                size="large"
-                sx={{
-                    ml: 1,
-                    "&.MuiButtonBase-root:hover": {
-                        bgcolor: "transparent",
-                    },
-                    width: "100%",
-                }}
-            >
-                <Stack
-                    direction="row"
-                    alignItems="center"
-                    spacing={1}
-                    sx={{
-                        display: "flex",
-                        flexDirection: "row",
-                        justifyContent: "flex-start",
-                        width: "100%",
-                    }}
-                >
-                    <WarningAmber style={{ fill: "red" }} />
-                    {type === "private" ? (
-                        <Typography variant="subtitle1" color="red">
-                            Report user
-                        </Typography>
-                    ) : (
-                        <Typography variant="subtitle1" color="red">
-                            Report group
-                        </Typography>
-                    )}
-                </Stack>
-            </IconButton> */}
             {type === "group" && (
                 <IconButton
                     disableRipple
                     size="large"
                     sx={{
-                        ml: 1,
+                        p: 1,
+
                         "&.MuiButtonBase-root:hover": {
                             bgcolor: "transparent",
                         },
@@ -198,7 +165,7 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
                     disableRipple
                     size="large"
                     sx={{
-                        ml: 1,
+                        p: 1,
                         "&.MuiButtonBase-root:hover": {
                             bgcolor: "transparent",
                         },
@@ -222,6 +189,6 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
                     </Stack>
                 </IconButton>
             )}
-        </Box>
+        </Stack>
     );
 }

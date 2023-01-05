@@ -9,17 +9,22 @@ import {
     Button,
     Dialog,
     DialogTitle,
+    Menu,
+    MenuItem,
 } from "@mui/material";
-import { Close, Add, Check } from "@mui/icons-material";
+import { Close, Add, Check, MoreHoriz } from "@mui/icons-material";
 import { useSelector, useDispatch } from "react-redux";
 import { RoomUserType } from "../../../../types/Rooms";
 import { selectUserId } from "../../../../store/userSlice";
-import { useUpdateRoomMutation } from "../../api/room";
+import { useCreateRoomMutation, useUpdateRoomMutation } from "../../api/room";
 import { useGetContactsQuery, useGetContactsByKeywordQuery } from "../../api/contacts";
 import User from "../../../../types/User";
 import Contacts from "../../../../types/Contacts";
 import { refreshOne as refreshOneRoom } from "../../slices/leftSidebar";
 import useStrings from "../../../../hooks/useStrings";
+import { useNavigate } from "react-router-dom";
+import { dynamicBaseQuery } from "../../../../api/api";
+import { numberOfMembersDisplayed } from "../../lib/consts";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -31,11 +36,17 @@ export interface DetailsMembersProps {
 export function DetailsMemberView(props: DetailsMembersProps) {
     const strings = useStrings();
     const { members, roomId } = props;
+    const [createRoom] = useCreateRoomMutation();
 
     const userId = useSelector(selectUserId);
     const dispatch = useDispatch();
     const [update] = useUpdateRoomMutation();
     const [openAddDialog, setOpenAddDialog] = useState(false);
+
+    const hasMore = members.length > numberOfMembersDisplayed;
+    const [showMore, setShowMore] = useState(!hasMore);
+
+    const navigate = useNavigate();
 
     const userIsAdmin = members.find((u) => u.userId === userId).isAdmin;
 
@@ -73,8 +84,28 @@ export function DetailsMemberView(props: DetailsMembersProps) {
         setOpenAddDialog(false);
     };
 
+    const handleOpenChat = async (memberId: number) => {
+        try {
+            const res = await dynamicBaseQuery(`/messenger/rooms/users/${memberId}`);
+
+            const room = res.data.room;
+
+            if (room.id) {
+                navigate(`/rooms/${room.id}`);
+            }
+        } catch (error) {
+            const created = await createRoom({
+                userIds: [memberId],
+            }).unwrap();
+
+            if (created.room.id) {
+                navigate(`/rooms/${created.room.id}`);
+            }
+        }
+    };
+
     return (
-        <Box padding="12px">
+        <Box pt={5.5}>
             <Stack
                 direction="row"
                 alignItems="center"
@@ -99,82 +130,72 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                 component={"ul"}
                 sx={{
                     width: "100%",
-                    maxWidth: 720,
                     paddingLeft: "0",
                     borderBottomColor: "background.paper",
+                    my: 3,
                 }}
             >
-                {members.map((roomUser, i) => {
-                    const { user } = roomUser;
+                {members
+                    .slice(0, showMore ? members.length : numberOfMembersDisplayed)
+                    .map((roomUser, i) => {
+                        const { user } = roomUser;
 
-                    return (
-                        <Box
-                            component={"li"}
-                            key={i}
-                            sx={{
-                                marginBottom: "10px",
-                                listStyle: "none",
-                                display: "flex",
-                                flexDirection: "row",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                            }}
-                        >
+                        return (
                             <Box
+                                component={"li"}
+                                key={i}
                                 sx={{
-                                    paddingLeft: "0",
-                                    paddingRight: "0",
+                                    marginBottom: 2,
+                                    listStyle: "none",
                                     display: "flex",
                                     flexDirection: "row",
+                                    justifyContent: "space-between",
                                     alignItems: "center",
                                 }}
                             >
-                                <Avatar
-                                    alt={user.displayName}
-                                    src={`${UPLOADS_BASE_URL}/${user.avatarFileId}`}
+                                <Box
                                     sx={{
-                                        marginRight: "5px",
+                                        display: "flex",
+                                        flexDirection: "row",
+                                        alignItems: "center",
+                                        gap: 2,
                                     }}
-                                />
+                                >
+                                    <Avatar
+                                        alt={user.displayName}
+                                        src={`${UPLOADS_BASE_URL}/${user.avatarFileId}`}
+                                        onClick={() => handleOpenChat(user.id)}
+                                        sx={{ cursor: "pointer" }}
+                                    />
+                                    <Box>
+                                        {user.displayName} {user.isBot ? ` (${strings.bot}) ` : ""}{" "}
+                                    </Box>
+                                </Box>
+
                                 <Box>
-                                    {user.displayName}{" "}
-                                    {roomUser.isAdmin ? ` (${strings.admin}) ` : ""}{" "}
-                                    {user.isBot ? ` (${strings.bot}) ` : ""}{" "}
+                                    {roomUser.isAdmin ? (
+                                        <Typography>{strings.admin}</Typography>
+                                    ) : user.isBot ? (
+                                        <></>
+                                    ) : (
+                                        userIsAdmin && (
+                                            <UserMenu
+                                                onRemove={() => removeMemberWithId(user.id)}
+                                                onPromote={() => handlePromoteToAdmin(user.id)}
+                                                onOpenChat={() => handleOpenChat(user.id)}
+                                            />
+                                        )
+                                    )}
                                 </Box>
                             </Box>
+                        );
+                    })}
 
-                            <Box>
-                                {roomUser.isAdmin ? (
-                                    <></>
-                                ) : user.isBot ? (
-                                    <></>
-                                ) : (
-                                    userIsAdmin && (
-                                        <Box display="flex">
-                                            <Button
-                                                size="small"
-                                                variant="text"
-                                                color="primary"
-                                                onClick={() => handlePromoteToAdmin(user.id)}
-                                                sx={{ mr: 1 }}
-                                            >
-                                                {strings.makeAdmin}
-                                            </Button>
-
-                                            <IconButton
-                                                size="large"
-                                                color="primary"
-                                                onClick={() => removeMemberWithId(user.id)}
-                                            >
-                                                <Close />
-                                            </IconButton>
-                                        </Box>
-                                    )
-                                )}
-                            </Box>
-                        </Box>
-                    );
-                })}
+                {hasMore && (
+                    <Button onClick={() => setShowMore(!showMore)} fullWidth variant="text">
+                        {showMore ? strings.showLess : strings.showMore}
+                    </Button>
+                )}
             </Box>
 
             {openAddDialog && (
@@ -358,5 +379,38 @@ export function AddMemberRow({
                 {checked ? <Check /> : null}
             </Box>
         </Box>
+    );
+}
+
+type UserMenuProps = {
+    onRemove: () => void;
+    onPromote: () => void;
+    onOpenChat: () => void;
+};
+
+function UserMenu({ onRemove, onPromote, onOpenChat }: UserMenuProps) {
+    const strings = useStrings();
+
+    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const open = Boolean(anchorEl);
+    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+    const handleClose = () => {
+        setAnchorEl(null);
+    };
+
+    return (
+        <div>
+            <IconButton size="large" onClick={handleClick}>
+                <MoreHoriz />
+            </IconButton>
+
+            <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
+                <MenuItem onClick={onRemove}>{strings.remove}</MenuItem>
+                <MenuItem onClick={onPromote}>{strings.makeAdmin}</MenuItem>
+                <MenuItem onClick={onOpenChat}>{strings.goToChat}</MenuItem>
+            </Menu>
+        </div>
     );
 }

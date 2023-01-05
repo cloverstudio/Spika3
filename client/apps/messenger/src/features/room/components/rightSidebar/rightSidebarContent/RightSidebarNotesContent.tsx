@@ -21,11 +21,11 @@ export default function RightSidebarNotesContent(): React.ReactElement {
     }
 
     if (data.notes.length === 0) {
-        return <Box p={2}>{strings.noNotes}</Box>;
+        return <Box>{strings.noNotes}</Box>;
     }
 
     return (
-        <Box p={2}>
+        <Box>
             {data.notes.map((n) => (
                 <Box
                     display="flex"

@@ -180,12 +180,11 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
             <Stack
                 direction="column"
                 alignItems="center"
-                spacing={1}
+                spacing={3}
                 sx={{
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "center",
-                    paddingTop: "15px",
                 }}
             >
                 {isItPrivateGroup ? (

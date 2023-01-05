@@ -36,13 +36,12 @@ export function DetailsAdditionalInfoView(props: Props) {
             <Stack
                 direction="column"
                 alignItems="center"
-                spacing={1}
+                spacing={3}
                 sx={{
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "center",
-                    padding: "10px",
-                    paddingTop: "15px",
+                    paddingTop: 5.5,
                 }}
             >
                 {/* <Stack
@@ -50,7 +49,6 @@ export function DetailsAdditionalInfoView(props: Props) {
                     alignItems="center"
                     spacing={1}
                     sx={{
-                        height: "40px",
                         display: "flex",
                         flexDirection: "row",
                         justifyContent: "space-between",
@@ -66,7 +64,6 @@ export function DetailsAdditionalInfoView(props: Props) {
                     alignItems="center"
                     spacing={1}
                     sx={{
-                        height: "40px",
                         display: "flex",
                         flexDirection: "row",
                         justifyContent: "space-between",
@@ -82,7 +79,6 @@ export function DetailsAdditionalInfoView(props: Props) {
                     spacing={1}
                     onClick={() => dispatch(setActiveTab("notes"))}
                     sx={{
-                        height: "40px",
                         display: "flex",
                         flexDirection: "row",
                         justifyContent: "space-between",
@@ -100,7 +96,6 @@ export function DetailsAdditionalInfoView(props: Props) {
                         spacing={1}
                         onClick={() => dispatch(setActiveTab("settings"))}
                         sx={{
-                            height: "40px",
                             display: "flex",
                             flexDirection: "row",
                             justifyContent: "space-between",
@@ -117,7 +112,6 @@ export function DetailsAdditionalInfoView(props: Props) {
                     alignItems="center"
                     spacing={1}
                     sx={{
-                        height: "40px",
                         display: "flex",
                         flexDirection: "row",
                         justifyContent: "space-between",
@@ -132,7 +126,6 @@ export function DetailsAdditionalInfoView(props: Props) {
                     alignItems="center"
                     spacing={1}
                     sx={{
-                        height: "40px",
                         display: "flex",
                         flexDirection: "row",
                         justifyContent: "space-between",
@@ -147,7 +140,6 @@ export function DetailsAdditionalInfoView(props: Props) {
                     alignItems="center"
                     spacing={1}
                     sx={{
-                        height: "40px",
                         display: "flex",
                         flexDirection: "row",
                         justifyContent: "space-between",

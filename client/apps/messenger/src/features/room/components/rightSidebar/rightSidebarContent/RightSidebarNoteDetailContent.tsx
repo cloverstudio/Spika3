@@ -21,7 +21,6 @@ export default function RightSidebarNoteDetailContent() {
 
     return (
         <Box
-            m={2}
             sx={{
                 whiteSpace: "pre-wrap",
             }}

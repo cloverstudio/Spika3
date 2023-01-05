@@ -72,7 +72,7 @@ function WebhookSettings(): React.ReactElement {
     };
 
     return (
-        <Box p={2} mb={4}>
+        <Box mb={4}>
             <Typography mb={2} variant="h6">
                 {strings.webhook}
             </Typography>
@@ -160,7 +160,7 @@ function ApiKeySettings(): React.ReactElement {
     };
 
     return (
-        <Box m={2}>
+        <Box>
             <Typography mb={2} variant="h6">
                 {strings.apiKey}
             </Typography>

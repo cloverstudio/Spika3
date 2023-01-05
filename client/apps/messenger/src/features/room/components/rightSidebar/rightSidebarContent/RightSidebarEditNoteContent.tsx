@@ -33,7 +33,7 @@ export default function RightSidebarEditNoteContent(): React.ReactElement {
     };
 
     return (
-        <Box m={2}>
+        <Box>
             <TextField
                 sx={{ mb: 2 }}
                 required
