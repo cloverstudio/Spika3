@@ -1,6 +1,11 @@
 import React from "react";
-import { Box, Stack, IconButton, Typography } from "@mui/material";
-import { ExitToApp, DoDisturb, DeleteOutline } from "@mui/icons-material";
+
+import Stack from "@mui/material/Stack";
+import IconButton from "@mui/material/IconButton";
+import Typography from "@mui/material/Typography";
+import ExitToApp from "@mui/icons-material/ExitToApp";
+import DoDisturb from "@mui/icons-material/DoDisturb";
+import DeleteOutline from "@mui/icons-material/DeleteOutline";
 
 import { RoomType } from "../../../../types/Rooms";
 import { useShowBasicDialog } from "../../../../hooks/useModal";

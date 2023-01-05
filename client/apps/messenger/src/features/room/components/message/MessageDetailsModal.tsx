@@ -1,18 +1,18 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-    Avatar,
-    Box,
-    IconButton,
-    Dialog,
-    DialogTitle,
-    List,
-    ListItem,
-    ListItemAvatar,
-    ListItemText,
-    Skeleton,
-} from "@mui/material";
-import { Close, DoneAll } from "@mui/icons-material";
+import Avatar from "@mui/material/Avatar";
+import { Box } from "@mui/material";
+import IconButton from "@mui/material/IconButton";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemAvatar from "@mui/material/ListItemAvatar";
+import ListItemText from "@mui/material/ListItemText";
+import Skeleton from "@mui/material/Skeleton";
+
+import Close from "@mui/icons-material/Close";
+import DoneAll from "@mui/icons-material/DoneAll";
 
 import MessageType, { MessageRecordType } from "../../../../types/Message";
 import { selectUser } from "../../../../store/userSlice";

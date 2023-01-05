@@ -1,7 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Box, Button, IconButton, Stack, Typography } from "@mui/material";
-import { makeStyles } from "@mui/styles";
+import { Box } from "@mui/material";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
+import makeStyles from "@mui/styles/makeStyles";
 
 import KeyboardVoiceIcon from "@mui/icons-material/KeyboardVoice";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
@@ -29,7 +33,7 @@ import getFileIcon from "../lib/getFileIcon";
 import { editMessageThunk, replyMessageThunk, sendMessage } from "../slices/messages";
 import useStrings from "../../../hooks/useStrings";
 import { useRemoveBlockByIdMutation } from "../api/user";
-import { DoDisturb } from "@mui/icons-material";
+import DoDisturb from "@mui/icons-material/DoDisturb";
 
 export default function ChatInputContainer(): React.ReactElement {
     const dispatch = useDispatch();

@@ -1,5 +1,6 @@
 import React from "react";
-import { Box, InputBase } from "@mui/material";
+import { Box } from "@mui/material";
+import InputBase from "@mui/material/InputBase";
 
 type Code = {
     value: string;

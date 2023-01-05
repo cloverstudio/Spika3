@@ -1,7 +1,10 @@
-import { Box, Button, TextField } from "@mui/material";
-
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+
+import { Box } from "@mui/material";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+
 import useStrings from "../../../../../hooks/useStrings";
 
 import { useEditNoteMutation, useGetNoteByIdQuery } from "../../../api/note";

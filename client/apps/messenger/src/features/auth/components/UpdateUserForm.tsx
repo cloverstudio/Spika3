@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { Button, TextField, FormLabel, Box, Alert, AlertTitle } from "@mui/material";
+
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import FormLabel from "@mui/material/FormLabel";
+import { Box } from "@mui/material";
+import Alert from "@mui/material/Alert";
+import AlertTitle from "@mui/material/AlertTitle";
 
 import uploadImage from "../../../assets/upload-image.svg";
 import useStrings from "../../../hooks/useStrings";

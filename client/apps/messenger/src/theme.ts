@@ -1,5 +1,6 @@
 import React from "react";
-import { createTheme, PaletteOptions, TypographyVariantsOptions } from "@mui/material/styles";
+import { PaletteOptions, TypographyVariantsOptions } from "@mui/material/styles";
+import { createTheme } from "@mui/material";
 
 declare module "@mui/material/styles" {
     interface TypeText {

@@ -2,8 +2,15 @@ import React from "react";
 import { useDispatch } from "react-redux";
 import { useTheme } from "@mui/material/styles";
 import { useNavigate, useParams } from "react-router-dom";
-import { Call, Search, Videocam, ChevronLeft } from "@mui/icons-material";
-import { Avatar, Box, Skeleton, Typography, useMediaQuery } from "@mui/material";
+import Call from "@mui/icons-material/Call";
+import Search from "@mui/icons-material/Search";
+import Videocam from "@mui/icons-material/Videocam";
+import ChevronLeft from "@mui/icons-material/ChevronLeft";
+import Avatar from "@mui/material/Avatar";
+import { Box } from "@mui/material";
+import Skeleton from "@mui/material/Skeleton";
+import Typography from "@mui/material/Typography";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 import { useGetRoomQuery } from "../api/room";
 import { showLeftSidebar } from "../slices/leftSidebar";

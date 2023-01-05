@@ -1,8 +1,10 @@
 import React, { useEffect } from "react";
 import { Outlet, useLocation, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Box, Drawer } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
+
+import { Box } from "@mui/material";
+import Drawer from "@mui/material/Drawer";
+import useTheme from "@mui/material/styles/useTheme";
 import useMediaQuery from "@mui/material/useMediaQuery";
 
 import Base from "../components/Base";

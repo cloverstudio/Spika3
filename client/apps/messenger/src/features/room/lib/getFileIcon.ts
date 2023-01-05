@@ -1,5 +1,3 @@
-import { SvgIconTypeMap } from "@mui/material";
-
 import FolderZipIcon from "@mui/icons-material/FolderZip";
 import ArticleIcon from "@mui/icons-material/Article";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
@@ -10,6 +8,7 @@ import ImageIcon from "@mui/icons-material/Image";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 
 import { OverridableComponent } from "@mui/material/OverridableComponent";
+import { SvgIconTypeMap } from "@mui/material/SvgIcon";
 
 export default function getFileIcon(type: string): OverridableComponent<SvgIconTypeMap> {
     switch (type) {

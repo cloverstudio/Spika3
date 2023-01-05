@@ -1,6 +1,12 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { Box, Grid, useMediaQuery, Button, Avatar } from "@mui/material";
+
+import { Box } from "@mui/material";
+import Grid from "@mui/material/Grid";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import Button from "@mui/material/Button";
+import Avatar from "@mui/material/Avatar";
+
 import {
     setShowCall,
     setRoomId,
@@ -10,14 +16,13 @@ import {
     setSelectedMicrophone,
 } from "./slice/callSlice";
 import { useSelector, useDispatch } from "react-redux";
-import {
-    Close as CloseIcon,
-    Videocam as VideocamIcon,
-    VideocamOff as VideocamOffIcon,
-    Mic as MicIcon,
-    MicOff as MicOffIcon,
-    KeyboardArrowUp as KeyboardArrowUpIcon,
-} from "@mui/icons-material";
+
+import CloseIcon from "@mui/icons-material/Close";
+import VideocamIcon from "@mui/icons-material/Videocam";
+import VideocamOffIcon from "@mui/icons-material/VideocamOff";
+import MicIcon from "@mui/icons-material/Mic";
+import MicOffIcon from "@mui/icons-material/MicOff";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";

@@ -1,8 +1,16 @@
-import { AddCircleOutline, ArrowBackIos, Close } from "@mui/icons-material";
-import { Box, IconButton, Stack, Typography, useMediaQuery } from "@mui/material";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useTheme } from "@mui/material/styles";
+
+import { Box } from "@mui/material";
+import IconButton from "@mui/material/IconButton";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import AddCircleOutline from "@mui/icons-material/AddCircleOutline";
+import ArrowBackIos from "@mui/icons-material/ArrowBackIos";
+import Close from "@mui/icons-material/Close";
+
+import useTheme from "@mui/material/styles/useTheme";
 
 import {
     hideRightSidebar,

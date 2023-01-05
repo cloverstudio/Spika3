@@ -1,5 +1,7 @@
 import React from "react";
-import { Box, IconButton, Typography } from "@mui/material";
+import { Box } from "@mui/material";
+import IconButton from "@mui/material/IconButton";
+import Typography from "@mui/material/Typography";
 import CloseIcon from "@mui/icons-material/Close";
 import { useParams } from "react-router-dom";
 import AttachmentManager from "../lib/AttachmentManager";

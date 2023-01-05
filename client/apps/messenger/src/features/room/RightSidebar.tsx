@@ -46,7 +46,7 @@ function RightSidebarContainer({ children }: RightSidebarContainerProps): React.
                 overflowY: "auto",
                 overflowX: "hidden",
                 zIndex: 1100,
-                backgroundColor:"background.default"
+                backgroundColor: "background.default",
             }}
         >
             {children}

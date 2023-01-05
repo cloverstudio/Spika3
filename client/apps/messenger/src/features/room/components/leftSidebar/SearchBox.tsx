@@ -1,6 +1,8 @@
 import React from "react";
-import { Box, Input, InputAdornment } from "@mui/material";
-import { Search } from "@mui/icons-material";
+import { Box } from "@mui/material";
+import Input from "@mui/material/Input";
+import InputAdornment from "@mui/material/InputAdornment";
+import Search from "@mui/icons-material/Search";
 import useStrings from "../../../../hooks/useStrings";
 
 type SearchBoxProos = {

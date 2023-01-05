@@ -1,6 +1,9 @@
 import React from "react";
-import { Box, Stack, Switch } from "@mui/material";
-import { ChevronRight } from "@mui/icons-material";
+
+import { Box } from "@mui/material";
+import Stack from "@mui/material/Stack";
+import Switch from "@mui/material/Switch";
+import ChevronRight from "@mui/icons-material/ChevronRight";
 import { useDispatch, useSelector } from "react-redux";
 
 import { RoomType } from "../../../../types/Rooms";

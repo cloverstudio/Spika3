@@ -1,22 +1,24 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
-import {
-    Avatar,
-    Box,
-    IconButton,
-    Typography,
-    Stack,
-    Link,
-    TextField,
-    Button,
-    Dialog,
-    DialogTitle,
-    FormControl,
-    RadioGroup,
-    FormControlLabel,
-    Radio,
-    CircularProgress,
-} from "@mui/material";
-import { ArrowBackIos, CameraAlt, ChevronRight, Close } from "@mui/icons-material";
+import Avatar from "@mui/material/Avatar";
+import { Box } from "@mui/material";
+import IconButton from "@mui/material/IconButton";
+import Typography from "@mui/material/Typography";
+import Stack from "@mui/material/Stack";
+import Link from "@mui/material/Link";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import FormControl from "@mui/material/FormControl";
+import RadioGroup from "@mui/material/RadioGroup";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Radio from "@mui/material/Radio";
+import CircularProgress from "@mui/material/CircularProgress";
+import ArrowBackIos from "@mui/icons-material/ArrowBackIos";
+import CameraAlt from "@mui/icons-material/CameraAlt";
+import ChevronRight from "@mui/icons-material/ChevronRight";
+import Close from "@mui/icons-material/Close";
+
 import uploadFile from "../../../utils/uploadFile";
 
 import { useUpdateMutation } from "../../auth/api/auth";

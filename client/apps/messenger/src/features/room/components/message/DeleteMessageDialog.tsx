@@ -1,16 +1,14 @@
 import React, { useState } from "react";
-import {
-    Box,
-    IconButton,
-    Dialog,
-    DialogTitle,
-    FormControl,
-    RadioGroup,
-    FormControlLabel,
-    Radio,
-    Button,
-} from "@mui/material";
-import { Close } from "@mui/icons-material";
+import { Box } from "@mui/material";
+import IconButton from "@mui/material/IconButton";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import FormControl from "@mui/material/FormControl";
+import RadioGroup from "@mui/material/RadioGroup";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Radio from "@mui/material/Radio";
+import Button from "@mui/material/Button";
+import Close from "@mui/icons-material/Close";
 import { useDeleteMessageMutation } from "../../api/message";
 import MessageType from "../../../../types/Message";
 import { useParams } from "react-router-dom";

@@ -1,7 +1,17 @@
 import React, { useState } from "react";
-import { Box, IconButton, Typography, Dialog, DialogTitle, Button } from "@mui/material";
-import { ArrowBackIos, Close, Delete, Edit, Share } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
+
+import { Box } from "@mui/material";
+import IconButton from "@mui/material/IconButton";
+import Typography from "@mui/material/Typography";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import Button from "@mui/material/Button";
+import ArrowBackIos from "@mui/icons-material/ArrowBackIos";
+import Close from "@mui/icons-material/Close";
+import Delete from "@mui/icons-material/Delete";
+import Edit from "@mui/icons-material/Edit";
+import Share from "@mui/icons-material/Share";
 import {
     selectRightSidebarActiveNoteId,
     setActiveTab,

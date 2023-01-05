@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Avatar, Box, Typography } from "@mui/material";
+import Avatar from "@mui/material/Avatar";
+import { Box } from "@mui/material";
+import Typography from "@mui/material/Typography";
+
 import CheckIcon from "@mui/icons-material/Check";
 
 import { dynamicBaseQuery } from "../../../../api/api";

@@ -1,9 +1,11 @@
 import React, { useState } from "react";
-import { Box, Modal, Typography } from "@mui/material";
+import { Box } from "@mui/material";
+import Modal from "@mui/material/Modal";
+import Typography from "@mui/material/Typography";
 
 import getFileIcon from "../../lib/getFileIcon";
 import DownloadIcon from "@mui/icons-material/Download";
-import { CloseOutlined } from "@mui/icons-material";
+import CloseOutlined from "@mui/icons-material/CloseOutlined";
 import { deletedMessageText } from "../../lib/consts";
 import { useParams } from "react-router-dom";
 import UserType from "../../../../types/User";

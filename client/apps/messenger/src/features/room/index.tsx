@@ -1,8 +1,10 @@
 import React from "react";
 
-import { Box, useMediaQuery } from "@mui/material";
+import { Box } from "@mui/material";
+import useMediaQuery from "@mui/material/useMediaQuery";
+
 import Header from "./components/Header";
-import { useTheme } from "@mui/material/styles";
+import useTheme from "@mui/material/styles/useTheme";
 import Messages from "./components/Messages";
 import ChatInput from "./components/ChatInput";
 import ConfCall from "../confcall";

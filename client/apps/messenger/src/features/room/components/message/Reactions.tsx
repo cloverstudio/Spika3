@@ -1,5 +1,9 @@
 import React, { useState } from "react";
-import { Box, Popover, Stack, Typography } from "@mui/material";
+
+import { Box } from "@mui/material";
+import Popover from "@mui/material/Popover";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 
 import { MessageRecordType } from "../../../../types/Message";
 import { useGetUserByIdQuery } from "../../api/user";
@@ -66,7 +70,7 @@ export default function MessageReactions({ id }: MessageReactionsProps): React.R
                 sx={{
                     borderRadius: "1rem",
                     border: "1px solid",
-                    borderColor:"divider",
+                    borderColor: "divider",
                     cursor: "default",
                 }}
             >

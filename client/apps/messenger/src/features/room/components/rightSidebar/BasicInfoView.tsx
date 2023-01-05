@@ -1,16 +1,15 @@
-import { CameraAlt } from "@mui/icons-material";
-import {
-    Avatar,
-    Box,
-    Button,
-    CircularProgress,
-    IconButton,
-    Link,
-    Stack,
-    TextField,
-    Typography,
-} from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
+
+import Avatar from "@mui/material/Avatar";
+import { Box } from "@mui/material";
+import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
+import IconButton from "@mui/material/IconButton";
+import Link from "@mui/material/Link";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+import CameraAlt from "@mui/icons-material/CameraAlt";
 import { useDispatch, useSelector } from "react-redux";
 
 import * as Constants from "../../../../../../../lib/constants";
