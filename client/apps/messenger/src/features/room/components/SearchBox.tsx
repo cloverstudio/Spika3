@@ -3,15 +3,15 @@ import { Box } from "@mui/material";
 import Input from "@mui/material/Input";
 import InputAdornment from "@mui/material/InputAdornment";
 import Search from "@mui/icons-material/Search";
-import useStrings from "../../../../hooks/useStrings";
+import useStrings from "../../../hooks/useStrings";
 
-type SearchBoxProos = {
+type SearchBoxProps = {
     onSearch?: (keyword: string) => void;
 };
 
 let timer: NodeJS.Timeout;
 
-export default function SearchBox({ onSearch }: SearchBoxProos): React.ReactElement {
+export default function SearchBox({ onSearch }: SearchBoxProps): React.ReactElement {
     const strings = useStrings();
     return (
         <Box px={2.5} mb={2}>

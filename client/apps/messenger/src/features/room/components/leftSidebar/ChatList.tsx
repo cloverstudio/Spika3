@@ -14,7 +14,7 @@ import MessageType from "../../../../types/Message";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { setLeftSidebar } from "../../slices/leftSidebar";
-import SearchBox from "./SearchBox";
+import SearchBox from "../SearchBox";
 import { RoomUserType } from "../../../../types/Rooms";
 import VolumeOffOutlined from "@mui/icons-material/VolumeOffOutlined";
 import formatRoomInfo from "../../lib/formatRoomInfo";

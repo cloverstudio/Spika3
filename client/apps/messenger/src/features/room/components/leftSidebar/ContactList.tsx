@@ -16,7 +16,7 @@ import User from "../../../../types/User";
 import useIsInViewport from "../../../../hooks/useIsInViewport";
 import { hideLeftSidebar } from "../../slices/leftSidebar";
 
-import SearchBox from "./SearchBox";
+import SearchBox from "../SearchBox";
 import useStrings from "../../../../hooks/useStrings";
 
 declare const UPLOADS_BASE_URL: string;
@@ -37,6 +37,7 @@ export default function SidebarContactList({
     const [page, setPage] = useState(1);
     const [keyword, setKeyword] = useState("");
     const { isInViewPort, elementRef } = useIsInViewport();
+
     const navigate = useNavigate();
     const [createRoom] = useCreateRoomMutation();
     const onChatClick = () => dispatch(hideLeftSidebar());

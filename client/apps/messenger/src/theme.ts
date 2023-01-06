@@ -140,6 +140,13 @@ const components: any = {
             },
         },
     },
+    MuiDialog: {
+        styleOverrides: {
+            paper: {
+                borderRadius: "1rem",
+            },
+        },
+    },
 };
 
 export const lightTheme = createTheme({
