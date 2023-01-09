@@ -587,11 +587,21 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     .send(errorResponse("lastUpdate must be number", userReq.lang));
             }
 
+            const userSettings = await prisma.userSetting.findMany({
+                where: {
+                    userId,
+                    key: { startsWith: "mute_" },
+                    modifiedAt: { gt: new Date(lastUpdate) },
+                },
+            });
+
+            const roomIds = userSettings.map((u) => +u.key.split("_")[1]);
+
             const roomsUser = await prisma.roomUser.findMany({
                 where: {
                     userId,
                     room: {
-                        modifiedAt: { gt: new Date(lastUpdate) },
+                        OR: [{ modifiedAt: { gt: new Date(lastUpdate) } }, { id: { in: roomIds } }],
                     },
                 },
                 select: {
@@ -645,6 +655,13 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 where: {
                     id,
                 },
+                include: {
+                    users: {
+                        include: {
+                            user: true,
+                        },
+                    },
+                },
             });
 
             if (!room) {
@@ -672,6 +689,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 },
                 update: {
                     value: "true",
+                    modifiedAt: new Date(),
                 },
                 where: {
                     userId_key_unique_constraint: {
@@ -684,7 +702,10 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const key = `mute_${userReq.user.id}_${id}`;
             await redisClient.set(key, 1);
 
-            res.send(successResponse({}, userReq.lang));
+            const sanitizedRoom = sanitize({ ...room, muted: true }).room();
+            sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_UPDATE_ROOM);
+
+            res.send(successResponse({ room: sanitizedRoom }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -701,6 +722,13 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 where: {
                     id,
                 },
+                include: {
+                    users: {
+                        include: {
+                            user: true,
+                        },
+                    },
+                },
             });
 
             if (!room) {
@@ -728,6 +756,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 },
                 update: {
                     value: "false",
+                    modifiedAt: new Date(),
                 },
                 where: {
                     userId_key_unique_constraint: {
@@ -740,7 +769,10 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const key = `mute_${userReq.user.id}_${id}`;
             await redisClient.set(key, 0);
 
-            res.send(successResponse({}, userReq.lang));
+            const sanitizedRoom = sanitize({ ...room, muted: false }).room();
+            sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_UPDATE_ROOM);
+
+            res.send(successResponse({ room: sanitizedRoom }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
