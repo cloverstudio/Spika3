@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 
 import { Box } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
@@ -15,6 +15,7 @@ import User from "../../../../types/User";
 import useStrings from "../../../../hooks/useStrings";
 import SidebarContactList from "../leftSidebar/ContactList";
 import SelectedMembers from "../SelectedMembers";
+import { ThemeContext } from "../../../../theme";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -28,6 +29,7 @@ type AddMembersModalProps = {
 export default function AddMembersModal(props: AddMembersModalProps) {
     const strings = useStrings();
     const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
+    const { theme } = useContext(ThemeContext);
 
     const { onClose, open, onSave, existingMembers } = props;
 
@@ -59,7 +61,7 @@ export default function AddMembersModal(props: AddMembersModalProps) {
                 },
             }}
         >
-            <Box width={{ md: 428 }} px={2.5} py={2}>
+            <Box width={{ md: 428 }} px={2.5} py={2} sx={{ overflow: "hidden" }} className={theme}>
                 <DialogTitle sx={{ textAlign: "center", p: 0, mb: 2 }}>
                     {strings.addMembers}
                 </DialogTitle>
@@ -81,7 +83,7 @@ export default function AddMembersModal(props: AddMembersModalProps) {
 
                 <SelectedMembers selectedUsers={selectedUsers} onRemove={handleUserClick} />
 
-                <Box mb={2} mx={-2.5}>
+                <Box mb={2} mx={-2.5} maxHeight="50vh" sx={{ overflowY: "auto" }}>
                     <SidebarContactList
                         handleUserClick={handleUserClick}
                         selectedUsersIds={[
