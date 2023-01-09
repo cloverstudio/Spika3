@@ -114,6 +114,9 @@ const en = {
     youBlockedThisContact: "You blocked this contact.",
     clickHereToUnblock: "Click here to unblock.",
     yes: "Yes",
+    goToChat: "Go to chat",
+    showMore: "Show more",
+    showLess: "Show less",
 };
 
 const strings = {

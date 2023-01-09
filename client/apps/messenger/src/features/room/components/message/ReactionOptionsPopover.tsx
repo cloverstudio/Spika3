@@ -1,8 +1,10 @@
 import React from "react";
-import { Button, Stack } from "@mui/material";
+
+import Button from "@mui/material/Button";
+import Stack from "@mui/material/Stack";
+import { Box } from "@mui/material";
 
 import { reactionEmojis } from "../../lib/consts";
-import { Box } from "@mui/system";
 import { useCreateReactionMutation } from "../../api/message";
 
 type ReactionOptionsPopoverProps = {

@@ -1,13 +1,11 @@
-import React, { useState, useEffect, useLayoutEffect } from "react";
+import React from "react";
 
-import {
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    DialogContentText,
-    Button,
-} from "@mui/material";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContentText from "@mui/material/DialogContentText";
+import Button from "@mui/material/Button";
 
 import { useSelector, useDispatch } from "react-redux";
 import { hideBasicDialog } from "../store/modalSlice";

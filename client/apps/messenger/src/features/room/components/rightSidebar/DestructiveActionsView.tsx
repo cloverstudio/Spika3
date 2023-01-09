@@ -1,6 +1,11 @@
 import React from "react";
-import { Box, Stack, IconButton, Typography } from "@mui/material";
-import { ExitToApp, DoDisturb, DeleteOutline } from "@mui/icons-material";
+
+import Stack from "@mui/material/Stack";
+import IconButton from "@mui/material/IconButton";
+import Typography from "@mui/material/Typography";
+import ExitToApp from "@mui/icons-material/ExitToApp";
+import DoDisturb from "@mui/icons-material/DoDisturb";
+import DeleteOutline from "@mui/icons-material/DeleteOutline";
 
 import { RoomType } from "../../../../types/Rooms";
 import { useShowBasicDialog } from "../../../../hooks/useModal";
@@ -98,12 +103,12 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
     };
 
     return (
-        <Box>
+        <Stack pt={5.5} spacing={1}>
             {type === "private" && (
                 <IconButton
                     size="large"
                     sx={{
-                        ml: 1,
+                        p: 1,
                         "&.MuiButtonBase-root:hover": {
                             bgcolor: "transparent",
                         },
@@ -129,46 +134,13 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
                     </Stack>
                 </IconButton>
             )}
-            {/* <IconButton
-                disableRipple
-                size="large"
-                sx={{
-                    ml: 1,
-                    "&.MuiButtonBase-root:hover": {
-                        bgcolor: "transparent",
-                    },
-                    width: "100%",
-                }}
-            >
-                <Stack
-                    direction="row"
-                    alignItems="center"
-                    spacing={1}
-                    sx={{
-                        display: "flex",
-                        flexDirection: "row",
-                        justifyContent: "flex-start",
-                        width: "100%",
-                    }}
-                >
-                    <WarningAmber style={{ fill: "red" }} />
-                    {type === "private" ? (
-                        <Typography variant="subtitle1" color="red">
-                            Report user
-                        </Typography>
-                    ) : (
-                        <Typography variant="subtitle1" color="red">
-                            Report group
-                        </Typography>
-                    )}
-                </Stack>
-            </IconButton> */}
             {type === "group" && (
                 <IconButton
                     disableRipple
                     size="large"
                     sx={{
-                        ml: 1,
+                        p: 1,
+
                         "&.MuiButtonBase-root:hover": {
                             bgcolor: "transparent",
                         },
@@ -198,7 +170,7 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
                     disableRipple
                     size="large"
                     sx={{
-                        ml: 1,
+                        p: 1,
                         "&.MuiButtonBase-root:hover": {
                             bgcolor: "transparent",
                         },
@@ -222,6 +194,6 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
                     </Stack>
                 </IconButton>
             )}
-        </Box>
+        </Stack>
     );
 }

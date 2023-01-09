@@ -1,4 +1,4 @@
-import React, { FC } from "react";
+import React from "react";
 import { Box } from "@mui/material";
 
 import { ActivityIcon } from "./icons/ActivityIcon";

@@ -1,8 +1,11 @@
-import { ArrowRightAltOutlined } from "@mui/icons-material";
-import { Box, IconButton, Typography } from "@mui/material";
 import React from "react";
 import { useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
+
+import { Box } from "@mui/material";
+import IconButton from "@mui/material/IconButton";
+import Typography from "@mui/material/Typography";
+import ArrowRightAltOutlined from "@mui/icons-material/ArrowRightAltOutlined";
 
 import Loader from "../../../../../components/Loader";
 import useStrings from "../../../../../hooks/useStrings";
@@ -21,11 +24,11 @@ export default function RightSidebarNotesContent(): React.ReactElement {
     }
 
     if (data.notes.length === 0) {
-        return <Box p={2}>{strings.noNotes}</Box>;
+        return <Box>{strings.noNotes}</Box>;
     }
 
     return (
-        <Box p={2}>
+        <Box>
             {data.notes.map((n) => (
                 <Box
                     display="flex"

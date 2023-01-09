@@ -1,5 +1,12 @@
 import React, { useRef, useState, useEffect } from "react";
-import { Button, Box, Typography, Link, Alert, AlertTitle } from "@mui/material";
+
+import Button from "@mui/material/Button";
+import { Box } from "@mui/material";
+import Typography from "@mui/material/Typography";
+import Link from "@mui/material/Link";
+import Alert from "@mui/material/Alert";
+import AlertTitle from "@mui/material/AlertTitle";
+
 import PinInput from "./PinInput";
 import CountdownTimer from "./CountdownTimer";
 import useStrings from "../../../hooks/useStrings";

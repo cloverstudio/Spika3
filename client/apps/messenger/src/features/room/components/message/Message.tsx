@@ -1,7 +1,9 @@
-import { Avatar, Box, Typography } from "@mui/material";
 import React, { memo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
+import Avatar from "@mui/material/Avatar";
+import { Box } from "@mui/material";
+import Typography from "@mui/material/Typography";
 import { useShowSnackBar } from "../../../../hooks/useModal";
 import { selectUser } from "../../../../store/userSlice";
 import { useGetRoomBlockedQuery, useGetRoomQuery } from "../../api/room";

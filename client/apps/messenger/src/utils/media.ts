@@ -1,14 +1,14 @@
 import { THUMB_WIDTH } from "../../../../lib/constants";
 
-export function getImageDimention(file: File): Promise<{ width: number; height: number }> {
+export function getImageDimension(file: File): Promise<{ width: number; height: number }> {
     return new Promise<{ width: number; height: number }>((res, rej) => {
-        let img: HTMLImageElement = document.createElement("img");
+        const img: HTMLImageElement = document.createElement("img");
         const objectURL = window.URL.createObjectURL(file);
         img.src = objectURL;
         document.body.appendChild(img);
         img.addEventListener("load", () => {
-            let width = img.clientWidth;
-            let height = img.clientHeight;
+            const width = img.clientWidth;
+            const height = img.clientHeight;
             res({
                 width,
                 height,
@@ -21,7 +21,7 @@ export function getImageDimention(file: File): Promise<{ width: number; height: 
 export function getVideoInfo(
     file: File
 ): Promise<{ width: number; height: number; duration: number }> {
-    const seekTo: number = 1.5;
+    const seekTo = 1.5;
 
     return new Promise<{ width: number; height: number; duration: number }>((res, rej) => {
         // load the file to a video player
@@ -56,7 +56,7 @@ export function getVideoInfo(
 }
 
 export function getVideoThumbnail(file: File): Promise<File> {
-    const seekTo: number = 1.5;
+    const seekTo = 1.5;
 
     return new Promise<File>((res, rej) => {
         // load the file to a video player

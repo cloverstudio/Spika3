@@ -1,38 +1,30 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import {
-    Avatar,
-    Button,
-    CssBaseline,
-    TextField,
-    FormControlLabel,
-    Checkbox,
-    Link,
-    Grid,
-    Box,
-    Typography,
-    Container,
-    Toolbar,
-    IconButton,
-    Divider,
-    Drawer,
-    Badge,
-    List,
-    Paper,
-} from "@mui/material";
-
 import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+
+import CssBaseline from "@mui/material/CssBaseline";
+import Button from "@mui/material/Button";
+import Link from "@mui/material/Link";
+import Grid from "@mui/material/Grid";
+import { Box } from "@mui/material";
+import Typography from "@mui/material/Typography";
+import Container from "@mui/material/Container";
+import Toolbar from "@mui/material/Toolbar";
+import IconButton from "@mui/material/IconButton";
+import Drawer from "@mui/material/Drawer";
+import Badge from "@mui/material/Badge";
+import Paper from "@mui/material/Paper";
+
 import { RootState } from "../../store/store";
 import { logout } from "../../store/adminAuthSlice";
 
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
-import {
-    LockOutlined,
-    Menu as MenuIcon,
-    Notifications as NotificationsIcon,
-    ChevronLeft as ChevronLeftIcon,
-} from "@mui/icons-material/";
-import { styled, createTheme, ThemeProvider } from "@mui/material/styles";
+
+import MenuIcon from "@mui/icons-material/Menu";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import { styled, ThemeProvider } from "@mui/material/styles";
+import { createTheme } from "@mui/material";
 
 const drawerWidth = 240;
 
@@ -58,7 +50,7 @@ interface AppBarProps extends MuiAppBarProps {
     open?: boolean;
 }
 
-export default function () {
+export default function Dashboard() {
     const token = useSelector((state: RootState) => state.auth.token);
     const dispatch = useDispatch();
     const navigate = useNavigate();

@@ -13,7 +13,7 @@ export default function LeftSidebarLayout({
             overflow="hidden"
             display="flex"
             flexDirection="column"
-            sx={{ width: { xs: "100vw", md: "auto" },borderColor:"divider" }}
+            sx={{ width: { xs: "100vw", md: "auto" }, borderColor: "divider" }}
         >
             {children}
         </Box>

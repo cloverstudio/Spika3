@@ -1,24 +1,9 @@
-import React, { useEffect, useState, useRef } from "react";
-import { Box, Grid, useMediaQuery, Button } from "@mui/material";
-import { useNavigate, useParams } from "react-router-dom";
-import { useTheme } from "@mui/material/styles";
-import { useSelector, useDispatch } from "react-redux";
-import { VillaRounded } from "@mui/icons-material";
+import React, { useEffect, useRef } from "react";
+import { Box } from "@mui/material";
+
 import CSS from "csstype";
 
-import UserType from "../../types/User";
-import { CallParams } from "../../types/confcall";
 import mediasoupHandler from "./lib/mediasoupHanlder";
-
-import {
-    setShowCall,
-    setRoomId,
-    setCameraEnabled,
-    setMicrophoneEnabled,
-    setSelectedCamera,
-    setSelectedMicrophone,
-    setScreenshareEnabled,
-} from "./slice/callSlice";
 
 export interface ComponentInterface {
     userId: number;
@@ -32,22 +17,6 @@ export interface ComponentInterface {
     audioEnabled?: boolean;
     videoEnabled?: boolean;
 }
-
-const defaultStyle: CSS.Properties = {
-    height: "100%",
-    width: "100%",
-    border: "1px solid #fff1",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    color: "common.confCallFirstLetterColor",
-    fontFamily: "'Roboto', sans-serif",
-    fontWeight: "bold",
-    backgroundColor: "common.videoBackground",
-    fontSize: "72px",
-    margin: 0,
-    padding: 0,
-};
 
 const styles: Record<string, CSS.Properties> = {
     container: {
@@ -91,7 +60,7 @@ const styles: Record<string, CSS.Properties> = {
 let videoStreamLocal: MediaStream = null;
 let audioStreamLocal: MediaStream = null;
 
-export default (props: ComponentInterface) => {
+export default function ParticipantView(props: ComponentInterface) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -147,4 +116,4 @@ export default (props: ComponentInterface) => {
             </div>
         </Box>
     );
-};
+}

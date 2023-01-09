@@ -1,5 +1,10 @@
 import React, { useState } from "react";
-import { Button, FormLabel, Box, Typography } from "@mui/material";
+
+import Button from "@mui/material/Button";
+import FormLabel from "@mui/material/FormLabel";
+import { Box } from "@mui/material";
+import Typography from "@mui/material/Typography";
+
 import CountryPicker from "./CountryPicker";
 import useStrings from "../../../hooks/useStrings";
 import { APP_NAME } from "../../../../../../lib/constants";

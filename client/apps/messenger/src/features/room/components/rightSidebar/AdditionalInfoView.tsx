@@ -1,6 +1,9 @@
 import React from "react";
-import { Box, Stack, Switch } from "@mui/material";
-import { ChevronRight } from "@mui/icons-material";
+
+import { Box } from "@mui/material";
+import Stack from "@mui/material/Stack";
+import Switch from "@mui/material/Switch";
+import ChevronRight from "@mui/icons-material/ChevronRight";
 import { useDispatch, useSelector } from "react-redux";
 
 import { RoomType } from "../../../../types/Rooms";
@@ -36,13 +39,12 @@ export function DetailsAdditionalInfoView(props: Props) {
             <Stack
                 direction="column"
                 alignItems="center"
-                spacing={1}
+                spacing={3}
                 sx={{
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "center",
-                    padding: "10px",
-                    paddingTop: "15px",
+                    paddingTop: 5.5,
                 }}
             >
                 {/* <Stack
@@ -50,7 +52,6 @@ export function DetailsAdditionalInfoView(props: Props) {
                     alignItems="center"
                     spacing={1}
                     sx={{
-                        height: "40px",
                         display: "flex",
                         flexDirection: "row",
                         justifyContent: "space-between",
@@ -66,7 +67,6 @@ export function DetailsAdditionalInfoView(props: Props) {
                     alignItems="center"
                     spacing={1}
                     sx={{
-                        height: "40px",
                         display: "flex",
                         flexDirection: "row",
                         justifyContent: "space-between",
@@ -82,7 +82,6 @@ export function DetailsAdditionalInfoView(props: Props) {
                     spacing={1}
                     onClick={() => dispatch(setActiveTab("notes"))}
                     sx={{
-                        height: "40px",
                         display: "flex",
                         flexDirection: "row",
                         justifyContent: "space-between",
@@ -100,7 +99,6 @@ export function DetailsAdditionalInfoView(props: Props) {
                         spacing={1}
                         onClick={() => dispatch(setActiveTab("settings"))}
                         sx={{
-                            height: "40px",
                             display: "flex",
                             flexDirection: "row",
                             justifyContent: "space-between",
@@ -117,7 +115,6 @@ export function DetailsAdditionalInfoView(props: Props) {
                     alignItems="center"
                     spacing={1}
                     sx={{
-                        height: "40px",
                         display: "flex",
                         flexDirection: "row",
                         justifyContent: "space-between",
@@ -132,7 +129,6 @@ export function DetailsAdditionalInfoView(props: Props) {
                     alignItems="center"
                     spacing={1}
                     sx={{
-                        height: "40px",
                         display: "flex",
                         flexDirection: "row",
                         justifyContent: "space-between",
@@ -147,7 +143,6 @@ export function DetailsAdditionalInfoView(props: Props) {
                     alignItems="center"
                     spacing={1}
                     sx={{
-                        height: "40px",
                         display: "flex",
                         flexDirection: "row",
                         justifyContent: "space-between",

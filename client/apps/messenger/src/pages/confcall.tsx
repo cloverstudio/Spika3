@@ -1,17 +1,11 @@
 import React from "react";
 
-import {
-    ListSubheader,
-    List,
-    ListItemButton,
-    ListItemIcon,
-    ListItemText,
-    Container,
-} from "@mui/material";
+import Container from "@mui/material/Container";
 
-import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { ThemeProvider } from "@mui/material/styles";
+import { createTheme } from "@mui/material";
 
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import Confcall from "../features/confcall";
 
@@ -30,8 +24,8 @@ const urlSearchParams = new URLSearchParams(window.location.search);
 const urlParamsTmp: any = Object.fromEntries(urlSearchParams.entries());
 const urlParams: UrlParams = urlParamsTmp;
 
-export default function () {
-    let navigate = useNavigate();
+export default function ConfcallPage() {
+    const navigate = useNavigate();
 
     return (
         <ThemeProvider theme={theme}>

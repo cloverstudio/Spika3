@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Button, Badge, Avatar, Typography, TextField } from "@mui/material";
+import { Box } from "@mui/material";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
+import TextField from "@mui/material/TextField";
 import ClearIcon from "@mui/icons-material/ClearRounded";
 
 import { useCreateRoomMutation } from "./api/room";
@@ -18,8 +21,7 @@ import uploadFile from "../../utils/uploadFile";
 import { crop } from "../../utils/crop";
 import * as Constants from "../../../../../lib/constants";
 import useStrings from "../../hooks/useStrings";
-
-declare const UPLOADS_BASE_URL: string;
+import SelectedMembers from "./components/SelectedMembers";
 
 export default function LeftSidebar(): React.ReactElement {
     const [sidebar, setSidebar] = useState("");
@@ -140,53 +142,7 @@ function LeftSidebarNewGroup({
             <SidebarNavigationHeader handleBack={handleBack} title={title} />
             {step === "select_members" ? (
                 <>
-                    {selectedUsers.length > 0 ? (
-                        <Box display="flex" px={2.5} mb={2}>
-                            {selectedUsers.map((user) => (
-                                <Box key={user.id} mr={1.5}>
-                                    <Badge
-                                        overlap="circular"
-                                        color="primary"
-                                        anchorOrigin={{ vertical: "top", horizontal: "right" }}
-                                        badgeContent={
-                                            <ClearIcon
-                                                sx={{
-                                                    color: "white",
-                                                    cursor: "pointer",
-                                                }}
-                                                onClick={() => handleUserClick(user)}
-                                            />
-                                        }
-                                        sx={{
-                                            "& .MuiBadge-badge": {
-                                                padding: "0",
-                                                height: "24px",
-                                                width: "24px",
-                                                borderRadius: "50%",
-                                            },
-                                            mt: 1,
-                                        }}
-                                    >
-                                        <Avatar
-                                            alt={user.displayName}
-                                            src={`${UPLOADS_BASE_URL}/${user.avatarFileId}`}
-                                            sx={{ width: 48, height: 48 }}
-                                        />
-                                    </Badge>
-                                    <Typography
-                                        textAlign="center"
-                                        fontWeight="medium"
-                                        color="text.tertiary"
-                                        lineHeight="1.25rem"
-                                    >
-                                        {user.displayName}
-                                    </Typography>
-                                </Box>
-                            ))}
-                        </Box>
-                    ) : (
-                        <Box mb={11.5} />
-                    )}
+                    <SelectedMembers selectedUsers={selectedUsers} onRemove={handleUserClick} />
                     <SidebarContactList
                         selectedUsersIds={selectedUsers.map((u) => u.id)}
                         handleUserClick={handleUserClick}

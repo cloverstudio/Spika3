@@ -1,16 +1,11 @@
 import React from "react";
 import { Box } from "@mui/system";
-import {
-    InsertEmoticon,
-    Edit,
-    DeleteOutline,
-    InfoOutlined,
-    Share,
-    Replay,
-    Replay10Outlined,
-    Forward,
-    FormatQuote,
-} from "@mui/icons-material";
+import InsertEmoticon from "@mui/icons-material/InsertEmoticon";
+import Edit from "@mui/icons-material/Edit";
+import DeleteOutline from "@mui/icons-material/DeleteOutline";
+import InfoOutlined from "@mui/icons-material/InfoOutlined";
+import Share from "@mui/icons-material/Share";
+import FormatQuote from "@mui/icons-material/FormatQuote";
 
 export enum IconConfigs {
     showEmoticon = 1,
@@ -72,7 +67,7 @@ export default function MessageContextMenu({
                     minWidth: "100px",
                     backgroundColor: "background.paper",
                     border: "2px solid",
-                    borderColor:"divider",
+                    borderColor: "divider",
                     display: "flex",
                     justifyContent: "space-between",
                     borderRadius: "5px",

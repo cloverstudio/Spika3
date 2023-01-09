@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Avatar, Badge, Box, Typography } from "@mui/material";
+import Avatar from "@mui/material/Avatar";
+import Badge from "@mui/material/Badge";
+import { Box } from "@mui/material";
+import Typography from "@mui/material/Typography";
 import { isRoomMuted, selectUser } from "../../../../store/userSlice";
 import { fetchHistory, selectHistory, selectHistoryLoading } from "../../slices/leftSidebar";
 
@@ -11,9 +14,9 @@ import MessageType from "../../../../types/Message";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { setLeftSidebar } from "../../slices/leftSidebar";
-import SearchBox from "./SearchBox";
+import SearchBox from "../SearchBox";
 import { RoomUserType } from "../../../../types/Rooms";
-import { VolumeOffOutlined } from "@mui/icons-material";
+import VolumeOffOutlined from "@mui/icons-material/VolumeOffOutlined";
 import formatRoomInfo from "../../lib/formatRoomInfo";
 import useStrings from "../../../../hooks/useStrings";
 

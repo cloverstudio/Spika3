@@ -1,7 +1,11 @@
-import { Box, Button, TextField } from "@mui/material";
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
+
+import { Box } from "@mui/material";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+
 import useStrings from "../../../../../hooks/useStrings";
 
 import { useCreateNoteMutation } from "../../../api/note";
@@ -23,7 +27,7 @@ export default function RightSidebarCreateNoteContent(): React.ReactElement {
     };
 
     return (
-        <Box m={2}>
+        <Box>
             <TextField
                 sx={{ mb: 2 }}
                 required

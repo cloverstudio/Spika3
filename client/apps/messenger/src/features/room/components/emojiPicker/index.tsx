@@ -1,5 +1,7 @@
 import React, { useCallback, useState } from "react";
-import { Box, Button, Input } from "@mui/material";
+import { Box } from "@mui/material";
+import Button from "@mui/material/Button";
+import Input from "@mui/material/Input";
 import { getGroupedEmojis, searchEmoji } from "./utils/getEmojis";
 import EmojiGrid from "./EmojiGrid";
 import { Emoji } from "./types";

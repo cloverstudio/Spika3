@@ -1,7 +1,9 @@
-import { ArrowBackIos } from "@mui/icons-material";
-import { IconButton, Typography } from "@mui/material";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
+
+import IconButton from "@mui/material/IconButton";
+import Typography from "@mui/material/Typography";
+import ArrowBackIos from "@mui/icons-material/ArrowBackIos";
 import useStrings from "../../../../../hooks/useStrings";
 
 import { useGetNoteByIdQuery } from "../../../api/note";

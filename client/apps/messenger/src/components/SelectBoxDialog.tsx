@@ -1,19 +1,16 @@
-import React, { useState, useEffect, useLayoutEffect, ReactComponentElement } from "react";
-import { Box, Select, MenuItem, SxProps } from "@mui/material";
+import React, { useState, useEffect } from "react";
 
-import {
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    DialogContentText,
-    Button,
-} from "@mui/material";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import Button from "@mui/material/Button";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
 
 import { useSelector, useDispatch } from "react-redux";
 import { hideBasicDialog } from "../store/modalSlice";
 import { RootState } from "../store/store";
-import { uiListeners } from "../hooks/useModal";
 
 type Props = {
     show: boolean;

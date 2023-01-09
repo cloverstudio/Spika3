@@ -1,6 +1,4 @@
-import React, { useEffect, useState } from "react";
-import { Box, Select, MenuItem, SxProps } from "@mui/material";
-import { CSSProperties } from "@mui/styled-engine";
+import { SxProps } from "@mui/material/styles";
 
 export const controlIconDefaultStyle: SxProps = {
     padding: "10px",

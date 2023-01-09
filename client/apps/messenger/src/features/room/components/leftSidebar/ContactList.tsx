@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Avatar, Box, Typography } from "@mui/material";
+import Avatar from "@mui/material/Avatar";
+import { Box } from "@mui/material";
+import Typography from "@mui/material/Typography";
+
 import CheckIcon from "@mui/icons-material/Check";
 
 import { dynamicBaseQuery } from "../../../../api/api";
@@ -13,7 +16,7 @@ import User from "../../../../types/User";
 import useIsInViewport from "../../../../hooks/useIsInViewport";
 import { hideLeftSidebar } from "../../slices/leftSidebar";
 
-import SearchBox from "./SearchBox";
+import SearchBox from "../SearchBox";
 import useStrings from "../../../../hooks/useStrings";
 
 declare const UPLOADS_BASE_URL: string;
@@ -34,6 +37,7 @@ export default function SidebarContactList({
     const [page, setPage] = useState(1);
     const [keyword, setKeyword] = useState("");
     const { isInViewPort, elementRef } = useIsInViewport();
+
     const navigate = useNavigate();
     const [createRoom] = useCreateRoomMutation();
     const onChatClick = () => dispatch(hideLeftSidebar());

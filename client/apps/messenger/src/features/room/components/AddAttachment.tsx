@@ -1,5 +1,7 @@
 import React, { ChangeEvent, ReactElement, useEffect, useRef, useState } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
+import Typography from "@mui/material/Typography";
+
 import { useParams } from "react-router-dom";
 
 import AddIcon from "@mui/icons-material/Add";
