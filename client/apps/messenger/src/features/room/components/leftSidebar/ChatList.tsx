@@ -103,6 +103,7 @@ type RoomRowProps = {
     lastMessage?: MessageType;
     avatarFileId?: number;
     users: RoomUserType[];
+    muted: boolean;
 };
 
 function RoomRow({
@@ -115,9 +116,9 @@ function RoomRow({
     unreadCount,
     type,
     users,
+    muted,
 }: RoomRowProps) {
     const strings = useStrings();
-    const roomIsMuted = useSelector(isRoomMuted(id));
     const [time, setTime] = useState(
         lastMessage?.createdAt && dayjs(lastMessage.createdAt).fromNow()
     );
@@ -174,7 +175,7 @@ function RoomRow({
                     <Box flexGrow={1} overflow="hidden">
                         <Typography mb={1} fontWeight="600" color="text.primary">
                             {name}
-                            {roomIsMuted && (
+                            {muted && (
                                 <Box component="span" display="inline-flex" ml={1}>
                                     <VolumeOffOutlined fontSize="inherit" />
                                 </Box>

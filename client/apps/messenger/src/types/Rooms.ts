@@ -12,6 +12,7 @@ export type RoomType = Omit<Room, "users" | "createdAt"> & {
     createdAt: number;
     users: RoomUserType[];
     unreadCount?: number;
+    muted: boolean;
 };
 
 export type HistoryType = {
