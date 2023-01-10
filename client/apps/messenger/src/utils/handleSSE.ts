@@ -158,6 +158,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
             }
 
             store.dispatch(api.util.invalidateTags([{ type: "Rooms", id: room.id }]));
+            store.dispatch(fetchHistory({ page: 1, keyword: "" }));
 
             return;
         }
@@ -210,6 +211,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                 return;
             }
 
+            store.dispatch(fetchHistory({ page: 1, keyword: "" }));
             store.dispatch(api.util.invalidateTags([{ type: "Rooms", id: room.id }]));
 
             return;

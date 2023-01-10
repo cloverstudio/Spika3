@@ -7,8 +7,10 @@ import { UserRequest } from "../lib/types";
 import sanitize from "../../../components/sanitize";
 import * as Constants from "../../../components/consts";
 import prisma from "../../../components/prisma";
+import { isRoomMuted } from "./room";
+import { InitRouterParams } from "../../types/serviceInterface";
 
-export default (): Router => {
+export default ({ redisClient }: InitRouterParams): Router => {
     const router = Router();
 
     router.get("/", auth, async (req: Request, res: Response) => {
@@ -127,19 +129,24 @@ export default (): Router => {
                 },
             });
 
-            const list = messages.map((m) => {
-                const { room, ...message } = m;
-                const body = deviceMessages.find((dm) => dm.messageId === m.id)?.body;
-                const unreadCount = unreadMessages.filter((mc) => mc.roomId === m.roomId).length;
-                return {
-                    ...sanitize(room).room(),
-                    lastMessage: sanitize({
-                        ...message,
-                        ...(body && { body }),
-                    }).message(),
-                    unreadCount,
-                };
-            });
+            const list = await Promise.all(
+                messages.map(async (m) => {
+                    const { room, ...message } = m;
+                    const muted = await isRoomMuted({ userId, roomId: room.id, redisClient });
+                    const body = deviceMessages.find((dm) => dm.messageId === m.id)?.body;
+                    const unreadCount = unreadMessages.filter(
+                        (mc) => mc.roomId === m.roomId
+                    ).length;
+                    return {
+                        ...sanitize({ ...room, muted }).room(),
+                        lastMessage: sanitize({
+                            ...message,
+                            ...(body && { body }),
+                        }).message(),
+                        unreadCount,
+                    };
+                })
+            );
 
             res.send(
                 successResponse({

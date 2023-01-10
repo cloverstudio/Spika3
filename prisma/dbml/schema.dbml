@@ -191,6 +191,8 @@ Table user_setting {
   userId Int [not null]
   key String [not null]
   value String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  modifiedAt DateTime [default: `now()`, not null]
 
   indexes {
     (userId, key) [unique]

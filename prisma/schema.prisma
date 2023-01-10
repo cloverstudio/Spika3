@@ -248,6 +248,9 @@ model UserSetting {
   key   String @map(name: "key")
   value String @map(name: "value")
 
+  createdAt  DateTime @default(now()) @map(name: "created_at")
+  modifiedAt DateTime @default(now()) @map(name: "modified_at")
+
   @@unique([userId, key], name: "userId_key_unique_constraint")
   @@map(name: "user_setting")
 }

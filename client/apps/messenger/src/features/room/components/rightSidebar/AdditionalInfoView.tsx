@@ -151,11 +151,7 @@ export function DetailsAdditionalInfoView(props: Props) {
                 >
                     <Box component="span">{strings.muteNotifications}</Box>
                     <Switch
-                        checked={
-                            settings?.find(
-                                (r) => r.key === `${constants.SETTINGS_ROOM_MUTE_PREFIX}${room.id}`
-                            )?.value === constants.SETTINGS_TRUE
-                        }
+                        checked={room.muted}
                         onChange={async (e) => {
                             try {
                                 if (e.target.checked) {
