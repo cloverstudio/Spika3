@@ -117,6 +117,7 @@ const en = {
     goToChat: "Go to chat",
     showMore: "Show more",
     showLess: "Show less",
+    resend: "Send again",
 };
 
 const strings = {

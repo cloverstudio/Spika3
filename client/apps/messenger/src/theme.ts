@@ -147,6 +147,18 @@ const components: any = {
             },
         },
     },
+    MuiMenu: {
+        styleOverrides: {
+            root: {
+                ".MuiMenu-paper": {
+                    borderRadius: "10px",
+                },
+                ".MuiMenu-list": {
+                    padding: "1rem 0",
+                },
+            },
+        },
+    },
 };
 
 export const lightTheme = createTheme({
