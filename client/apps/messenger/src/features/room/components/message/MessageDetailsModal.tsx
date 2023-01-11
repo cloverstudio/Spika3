@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Avatar from "@mui/material/Avatar";
 import { Box } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
+import Stack from "@mui/material/Stack";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import List from "@mui/material/List";
@@ -64,70 +65,65 @@ function MessageDetailsDialog({ message, onClose }: { message: MessageType; onCl
 
     return (
         <Dialog onClose={onClose} open={true}>
-            <Box
-                sx={{
-                    width: "400px",
-                }}
-            >
-                <DialogTitle sx={{ textAlign: "center" }}>{strings.details}</DialogTitle>
+            <Box width={{ md: 428 }} px={2.5} py={2}>
+                <DialogTitle sx={{ textAlign: "center", p: 0, mb: 2 }}>
+                    {strings.details}
+                </DialogTitle>
                 <IconButton
-                    disableRipple
+                    size="large"
                     sx={{
-                        ml: 1,
                         "&.MuiButtonBase-root:hover": {
                             bgcolor: "transparent",
                         },
-                        margin: "0",
-                        padding: "5px",
                         position: "absolute",
-                        right: "10px",
-                        top: "12px",
+                        right: 20,
+                        top: 20,
+                        p: 0,
                     }}
                     onClick={onClose}
                 >
                     <Close />
                 </IconButton>
-                <Box m="0px 10px 0px 10px">
-                    {strings.messageSentAt}{" "}
-                    {dayjs.unix(message.createdAt / 1000).format("hh:mm, dddd, MMM D")}
-                </Box>
-                {message.createdAt !== message.modifiedAt && (
-                    <Box m="0px 10px 0px 10px">
-                        {strings.messageEditedAt}{" "}
-                        {dayjs.unix(message.modifiedAt / 1000).format("hh:mm, dddd, MMM D")}
-                    </Box>
-                )}
-                {seenMembers.length > 0 && (
-                    <Box m="10px 10px 0px 10px">
-                        <Box display="flex" justifyContent="space-between">
-                            <Box sx={{ fontWeight: "bold", marginBottom: "5px" }}>
-                                {strings.readBy}
-                            </Box>
-                            <DoneAll color="info" />
-                        </Box>
-                        <List sx={{ pt: 0 }}>
-                            {seenMembers.map((member) => (
-                                <MessageDetailRow record={member} key={member.id} />
-                            ))}
-                        </List>
-                    </Box>
-                )}
-                {deliveredMembers.length > 0 && (
-                    <Box m="10px 10px 0px 10px">
-                        <Box display="flex" justifyContent="space-between">
-                            <Box sx={{ fontWeight: "bold", marginBottom: "5px" }}>
-                                {strings.deliveredTo}
-                            </Box>
-                            <DoneAll />
-                        </Box>
 
-                        <List sx={{ pt: 0 }}>
-                            {deliveredMembers.map((member) => (
-                                <MessageDetailRow record={member} key={member.id} />
-                            ))}
-                        </List>
+                <Stack spacing={2}>
+                    <Box>
+                        {strings.messageSentAt}{" "}
+                        {dayjs.unix(message.createdAt / 1000).format("hh:mm, dddd, MMM D")}
                     </Box>
-                )}
+                    {message.createdAt !== message.modifiedAt && (
+                        <Box>
+                            {strings.messageEditedAt}{" "}
+                            {dayjs.unix(message.modifiedAt / 1000).format("hh:mm, dddd, MMM D")}
+                        </Box>
+                    )}
+                    {seenMembers.length > 0 && (
+                        <Box>
+                            <Box display="flex" justifyContent="space-between" mb={0.5}>
+                                <Box sx={{ fontWeight: "bold" }}>{strings.readBy}</Box>
+                                <DoneAll color="info" />
+                            </Box>
+                            <List sx={{ pt: 0 }}>
+                                {seenMembers.map((member) => (
+                                    <MessageDetailRow record={member} key={member.id} />
+                                ))}
+                            </List>
+                        </Box>
+                    )}
+                    {deliveredMembers.length > 0 && (
+                        <Box>
+                            <Box display="flex" justifyContent="space-between" mb={0.5}>
+                                <Box sx={{ fontWeight: "bold" }}>{strings.deliveredTo}</Box>
+                                <DoneAll />
+                            </Box>
+
+                            <List sx={{ pt: 0 }}>
+                                {deliveredMembers.map((member) => (
+                                    <MessageDetailRow record={member} key={member.id} />
+                                ))}
+                            </List>
+                        </Box>
+                    )}
+                </Stack>
             </Box>
         </Dialog>
     );
