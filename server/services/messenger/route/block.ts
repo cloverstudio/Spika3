@@ -5,6 +5,7 @@ import { successResponse, errorResponse } from "../../../components/response";
 import auth from "../lib/auth";
 import { UserRequest } from "../lib/types";
 import prisma from "../../../components/prisma";
+import sanitize from "../../../components/sanitize";
 
 export default (): Router => {
     const router = Router();
@@ -20,7 +21,12 @@ export default (): Router => {
                 },
             });
 
-            res.send(successResponse({ blockedUsers: blocks.map((b) => b.blocked) }, userReq.lang));
+            res.send(
+                successResponse(
+                    { blockedUsers: blocks.map((b) => sanitize(b.blocked).user()) },
+                    userReq.lang
+                )
+            );
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -56,7 +62,7 @@ export default (): Router => {
                 });
             }
 
-            res.send(successResponse({ block }, userReq.lang));
+            res.send(successResponse({ block: sanitize(block).block() }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -106,7 +112,7 @@ export default (): Router => {
         try {
             const block = await getRoomBlock(roomId, userReq.user.id);
 
-            res.send(successResponse({ block }, userReq.lang));
+            res.send(successResponse({ block: sanitize(block).block() }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

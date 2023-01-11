@@ -5,7 +5,7 @@ import Avatar from "@mui/material/Avatar";
 import Badge from "@mui/material/Badge";
 import { Box } from "@mui/material";
 import Typography from "@mui/material/Typography";
-import { isRoomMuted, selectUser } from "../../../../store/userSlice";
+import { selectUser } from "../../../../store/userSlice";
 import { fetchHistory, selectHistory, selectHistoryLoading } from "../../slices/leftSidebar";
 
 import useIsInViewport from "../../../../hooks/useIsInViewport";
@@ -16,7 +16,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { setLeftSidebar } from "../../slices/leftSidebar";
 import SearchBox from "../SearchBox";
 import { RoomUserType } from "../../../../types/Rooms";
-import VolumeOffOutlined from "@mui/icons-material/VolumeOffOutlined";
+import NotificationsOff from "@mui/icons-material/NotificationsOff";
 import formatRoomInfo from "../../lib/formatRoomInfo";
 import useStrings from "../../../../hooks/useStrings";
 
@@ -175,11 +175,6 @@ function RoomRow({
                     <Box flexGrow={1} overflow="hidden">
                         <Typography mb={1} fontWeight="600" color="text.primary">
                             {name}
-                            {muted && (
-                                <Box component="span" display="inline-flex" ml={1}>
-                                    <VolumeOffOutlined fontSize="inherit" />
-                                </Box>
-                            )}
                         </Typography>
                         <Typography
                             sx={{
@@ -193,7 +188,14 @@ function RoomRow({
                             {lastMessageText}
                         </Typography>
                     </Box>
-                    <Box minWidth="90px" textAlign="right">
+                    <Box
+                        minWidth="90px"
+                        height="100%"
+                        display="flex"
+                        justifyContent="space-between"
+                        flexDirection="column"
+                        textAlign="right"
+                    >
                         <Typography
                             fontSize="small"
                             color="text.tertiary"
@@ -202,20 +204,29 @@ function RoomRow({
                         >
                             {time === "a few seconds ago" ? strings.now : time}
                         </Typography>
-                        {unreadCount ? (
-                            <Badge
-                                sx={{
-                                    mt: 1,
-                                    "& .MuiBadge-badge": {
-                                        position: "relative",
-                                        transform: "none",
-                                    },
-                                }}
-                                color="primary"
-                                badgeContent={unreadCount}
-                                max={99}
-                            />
-                        ) : null}
+                        <Box
+                            display="flex"
+                            mt={1}
+                            justifyContent="end"
+                            alignItems="center"
+                            gap={1}
+                            color="text.primary"
+                        >
+                            {muted && <NotificationsOff fontSize="inherit" />}
+                            {unreadCount ? (
+                                <Badge
+                                    sx={{
+                                        "& .MuiBadge-badge": {
+                                            position: "relative",
+                                            transform: "none",
+                                        },
+                                    }}
+                                    color="primary"
+                                    badgeContent={unreadCount}
+                                    max={99}
+                                />
+                            ) : null}
+                        </Box>
                     </Box>
                 </Box>
             </Box>

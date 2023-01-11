@@ -564,6 +564,15 @@ export const messagesSlice = createSlice({
             }
         },
 
+        removeMessage: (state, { payload }: { payload: { roomId: number; id: number } }) => {
+            const roomId = payload.roomId;
+            const room = state[roomId];
+
+            if (room) {
+                delete room.messages[payload.id];
+            }
+        },
+
         editMessage: (state, { payload }: { payload: MessageType }) => {
             const roomId = payload.roomId;
             const room = state[roomId];
@@ -740,6 +749,7 @@ export const {
     deleteMessage,
     editMessage,
     setTargetMessage,
+    removeMessage,
 } = messagesSlice.actions;
 
 export const selectRoomMessages =

@@ -4,10 +4,15 @@ import SentIcon from "../../../../assets/sent-icon.svg";
 import DeliveredIcon from "../../../../assets/delivered-icon.svg";
 import SeenIcon from "../../../../assets/seen-icon.svg";
 import FailedIcon from "../../../../assets/failed-icon.svg";
-import { Box } from "@mui/material";
-import { useDispatch, useSelector } from "react-redux";
-import { resendMessage, selectMessageById } from "../../slices/messages";
+import { Box, Typography } from "@mui/material";
+import { useDispatch } from "react-redux";
+import { removeMessage, resendMessage } from "../../slices/messages";
 import { useParams } from "react-router-dom";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import useStrings from "../../../../hooks/useStrings";
+import Delete from "@mui/icons-material/DeleteOutline";
+import UploadOutlined from "@mui/icons-material/UploadRounded";
 
 type StatusIconProps = {
     status: string;
@@ -15,9 +20,20 @@ type StatusIconProps = {
 };
 
 export default function StatusIcon({ status, id }: StatusIconProps): React.ReactElement {
+    const strings = useStrings();
+    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const roomId = parseInt(useParams().id || "");
-    const message = useSelector(selectMessageById(roomId, id));
     const dispatch = useDispatch();
+
+    const open = Boolean(anchorEl);
+    const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+        if (status === "failed") {
+            setAnchorEl(event.currentTarget);
+        }
+    };
+    const handleClose = () => {
+        setAnchorEl(null);
+    };
 
     const getIcon = (status: string) => {
         switch (status) {
@@ -51,15 +67,35 @@ export default function StatusIcon({ status, id }: StatusIconProps): React.React
 
     const Icon = getIcon(status);
 
-    const handleClick = () => {
-        if (status === "failed") {
-            dispatch(resendMessage({ roomId, messageId: id }));
-        }
+    const handleResend = () => {
+        dispatch(resendMessage({ roomId, messageId: id }));
+        handleClose();
+    };
+
+    const handleRemove = () => {
+        dispatch(removeMessage({ roomId, id }));
+        handleClose();
     };
 
     return (
-        <Box alignSelf="end" onClick={handleClick} sx={{ cursor: isFailed ? "pointer" : "auto" }}>
-            <img src={Icon} width="12px" style={{ marginLeft: "0.375rem" }} />
+        <Box alignSelf="end">
+            <Box onClick={handleClick} sx={{ cursor: isFailed ? "pointer" : "auto" }}>
+                <img src={Icon} width="12px" style={{ marginLeft: "0.375rem" }} />
+            </Box>
+            <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
+                <MenuItem onClick={handleResend}>
+                    <Box display="flex" gap={1}>
+                        <UploadOutlined />
+                        <Typography>{strings.resend}</Typography>
+                    </Box>
+                </MenuItem>
+                <MenuItem onClick={handleRemove}>
+                    <Box display="flex" gap={1} color="red">
+                        <Delete />
+                        <Typography>{strings.delete}</Typography>
+                    </Box>
+                </MenuItem>
+            </Menu>
         </Box>
     );
 }

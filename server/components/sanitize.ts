@@ -9,6 +9,7 @@ import {
     Note,
     Webhook,
     ApiKey,
+    Block,
 } from ".prisma/client";
 
 type SanitizedUserType = Partial<
@@ -52,6 +53,7 @@ type SanitizedWebhookType = Partial<
 type SanitizedApiKeyType = Partial<
     Omit<ApiKey, "createdAt" | "modifiedAt"> & { createdAt: number; modifiedAt: number }
 >;
+type SanitizedBlockType = Partial<Omit<Block, "createdAt"> & { createdAt: number }>;
 
 interface sanitizeTypes {
     user: () => SanitizedUserType;
@@ -64,6 +66,7 @@ interface sanitizeTypes {
     note: () => SanitizedNoteType;
     webhook: () => SanitizedWebhookType;
     apiKey: () => SanitizedApiKeyType;
+    block: () => SanitizedBlockType;
 }
 
 export default function sanitize(data: any): sanitizeTypes {
@@ -240,6 +243,16 @@ export default function sanitize(data: any): sanitizeTypes {
                 roomId,
                 createdAt: +new Date(createdAt),
                 modifiedAt: +new Date(modifiedAt),
+            };
+        },
+        block: () => {
+            const { id, createdAt, blockedId, userId } = data as Block;
+
+            return {
+                id,
+                blockedId,
+                userId,
+                createdAt: +new Date(createdAt),
             };
         },
     };
