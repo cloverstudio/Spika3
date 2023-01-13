@@ -151,7 +151,13 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 redisClient,
             });
 
-            const sanitizedRoom = sanitize({ ...room, muted }).room();
+            const pinned = await isRoomPinned({
+                roomId: room.id,
+                userId: userReq.user.id,
+                redisClient,
+            });
+
+            const sanitizedRoom = sanitize({ ...room, muted, pinned }).room();
 
             sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_NEW_ROOM);
 
@@ -228,8 +234,9 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             });
 
             const muted = await isRoomMuted({ roomId: id, userId: userReq.user.id, redisClient });
+            const pinned = await isRoomPinned({ roomId: id, userId: userReq.user.id, redisClient });
 
-            const sanitizedRoom = sanitize({ ...updated, muted }).room();
+            const sanitizedRoom = sanitize({ ...updated, muted, pinned }).room();
             sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_UPDATE_ROOM);
 
             res.send(successResponse({ room: sanitizedRoom }, userReq.lang));
@@ -273,7 +280,13 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 redisClient,
             });
 
-            const sanitizedRoom = sanitize({ ...updated, muted }).room();
+            const pinned = await isRoomPinned({
+                roomId: updated.id,
+                userId: userReq.user.id,
+                redisClient,
+            });
+
+            const sanitizedRoom = sanitize({ ...updated, muted, pinned }).room();
             sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_DELETE_ROOM);
 
             res.send(successResponse({ room: sanitizedRoom }, userReq.lang));
@@ -389,7 +402,14 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     userId: userReq.user.id,
                     redisClient,
                 });
-                const sanitizedRoom = sanitize({ ...updated, muted }).room();
+
+                const pinned = await isRoomPinned({
+                    roomId: updated.id,
+                    userId: userReq.user.id,
+                    redisClient,
+                });
+
+                const sanitizedRoom = sanitize({ ...updated, muted, pinned }).room();
                 sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_UPDATE_ROOM);
 
                 res.send(successResponse({ room: sanitizedRoom }, userReq.lang));
@@ -456,7 +476,13 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                         redisClient,
                     });
 
-                    return sanitize({ ...room, muted }).room();
+                    const pinned = await isRoomPinned({
+                        roomId: room.id,
+                        userId: userReq.user.id,
+                        redisClient,
+                    });
+
+                    return sanitize({ ...room, muted, pinned }).room();
                 })
             );
 
@@ -527,7 +553,15 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 redisClient,
             });
 
-            res.send(successResponse({ room: sanitize({ ...room, muted }).room() }, userReq.lang));
+            const pinned = await isRoomPinned({
+                roomId: room.id,
+                userId: userReq.user.id,
+                redisClient,
+            });
+
+            res.send(
+                successResponse({ room: sanitize({ ...room, muted, pinned }).room() }, userReq.lang)
+            );
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -568,7 +602,15 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 redisClient,
             });
 
-            res.send(successResponse({ room: sanitize({ ...room, muted }).room() }, userReq.lang));
+            const pinned = await isRoomPinned({
+                roomId: room.id,
+                userId: userReq.user.id,
+                redisClient,
+            });
+
+            res.send(
+                successResponse({ room: sanitize({ ...room, muted, pinned }).room() }, userReq.lang)
+            );
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -590,7 +632,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const userSettings = await prisma.userSetting.findMany({
                 where: {
                     userId,
-                    key: { startsWith: "mute_" },
+                    key: { startsWith: Constants.ROOM_MUTE_PREFIX },
+                    value: "true",
                     modifiedAt: { gt: new Date(lastUpdate) },
                 },
             });
@@ -634,7 +677,13 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                         redisClient,
                     });
 
-                    return sanitize({ ...ru.room, muted }).room();
+                    const pinned = await isRoomPinned({
+                        roomId: ru.room.id,
+                        userId: userReq.user.id,
+                        redisClient,
+                    });
+
+                    return sanitize({ ...ru.room, muted, pinned }).room();
                 })
             );
 
@@ -699,7 +748,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 },
             });
 
-            const key = `mute_${userReq.user.id}_${id}`;
+            const key = `${Constants.ROOM_MUTE_PREFIX}${userReq.user.id}_${id}`;
             await redisClient.set(key, 1);
 
             const sanitizedRoom = sanitize({ ...room, muted: true }).room();
@@ -748,16 +797,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     .send(errorResponse("User is not the member of the room.", userReq.lang));
             }
 
-            await prisma.userSetting.upsert({
-                create: {
-                    key: `${Constants.ROOM_MUTE_PREFIX}${id}`,
-                    value: "false",
-                    userId: userReq.user.id,
-                },
-                update: {
-                    value: "false",
-                    modifiedAt: new Date(),
-                },
+            await prisma.userSetting.delete({
                 where: {
                     userId_key_unique_constraint: {
                         userId: userReq.user.id,
@@ -766,10 +806,135 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 },
             });
 
-            const key = `mute_${userReq.user.id}_${id}`;
+            const key = `${Constants.ROOM_MUTE_PREFIX}${userReq.user.id}_${id}`;
             await redisClient.set(key, 0);
 
             const sanitizedRoom = sanitize({ ...room, muted: false }).room();
+            sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_UPDATE_ROOM);
+
+            res.send(successResponse({ room: sanitizedRoom }, userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.post("/:id/pin", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+
+        try {
+            const id = parseInt((req.params.id as string) || "");
+
+            const room = await prisma.room.findFirst({
+                where: {
+                    id,
+                },
+                include: {
+                    users: {
+                        include: {
+                            user: true,
+                        },
+                    },
+                },
+            });
+
+            if (!room) {
+                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+            }
+
+            const roomsUser = await prisma.roomUser.findFirst({
+                where: {
+                    userId: userReq.user.id,
+                    roomId: id,
+                },
+            });
+
+            if (!roomsUser) {
+                return res
+                    .status(404)
+                    .send(errorResponse("User is not the member of the room.", userReq.lang));
+            }
+
+            await prisma.userSetting.upsert({
+                create: {
+                    key: `${Constants.ROOM_PIN_PREFIX}${id}`,
+                    value: "true",
+                    userId: userReq.user.id,
+                },
+                update: {
+                    value: "true",
+                    modifiedAt: new Date(),
+                },
+                where: {
+                    userId_key_unique_constraint: {
+                        userId: userReq.user.id,
+                        key: `${Constants.ROOM_PIN_PREFIX}${id}`,
+                    },
+                },
+            });
+
+            const key = `${Constants.ROOM_PIN_PREFIX}${userReq.user.id}_${id}`;
+            await redisClient.set(key, 1);
+
+            const sanitizedRoom = sanitize({ ...room, pinned: true }).room();
+            sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_UPDATE_ROOM);
+
+            res.send(successResponse({ room: sanitizedRoom }, userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.post("/:id/unpin", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+
+        try {
+            const id = parseInt((req.params.id as string) || "");
+
+            const room = await prisma.room.findFirst({
+                where: {
+                    id,
+                },
+                include: {
+                    users: {
+                        include: {
+                            user: true,
+                        },
+                    },
+                },
+            });
+
+            if (!room) {
+                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+            }
+
+            const roomsUser = await prisma.roomUser.findFirst({
+                where: {
+                    userId: userReq.user.id,
+                    roomId: id,
+                },
+            });
+
+            if (!roomsUser) {
+                return res
+                    .status(404)
+                    .send(errorResponse("User is not the member of the room.", userReq.lang));
+            }
+
+            await prisma.userSetting.delete({
+                where: {
+                    userId_key_unique_constraint: {
+                        userId: userReq.user.id,
+                        key: `${Constants.ROOM_PIN_PREFIX}${id}`,
+                    },
+                },
+            });
+
+            const key = `${Constants.ROOM_PIN_PREFIX}${userReq.user.id}_${id}`;
+            await redisClient.set(key, 0);
+
+            const sanitizedRoom = sanitize({ ...room, pinned: false }).room();
             sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_UPDATE_ROOM);
 
             res.send(successResponse({ room: sanitizedRoom }, userReq.lang));
@@ -889,13 +1054,13 @@ export async function isRoomMuted({
     userId: number;
     redisClient: ReturnType<typeof createClient>;
 }): Promise<boolean> {
-    const key = `mute_${userId}_${roomId}`;
+    const key = `${Constants.ROOM_MUTE_PREFIX}${userId}_${roomId}`;
 
     let mutedString = await redisClient.get(key);
 
     if (!mutedString) {
         const userSettings = await prisma.userSetting.findFirst({
-            where: { userId, key: `mute_${roomId}` },
+            where: { userId, key: `${Constants.ROOM_MUTE_PREFIX}${roomId}` },
         });
 
         mutedString = Number(userSettings?.value === "true").toString();
@@ -904,4 +1069,30 @@ export async function isRoomMuted({
     }
 
     return Boolean(Number(mutedString));
+}
+
+export async function isRoomPinned({
+    userId,
+    roomId,
+    redisClient,
+}: {
+    roomId: number;
+    userId: number;
+    redisClient: ReturnType<typeof createClient>;
+}): Promise<boolean> {
+    const key = `${Constants.ROOM_PIN_PREFIX}${userId}_${roomId}`;
+
+    let pinnedString = await redisClient.get(key);
+
+    if (!pinnedString) {
+        const userSettings = await prisma.userSetting.findFirst({
+            where: { userId, key: `${Constants.ROOM_PIN_PREFIX}${roomId}` },
+        });
+
+        pinnedString = Number(userSettings?.value === "true").toString();
+
+        await redisClient.set(key, pinnedString);
+    }
+
+    return Boolean(Number(pinnedString));
 }

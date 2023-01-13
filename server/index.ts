@@ -19,6 +19,7 @@ import { createClient } from "redis";
 import l, { error as e } from "./components/logger";
 import WebhookService from "./services/webhook";
 import MessagingService from "./services/messaging";
+import utils from "./components/utils";
 
 const app: express.Express = express();
 const redisClient = createClient({ url: process.env.REDIS_URL });
@@ -27,7 +28,7 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
 
-    redisClient.on("error", (err) => console.log("Redis Client Error", err));
+    redisClient.on("error", (err) => e("Redis Client Error", err));
 
     await redisClient.connect();
 
@@ -41,7 +42,18 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
             "Content-Type, Authorization, access-token, admin-accesstoken, accesstoken, device-name, os-name, os-version, device-type, app-version"
         );
 
-        l(`${req.url} ${req.method}`);
+        l(`${req.method} ${req.originalUrl} [STARTED]`);
+        const start = process.hrtime();
+
+        res.on("finish", () => {
+            const durationInMilliseconds = utils.getDurationInMilliseconds(start);
+            l(
+                `${req.method} ${
+                    req.originalUrl
+                } [FINISHED] ${durationInMilliseconds.toLocaleString()} ms`
+            );
+        });
+
         // intercept OPTIONS method
         if ("OPTIONS" === req.method) {
             res.sendStatus(200);
@@ -51,7 +63,7 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
     });
 
     const server: http.Server = app.listen(process.env["SERVER_PORT"], () => {
-        console.log(`Start on port ${process.env["SERVER_PORT"]}.`);
+        l(`Start on port ${process.env["SERVER_PORT"]}.`);
     });
 
     // override static access only for this file
