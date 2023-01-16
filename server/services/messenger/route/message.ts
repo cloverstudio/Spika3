@@ -199,22 +199,24 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                             return;
                         }
 
-                        rabbitMQChannel.sendToQueue(
-                            Constants.QUEUE_PUSH,
-                            Buffer.from(
-                                JSON.stringify({
-                                    type: Constants.PUSH_TYPE_NEW_MESSAGE,
-                                    token: devices.find((d) => d.id == deviceMessage.deviceId)
-                                        ?.pushToken,
-                                    data: {
-                                        message: { ...sanitizedMessage },
-                                        user: sanitize(userReq.user).user(),
-                                        ...(room.type === "group" && { groupName: room.name }),
-                                        toUserId: deviceMessage.userId,
-                                    },
-                                })
-                            )
-                        );
+                        if (deviceMessage.userId !== deviceMessage.fromUserId) {
+                            rabbitMQChannel.sendToQueue(
+                                Constants.QUEUE_PUSH,
+                                Buffer.from(
+                                    JSON.stringify({
+                                        type: Constants.PUSH_TYPE_NEW_MESSAGE,
+                                        token: devices.find((d) => d.id == deviceMessage.deviceId)
+                                            ?.pushToken,
+                                        data: {
+                                            message: { ...sanitizedMessage },
+                                            user: sanitize(userReq.user).user(),
+                                            ...(room.type === "group" && { groupName: room.name }),
+                                            toUserId: deviceMessage.userId,
+                                        },
+                                    })
+                                )
+                            );
+                        }
 
                         rabbitMQChannel.sendToQueue(
                             Constants.QUEUE_SSE,

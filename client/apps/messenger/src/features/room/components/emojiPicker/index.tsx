@@ -47,9 +47,7 @@ export default function EmojiPickerContainer({ onSelect }: EmojiPickerProps): Re
 
     return (
         <Box width="100%" mb={0.5} p={0.5} sx={{ overflowX: "auto" }}>
-            <Box display="flex" justifyContent="space-between" alignContent="center">
-                <Tabs value={tabIndex} onChange={handleTabChange} showIndicator={!results} />
-
+            <Box>
                 <Box
                     display="flex"
                     flexDirection="column"
@@ -74,6 +72,8 @@ export default function EmojiPickerContainer({ onSelect }: EmojiPickerProps): Re
                         />
                     </Box>
                 </Box>
+
+                <Tabs value={tabIndex} onChange={handleTabChange} showIndicator={!results} />
             </Box>
 
             <Box maxHeight="7rem">
