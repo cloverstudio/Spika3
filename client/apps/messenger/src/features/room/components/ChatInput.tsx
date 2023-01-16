@@ -197,7 +197,7 @@ function ChatInput({ handleSetMessageText, handleSend, files }: ChatInputProps) 
                         }
                         sx={{
                             position: "absolute",
-                            top: "11px",
+                            top: "6px",
                             right: "20px",
                             cursor: "pointer",
                         }}

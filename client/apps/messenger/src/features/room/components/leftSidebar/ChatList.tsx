@@ -182,7 +182,7 @@ function RoomRow({
                                 overflow: "hidden",
                             }}
                             color="text.secondary"
-                            lineHeight="1.0625rem"
+                            lineHeight="1.125rem"
                         >
                             {lastMessageText}
                         </Typography>
