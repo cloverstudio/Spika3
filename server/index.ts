@@ -20,6 +20,8 @@ import l, { error as e } from "./components/logger";
 import WebhookService from "./services/webhook";
 import MessagingService from "./services/messaging";
 import utils from "./components/utils";
+import prisma from "./components/prisma";
+import { User } from "@prisma/client";
 
 const app: express.Express = express();
 const redisClient = createClient({ url: process.env.REDIS_URL });
@@ -28,7 +30,10 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
 
-    redisClient.on("error", (err) => e("Redis Client Error", err));
+    redisClient.on("error", (err) => {
+        e("Redis Client Error", err);
+        process.exit(1);
+    });
 
     await redisClient.connect();
 
@@ -199,6 +204,47 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
         e(err);
         return res.status(500).send(`Server Error ${err.message}`);
     });
+
+    let chatGTPUser = await prisma.user.findFirst({
+        where: {
+            displayName: "CHAT GTP",
+            verified: true,
+            isBot: true,
+        },
+    });
+
+    if (!chatGTPUser) {
+        chatGTPUser = await prisma.user.create({
+            data: {
+                displayName: "CHAT GTP",
+                verified: true,
+                isBot: true,
+            },
+        });
+    }
+
+    // ADD CHAT GTP AS CONTACT TO ALL USERS
+    const users = await prisma.user.findMany();
+
+    await Promise.all(
+        users.map(async (u) => {
+            const existingContact = await prisma.contact.findFirst({
+                where: {
+                    userId: u.id,
+                    contactId: chatGTPUser.id,
+                },
+            });
+
+            if (!existingContact) {
+                await prisma.contact.create({
+                    data: {
+                        userId: u.id,
+                        contactId: chatGTPUser.id,
+                    },
+                });
+            }
+        })
+    );
 })();
 
 export default app;

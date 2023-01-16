@@ -252,6 +252,78 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     })
                 )
             );
+
+            const chatGTPRoomUser = room.users.find((u) => u.user.displayName === "CHAT GTP");
+
+            if (room.type === "private" && chatGTPRoomUser) {
+                const chatGTPUser = chatGTPRoomUser.user;
+
+                const deviceMessages = devices.map((device) => ({
+                    deviceId: device.id,
+                    userId: device.userId,
+                    fromUserId: chatGTPUser.id,
+                    body: { text: "insta response" },
+                    action: Constants.MESSAGE_ACTION_NEW_MESSAGE,
+                }));
+
+                const message = await prisma.message.create({
+                    data: {
+                        type: "text",
+                        roomId: room.id,
+                        fromUserId: chatGTPUser.id,
+                        totalUserCount: 2,
+                        deliveredCount: 0,
+                        seenCount: 0,
+                    },
+                });
+
+                const sanitizedMessage = sanitize({
+                    ...message,
+                    body: { text: "insta response" },
+                }).message();
+
+                while (deviceMessages.length) {
+                    await Promise.all(
+                        deviceMessages.splice(0, 10).map(async (deviceMessage) => {
+                            await prisma.deviceMessage.create({
+                                data: { ...deviceMessage, messageId: message.id },
+                            });
+
+                            rabbitMQChannel.sendToQueue(
+                                Constants.QUEUE_PUSH,
+                                Buffer.from(
+                                    JSON.stringify({
+                                        type: Constants.PUSH_TYPE_NEW_MESSAGE,
+                                        token: devices.find((d) => d.id == deviceMessage.deviceId)
+                                            ?.pushToken,
+                                        data: {
+                                            message: { ...sanitizedMessage },
+                                            user: sanitize(userReq.user).user(),
+                                            ...(room.type === "group" && {
+                                                groupName: room.name,
+                                            }),
+                                            toUserId: deviceMessage.userId,
+                                        },
+                                    })
+                                )
+                            );
+
+                            rabbitMQChannel.sendToQueue(
+                                Constants.QUEUE_SSE,
+                                Buffer.from(
+                                    JSON.stringify({
+                                        channelId: deviceMessage.deviceId,
+                                        data: {
+                                            type: Constants.PUSH_TYPE_NEW_MESSAGE,
+                                            message: sanitizedMessage,
+                                        },
+                                    })
+                                )
+                            );
+                        })
+                    );
+                }
+            }
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

@@ -145,19 +145,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 },
             });
 
-            const muted = await isRoomMuted({
-                roomId: room.id,
-                userId: userReq.user.id,
-                redisClient,
-            });
-
-            const pinned = await isRoomPinned({
-                roomId: room.id,
-                userId: userReq.user.id,
-                redisClient,
-            });
-
-            const sanitizedRoom = sanitize({ ...room, muted, pinned }).room();
+            const sanitizedRoom = sanitize({ ...room, muted: false, pinned: false }).room();
 
             sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_NEW_ROOM);
 
@@ -169,6 +157,86 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     userReq.lang
                 )
             );
+
+            // check if CHAT GTP room
+
+            const chatGTPUser = foundUsers.find((u) => u.displayName === "CHAT GTP");
+
+            if (type === "private" && chatGTPUser) {
+                // send welcome message as CHAT GTP
+
+                const devices = await prisma.device.findMany({
+                    where: {
+                        userId: { in: foundUsers.map((u) => u.id) },
+                    },
+                });
+
+                const deviceMessages = devices.map((device) => ({
+                    deviceId: device.id,
+                    userId: device.userId,
+                    fromUserId: chatGTPUser.id,
+                    body: { text: "Hello there" },
+                    action: Constants.MESSAGE_ACTION_NEW_MESSAGE,
+                }));
+
+                const message = await prisma.message.create({
+                    data: {
+                        type: "text",
+                        roomId: room.id,
+                        fromUserId: chatGTPUser.id,
+                        totalUserCount: 2,
+                        deliveredCount: 0,
+                        seenCount: 0,
+                    },
+                });
+
+                const sanitizedMessage = sanitize({
+                    ...message,
+                    body: { text: "Hello there" },
+                }).message();
+
+                while (deviceMessages.length) {
+                    await Promise.all(
+                        deviceMessages.splice(0, 10).map(async (deviceMessage) => {
+                            await prisma.deviceMessage.create({
+                                data: { ...deviceMessage, messageId: message.id },
+                            });
+
+                            rabbitMQChannel.sendToQueue(
+                                Constants.QUEUE_PUSH,
+                                Buffer.from(
+                                    JSON.stringify({
+                                        type: Constants.PUSH_TYPE_NEW_MESSAGE,
+                                        token: devices.find((d) => d.id == deviceMessage.deviceId)
+                                            ?.pushToken,
+                                        data: {
+                                            message: { ...sanitizedMessage },
+                                            user: sanitize(userReq.user).user(),
+                                            ...(room.type === "group" && {
+                                                groupName: room.name,
+                                            }),
+                                            toUserId: deviceMessage.userId,
+                                        },
+                                    })
+                                )
+                            );
+
+                            rabbitMQChannel.sendToQueue(
+                                Constants.QUEUE_SSE,
+                                Buffer.from(
+                                    JSON.stringify({
+                                        channelId: deviceMessage.deviceId,
+                                        data: {
+                                            type: Constants.PUSH_TYPE_NEW_MESSAGE,
+                                            message: sanitizedMessage,
+                                        },
+                                    })
+                                )
+                            );
+                        })
+                    );
+                }
+            }
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

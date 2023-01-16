@@ -228,6 +228,21 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 },
             });
 
+            const chatGTPUser = await prisma.user.findFirst({
+                where: {
+                    displayName: "CHAT GTP",
+                    verified: true,
+                    isBot: true,
+                },
+            });
+
+            await prisma.contact.create({
+                data: {
+                    userId: findUser.id,
+                    contactId: chatGTPUser.id,
+                },
+            });
+
             res.send(
                 successResponse({
                     user: sanitize(findUser).user(),
