@@ -118,6 +118,7 @@ const en = {
     showMore: "Show more",
     showLess: "Show less",
     resend: "Send again",
+    pinChat: "Pin chat",
 };
 
 const strings = {

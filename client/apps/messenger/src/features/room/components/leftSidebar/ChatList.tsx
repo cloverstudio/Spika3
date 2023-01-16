@@ -5,7 +5,6 @@ import Avatar from "@mui/material/Avatar";
 import Badge from "@mui/material/Badge";
 import { Box } from "@mui/material";
 import Typography from "@mui/material/Typography";
-import { selectUser } from "../../../../store/userSlice";
 import { fetchHistory, selectHistory, selectHistoryLoading } from "../../slices/leftSidebar";
 
 import useIsInViewport from "../../../../hooks/useIsInViewport";
@@ -15,9 +14,9 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { setLeftSidebar } from "../../slices/leftSidebar";
 import SearchBox from "../SearchBox";
-import { RoomUserType } from "../../../../types/Rooms";
+import { RoomType, RoomUserType } from "../../../../types/Rooms";
 import NotificationsOff from "@mui/icons-material/NotificationsOff";
-import formatRoomInfo from "../../lib/formatRoomInfo";
+import Pin from "@mui/icons-material/PushPin";
 import useStrings from "../../../../hooks/useStrings";
 
 dayjs.extend(relativeTime);
@@ -30,7 +29,6 @@ export default function SidebarChatList(): React.ReactElement {
 
     const { list, count } = useSelector(selectHistory);
     const loading = useSelector(selectHistoryLoading());
-    const user = useSelector(selectUser);
 
     const [page, setPage] = useState(1);
     const { isInViewPort, elementRef } = useIsInViewport();
@@ -56,6 +54,18 @@ export default function SidebarChatList(): React.ReactElement {
         }
     }, [isInViewPort, isFetching, hasMoreContactsToLoad]);
 
+    const sortRooms = (): typeof list => {
+        const sorted = [...list].sort((a, b) =>
+            a.lastMessage?.createdAt > b.lastMessage?.createdAt ? -1 : 1
+        );
+
+        const pinned = sorted.filter((r) => r.pinned);
+
+        const pinnedSorted = pinned.sort((a, b) => a.name.localeCompare(b.name));
+
+        return [...pinnedSorted, ...sorted.filter((r) => !r.pinned)];
+    };
+
     return (
         <Box sx={{ overflowY: "auto", maxHeight: "100%" }}>
             <Box mt={3}>
@@ -70,21 +80,16 @@ export default function SidebarChatList(): React.ReactElement {
                 <Typography align="center">{strings.noRooms}</Typography>
             ) : (
                 <>
-                    {[...list]
-                        .sort((a, b) =>
-                            a.lastMessage?.createdAt > b.lastMessage?.createdAt ? -1 : 1
-                        )
-                        .map((room) => {
-                            const formattedRoom = formatRoomInfo(room, user.id);
-                            return (
-                                <RoomRow
-                                    key={room.id}
-                                    {...formattedRoom}
-                                    isActive={room.id === activeRoomId}
-                                    handleClick={onChatClick}
-                                />
-                            );
-                        })}
+                    {sortRooms().map((room) => {
+                        return (
+                            <RoomRow
+                                key={room.id}
+                                {...room}
+                                isActive={room.id === activeRoomId}
+                                handleClick={onChatClick}
+                            />
+                        );
+                    })}
                 </>
             )}
 
@@ -93,17 +98,10 @@ export default function SidebarChatList(): React.ReactElement {
     );
 }
 
-type RoomRowProps = {
-    id: number;
-    name: string;
-    type: string;
-    isActive?: boolean;
+type RoomRowProps = RoomType & {
+    lastMessage: MessageType;
     handleClick: () => void;
-    unreadCount?: number;
-    lastMessage?: MessageType;
-    avatarFileId?: number;
-    users: RoomUserType[];
-    muted: boolean;
+    isActive?: boolean;
 };
 
 function RoomRow({
@@ -117,6 +115,7 @@ function RoomRow({
     type,
     users,
     muted,
+    pinned,
 }: RoomRowProps) {
     const strings = useStrings();
     const [time, setTime] = useState(
@@ -213,6 +212,7 @@ function RoomRow({
                             color="text.primary"
                         >
                             {muted && <NotificationsOff fontSize="inherit" />}
+                            {pinned && <Pin fontSize="inherit" />}
                             {unreadCount ? (
                                 <Badge
                                     sx={{

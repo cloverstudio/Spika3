@@ -7,7 +7,7 @@ import { UserRequest } from "../lib/types";
 import sanitize from "../../../components/sanitize";
 import * as Constants from "../../../components/consts";
 import prisma from "../../../components/prisma";
-import { isRoomMuted } from "./room";
+import { isRoomMuted, isRoomPinned } from "./room";
 import { InitRouterParams } from "../../types/serviceInterface";
 
 export default ({ redisClient }: InitRouterParams): Router => {
@@ -67,6 +67,16 @@ export default ({ redisClient }: InitRouterParams): Router => {
             }
 
             const roomsIds = roomUsers.map((r) => r.room.id);
+
+            const userSettings = await prisma.userSetting.findMany({
+                where: {
+                    userId,
+                    key: { startsWith: Constants.ROOM_PIN_PREFIX },
+                    value: "true",
+                },
+            });
+
+            roomsIds.push(...userSettings.map((u) => +u.key.split("_")[1]));
 
             const count = await prisma.room.count({
                 where: {
@@ -133,12 +143,13 @@ export default ({ redisClient }: InitRouterParams): Router => {
                 messages.map(async (m) => {
                     const { room, ...message } = m;
                     const muted = await isRoomMuted({ userId, roomId: room.id, redisClient });
+                    const pinned = await isRoomPinned({ userId, roomId: room.id, redisClient });
                     const body = deviceMessages.find((dm) => dm.messageId === m.id)?.body;
                     const unreadCount = unreadMessages.filter(
                         (mc) => mc.roomId === m.roomId
                     ).length;
                     return {
-                        ...sanitize({ ...room, muted }).room(),
+                        ...sanitize({ ...room, muted, pinned }).room(),
                         lastMessage: sanitize({
                             ...message,
                             ...(body && { body }),

@@ -9,12 +9,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { RoomType } from "../../../../types/Rooms";
 import { setActiveTab } from "../../slices/rightSidebar";
 import { useShowSnackBar } from "../../../../hooks/useModal";
-import { useMuteRoomMutation, useUnmuteRoomMutation } from "../../api/room";
+import {
+    useMuteRoomMutation,
+    useUnmuteRoomMutation,
+    usePinRoomMutation,
+    useUnpinRoomMutation,
+} from "../../api/room";
 
-import { selectUserId, settings as storeSettings } from "../../../../../src/store/userSlice";
-import { fetchSettings } from "../../../../../src/store/userSlice";
+import { selectUserId } from "../../../../../src/store/userSlice";
 
-import * as constants from "../../../../../../../lib/constants";
 import useStrings from "../../../../hooks/useStrings";
 
 export interface Props {
@@ -28,7 +31,8 @@ export function DetailsAdditionalInfoView(props: Props) {
     const showSnackBar = useShowSnackBar();
     const [muteRoom] = useMuteRoomMutation();
     const [unmuteRoom] = useUnmuteRoomMutation();
-    const settings = useSelector(storeSettings);
+    const [pinRoom] = usePinRoomMutation();
+    const [unpinRoom] = useUnpinRoomMutation();
 
     const { type, users } = room;
     const userId = useSelector(selectUserId);
@@ -110,20 +114,7 @@ export function DetailsAdditionalInfoView(props: Props) {
                         <ChevronRight />
                     </Stack>
                 )}
-                {/* <Stack
-                    direction="row"
-                    alignItems="center"
-                    spacing={1}
-                    sx={{
-                        display: "flex",
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        width: "100%",
-                    }}
-                >
-                    <Box component="span">Favorite messages</Box>
-                    <ChevronRight />
-                </Stack>
+
                 <Stack
                     direction="row"
                     alignItems="center"
@@ -135,9 +126,27 @@ export function DetailsAdditionalInfoView(props: Props) {
                         width: "100%",
                     }}
                 >
-                    <Box component="span">Pin chat</Box>
-                    <Switch />
-                </Stack> */}
+                    <Box component="span">{strings.pinChat}</Box>
+                    <Switch
+                        checked={room.pinned}
+                        onChange={async (e) => {
+                            try {
+                                if (e.target.checked) {
+                                    await pinRoom({ roomId: room.id });
+                                } else {
+                                    await unpinRoom({ roomId: room.id });
+                                }
+                            } catch (e: any) {
+                                console.error(e);
+                                showSnackBar({
+                                    severity: "error",
+                                    text: String(e.message),
+                                });
+                            }
+                        }}
+                    />
+                </Stack>
+
                 <Stack
                     direction="row"
                     alignItems="center"
@@ -159,8 +168,6 @@ export function DetailsAdditionalInfoView(props: Props) {
                                 } else {
                                     await unmuteRoom({ roomId: room.id });
                                 }
-
-                                dispatch(fetchSettings());
                             } catch (e: any) {
                                 console.error(e);
                                 showSnackBar({
