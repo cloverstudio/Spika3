@@ -21,7 +21,6 @@ import WebhookService from "./services/webhook";
 import MessagingService from "./services/messaging";
 import utils from "./components/utils";
 import prisma from "./components/prisma";
-import { User } from "@prisma/client";
 
 const app: express.Express = express();
 const redisClient = createClient({ url: process.env.REDIS_URL });

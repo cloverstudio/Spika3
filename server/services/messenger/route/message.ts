@@ -17,6 +17,13 @@ import { formatMessageBody } from "../../../components/message";
 import createSSEMessageRecordsNotify from "../lib/sseMessageRecordsNotify";
 import prisma from "../../../components/prisma";
 import { isRoomBlocked } from "./block";
+import { Configuration, OpenAIApi } from "openai";
+
+const configuration = new Configuration({
+    apiKey: process.env.OPEN_API_KEY,
+    organization: process.env.OPEN_API_ORG_ID,
+});
+const openai = new OpenAIApi(configuration);
 
 const postMessageSchema = yup.object().shape({
     body: yup.object().shape({
@@ -255,14 +262,25 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             const chatGTPRoomUser = room.users.find((u) => u.user.displayName === "CHAT GTP");
 
-            if (room.type === "private" && chatGTPRoomUser) {
+            if (room.type === "private" && chatGTPRoomUser && type === "text") {
                 const chatGTPUser = chatGTPRoomUser.user;
+
+                const response = await openai.createCompletion({
+                    model: "text-davinci-003",
+                    prompt: body.text,
+                    temperature: 0.4,
+                    max_tokens: 100,
+                });
+
+                console.log(JSON.stringify(response.data, null, 4));
+
+                const responseBody = { text: response.data.choices[0].text.trim() };
 
                 const deviceMessages = devices.map((device) => ({
                     deviceId: device.id,
                     userId: device.userId,
                     fromUserId: chatGTPUser.id,
-                    body: { text: "insta response" },
+                    body: responseBody,
                     action: Constants.MESSAGE_ACTION_NEW_MESSAGE,
                 }));
 
@@ -279,7 +297,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
                 const sanitizedMessage = sanitize({
                     ...message,
-                    body: { text: "insta response" },
+                    body: responseBody,
                 }).message();
 
                 while (deviceMessages.length) {
