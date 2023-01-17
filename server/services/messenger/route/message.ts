@@ -17,13 +17,7 @@ import { formatMessageBody } from "../../../components/message";
 import createSSEMessageRecordsNotify from "../lib/sseMessageRecordsNotify";
 import prisma from "../../../components/prisma";
 import { isRoomBlocked } from "./block";
-import { Configuration, OpenAIApi } from "openai";
-
-const configuration = new Configuration({
-    apiKey: process.env.OPEN_API_KEY,
-    organization: process.env.OPEN_API_ORG_ID,
-});
-const openai = new OpenAIApi(configuration);
+import { handleNewMessage } from "../../../components/chatGPT";
 
 const postMessageSchema = yup.object().shape({
     body: yup.object().shape({
@@ -260,88 +254,12 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 )
             );
 
-            const chatGTPRoomUser = room.users.find((u) => u.user.displayName === "CHAT GTP");
-
-            if (room.type === "private" && chatGTPRoomUser && type === "text") {
-                const chatGTPUser = chatGTPRoomUser.user;
-
-                const response = await openai.createCompletion({
-                    model: "text-davinci-003",
-                    prompt: body.text,
-                    temperature: 0.4,
-                    max_tokens: 100,
-                });
-
-                console.log(JSON.stringify(response.data, null, 4));
-
-                const responseBody = { text: response.data.choices[0].text.trim() };
-
-                const deviceMessages = devices.map((device) => ({
-                    deviceId: device.id,
-                    userId: device.userId,
-                    fromUserId: chatGTPUser.id,
-                    body: responseBody,
-                    action: Constants.MESSAGE_ACTION_NEW_MESSAGE,
-                }));
-
-                const message = await prisma.message.create({
-                    data: {
-                        type: "text",
-                        roomId: room.id,
-                        fromUserId: chatGTPUser.id,
-                        totalUserCount: 2,
-                        deliveredCount: 0,
-                        seenCount: 0,
-                    },
-                });
-
-                const sanitizedMessage = sanitize({
-                    ...message,
-                    body: responseBody,
-                }).message();
-
-                while (deviceMessages.length) {
-                    await Promise.all(
-                        deviceMessages.splice(0, 10).map(async (deviceMessage) => {
-                            await prisma.deviceMessage.create({
-                                data: { ...deviceMessage, messageId: message.id },
-                            });
-
-                            rabbitMQChannel.sendToQueue(
-                                Constants.QUEUE_PUSH,
-                                Buffer.from(
-                                    JSON.stringify({
-                                        type: Constants.PUSH_TYPE_NEW_MESSAGE,
-                                        token: devices.find((d) => d.id == deviceMessage.deviceId)
-                                            ?.pushToken,
-                                        data: {
-                                            message: { ...sanitizedMessage },
-                                            user: sanitize(userReq.user).user(),
-                                            ...(room.type === "group" && {
-                                                groupName: room.name,
-                                            }),
-                                            toUserId: deviceMessage.userId,
-                                        },
-                                    })
-                                )
-                            );
-
-                            rabbitMQChannel.sendToQueue(
-                                Constants.QUEUE_SSE,
-                                Buffer.from(
-                                    JSON.stringify({
-                                        channelId: deviceMessage.deviceId,
-                                        data: {
-                                            type: Constants.PUSH_TYPE_NEW_MESSAGE,
-                                            message: sanitizedMessage,
-                                        },
-                                    })
-                                )
-                            );
-                        })
-                    );
-                }
-            }
+            handleNewMessage({
+                room,
+                users: room.users.map((u) => u.user),
+                messageType: type,
+                rabbitMQChannel,
+            });
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
