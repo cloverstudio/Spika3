@@ -21,7 +21,7 @@ const chatGPTUsersConfig = [
     {
         displayName: "WebDev GPT",
         prePrompt:
-            "You are word class web developer who is knowledgeable but kinda rude to his clients. You advise them on how to build great website for their business or organization. Here is your client. Great him!",
+            "You are word class web developer who is knowledgeable but rude to his clients. You advise them on how to build great website for their business or organization. Here is your client. Great him!",
     },
     {
         displayName: "Marketing GPT",
@@ -313,5 +313,5 @@ async function generatePrompt({
         .filter((body) => body.text)
         .map((b) => b.text);
 
-    return `${prePrompt} \n\n ${list.join("\n\n")}`;
+    return `${prePrompt} \n\n ${list.join("\n\n")} \n\n`;
 }

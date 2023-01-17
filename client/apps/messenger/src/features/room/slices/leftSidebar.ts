@@ -3,12 +3,17 @@ import { dynamicBaseQuery } from "../../../api/api";
 import type { RootState } from "../../../store/store";
 import MessageType from "../../../types/Message";
 import { RoomType } from "../../../types/Rooms";
+import UserType from "../../../types/User";
 import formatRoomInfo from "../lib/formatRoomInfo";
 
 export const fetchHistory = createAsyncThunk(
     "room/fetchHistory",
     async (args: { page: number; keyword: string }, thunkAPI) => {
-        const fromUserId = (thunkAPI.getState() as RootState).user.id;
+        const fromUserId = (
+            (thunkAPI.getState() as RootState).api.queries["getUser(undefined)"].data as {
+                user: UserType;
+            }
+        ).user.id;
 
         const response = await dynamicBaseQuery(
             `/messenger/history?page=${args.page}&keyword=${args.keyword}`
