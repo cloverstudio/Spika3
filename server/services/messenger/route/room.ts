@@ -14,6 +14,7 @@ import { InitRouterParams } from "../../types/serviceInterface";
 import createSSERoomsNotify from "../lib/sseRoomsNotify";
 import prisma from "../../../components/prisma";
 import { createClient } from "redis";
+import { handleNewRoom } from "../../../components/chatGPT";
 
 const postRoomSchema = yup.object().shape({
     body: yup.object().shape({
@@ -145,19 +146,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 },
             });
 
-            const muted = await isRoomMuted({
-                roomId: room.id,
-                userId: userReq.user.id,
-                redisClient,
-            });
-
-            const pinned = await isRoomPinned({
-                roomId: room.id,
-                userId: userReq.user.id,
-                redisClient,
-            });
-
-            const sanitizedRoom = sanitize({ ...room, muted, pinned }).room();
+            const sanitizedRoom = sanitize({ ...room, muted: false, pinned: false }).room();
 
             sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_NEW_ROOM);
 
@@ -169,6 +158,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     userReq.lang
                 )
             );
+
+            handleNewRoom({ users: foundUsers, room, rabbitMQChannel });
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

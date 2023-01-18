@@ -17,6 +17,7 @@ import { formatMessageBody } from "../../../components/message";
 import createSSEMessageRecordsNotify from "../lib/sseMessageRecordsNotify";
 import prisma from "../../../components/prisma";
 import { isRoomBlocked } from "./block";
+import { handleNewMessage } from "../../../components/chatGPT";
 
 const postMessageSchema = yup.object().shape({
     body: yup.object().shape({
@@ -252,6 +253,13 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     })
                 )
             );
+
+            handleNewMessage({
+                room,
+                users: room.users.map((u) => u.user),
+                messageType: type,
+                rabbitMQChannel,
+            });
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

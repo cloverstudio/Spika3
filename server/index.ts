@@ -20,6 +20,7 @@ import l, { error as e } from "./components/logger";
 import WebhookService from "./services/webhook";
 import MessagingService from "./services/messaging";
 import utils from "./components/utils";
+import { setupChatGPT } from "./components/chatGPT";
 
 const app: express.Express = express();
 const redisClient = createClient({ url: process.env.REDIS_URL });
@@ -28,9 +29,13 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
 
-    redisClient.on("error", (err) => e("Redis Client Error", err));
+    redisClient.on("error", (err) => {
+        e("Redis Client Error", err);
+        process.exit(1);
+    });
 
     await redisClient.connect();
+    await setupChatGPT();
 
     // cors
     app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {

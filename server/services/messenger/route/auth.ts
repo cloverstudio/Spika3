@@ -13,6 +13,7 @@ import { successResponse, errorResponse } from "../../../components/response";
 import sanitize from "../../../components/sanitize";
 import * as constants from "../lib/constants";
 import prisma from "../../../components/prisma";
+import { handleNewUser } from "../../../components/chatGPT";
 
 const authSchema = yup.object().shape({
     body: yup.object().shape({
@@ -227,6 +228,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     tokenExpiredAt: expireDate,
                 },
             });
+
+            handleNewUser(findUser.id);
 
             res.send(
                 successResponse({
