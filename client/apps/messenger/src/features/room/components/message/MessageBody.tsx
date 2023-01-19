@@ -474,7 +474,7 @@ function filterText(text: string): string {
     text = text.replace(/\n{3,}/g, "\n");
 
     // auto link
-    const autolinkRegex = /(?![^<]*>|[^<>]*<\/)((https?:)\/\/[a-z0-9&#%;:~=.\/\-?_]+)/gi;
+    const autolinkRegex = /(?![^<]*>|[^<>]*<\/)((https?:)\/\/[a-z0-9&#%;:~=.\/\-?_+]+)/gi;
     const internalLink = text.includes(window.origin);
 
     text = text.replace(

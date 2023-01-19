@@ -226,6 +226,8 @@ export default (): Router => {
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
+            res.set("Cache-control", "public, max-age=86400");
+
             res.download(pathToFile, file.fileName);
         } catch (e: any) {
             le(e);

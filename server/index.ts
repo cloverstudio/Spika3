@@ -87,7 +87,7 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
         res.send(content);
     });
 
-    app.use(express.static("public"));
+    app.use(express.static("public", { maxAge: 300 }));
     app.use("/uploads", express.static(process.env["UPLOAD_FOLDER"]));
 
     const rabbitMQConnection = await amqp.connect(
@@ -191,8 +191,7 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
     });
 
     app.all("/messenger/*", (req: express.Request, res: express.Response) => {
-        console.log("__dirname", __dirname);
-        res.sendFile(path.join(__dirname, "../..", "public/messenger/index.html"));
+        res.sendFile(path.join(__dirname, "..", "public/messenger/index.html"));
     });
 
     app.all("/management/*", (req: express.Request, res: express.Response) => {
