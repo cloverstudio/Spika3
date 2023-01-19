@@ -35,7 +35,7 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
     });
 
     await redisClient.connect();
-    await setupChatGPT();
+    setupChatGPT();
 
     // cors
     app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -73,7 +73,7 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
 
     // override static access only for this file
     app.get("/firebase-messaging-sw.js", (req: express.Request, res: express.Response) => {
-        const pathToJS = path.join(__dirname, "../..", "public/firebase-messaging-sw.js");
+        const pathToJS = path.join(__dirname, "..", "public/firebase-messaging-sw.js");
         let content = fs.readFileSync(pathToJS, "utf8");
 
         content = content.replace("{{apiKey}}", process.env["FCM_API_KEY"]);
@@ -87,7 +87,11 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
         res.send(content);
     });
 
-    app.use(express.static("public", { maxAge: 300 }));
+    app.use(
+        "/messenger/assets",
+        express.static("public/messenger/assets", { maxAge: 365 * 24 * 60 * 60 * 1000 })
+    );
+    app.use(express.static("public", { maxAge: 5 * 60 * 1000 }));
     app.use("/uploads", express.static(process.env["UPLOAD_FOLDER"]));
 
     const rabbitMQConnection = await amqp.connect(
@@ -187,15 +191,16 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
     });
 
     app.all("/", (req: express.Request, res: express.Response) => {
-        res.redirect("/messenger");
+        res.redirect("/messenger/app");
     });
 
     app.all("/messenger/*", (req: express.Request, res: express.Response) => {
+        console.log({ __dirname });
         res.sendFile(path.join(__dirname, "..", "public/messenger/index.html"));
     });
 
     app.all("/management/*", (req: express.Request, res: express.Response) => {
-        res.sendFile(path.join(__dirname, "../..", "public/management/index.html"));
+        res.sendFile(path.join(__dirname, "..", "public/management/index.html"));
     });
 
     // general error
