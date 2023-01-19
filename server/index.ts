@@ -73,7 +73,7 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
 
     // override static access only for this file
     app.get("/firebase-messaging-sw.js", (req: express.Request, res: express.Response) => {
-        const pathToJS = path.join(__dirname, "..", "public/firebase-messaging-sw.js");
+        const pathToJS = path.join(__dirname, "../..", "public/firebase-messaging-sw.js");
         let content = fs.readFileSync(pathToJS, "utf8");
 
         content = content.replace("{{apiKey}}", process.env["FCM_API_KEY"]);
@@ -195,12 +195,11 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
     });
 
     app.all("/messenger/*", (req: express.Request, res: express.Response) => {
-        console.log({ __dirname });
-        res.sendFile(path.join(__dirname, "..", "public/messenger/index.html"));
+        res.sendFile(path.join(__dirname, "../..", "public/messenger/index.html"));
     });
 
     app.all("/management/*", (req: express.Request, res: express.Response) => {
-        res.sendFile(path.join(__dirname, "..", "public/management/index.html"));
+        res.sendFile(path.join(__dirname, "../..", "public/management/index.html"));
     });
 
     // general error

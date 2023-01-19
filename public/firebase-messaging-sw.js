@@ -10,7 +10,6 @@ const firebaseConfig = {
     appId: "{{appId}}",
 };
 
-
 firebase.initializeApp(firebaseConfig);
 
 const messaging = firebase.messaging();
