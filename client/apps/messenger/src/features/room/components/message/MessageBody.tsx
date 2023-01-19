@@ -227,7 +227,7 @@ function VideoMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
     return (
         <>
             {text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
-            <Box component="video" borderRadius="0.625rem" height="35vh" controls pb="0.8125">
+            <Box component="video" borderRadius="0.625rem" height="43vh" controls pb="0.8125">
                 <source type={mimeType} src={src} />
                 Your browser does not support the video tag.
             </Box>
@@ -474,7 +474,7 @@ function filterText(text: string): string {
     text = text.replace(/\n{3,}/g, "\n");
 
     // auto link
-    const autolinkRegex = /(?![^<]*>|[^<>]*<\/)((https?:)\/\/[a-z0-9&#%;:~=.\/\-?_]+)/gi;
+    const autolinkRegex = /(?![^<]*>|[^<>]*<\/)((https?:)\/\/[a-z0-9&#%;:~=.\/\-?_+]+)/gi;
     const internalLink = text.includes(window.origin);
 
     text = text.replace(

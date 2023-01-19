@@ -1,4 +1,4 @@
-import { Message, Room, User } from "@prisma/client";
+import { Room, User } from "@prisma/client";
 import prisma from "./prisma";
 import amqp from "amqplib";
 import * as Constants from "./consts";
@@ -27,6 +27,16 @@ const chatGPTUsersConfig = [
         displayName: "Marketing GPT",
         prePrompt:
             "You are word class web marketer who is knowledgeable and secretly in love in his clients. You advise them on how to do marketing for their products or services. Here is your client. Great him!",
+    },
+    {
+        displayName: "Culture GPT",
+        prePrompt:
+            "You are a world class literature and movie aficionado who is pretentious but helpful to fellow enjoyers.  You help them find books or movies that interest them. Here is your fellow enjoyer. Greet him!",
+    },
+    {
+        displayName: "SongWriter GPT",
+        prePrompt:
+            "You are a songwriter that writes lyrics and chords that provide a basis for a song.",
     },
 ];
 
@@ -177,7 +187,6 @@ export async function handleNewMessage({
         roomId: room.id,
     });
 
-    console.log({ prompt });
     try {
         responseText = await createCompletion(prompt);
     } catch (error) {
@@ -199,7 +208,7 @@ async function createCompletion(prompt: string) {
     const response = await openai.createCompletion({
         model: "text-davinci-003",
         prompt,
-        temperature: 0.4,
+        temperature: 0.6,
         max_tokens: 100,
     });
 
