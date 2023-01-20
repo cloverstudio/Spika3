@@ -43,7 +43,6 @@ export const contactsSlice = createSlice({
             state.keyword = action.payload;
             state.count = null;
             state.cursor = null;
-            state.list = [];
             state.loading = "idle";
         },
     },
@@ -52,7 +51,11 @@ export const contactsSlice = createSlice({
             const userIds = state.list.map((u) => u.id);
             const notAdded = payload.data.list.filter((u: User) => !userIds.includes(u.id));
 
-            state.list = [...state.list, ...notAdded];
+            if (!state.cursor) {
+                state.list = payload.data.list;
+            } else {
+                state.list = [...state.list, ...notAdded];
+            }
 
             state.cursor = payload.data.nextCursor;
             state.count = payload.data.count;

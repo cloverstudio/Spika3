@@ -50,8 +50,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         const userReq: UserRequest = req as UserRequest;
         const keyword = req.query.keyword;
         const cursor = parseInt(req.query.cursor ? (req.query.cursor as string) : "") || null;
-        console.log({ cursor });
-        const take = cursor ? Constants.PAGING_LIMIT + 1 : Constants.PAGING_LIMIT;
+        const take = cursor ? Constants.CONTACT_PAGING_LIMIT + 1 : Constants.CONTACT_PAGING_LIMIT;
 
         const condition: any = {
             verified: true,
@@ -94,7 +93,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         {
                             list: users.map((c) => sanitize(c).user()),
                             count,
-                            limit: Constants.PAGING_LIMIT,
+                            limit: Constants.CONTACT_PAGING_LIMIT,
                             nextCursor,
                         },
                         userReq.lang
@@ -141,7 +140,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         {
                             list: contacts.map((c) => sanitize(c.contact).user()),
                             count,
-                            limit: Constants.PAGING_LIMIT,
+                            limit: Constants.CONTACT_PAGING_LIMIT,
                             nextCursor,
                         },
                         userReq.lang

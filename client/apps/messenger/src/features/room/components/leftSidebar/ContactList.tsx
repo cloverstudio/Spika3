@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Avatar from "@mui/material/Avatar";
-import { Box } from "@mui/material";
+import { Box, CircularProgress } from "@mui/material";
 import Typography from "@mui/material/Typography";
 
 import CheckIcon from "@mui/icons-material/Check";
@@ -51,6 +51,13 @@ export default function SidebarContactList({
         }
     }, [isInViewPort, dispatch]);
 
+    useEffect(() => {
+        return () => {
+            dispatch(setKeyword(""));
+            dispatch(fetchContacts());
+        };
+    }, [dispatch]);
+
     const defaultHandleUserClick = async (user: User) => {
         try {
             const res = await dynamicBaseQuery(`/messenger/rooms/users/${user.id}`);
@@ -80,6 +87,7 @@ export default function SidebarContactList({
                 <SearchBox
                     onSearch={(keyword: string) => {
                         dispatch(setKeyword(keyword));
+                        dispatch(fetchContacts());
                     }}
                 />
             </Box>
@@ -107,7 +115,9 @@ export default function SidebarContactList({
                     </Box>
                 );
             })}
-            <div ref={elementRef} />
+            <Box textAlign="center" height="50px" ref={elementRef}>
+                {isFetching && <CircularProgress />}
+            </Box>
         </Box>
     );
 }
