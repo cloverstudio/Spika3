@@ -35,7 +35,7 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
     });
 
     await redisClient.connect();
-    // setupChatGPT();
+    setupChatGPT();
 
     // cors
     app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
