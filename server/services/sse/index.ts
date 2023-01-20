@@ -38,18 +38,14 @@ export default class SSEService implements Service {
             const channelId = String(userReq.device.id);
 
             const connectionId = this.notificationServer.subscribe(channelId, (data) => {
-                console.log(`Device id: ${channelId} - Event - ${data.type}`);
-
                 const eventData = "data: " + JSON.stringify(data) + "\n\n";
                 res.write(eventData);
             });
-            console.log(`Device id: ${channelId} - Connection open`);
 
             req.on("close", async () => {
                 clearInterval(interval);
                 this.notificationServer.unsubscribe(connectionId);
                 res.end();
-                console.log(`Device id: ${channelId} - Connection closed`);
 
                 await leaveCallLogicUser(userReq.user.id, this.rabbitMQChannel);
             });

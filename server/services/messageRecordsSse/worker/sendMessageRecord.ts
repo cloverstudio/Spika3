@@ -1,6 +1,6 @@
 import QueueWorkerInterface from "../../types/queueWorkerInterface";
 import { SendMessageRecordSSEPayload } from "../../types/queuePayloadTypes";
-import log, { warn as lw } from "../../../components/logger";
+import { warn as lw } from "../../../components/logger";
 import { QUEUE_SSE } from "../../../components/consts";
 import { Channel } from "amqplib";
 import sanitize, { SanitizedMessageRecord } from "../../../components/sanitize";
@@ -79,7 +79,7 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
 
             for (const record of messageRecords) {
                 const deviceIds = await getDeviceIdsFromMessageId(record.messageId, record.userId);
-                log("Sending mr to devices with ids: ", deviceIds.join(","));
+
                 for (const deviceId of deviceIds) {
                     channel.sendToQueue(
                         QUEUE_SSE,
