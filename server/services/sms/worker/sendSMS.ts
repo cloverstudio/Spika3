@@ -19,7 +19,7 @@ class sendSMSWorker implements QueueWorkerInterface {
                 to: payload.telephoneNumber,
             });
 
-            l("Twilio: ", twilioResult);
+            l("Twilio: ", twilioResult.body);
         } catch (error) {
             le("Twilio error: ", error);
         }
