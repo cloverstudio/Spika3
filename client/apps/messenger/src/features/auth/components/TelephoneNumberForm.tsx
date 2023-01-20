@@ -17,7 +17,7 @@ export default function TelephoneNumberForm({
     onSubmit,
 }: TelephoneNumberFormProps): React.ReactElement {
     const strings = useStrings();
-    const [countryCode, setCountryCode] = useState("1");
+    const [countryCode, setCountryCode] = useState("385");
     const [phoneNumber, setPhoneNumber] = useState("");
     const [validPhoneNumber, setValidPhoneNumber] = useState(false);
 
