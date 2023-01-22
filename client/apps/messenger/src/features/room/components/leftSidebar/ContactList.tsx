@@ -1,15 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Avatar from "@mui/material/Avatar";
-import { Box } from "@mui/material";
+import { Box, CircularProgress } from "@mui/material";
 import Typography from "@mui/material/Typography";
 
 import CheckIcon from "@mui/icons-material/Check";
 
 import { dynamicBaseQuery } from "../../../../api/api";
 import { useCreateRoomMutation } from "../../api/room";
-import { fetchContact, selectContacts, selectContactLoading } from "../../slices/contacts";
+import {
+    fetchContacts,
+    selectContacts,
+    selectContactLoading,
+    setKeyword,
+} from "../../slices/contacts";
 
 import User from "../../../../types/User";
 
@@ -30,38 +35,28 @@ export default function SidebarContactList({
 }): React.ReactElement {
     const strings = useStrings();
     const dispatch = useDispatch();
-    const { list, count, sortedByDisplayName } = useSelector(selectContacts);
+    const { sortedByDisplayName } = useSelector(selectContacts);
     const loading = useSelector(selectContactLoading());
-    const isFetching = loading !== "idle";
+    const isFetching = loading === "pending";
 
-    const [page, setPage] = useState(1);
-    const [keyword, setKeyword] = useState("");
     const { isInViewPort, elementRef } = useIsInViewport();
 
     const navigate = useNavigate();
     const [createRoom] = useCreateRoomMutation();
     const onChatClick = () => dispatch(hideLeftSidebar());
 
-    const hasMoreContactsToLoad = count > list.length;
-
     useEffect(() => {
-        dispatch(fetchContact({ page: page, keyword }));
-    }, [dispatch, page]);
-
-    useEffect(() => {
-        dispatch(fetchContact({ page: 1, keyword }));
-    }, [keyword]);
-
-    useEffect(() => {
-        if (isInViewPort && hasMoreContactsToLoad) {
-            setPage((page) => page + 1);
+        if (isInViewPort) {
+            dispatch(fetchContacts());
         }
-    }, [isInViewPort, isFetching, hasMoreContactsToLoad]);
+    }, [isInViewPort, dispatch]);
 
     useEffect(() => {
-        if (page === 1) dispatch(fetchContact({ page: 1, keyword }));
-        else setPage(1);
-    }, [keyword]);
+        return () => {
+            dispatch(setKeyword(""));
+            dispatch(fetchContacts());
+        };
+    }, [dispatch]);
 
     const defaultHandleUserClick = async (user: User) => {
         try {
@@ -91,12 +86,13 @@ export default function SidebarContactList({
             <Box mt={3}>
                 <SearchBox
                     onSearch={(keyword: string) => {
-                        setKeyword(keyword);
+                        dispatch(setKeyword(keyword));
+                        dispatch(fetchContacts());
                     }}
                 />
             </Box>
 
-            {!list.length && !isFetching && (
+            {!sortedByDisplayName.length && !isFetching && (
                 <Typography align="center">{strings.noContacts}</Typography>
             )}
 
@@ -119,7 +115,9 @@ export default function SidebarContactList({
                     </Box>
                 );
             })}
-            <div ref={elementRef}></div>
+            <Box textAlign="center" height="50px" ref={elementRef}>
+                {isFetching && <CircularProgress />}
+            </Box>
         </Box>
     );
 }

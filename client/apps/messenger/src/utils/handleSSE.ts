@@ -17,7 +17,7 @@ const VALID_SSE_EVENT_TYPES = [
 ];
 
 import { notify as notifyCallEvent } from "../features/confcall/lib/callEventListener";
-import { fetchContact } from "../features/room/slices/contacts";
+import { fetchContacts } from "../features/room/slices/contacts";
 import { RoomType } from "../types/Rooms";
 import newMessageSound from "../../../../assets/newmessage.mp3";
 import * as constants from "../../../../lib/constants";
@@ -172,7 +172,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                 return;
             }
 
-            store.dispatch(fetchContact({ page: 1, keyword: "" }));
+            store.dispatch(fetchContacts());
             const queries = store.getState().api.queries;
 
             if (!queries) {

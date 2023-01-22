@@ -6,51 +6,65 @@ import type { RootState } from "../../../store/store";
 
 interface ContactsState {
     list: User[];
-    count: number;
     loading: "idle" | "pending" | "succeeded" | "failed";
     keyword: string;
+    count?: number;
+    cursor?: number;
 }
 
-export const fetchContact = createAsyncThunk(
-    "user/fetchContact",
-    async (args: { page: number; keyword: string }) => {
-        const response = await dynamicBaseQuery(
-            `/messenger/contacts?page=${args.page}&keyword=${args.keyword}`
-        );
-        return {
-            data: response.data,
-            keyword: args.keyword,
-            page: args.page,
-        };
+export const fetchContacts = createAsyncThunk("user/fetchContact", async (_, thunkAPI) => {
+    const { count, keyword, cursor } = (thunkAPI.getState() as RootState).contacts;
+    const noMore = count === 0 || !!(count && !cursor);
+
+    if (noMore) {
+        console.log({ noMore });
+        throw new Error("Can't fetch");
     }
-);
+
+    const response = await dynamicBaseQuery(
+        `/messenger/contacts?keyword=${keyword}&${cursor ? `cursor=${cursor}` : ""}`
+    );
+    return {
+        data: response.data,
+    };
+});
 
 export const contactsSlice = createSlice({
     name: <string>"contacts",
-    initialState: <ContactsState>{ list: [], count: null },
+    initialState: <ContactsState>{
+        list: [],
+        count: null,
+        keyword: "",
+        loading: "idle",
+        cursor: null,
+    },
     reducers: {
-        resetContacts(state) {
-            state.list = [];
+        setKeyword(state, action: { payload: string }) {
+            state.keyword = action.payload;
+            state.count = null;
+            state.cursor = null;
+            state.loading = "idle";
         },
     },
     extraReducers: (builder) => {
-        builder.addCase(fetchContact.fulfilled, (state, { payload }) => {
+        builder.addCase(fetchContacts.fulfilled, (state, { payload }) => {
             const userIds = state.list.map((u) => u.id);
             const notAdded = payload.data.list.filter((u: User) => !userIds.includes(u.id));
 
-            if (state.keyword !== payload.keyword && payload.page === 1) {
-                state.list = [...payload.data.list];
+            if (!state.cursor) {
+                state.list = payload.data.list;
             } else {
                 state.list = [...state.list, ...notAdded];
             }
 
+            state.cursor = payload.data.nextCursor;
             state.count = payload.data.count;
             state.loading = "idle";
         });
-        builder.addCase(fetchContact.pending, (state) => {
+        builder.addCase(fetchContacts.pending, (state) => {
             state.loading = "pending";
         });
-        builder.addCase(fetchContact.rejected, (state) => {
+        builder.addCase(fetchContacts.rejected, (state) => {
             state.loading = "failed";
         });
     },
@@ -81,15 +95,10 @@ export const selectContacts = (
     return { ...state.contacts, sortedByDisplayName };
 };
 
-export const selectContactById =
-    (id: number) =>
-    (state: RootState): User =>
-        state.contacts.list.find((u) => u.id === id);
+export const selectContactById = (id: number) => (state: RootState) =>
+    state.contacts.list.find((u) => u.id === id);
+export const selectContactLoading = () => (state: RootState) => state.contacts.loading;
+export const selectKeyword = () => (state: RootState) => state.contacts.keyword;
 
-export const selectContactLoading =
-    () =>
-    (state: RootState): "idle" | "pending" | "succeeded" | "failed" =>
-        state.contacts.loading;
-
-export const { resetContacts } = contactsSlice.actions;
+export const { setKeyword } = contactsSlice.actions;
 export default contactsSlice.reducer;

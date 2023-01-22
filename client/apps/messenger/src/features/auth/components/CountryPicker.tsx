@@ -20,7 +20,7 @@ import useStrings from "../../../hooks/useStrings";
 const CountryPicker = (props: any) => {
     const [searchText, setSearchText] = React.useState("");
     const [tempCountries, setTempCountries] = React.useState(countries);
-    const [countryCode, setCountryCode] = React.useState("1");
+    const [countryCode, setCountryCode] = React.useState("385");
     const [openMenu, setOpenMenu] = React.useState(false);
     const [staticBoxCoordinates, setStaticBoxCoordinates] = React.useState<DOMRect>(null);
     const strings = useStrings();
@@ -132,6 +132,9 @@ const CountryPicker = (props: any) => {
                         placeholder={strings.phoneNumberExample}
                         InputProps={{
                             type: "number",
+                        }}
+                        inputProps={{
+                            pattern: "[0-9]*",
                         }}
                         sx={{
                             fieldset: {

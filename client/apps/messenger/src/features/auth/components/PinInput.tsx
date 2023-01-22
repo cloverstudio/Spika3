@@ -92,7 +92,7 @@ function NumberInput({
             <InputBase
                 inputProps={{
                     ref: inputRef,
-                    pattern: "[1-9]",
+                    pattern: "[0-9]*",
                     type: "number",
                 }}
                 value={value}
