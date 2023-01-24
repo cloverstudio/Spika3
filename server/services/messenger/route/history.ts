@@ -136,6 +136,7 @@ export default ({ redisClient }: InitRouterParams): Router => {
                 select: {
                     messageId: true,
                     body: true,
+                    deleted: true,
                 },
             });
 
@@ -144,7 +145,8 @@ export default ({ redisClient }: InitRouterParams): Router => {
                     const { room, ...message } = m;
                     const muted = await isRoomMuted({ userId, roomId: room.id, redisClient });
                     const pinned = await isRoomPinned({ userId, roomId: room.id, redisClient });
-                    const body = deviceMessages.find((dm) => dm.messageId === m.id)?.body;
+                    const dm = deviceMessages.find((dm) => dm.messageId === m.id);
+                    const { body, deleted } = dm || {};
                     const unreadCount = unreadMessages.filter(
                         (mc) => mc.roomId === m.roomId
                     ).length;
@@ -153,6 +155,7 @@ export default ({ redisClient }: InitRouterParams): Router => {
                         lastMessage: sanitize({
                             ...message,
                             ...(body && { body }),
+                            deleted,
                         }).message(),
                         unreadCount,
                     };

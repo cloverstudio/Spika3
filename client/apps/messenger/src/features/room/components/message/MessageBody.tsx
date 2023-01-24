@@ -6,7 +6,6 @@ import Typography from "@mui/material/Typography";
 import getFileIcon from "../../lib/getFileIcon";
 import DownloadIcon from "@mui/icons-material/Download";
 import CloseOutlined from "@mui/icons-material/CloseOutlined";
-import { deletedMessageText } from "../../lib/consts";
 import { useParams } from "react-router-dom";
 import UserType from "../../../../types/User";
 import { useGetRoomQuery } from "../../api/room";
@@ -21,6 +20,7 @@ type MessageBodyProps = {
     side: "left" | "right";
     isReply?: boolean;
     onImageMessageClick?: () => void;
+    deleted: boolean;
 };
 
 declare const API_BASE_URL: string;
@@ -32,11 +32,10 @@ export default function MessageBody({
     side,
     isReply,
     onImageMessageClick,
+    deleted,
 }: MessageBodyProps): React.ReactElement {
-    const isDeleted = body?.text === deletedMessageText;
-
-    if (isDeleted) {
-        return <TextMessage body={body} isUsersMessage={side === "right"} />;
+    if (deleted) {
+        return <TextMessage body={body} deleted={deleted} isUsersMessage={side === "right"} />;
     }
 
     if (isReply) {
@@ -424,28 +423,34 @@ function TextMessage({
     isUsersMessage,
     body,
     sender,
+    deleted,
 }: {
     body: any;
     isUsersMessage: boolean;
     sender?: UserType;
+    deleted?: boolean;
 }) {
+    const backgroundColor = deleted
+        ? "background.transparent"
+        : isUsersMessage
+        ? "common.myMessageBackground"
+        : "background.paper";
     return (
         <Box
             component={"div"}
             sx={{
                 minWidth: "50px",
                 maxWidth: "100%",
-                backgroundColor: isUsersMessage
-                    ? "common.myMessageBackground"
-                    : "common.otherMessageBackground",
+                backgroundColor: backgroundColor,
                 borderRadius: "0.3rem",
                 padding: "0.4rem",
                 cursor: "pointer",
-                color: "common.darkBlue",
+                color: deleted ? "text.tertiary" : "common.darkBlue",
                 lineHeight: "1.2rem",
                 whiteSpace: "pre-wrap",
                 margin: "0px",
                 fontSize: "0.95rem",
+                border: deleted ? "1px solid #C9C9CA" : "none",
             }}
         >
             {sender && (

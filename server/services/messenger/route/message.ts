@@ -384,12 +384,18 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             const list = await Promise.all(
                 messages.map(async (m) => {
-                    const body = m.deviceMessages.find(
+                    const deviceMessage = m.deviceMessages.find(
                         (dm) => dm.messageId === m.id && dm.deviceId === deviceId
-                    )?.body;
+                    );
+
+                    const { body, deleted } = deviceMessage || {};
 
                     const formattedBody = await formatMessageBody(body, m.type);
-                    return sanitize({ ...m, body: formattedBody }).messageWithReactionRecords();
+                    return sanitize({
+                        ...m,
+                        body: formattedBody,
+                        deleted,
+                    }).messageWithReactionRecords();
                 })
             );
 
@@ -524,6 +530,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     sanitize({
                         ...message,
                         body: await formatMessageBody(message.deviceMessages[0].body, message.type),
+                        deleted: message.deviceMessages[0].deleted,
                     }).message()
                 )
             );
@@ -634,7 +641,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             for (const deviceMessage of deviceMessagesToDelete) {
                 await prisma.deviceMessage.update({
                     where: { id: deviceMessage.id },
-                    data: { modifiedAt: new Date(), body: newBody },
+                    data: { modifiedAt: new Date(), body: newBody, deleted: true },
                 });
             }
 
@@ -646,7 +653,11 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 });
             }
 
-            const sanitizedMessage = sanitize({ ...message, body: newBody }).message();
+            const sanitizedMessage = sanitize({
+                ...message,
+                body: newBody,
+                deleted: true,
+            }).message();
 
             res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
 
