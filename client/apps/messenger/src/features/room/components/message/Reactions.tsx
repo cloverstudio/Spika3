@@ -59,7 +59,7 @@ export default function MessageReactions({ id }: MessageReactionsProps): React.R
             position="absolute"
             bottom={0}
             sx={{
-                ...(isUsersMessage ? { left: 0 } : { right: 0 }),
+                ...(isUsersMessage ? { right: 18 } : { left: 0 }),
             }}
         >
             <Stack
