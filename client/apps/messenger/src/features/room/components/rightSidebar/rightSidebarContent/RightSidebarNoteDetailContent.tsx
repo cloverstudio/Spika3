@@ -1,4 +1,4 @@
-import { Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import MuiMarkdown from "mui-markdown";
 import React from "react";
 import { useSelector } from "react-redux";
@@ -25,6 +25,9 @@ export default function RightSidebarNoteDetailContent() {
                 whiteSpace: "pre-wrap",
             }}
         >
+            <Typography variant="h6" mb={3}>
+                {data.note.title}
+            </Typography>
             <MuiMarkdown
                 overrides={{
                     h1: {

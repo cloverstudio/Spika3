@@ -68,8 +68,7 @@ export default function NoteDetailHeader() {
             <IconButton size="large" onClick={() => dispatch(setActiveTab("notes"))}>
                 <ArrowBackIos />
             </IconButton>
-            <Typography variant="h6">{note.title}</Typography>
-            <Box ml="auto" flex={1} textAlign="right">
+            <Box flex={1} minWidth="7.5rem" textAlign="right">
                 <IconButton onClick={handleCopyNoteLink}>
                     <Share />
                 </IconButton>
