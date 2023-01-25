@@ -53,8 +53,6 @@ export default function MessageReactions({ id }: MessageReactionsProps): React.R
         <Box
             display="flex"
             alignItems="end"
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
             justifyContent={isUsersMessage ? "flex-end" : "flex-start"}
             position="absolute"
             bottom={0}
@@ -64,6 +62,8 @@ export default function MessageReactions({ id }: MessageReactionsProps): React.R
         >
             <Stack
                 direction="row"
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
                 bgcolor={isUsersMessage ? "common.myMessageBackground" : "background.paper"}
                 position="relative"
                 top="23px"

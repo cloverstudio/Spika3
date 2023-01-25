@@ -123,6 +123,7 @@ function Message({
                     side === "left" && isGroup && <Box />
                 )}
                 <Box display="flex" position="relative">
+                    {!deleted && <MessageReactions id={id} />}
                     <Box
                         onMouseEnter={handleMouseEnter}
                         border={highlighted ? "1px solid red" : ""}
@@ -142,7 +143,6 @@ function Message({
                         />
                     </Box>
                     {shouldDisplayStatusIcons && <StatusIcon status={status} id={id} />}
-                    {!deleted && <MessageReactions id={id} />}
                     <DatePopover
                         mouseOver={mouseOver}
                         isUsersMessage={side === "right"}
