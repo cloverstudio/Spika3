@@ -503,6 +503,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
     router.get("/sync/:lastUpdate", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         const userId = userReq.user.id;
+        const deviceId = userReq.device.id;
         const lastUpdate = parseInt(req.params.lastUpdate as string);
 
         try {
@@ -519,6 +520,11 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 where: {
                     modifiedAt: { gt: new Date(lastUpdate) },
                     roomId: { in: roomsIds },
+                    deviceMessages: {
+                        some: {
+                            deviceId,
+                        },
+                    },
                 },
                 include: {
                     deviceMessages: true,
@@ -526,13 +532,19 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             });
 
             const sanitizedMessages = await Promise.all(
-                messages.map(async (message) =>
-                    sanitize({
-                        ...message,
-                        body: await formatMessageBody(message.deviceMessages[0].body, message.type),
-                        deleted: message.deviceMessages[0].deleted,
-                    }).message()
-                )
+                messages.map(async (m) => {
+                    const deviceMessage = m.deviceMessages.find(
+                        (dm) => dm.messageId === m.id && dm.deviceId === deviceId
+                    );
+
+                    const { body, deleted } = deviceMessage || {};
+
+                    return sanitize({
+                        ...m,
+                        body: await formatMessageBody(body, m.type),
+                        deleted,
+                    }).message();
+                })
             );
 
             res.send(successResponse({ messages: sanitizedMessages }, userReq.lang));
