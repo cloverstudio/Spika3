@@ -742,7 +742,13 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const key = `${Constants.ROOM_MUTE_PREFIX}${userReq.user.id}_${id}`;
             await redisClient.set(key, 1);
 
-            const sanitizedRoom = sanitize({ ...room, muted: true }).room();
+            const pinned = await isRoomPinned({
+                roomId: room.id,
+                userId: userReq.user.id,
+                redisClient,
+            });
+
+            const sanitizedRoom = sanitize({ ...room, muted: true, pinned }).room();
             sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_UPDATE_ROOM);
 
             res.send(successResponse({ room: sanitizedRoom }, userReq.lang));
@@ -800,7 +806,13 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const key = `${Constants.ROOM_MUTE_PREFIX}${userReq.user.id}_${id}`;
             await redisClient.set(key, 0);
 
-            const sanitizedRoom = sanitize({ ...room, muted: false }).room();
+            const pinned = await isRoomPinned({
+                roomId: room.id,
+                userId: userReq.user.id,
+                redisClient,
+            });
+
+            const sanitizedRoom = sanitize({ ...room, muted: false, pinned }).room();
             sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_UPDATE_ROOM);
 
             res.send(successResponse({ room: sanitizedRoom }, userReq.lang));
@@ -867,7 +879,13 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const key = `${Constants.ROOM_PIN_PREFIX}${userReq.user.id}_${id}`;
             await redisClient.set(key, 1);
 
-            const sanitizedRoom = sanitize({ ...room, pinned: true }).room();
+            const muted = await isRoomMuted({
+                roomId: room.id,
+                userId: userReq.user.id,
+                redisClient,
+            });
+
+            const sanitizedRoom = sanitize({ ...room, pinned: true, muted }).room();
             sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_UPDATE_ROOM);
 
             res.send(successResponse({ room: sanitizedRoom }, userReq.lang));
@@ -925,7 +943,13 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const key = `${Constants.ROOM_PIN_PREFIX}${userReq.user.id}_${id}`;
             await redisClient.set(key, 0);
 
-            const sanitizedRoom = sanitize({ ...room, pinned: false }).room();
+            const muted = await isRoomMuted({
+                roomId: room.id,
+                userId: userReq.user.id,
+                redisClient,
+            });
+
+            const sanitizedRoom = sanitize({ ...room, pinned: false, muted }).room();
             sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_UPDATE_ROOM);
 
             res.send(successResponse({ room: sanitizedRoom }, userReq.lang));
