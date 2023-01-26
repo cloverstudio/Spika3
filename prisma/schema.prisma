@@ -175,6 +175,7 @@ model DeviceMessage {
 
   createdAt  DateTime @default(now()) @map(name: "created_at")
   modifiedAt DateTime @default(now()) @map(name: "modified_at")
+  deleted    Boolean  @default(false) @map(name: "deleted")
 
   @@map(name: "message_device")
 }

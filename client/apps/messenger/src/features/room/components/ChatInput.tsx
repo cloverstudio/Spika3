@@ -34,6 +34,7 @@ import { editMessageThunk, replyMessageThunk, sendMessage } from "../slices/mess
 import useStrings from "../../../hooks/useStrings";
 import { useRemoveBlockByIdMutation } from "../api/user";
 import DoDisturb from "@mui/icons-material/DoDisturb";
+import useAutoSizeTextArea from "../hooks/useAutoSizeTextArea";
 
 export default function ChatInputContainer(): React.ReactElement {
     const dispatch = useDispatch();
@@ -240,7 +241,7 @@ const useStyles = makeStyles(() => ({
         width: "100%",
         outline: "none",
         fontSize: "0.9em",
-        paddingRight: "32px",
+        paddingRight: "46px",
         resize: "vertical",
     },
 }));
@@ -252,6 +253,8 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
     const message = useSelector(selectInputText(roomId));
     const inputRef = useRef<HTMLTextAreaElement>();
     const dispatch = useDispatch();
+
+    useAutoSizeTextArea(inputRef.current, message);
 
     const handleSetMessageText = (text: string) => dispatch(setInputText({ text, roomId }));
 

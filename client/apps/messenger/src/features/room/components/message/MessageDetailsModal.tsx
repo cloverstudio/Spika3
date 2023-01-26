@@ -1,7 +1,7 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Avatar from "@mui/material/Avatar";
-import { Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
 import Dialog from "@mui/material/Dialog";
@@ -14,6 +14,8 @@ import Skeleton from "@mui/material/Skeleton";
 
 import Close from "@mui/icons-material/Close";
 import DoneAll from "@mui/icons-material/DoneAll";
+import DoneIcon from "@mui/icons-material/Done";
+import CreateOutlinedIcon from "@mui/icons-material/CreateOutlined";
 
 import MessageType, { MessageRecordType } from "../../../../types/Message";
 import { selectUser } from "../../../../store/userSlice";
@@ -27,6 +29,7 @@ import {
     selectShowMessageDetails,
 } from "../../slices/messages";
 import useStrings from "../../../../hooks/useStrings";
+import { ImportExport } from "@mui/icons-material";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -86,22 +89,15 @@ function MessageDetailsDialog({ message, onClose }: { message: MessageType; onCl
                 </IconButton>
 
                 <Stack spacing={2}>
-                    <Box>
-                        {strings.messageSentAt}{" "}
-                        {dayjs.unix(message.createdAt / 1000).format("hh:mm, dddd, MMM D")}
-                    </Box>
-                    {message.createdAt !== message.modifiedAt && (
-                        <Box>
-                            {strings.messageEditedAt}{" "}
-                            {dayjs.unix(message.modifiedAt / 1000).format("hh:mm, dddd, MMM D")}
-                        </Box>
-                    )}
+                    <SenderActions message={message} />
+
                     {seenMembers.length > 0 && (
                         <Box>
-                            <Box display="flex" justifyContent="space-between" mb={0.5}>
-                                <Box sx={{ fontWeight: "bold" }}>{strings.readBy}</Box>
-                                <DoneAll color="info" />
+                            <Box display="flex" alignItems="center" mb={2.25} gap={0.5}>
+                                <DoneAll color="info" sx={{ width: 16, height: 16 }} />
+                                <Typography fontSize="0.85rem">{strings.readBy}</Typography>
                             </Box>
+
                             <List sx={{ pt: 0 }}>
                                 {seenMembers.map((member) => (
                                     <MessageDetailRow record={member} key={member.id} />
@@ -109,11 +105,12 @@ function MessageDetailsDialog({ message, onClose }: { message: MessageType; onCl
                             </List>
                         </Box>
                     )}
+
                     {deliveredMembers.length > 0 && (
                         <Box>
-                            <Box display="flex" justifyContent="space-between" mb={0.5}>
-                                <Box sx={{ fontWeight: "bold" }}>{strings.deliveredTo}</Box>
-                                <DoneAll />
+                            <Box display="flex" alignItems="center" mb={2.25} gap={0.5}>
+                                <DoneAll sx={{ width: 16, height: 16 }} />
+                                <Typography fontSize="0.85rem">{strings.deliveredTo}</Typography>
                             </Box>
 
                             <List sx={{ pt: 0 }}>
@@ -137,9 +134,9 @@ function MessageDetailRow({ record }: MessageDetailsRowProps) {
     const { data, isLoading } = useGetUserByIdQuery(record.userId);
 
     return (
-        <ListItem key={record.id} sx={{ p: 0 }}>
-            <Box>
-                <Box display="flex" justifyContent="space-between" alignItems="center">
+        <ListItem key={record.id} sx={{ p: 0, display: "block" }}>
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+                <Box display="flex" alignItems="center">
                     <ListItemAvatar>
                         {isLoading ? (
                             <Skeleton variant="circular" width={40} height={40} />
@@ -148,24 +145,73 @@ function MessageDetailRow({ record }: MessageDetailsRowProps) {
                         )}
                     </ListItemAvatar>
                     {isLoading ? (
-                        <Box>
-                            <Skeleton
-                                variant="text"
-                                animation="wave"
-                                width={100}
-                                height={20}
-                                sx={{ mb: 0.25, display: "block" }}
-                            />
-                            <Skeleton variant="text" animation="wave" width={100} height={20} />
-                        </Box>
-                    ) : (
-                        <ListItemText
-                            primary={data?.user.displayName}
-                            secondary={dayjs(record.createdAt).fromNow()}
+                        <Skeleton
+                            variant="text"
+                            animation="wave"
+                            width={100}
+                            height={20}
+                            sx={{ mb: 0.25, display: "block" }}
                         />
+                    ) : (
+                        <ListItemText primary={data?.user.displayName} />
+                    )}
+                </Box>
+                <Typography fontSize="0.85rem">
+                    {dayjs.unix(record.createdAt / 1000).format("D.M.YYYY. HH:MM")}
+                </Typography>
+            </Box>
+        </ListItem>
+    );
+}
+
+function SenderActions({ message }: { message: MessageType }) {
+    const strings = useStrings();
+    const { data, isLoading } = useGetUserByIdQuery(message.fromUserId);
+
+    return (
+        <Box mb={2.75}>
+            <Box display="flex" alignItems="center" mb={2.25} gap={0.5}>
+                <ImportExport sx={{ width: 16, height: 16 }} />
+                <Typography fontSize="0.85rem">{strings.senderActions}</Typography>
+            </Box>
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+                <Box display="flex" alignItems="center">
+                    <ListItemAvatar>
+                        {isLoading ? (
+                            <Skeleton variant="circular" width={40} height={40} />
+                        ) : (
+                            <Avatar src={`${UPLOADS_BASE_URL}/${data?.user.avatarFileId}`} />
+                        )}
+                    </ListItemAvatar>
+                    {isLoading ? (
+                        <Skeleton
+                            variant="text"
+                            animation="wave"
+                            width={100}
+                            height={20}
+                            sx={{ display: "block" }}
+                        />
+                    ) : (
+                        <ListItemText primary={data?.user.displayName} />
+                    )}
+                </Box>
+                <Box>
+                    <Box display="flex" alignItems="center" gap={1.25}>
+                        <Typography fontSize="0.85rem">
+                            {dayjs.unix(message.createdAt / 1000).format("D.M.YYYY. HH:MM")}
+                        </Typography>
+                        <DoneIcon sx={{ width: 14 }} />
+                    </Box>
+                    {message.createdAt !== message.modifiedAt && (
+                        <Box display="flex" alignItems="center" gap={1.25}>
+                            <Typography fontSize="0.85rem">
+                                {dayjs.unix(message.modifiedAt / 1000).format("D.M.YYYY. HH:MM")}
+                            </Typography>
+                            <CreateOutlinedIcon sx={{ width: 14 }} />
+                        </Box>
                     )}
                 </Box>
             </Box>
-        </ListItem>
+        </Box>
     );
 }

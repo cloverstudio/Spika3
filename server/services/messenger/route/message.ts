@@ -384,12 +384,18 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             const list = await Promise.all(
                 messages.map(async (m) => {
-                    const body = m.deviceMessages.find(
+                    const deviceMessage = m.deviceMessages.find(
                         (dm) => dm.messageId === m.id && dm.deviceId === deviceId
-                    )?.body;
+                    );
+
+                    const { body, deleted } = deviceMessage || {};
 
                     const formattedBody = await formatMessageBody(body, m.type);
-                    return sanitize({ ...m, body: formattedBody }).messageWithReactionRecords();
+                    return sanitize({
+                        ...m,
+                        body: formattedBody,
+                        deleted,
+                    }).messageWithReactionRecords();
                 })
             );
 
@@ -497,6 +503,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
     router.get("/sync/:lastUpdate", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         const userId = userReq.user.id;
+        const deviceId = userReq.device.id;
         const lastUpdate = parseInt(req.params.lastUpdate as string);
 
         try {
@@ -513,6 +520,11 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 where: {
                     modifiedAt: { gt: new Date(lastUpdate) },
                     roomId: { in: roomsIds },
+                    deviceMessages: {
+                        some: {
+                            deviceId,
+                        },
+                    },
                 },
                 include: {
                     deviceMessages: true,
@@ -520,12 +532,19 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             });
 
             const sanitizedMessages = await Promise.all(
-                messages.map(async (message) =>
-                    sanitize({
-                        ...message,
-                        body: await formatMessageBody(message.deviceMessages[0].body, message.type),
-                    }).message()
-                )
+                messages.map(async (m) => {
+                    const deviceMessage = m.deviceMessages.find(
+                        (dm) => dm.messageId === m.id && dm.deviceId === deviceId
+                    );
+
+                    const { body, deleted } = deviceMessage || {};
+
+                    return sanitize({
+                        ...m,
+                        body: await formatMessageBody(body, m.type),
+                        deleted,
+                    }).message();
+                })
             );
 
             res.send(successResponse({ messages: sanitizedMessages }, userReq.lang));
@@ -634,7 +653,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             for (const deviceMessage of deviceMessagesToDelete) {
                 await prisma.deviceMessage.update({
                     where: { id: deviceMessage.id },
-                    data: { modifiedAt: new Date(), body: newBody },
+                    data: { modifiedAt: new Date(), body: newBody, deleted: true },
                 });
             }
 
@@ -646,7 +665,11 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 });
             }
 
-            const sanitizedMessage = sanitize({ ...message, body: newBody }).message();
+            const sanitizedMessage = sanitize({
+                ...message,
+                body: newBody,
+                deleted: true,
+            }).message();
 
             res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
 

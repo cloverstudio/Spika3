@@ -64,7 +64,7 @@ function Message({
     const [mouseOver, setMouseOver] = useState(false);
     const [showReactionMenu, setShowReactionMenu] = useState(false);
 
-    const { fromUserId, createdAt } = message;
+    const { fromUserId, createdAt, deleted } = message;
 
     const sender = useSender(fromUserId);
     const roomType = useRoomType();
@@ -123,6 +123,7 @@ function Message({
                     side === "left" && isGroup && <Box />
                 )}
                 <Box display="flex" position="relative">
+                    {!deleted && <MessageReactions id={id} />}
                     <Box
                         onMouseEnter={handleMouseEnter}
                         border={highlighted ? "1px solid red" : ""}
@@ -142,7 +143,6 @@ function Message({
                         />
                     </Box>
                     {shouldDisplayStatusIcons && <StatusIcon status={status} id={id} />}
-                    <MessageReactions id={id} />
                     <DatePopover
                         mouseOver={mouseOver}
                         isUsersMessage={side === "right"}
@@ -216,7 +216,7 @@ function MessageBodyContainer({
     const user = useSelector(selectUser);
 
     const message = useSelector(selectMessageById(roomId, id));
-    const { fromUserId, body, type, replyId } = message;
+    const { fromUserId, body, type, replyId, deleted } = message;
 
     const isUsersMessage = fromUserId === user.id;
     const side = isUsersMessage ? "right" : "left";
@@ -229,6 +229,7 @@ function MessageBodyContainer({
             side={side}
             isReply={!!replyId}
             onImageMessageClick={onImageMessageClick}
+            deleted={deleted}
         />
     );
 }

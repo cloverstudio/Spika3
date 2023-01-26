@@ -68,6 +68,9 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
         message: {
             ...fcmMessage.message,
             apns,
+            android: {
+                priority: "HIGH",
+            },
         },
     };
 
