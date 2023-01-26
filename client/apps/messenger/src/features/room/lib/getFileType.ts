@@ -1,6 +1,6 @@
 export default function getFileType(htmlType: string): string {
     if (!htmlType) {
-        return "unknown";
+        return "file";
     }
 
     if (htmlType.startsWith("image/")) {

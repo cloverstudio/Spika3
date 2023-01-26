@@ -205,7 +205,7 @@ export const sendFileMessage = createAsyncThunk(
         try {
             const uploaded = await uploadFile({
                 file,
-                type: file.type || "unknown",
+                type,
             });
 
             body.fileId = uploaded.id;
