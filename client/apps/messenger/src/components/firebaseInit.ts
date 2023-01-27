@@ -1,5 +1,5 @@
-import { initializeApp } from "firebase/app";
-import { getMessaging, getToken, onMessage } from "firebase/messaging";
+import { FirebaseApp, initializeApp } from "firebase/app";
+import { getMessaging, getToken, Messaging, onMessage } from "firebase/messaging";
 
 declare const FCM_API_KEY: string;
 declare const FCM_AUTH_DOMAIN: string;
@@ -22,8 +22,8 @@ const firebaseConfig = {
 const vapidKey = FCM_VAPID_KEY;
 
 export default async () => {
-    let app;
-    let messaging;
+    let app: FirebaseApp;
+    let messaging: Messaging;
     try {
         app = initializeApp(firebaseConfig);
         messaging = getMessaging(app);
