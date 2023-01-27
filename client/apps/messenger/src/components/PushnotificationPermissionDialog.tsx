@@ -41,10 +41,8 @@ export default function PushNotifPermissionDialog(): React.ReactElement {
             Notification.permission !== "granted"
         ) {
             setShowPermissionDialog(true);
-        } else {
-            initPushNotification();
         }
-    }, [updateDevice, initPushNotification]);
+    }, [updateDevice]);
 
     return (
         <Dialog
@@ -72,7 +70,7 @@ export default function PushNotifPermissionDialog(): React.ReactElement {
                         setShowPermissionDialog(false);
                     }}
                 >
-                    {strings.ok}
+                    {strings.enableDesktopNotifications}
                 </Button>
             </DialogActions>
         </Dialog>
