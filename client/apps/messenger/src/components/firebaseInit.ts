@@ -1,5 +1,5 @@
 import { FirebaseApp, initializeApp } from "firebase/app";
-import { getMessaging, getToken, Messaging, onMessage } from "firebase/messaging";
+import { getMessaging, getToken, Messaging, onMessage, isSupported } from "firebase/messaging";
 
 declare const FCM_API_KEY: string;
 declare const FCM_AUTH_DOMAIN: string;
@@ -26,9 +26,10 @@ export default async () => {
     let messaging: Messaging;
     try {
         app = initializeApp(firebaseConfig);
-        messaging = getMessaging(app);
 
         if (!navigator?.serviceWorker) return;
+        if (!(await isSupported())) return;
+        messaging = getMessaging(app);
 
         const swRegistration = await navigator.serviceWorker.register(`/firebase-messaging-sw.js`);
         const pushToken = await getToken(messaging, {

@@ -21,22 +21,24 @@ export default function PushNotifPermissionDialog(): React.ReactElement {
     const [updateDevice] = useUpdateDeviceMutation();
 
     const initPushNotification = useCallback(async () => {
-        if (!window.Notification) return;
+        localStorage.setItem(constants.LSKEY_DISABLEPUSHALER, "1");
+
+        if (!Notification) return;
 
         const permission = await Notification.requestPermission();
+
         if (permission === "granted") {
             const pushToken = await setupPushNotification();
 
             if (pushToken && pushToken.length > 0) {
                 updateDevice({ pushToken });
-                localStorage.setItem(constants.LSKEY_DISABLEPUSHALER, "1");
             }
         }
     }, [updateDevice]);
 
     useEffect(() => {
         if (
-            window.Notification &&
+            Notification &&
             !localStorage.getItem(constants.LSKEY_DISABLEPUSHALER) &&
             Notification.permission !== "granted"
         ) {

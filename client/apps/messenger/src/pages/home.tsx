@@ -100,7 +100,7 @@ export default function Home(): React.ReactElement {
                 {rightSidebarOpen ? <RightSidebar /> : null}
             </Box>
 
-            {window.Notification ? <PushNotificationPermissionDialog /> : null}
+            <PushNotificationPermissionDialog />
         </Base>
     );
 }
