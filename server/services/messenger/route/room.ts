@@ -181,6 +181,12 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
+            if (room.type === "private") {
+                return res
+                    .status(403)
+                    .send(errorResponse("Can't update private room", userReq.lang));
+            }
+
             const userIsAdmin = isAdminCheck(userReq.user.id, room.users);
             if (!userIsAdmin) {
                 return res.status(403).send(errorResponse("Forbidden", userReq.lang));
@@ -248,6 +254,12 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
+            if (room.type === "private") {
+                return res
+                    .status(403)
+                    .send(errorResponse("Can't delete private room", userReq.lang));
+            }
+
             const userIsAdmin = isAdminCheck(userReq.user.id, room.users);
             if (!userIsAdmin) {
                 return res.status(403).send(errorResponse("Forbidden", userReq.lang));
@@ -311,6 +323,12 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
 
                 if (!isRoomUser) {
                     return res.status(404).send(errorResponse("Not found", userReq.lang));
+                }
+
+                if (room.type === "private") {
+                    return res
+                        .status(403)
+                        .send(errorResponse("Can't leave private room", userReq.lang));
                 }
 
                 const canLeaveRoom = canLeaveRoomCheck(userReq.user.id, room.users);

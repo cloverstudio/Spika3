@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
@@ -20,29 +20,30 @@ export default function PushNotifPermissionDialog(): React.ReactElement {
     const [showPermissionDialog, setShowPermissionDialog] = useState(false);
     const [updateDevice] = useUpdateDeviceMutation();
 
-    useEffect(() => {
-        if (!window.Notification) return;
+    const initPushNotification = useCallback(async () => {
+        localStorage.setItem(constants.LSKEY_DISABLEPUSHALER, "1");
 
+        if (!Notification) return;
+
+        const permission = await Notification.requestPermission();
+
+        if (permission === "granted") {
+            const pushToken = await setupPushNotification();
+
+            if (pushToken && pushToken.length > 0) {
+                updateDevice({ pushToken });
+            }
+        }
+    }, [updateDevice]);
+
+    useEffect(() => {
         if (
+            Notification &&
             !localStorage.getItem(constants.LSKEY_DISABLEPUSHALER) &&
             Notification.permission !== "granted"
         ) {
-            // show permission dialog
-            return setShowPermissionDialog(true);
+            setShowPermissionDialog(true);
         }
-
-        const initPushNotification = async () => {
-            if (!window.Notification) return;
-
-            const permission = await Notification.requestPermission();
-
-            if (permission === "granted") {
-                const pushToken = await setupPushNotification();
-                if (pushToken && pushToken.length > 0) updateDevice({ pushToken });
-            }
-        };
-
-        initPushNotification();
     }, [updateDevice]);
 
     return (
@@ -67,11 +68,11 @@ export default function PushNotifPermissionDialog(): React.ReactElement {
             <DialogActions>
                 <Button
                     onClick={() => {
-                        localStorage.setItem(constants.LSKEY_DISABLEPUSHALER, "1");
+                        initPushNotification();
                         setShowPermissionDialog(false);
                     }}
                 >
-                    {strings.ok}
+                    {strings.enableDesktopNotifications}
                 </Button>
             </DialogActions>
         </Dialog>

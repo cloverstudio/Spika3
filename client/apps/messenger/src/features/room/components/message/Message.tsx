@@ -115,10 +115,12 @@ function Message({
                 gridTemplateColumns={side === "right" || !isGroup ? "1fr" : "26px 1fr"}
             >
                 {shouldDisplayAvatar ? (
-                    <Avatar
-                        sx={{ width: 26, height: 26, mr: 1, mb: "0.375rem" }}
-                        src={`${UPLOADS_BASE_URL}/${sender?.avatarFileId}`}
-                    />
+                    <Box mt="auto" mr={1}>
+                        <Avatar
+                            sx={{ width: 26, height: 26 }}
+                            src={`${UPLOADS_BASE_URL}/${sender?.avatarFileId}`}
+                        />
+                    </Box>
                 ) : (
                     side === "left" && isGroup && <Box />
                 )}

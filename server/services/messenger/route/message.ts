@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { MessageRecord } from "@prisma/client";
+import { DeviceMessage, Message, MessageRecord } from "@prisma/client";
 
 import { UserRequest } from "../lib/types";
 import { error as le } from "../../../components/logger";
@@ -200,22 +200,45 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                             return;
                         }
 
-                        rabbitMQChannel.sendToQueue(
-                            Constants.QUEUE_PUSH,
-                            Buffer.from(
-                                JSON.stringify({
-                                    type: Constants.PUSH_TYPE_NEW_MESSAGE,
-                                    token: devices.find((d) => d.id == deviceMessage.deviceId)
-                                        ?.pushToken,
-                                    data: {
-                                        message: { ...sanitizedMessage },
-                                        user: sanitize(userReq.user).user(),
-                                        ...(room.type === "group" && { groupName: room.name }),
-                                        toUserId: deviceMessage.userId,
-                                    },
-                                })
-                            )
-                        );
+                        const device = devices.find((d) => d.id === deviceMessage.deviceId);
+
+                        if (!device) {
+                            return;
+                        }
+
+                        const checkIfShouldSendPush = () => {
+                            if (
+                                message.fromUserId === device.userId &&
+                                device.osName === "android"
+                            ) {
+                                return true;
+                            }
+
+                            if (message.fromUserId === device.userId) {
+                                return false;
+                            }
+
+                            return true;
+                        };
+
+                        if (checkIfShouldSendPush()) {
+                            rabbitMQChannel.sendToQueue(
+                                Constants.QUEUE_PUSH,
+                                Buffer.from(
+                                    JSON.stringify({
+                                        type: Constants.PUSH_TYPE_NEW_MESSAGE,
+                                        token: devices.find((d) => d.id == deviceMessage.deviceId)
+                                            ?.pushToken,
+                                        data: {
+                                            message: { ...sanitizedMessage },
+                                            user: sanitize(userReq.user).user(),
+                                            ...(room.type === "group" && { groupName: room.name }),
+                                            toUserId: deviceMessage.userId,
+                                        },
+                                    })
+                                )
+                            );
+                        }
 
                         rabbitMQChannel.sendToQueue(
                             Constants.QUEUE_SSE,
@@ -531,8 +554,40 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 },
             });
 
+            const deviceMessages = await prisma.deviceMessage.findMany({
+                where: {
+                    deviceId,
+                    modifiedAt: { gt: new Date(lastUpdate) },
+                },
+                include: { message: true },
+            });
+
+            const dMessages = deviceMessages.reduce((acc, dm) => {
+                const { message } = dm;
+                if (!message) {
+                    return acc;
+                }
+
+                if (messages.find((m) => m.id === message.id)) {
+                    return acc;
+                }
+
+                const { id } = message;
+                const messageIndex = acc.findIndex((m) => m.id === id);
+                if (messageIndex === -1) {
+                    acc.push({
+                        ...message,
+                        deviceMessages: [dm],
+                    });
+                } else {
+                    acc[messageIndex].deviceMessages.push(dm);
+                }
+
+                return acc;
+            }, [] as (Message & { deviceMessages: DeviceMessage[] })[]);
+
             const sanitizedMessages = await Promise.all(
-                messages.map(async (m) => {
+                [...messages, ...dMessages].map(async (m) => {
                     const deviceMessage = m.deviceMessages.find(
                         (dm) => dm.messageId === m.id && dm.deviceId === deviceId
                     );

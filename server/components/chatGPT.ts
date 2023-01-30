@@ -66,19 +66,11 @@ async function getOrCreateChatGPTUsers() {
     );
 }
 
-export async function setupChatGPT() {
+export async function checkForChatGPTContacts(userId: number) {
     const chatGPTUsers = await getOrCreateChatGPTUsers();
 
-    const users = await prisma.user.findMany();
-
     await Promise.all(
-        users.map((u) =>
-            Promise.all(
-                chatGPTUsers.map((chatGPTUser) =>
-                    createContact({ userId: u.id, contactId: chatGPTUser.id })
-                )
-            )
-        )
+        chatGPTUsers.map((chatGPTUser) => createContact({ userId, contactId: chatGPTUser.id }))
     );
 }
 
@@ -117,6 +109,14 @@ export async function handleNewRoom({
         return;
     }
 
+    const isChatGPTChat = users.find((u) =>
+        chatGPTUsersConfig.find((c) => c.displayName === u.displayName)
+    );
+
+    if (!isChatGPTChat) {
+        return;
+    }
+
     const chatGPTUsers = await getOrCreateChatGPTUsers();
     const chatGPTUser = users.find((u) =>
         chatGPTUsers.map((u) => u.displayName).includes(u.displayName)
@@ -135,6 +135,7 @@ export async function handleNewRoom({
     try {
         responseText = await createCompletion(chatGPTUserConfig.prePrompt);
     } catch (error) {
+        console.log({ error });
         responseText = "Error ocurred, please try again latter!";
     }
 
@@ -163,6 +164,14 @@ export async function handleNewMessage({
     }
 
     if (messageType !== "text") {
+        return;
+    }
+
+    const isChatGPTChat = users.find((u) =>
+        chatGPTUsersConfig.find((c) => c.displayName === u.displayName)
+    );
+
+    if (!isChatGPTChat) {
         return;
     }
 
