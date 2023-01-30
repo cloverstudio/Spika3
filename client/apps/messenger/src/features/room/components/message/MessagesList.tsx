@@ -3,7 +3,7 @@ import { useParams, useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
 import DoDisturb from "@mui/icons-material/DoDisturb";
-import { Box } from "@mui/material";
+import { Box, CircularProgress } from "@mui/material";
 import Button from "@mui/material/Button";
 import dayjs from "dayjs";
 import { useShowBasicDialog } from "../../../../hooks/useModal";
@@ -15,6 +15,7 @@ import {
     selectCursor,
     selectOtherUserIdInPrivateRoom,
     selectRoomMessages,
+    selectRoomMessagesIsLoading,
     selectShouldDisplayBlockButton,
     selectTargetMessage,
     selectTargetMessageIsInList,
@@ -47,6 +48,7 @@ export default function MessagesList(): React.ReactElement {
     const cursor = useSelector(selectCursor(roomId));
     const shouldDisplayBlockButton = useSelector(selectShouldDisplayBlockButton(roomId));
     const otherUserId = useSelector(selectOtherUserIdInPrivateRoom(roomId));
+    const loading = useSelector(selectRoomMessagesIsLoading(roomId));
 
     const messagesSorted = useMemo(() => {
         const sorted = Object.values(messages).sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1));
@@ -112,6 +114,11 @@ export default function MessagesList(): React.ReactElement {
     return (
         <>
             <MessagesContainer>
+                {loading && (
+                    <Box textAlign="center">
+                        <CircularProgress />
+                    </Box>
+                )}
                 {Object.entries(messagesSorted).map(([day, messages]) => {
                     return (
                         <Box key={day}>
