@@ -52,7 +52,10 @@ class NotificationServer {
     }
 
     async setUpHostQueue(): Promise<void> {
-        const hostQueue = await this.channel.assertQueue(this.hostQueueName, { durable: false });
+        const hostQueue = await this.channel.assertQueue(this.hostQueueName, {
+            durable: false,
+            autoDelete: true,
+        });
         await this.channel.bindQueue(hostQueue.queue, this.exchangeName, "");
 
         this.channel.consume(
