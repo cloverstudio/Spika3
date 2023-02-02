@@ -75,7 +75,7 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
 
     const webpush = {
         headers: {
-            topic: message.roomId.toString(),
+            Topic: message.roomId.toString(),
         },
     };
 
@@ -87,8 +87,6 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
             webpush,
         },
     };
-
-    console.log(JSON.stringify({ apns, webpush }, null, 4));
 
     const response: AxiosResponse<any> = await axios({
         method: "post",
