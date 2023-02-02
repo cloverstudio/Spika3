@@ -53,7 +53,7 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
     const muted = fcmMessage.muted;
     const apns = {
         headers: {
-            "apns-collapse-id": fcmMessage.message.data.roomId,
+            "apns-collapse-id": fcmMessage.message.data.message.roomId,
         },
         payload: {
             aps: {
@@ -76,7 +76,7 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
             },
             webpush: {
                 headers: {
-                    Topic: fcmMessage.message.data.roomId,
+                    Topic: fcmMessage.message.data.message.roomId,
                 },
             },
         },
