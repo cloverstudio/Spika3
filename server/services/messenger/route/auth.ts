@@ -112,12 +112,16 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             // check the user already has browser device
             if (deviceType === constants.DEVICE_TYPE_BROWSER) {
-                requestDevice = await prisma.device.findFirst({
+                const browserDevice = await prisma.device.findFirst({
                     where: {
                         userId: requestUser.id,
                         type: constants.DEVICE_TYPE_BROWSER,
                     },
                 });
+
+                if (browserDevice) {
+                    requestDevice = browserDevice;
+                }
             } else {
                 // expire other tokens if not browser
                 await prisma.device.updateMany({
