@@ -52,10 +52,10 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
 
     const muted = fcmMessage.muted;
     const apns = {
+        headers: {
+            "apns-collapse-id": fcmMessage.message.data.roomId,
+        },
         payload: {
-            headers: {
-                "apns-collapse-id": fcmMessage.message.data.roomId,
-            },
             aps: {
                 [muted ? "content-available" : "mutable-content"]: 1,
                 ...(!muted && {
@@ -73,6 +73,11 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
             apns,
             android: {
                 priority: "HIGH",
+            },
+            webpush: {
+                headers: {
+                    Topic: fcmMessage.message.data.roomId,
+                },
             },
         },
     };
