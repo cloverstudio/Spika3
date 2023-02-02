@@ -50,10 +50,12 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
         await getAccessToken();
     }
 
+    const message = JSON.parse(fcmMessage.message.data.message);
+
     const muted = fcmMessage.muted;
     const apns = {
         headers: {
-            "apns-collapse-id": fcmMessage.message.data.message.roomId,
+            "apns-collapse-id": message.roomId.toString(),
         },
         payload: {
             aps: {
@@ -67,20 +69,26 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
         },
     };
 
+    const android = {
+        priority: "HIGH",
+    };
+
+    const webpush = {
+        headers: {
+            topic: message.roomId.toString(),
+        },
+    };
+
     const data = {
         message: {
             ...fcmMessage.message,
             apns,
-            android: {
-                priority: "HIGH",
-            },
-            webpush: {
-                headers: {
-                    Topic: fcmMessage.message.data.message.roomId,
-                },
-            },
+            android,
+            webpush,
         },
     };
+
+    console.log(JSON.stringify({ apns, webpush }, null, 4));
 
     const response: AxiosResponse<any> = await axios({
         method: "post",
