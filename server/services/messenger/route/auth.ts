@@ -118,6 +118,20 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         type: constants.DEVICE_TYPE_BROWSER,
                     },
                 });
+            } else {
+                // expire other tokens if not browser
+                await prisma.device.updateMany({
+                    where: {
+                        userId: requestUser.id,
+                        type: {
+                            not: constants.DEVICE_TYPE_BROWSER,
+                        },
+                    },
+                    data: {
+                        tokenExpiredAt: new Date(),
+                        pushToken: null,
+                    },
+                });
             }
 
             if (!requestDevice) {
@@ -142,6 +156,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     data: {
                         tokenExpiredAt: new Date(),
                         userId: requestUser.id,
+                        pushToken: null,
                     },
                 });
             }
