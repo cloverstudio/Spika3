@@ -49,6 +49,7 @@ export default function Auth(): React.ReactElement {
             if (signUpResponse.browserDeviceId) {
                 // override device id
                 localStorage.setItem(constants.LSKEY_DEVICEID, signUpResponse.browserDeviceId);
+                localStorage.removeItem(constants.LSKEY_DISABLEPUSHALER);
             } else {
                 throw new Error("No browserDeviceId returned");
             }
