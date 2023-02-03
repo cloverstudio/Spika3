@@ -50,6 +50,8 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
         await getAccessToken();
     }
 
+    const message = JSON.parse(fcmMessage.message.data.message);
+
     const muted = fcmMessage.muted;
     const apns = {
         payload: {
@@ -59,8 +61,19 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
                     alert: {
                         title: "New message",
                     },
+                    "thread-id": message.roomId.toString(),
                 }),
             },
+        },
+    };
+
+    const android = {
+        priority: "HIGH",
+    };
+
+    const webpush = {
+        headers: {
+            Topic: message.roomId.toString(),
         },
     };
 
@@ -68,9 +81,8 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
         message: {
             ...fcmMessage.message,
             apns,
-            android: {
-                priority: "HIGH",
-            },
+            android,
+            webpush,
         },
     };
 

@@ -8,7 +8,7 @@ import VerificationCodeForm from "./components/VerificationCodeForm";
 import TelephoneNumberForm from "./components/TelephoneNumberForm";
 import UpdateUserForm from "./components/UpdateUserForm";
 
-import { sha256 } from "../../../../../lib/utils";
+import { generateRandomString, sha256 } from "../../../../../lib/utils";
 import useCountdownTimer from "./hooks/useCountdownTimer";
 import uploadFile from "../../utils/uploadFile";
 import * as constants from "../../../../../lib/constants";
@@ -43,12 +43,15 @@ export default function Auth(): React.ReactElement {
             const signUpResponse = await signUp({
                 telephoneNumber,
                 telephoneNumberHashed: sha256(telephoneNumber),
-                deviceId,
+                deviceId: generateRandomString(14),
             }).unwrap();
 
             if (signUpResponse.browserDeviceId) {
                 // override device id
                 localStorage.setItem(constants.LSKEY_DEVICEID, signUpResponse.browserDeviceId);
+                localStorage.removeItem(constants.LSKEY_DISABLEPUSHALER);
+            } else {
+                throw new Error("No browserDeviceId returned");
             }
 
             if (sentCount > 0) setInfoMsg(strings.verificationCodeResent);

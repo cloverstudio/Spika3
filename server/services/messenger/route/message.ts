@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { DeviceMessage, Message, MessageRecord } from "@prisma/client";
+import dayjs from "dayjs";
 
 import { UserRequest } from "../lib/types";
 import { error as le } from "../../../components/logger";
@@ -207,6 +208,13 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         }
 
                         const checkIfShouldSendPush = () => {
+                            const tokenExpiredAtTS = dayjs(device.tokenExpiredAt).unix();
+                            const now = dayjs().unix();
+
+                            if (now - tokenExpiredAtTS > Constants.TOKEN_EXPIRED) {
+                                return false;
+                            }
+
                             if (
                                 message.fromUserId === device.userId &&
                                 device.osName === "android"
