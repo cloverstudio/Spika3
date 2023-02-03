@@ -72,7 +72,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         try {
             if (+process.env["TEAM_MODE"]) {
                 const users = await prisma.user.findMany({
-                    where: condition,
+                    where: { ...condition, isBot: true },
                     orderBy: [
                         {
                             displayName: "asc",
