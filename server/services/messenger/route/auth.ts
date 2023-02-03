@@ -122,7 +122,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 if (browserDevice) {
                     requestDevice = browserDevice;
                 }
-            } else {
+            } else if (+process.env.ALLOW_MULTIPLE_MOBILE_APP_DEVICES) {
                 // expire other tokens if not browser
                 await prisma.device.updateMany({
                     where: {
@@ -151,8 +151,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     },
                 });
             } else {
-                // expire token if existing device
-                // If there is device already registered the user took the device
                 requestDevice = await prisma.device.update({
                     where: {
                         id: requestDevice.id,

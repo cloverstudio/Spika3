@@ -54,9 +54,6 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
 
     const muted = fcmMessage.muted;
     const apns = {
-        headers: {
-            "apns-collapse-id": message.roomId.toString(),
-        },
         payload: {
             aps: {
                 [muted ? "content-available" : "mutable-content"]: 1,
@@ -64,6 +61,7 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
                     alert: {
                         title: "New message",
                     },
+                    "thread-id": message.roomId.toString(),
                 }),
             },
         },
