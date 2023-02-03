@@ -54,15 +54,18 @@ function MessageDetailsDialog({ message, onClose }: { message: MessageType; onCl
     const strings = useStrings();
     const me = useSelector(selectUser);
 
-    const { data } = useGetMessageRecordsByIdQuery(message.id);
+    const { data } = useGetMessageRecordsByIdQuery(message.id, { refetchOnMountOrArgChange: true });
 
     const messageRecords = data?.messageRecords || [];
 
-    const seenMembers = messageRecords.filter((mr) => mr.type === "seen" && mr.userId !== me.id);
+    const seenMembers = messageRecords.filter(
+        (mr) => mr.type === "seen" && mr.userId !== me.id && mr.userId !== message.fromUserId
+    );
     const deliveredMembers = messageRecords.filter(
         (mr) =>
             mr.type === "delivered" &&
             mr.userId !== me.id &&
+            mr.userId !== message.fromUserId &&
             !seenMembers.find((s) => s.userId === mr.userId)
     );
 
@@ -157,7 +160,7 @@ function MessageDetailRow({ record }: MessageDetailsRowProps) {
                     )}
                 </Box>
                 <Typography fontSize="0.85rem">
-                    {dayjs.unix(record.createdAt / 1000).format("D.M.YYYY. HH:MM")}
+                    {dayjs.unix(record.createdAt / 1000).format("D.M.YYYY. HH:mm")}
                 </Typography>
             </Box>
         </ListItem>
@@ -198,14 +201,14 @@ function SenderActions({ message }: { message: MessageType }) {
                 <Box>
                     <Box display="flex" alignItems="center" gap={1.25}>
                         <Typography fontSize="0.85rem">
-                            {dayjs.unix(message.createdAt / 1000).format("D.M.YYYY. HH:MM")}
+                            {dayjs.unix(message.createdAt / 1000).format("D.M.YYYY. HH:mm")}
                         </Typography>
                         <DoneIcon sx={{ width: 14 }} />
                     </Box>
                     {message.createdAt !== message.modifiedAt && (
                         <Box display="flex" alignItems="center" gap={1.25}>
                             <Typography fontSize="0.85rem">
-                                {dayjs.unix(message.modifiedAt / 1000).format("D.M.YYYY. HH:MM")}
+                                {dayjs.unix(message.modifiedAt / 1000).format("D.M.YYYY. HH:mm")}
                             </Typography>
                             <CreateOutlinedIcon sx={{ width: 14 }} />
                         </Box>
