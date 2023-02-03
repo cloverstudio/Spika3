@@ -258,9 +258,9 @@ function Menu({ id, mouseOver, setMouseOver, setShowReactionMenu }: MenuProps) {
 
     let contextMenuIcons = IconConfigs.showInfo;
 
-    if (deleted) {
-        contextMenuIcons = IconConfigs.showInfo;
-    } else if (roomBlock) {
+    if (deleted) return null;
+
+    if (roomBlock) {
         contextMenuIcons = IconConfigs.showInfo | IconConfigs.showDelete;
     } else if (isUsersMessage && type === "text") {
         contextMenuIcons =
