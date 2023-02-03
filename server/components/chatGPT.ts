@@ -199,6 +199,7 @@ export async function handleNewMessage({
     try {
         responseText = await createCompletion(prompt);
     } catch (error) {
+        console.error(error);
         responseText = "Error ocurred, please try again latter!";
     }
 
