@@ -42,7 +42,7 @@ type NavigationType = {
 const navigation: NavigationType[] = [
     { name: "chat", icon: ChatIcon, Element: SidebarChatList },
     { name: "call", icon: CallIcon, Element: SidebarCallList },
-    { name: "contact", icon: ContactIcon, Element: SidebarContactList },
+    { name: "contact", icon: ContactIcon, Element: () => <SidebarContactList showBots /> },
 ];
 
 export default function LeftSidebarHome({

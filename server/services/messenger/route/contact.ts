@@ -50,6 +50,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
     router.get("/", auth, validate(getContactsSchema), async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         const keyword = req.query.keyword;
+        const showBots =
+            !!parseInt(req.query.showBots ? (req.query.showBots as string) : "") || false;
         const cursor = parseInt(req.query.cursor ? (req.query.cursor as string) : "") || null;
         const take = cursor ? Constants.CONTACT_PAGING_LIMIT + 1 : Constants.CONTACT_PAGING_LIMIT;
 
@@ -62,6 +64,9 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             id: {
                 not: userReq.user.id,
             },
+            ...(!showBots && {
+                isBot: false,
+            }),
         };
 
         if (keyword && keyword.length > 0)
