@@ -31,7 +31,8 @@ const en = {
     welcome: "Welcome!",
     back: "back",
     resendCode: "Resend code",
-    enterYourPhoneNumber: "Enter your phone number to start using",
+    enterYourPhoneNumber:
+        "Spika is a robust and versatile open-source client for ChatGPT, allowing you to quickly and efficiently deploy the technology within your business in as little as three minutes, streamlining your operations and facilitating greater productivity.",
     phoneNumber: "Phone number",
     verificationCodeResent: "Verification code resent",
     sentVerificationCode: "We sent you verification code on",
