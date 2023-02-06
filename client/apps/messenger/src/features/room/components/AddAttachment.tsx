@@ -11,7 +11,7 @@ import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 
 import AttachmentManager from "../lib/AttachmentManager";
 import { useSelector } from "react-redux";
-import { selectInputType } from "../slices/input";
+import { selectInputText, selectInputType } from "../slices/input";
 import useStrings from "../../../hooks/useStrings";
 
 export default function AddAttachment(): ReactElement {
@@ -23,6 +23,7 @@ export default function AddAttachment(): ReactElement {
     const boxRef = useRef(null);
     const [containerBoxRect, setContainerBoxRect] = React.useState<DOMRect>(null);
     const inputType = useSelector(selectInputType(roomId));
+    const inputText = useSelector(selectInputText(roomId));
 
     const handleFilesUpload = (e: ChangeEvent<HTMLInputElement>) => {
         const uploadedFiles = e.target.files;
@@ -47,6 +48,10 @@ export default function AddAttachment(): ReactElement {
     }, [boxRef]);
 
     if (inputType === "emoji") {
+        return null;
+    }
+
+    if (inputText.length > 0) {
         return null;
     }
 
