@@ -46,10 +46,14 @@ export default function TelephoneNumberForm({
                 variant="body1"
                 mx={{ xs: "auto", md: 0 }}
                 maxWidth={{ xs: "220px", md: "none" }}
-                mb={{ xs: 5, md: 10 }}
+                mb={{ xs: 2, md: 2 }}
                 fontWeight="medium"
             >
-                {`${strings.enterYourPhoneNumber} ${APP_NAME}`}
+                {`${strings.enterYourPhoneNumber}`}
+                <a target="_blank" href="https://ai.clover.studio/spika/">
+                    <br />
+                    Please visit web site for detail.
+                </a>
             </Typography>
 
             <Box textAlign="left" mb={{ xs: 3, md: 6 }}>
