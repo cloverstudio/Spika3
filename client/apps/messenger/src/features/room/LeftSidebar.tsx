@@ -51,7 +51,7 @@ function LeftSidebarNewChat({
             <Box textAlign="center">
                 <Button onClick={() => setSidebar("new_group")}>{strings.newGroupChat}</Button>
             </Box>
-            <SidebarContactList />
+            <SidebarContactList showBots={true} />
         </LeftSidebarLayout>
     );
 }

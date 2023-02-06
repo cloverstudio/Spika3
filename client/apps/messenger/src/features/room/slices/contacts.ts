@@ -12,22 +12,26 @@ interface ContactsState {
     cursor?: number;
 }
 
-export const fetchContacts = createAsyncThunk("user/fetchContact", async (_, thunkAPI) => {
-    const { count, keyword, cursor } = (thunkAPI.getState() as RootState).contacts;
-    const noMore = count === 0 || !!(count && !cursor);
+export const fetchContacts = createAsyncThunk(
+    "user/fetchContact",
+    async ({ showBots }: { showBots?: boolean }, thunkAPI) => {
+        const { count, keyword, cursor } = (thunkAPI.getState() as RootState).contacts;
+        const noMore = count === 0 || !!(count && !cursor);
 
-    if (noMore) {
-        console.log({ noMore });
-        throw new Error("Can't fetch");
+        if (noMore) {
+            throw new Error("Can't fetch");
+        }
+
+        const response = await dynamicBaseQuery(
+            `/messenger/contacts?keyword=${keyword}&showBots=${showBots ? "1" : ""}&${
+                cursor ? `cursor=${cursor}` : ""
+            }`
+        );
+        return {
+            data: response.data,
+        };
     }
-
-    const response = await dynamicBaseQuery(
-        `/messenger/contacts?keyword=${keyword}&${cursor ? `cursor=${cursor}` : ""}`
-    );
-    return {
-        data: response.data,
-    };
-});
+);
 
 export const contactsSlice = createSlice({
     name: <string>"contacts",

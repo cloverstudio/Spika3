@@ -9,12 +9,14 @@ import Messages from "./components/Messages";
 import ChatInput from "./components/ChatInput";
 import ConfCall from "../confcall";
 import TitleUpdater from "./components/TitleUpdater";
+import { useParams } from "react-router-dom";
 
 export default function Room(): React.ReactElement {
     const isCall = /^.+\/call.*$/.test(window.location.pathname);
+    const roomId = parseInt(useParams().id || "");
 
     return (
-        <RoomContainer>
+        <RoomContainer key={roomId}>
             <Header />
             <Messages />
             <ChatInput />
