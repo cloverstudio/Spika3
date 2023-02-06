@@ -26,6 +26,7 @@ declare module "@mui/material/styles/createPalette" {
         confCallControls: string;
         confCallControlsHoverBackground: string;
         confCallFirstLetterColor: string;
+        disabledBackground: string;
     }
 }
 
@@ -191,6 +192,7 @@ export const lightTheme = createTheme({
         common: {
             myMessageBackground: "#C8EBFE",
             otherMessageBackground: "#f0f0f0",
+            disabledBackground: "rgba(256,256,256,0.65)",
         },
     },
 });
@@ -222,6 +224,7 @@ export const darkTheme = createTheme({
         common: {
             otherMessageBackground: "#303030",
             myMessageBackground: "#303040",
+            disabledBackground: "rgba(0,0,0,0.65)",
         },
     },
 });

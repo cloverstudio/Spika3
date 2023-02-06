@@ -1,7 +1,8 @@
-import { Box } from "@mui/material";
+import { Box, CircularProgress } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
+import { useGetRoomQuery } from "../../api/room";
 import AttachmentManager from "../../lib/AttachmentManager";
 import {
     canLoadMoreMessages,
@@ -15,8 +16,10 @@ import NewMessageAlert from "./NewMessageAlert";
 
 export default function MessagesContainer({
     children,
+    loading,
 }: {
     children: React.ReactNode;
+    loading: boolean;
 }): React.ReactElement {
     const roomId = parseInt(useParams().id || "");
     const targetMessageId = useSelector(selectTargetMessage(roomId));
@@ -31,19 +34,12 @@ export default function MessagesContainer({
     const ref = useRef<HTMLDivElement>();
     const [newMessages, setNewMessages] = useState(0);
     const [dragCounter, setDragCounter] = useState(0);
+    const [lastScrollHeight, setLastScrollHeight] = useState<number>();
+    const [locked, setLockedForScroll] = useState(false);
+    const [initialLoading, setLoading] = useState(true);
+    const { isLoading: roomIsLoading } = useGetRoomQuery(roomId);
 
     useEffect(() => {
-        ref.current.dataset.locked = "0";
-        ref.current.dataset.scrollHeight = ref.current.scrollHeight.toString();
-        messagesLengthRef.current = 0;
-
-        onScrollDown();
-    }, [roomId]);
-
-    useEffect(() => {
-        const locked = +ref.current.dataset.locked;
-        const lastScrollHeight = +ref.current.dataset.scrollHeight;
-
         if (locked) {
             if (
                 ref.current.scrollHeight > lastScrollHeight &&
@@ -63,11 +59,16 @@ export default function MessagesContainer({
                 }
             }, 500);
         } else if (ref.current.scrollHeight !== lastScrollHeight) {
-            onScrollDown();
+            setTimeout(() => {
+                onScrollDown();
+            }, 300);
         }
 
         messagesLengthRef.current = messagesLength;
-    }, [isLastMessageFromUser, messagesLength, targetMessageId]);
+        setTimeout(() => {
+            setLoading(false);
+        }, 500);
+    }, [isLastMessageFromUser, lastScrollHeight, locked, messagesLength, targetMessageId]);
 
     const onScrollDown = () => {
         if (!ref.current) {
@@ -75,7 +76,7 @@ export default function MessagesContainer({
         }
 
         scrollElemBottom(ref.current);
-        ref.current.dataset.locked = "0";
+        setLockedForScroll(false);
     };
 
     const onScroll = (e: React.UIEvent<HTMLElement, UIEvent>) => {
@@ -87,7 +88,7 @@ export default function MessagesContainer({
 
         if (target.scrollTop === 0 && messagesLength) {
             if (canLoadMore) {
-                ref.current.dataset.locked = "1";
+                setLockedForScroll(true);
                 dispatch(fetchMessages({ roomId, cursor }));
             }
         }
@@ -96,7 +97,7 @@ export default function MessagesContainer({
             setNewMessages(0);
         }
 
-        ref.current.dataset.scrollHeight = target.scrollHeight.toString();
+        setLastScrollHeight(target.scrollHeight);
     };
 
     const onWheel = () => {
@@ -108,8 +109,7 @@ export default function MessagesContainer({
             setNewMessages(0);
         }
 
-        const newLockedForScroll = getScrollBottom(ref.current) > 800;
-        ref.current.dataset.locked = (+newLockedForScroll).toString();
+        setLockedForScroll(getScrollBottom(ref.current) > 800);
     };
 
     const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
@@ -163,6 +163,23 @@ export default function MessagesContainer({
             position="relative"
             sx={{ overflowY: "hidden" }}
         >
+            {(initialLoading || loading || roomIsLoading) && (
+                <Box
+                    position="absolute"
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    flexDirection="column"
+                    top="0"
+                    left="0"
+                    right="0"
+                    bottom="0"
+                    zIndex={1}
+                    bgcolor={loading ? "common.disabledBackground" : "background.default"}
+                >
+                    <CircularProgress />
+                </Box>
+            )}
             {newMessages > 0 && (
                 <NewMessageAlert newMessages={newMessages} onScrollDown={onScrollDown} />
             )}

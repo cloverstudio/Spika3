@@ -209,6 +209,10 @@ export default (): Router => {
         try {
             const id = parseInt((req.params.id as string) || "");
 
+            if (!id) {
+                return res.status(400).send(errorResponse("Invalid id", userReq.lang));
+            }
+
             const file = await prisma.file.findFirst({ where: { id } });
 
             if (!file) {

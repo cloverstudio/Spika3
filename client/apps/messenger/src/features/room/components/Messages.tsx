@@ -3,7 +3,6 @@ import React, { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
 import { dynamicBaseQuery } from "../../../api/api";
-import { useGetRoomQuery } from "../api/room";
 import { resetUnreadCount } from "../slices/leftSidebar";
 
 import DeleteMessageDialog from "./message/DeleteMessageDialog";
@@ -13,7 +12,6 @@ import MessagesList from "./message/MessagesList";
 export default function Messages(): React.ReactElement {
     const roomId = parseInt(useParams().id || "");
     const dispatch = useDispatch();
-    const { isLoading } = useGetRoomQuery(roomId);
 
     useEffect(() => {
         const markAsSeen = () =>
@@ -32,20 +30,6 @@ export default function Messages(): React.ReactElement {
             window.removeEventListener("focus", markAsSeen);
         };
     }, [roomId, dispatch]);
-
-    if (isLoading) {
-        return (
-            <Box
-                flexGrow={1}
-                display="flex"
-                flexDirection="column"
-                justifyContent="center"
-                alignItems="center"
-            >
-                <CircularProgress />
-            </Box>
-        );
-    }
 
     return (
         <>

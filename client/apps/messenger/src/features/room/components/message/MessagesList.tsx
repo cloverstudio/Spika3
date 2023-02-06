@@ -3,7 +3,7 @@ import { useParams, useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
 import DoDisturb from "@mui/icons-material/DoDisturb";
-import { Box, CircularProgress } from "@mui/material";
+import { Box } from "@mui/material";
 import Button from "@mui/material/Button";
 import dayjs from "dayjs";
 import { useShowBasicDialog } from "../../../../hooks/useModal";
@@ -113,12 +113,7 @@ export default function MessagesList(): React.ReactElement {
 
     return (
         <>
-            <MessagesContainer>
-                {loading && (
-                    <Box textAlign="center">
-                        <CircularProgress />
-                    </Box>
-                )}
+            <MessagesContainer loading={loading}>
                 {Object.entries(messagesSorted).map(([day, messages]) => {
                     return (
                         <Box key={day}>
