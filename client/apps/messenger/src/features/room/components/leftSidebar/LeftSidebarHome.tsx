@@ -4,7 +4,7 @@ import Avatar from "@mui/material/Avatar";
 import { Box } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
 import Settings from "@mui/icons-material/Settings";
-import Edit from "@mui/icons-material/Edit";
+import Add from "@mui/icons-material/AddOutlined";
 import ChatIcon from "@mui/icons-material/Chat";
 import CallIcon from "@mui/icons-material/Call";
 import ContactIcon from "@mui/icons-material/AccountCircle";
@@ -42,7 +42,7 @@ type NavigationType = {
 const navigation: NavigationType[] = [
     { name: "chat", icon: ChatIcon, Element: SidebarChatList },
     { name: "call", icon: CallIcon, Element: SidebarCallList },
-    { name: "contact", icon: ContactIcon, Element: () => <SidebarContactList showBots /> },
+    { name: "contact", icon: ContactIcon, Element: () => <SidebarContactList /> },
 ];
 
 export default function LeftSidebarHome({
@@ -77,14 +77,14 @@ export default function LeftSidebarHome({
                             <Box display="flex" flexDirection="column" justifyContent="center">
                                 <img width="40px" height="40px" src={logo} />
                             </Box>
-                            <Box display="flex" alignItems="center">
-                                <Box mr={3}>
+                            <Box display="flex" gap={2} alignItems="center">
+                                <Box>
                                     <Avatar
                                         alt={userData?.user.displayName}
                                         src={`${UPLOADS_BASE_URL}/${userData?.user.avatarFileId}`}
                                     />
                                 </Box>
-                                <Box mr={3}>
+                                <Box>
                                     <IconButton onClick={() => setOpenEditor()}>
                                         <Settings
                                             fontSize="large"
@@ -99,7 +99,7 @@ export default function LeftSidebarHome({
                                 </Box>
                                 <Box>
                                     <IconButton onClick={() => setSidebar("new_chat")}>
-                                        <Edit
+                                        <Add
                                             fontSize="large"
                                             sx={{
                                                 width: "25px",

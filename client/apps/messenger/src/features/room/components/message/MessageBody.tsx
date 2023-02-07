@@ -138,7 +138,7 @@ function ImageMessage({
                 height="10vh"
                 src={thumbSrc}
                 pb="0.8125"
-                sx={{ cursor: "pointer", objectFit: "contain" }}
+                sx={{ cursor: "pointer", objectFit: "contain", bgcolor: "transparent" }}
             />
             <Modal open={open} onClose={handleClose}>
                 <>

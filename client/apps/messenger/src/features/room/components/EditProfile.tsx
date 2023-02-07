@@ -141,7 +141,10 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                     avatarFileId: uploadedFile.id,
                 }).unwrap();
             } else {
-                await update({ displayName: proposedName }).unwrap();
+                await update({
+                    displayName: proposedName,
+                    avatarFileId: user.avatarFileId,
+                }).unwrap();
             }
 
             setName(proposedName);

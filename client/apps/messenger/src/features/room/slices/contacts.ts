@@ -12,26 +12,21 @@ interface ContactsState {
     cursor?: number;
 }
 
-export const fetchContacts = createAsyncThunk(
-    "user/fetchContact",
-    async ({ showBots }: { showBots?: boolean }, thunkAPI) => {
-        const { count, keyword, cursor } = (thunkAPI.getState() as RootState).contacts;
-        const noMore = count === 0 || !!(count && !cursor);
+export const fetchContacts = createAsyncThunk("user/fetchContact", async (_, thunkAPI) => {
+    const { count, keyword, cursor } = (thunkAPI.getState() as RootState).contacts;
+    const noMore = count === 0 || !!(count && !cursor);
 
-        if (noMore) {
-            throw new Error("Can't fetch");
-        }
-
-        const response = await dynamicBaseQuery(
-            `/messenger/contacts?keyword=${keyword}&showBots=${showBots ? "1" : ""}&${
-                cursor ? `cursor=${cursor}` : ""
-            }`
-        );
-        return {
-            data: response.data,
-        };
+    if (noMore) {
+        throw new Error("Can't fetch");
     }
-);
+
+    const response = await dynamicBaseQuery(
+        `/messenger/contacts?keyword=${keyword}&${cursor ? `cursor=${cursor}` : ""}`
+    );
+    return {
+        data: response.data,
+    };
+});
 
 export const contactsSlice = createSlice({
     name: <string>"contacts",
@@ -76,28 +71,30 @@ export const contactsSlice = createSlice({
 
 export const {} = contactsSlice.actions;
 
-export const selectContacts = (
-    state: RootState
-): ContactsState & { sortedByDisplayName: [string, User[]][] } => {
-    const sortedByDisplayNameObj = state.contacts.list.reduce((acc: any, user) => {
-        if (user.displayName) {
-            const firstLetter = user.displayName[0].toLocaleUpperCase();
-            if (acc[firstLetter]) {
-                acc[firstLetter].push(user);
-            } else {
-                acc[firstLetter] = [user];
+export const selectContacts =
+    (hideBots: boolean) =>
+    (state: RootState): ContactsState & { sortedByDisplayName: [string, User[]][] } => {
+        const sortedByDisplayNameObj = state.contacts.list.reduce((acc: any, user) => {
+            if (hideBots && user.isBot) return acc;
+
+            if (user.displayName) {
+                const firstLetter = user.displayName[0].toLocaleUpperCase();
+                if (acc[firstLetter]) {
+                    acc[firstLetter].push(user);
+                } else {
+                    acc[firstLetter] = [user];
+                }
             }
-        }
 
-        return acc;
-    }, {});
+            return acc;
+        }, {});
 
-    const sortedByDisplayName = Object.entries<User[]>(sortedByDisplayNameObj).sort((a, b) =>
-        a[0] < b[0] ? -1 : 1
-    );
+        const sortedByDisplayName = Object.entries<User[]>(sortedByDisplayNameObj).sort((a, b) =>
+            a[0] < b[0] ? -1 : 1
+        );
 
-    return { ...state.contacts, sortedByDisplayName };
-};
+        return { ...state.contacts, sortedByDisplayName };
+    };
 
 export const selectContactById = (id: number) => (state: RootState) =>
     state.contacts.list.find((u) => u.id === id);
