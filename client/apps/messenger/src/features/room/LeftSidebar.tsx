@@ -51,7 +51,7 @@ function LeftSidebarNewChat({
             <Box textAlign="center">
                 <Button onClick={() => setSidebar("new_group")}>{strings.newGroupChat}</Button>
             </Box>
-            <SidebarContactList showBots={true} />
+            <SidebarContactList />
         </LeftSidebarLayout>
     );
 }
@@ -144,6 +144,7 @@ function LeftSidebarNewGroup({
                 <>
                     <SelectedMembers selectedUsers={selectedUsers} onRemove={handleUserClick} />
                     <SidebarContactList
+                        hideBots
                         selectedUsersIds={selectedUsers.map((u) => u.id)}
                         handleUserClick={handleUserClick}
                     />

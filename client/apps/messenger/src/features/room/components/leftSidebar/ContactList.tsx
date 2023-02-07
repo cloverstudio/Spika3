@@ -29,15 +29,15 @@ declare const UPLOADS_BASE_URL: string;
 export default function SidebarContactList({
     handleUserClick,
     selectedUsersIds,
-    showBots,
+    hideBots,
 }: {
     handleUserClick?: (user: User) => void;
     selectedUsersIds?: number[];
-    showBots?: boolean;
+    hideBots?: boolean;
 }): React.ReactElement {
     const strings = useStrings();
     const dispatch = useDispatch();
-    const { sortedByDisplayName } = useSelector(selectContacts);
+    const { sortedByDisplayName } = useSelector(selectContacts(hideBots));
     const loading = useSelector(selectContactLoading());
     const isFetching = loading === "pending";
 
@@ -49,16 +49,16 @@ export default function SidebarContactList({
 
     useEffect(() => {
         if (isInViewPort) {
-            dispatch(fetchContacts({ showBots }));
+            dispatch(fetchContacts());
         }
-    }, [isInViewPort, dispatch, showBots]);
+    }, [isInViewPort, dispatch]);
 
     useEffect(() => {
         return () => {
             dispatch(setKeyword(""));
-            dispatch(fetchContacts({ showBots }));
+            dispatch(fetchContacts());
         };
-    }, [dispatch, showBots]);
+    }, [dispatch]);
 
     const defaultHandleUserClick = async (user: User) => {
         try {
@@ -89,7 +89,7 @@ export default function SidebarContactList({
                 <SearchBox
                     onSearch={(keyword: string) => {
                         dispatch(setKeyword(keyword));
-                        dispatch(fetchContacts({ showBots }));
+                        dispatch(fetchContacts());
                     }}
                 />
             </Box>

@@ -67,6 +67,17 @@ export default function MessagesContainer({
         messagesLengthRef.current = messagesLength;
     }, [isLastMessageFromUser, lastScrollHeight, locked, messagesLength, targetMessageId]);
 
+    useEffect(() => {
+        if (
+            initialLoading &&
+            !loading &&
+            !roomIsLoading &&
+            ref.current.scrollHeight <= ref.current.clientHeight
+        ) {
+            setLoading(false);
+        }
+    }, [initialLoading, loading, roomIsLoading]);
+
     const onScrollDown = () => {
         if (!ref.current) {
             return;

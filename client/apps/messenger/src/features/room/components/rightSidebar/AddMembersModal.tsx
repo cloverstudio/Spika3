@@ -85,6 +85,7 @@ export default function AddMembersModal(props: AddMembersModalProps) {
 
                 <Box mb={2} mx={-2.5} maxHeight="50vh" sx={{ overflowY: "auto" }}>
                     <SidebarContactList
+                        hideBots
                         handleUserClick={handleUserClick}
                         selectedUsersIds={[
                             ...selectedUsers.map(({ id }) => id),
