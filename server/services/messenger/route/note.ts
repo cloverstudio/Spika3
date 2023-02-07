@@ -13,7 +13,7 @@ import prisma from "../../../components/prisma";
 
 const createNoteSchema = yup.object().shape({
     body: yup.object().shape({
-        title: yup.string().min(1).strict().required(),
+        title: yup.string().min(1).max(135).strict().required(),
         content: yup.string().min(1).strict().required(),
     }),
 });
