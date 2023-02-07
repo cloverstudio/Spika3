@@ -65,9 +65,6 @@ export default function MessagesContainer({
         }
 
         messagesLengthRef.current = messagesLength;
-        setTimeout(() => {
-            setLoading(false);
-        }, 500);
     }, [isLastMessageFromUser, lastScrollHeight, locked, messagesLength, targetMessageId]);
 
     const onScrollDown = () => {
@@ -75,7 +72,7 @@ export default function MessagesContainer({
             return;
         }
 
-        scrollElemBottom(ref.current);
+        scrollElemBottom(ref.current, () => setLoading(false));
         setLockedForScroll(false);
     };
 
@@ -175,7 +172,11 @@ export default function MessagesContainer({
                     right="0"
                     bottom="0"
                     zIndex={1}
-                    bgcolor={loading ? "common.disabledBackground" : "background.default"}
+                    bgcolor={
+                        loading && messagesLength > 0
+                            ? "common.disabledBackground"
+                            : "background.default"
+                    }
                 >
                     <CircularProgress />
                 </Box>
@@ -222,9 +223,12 @@ export default function MessagesContainer({
     );
 }
 
-function scrollElemBottom(element: HTMLElement): void {
+function scrollElemBottom(element: HTMLElement, onScroll?: () => void): void {
     if (element.scrollHeight > element.clientHeight) {
         element.scrollTop = element.scrollHeight - element.clientHeight;
+        if (onScroll) {
+            onScroll();
+        }
     }
 }
 
