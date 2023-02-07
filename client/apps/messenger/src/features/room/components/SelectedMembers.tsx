@@ -18,9 +18,9 @@ export default function SelectedMembers({ selectedUsers, onRemove }: SelectedMem
     }
 
     return (
-        <Box display="flex" px={2.5} mb={2}>
+        <Box display="flex" flexWrap="wrap" gap={1.5} px={2.5} mb={2}>
             {selectedUsers.map((user) => (
-                <Box key={user.id} mr={1.5}>
+                <Box key={user.id} textAlign="center">
                     <Badge
                         overlap="circular"
                         color="primary"
@@ -55,6 +55,12 @@ export default function SelectedMembers({ selectedUsers, onRemove }: SelectedMem
                         fontWeight="medium"
                         color="text.tertiary"
                         lineHeight="1.25rem"
+                        sx={{
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                        }}
+                        maxWidth="55px"
                     >
                         {user.displayName}
                     </Typography>
