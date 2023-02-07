@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 
-import { error as le } from "../../../components/logger";
+import l, { error as le } from "../../../components/logger";
 import { successResponse, errorResponse } from "../../../components/response";
 import auth from "../lib/auth";
 import { UserRequest } from "../lib/types";
@@ -9,11 +9,14 @@ import * as Constants from "../../../components/consts";
 import prisma from "../../../components/prisma";
 import { isRoomMuted, isRoomPinned } from "./room";
 import { InitRouterParams } from "../../types/serviceInterface";
+import utils from "../../../components/utils";
 
 export default ({ redisClient }: InitRouterParams): Router => {
     const router = Router();
 
     router.get("/", auth, async (req: Request, res: Response) => {
+        const start = process.hrtime();
+
         const userReq: UserRequest = req as UserRequest;
         const userId = userReq.user.id;
         const deviceId = userReq.device.id;
@@ -34,8 +37,11 @@ export default ({ redisClient }: InitRouterParams): Router => {
                 include: { room: true, user: true },
             });
 
+            l(`[GET ROOM USERS] ${utils.getDurationInMilliseconds(start).toLocaleString()} ms`);
+
             // find a display name of user who are in private room
             if (keyword?.length > 0) {
+                const findDisplayName = process.hrtime();
                 const privateRooms = await prisma.roomUser.findMany({
                     where: {
                         room: {
@@ -64,7 +70,15 @@ export default ({ redisClient }: InitRouterParams): Router => {
                 });
 
                 roomUsers = [...roomUsers, ...matchedRoomUsers];
+
+                l(
+                    `[FIND BY DISPLAY NAMES] ${utils
+                        .getDurationInMilliseconds(findDisplayName)
+                        .toLocaleString()} ms`
+                );
             }
+
+            const findPinnedRooms = process.hrtime();
 
             const roomsIds = roomUsers.map((r) => r.room.id);
 
@@ -77,6 +91,13 @@ export default ({ redisClient }: InitRouterParams): Router => {
             });
 
             roomsIds.push(...userSettings.map((u) => +u.key.split("_")[1]));
+            l(
+                `[FIND A PINNED ROOMS] ${utils
+                    .getDurationInMilliseconds(findPinnedRooms)
+                    .toLocaleString()} ms`
+            );
+
+            const findCount = process.hrtime();
 
             const count = await prisma.room.count({
                 where: {
@@ -89,6 +110,9 @@ export default ({ redisClient }: InitRouterParams): Router => {
                     },
                 },
             });
+            l(`[FIND COUNT] ${utils.getDurationInMilliseconds(findCount).toLocaleString()} ms`);
+
+            const findUnreadMessages = process.hrtime();
 
             const unreadMessages = await prisma.message.findMany({
                 where: {
@@ -110,6 +134,14 @@ export default ({ redisClient }: InitRouterParams): Router => {
                 },
             });
 
+            l(
+                `[FIND UNREAD MESSAGES] ${utils
+                    .getDurationInMilliseconds(findUnreadMessages)
+                    .toLocaleString()} ms`
+            );
+
+            const findMessages = process.hrtime();
+
             const messages = await prisma.message.findMany({
                 where: {
                     roomId: { in: roomsIds },
@@ -130,6 +162,13 @@ export default ({ redisClient }: InitRouterParams): Router => {
                     },
                 },
             });
+            l(
+                `[FIND MESSAGES] ${utils
+                    .getDurationInMilliseconds(findMessages)
+                    .toLocaleString()} ms`
+            );
+
+            const findDM = process.hrtime();
 
             const deviceMessages = await prisma.deviceMessage.findMany({
                 where: { userId, deviceId, messageId: { in: messages.map((m) => m.id) } },
@@ -139,6 +178,13 @@ export default ({ redisClient }: InitRouterParams): Router => {
                     deleted: true,
                 },
             });
+            l(
+                `[FIND DEVICE MESSAGES] ${utils
+                    .getDurationInMilliseconds(findDM)
+                    .toLocaleString()} ms`
+            );
+
+            const formatList = process.hrtime();
 
             const list = await Promise.all(
                 messages.map(async (m) => {
@@ -161,6 +207,7 @@ export default ({ redisClient }: InitRouterParams): Router => {
                     };
                 })
             );
+            l(`[FORMAT LIST] ${utils.getDurationInMilliseconds(formatList).toLocaleString()} ms`);
 
             res.send(
                 successResponse({
