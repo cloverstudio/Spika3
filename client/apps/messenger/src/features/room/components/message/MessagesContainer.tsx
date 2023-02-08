@@ -61,7 +61,7 @@ export default function MessagesContainer({
         } else if (ref.current.scrollHeight !== lastScrollHeight) {
             setTimeout(() => {
                 onScrollDown();
-            }, 300);
+            }, 500);
         }
 
         messagesLengthRef.current = messagesLength;

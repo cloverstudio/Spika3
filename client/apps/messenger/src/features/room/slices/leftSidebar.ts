@@ -3,26 +3,16 @@ import { dynamicBaseQuery } from "../../../api/api";
 import type { RootState } from "../../../store/store";
 import MessageType from "../../../types/Message";
 import { RoomType } from "../../../types/Rooms";
-import UserType from "../../../types/User";
-import formatRoomInfo from "../lib/formatRoomInfo";
 
 export const fetchHistory = createAsyncThunk(
     "room/fetchHistory",
     async (args: { page: number; keyword: string }, thunkAPI) => {
-        const fromUserId = (
-            (thunkAPI.getState() as RootState).api.queries["getUser(undefined)"].data as {
-                user: UserType;
-            }
-        ).user.id;
-
         const response = await dynamicBaseQuery(
             `/messenger/history?page=${args.page}&keyword=${args.keyword}`
         );
 
-        const list = response.data.list.map((room) => formatRoomInfo(room, fromUserId));
-
         return {
-            data: { ...response.data, list },
+            data: response.data,
             keyword: args.keyword,
             page: args.page,
         };
@@ -30,7 +20,13 @@ export const fetchHistory = createAsyncThunk(
 );
 
 type HistoryState = {
-    list: (RoomType & { lastMessage: MessageType })[];
+    list: {
+        roomId: number;
+        lastMessage: MessageType;
+        unreadCount?: number;
+        muted: boolean;
+        pinned: boolean;
+    }[];
     count: number;
     loading: "idle" | "pending" | "succeeded" | "failed";
     keyword: string;
@@ -69,8 +65,8 @@ export const leftSidebarSlice = createSlice({
             state.showProfileEditing = action.payload;
         },
         refreshOne(state, { payload: updatedRoom }: { payload: RoomType }) {
-            const list = state.history.list.map((room) => {
-                if (updatedRoom.id === room.id) {
+            /* const list = state.history.list.map((room) => {
+                if (updatedRoom.id === room.roomId) {
                     room.avatarFileId = updatedRoom.avatarFileId;
                     room.name = updatedRoom.name;
                     room.users = updatedRoom.users;
@@ -79,31 +75,32 @@ export const leftSidebarSlice = createSlice({
                 return room;
             });
 
-            state.history.list = [...list];
+            state.history.list = [...list]; */
+            console.log("refreshOne", updatedRoom);
         },
         updateLastMessage(state, { payload: message }: { payload: MessageType }) {
-            const list = state.history.list.map((room) => {
-                if (message.roomId === room.id) {
-                    room.lastMessage = message;
+            const list = state.history.list.map((item) => {
+                if (message.roomId === item.roomId) {
+                    item.lastMessage = message;
                 }
 
-                return room;
+                return item;
             });
 
             state.history.list = [...list];
         },
         removeRoom(state, { payload: roomId }: { payload: number }) {
-            const list = state.history.list.filter((room) => room.id !== roomId);
+            const list = state.history.list.filter((room) => room.roomId !== roomId);
 
             state.history.list = [...list];
         },
         resetUnreadCount(state, { payload: roomId }: { payload: number }) {
-            const list = state.history.list.map((room) => {
-                if (roomId === room.id) {
-                    room.unreadCount = 0;
+            const list = state.history.list.map((item) => {
+                if (roomId === item.roomId) {
+                    item.unreadCount = 0;
                 }
 
-                return room;
+                return item;
             });
 
             state.history.list = [...list];
@@ -111,15 +108,15 @@ export const leftSidebarSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder.addCase(fetchHistory.fulfilled, (state, { payload }: any) => {
-            const roomsIds = state.history.list.map((r) => r.id);
-            const notAdded = payload.data.list.filter((u: any) => !roomsIds.includes(u.id));
+            const roomsIds = state.history.list.map((r) => r.roomId);
+            const notAdded = payload.data.list.filter((u: any) => !roomsIds.includes(u.roomId));
 
-            const list = state.history.list.map((room) => {
-                const id = room.id;
+            const list = state.history.list.map((item) => {
+                const id = item.roomId;
 
-                const newRoomInfo = payload.data.list.find((nr: any) => nr.id === id);
+                const newRoomInfo = payload.data.list.find((nr) => nr.roomId === id);
 
-                return newRoomInfo || room;
+                return newRoomInfo || item;
             });
 
             if (state.history.keyword !== payload.keyword && payload.page === 1) {

@@ -18,6 +18,9 @@ import { RoomType, RoomUserType } from "../../../../types/Rooms";
 import NotificationsOff from "@mui/icons-material/NotificationsOff";
 import Pin from "@mui/icons-material/PushPin";
 import useStrings from "../../../../hooks/useStrings";
+import { useGetRoomQuery } from "../../api/room";
+import formatRoomInfo from "../../lib/formatRoomInfo";
+import { selectUser } from "../../../../store/userSlice";
 
 dayjs.extend(relativeTime);
 declare const UPLOADS_BASE_URL: string;
@@ -60,11 +63,10 @@ export default function SidebarChatList(): React.ReactElement {
         );
 
         const pinned = sorted.filter((r) => r.pinned);
-
-        const pinnedSorted = pinned.sort((a, b) => a.name.localeCompare(b.name));
-
-        return [...pinnedSorted, ...sorted.filter((r) => !r.pinned)];
+        return [...pinned, ...sorted.filter((r) => !r.pinned)];
     };
+
+    console.log({ list });
 
     return (
         <Box sx={{ overflowY: "auto", maxHeight: "100%" }}>
@@ -80,12 +82,14 @@ export default function SidebarChatList(): React.ReactElement {
                 <Typography align="center">{strings.noRooms}</Typography>
             ) : (
                 <>
-                    {sortRooms().map((room) => {
+                    {sortRooms().map(({ roomId, unreadCount, lastMessage }) => {
                         return (
                             <RoomRow
-                                key={room.id}
-                                {...room}
-                                isActive={room.id === activeRoomId}
+                                key={roomId}
+                                id={roomId}
+                                lastMessage={lastMessage}
+                                unreadCount={unreadCount}
+                                isActive={roomId === activeRoomId}
                                 handleClick={onChatClick}
                             />
                         );
@@ -98,29 +102,21 @@ export default function SidebarChatList(): React.ReactElement {
     );
 }
 
-type RoomRowProps = RoomType & {
+type RoomRowProps = {
+    id: number;
+    unreadCount: number;
     lastMessage: MessageType;
     handleClick: () => void;
     isActive?: boolean;
 };
 
-function RoomRow({
-    id,
-    isActive,
-    name,
-    avatarFileId,
-    lastMessage,
-    handleClick,
-    unreadCount,
-    type,
-    users,
-    muted,
-    pinned,
-}: RoomRowProps) {
+function RoomRow({ id, isActive, lastMessage, handleClick, unreadCount }: RoomRowProps) {
     const strings = useStrings();
+    const me = useSelector(selectUser);
     const [time, setTime] = useState(
         lastMessage?.createdAt && dayjs(lastMessage.createdAt).fromNow()
     );
+    const { data, isLoading } = useGetRoomQuery(id);
 
     useEffect(() => {
         if (lastMessage?.createdAt) {
@@ -136,6 +132,10 @@ function RoomRow({
         }
     }, [lastMessage]);
 
+    if (isLoading) return <></>;
+
+    const room = formatRoomInfo(data, me.id);
+    const { name, users, avatarFileId, type, muted, pinned } = room;
     const lastMessageType = lastMessage?.type;
 
     let lastMessageText = lastMessage?.body?.text;

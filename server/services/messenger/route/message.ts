@@ -36,7 +36,7 @@ const deliveredMessagesSchema = yup.object().shape({
     }),
 });
 
-export default ({ rabbitMQChannel }: InitRouterParams): Router => {
+export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
     const router = Router();
     const sseMessageRecordsNotify = createSSEMessageRecordsNotify(rabbitMQChannel);
 
@@ -189,6 +189,39 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             const sanitizedMessage = sanitize({ ...message, body: formattedBody }).message();
 
             res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
+
+            // for every user in the room increment the unread count for that room and save it with redis
+            await Promise.all(
+                receivers.map(async (receiver) => {
+                    const key = `unread:${roomId}:${receiver.userId}`;
+                    const current = await redisClient.get(key);
+                    if (!current) {
+                        const unreadMessages = await prisma.message.findMany({
+                            where: {
+                                roomId,
+                                createdAt: {
+                                    gte: receiver.createdAt,
+                                },
+                                messageRecords: {
+                                    none: {
+                                        userId: receiver.userId,
+                                        type: "seen",
+                                    },
+                                },
+                                NOT: {
+                                    fromUserId: receiver.userId,
+                                },
+                            },
+                        });
+
+                        console.log({ key, value: unreadMessages.length });
+                        await redisClient.set(key, unreadMessages.length);
+                    } else if (receiver.userId !== fromUserId) {
+                        await redisClient.incr(key);
+                    }
+                    console.log({ key, value: current });
+                })
+            );
 
             while (deviceMessages.length) {
                 await Promise.all(
@@ -640,7 +673,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     roomId,
                     createdAt: { gte: roomUser.createdAt },
                     messageRecords: { none: { userId, type: "seen" } },
-                    deviceMessages: { some: { userId } },
                 },
             });
 
@@ -658,6 +690,9 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             };
 
             sseMessageRecordsNotify(messageRecordsNotifyData);
+
+            const key = `unread:${roomId}:${userId}`;
+            await redisClient.set(key, "0");
 
             res.send(successResponse({ messageRecords }, userReq.lang));
         } catch (e: any) {

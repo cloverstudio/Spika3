@@ -33,8 +33,6 @@ export default ({ redisClient }: InitRouterParams): Router => {
                     },
                     userId,
                 },
-
-                include: { room: true, user: true },
             });
 
             l(`[GET ROOM USERS] ${utils.getDurationInMilliseconds(start).toLocaleString()} ms`);
@@ -65,8 +63,6 @@ export default ({ redisClient }: InitRouterParams): Router => {
                             not: userId,
                         },
                     },
-
-                    include: { room: true, user: true },
                 });
 
                 roomUsers = [...roomUsers, ...matchedRoomUsers];
@@ -80,7 +76,7 @@ export default ({ redisClient }: InitRouterParams): Router => {
 
             const findPinnedRooms = process.hrtime();
 
-            const roomsIds = roomUsers.map((r) => r.room.id);
+            const roomsIds = roomUsers.map((r) => r.roomId);
 
             const userSettings = await prisma.userSetting.findMany({
                 where: {
@@ -112,34 +108,6 @@ export default ({ redisClient }: InitRouterParams): Router => {
             });
             l(`[FIND COUNT] ${utils.getDurationInMilliseconds(findCount).toLocaleString()} ms`);
 
-            const findUnreadMessages = process.hrtime();
-
-            const unreadMessages = await prisma.message.findMany({
-                where: {
-                    roomId: { in: roomsIds },
-                    deviceMessages: {
-                        some: {
-                            deviceId,
-                        },
-                    },
-                    messageRecords: {
-                        none: {
-                            userId,
-                            type: "seen",
-                        },
-                    },
-                    NOT: {
-                        fromUserId: userId,
-                    },
-                },
-            });
-
-            l(
-                `[FIND UNREAD MESSAGES] ${utils
-                    .getDurationInMilliseconds(findUnreadMessages)
-                    .toLocaleString()} ms`
-            );
-
             const findMessages = process.hrtime();
 
             const messages = await prisma.message.findMany({
@@ -152,16 +120,10 @@ export default ({ redisClient }: InitRouterParams): Router => {
                 },
                 skip: Constants.PAGING_LIMIT * (page - 1),
                 take: Constants.PAGING_LIMIT,
-                include: {
-                    room: {
-                        include: {
-                            users: {
-                                include: { user: true },
-                            },
-                        },
-                    },
-                },
             });
+
+            console.log({ object: messages.length });
+
             l(
                 `[FIND MESSAGES] ${utils
                     .getDurationInMilliseconds(findMessages)
@@ -188,22 +150,44 @@ export default ({ redisClient }: InitRouterParams): Router => {
 
             const list = await Promise.all(
                 messages.map(async (m) => {
-                    const { room, ...message } = m;
-                    const muted = await isRoomMuted({ userId, roomId: room.id, redisClient });
-                    const pinned = await isRoomPinned({ userId, roomId: room.id, redisClient });
+                    const muted = await isRoomMuted({ userId, roomId: m.roomId, redisClient });
+                    const pinned = await isRoomPinned({ userId, roomId: m.roomId, redisClient });
                     const dm = deviceMessages.find((dm) => dm.messageId === m.id);
                     const { body, deleted } = dm || {};
-                    const unreadCount = unreadMessages.filter(
-                        (mc) => mc.roomId === m.roomId
-                    ).length;
+                    const roomUser = roomUsers.find((ru) => ru.roomId === m.roomId);
+                    const key = `unread:${m.roomId}:${userId}`;
+                    let unreadCount = await redisClient.get(key);
+                    if (!unreadCount) {
+                        const unreadMessages = await prisma.message.findMany({
+                            where: {
+                                roomId: m.roomId,
+                                createdAt: {
+                                    gte: roomUser.createdAt,
+                                },
+                                messageRecords: {
+                                    none: {
+                                        userId: userId,
+                                        type: "seen",
+                                    },
+                                },
+                                NOT: {
+                                    fromUserId: userId,
+                                },
+                            },
+                        });
+                        unreadCount = unreadMessages.length.toString();
+                        redisClient.set(key, unreadCount);
+                    }
                     return {
-                        ...sanitize({ ...room, muted, pinned }).room(),
+                        roomId: m.roomId,
+                        muted,
+                        pinned,
                         lastMessage: sanitize({
-                            ...message,
+                            ...m,
                             ...(body && { body }),
                             deleted,
                         }).message(),
-                        unreadCount,
+                        unreadCount: +unreadCount,
                     };
                 })
             );
