@@ -48,7 +48,7 @@ export const leftSidebarSlice = createSlice({
     name: <string>"leftSidebar",
     initialState: <InitialState>{
         show: true,
-        activeTab: "chat",
+        activeTab: "contact",
         showProfileEditing: false,
         history: { list: [], loading: "idle", keyword: "", count: null },
     },
