@@ -220,8 +220,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 })
             );
 
-            const lastMessageInRoomKey = `lastMessage:${roomId}`;
-            await redisClient.set(lastMessageInRoomKey, sanitizedMessage.id.toString());
+            const key = `${Constants.LAST_MESSAGE_PREFIX}${roomId}`;
+            await redisClient.set(key, sanitizedMessage.id.toString());
 
             while (deviceMessages.length) {
                 await Promise.all(

@@ -39,3 +39,5 @@ export const MESSAGE_RECORD_VALID_TYPES = ["seen", "delivered", "reaction"];
 
 export const ROOM_MUTE_PREFIX = "mute_";
 export const ROOM_PIN_PREFIX = "pin_";
+export const ROOM_PREFIX = "room_";
+export const LAST_MESSAGE_PREFIX = "lastMessage_";

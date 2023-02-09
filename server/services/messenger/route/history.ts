@@ -112,13 +112,11 @@ export default ({ redisClient }: InitRouterParams): Router => {
 
             const messagesIds = await Promise.all(
                 roomsIds.map(async (roomId) => {
-                    const key = `last_message:${roomId}`;
+                    const key = `${Constants.LAST_MESSAGE_PREFIX}${roomId}`;
                     const lastMessageId = await redisClient.get(key);
 
-                    if (lastMessageId && lastMessageId !== "null") {
+                    if (lastMessageId) {
                         return +lastMessageId;
-                    } else if (lastMessageId === "null") {
-                        return null;
                     }
 
                     const roomUser = roomUsers.find((ru) => ru.roomId === roomId);
@@ -137,14 +135,14 @@ export default ({ redisClient }: InitRouterParams): Router => {
                     });
 
                     if (!lastMessage) {
-                        await redisClient.set(key, "null");
-
-                        return null;
-                    } else if (+lastMessage.modifiedAt <= +roomUser.createdAt) {
                         return null;
                     }
 
                     await redisClient.set(key, lastMessage.id.toString());
+
+                    if (+lastMessage.modifiedAt <= +roomUser.createdAt) {
+                        return null;
+                    }
 
                     return lastMessage.id;
                 })
