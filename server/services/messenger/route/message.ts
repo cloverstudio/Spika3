@@ -668,10 +668,18 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     .send(errorResponse("user is not in this room", userReq.lang));
             }
 
-            const messages = await prisma.message.findMany({
+            const notSeenMessages = await prisma.message.findMany({
                 where: {
                     roomId,
-                    createdAt: { gte: roomUser.createdAt },
+                    createdAt: { gt: roomUser.createdAt },
+                    messageRecords: { none: { userId, type: "seen" } },
+                },
+            });
+
+            const notDeliveredMessages = await prisma.message.findMany({
+                where: {
+                    roomId,
+                    createdAt: { gt: roomUser.createdAt },
                     messageRecords: { none: { userId, type: "seen" } },
                 },
             });
@@ -682,14 +690,23 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 }
             >[] = [];
 
-            const messageRecordsNotifyData = {
-                types: ["seen", "delivered"],
+            const messageRecordsNotifySeenData = {
+                types: ["seen"],
                 userId,
-                messageIds: messages.map((m) => m.id),
+                messageIds: notSeenMessages.map((m) => m.id),
                 pushType: Constants.PUSH_TYPE_NEW_MESSAGE_RECORD,
             };
 
-            sseMessageRecordsNotify(messageRecordsNotifyData);
+            sseMessageRecordsNotify(messageRecordsNotifySeenData);
+
+            const messageRecordsNotifyDeliveredData = {
+                types: ["delivered"],
+                userId,
+                messageIds: notDeliveredMessages.map((m) => m.id),
+                pushType: Constants.PUSH_TYPE_NEW_MESSAGE_RECORD,
+            };
+
+            sseMessageRecordsNotify(messageRecordsNotifyDeliveredData);
 
             const key = `unread:${roomId}:${userId}`;
             await redisClient.set(key, "0");

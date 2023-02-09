@@ -64,20 +64,6 @@ export const leftSidebarSlice = createSlice({
         setOpenEditProfile(state, action: { payload: boolean }) {
             state.showProfileEditing = action.payload;
         },
-        refreshOne(state, { payload: updatedRoom }: { payload: RoomType }) {
-            /* const list = state.history.list.map((room) => {
-                if (updatedRoom.id === room.roomId) {
-                    room.avatarFileId = updatedRoom.avatarFileId;
-                    room.name = updatedRoom.name;
-                    room.users = updatedRoom.users;
-                }
-
-                return room;
-            });
-
-            state.history.list = [...list]; */
-            console.log("refreshOne", updatedRoom);
-        },
         updateLastMessage(state, { payload: message }: { payload: MessageType }) {
             const list = state.history.list.map((item) => {
                 if (message.roomId === item.roomId) {

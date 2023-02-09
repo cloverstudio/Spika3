@@ -15,7 +15,6 @@ import { useSelector, useDispatch } from "react-redux";
 import { RoomUserType } from "../../../../types/Rooms";
 import { selectUserId } from "../../../../store/userSlice";
 import { useCreateRoomMutation, useUpdateRoomMutation } from "../../api/room";
-import { refreshOne as refreshOneRoom } from "../../slices/leftSidebar";
 import useStrings from "../../../../hooks/useStrings";
 import { useNavigate } from "react-router-dom";
 import { dynamicBaseQuery } from "../../../../api/api";
@@ -62,8 +61,7 @@ export function DetailsMemberView(props: DetailsMembersProps) {
     };
 
     const handleUpdateGroup = async (data: any) => {
-        const { room } = await update({ roomId, data }).unwrap();
-        dispatch(refreshOneRoom(room));
+        await update({ roomId, data }).unwrap();
     };
 
     const handleAddMembers = (addIds: number[]) => {
