@@ -190,7 +190,6 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
 
             res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
 
-            // for every user in the room increment the unread count for that room and save it with redis
             await Promise.all(
                 receivers.map(async (receiver) => {
                     const key = `unread:${roomId}:${receiver.userId}`;
@@ -200,7 +199,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                             where: {
                                 roomId,
                                 createdAt: {
-                                    gte: receiver.createdAt,
+                                    gt: receiver.createdAt,
                                 },
                                 messageRecords: {
                                     none: {
@@ -214,14 +213,15 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                             },
                         });
 
-                        console.log({ key, value: unreadMessages.length });
                         await redisClient.set(key, unreadMessages.length);
                     } else if (receiver.userId !== fromUserId) {
                         await redisClient.incr(key);
                     }
-                    console.log({ key, value: current });
                 })
             );
+
+            const lastMessageInRoomKey = `lastMessage:${roomId}`;
+            await redisClient.set(lastMessageInRoomKey, sanitizedMessage.id.toString());
 
             while (deviceMessages.length) {
                 await Promise.all(

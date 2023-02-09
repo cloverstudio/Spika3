@@ -110,19 +110,56 @@ export default ({ redisClient }: InitRouterParams): Router => {
 
             const findMessages = process.hrtime();
 
+            const messagesIds = await Promise.all(
+                roomsIds.map(async (roomId) => {
+                    const key = `last_message:${roomId}`;
+                    const lastMessageId = await redisClient.get(key);
+
+                    if (lastMessageId && lastMessageId !== "null") {
+                        return +lastMessageId;
+                    } else if (lastMessageId === "null") {
+                        return null;
+                    }
+
+                    const roomUser = roomUsers.find((ru) => ru.roomId === roomId);
+
+                    if (!roomUser) {
+                        return null;
+                    }
+
+                    const lastMessage = await prisma.message.findFirst({
+                        where: {
+                            roomId,
+                        },
+                        orderBy: {
+                            createdAt: "desc",
+                        },
+                    });
+
+                    if (!lastMessage) {
+                        await redisClient.set(key, "null");
+
+                        return null;
+                    } else if (+lastMessage.modifiedAt <= +roomUser.createdAt) {
+                        return null;
+                    }
+
+                    await redisClient.set(key, lastMessage.id.toString());
+
+                    return lastMessage.id;
+                })
+            );
+
             const messages = await prisma.message.findMany({
                 where: {
-                    roomId: { in: roomsIds },
+                    id: { in: messagesIds.filter(Boolean) },
                 },
-                distinct: ["roomId"],
                 orderBy: {
                     createdAt: "desc",
                 },
-                skip: Constants.PAGING_LIMIT * (page - 1),
-                take: Constants.PAGING_LIMIT,
+                skip: Constants.HISTORY_PAGING_LIMIT * (page - 1),
+                take: Constants.HISTORY_PAGING_LIMIT,
             });
-
-            console.log({ object: messages.length });
 
             l(
                 `[FIND MESSAGES] ${utils
@@ -162,7 +199,7 @@ export default ({ redisClient }: InitRouterParams): Router => {
                             where: {
                                 roomId: m.roomId,
                                 createdAt: {
-                                    gte: roomUser.createdAt,
+                                    gt: roomUser.createdAt,
                                 },
                                 messageRecords: {
                                     none: {

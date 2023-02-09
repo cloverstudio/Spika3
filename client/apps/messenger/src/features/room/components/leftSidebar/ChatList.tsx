@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import Avatar from "@mui/material/Avatar";
 import Badge from "@mui/material/Badge";
-import { Box } from "@mui/material";
+import { Box, Skeleton } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import { fetchHistory, selectHistory, selectHistoryLoading } from "../../slices/leftSidebar";
 
@@ -65,8 +65,6 @@ export default function SidebarChatList(): React.ReactElement {
         const pinned = sorted.filter((r) => r.pinned);
         return [...pinned, ...sorted.filter((r) => !r.pinned)];
     };
-
-    console.log({ list });
 
     return (
         <Box sx={{ overflowY: "auto", maxHeight: "100%" }}>
@@ -132,7 +130,33 @@ function RoomRow({ id, isActive, lastMessage, handleClick, unreadCount }: RoomRo
         }
     }, [lastMessage]);
 
-    if (isLoading) return <></>;
+    if (isLoading)
+        return (
+            <Link to={`/rooms/${id}`} onClick={handleClick} style={{ textDecoration: "none" }}>
+                <Box
+                    bgcolor={isActive ? "action.hover" : "transparent"}
+                    px={2.5}
+                    py={1.5}
+                    display="flex"
+                >
+                    <Skeleton width={50} height={50} variant="circular" />
+                    <Box
+                        display="flex"
+                        justifyContent="space-between"
+                        alignItems="center"
+                        ml={2}
+                        flexGrow={1}
+                        overflow="hidden"
+                    >
+                        <Box flexGrow={1} overflow="hidden" mr={12}>
+                            <Skeleton sx={{ mb: 1, mr: 3 }} />
+
+                            <Skeleton height="1.125rem" />
+                        </Box>
+                    </Box>
+                </Box>
+            </Link>
+        );
 
     const room = formatRoomInfo(data, me.id);
     const { name, users, avatarFileId, type, muted, pinned } = room;
