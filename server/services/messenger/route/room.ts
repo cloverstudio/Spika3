@@ -923,7 +923,6 @@ export async function getRoomById(id: number, redisClient: ReturnType<typeof cre
     const room = await redisClient.get(key);
 
     if (room) {
-        l("getRoomById from redis", id);
         return JSON.parse(room) as Room & {
             users: (RoomUser & {
                 user: User;
@@ -943,7 +942,6 @@ export async function getRoomById(id: number, redisClient: ReturnType<typeof cre
             },
         },
     });
-    l("getRoomById from db", id);
     await redisClient.set(key, JSON.stringify(roomFromDb));
 
     return roomFromDb;

@@ -107,7 +107,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             } else {
                 const contacts = await prisma.contact.findMany({
                     where: {
-                        user: userReq.user,
+                        userId: userReq.user.id,
                         contact: condition,
                     },
                     include: {
@@ -130,7 +130,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
                 const count = await prisma.contact.count({
                     where: {
-                        user: userReq.user,
+                        userId: userReq.user.id,
                         contact: condition,
                     },
                 });
