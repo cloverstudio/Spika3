@@ -19,6 +19,7 @@ import createSSEMessageRecordsNotify from "../lib/sseMessageRecordsNotify";
 import prisma from "../../../components/prisma";
 import { isRoomBlocked } from "./block";
 import { handleNewMessage } from "../../../components/chatGPT";
+import { getRoomById } from "./room";
 
 const postMessageSchema = yup.object().shape({
     body: yup.object().shape({
@@ -60,16 +61,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 return res.status(400).send(errorResponse("Room user not found", userReq.lang));
             }
 
-            const room = await prisma.room.findUnique({
-                where: { id: roomId },
-                include: {
-                    users: {
-                        include: {
-                            user: true,
-                        },
-                    },
-                },
-            });
+            const room = await getRoomById(roomId, redisClient);
 
             if (!room) {
                 return res.status(400).send(errorResponse("Room not found", userReq.lang));

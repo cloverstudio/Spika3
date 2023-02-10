@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import { RoomUser, Room, User } from "@prisma/client";
 
 import { UserRequest } from "../lib/types";
-import { error as le } from "../../../components/logger";
+import l, { error as le } from "../../../components/logger";
 
 import auth from "../lib/auth";
 import * as yup from "yup";
@@ -179,6 +179,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 where: { id, deleted: false },
                 include: { users: true },
             });
+
             if (!room) {
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
@@ -255,6 +256,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const id = parseInt((req.params.id as string) || "");
 
             const room = await prisma.room.findFirst({ where: { id }, include: { users: true } });
+
             if (!room) {
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
@@ -916,11 +918,12 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
     return router;
 };
 
-async function getRoomById(id: number, redisClient: ReturnType<typeof createClient>) {
+export async function getRoomById(id: number, redisClient: ReturnType<typeof createClient>) {
     const key = `${Constants.ROOM_PREFIX}${id}`;
     const room = await redisClient.get(key);
 
     if (room) {
+        l("getRoomById from redis", id);
         return JSON.parse(room) as Room & {
             users: (RoomUser & {
                 user: User;
@@ -928,7 +931,7 @@ async function getRoomById(id: number, redisClient: ReturnType<typeof createClie
         };
     }
 
-    const roomFromDb = await prisma.room.findFirst({
+    const roomFromDb = await prisma.room.findUnique({
         where: {
             id,
         },
@@ -940,7 +943,7 @@ async function getRoomById(id: number, redisClient: ReturnType<typeof createClie
             },
         },
     });
-
+    l("getRoomById from db", id);
     await redisClient.set(key, JSON.stringify(roomFromDb));
 
     return roomFromDb;

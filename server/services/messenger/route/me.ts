@@ -107,7 +107,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             });
 
             for (const roomUser of roomsUser) {
-                const key = `room:${roomUser.roomId}`;
+                const key = `${Constants.ROOM_PREFIX}${roomUser.roomId}`;
                 await redisClient.del(key);
             }
         } catch (e: any) {
