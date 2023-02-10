@@ -97,7 +97,7 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
     });
 
     if (response.status !== 200) {
-        le(`FCM ERROR, ${JSON.stringify({ data, resData: response.data }, null, 4)}`);
+        // le(`FCM ERROR, ${JSON.stringify({ data, resData: response.data }, null, 4)}`);
         throw new Error("FCM error");
     }
 

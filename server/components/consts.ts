@@ -4,6 +4,7 @@ export const TOKEN_EXPIRED = 60 * 60 * 24 * 30; // sec
 export const ACCESS_TOKEN = "accesstoken";
 export const PAGING_LIMIT = 10;
 export const CONTACT_PAGING_LIMIT = 20;
+export const HISTORY_PAGING_LIMIT = 20;
 export const MESSAGE_PAGING_LIMIT = 50;
 
 export const TOKEN_VALID_DAY = 30;
@@ -38,3 +39,5 @@ export const MESSAGE_RECORD_VALID_TYPES = ["seen", "delivered", "reaction"];
 
 export const ROOM_MUTE_PREFIX = "mute_";
 export const ROOM_PIN_PREFIX = "pin_";
+export const ROOM_PREFIX = "room_";
+export const LAST_MESSAGE_PREFIX = "lastMessage_";

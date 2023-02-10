@@ -34,6 +34,7 @@ model User {
   blocks          Block[]         @relation("blocks")
   blockedBy       Block[]         @relation("blockedBy")
 
+  @@index([displayName])
   @@map(name: "user")
 }
 
@@ -68,6 +69,7 @@ model Device {
 
   messages Message[]
 
+  @@index([token])
   @@map(name: "device")
 }
 
@@ -157,6 +159,7 @@ model Message {
 
   localId String? @map(name: "local_id")
 
+  @@index([roomId, createdAt(sort: Desc)])
   @@map(name: "message")
 }
 
@@ -177,6 +180,7 @@ model DeviceMessage {
   modifiedAt DateTime @default(now()) @map(name: "modified_at")
   deleted    Boolean  @default(false) @map(name: "deleted")
 
+  @@index([deviceId, userId, messageId])
   @@map(name: "message_device")
 }
 

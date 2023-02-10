@@ -146,9 +146,10 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 },
             });
 
-            const sanitizedRoom = sanitize({ ...room, muted: false, pinned: false }).room();
+            const key = `${Constants.ROOM_PREFIX}${room.id}`;
+            await redisClient.set(key, JSON.stringify(room));
 
-            sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_NEW_ROOM);
+            const sanitizedRoom = sanitize({ ...room, muted: false, pinned: false }).room();
 
             res.send(
                 successResponse(
@@ -159,6 +160,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 )
             );
 
+            sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_NEW_ROOM);
             handleNewRoom({ users: foundUsers, room, rabbitMQChannel });
         } catch (e: any) {
             le(e);
@@ -177,6 +179,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 where: { id, deleted: false },
                 include: { users: true },
             });
+
             if (!room) {
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
@@ -230,6 +233,9 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 },
             });
 
+            const key = `${Constants.ROOM_PREFIX}${id}`;
+            await redisClient.set(key, JSON.stringify(updated));
+
             const muted = await isRoomMuted({ roomId: id, userId: userReq.user.id, redisClient });
             const pinned = await isRoomPinned({ roomId: id, userId: userReq.user.id, redisClient });
 
@@ -250,6 +256,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const id = parseInt((req.params.id as string) || "");
 
             const room = await prisma.room.findFirst({ where: { id }, include: { users: true } });
+
             if (!room) {
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
@@ -276,6 +283,9 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     },
                 },
             });
+
+            const key = `${Constants.ROOM_PREFIX}${id}`;
+            await redisClient.set(key, JSON.stringify(updated));
 
             const muted = await isRoomMuted({
                 roomId: updated.id,
@@ -406,6 +416,9 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     });
                 }
 
+                const key = `${Constants.ROOM_PREFIX}${id}`;
+                await redisClient.set(key, JSON.stringify(updated));
+
                 const muted = await isRoomMuted({
                     roomId: updated.id,
                     userId: userReq.user.id,
@@ -491,6 +504,9 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                         redisClient,
                     });
 
+                    const key = `${Constants.ROOM_PREFIX}${room.id}`;
+                    await redisClient.set(key, JSON.stringify(room));
+
                     return sanitize({ ...room, muted, pinned }).room();
                 })
             );
@@ -536,21 +552,11 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
 
             const existingRoomResult: Room[] = await prisma.$queryRawUnsafe<Room[]>(query);
 
-            if (existingRoomResult.length === 0)
+            if (existingRoomResult.length === 0) {
                 return res.status(404).send(errorResponse("Room not found", userReq.lang));
+            }
 
-            const room = await prisma.room.findFirst({
-                where: {
-                    id: existingRoomResult[0].id,
-                },
-                include: {
-                    users: {
-                        include: {
-                            user: true,
-                        },
-                    },
-                },
-            });
+            const room = await getRoomById(existingRoomResult[0].id, redisClient);
 
             if (!room || room.users.length < 2) {
                 return res.status(404).send(errorResponse("Room not found", userReq.lang));
@@ -583,23 +589,22 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
         try {
             const id = parseInt((req.params.id as string) || "");
 
-            const room = await prisma.room.findFirst({
+            if (!id) {
+                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+            }
+
+            const roomUser = await prisma.roomUser.findFirst({
                 where: {
-                    id,
-                    users: {
-                        some: {
-                            userId: userReq.user.id,
-                        },
-                    },
-                },
-                include: {
-                    users: {
-                        include: {
-                            user: true,
-                        },
-                    },
+                    roomId: id,
+                    userId: userReq.user.id,
                 },
             });
+
+            if (!roomUser) {
+                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+            }
+
+            const room = await getRoomById(id, redisClient);
 
             if (!room) {
                 return res.status(404).send(errorResponse("Room not found", userReq.lang));
@@ -656,43 +661,24 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                         OR: [{ modifiedAt: { gt: new Date(lastUpdate) } }, { id: { in: roomIds } }],
                     },
                 },
-                select: {
-                    room: {
-                        select: {
-                            id: true,
-                            name: true,
-                            type: true,
-                            avatarFileId: true,
-                            createdAt: true,
-                            modifiedAt: true,
-                            deleted: true,
-                            users: {
-                                select: {
-                                    user: true,
-                                    isAdmin: true,
-                                    userId: true,
-                                },
-                            },
-                        },
-                    },
-                },
             });
 
             const roomsSanitized = await Promise.all(
-                roomsUser.map(async (ru) => {
+                roomsUser.map(async ({ roomId }) => {
+                    const room = await getRoomById(roomId, redisClient);
                     const muted = await isRoomMuted({
-                        roomId: ru.room.id,
-                        userId: userReq.user.id,
+                        roomId,
+                        userId,
                         redisClient,
                     });
 
                     const pinned = await isRoomPinned({
-                        roomId: ru.room.id,
-                        userId: userReq.user.id,
+                        roomId,
+                        userId,
                         redisClient,
                     });
 
-                    return sanitize({ ...ru.room, muted, pinned }).room();
+                    return sanitize({ ...room, muted, pinned }).room();
                 })
             );
 
@@ -709,29 +695,17 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
         try {
             const id = parseInt((req.params.id as string) || "");
 
-            const room = await prisma.room.findFirst({
-                where: {
-                    id,
-                },
-                include: {
-                    users: {
-                        include: {
-                            user: true,
-                        },
-                    },
-                },
-            });
+            if (!id) {
+                return res.status(400).send(errorResponse("id is required", userReq.lang));
+            }
+
+            const room = await getRoomById(id, redisClient);
 
             if (!room) {
                 return res.status(404).send(errorResponse("Room not found", userReq.lang));
             }
 
-            const roomsUser = await prisma.roomUser.findFirst({
-                where: {
-                    userId: userReq.user.id,
-                    roomId: id,
-                },
-            });
+            const roomsUser = isRoomUserCheck(userReq.user.id, room.users);
 
             if (!roomsUser) {
                 return res
@@ -782,29 +756,17 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
         try {
             const id = parseInt((req.params.id as string) || "");
 
-            const room = await prisma.room.findFirst({
-                where: {
-                    id,
-                },
-                include: {
-                    users: {
-                        include: {
-                            user: true,
-                        },
-                    },
-                },
-            });
+            if (!id) {
+                return res.status(400).send(errorResponse("id is required", userReq.lang));
+            }
+
+            const room = await getRoomById(id, redisClient);
 
             if (!room) {
                 return res.status(404).send(errorResponse("Room not found", userReq.lang));
             }
 
-            const roomsUser = await prisma.roomUser.findFirst({
-                where: {
-                    userId: userReq.user.id,
-                    roomId: id,
-                },
-            });
+            const roomsUser = isRoomUserCheck(userReq.user.id, room.users);
 
             if (!roomsUser) {
                 return res
@@ -846,29 +808,17 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
         try {
             const id = parseInt((req.params.id as string) || "");
 
-            const room = await prisma.room.findFirst({
-                where: {
-                    id,
-                },
-                include: {
-                    users: {
-                        include: {
-                            user: true,
-                        },
-                    },
-                },
-            });
+            if (!id) {
+                return res.status(400).send(errorResponse("id is required", userReq.lang));
+            }
+
+            const room = await getRoomById(id, redisClient);
 
             if (!room) {
                 return res.status(404).send(errorResponse("Room not found", userReq.lang));
             }
 
-            const roomsUser = await prisma.roomUser.findFirst({
-                where: {
-                    userId: userReq.user.id,
-                    roomId: id,
-                },
-            });
+            const roomsUser = isRoomUserCheck(userReq.user.id, room.users);
 
             if (!roomsUser) {
                 return res
@@ -919,29 +869,17 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
         try {
             const id = parseInt((req.params.id as string) || "");
 
-            const room = await prisma.room.findFirst({
-                where: {
-                    id,
-                },
-                include: {
-                    users: {
-                        include: {
-                            user: true,
-                        },
-                    },
-                },
-            });
+            if (!id) {
+                return res.status(400).send(errorResponse("id is required", userReq.lang));
+            }
+
+            const room = await getRoomById(id, redisClient);
 
             if (!room) {
                 return res.status(404).send(errorResponse("Room not found", userReq.lang));
             }
 
-            const roomsUser = await prisma.roomUser.findFirst({
-                where: {
-                    userId: userReq.user.id,
-                    roomId: id,
-                },
-            });
+            const roomsUser = isRoomUserCheck(userReq.user.id, room.users);
 
             if (!roomsUser) {
                 return res
@@ -979,6 +917,35 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
 
     return router;
 };
+
+export async function getRoomById(id: number, redisClient: ReturnType<typeof createClient>) {
+    const key = `${Constants.ROOM_PREFIX}${id}`;
+    const room = await redisClient.get(key);
+
+    if (room) {
+        return JSON.parse(room) as Room & {
+            users: (RoomUser & {
+                user: User;
+            })[];
+        };
+    }
+
+    const roomFromDb = await prisma.room.findUnique({
+        where: {
+            id,
+        },
+        include: {
+            users: {
+                include: {
+                    user: true,
+                },
+            },
+        },
+    });
+    await redisClient.set(key, JSON.stringify(roomFromDb));
+
+    return roomFromDb;
+}
 
 function getRoomName(initialName: string, usersCount: number) {
     if (initialName) {
@@ -1024,10 +991,10 @@ function canLeaveRoomCheck(userId: number, roomUsers: RoomUser[]) {
     return false;
 }
 
-interface UpdateRoomUsersParams {
+type UpdateRoomUsersParams = {
     room: Room & { users: RoomUser[] };
     newIds: number[];
-}
+};
 
 async function updateRoomUsers({ newIds, room }: UpdateRoomUsersParams): Promise<void> {
     const currentIds = room.users.map((u) => u.userId);
@@ -1049,10 +1016,10 @@ async function updateRoomUsers({ newIds, room }: UpdateRoomUsersParams): Promise
     });
 }
 
-interface UpdateRoomAdminUsersParams {
+type UpdateRoomAdminUsersParams = {
     room: Room & { users: RoomUser[] };
     newAdminIds: number[];
-}
+};
 
 async function updateRoomAdminUsers({
     newAdminIds,

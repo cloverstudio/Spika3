@@ -3,9 +3,14 @@ import { Link, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import Avatar from "@mui/material/Avatar";
 import Badge from "@mui/material/Badge";
-import { Box } from "@mui/material";
+import { Box, CircularProgress, Skeleton } from "@mui/material";
 import Typography from "@mui/material/Typography";
-import { fetchHistory, selectHistory, selectHistoryLoading } from "../../slices/leftSidebar";
+import {
+    fetchHistory,
+    selectHistory,
+    selectHistoryLoading,
+    setKeyword,
+} from "../../slices/leftSidebar";
 
 import useIsInViewport from "../../../../hooks/useIsInViewport";
 
@@ -14,10 +19,12 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { setLeftSidebar } from "../../slices/leftSidebar";
 import SearchBox from "../SearchBox";
-import { RoomType, RoomUserType } from "../../../../types/Rooms";
 import NotificationsOff from "@mui/icons-material/NotificationsOff";
 import Pin from "@mui/icons-material/PushPin";
 import useStrings from "../../../../hooks/useStrings";
+import { useGetRoomQuery } from "../../api/room";
+import formatRoomInfo from "../../lib/formatRoomInfo";
+import { selectUser } from "../../../../store/userSlice";
 
 dayjs.extend(relativeTime);
 declare const UPLOADS_BASE_URL: string;
@@ -27,32 +34,25 @@ export default function SidebarChatList(): React.ReactElement {
     const dispatch = useDispatch();
     const activeRoomId = parseInt(useParams().id || "");
 
-    const { list, count } = useSelector(selectHistory);
+    const list = useSelector(selectHistory);
     const loading = useSelector(selectHistoryLoading());
 
-    const [page, setPage] = useState(1);
     const { isInViewPort, elementRef } = useIsInViewport();
     const onChatClick = () => dispatch(setLeftSidebar(false));
-    const isFetching = loading !== "idle";
-    const [keyword, setKeyword] = useState<string>("");
-
-    const hasMoreContactsToLoad = count > list.length;
+    const isFetching = loading === "pending";
 
     useEffect(() => {
-        dispatch(fetchHistory({ page: page, keyword }));
-    }, [dispatch, page]);
-
-    // user changes keyword => reset page to 1 => do search
-    useEffect(() => {
-        if (page === 1) dispatch(fetchHistory({ page: 1, keyword }));
-        else setPage(1);
-    }, [keyword]);
-
-    useEffect(() => {
-        if (isInViewPort && !isFetching && hasMoreContactsToLoad) {
-            setPage((page) => page + 1);
+        if (isInViewPort) {
+            dispatch(fetchHistory());
         }
-    }, [isInViewPort, isFetching, hasMoreContactsToLoad]);
+    }, [dispatch, isInViewPort]);
+
+    useEffect(() => {
+        return () => {
+            dispatch(setKeyword(""));
+            dispatch(fetchHistory());
+        };
+    }, [dispatch]);
 
     const sortRooms = (): typeof list => {
         const sorted = [...list].sort((a, b) =>
@@ -60,67 +60,59 @@ export default function SidebarChatList(): React.ReactElement {
         );
 
         const pinned = sorted.filter((r) => r.pinned);
-
-        const pinnedSorted = pinned.sort((a, b) => a.name.localeCompare(b.name));
-
-        return [...pinnedSorted, ...sorted.filter((r) => !r.pinned)];
+        return [...pinned, ...sorted.filter((r) => !r.pinned)];
     };
 
     return (
         <Box sx={{ overflowY: "auto", maxHeight: "100%" }}>
             <Box mt={3}>
                 <SearchBox
-                    onSearch={(keyword: string) => {
-                        setKeyword(keyword);
+                    onSearch={(keyword) => {
+                        dispatch(setKeyword(keyword));
+                        dispatch(fetchHistory());
                     }}
                 />
             </Box>
 
-            {list.length === 0 && !isFetching ? (
+            {list.length === 0 && !isFetching && (
                 <Typography align="center">{strings.noRooms}</Typography>
-            ) : (
-                <>
-                    {sortRooms().map((room) => {
-                        return (
-                            <RoomRow
-                                key={room.id}
-                                {...room}
-                                isActive={room.id === activeRoomId}
-                                handleClick={onChatClick}
-                            />
-                        );
-                    })}
-                </>
             )}
 
-            <div ref={elementRef}></div>
+            {sortRooms().map(({ roomId, unreadCount, lastMessage }) => {
+                return (
+                    <RoomRow
+                        key={roomId}
+                        id={roomId}
+                        lastMessage={lastMessage}
+                        unreadCount={unreadCount}
+                        isActive={roomId === activeRoomId}
+                        handleClick={onChatClick}
+                    />
+                );
+            })}
+
+            <Box textAlign="center" height="50px" ref={elementRef}>
+                {isFetching && <CircularProgress />}
+            </Box>
         </Box>
     );
 }
 
-type RoomRowProps = RoomType & {
+type RoomRowProps = {
+    id: number;
+    unreadCount: number;
     lastMessage: MessageType;
     handleClick: () => void;
     isActive?: boolean;
 };
 
-function RoomRow({
-    id,
-    isActive,
-    name,
-    avatarFileId,
-    lastMessage,
-    handleClick,
-    unreadCount,
-    type,
-    users,
-    muted,
-    pinned,
-}: RoomRowProps) {
+function RoomRow({ id, isActive, lastMessage, handleClick, unreadCount }: RoomRowProps) {
     const strings = useStrings();
+    const me = useSelector(selectUser);
     const [time, setTime] = useState(
         lastMessage?.createdAt && dayjs(lastMessage.createdAt).fromNow()
     );
+    const { data, isLoading } = useGetRoomQuery(id);
 
     useEffect(() => {
         if (lastMessage?.createdAt) {
@@ -136,6 +128,36 @@ function RoomRow({
         }
     }, [lastMessage]);
 
+    if (isLoading)
+        return (
+            <Link to={`/rooms/${id}`} onClick={handleClick} style={{ textDecoration: "none" }}>
+                <Box
+                    bgcolor={isActive ? "action.hover" : "transparent"}
+                    px={2.5}
+                    py={1.5}
+                    display="flex"
+                >
+                    <Skeleton width={50} height={50} variant="circular" />
+                    <Box
+                        display="flex"
+                        justifyContent="space-between"
+                        alignItems="center"
+                        ml={2}
+                        flexGrow={1}
+                        overflow="hidden"
+                    >
+                        <Box flexGrow={1} overflow="hidden" mr={12}>
+                            <Skeleton sx={{ mb: 1, mr: 3 }} />
+
+                            <Skeleton height="1.125rem" />
+                        </Box>
+                    </Box>
+                </Box>
+            </Link>
+        );
+
+    const room = formatRoomInfo(data, me.id);
+    const { name, users, avatarFileId, type, muted, pinned } = room;
     const lastMessageType = lastMessage?.type;
 
     let lastMessageText = lastMessage?.body?.text;

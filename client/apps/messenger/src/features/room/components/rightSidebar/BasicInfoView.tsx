@@ -19,7 +19,6 @@ import { RoomType } from "../../../../types/Rooms";
 import { crop } from "../../../../utils/crop";
 import uploadFile from "../../../../utils/uploadFile";
 import { useUpdateRoomMutation } from "../../api/room";
-import { refreshOne as refreshOneRoom } from "../../slices/leftSidebar";
 import { selectOtherUserIdInPrivateRoom } from "../../slices/messages";
 import { EditPhotoDialog } from "../EditProfile";
 
@@ -109,12 +108,10 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
     const removeProfilePhoto = async () => {
         try {
             setLoading(true);
-            const { room } = await update({
+            await update({
                 roomId: roomData.id,
                 data: { name: proposedName, avatarFileId: 0 },
             }).unwrap();
-
-            dispatch(refreshOneRoom(room));
 
             setLoading(false);
             closeEditName();
@@ -129,8 +126,6 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
         try {
             setLoading(true);
 
-            let updatedRoom: RoomType | null = null;
-
             if (file) {
                 const uploadedFile = await uploadFile({
                     file,
@@ -138,25 +133,19 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
                     relationId: roomData.id,
                 });
 
-                const { room } = await update({
+                await update({
                     roomId: roomData.id,
                     data: {
                         name: proposedName,
                         avatarFileId: uploadedFile.id,
                     },
                 }).unwrap();
-
-                updatedRoom = room;
             } else {
-                const { room } = await update({
+                await update({
                     roomId: roomData.id,
                     data: { name: proposedName },
                 }).unwrap();
-
-                updatedRoom = room;
             }
-
-            dispatch(refreshOneRoom(updatedRoom));
 
             setName(proposedName);
             setLoading(false);

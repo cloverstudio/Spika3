@@ -17,7 +17,7 @@ export type RoomType = Omit<Room, "users" | "createdAt"> & {
 };
 
 export type HistoryType = {
-    list: (RoomType & { lastMessage: MessageType })[];
+    list: { roomId: number; lastMessage: MessageType }[];
     count: number;
     limit: number;
 };

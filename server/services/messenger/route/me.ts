@@ -22,7 +22,7 @@ const updateSchema = yup.object().shape({
     }),
 });
 
-export default ({ rabbitMQChannel }: InitRouterParams): Router => {
+export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
     const router = Router();
 
     router.get("/", auth, async (req: Request, res: Response) => {
@@ -100,6 +100,15 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         )
                     );
                 }
+            }
+
+            const roomsUser = await prisma.roomUser.findMany({
+                where: { userId: user.id },
+            });
+
+            for (const roomUser of roomsUser) {
+                const key = `${Constants.ROOM_PREFIX}${roomUser.roomId}`;
+                await redisClient.del(key);
             }
         } catch (e: any) {
             le(e);

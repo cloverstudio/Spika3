@@ -23,7 +23,7 @@ export default async (req: Request, res: Response, next: Function) => {
 
         const accessToken: string = req.headers[constants.ACCESS_TOKEN] as string;
 
-        let device = await prisma.device.findFirst({
+        const device = await prisma.device.findFirst({
             where: {
                 token: accessToken,
             },
