@@ -5,31 +5,41 @@ export async function formatMessageBody(body: any, messageType: string): Promise
         return body;
     }
 
-    const file = await prisma.file.findFirst({
-        where: {
-            id: body.fileId,
-        },
-        select: {
-            id: true,
-            fileName: true,
-            mimeType: true,
-            size: true,
-            metaData: true,
-        },
-    });
+    const formatted = { ...body };
 
-    const thumb = await prisma.file.findFirst({
-        where: {
-            id: body.thumbId,
-        },
-        select: {
-            id: true,
-            fileName: true,
-            mimeType: true,
-            size: true,
-            metaData: true,
-        },
-    });
+    if (body.fileId) {
+        const file = await prisma.file.findUnique({
+            where: {
+                id: body.fileId,
+            },
+            select: {
+                id: true,
+                fileName: true,
+                mimeType: true,
+                size: true,
+                metaData: true,
+            },
+        });
 
-    return { ...body, file, thumb };
+        formatted.file = file;
+    }
+
+    if (body.thumbId) {
+        const thumb = await prisma.file.findUnique({
+            where: {
+                id: body.thumbId,
+            },
+            select: {
+                id: true,
+                fileName: true,
+                mimeType: true,
+                size: true,
+                metaData: true,
+            },
+        });
+
+        formatted.thumb = thumb;
+    }
+
+    return formatted;
 }

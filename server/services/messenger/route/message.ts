@@ -3,7 +3,7 @@ import { DeviceMessage, Message, MessageRecord } from "@prisma/client";
 import dayjs from "dayjs";
 
 import { UserRequest } from "../lib/types";
-import { error as le } from "../../../components/logger";
+import l, { error as le } from "../../../components/logger";
 
 import auth from "../lib/auth";
 import * as yup from "yup";
@@ -20,6 +20,7 @@ import prisma from "../../../components/prisma";
 import { isRoomBlocked } from "./block";
 import { handleNewMessage } from "../../../components/chatGPT";
 import { getRoomById } from "./room";
+import utils from "../../../components/utils";
 
 const postMessageSchema = yup.object().shape({
     body: yup.object().shape({
@@ -372,6 +373,22 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
         let take = Constants.MESSAGE_PAGING_LIMIT;
 
         try {
+            const start = process.hrtime();
+            const room = await getRoomById(roomId, redisClient);
+
+            if (!room) {
+                return res.status(404).send(errorResponse("No room found", userReq.lang));
+            }
+
+            const roomUser = room.users.find((u) => u.userId === userId);
+
+            if (!roomUser) {
+                return res.status(404).send(errorResponse("No room found", userReq.lang));
+            }
+
+            l(`getRoomById took ${utils.getDurationInMilliseconds(start).toLocaleString()} ms`);
+            const start2 = process.hrtime();
+
             // find how many messages needs to reach to the target message
             if (targetMessageId) {
                 const targetMessage = await prisma.message.findFirst({
@@ -397,25 +414,22 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const count = await prisma.message.count({
                 where: {
                     roomId,
-                    deviceMessages: {
-                        some: {
-                            deviceId,
-                        },
+                    createdAt: {
+                        gt: roomUser.createdAt,
                     },
                 },
             });
+            l(`getCount took ${utils.getDurationInMilliseconds(start2).toLocaleString()} ms`);
+            const start3 = process.hrtime();
 
             const messages = await prisma.message.findMany({
                 where: {
                     roomId,
-                    deviceMessages: {
-                        some: {
-                            deviceId,
-                        },
+                    createdAt: {
+                        gt: roomUser.createdAt,
                     },
                 },
                 include: {
-                    deviceMessages: true,
                     messageRecords: true,
                 },
                 orderBy: {
@@ -428,21 +442,17 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 }),
                 take: cursor ? take + 1 : take,
             });
-
-            const messageRecordsNotifyData = {
-                types: ["delivered"],
-                userId,
-                messageIds: messages.map((m) => m.id),
-                pushType: Constants.PUSH_TYPE_NEW_MESSAGE_RECORD,
-            };
-
-            sseMessageRecordsNotify(messageRecordsNotifyData);
+            l(`getMessages took ${utils.getDurationInMilliseconds(start3).toLocaleString()} ms`);
+            const start4 = process.hrtime();
 
             const list = await Promise.all(
                 messages.map(async (m) => {
-                    const deviceMessage = m.deviceMessages.find(
-                        (dm) => dm.messageId === m.id && dm.deviceId === deviceId
-                    );
+                    const deviceMessage = await prisma.deviceMessage.findFirst({
+                        where: {
+                            messageId: m.id,
+                            userId,
+                        },
+                    });
 
                     const { body, deleted } = deviceMessage || {};
 
@@ -454,8 +464,10 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     }).messageWithReactionRecords();
                 })
             );
+            l(`formatList took ${utils.getDurationInMilliseconds(start4).toLocaleString()} ms`);
 
             const nextCursor = list.length && list.length >= take ? list[list.length - 1].id : null;
+            l(`q took ${utils.getDurationInMilliseconds(start).toLocaleString()} ms`);
 
             res.send(
                 successResponse(
@@ -468,6 +480,28 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     userReq.lang
                 )
             );
+
+            const notDeliveredMessagesIds = messages
+                .filter(
+                    (m) =>
+                        !m.messageRecords.find(
+                            (mr) => mr.type === "delivered" && mr.userId === userId
+                        )
+                )
+                .map((m) => m.id);
+
+            console.log("notDeliveredMessagesIds", notDeliveredMessagesIds);
+
+            if (notDeliveredMessagesIds.length) {
+                const messageRecordsNotifyData = {
+                    types: ["delivered"],
+                    userId,
+                    messageIds: notDeliveredMessagesIds,
+                    pushType: Constants.PUSH_TYPE_NEW_MESSAGE_RECORD,
+                };
+
+                sseMessageRecordsNotify(messageRecordsNotifyData);
+            }
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
