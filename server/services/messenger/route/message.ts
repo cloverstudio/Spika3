@@ -365,7 +365,6 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
     router.get("/roomId/:roomId", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         const userId = userReq.user.id;
-        const deviceId = userReq.device.id;
         const targetMessageId = +((req.query.targetMessageId as string) || "");
         const cursor = +((req.query.cursor as string) || "");
         const roomId = +((req.params.roomId as string) || "");
@@ -373,7 +372,6 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
         let take = Constants.MESSAGE_PAGING_LIMIT;
 
         try {
-            const start = process.hrtime();
             const room = await getRoomById(roomId, redisClient);
 
             if (!room) {
@@ -385,9 +383,6 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             if (!roomUser) {
                 return res.status(404).send(errorResponse("No room found", userReq.lang));
             }
-
-            l(`getRoomById took ${utils.getDurationInMilliseconds(start).toLocaleString()} ms`);
-            const start2 = process.hrtime();
 
             // find how many messages needs to reach to the target message
             if (targetMessageId) {
@@ -419,8 +414,6 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     },
                 },
             });
-            l(`getCount took ${utils.getDurationInMilliseconds(start2).toLocaleString()} ms`);
-            const start3 = process.hrtime();
 
             const messages = await prisma.message.findMany({
                 where: {
@@ -442,8 +435,6 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 }),
                 take: cursor ? take + 1 : take,
             });
-            l(`getMessages took ${utils.getDurationInMilliseconds(start3).toLocaleString()} ms`);
-            const start4 = process.hrtime();
 
             const list = await Promise.all(
                 messages.map(async (m) => {
@@ -464,10 +455,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     }).messageWithReactionRecords();
                 })
             );
-            l(`formatList took ${utils.getDurationInMilliseconds(start4).toLocaleString()} ms`);
 
             const nextCursor = list.length && list.length >= take ? list[list.length - 1].id : null;
-            l(`q took ${utils.getDurationInMilliseconds(start).toLocaleString()} ms`);
 
             res.send(
                 successResponse(
@@ -489,8 +478,6 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                         )
                 )
                 .map((m) => m.id);
-
-            console.log("notDeliveredMessagesIds", notDeliveredMessagesIds);
 
             if (notDeliveredMessagesIds.length) {
                 const messageRecordsNotifyData = {

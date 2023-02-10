@@ -17,7 +17,7 @@ class sendPushWorker implements QueueWorkerInterface {
             const fcmMessagePayload = await formattingFunction(payload);
             await sendFcmMessage(fcmMessagePayload);
         } catch (error) {
-            // le({ pushSendError: error });
+            le({ pushSendError: error });
         }
     }
 }

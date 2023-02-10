@@ -8,7 +8,6 @@ export const fetchHistory = createAsyncThunk("room/fetchHistory", async (_, thun
     const noMore = count === 0 || !!(count && (page - 1) * 20 >= count);
 
     if (noMore) {
-        console.log({ count, page });
         throw new Error("Can't fetch");
     }
     let url = `/messenger/history?page=${page}`;

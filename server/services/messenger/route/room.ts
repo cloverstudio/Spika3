@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import { RoomUser, Room, User } from "@prisma/client";
 
 import { UserRequest } from "../lib/types";
-import l, { error as le } from "../../../components/logger";
+import { error as le } from "../../../components/logger";
 
 import auth from "../lib/auth";
 import * as yup from "yup";
