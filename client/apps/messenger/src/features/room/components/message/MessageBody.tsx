@@ -127,6 +127,8 @@ function ImageMessage({
         lineHeight: "1",
     };
 
+    const imageIsGif = file.mimeType === "image/gif";
+
     return (
         <>
             {text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
@@ -136,7 +138,7 @@ function ImageMessage({
                 borderRadius="0.625rem"
                 maxWidth="256px"
                 height="10vh"
-                src={thumbSrc}
+                src={imageIsGif ? imgSrc : thumbSrc}
                 pb="0.8125"
                 sx={{ cursor: "pointer", objectFit: "contain", bgcolor: "transparent" }}
             />

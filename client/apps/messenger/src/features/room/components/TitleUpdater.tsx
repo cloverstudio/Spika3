@@ -11,7 +11,7 @@ export default function TitleUpdater(): React.ReactElement {
     const roomId = parseInt(useParams().id || "");
     const { data: room } = useGetRoomQuery(roomId);
 
-    const { list } = useSelector(selectHistory);
+    const list = useSelector(selectHistory);
     const name = room?.name || "";
 
     useEffect(() => {

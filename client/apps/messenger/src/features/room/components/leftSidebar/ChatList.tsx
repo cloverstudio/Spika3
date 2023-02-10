@@ -3,9 +3,14 @@ import { Link, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import Avatar from "@mui/material/Avatar";
 import Badge from "@mui/material/Badge";
-import { Box, Skeleton } from "@mui/material";
+import { Box, CircularProgress, Skeleton } from "@mui/material";
 import Typography from "@mui/material/Typography";
-import { fetchHistory, selectHistory, selectHistoryLoading } from "../../slices/leftSidebar";
+import {
+    fetchHistory,
+    selectHistory,
+    selectHistoryLoading,
+    setKeyword,
+} from "../../slices/leftSidebar";
 
 import useIsInViewport from "../../../../hooks/useIsInViewport";
 
@@ -14,7 +19,6 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { setLeftSidebar } from "../../slices/leftSidebar";
 import SearchBox from "../SearchBox";
-import { RoomType, RoomUserType } from "../../../../types/Rooms";
 import NotificationsOff from "@mui/icons-material/NotificationsOff";
 import Pin from "@mui/icons-material/PushPin";
 import useStrings from "../../../../hooks/useStrings";
@@ -30,32 +34,25 @@ export default function SidebarChatList(): React.ReactElement {
     const dispatch = useDispatch();
     const activeRoomId = parseInt(useParams().id || "");
 
-    const { list, count } = useSelector(selectHistory);
+    const list = useSelector(selectHistory);
     const loading = useSelector(selectHistoryLoading());
 
-    const [page, setPage] = useState(1);
     const { isInViewPort, elementRef } = useIsInViewport();
     const onChatClick = () => dispatch(setLeftSidebar(false));
-    const isFetching = loading !== "idle";
-    const [keyword, setKeyword] = useState<string>("");
-
-    const hasMoreContactsToLoad = count > list.length;
+    const isFetching = loading === "pending";
 
     useEffect(() => {
-        dispatch(fetchHistory({ page: page, keyword }));
-    }, [dispatch, page]);
-
-    // user changes keyword => reset page to 1 => do search
-    useEffect(() => {
-        if (page === 1) dispatch(fetchHistory({ page: 1, keyword }));
-        else setPage(1);
-    }, [keyword]);
-
-    useEffect(() => {
-        if (isInViewPort && !isFetching && hasMoreContactsToLoad) {
-            setPage((page) => page + 1);
+        if (isInViewPort) {
+            dispatch(fetchHistory());
         }
-    }, [isInViewPort, isFetching, hasMoreContactsToLoad]);
+    }, [dispatch, isInViewPort]);
+
+    useEffect(() => {
+        return () => {
+            dispatch(setKeyword(""));
+            dispatch(fetchHistory());
+        };
+    }, [dispatch]);
 
     const sortRooms = (): typeof list => {
         const sorted = [...list].sort((a, b) =>
@@ -70,32 +67,33 @@ export default function SidebarChatList(): React.ReactElement {
         <Box sx={{ overflowY: "auto", maxHeight: "100%" }}>
             <Box mt={3}>
                 <SearchBox
-                    onSearch={(keyword: string) => {
-                        setKeyword(keyword);
+                    onSearch={(keyword) => {
+                        dispatch(setKeyword(keyword));
+                        dispatch(fetchHistory());
                     }}
                 />
             </Box>
 
-            {list.length === 0 && !isFetching ? (
+            {list.length === 0 && !isFetching && (
                 <Typography align="center">{strings.noRooms}</Typography>
-            ) : (
-                <>
-                    {sortRooms().map(({ roomId, unreadCount, lastMessage }) => {
-                        return (
-                            <RoomRow
-                                key={roomId}
-                                id={roomId}
-                                lastMessage={lastMessage}
-                                unreadCount={unreadCount}
-                                isActive={roomId === activeRoomId}
-                                handleClick={onChatClick}
-                            />
-                        );
-                    })}
-                </>
             )}
 
-            <div ref={elementRef}></div>
+            {sortRooms().map(({ roomId, unreadCount, lastMessage }) => {
+                return (
+                    <RoomRow
+                        key={roomId}
+                        id={roomId}
+                        lastMessage={lastMessage}
+                        unreadCount={unreadCount}
+                        isActive={roomId === activeRoomId}
+                        handleClick={onChatClick}
+                    />
+                );
+            })}
+
+            <Box textAlign="center" height="50px" ref={elementRef}>
+                {isFetching && <CircularProgress />}
+            </Box>
         </Box>
     );
 }

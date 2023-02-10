@@ -2,32 +2,40 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { dynamicBaseQuery } from "../../../api/api";
 import type { RootState } from "../../../store/store";
 import MessageType from "../../../types/Message";
-import { RoomType } from "../../../types/Rooms";
 
-export const fetchHistory = createAsyncThunk(
-    "room/fetchHistory",
-    async (args: { page: number; keyword: string }, thunkAPI) => {
-        const response = await dynamicBaseQuery(
-            `/messenger/history?page=${args.page}&keyword=${args.keyword}`
-        );
+export const fetchHistory = createAsyncThunk("room/fetchHistory", async (_, thunkAPI) => {
+    const { count, page, keyword } = (thunkAPI.getState() as RootState).leftSidebar.history;
+    const noMore = count === 0 || !!(count && (page - 1) * 20 >= count);
 
-        return {
-            data: response.data,
-            keyword: args.keyword,
-            page: args.page,
-        };
+    if (noMore) {
+        console.log({ count, page });
+        throw new Error("Can't fetch");
     }
-);
+    let url = `/messenger/history?page=${page}`;
 
-type HistoryState = {
-    list: {
-        roomId: number;
-        lastMessage: MessageType;
-        unreadCount?: number;
-        muted: boolean;
-        pinned: boolean;
-    }[];
+    if (keyword) {
+        url += `&keyword=${keyword}`;
+    }
+
+    const response = await dynamicBaseQuery(url);
+
+    return {
+        data: response.data,
+    };
+});
+
+type HistoryListType = {
+    roomId: number;
+    lastMessage: MessageType;
+    unreadCount?: number;
+    muted: boolean;
+    pinned: boolean;
+}[];
+
+type HistoryStateType = {
+    list: HistoryListType;
     count: number;
+    page: number;
     loading: "idle" | "pending" | "succeeded" | "failed";
     keyword: string;
 };
@@ -37,7 +45,7 @@ type InitialState = {
     show: boolean;
     activeTab: ActiveTabType;
     showProfileEditing: boolean;
-    history: HistoryState;
+    history: HistoryStateType;
 };
 
 export const leftSidebarSlice = createSlice({
@@ -46,7 +54,7 @@ export const leftSidebarSlice = createSlice({
         show: true,
         activeTab: "chat",
         showProfileEditing: false,
-        history: { list: [], loading: "idle", keyword: "", count: null },
+        history: { list: [], loading: "idle", keyword: "", count: null, page: 1 },
     },
     reducers: {
         setActiveTab(state, action: { payload: ActiveTabType }) {
@@ -91,6 +99,12 @@ export const leftSidebarSlice = createSlice({
 
             state.history.list = [...list];
         },
+        setKeyword(state, { payload: keyword }: { payload: string }) {
+            state.history.keyword = keyword;
+            state.history.count = null;
+            state.history.page = 1;
+            state.history.loading = "idle";
+        },
     },
     extraReducers: (builder) => {
         builder.addCase(fetchHistory.fulfilled, (state, { payload }: any) => {
@@ -105,7 +119,7 @@ export const leftSidebarSlice = createSlice({
                 return newRoomInfo || item;
             });
 
-            if (state.history.keyword !== payload.keyword && payload.page === 1) {
+            if (payload.page === 1) {
                 state.history.list = [...payload.data.list];
             } else {
                 state.history.list = [...list, ...notAdded];
@@ -113,7 +127,7 @@ export const leftSidebarSlice = createSlice({
 
             state.history.count = payload.data.count;
             state.history.loading = "idle";
-            state.history.keyword = `${payload.keyword}`;
+            state.history.page = state.history.page + 1;
         });
         builder.addCase(fetchHistory.pending, (state) => {
             state.history.loading = "pending";
@@ -138,13 +152,14 @@ export const {
     set: setLeftSidebar,
     setActiveTab,
     setOpenEditProfile,
-    refreshOne,
     updateLastMessage,
     removeRoom,
     resetUnreadCount,
+    setKeyword,
 } = leftSidebarSlice.actions;
 
-export const selectHistory = (state: RootState): HistoryState => state.leftSidebar.history;
+export const selectHistory = (state: RootState): HistoryListType => state.leftSidebar.history.list;
+export const selectKeyword = (state: RootState): string => state.leftSidebar.history.keyword;
 export const selectHistoryLoading =
     () =>
     (state: RootState): "idle" | "pending" | "succeeded" | "failed" =>
