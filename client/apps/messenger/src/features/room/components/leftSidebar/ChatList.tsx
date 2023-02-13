@@ -6,7 +6,7 @@ import Badge from "@mui/material/Badge";
 import { Box, CircularProgress, Skeleton } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import {
-    refreshHistory,
+    fetchHistory,
     selectHistory,
     selectHistoryLoading,
     setKeyword,
@@ -42,17 +42,17 @@ export default function SidebarChatList(): React.ReactElement {
     const isFetching = loading === "pending";
 
     useEffect(() => {
-        if (isInViewPort && activeRoomId) {
-            dispatch(refreshHistory(activeRoomId));
+        if (isInViewPort) {
+            dispatch(fetchHistory());
         }
-    }, [dispatch, isInViewPort, activeRoomId]);
+    }, [dispatch, isInViewPort]);
 
     useEffect(() => {
         return () => {
             dispatch(setKeyword(""));
-            dispatch(refreshHistory(activeRoomId));
+            dispatch(fetchHistory());
         };
-    }, [dispatch, activeRoomId]);
+    }, [dispatch]);
 
     const sortRooms = (): typeof list => {
         const sorted = [...list].sort((a, b) =>
@@ -69,7 +69,7 @@ export default function SidebarChatList(): React.ReactElement {
                 <SearchBox
                     onSearch={(keyword) => {
                         dispatch(setKeyword(keyword));
-                        dispatch(refreshHistory(activeRoomId));
+                        dispatch(fetchHistory());
                     }}
                 />
             </Box>
