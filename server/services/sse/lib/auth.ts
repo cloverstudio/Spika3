@@ -61,7 +61,7 @@ export default async (req: Request, res: Response, next: () => void) => {
             if (Object.keys(updateData).length > 0) {
                 const newDevice = await prisma.device.update({
                     where: { id: device.id },
-                    data: updateData,
+                    data: { ...updateData, modifiedAt: new Date() },
                 });
 
                 userRequest.device = newDevice;
