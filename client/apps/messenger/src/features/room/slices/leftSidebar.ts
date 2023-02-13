@@ -145,7 +145,6 @@ export const leftSidebarSlice = createSlice({
         builder.addCase(
             refreshHistory.fulfilled,
             (state, { payload }: { payload: HistoryListItem }) => {
-                console.log({ payload });
                 const roomsIds = state.history.list.map((r) => r.roomId);
                 const exists = roomsIds.includes(payload.roomId);
 

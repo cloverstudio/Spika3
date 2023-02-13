@@ -223,7 +223,6 @@ export const sendFileMessage = createAsyncThunk(
             }
 
             if (/^.*video.*$/.test(file.type)) {
-                console.log("vide type", type, file.type);
                 const thumbFile = await getVideoThumbnail(file);
                 if (thumbFile) {
                     const thumbFileUploaded = await uploadFile({
