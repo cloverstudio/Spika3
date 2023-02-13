@@ -99,6 +99,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     data: {
                         verificationCode,
                         verified: false,
+                        modifiedAt: new Date(),
                     },
                 });
             }
@@ -134,6 +135,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     data: {
                         tokenExpiredAt: new Date(),
                         pushToken: null,
+                        modifiedAt: new Date(),
                     },
                 });
             }
@@ -159,6 +161,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         tokenExpiredAt: new Date(),
                         userId: requestUser.id,
                         pushToken: null,
+                        modifiedAt: new Date(),
                     },
                 });
             }
@@ -243,6 +246,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 data: {
                     token: newToken,
                     tokenExpiredAt: expireDate,
+                    modifiedAt: new Date(),
                 },
             });
 
