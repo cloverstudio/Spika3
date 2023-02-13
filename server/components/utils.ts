@@ -18,20 +18,20 @@ export default class utils {
     };
 
     static randomString = (length: number) => {
-        var result = "";
-        var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        var charactersLength = characters.length;
-        for (var i = 0; i < length; i++) {
+        let result = "";
+        const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        const charactersLength = characters.length;
+        for (let i = 0; i < length; i++) {
             result += characters.charAt(Math.floor(Math.random() * charactersLength));
         }
         return result;
     };
 
     static randomNumber = (length: number) => {
-        var result = "";
-        var characters = "0123456789";
-        var charactersLength = characters.length;
-        for (var i = 0; i < length; i++) {
+        let result = "";
+        const characters = "0123456789";
+        const charactersLength = characters.length;
+        for (let i = 0; i < length; i++) {
             result += characters.charAt(Math.floor(Math.random() * charactersLength));
         }
         return result;
@@ -71,7 +71,7 @@ export default class utils {
         return typeof window !== "undefined";
     };
 
-    static truncateString = (str: string, limit: number = 16): string => {
+    static truncateString = (str: string, limit = 16): string => {
         let suffix = "";
         if (str.length > limit) suffix = "...";
 
@@ -98,7 +98,7 @@ export default class utils {
     };
 
     static getTokenExpireDate = (): Date => {
-        return dayjs().add(Consts.TOKEN_VALID_DAY).toDate();
+        return dayjs().add(Consts.TOKEN_VALID_DAY, "days").toDate();
     };
 
     static generateRoomName = (): string => {

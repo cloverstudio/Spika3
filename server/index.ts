@@ -45,7 +45,6 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
             "Content-Type, Authorization, access-token, admin-accesstoken, accesstoken, device-name, os-name, os-version, device-type, app-version"
         );
 
-        l(`${req.method} ${req.originalUrl} [STARTED]`);
         const start = process.hrtime();
 
         res.on("finish", () => {

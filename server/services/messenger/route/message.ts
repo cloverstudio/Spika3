@@ -181,8 +181,6 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const formattedBody = await formatMessageBody(body, type);
             const sanitizedMessage = sanitize({ ...message, body: formattedBody }).message();
 
-            res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
-
             await Promise.all(
                 receivers.map(async (receiver) => {
                     const key = `unread:${roomId}:${receiver.userId}`;
@@ -289,6 +287,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     })
                 );
             }
+
+            res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
 
             const messageRecordsNotifyData = {
                 types: ["delivered", "seen"],

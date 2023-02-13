@@ -1,6 +1,6 @@
 import api, { dynamicBaseQuery } from "../api/api";
 
-import { fetchHistory, updateLastMessage } from "../features/room/slices/leftSidebar";
+import { refreshHistory, removeRoom } from "../features/room/slices/leftSidebar";
 import { store } from "../store/store";
 
 const VALID_SSE_EVENT_TYPES = [
@@ -61,15 +61,14 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                     method: "POST",
                     data: { messagesIds: [message.id] },
                 });
-
-                store.dispatch(fetchHistory({ page: 1, keyword: "" }));
             } else {
-                store.dispatch(updateLastMessage(message));
                 await dynamicBaseQuery({
                     url: `/messenger/messages/${message.roomId}/seen`,
                     method: "POST",
                 });
             }
+
+            store.dispatch(refreshHistory(message.roomId as number));
 
             const isMute =
                 store
@@ -112,7 +111,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
             }
 
             store.dispatch(deleteMessage(message));
-            store.dispatch(fetchHistory({ page: 1, keyword: "" }));
+            store.dispatch(refreshHistory(message.roomId as number));
 
             return;
         }
@@ -125,8 +124,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
             }
 
             store.dispatch(editMessage(message));
-
-            store.dispatch(fetchHistory({ page: 1, keyword: "" }));
+            store.dispatch(refreshHistory(message.roomId as number));
 
             return;
         }
@@ -158,8 +156,6 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
             }
 
             store.dispatch(api.util.invalidateTags([{ type: "Rooms", id: room.id }]));
-            store.dispatch(fetchHistory({ page: 1, keyword: "" }));
-
             return;
         }
 
@@ -198,8 +194,6 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                 );
             }
 
-            store.dispatch(fetchHistory({ page: 1, keyword: "" }));
-
             return;
         }
 
@@ -211,7 +205,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                 return;
             }
 
-            store.dispatch(fetchHistory({ page: 1, keyword: "" }));
+            store.dispatch(removeRoom(room.id as number));
             store.dispatch(api.util.invalidateTags([{ type: "Rooms", id: room.id }]));
 
             return;
