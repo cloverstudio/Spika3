@@ -23,16 +23,24 @@ export const fetchHistory = createAsyncThunk("room/fetchHistory", async (_, thun
     };
 });
 
-type HistoryListType = {
+export const refreshHistory = createAsyncThunk("room/refreshHistory", async (roomId: number) => {
+    const url = `/messenger/history/roomId/${roomId}`;
+
+    const response = await dynamicBaseQuery(url);
+
+    return response.data;
+});
+
+type HistoryListItem = {
     roomId: number;
     lastMessage: MessageType;
     unreadCount?: number;
     muted: boolean;
     pinned: boolean;
-}[];
+};
 
 type HistoryStateType = {
-    list: HistoryListType;
+    list: HistoryListItem[];
     count: number;
     page: number;
     loading: "idle" | "pending" | "succeeded" | "failed";
@@ -134,6 +142,28 @@ export const leftSidebarSlice = createSlice({
         builder.addCase(fetchHistory.rejected, (state) => {
             state.history.loading = "failed";
         });
+        builder.addCase(
+            refreshHistory.fulfilled,
+            (state, { payload }: { payload: HistoryListItem }) => {
+                console.log({ payload });
+                const roomsIds = state.history.list.map((r) => r.roomId);
+                const exists = roomsIds.includes(payload.roomId);
+
+                if (!exists) {
+                    state.history.list = [...state.history.list, payload];
+                } else {
+                    state.history.list = state.history.list.map((item) => {
+                        const id = item.roomId;
+
+                        if (id === payload.roomId) {
+                            item = payload;
+                        }
+
+                        return item;
+                    });
+                }
+            }
+        );
     },
 });
 
@@ -157,7 +187,8 @@ export const {
     setKeyword,
 } = leftSidebarSlice.actions;
 
-export const selectHistory = (state: RootState): HistoryListType => state.leftSidebar.history.list;
+export const selectHistory = (state: RootState): HistoryListItem[] =>
+    state.leftSidebar.history.list;
 export const selectKeyword = (state: RootState): string => state.leftSidebar.history.keyword;
 export const selectHistoryLoading =
     () =>

@@ -7,7 +7,7 @@ import { getVideoThumbnail } from "../../../utils/media";
 import generateThumbFile from "../lib/generateThumbFile";
 import getFileType from "../lib/getFileType";
 import getMessageStatus from "../lib/getMessageStatus";
-import { fetchHistory } from "./leftSidebar";
+import { refreshHistory } from "./leftSidebar";
 import { RoomType } from "../../../types/Rooms";
 
 export const fetchMessages = createAsyncThunk(
@@ -96,7 +96,7 @@ export const sendMessage = createAsyncThunk(
                 method: "POST",
             });
 
-            thunkAPI.dispatch(fetchHistory({ page: 1, keyword: "" }));
+            thunkAPI.dispatch(refreshHistory(roomId));
 
             return response.data;
         } catch (error) {
@@ -153,7 +153,7 @@ export const resendMessage = createAsyncThunk(
                 method: "POST",
             });
 
-            thunkAPI.dispatch(fetchHistory({ page: 1, keyword: "" }));
+            thunkAPI.dispatch(refreshHistory(roomId));
 
             return response.data;
         } catch (error) {
@@ -246,7 +246,7 @@ export const sendFileMessage = createAsyncThunk(
                 method: "POST",
             });
 
-            thunkAPI.dispatch(fetchHistory({ page: 1, keyword: "" }));
+            thunkAPI.dispatch(refreshHistory(roomId));
 
             return response.data;
         } catch (error) {
@@ -303,7 +303,7 @@ export const editMessageThunk = createAsyncThunk(
                 method: "PUT",
             });
 
-            thunkAPI.dispatch(fetchHistory({ page: 1, keyword: "" }));
+            thunkAPI.dispatch(refreshHistory(roomId));
 
             return response.data;
         } catch (error) {
@@ -368,7 +368,7 @@ export const replyMessageThunk = createAsyncThunk(
                 method: "POST",
             });
 
-            thunkAPI.dispatch(fetchHistory({ page: 1, keyword: "" }));
+            thunkAPI.dispatch(refreshHistory(roomId));
 
             return response.data;
         } catch (error) {

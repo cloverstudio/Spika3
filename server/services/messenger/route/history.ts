@@ -7,8 +7,9 @@ import { UserRequest } from "../lib/types";
 import sanitize from "../../../components/sanitize";
 import * as Constants from "../../../components/consts";
 import prisma from "../../../components/prisma";
-import { isRoomMuted, isRoomPinned } from "./room";
+import { getRoomById, isRoomMuted, isRoomPinned } from "./room";
 import { InitRouterParams } from "../../types/serviceInterface";
+import { Message } from "@prisma/client";
 
 export default ({ redisClient }: InitRouterParams): Router => {
     const router = Router();
@@ -195,6 +196,125 @@ export default ({ redisClient }: InitRouterParams): Router => {
                     list,
                     count,
                     limit: Constants.PAGING_LIMIT,
+                })
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.get("/roomId/:roomId", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        const userId = userReq.user.id;
+        const deviceId = userReq.device.id;
+        const roomId = parseInt(req.params.roomId as string);
+
+        if (!roomId) {
+            res.status(400).send(errorResponse("Room id is required", userReq.lang));
+            return;
+        }
+
+        try {
+            const room = await getRoomById(roomId, redisClient);
+
+            if (!room) {
+                res.status(404).send(errorResponse("Room not found", userReq.lang));
+                return;
+            }
+
+            const roomUser = room.users.find((ru) => ru.userId === userId);
+
+            if (!roomUser) {
+                res.status(404).send(errorResponse("Room not found", userReq.lang));
+                return;
+            }
+
+            const lastMessageKey = `${Constants.LAST_MESSAGE_PREFIX}${roomId}`;
+            const lastMessageIdString = await redisClient.get(lastMessageKey);
+            let lastMessageId: number;
+            let lastMessage: Message;
+
+            if (lastMessageIdString) {
+                lastMessageId = +lastMessageIdString;
+                lastMessage = await prisma.message.findFirst({
+                    where: {
+                        id: lastMessageId,
+                    },
+                });
+            } else {
+                lastMessage = await prisma.message.findFirst({
+                    where: {
+                        roomId,
+                    },
+                    orderBy: {
+                        createdAt: "desc",
+                    },
+                });
+
+                if (lastMessage) {
+                    await redisClient.set(lastMessageKey, lastMessage.id.toString());
+                }
+            }
+
+            const unreadCountKey = `unread:${roomId}:${userId}`;
+            let unreadCount = await redisClient.get(unreadCountKey);
+
+            if (!unreadCount) {
+                const unreadMessages = await prisma.message.findMany({
+                    where: {
+                        roomId,
+                        createdAt: {
+                            gt: roomUser.createdAt,
+                        },
+                        messageRecords: {
+                            none: {
+                                userId: userId,
+                                type: "seen",
+                            },
+                        },
+                        NOT: {
+                            fromUserId: userId,
+                        },
+                    },
+                });
+                unreadCount = unreadMessages.length.toString();
+                redisClient.set(unreadCountKey, unreadCount);
+            }
+
+            const muted = await isRoomMuted({ userId, roomId, redisClient });
+            const pinned = await isRoomPinned({ userId, roomId, redisClient });
+
+            let lastMessageSanitized: any;
+            if (lastMessage) {
+                const deviceMessage = await prisma.deviceMessage.findFirst({
+                    where: {
+                        userId,
+                        deviceId,
+                        messageId: lastMessage.id,
+                    },
+                    select: {
+                        body: true,
+                        deleted: true,
+                    },
+                });
+                if (deviceMessage) {
+                    const { body, deleted } = deviceMessage;
+                    lastMessageSanitized = sanitize({
+                        ...lastMessage,
+                        ...(body && { body }),
+                        deleted,
+                    }).message();
+                }
+            }
+
+            res.send(
+                successResponse({
+                    unreadCount: +unreadCount,
+                    roomId,
+                    lastMessage: lastMessageSanitized ? lastMessageSanitized : null,
+                    muted,
+                    pinned,
                 })
             );
         } catch (e: any) {
