@@ -154,7 +154,7 @@ export default ({ redisClient }: InitRouterParams): Router => {
                     const dm = deviceMessages.find((dm) => dm.messageId === m.id);
                     const { body, deleted } = dm || {};
                     const roomUser = roomUsers.find((ru) => ru.roomId === m.roomId);
-                    const key = `unread:${m.roomId}:${userId}`;
+                    const key = `${Constants.UNREAD_PREFIX}${m.roomId}_${userId}`;
                     let unreadCount = await redisClient.get(key);
                     if (!unreadCount) {
                         const unreadMessages = await prisma.message.findMany({
@@ -257,7 +257,7 @@ export default ({ redisClient }: InitRouterParams): Router => {
                 }
             }
 
-            const unreadCountKey = `unread:${roomId}:${userId}`;
+            const unreadCountKey = `${Constants.UNREAD_PREFIX}${roomId}_${userId}`;
             let unreadCount = await redisClient.get(unreadCountKey);
 
             if (!unreadCount) {

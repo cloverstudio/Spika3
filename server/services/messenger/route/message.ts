@@ -183,7 +183,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
 
             await Promise.all(
                 receivers.map(async (receiver) => {
-                    const key = `unread:${roomId}:${receiver.userId}`;
+                    const key = `${Constants.UNREAD_PREFIX}${roomId}_${receiver.userId}`;
                     const current = await redisClient.get(key);
                     if (!current) {
                         const unreadMessages = await prisma.message.findMany({
@@ -213,6 +213,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
 
             const key = `${Constants.LAST_MESSAGE_PREFIX}${roomId}`;
             await redisClient.set(key, sanitizedMessage.id.toString());
+
+            res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
 
             while (deviceMessages.length) {
                 await Promise.all(
@@ -287,8 +289,6 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     })
                 );
             }
-
-            res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
 
             const messageRecordsNotifyData = {
                 types: ["delivered", "seen"],
@@ -721,7 +721,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
 
             sseMessageRecordsNotify(messageRecordsNotifyDeliveredData);
 
-            const key = `unread:${roomId}:${userId}`;
+            const key = `${Constants.UNREAD_PREFIX}${roomId}_${userId}`;
             await redisClient.set(key, "0");
 
             res.send(successResponse({ messageRecords }, userReq.lang));

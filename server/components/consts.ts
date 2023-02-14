@@ -41,3 +41,4 @@ export const ROOM_MUTE_PREFIX = "mute_";
 export const ROOM_PIN_PREFIX = "pin_";
 export const ROOM_PREFIX = "room_";
 export const LAST_MESSAGE_PREFIX = "lastMessage_";
+export const UNREAD_PREFIX = "unread_";
