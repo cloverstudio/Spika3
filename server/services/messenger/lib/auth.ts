@@ -11,20 +11,16 @@ export default async (
     res: Response,
     next: () => void
 ): Promise<Response<any, Record<string, any>> | void> => {
-    // check access token
-
     try {
-        if (!req.headers[constants.ACCESS_TOKEN])
-            return res.status(403).send("Invalid access token");
+        const accessToken = req.headers[constants.ACCESS_TOKEN] as string;
+        if (!accessToken) return res.status(401).send("No access token");
 
         const osName = req.headers["os-name"] as string;
         const osVersion = req.headers["os-version"] as string;
         const deviceName = req.headers["device-name"] as string;
-        const appVersion: string = req.headers["app-version"] as string;
-        const deviceType: string = req.headers["device-type"] as string;
-        const lang: string = (req.headers["lang"] as string) || "en";
-
-        const accessToken: string = req.headers[constants.ACCESS_TOKEN] as string;
+        const appVersion = req.headers["app-version"] as string;
+        const deviceType = req.headers["device-type"] as string;
+        const lang = (req.headers["lang"] as string) || "en";
 
         const device = await prisma.device.findFirst({
             where: {
@@ -35,14 +31,12 @@ export default async (
             },
         });
 
-        if (!device) return res.status(403).send("Invalid access token");
+        if (!device) return res.status(401).send("Invalid access token");
 
-        const tokenExpiredAtTS: number = dayjs(device.tokenExpiredAt).unix();
-        const now: number = dayjs().unix();
+        const tokenExpiredAtTS = +dayjs(device.tokenExpiredAt);
+        const now = +dayjs();
 
-        if (now > tokenExpiredAtTS) {
-            return res.status(401).send("Token is expired");
-        }
+        if (now > tokenExpiredAtTS) return res.status(401).send("Expired access token");
 
         const userRequest: UserRequest = req as UserRequest;
 

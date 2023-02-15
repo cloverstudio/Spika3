@@ -14,6 +14,9 @@ import sanitize from "../../../components/sanitize";
 import * as constants from "../lib/constants";
 import prisma from "../../../components/prisma";
 import { handleNewUser } from "../../../components/chatGPT";
+import { UserRequest } from "../lib/types";
+import auth from "../lib/auth";
+import dayjs from "dayjs";
 
 const authSchema = yup.object().shape({
     body: yup.object().shape({
@@ -201,7 +204,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             let requestDevice = await prisma.device.findFirst({
                 where: {
-                    deviceId: deviceId,
+                    deviceId,
                 },
             });
 
@@ -256,6 +259,74 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 successResponse({
                     user: sanitize(findUser).user(),
                     device: sanitize(requestDevice).device(),
+                })
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`));
+        }
+    });
+
+    router.post("/logout", auth, async (req: Request, res: Response) => {
+        try {
+            const userReq: UserRequest = req as UserRequest;
+            const id = userReq.device.id;
+
+            const requestDevice = await prisma.device.findUnique({
+                where: {
+                    id,
+                },
+            });
+
+            if (!requestDevice) {
+                return res.status(404).send(errorResponse("Device not found"));
+            }
+
+            const device = await prisma.device.update({
+                where: {
+                    id,
+                },
+                data: {
+                    tokenExpiredAt: new Date(),
+                    modifiedAt: new Date(),
+                    pushToken: null,
+                    token: null,
+                },
+            });
+
+            res.send(
+                successResponse({
+                    device: sanitize(device).device(),
+                })
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`));
+        }
+    });
+
+    router.post("/refresh", auth, async (req: Request, res: Response) => {
+        try {
+            const userReq: UserRequest = req as UserRequest;
+            const id = userReq.device.id;
+
+            const newToken = Utils.createToken();
+            const expireDate = Utils.getTokenExpireDate();
+
+            const device = await prisma.device.update({
+                where: {
+                    id,
+                },
+                data: {
+                    tokenExpiredAt: expireDate,
+                    modifiedAt: new Date(),
+                    token: newToken,
+                },
+            });
+
+            res.send(
+                successResponse({
+                    device: sanitize(device).device(),
                 })
             );
         } catch (e: any) {

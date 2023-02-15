@@ -7,7 +7,7 @@ import { UserRequest } from "../lib/types";
 import sanitize from "../../../components/sanitize";
 import * as Constants from "../../../components/consts";
 import prisma from "../../../components/prisma";
-import { getRoomById, isRoomMuted, isRoomPinned } from "./room";
+import { getRoomById, getRoomUnreadCount, isRoomMuted, isRoomPinned } from "./room";
 import { InitRouterParams } from "../../types/serviceInterface";
 import { Message } from "@prisma/client";
 
@@ -67,15 +67,17 @@ export default ({ redisClient }: InitRouterParams): Router => {
 
             const roomsIds = roomUsers.map((r) => r.roomId);
 
-            const userSettings = await prisma.userSetting.findMany({
-                where: {
-                    userId,
-                    key: { startsWith: Constants.ROOM_PIN_PREFIX },
-                    value: "true",
-                },
-            });
+            if (!keyword) {
+                const userSettings = await prisma.userSetting.findMany({
+                    where: {
+                        userId,
+                        key: { startsWith: Constants.ROOM_PIN_PREFIX },
+                        value: "true",
+                    },
+                });
 
-            roomsIds.push(...userSettings.map((u) => +u.key.split("_")[1]));
+                roomsIds.push(...userSettings.map((u) => +u.key.split("_")[1]));
+            }
 
             const count = await prisma.room.count({
                 where: {
@@ -154,29 +156,14 @@ export default ({ redisClient }: InitRouterParams): Router => {
                     const dm = deviceMessages.find((dm) => dm.messageId === m.id);
                     const { body, deleted } = dm || {};
                     const roomUser = roomUsers.find((ru) => ru.roomId === m.roomId);
-                    const key = `${Constants.UNREAD_PREFIX}${m.roomId}_${userId}`;
-                    let unreadCount = await redisClient.get(key);
-                    if (!unreadCount) {
-                        const unreadMessages = await prisma.message.findMany({
-                            where: {
-                                roomId: m.roomId,
-                                createdAt: {
-                                    gt: roomUser.createdAt,
-                                },
-                                messageRecords: {
-                                    none: {
-                                        userId: userId,
-                                        type: "seen",
-                                    },
-                                },
-                                NOT: {
-                                    fromUserId: userId,
-                                },
-                            },
-                        });
-                        unreadCount = unreadMessages.length.toString();
-                        redisClient.set(key, unreadCount);
-                    }
+
+                    const unreadCount = await getRoomUnreadCount({
+                        userId,
+                        roomId: m.roomId,
+                        redisClient,
+                        roomUserCreatedAt: roomUser?.createdAt,
+                    });
+
                     return {
                         roomId: m.roomId,
                         muted,
@@ -196,6 +183,7 @@ export default ({ redisClient }: InitRouterParams): Router => {
                     list,
                     count,
                     limit: Constants.PAGING_LIMIT,
+                    page,
                 })
             );
         } catch (e: any) {

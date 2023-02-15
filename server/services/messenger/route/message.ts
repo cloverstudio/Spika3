@@ -19,8 +19,7 @@ import createSSEMessageRecordsNotify from "../lib/sseMessageRecordsNotify";
 import prisma from "../../../components/prisma";
 import { isRoomBlocked } from "./block";
 import { handleNewMessage } from "../../../components/chatGPT";
-import { getRoomById } from "./room";
-import utils from "../../../components/utils";
+import { getRoomById, getRoomUnreadCount } from "./room";
 
 const postMessageSchema = yup.object().shape({
     body: yup.object().shape({
@@ -182,30 +181,16 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const sanitizedMessage = sanitize({ ...message, body: formattedBody }).message();
 
             await Promise.all(
-                receivers.map(async (receiver) => {
-                    const key = `${Constants.UNREAD_PREFIX}${roomId}_${receiver.userId}`;
-                    const current = await redisClient.get(key);
-                    if (!current) {
-                        const unreadMessages = await prisma.message.findMany({
-                            where: {
-                                roomId,
-                                createdAt: {
-                                    gt: receiver.createdAt,
-                                },
-                                messageRecords: {
-                                    none: {
-                                        userId: receiver.userId,
-                                        type: "seen",
-                                    },
-                                },
-                                NOT: {
-                                    fromUserId: receiver.userId,
-                                },
-                            },
-                        });
+                receivers.map(async ({ userId, createdAt }) => {
+                    await getRoomUnreadCount({
+                        roomId,
+                        userId,
+                        redisClient,
+                        roomUserCreatedAt: createdAt,
+                    });
 
-                        await redisClient.set(key, unreadMessages.length);
-                    } else if (receiver.userId !== fromUserId) {
+                    const key = `${Constants.UNREAD_PREFIX}${roomId}_${userId}`;
+                    if (userId !== fromUserId) {
                         await redisClient.incr(key);
                     }
                 })
@@ -234,10 +219,10 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                         }
 
                         const checkIfShouldSendPush = () => {
-                            const tokenExpiredAtTS = dayjs(device.tokenExpiredAt).unix();
-                            const now = dayjs().unix();
+                            const tokenExpiredAtTS = +dayjs(device.tokenExpiredAt);
+                            const now = +dayjs();
 
-                            if (now - tokenExpiredAtTS > Constants.TOKEN_EXPIRED) {
+                            if (now > tokenExpiredAtTS) {
                                 return false;
                             }
 
