@@ -154,15 +154,6 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 },
             });
 
-            const deviceMessages = devices.map((device) => ({
-                deviceId: device.id,
-                userId: device.userId,
-                fromUserId,
-                fromDeviceId,
-                body,
-                action: MESSAGE_ACTION_NEW_MESSAGE,
-            }));
-
             const message = await prisma.message.create({
                 data: {
                     type,
@@ -175,6 +166,18 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     localId,
                     replyId,
                 },
+            });
+
+            await prisma.deviceMessage.createMany({
+                data: devices.map((device) => ({
+                    deviceId: device.id,
+                    userId: device.userId,
+                    fromUserId,
+                    fromDeviceId,
+                    body,
+                    action: MESSAGE_ACTION_NEW_MESSAGE,
+                    messageId: message.id,
+                })),
             });
 
             const formattedBody = await formatMessageBody(body, type);
@@ -199,22 +202,14 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const key = `${Constants.LAST_MESSAGE_PREFIX}${roomId}`;
             await redisClient.set(key, sanitizedMessage.id.toString());
 
-            res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
-
-            while (deviceMessages.length) {
+            while (devices.length) {
                 await Promise.all(
-                    deviceMessages.splice(0, 10).map(async (deviceMessage) => {
-                        await prisma.deviceMessage.create({
-                            data: { ...deviceMessage, messageId: message.id },
-                        });
-
-                        if (deviceMessage.deviceId === fromDeviceId) {
+                    devices.splice(0, 10).map(async (device) => {
+                        if (!device) {
                             return;
                         }
 
-                        const device = devices.find((d) => d.id === deviceMessage.deviceId);
-
-                        if (!device) {
+                        if (device.id === fromDeviceId) {
                             return;
                         }
 
@@ -246,13 +241,12 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                                 Buffer.from(
                                     JSON.stringify({
                                         type: Constants.PUSH_TYPE_NEW_MESSAGE,
-                                        token: devices.find((d) => d.id == deviceMessage.deviceId)
-                                            ?.pushToken,
+                                        token: device.pushToken,
                                         data: {
                                             message: { ...sanitizedMessage },
                                             user: sanitize(userReq.user).user(),
                                             ...(room.type === "group" && { groupName: room.name }),
-                                            toUserId: deviceMessage.userId,
+                                            toUserId: device.userId,
                                         },
                                     })
                                 )
@@ -263,7 +257,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                             Constants.QUEUE_SSE,
                             Buffer.from(
                                 JSON.stringify({
-                                    channelId: deviceMessage.deviceId,
+                                    channelId: device.id,
                                     data: {
                                         type: Constants.PUSH_TYPE_NEW_MESSAGE,
                                         message: sanitizedMessage,
@@ -274,6 +268,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     })
                 );
             }
+
+            res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
 
             const messageRecordsNotifyData = {
                 types: ["delivered", "seen"],
