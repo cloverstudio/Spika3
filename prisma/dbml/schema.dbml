@@ -8,9 +8,10 @@ Table user {
   telephoneNumber String [unique]
   telephoneNumberHashed String [unique]
   displayName String
-  avatarUrl String
+  avatarFileId Int [not null, default: 0]
   verificationCode String
   verified Boolean [not null, default: false]
+  isBot Boolean [not null, default: false]
   createdAt DateTime [default: `now()`, not null]
   modifiedAt DateTime [default: `now()`, not null]
   rooms room_user [not null]
@@ -21,6 +22,17 @@ Table user {
   messagesRecords message_record [not null]
   callHistory call_history [not null]
   userSetting user_setting [not null]
+  blocks block [not null]
+  blockedBy block [not null]
+}
+
+Table block {
+  id Int [pk, increment]
+  createdAt DateTime [default: `now()`, not null]
+  userId Int [not null]
+  user user [not null]
+  blockedId Int [not null]
+  blocked user [not null]
 }
 
 Table device {
@@ -50,6 +62,7 @@ Table file {
   fileName String [not null]
   size Int [not null]
   clientId String [unique, not null]
+  metaData Json [not null, default: '{}']
   createdAt DateTime [default: `now()`, not null]
   modifiedAt DateTime [default: `now()`, not null]
 }
@@ -68,7 +81,7 @@ Table room {
   id Int [pk, increment]
   type String [not null]
   name String [not null]
-  avatarUrl String [not null]
+  avatarFileId Int [not null, default: 0]
   createdAt DateTime [default: `now()`, not null]
   modifiedAt DateTime [default: `now()`, not null]
   deleted Boolean [not null, default: false]
@@ -76,6 +89,7 @@ Table room {
   messages message [not null]
   callHistory call_history [not null]
   webhooks webhook [not null]
+  apiKeys api_key [not null]
 }
 
 Table room_user {
@@ -93,8 +107,8 @@ Table message {
   id Int [pk, increment]
   fromUserId Int [not null]
   fromUser user [not null]
-  fromDeviceId Int [not null]
-  fromDevice device [not null]
+  fromDeviceId Int
+  fromDevice device
   roomId Int [not null]
   room room [not null]
   type String [not null]
@@ -104,7 +118,7 @@ Table message {
   createdAt DateTime [default: `now()`, not null]
   modifiedAt DateTime [default: `now()`, not null]
   deleted Boolean [not null, default: false]
-  reply Boolean [not null, default: false]
+  replyId Int
   deviceMessages message_device [not null]
   messageRecords message_record [not null]
   localId String
@@ -115,13 +129,14 @@ Table message_device {
   deviceId Int [not null]
   userId Int [not null]
   fromUserId Int [not null]
-  fromDeviceId Int [not null]
+  fromDeviceId Int
   messageId Int [not null]
   message message [not null]
   body Json [not null]
   action String [not null]
   createdAt DateTime [default: `now()`, not null]
   modifiedAt DateTime [default: `now()`, not null]
+  deleted Boolean [not null, default: false]
 }
 
 Table message_record {
@@ -177,6 +192,8 @@ Table user_setting {
   userId Int [not null]
   key String [not null]
   value String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  modifiedAt DateTime [default: `now()`, not null]
 
   indexes {
     (userId, key) [unique]
@@ -192,6 +209,20 @@ Table webhook {
   createdAt DateTime [default: `now()`, not null]
   modifiedAt DateTime [default: `now()`, not null]
 }
+
+Table api_key {
+  id Int [pk, increment]
+  token String [not null]
+  userId Int [not null]
+  roomId Int [not null]
+  room room [not null]
+  createdAt DateTime [default: `now()`, not null]
+  modifiedAt DateTime [default: `now()`, not null]
+}
+
+Ref: block.userId > user.id
+
+Ref: block.blockedId > user.id
 
 Ref: device.userId > user.id
 
@@ -222,3 +253,5 @@ Ref: call_history.userId > user.id
 Ref: user_setting.userId > user.id
 
 Ref: webhook.roomId > room.id
+
+Ref: api_key.roomId > room.id

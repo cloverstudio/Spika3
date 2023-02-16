@@ -50,6 +50,8 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
         await getAccessToken();
     }
 
+    const message = JSON.parse(fcmMessage.message.data.message);
+
     const muted = fcmMessage.muted;
     const apns = {
         payload: {
@@ -59,8 +61,19 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
                     alert: {
                         title: "New message",
                     },
+                    "thread-id": message.roomId.toString(),
                 }),
             },
+        },
+    };
+
+    const android = {
+        priority: "HIGH",
+    };
+
+    const webpush = {
+        headers: {
+            Topic: message.roomId.toString(),
         },
     };
 
@@ -68,6 +81,8 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
         message: {
             ...fcmMessage.message,
             apns,
+            android,
+            webpush,
         },
     };
 
@@ -82,14 +97,8 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
     });
 
     if (response.status !== 200) {
-        le(
-            `FCM ERROR, push token: ${fcmMessage.message.token}, status: ${
-                response.status
-            }, error: ${JSON.stringify({ data, resData: response.data }, null, 4)}`
-        );
+        // le(`FCM ERROR, ${JSON.stringify({ data, resData: response.data }, null, 4)}`);
         throw new Error("FCM error");
-    } else {
-        l(`FCM sent, push token: ${fcmMessage.message.token}`);
     }
 
     return response.data;

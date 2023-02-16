@@ -16,8 +16,10 @@ import fs from "fs";
 import path from "path";
 import { createClient } from "redis";
 
-import { error as e } from "./components/logger";
+import l, { error as e } from "./components/logger";
 import WebhookService from "./services/webhook";
+import MessagingService from "./services/messaging";
+import utils from "./components/utils";
 
 const app: express.Express = express();
 const redisClient = createClient({ url: process.env.REDIS_URL });
@@ -26,9 +28,12 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
 
-    redisClient.on("error", (err) => console.log("Redis Client Error", err));
+    redisClient.on("error", (err) => {
+        e("Redis Client Error", err);
+        process.exit(1);
+    });
 
-    await redisClient.connect();
+    redisClient.connect();
 
     // cors
     app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -40,6 +45,17 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
             "Content-Type, Authorization, access-token, admin-accesstoken, accesstoken, device-name, os-name, os-version, device-type, app-version"
         );
 
+        const start = process.hrtime();
+
+        res.on("finish", () => {
+            const durationInMilliseconds = utils.getDurationInMilliseconds(start);
+            l(
+                `${req.method} ${
+                    req.originalUrl
+                } [FINISHED] ${durationInMilliseconds.toLocaleString()} ms`
+            );
+        });
+
         // intercept OPTIONS method
         if ("OPTIONS" === req.method) {
             res.sendStatus(200);
@@ -49,7 +65,7 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
     });
 
     const server: http.Server = app.listen(process.env["SERVER_PORT"], () => {
-        console.log(`Start on port ${process.env["SERVER_PORT"]}.`);
+        l(`Start on port ${process.env["SERVER_PORT"]}.`);
     });
 
     // override static access only for this file
@@ -68,7 +84,11 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
         res.send(content);
     });
 
-    app.use(express.static("public"));
+    app.use(
+        "/messenger/assets",
+        express.static("public/messenger/assets", { maxAge: 365 * 24 * 60 * 60 * 1000 })
+    );
+    app.use(express.static("public", { maxAge: 5 * 60 * 1000 }));
     app.use("/uploads", express.static(process.env["UPLOAD_FOLDER"]));
 
     const rabbitMQConnection = await amqp.connect(
@@ -108,6 +128,7 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
         });
 
         app.use("/api/upload", uploadService.getRoutes());
+        app.use("/api/uploads", uploadService.getRoutes());
     }
 
     if (+process.env["USE_PUSH"]) {
@@ -141,6 +162,15 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
         });
     }
 
+    if (+process.env["USE_MESSAGING"]) {
+        const messaging: MessagingService = new MessagingService();
+        messaging.start({
+            rabbitMQChannel,
+        });
+
+        app.use("/api/messaging", messaging.getRoutes());
+    }
+
     if (+process.env["USE_CONFCALL"]) {
         const confcallService: ConfcallService = new ConfcallService();
         confcallService.start({
@@ -158,11 +188,10 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
     });
 
     app.all("/", (req: express.Request, res: express.Response) => {
-        res.redirect("/messenger");
+        res.redirect("/messenger/app");
     });
 
     app.all("/messenger/*", (req: express.Request, res: express.Response) => {
-        console.log("__dirname", __dirname);
         res.sendFile(path.join(__dirname, "../..", "public/messenger/index.html"));
     });
 

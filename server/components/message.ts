@@ -1,47 +1,45 @@
 import prisma from "./prisma";
 
-export async function formatMessageBody(
-    body: any,
-    messageType: string,
-    fullPath?: boolean
-): Promise<any> {
+export async function formatMessageBody(body: any, messageType: string): Promise<any> {
     if (messageType === "text") {
         return body;
     }
 
-    const file = await prisma.file.findFirst({
-        where: {
-            id: body.fileId,
-        },
-        select: {
-            fileName: true,
-            mimeType: true,
-            path: true,
-            size: true,
-        },
-    });
+    const formatted = { ...body };
 
-    const thumb = await prisma.file.findFirst({
-        where: {
-            id: body.thumbId,
-        },
-        select: {
-            fileName: true,
-            mimeType: true,
-            path: true,
-            size: true,
-        },
-    });
+    if (body.fileId) {
+        const file = await prisma.file.findUnique({
+            where: {
+                id: body.fileId,
+            },
+            select: {
+                id: true,
+                fileName: true,
+                mimeType: true,
+                size: true,
+                metaData: true,
+            },
+        });
 
-    if (fullPath) {
-        if (file && file.path) {
-            file.path = `${process.env.UPLOADS_BASE_URL}${file.path}`;
-        }
-
-        if (thumb && thumb.path) {
-            thumb.path = `${process.env.UPLOADS_BASE_URL}${thumb.path}`;
-        }
+        formatted.file = file;
     }
 
-    return { ...body, file, thumb };
+    if (body.thumbId) {
+        const thumb = await prisma.file.findUnique({
+            where: {
+                id: body.thumbId,
+            },
+            select: {
+                id: true,
+                fileName: true,
+                mimeType: true,
+                size: true,
+                metaData: true,
+            },
+        });
+
+        formatted.thumb = thumb;
+    }
+
+    return formatted;
 }

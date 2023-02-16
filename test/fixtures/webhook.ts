@@ -1,5 +1,6 @@
 import { Webhook } from "@prisma/client";
 import faker from "faker";
+import global from "../global";
 
 export default async function createFakeWebhook(
     roomId: number,

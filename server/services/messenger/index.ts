@@ -15,6 +15,8 @@ import settingsRouter from "./route/settings";
 import messageRecordRouter from "./route/messageRecord";
 import noteRouter from "./route/note";
 import webhookRouter from "./route/webhook";
+import apiKeyRouter from "./route/apiKey";
+import blockRouter from "./route/block";
 
 import * as Constants from "../../components/consts";
 import Service, { ServiceStartParams } from "../types/serviceInterface";
@@ -53,18 +55,29 @@ export default class Messenger implements Service {
             "/rooms",
             roomRouter({ rabbitMQChannel: this.rabbitMQChannel, redisClient: this.redisClient })
         );
-        messengerRouter.use("/messages", messageRouter({ rabbitMQChannel: this.rabbitMQChannel }));
-        messengerRouter.use("/me", meRouter({ rabbitMQChannel: this.rabbitMQChannel }));
+        messengerRouter.use(
+            "/messages",
+            messageRouter({ rabbitMQChannel: this.rabbitMQChannel, redisClient: this.redisClient })
+        );
+        messengerRouter.use(
+            "/me",
+            meRouter({ rabbitMQChannel: this.rabbitMQChannel, redisClient: this.redisClient })
+        );
         messengerRouter.use("/device", deviceRouter());
-        messengerRouter.use("/history", historyRouter());
+        messengerRouter.use("/history", historyRouter({ redisClient: this.redisClient }));
         messengerRouter.use("/users", userRouter());
         messengerRouter.use("/notes", noteRouter({}));
         messengerRouter.use("/settings", settingsRouter());
         messengerRouter.use(
             "/message-records",
-            messageRecordRouter({ rabbitMQChannel: this.rabbitMQChannel })
+            messageRecordRouter({
+                rabbitMQChannel: this.rabbitMQChannel,
+                redisClient: this.redisClient,
+            })
         );
         messengerRouter.use("/webhooks", webhookRouter({}));
+        messengerRouter.use("/api-keys", apiKeyRouter({}));
+        messengerRouter.use("/blocks", blockRouter());
 
         return messengerRouter;
     }

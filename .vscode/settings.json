@@ -3,5 +3,8 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "prettier.printWidth": 100,
     "prettier.tabWidth": 4,
-    "prettier.useTabs": false
+    "prettier.useTabs": false,
+    "[prisma]": {
+        "editor.defaultFormatter": "Prisma.prisma"
+    }
 }

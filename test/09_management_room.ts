@@ -12,7 +12,6 @@ describe("Admin room management API", () => {
                 .send({
                     name: faker.lorem.word(),
                     type: faker.lorem.word(),
-                    avatarUrl: "",
                     deleted: false,
                 })
                 .set({ "admin-accesstoken": globals.adminToken });
@@ -48,7 +47,6 @@ describe("Admin room management API", () => {
                 .send({
                     name: faker.lorem.word(),
                     type: faker.lorem.word(),
-                    avatarUrl: "",
                     deleted: false,
                 })
                 .set({ "admin-accesstoken": globals.adminToken });

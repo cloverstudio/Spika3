@@ -130,14 +130,14 @@ export default function Dashboard() {
     const columns = [
         { field: "id", headerName: "ID", flex: 0.2, sortable: false, filterable: false },
         {
-            field: "avatarUrl",
+            field: "avatarFileId",
             headerName: "Avatar",
             flex: 0.3,
             sortable: false,
             filterable: false,
             renderCell: (params: GridRenderCellParams<string>) => (
                 <strong>
-                    <Avatar alt="Remy Sharp" src={`${UPLOADS_BASE_URL}${params.value}`} />
+                    <Avatar alt="Remy Sharp" src={`${UPLOADS_BASE_URL}/${params.value}`} />
                 </strong>
             ),
         },

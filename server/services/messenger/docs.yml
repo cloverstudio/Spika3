@@ -437,10 +437,10 @@ paths:
                   in: body
                   schema:
                       type: string
-                - name: "avatarUrl"
+                - name: "avatarFileId"
                   in: body
                   schema:
-                      type: array
+                      type: integer
                 - name: "userIds"
                   in: body
                   schema:
@@ -540,10 +540,10 @@ paths:
                   in: body
                   schema:
                       type: string
-                - name: "avatarUrl"
+                - name: "avatarFileId"
                   in: body
                   schema:
-                      type: string
+                      type: integer
                 - name: "userIds"
                   in: body
                   schema:
@@ -1057,10 +1057,10 @@ paths:
                   in: body
                   schema:
                       type: string
-                - name: "avatarUrl"
+                - name: "avatarFileId"
                   in: body
                   schema:
-                      type: string
+                      type: integer
             responses:
                 "200":
                     description: "successful operation"
@@ -1267,12 +1267,12 @@ definitions:
             id:
                 type: "integer"
                 format: "int32"
-            dispayName:
+            displayName:
                 type: "string"
                 format: "string"
-            avatarUrl:
-                type: "string"
-                format: "string"
+            avatarFileId:
+                type: "integer"
+                format: "int32"
             telephoneNumber:
                 type: "string"
                 format: "string"
@@ -1351,8 +1351,11 @@ definitions:
                         user:
                             type: "object"
                             $ref: "#/definitions/User"
-            avatarUrl:
-                type: "string"
+            avatarFileId:
+                type: "integer"
+                format: "int32"
+            muted:
+                type: "boolean"
             type:
                 type: "string"
             createdAt:
@@ -1380,8 +1383,7 @@ definitions:
                 type: "integer"
                 format: "int32"
             type:
-                type: "integer"
-                format: "int32"
+                type: "string"
             body:
                 type: "object"
             createdAt:
@@ -1389,6 +1391,9 @@ definitions:
                 format: "int32"
             localId:
                 type: "string"
+            replyId:
+                type: "integer"
+                format: "int32"
 
     MessageRecord:
         type: "object"

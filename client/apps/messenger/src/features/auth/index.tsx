@@ -8,13 +8,15 @@ import VerificationCodeForm from "./components/VerificationCodeForm";
 import TelephoneNumberForm from "./components/TelephoneNumberForm";
 import UpdateUserForm from "./components/UpdateUserForm";
 
-import { sha256 } from "../../../../../lib/utils";
+import { generateRandomString, sha256 } from "../../../../../lib/utils";
 import useCountdownTimer from "./hooks/useCountdownTimer";
 import uploadFile from "../../utils/uploadFile";
 import * as constants from "../../../../../lib/constants";
 import { getDeviceId } from "../../../../../lib/utils";
+import useStrings from "../../hooks/useStrings";
 
 export default function Auth(): React.ReactElement {
+    const strings = useStrings();
     const navigate = useNavigate();
     const deviceId = getDeviceId();
     const [step, setStep] = useState(0);
@@ -41,15 +43,18 @@ export default function Auth(): React.ReactElement {
             const signUpResponse = await signUp({
                 telephoneNumber,
                 telephoneNumberHashed: sha256(telephoneNumber),
-                deviceId,
+                deviceId: generateRandomString(14),
             }).unwrap();
 
             if (signUpResponse.browserDeviceId) {
                 // override device id
                 localStorage.setItem(constants.LSKEY_DEVICEID, signUpResponse.browserDeviceId);
+                localStorage.removeItem(constants.LSKEY_DISABLEPUSHALER);
+            } else {
+                throw new Error("No browserDeviceId returned");
             }
 
-            if (sentCount > 0) setInfoMsg("Verification code resent");
+            if (sentCount > 0) setInfoMsg(strings.verificationCodeResent);
 
             setStep(1);
         } catch (error) {
@@ -90,7 +95,7 @@ export default function Auth(): React.ReactElement {
 
             await update({
                 displayName: username,
-                avatarUrl: uploadedFile?.path || "",
+                avatarFileId: uploadedFile?.id || 0,
             }).unwrap();
             setLoading(false);
 

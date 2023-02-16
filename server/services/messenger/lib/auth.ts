@@ -40,8 +40,9 @@ export default async (
         const tokenExpiredAtTS: number = dayjs(device.tokenExpiredAt).unix();
         const now: number = dayjs().unix();
 
-        if (now - tokenExpiredAtTS > constants.TOKEN_EXPIRED)
+        if (now > tokenExpiredAtTS) {
             return res.status(401).send("Token is expired");
+        }
 
         const userRequest: UserRequest = req as UserRequest;
 
@@ -68,7 +69,7 @@ export default async (
             if (Object.keys(updateData).length > 0) {
                 const newDevice = await prisma.device.update({
                     where: { id: device.id },
-                    data: updateData,
+                    data: { ...updateData, modifiedAt: new Date() },
                 });
 
                 userRequest.device = newDevice;

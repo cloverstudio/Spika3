@@ -23,7 +23,7 @@ export default async (req: Request, res: Response, next: Function) => {
 
         const accessToken: string = req.headers[constants.ACCESS_TOKEN] as string;
 
-        let device = await prisma.device.findFirst({
+        const device = await prisma.device.findFirst({
             where: {
                 token: accessToken,
             },
@@ -62,7 +62,7 @@ export default async (req: Request, res: Response, next: Function) => {
             if (Object.keys(updateData).length > 0) {
                 const newDevice = await prisma.device.update({
                     where: { id: device.id },
-                    data: updateData,
+                    data: { ...updateData, modifiedAt: new Date() },
                 });
 
                 userRequset.device = newDevice;

@@ -32,7 +32,7 @@ export default (): Router => {
             } else {
                 const userContact = await prisma.contact.findFirst({
                     where: {
-                        user: userReq.user,
+                        userId: userReq.user.id,
                         contactId: id,
                     },
                     include: {
@@ -76,7 +76,7 @@ export default (): Router => {
             } else {
                 const userContact = await prisma.contact.findMany({
                     where: {
-                        user: userReq.user,
+                        userId: userReq.user.id,
                         contact: {
                             modifiedAt: { gt: new Date(timestamp) },
                         },

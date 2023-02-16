@@ -1,12 +1,13 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
+import l from "./logger";
 
 interface CustomNodeJsGlobal extends NodeJS.Global {
-    prisma: PrismaClient;
+    prisma: PrismaClient<Prisma.PrismaClientOptions, "info" | "warn" | "error" | "query">;
 }
 
 declare const global: CustomNodeJsGlobal;
 
-const prisma: PrismaClient =
+const prisma: PrismaClient<Prisma.PrismaClientOptions, "info" | "warn" | "error" | "query"> =
     global.prisma ||
     new PrismaClient({
         log: [
@@ -17,9 +18,19 @@ const prisma: PrismaClient =
         ],
     });
 
+/* prisma.$use(async (params, next) => {
+    const before = Date.now();
+    const result = await next(params);
+    const after = Date.now();
+
+    l(`Query took ${after - before}ms`);
+    return result;
+}); 
+
 /*
-prisma.$on('query' as any, async (e: any) => {
-    console.log(`${e.query} : ${e.duration}`)
+prisma.$on("query", async (e: any) => {
+    l(`Query: ${e.query}`);
+    l(`Params: ${e.params}`);
 });
 */
 

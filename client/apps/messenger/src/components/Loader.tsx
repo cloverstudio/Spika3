@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Stack } from "@mui/material";
+import Stack from "@mui/material/Stack";
 import logo from "../assets/logo.svg";
 
 export default function Loader(): React.ReactElement {

@@ -11,6 +11,7 @@ import validate from "../../../components/validateMiddleware";
 import { successResponse, errorResponse } from "../../../components/response";
 import sanitize from "../../../components/sanitize";
 import prisma from "../../../components/prisma";
+import { checkForChatGPTContacts } from "../../../components/chatGPT";
 
 const postContactsSchema = yup.object().shape({
     body: yup.object().shape({
@@ -38,7 +39,8 @@ const postContactsSchema = yup.object().shape({
 
 const getContactsSchema = yup.object().shape({
     query: yup.object().shape({
-        page: yup.number().default(1),
+        cursor: yup.number().nullable(),
+        keyword: yup.string().strict(),
     }),
 });
 
@@ -47,26 +49,28 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
     router.get("/", auth, validate(getContactsSchema), async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
+        const keyword = req.query.keyword;
+        const cursor = parseInt(req.query.cursor ? (req.query.cursor as string) : "") || null;
+        const take = cursor ? Constants.CONTACT_PAGING_LIMIT + 1 : Constants.CONTACT_PAGING_LIMIT;
+
+        if (!cursor) {
+            await checkForChatGPTContacts(userReq.user.id);
+        }
+
+        const condition: any = {
+            verified: true,
+            id: {
+                not: userReq.user.id,
+            },
+        };
+
+        if (keyword && keyword.length > 0)
+            condition.displayName = {
+                startsWith: keyword,
+            };
 
         try {
             if (+process.env["TEAM_MODE"]) {
-                const keyword = req.query.keyword;
-
-                const page: number =
-                    parseInt(req.query.page ? (req.query.page as string) : "") || 1;
-
-                const condition: any = {
-                    verified: true,
-                    id: {
-                        not: userReq.user.id,
-                    },
-                };
-
-                if (keyword && keyword.length > 0)
-                    condition.displayName = {
-                        startsWith: keyword,
-                    };
-
                 const users = await prisma.user.findMany({
                     where: condition,
                     orderBy: [
@@ -74,31 +78,37 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                             displayName: "asc",
                         },
                     ],
-                    skip: Constants.PAGING_LIMIT * (page - 1),
-                    take: Constants.PAGING_LIMIT,
+                    ...(cursor && {
+                        cursor: {
+                            id: cursor,
+                        },
+                    }),
+                    take,
                 });
 
                 const count = await prisma.user.count({
                     where: condition,
                 });
 
+                const nextCursor =
+                    users.length && users.length >= take ? users[users.length - 1].id : null;
+
                 res.send(
                     successResponse(
                         {
                             list: users.map((c) => sanitize(c).user()),
                             count,
-                            limit: Constants.PAGING_LIMIT,
+                            limit: Constants.CONTACT_PAGING_LIMIT,
+                            nextCursor,
                         },
                         userReq.lang
                     )
                 );
             } else {
-                const page: number =
-                    parseInt(req.query.page ? (req.query.page as string) : "") || 1;
-
                 const contacts = await prisma.contact.findMany({
                     where: {
-                        user: userReq.user,
+                        userId: userReq.user.id,
+                        contact: condition,
                     },
                     include: {
                         contact: true,
@@ -110,22 +120,33 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                             },
                         },
                     ],
-                    skip: Constants.PAGING_LIMIT * (page - 1),
-                    take: Constants.PAGING_LIMIT,
+                    ...(cursor && {
+                        cursor: {
+                            id: cursor,
+                        },
+                    }),
+                    take,
                 });
 
                 const count = await prisma.contact.count({
                     where: {
-                        user: userReq.user,
+                        userId: userReq.user.id,
+                        contact: condition,
                     },
                 });
+
+                const nextCursor =
+                    contacts.length && contacts.length >= take
+                        ? contacts[contacts.length - 1].contactId
+                        : null;
 
                 res.send(
                     successResponse(
                         {
                             list: contacts.map((c) => sanitize(c.contact).user()),
                             count,
-                            limit: Constants.PAGING_LIMIT,
+                            limit: Constants.CONTACT_PAGING_LIMIT,
+                            nextCursor,
                         },
                         userReq.lang
                     )

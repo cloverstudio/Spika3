@@ -45,12 +45,12 @@ describe("User API", () => {
 
         it("Updates user", async () => {
             const displayName = "John";
-            const avatarUrl = "/new/avatar/url";
+            const avatarFileId = 44;
             const response = await supertest(app)
                 .put("/api/messenger/me/")
                 .send({
                     displayName,
-                    avatarUrl,
+                    avatarFileId,
                 })
                 .set({ accesstoken: globals.userToken });
 
@@ -58,14 +58,14 @@ describe("User API", () => {
             expect(response.body).to.has.property("data");
             expect(response.body.data).to.has.property("user");
             expect(response.body.data.user.displayName).to.eqls(displayName);
-            expect(response.body.data.user.avatarUrl).to.eqls(avatarUrl);
+            expect(response.body.data.user.avatarFileId).to.eqls(avatarFileId);
 
             const userFromDb = await globals.prisma.user.findUnique({
                 where: { id: globals.userId },
             });
 
             expect(userFromDb.displayName).to.eqls(displayName);
-            expect(userFromDb.avatarUrl).to.eqls(avatarUrl);
+            expect(userFromDb.avatarFileId).to.eqls(avatarFileId);
         });
 
         it("Gets user details", async () => {
@@ -84,7 +84,7 @@ describe("User API", () => {
             });
 
             expect(userFromDb.displayName).to.eqls(userFromRes.displayName);
-            expect(userFromDb.avatarUrl).to.eqls(userFromRes.avatarUrl);
+            expect(userFromDb.avatarFileId).to.eqls(userFromRes.avatarFileId);
         });
     });
 

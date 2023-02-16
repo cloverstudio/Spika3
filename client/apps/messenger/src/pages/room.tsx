@@ -2,8 +2,8 @@ import React, { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
 
-import Chat from "../features/chat";
-import { setActiveNoteId } from "../features/chat/slice/rightSidebarSlice";
+import Room from "../features/room";
+import { setActiveNoteId } from "../features/room/slices/rightSidebar";
 
 export default function Home(): React.ReactElement {
     const noteId = +useParams().noteId;
@@ -15,5 +15,5 @@ export default function Home(): React.ReactElement {
         }
     }, [noteId, dispatch]);
 
-    return <Chat />;
+    return <Room />;
 }

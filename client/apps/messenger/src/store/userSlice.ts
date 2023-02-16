@@ -62,11 +62,4 @@ export const selectUser = (state: RootState): User => {
 
 export const settings = (state: RootState): UserSettingsList => state.user.settings;
 
-export const isRoomMuted =
-    (roomId: number) =>
-    (state: RootState): boolean =>
-        state.user.settings?.find(
-            (r) => r.key === `${constants.SETTINGS_ROOM_MUTE_PREFIX}${roomId}`
-        )?.value === constants.SETTINGS_TRUE;
-
 export default userSlice.reducer;

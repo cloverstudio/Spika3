@@ -1,7 +1,15 @@
 import React, { useRef, useState, useEffect } from "react";
-import { Button, Box, Typography, Link, Alert, AlertTitle } from "@mui/material";
+
+import Button from "@mui/material/Button";
+import { Box } from "@mui/material";
+import Typography from "@mui/material/Typography";
+import Link from "@mui/material/Link";
+import Alert from "@mui/material/Alert";
+import AlertTitle from "@mui/material/AlertTitle";
+
 import PinInput from "./PinInput";
 import CountdownTimer from "./CountdownTimer";
+import useStrings from "../../../hooks/useStrings";
 
 type VerificationCodeFormProps = {
     onSubmit: (verificationCode: string) => void;
@@ -22,6 +30,7 @@ export default function VerificationCodeForm({
     timeLeft,
     info,
 }: VerificationCodeFormProps): React.ReactElement {
+    const strings = useStrings();
     const refs = [
         useRef(null),
         useRef(null),
@@ -57,6 +66,10 @@ export default function VerificationCodeForm({
         }
     }, [codeArr]);
 
+    useEffect(() => {
+        refs[0].current?.focus();
+    }, []);
+
     const codeFilled = codeArr.every((o) => !!o.value);
     const someCodeEntered = codeArr.some((o) => !!o.value);
 
@@ -69,7 +82,7 @@ export default function VerificationCodeForm({
                 variant="h3"
                 fontWeight="bold"
             >
-                Welcome!
+                {strings.welcome}
             </Typography>
 
             <Typography
@@ -80,7 +93,7 @@ export default function VerificationCodeForm({
                 mb={{ xs: error ? 1 : 5, md: error ? 4 : 10 }}
                 fontWeight="medium"
             >
-                We sent you verification code on {telephoneNumber}!
+                {strings.sentVerificationCode} {telephoneNumber}!
             </Typography>
             {error.length > 0 && !someCodeEntered && info.length === 0 && (
                 <Alert sx={{ mb: 4 }} severity="error">
@@ -99,7 +112,11 @@ export default function VerificationCodeForm({
                     <Box display="flex" justifyContent="space-between" mb={2}>
                         <CountdownTimer timeLeft={timeLeft} />
                     </Box>
-                    <PinInput setCodeArr={setCodeArr} codeArr={codeArr} />
+                    <PinInput
+                        setCodeArr={setCodeArr}
+                        codeArr={codeArr}
+                        handleSubmit={tryToSubmit}
+                    />
                     <Box display="flex" justifyContent="space-between" mb={2}>
                         <Link
                             fontWeight="bold"
@@ -107,8 +124,9 @@ export default function VerificationCodeForm({
                             sx={{ cursor: "pointer" }}
                             onClick={onBack}
                             variant="body1"
+                            textTransform="capitalize"
                         >
-                            Back
+                            {strings.back}
                         </Link>
                         <Link
                             fontWeight="bold"
@@ -119,7 +137,7 @@ export default function VerificationCodeForm({
                             }}
                             variant="body1"
                         >
-                            Resend code
+                            {strings.resendCode}
                         </Link>
                     </Box>
                 </Box>
@@ -129,7 +147,7 @@ export default function VerificationCodeForm({
                     fullWidth
                     variant="contained"
                 >
-                    Next
+                    {strings.next}
                 </Button>
             </Box>
         </>

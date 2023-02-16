@@ -12,10 +12,12 @@ export type RoomType = Omit<Room, "users" | "createdAt"> & {
     createdAt: number;
     users: RoomUserType[];
     unreadCount?: number;
+    muted: boolean;
+    pinned: boolean;
 };
 
 export type HistoryType = {
-    list: (RoomType & { lastMessage: MessageType })[];
+    list: { roomId: number; lastMessage: MessageType }[];
     count: number;
     limit: number;
 };

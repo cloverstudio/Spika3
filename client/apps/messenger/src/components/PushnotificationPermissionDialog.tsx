@@ -1,81 +1,87 @@
-import React, { useState, useEffect } from "react";
-import {
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-} from "@mui/material";
+import React, { useState, useEffect, useCallback } from "react";
 
-import setupPushnotification from "./firebaseInit";
-import { Stack } from "@mui/material";
+import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
 
-import logo from "../assets/logo.svg";
+import setupPushNotification from "./firebaseInit";
 
 import * as constants from "../../../../lib/constants";
-import PushnotificationInstructionImage from "../assets/pushnotification-instruction.gif";
+import PushNotificationInstructionImage from "../assets/pushnotification-instruction.gif";
 
-import { useGetDeviceQuery, useUpdateDeviceMutation } from "../api/device";
+import { useUpdateDeviceMutation, useGetDeviceQuery } from "../api/device";
+import useStrings from "../hooks/useStrings";
 
-export default (): React.ReactElement => {
-    const [showPermissionDialog, setShowPermissionDialog] = useState<boolean>(false);
+export default function PushNotifPermissionDialog(): React.ReactElement {
+    const strings = useStrings();
+    const [showPermissionDialog, setShowPermissionDialog] = useState(false);
     const [updateDevice] = useUpdateDeviceMutation();
+    const { data, isLoading } = useGetDeviceQuery();
 
-    useEffect(() => {
-        if (
-            !localStorage.getItem(constants.LSKEY_DISABLEPUSHALER) &&
-            Notification.permission !== "granted"
-        ) {
-            // show permission dialog
-            return setShowPermissionDialog(true);
-        }
+    const initPushNotification = useCallback(async () => {
+        localStorage.setItem(constants.LSKEY_DISABLEPUSHALER, "1");
 
-        initPushnotification();
-    }, []);
+        if (!Notification) return;
 
-    const initPushnotification = async () => {
         const permission = await Notification.requestPermission();
 
         if (permission === "granted") {
-            console.log("Notification permission granted.");
-            const pushToken = await setupPushnotification();
-            console.log("Retrivbed push token", pushToken);
-            if (pushToken && pushToken.length > 0) updateDevice({ pushToken });
-        } else {
+            const pushToken = await setupPushNotification();
+
+            if (pushToken && pushToken.length > 0) {
+                updateDevice({ pushToken });
+            }
         }
-    };
+    }, [updateDevice]);
+
+    useEffect(() => {
+        if (
+            data &&
+            data.device &&
+            !data.device.pushToken &&
+            Notification &&
+            !localStorage.getItem(constants.LSKEY_DISABLEPUSHALER)
+        ) {
+            setShowPermissionDialog(true);
+        }
+    }, [updateDevice, data]);
+
+    if (isLoading) {
+        return null;
+    }
 
     return (
         <Dialog
             open={showPermissionDialog}
-            onClose={() => {}}
             aria-labelledby="alert-dialog-title"
             aria-describedby="alert-dialog-description"
         >
-            <DialogTitle id="alert-dialog-title">{"Use push notification service ?"}</DialogTitle>
+            <DialogTitle id="alert-dialog-title">{strings.usePushNotificationService}</DialogTitle>
             <DialogContent>
                 <DialogContentText id="alert-dialog-description">
-                    Please enable push notification manually in your browser to use this feature.
+                    {strings.enablePushManually}
                 </DialogContentText>
                 <div
                     style={{
                         textAlign: "center",
                     }}
                 >
-                    <img src={PushnotificationInstructionImage} />
+                    <img src={PushNotificationInstructionImage} />
                 </div>
             </DialogContent>
             <DialogActions>
                 <Button
                     onClick={() => {
-                        localStorage.setItem(constants.LSKEY_DISABLEPUSHALER, "1");
+                        initPushNotification();
                         setShowPermissionDialog(false);
                     }}
                 >
-                    OK
+                    {strings.enableDesktopNotifications}
                 </Button>
             </DialogActions>
         </Dialog>
     );
-};
+}

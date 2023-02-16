@@ -13,6 +13,7 @@ import { successResponse, errorResponse } from "../../../components/response";
 import sanitize from "../../../components/sanitize";
 import * as constants from "../lib/constants";
 import prisma from "../../../components/prisma";
+import { handleNewUser } from "../../../components/chatGPT";
 
 const authSchema = yup.object().shape({
     body: yup.object().shape({
@@ -98,6 +99,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     data: {
                         verificationCode,
                         verified: false,
+                        modifiedAt: new Date(),
                     },
                 });
             }
@@ -111,10 +113,29 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             // check the user already has browser device
             if (deviceType === constants.DEVICE_TYPE_BROWSER) {
-                requestDevice = await prisma.device.findFirst({
+                const browserDevice = await prisma.device.findFirst({
                     where: {
                         userId: requestUser.id,
                         type: constants.DEVICE_TYPE_BROWSER,
+                    },
+                });
+
+                if (browserDevice) {
+                    requestDevice = browserDevice;
+                }
+            } else if (+process.env.ALLOW_MULTIPLE_MOBILE_APP_DEVICES) {
+                // expire other tokens if not browser
+                await prisma.device.updateMany({
+                    where: {
+                        userId: requestUser.id,
+                        type: {
+                            not: constants.DEVICE_TYPE_BROWSER,
+                        },
+                    },
+                    data: {
+                        tokenExpiredAt: new Date(),
+                        pushToken: null,
+                        modifiedAt: new Date(),
                     },
                 });
             }
@@ -132,8 +153,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     },
                 });
             } else {
-                // expire token if existing device
-                // If there is device already registered the user took the device
                 requestDevice = await prisma.device.update({
                     where: {
                         id: requestDevice.id,
@@ -141,6 +160,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     data: {
                         tokenExpiredAt: new Date(),
                         userId: requestUser.id,
+                        pushToken: null,
+                        modifiedAt: new Date(),
                     },
                 });
             }
@@ -185,7 +206,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             });
 
             if (!requestDevice) {
-                return res.status(403).send(errorResponse("Invalid device id"));
+                return res.status(404).send(errorResponse("Device not found"));
             }
 
             const requestUser = await prisma.user.findMany({
@@ -225,8 +246,11 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 data: {
                     token: newToken,
                     tokenExpiredAt: expireDate,
+                    modifiedAt: new Date(),
                 },
             });
+
+            handleNewUser(findUser.id);
 
             res.send(
                 successResponse({

@@ -14,6 +14,7 @@ export const LSKEY_CROPSIZE = 512;
 
 export const LSKEY_ACCESSTOKEN = "access-token";
 export const LSKEY_DEVICEID = "deviceId";
+export const LSKEY_THEME = "theme";
 export const ADMIN_ACCESS_TOKEN = "admin-accesstoken";
 export const THUMB_WIDTH = 256;
 export const MESSAGE_PAGING_LIMIT = 50;
@@ -21,3 +22,5 @@ export const MESSAGE_PAGING_LIMIT = 50;
 export const SETTINGS_ROOM_MUTE_PREFIX = "mute_";
 export const SETTINGS_TRUE = "true";
 export const SETTINGS_FALSE = "false";
+export const APP_DEFAULT_LANG = "en";
+export const APP_NAME = "Spika";

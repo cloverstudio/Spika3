@@ -1,27 +1,29 @@
 import React, { useEffect, useRef } from "react";
-import {
-    Box,
-    Stack,
-    TextField,
-    Typography,
-    Divider,
-    InputAdornment,
-    ListItem,
-    ListItemText,
-    ListItemButton,
-    Button,
-} from "@mui/material";
-import { KeyboardArrowDown, KeyboardArrowUp, Search } from "@mui/icons-material";
+import { Box } from "@mui/material";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+import Divider from "@mui/material/Divider";
+import InputAdornment from "@mui/material/InputAdornment";
+import ListItem from "@mui/material/ListItem";
+import ListItemText from "@mui/material/ListItemText";
+import ListItemButton from "@mui/material/ListItemButton";
+import Button from "@mui/material/Button";
+import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUp from "@mui/icons-material/KeyboardArrowUp";
+import Search from "@mui/icons-material/Search";
 import { FixedSizeList, ListChildComponentProps } from "react-window";
 import countries, { CountryType } from "../lib/countries";
 import { isValidPhoneNumber } from "libphonenumber-js";
+import useStrings from "../../../hooks/useStrings";
 
 const CountryPicker = (props: any) => {
     const [searchText, setSearchText] = React.useState("");
     const [tempCountries, setTempCountries] = React.useState(countries);
-    const [countryCode, setCountryCode] = React.useState("1");
+    const [countryCode, setCountryCode] = React.useState("385");
     const [openMenu, setOpenMenu] = React.useState(false);
     const [staticBoxCoordinates, setStaticBoxCoordinates] = React.useState<DOMRect>(null);
+    const strings = useStrings();
 
     const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchText(event.target.value);
@@ -72,7 +74,10 @@ const CountryPicker = (props: any) => {
                         ].code.toLowerCase()}.png 2x`}
                         alt=""
                     />
-                    <ListItemText sx={{ marginLeft: 1 }} primary={tempCountries[index].label} />
+                    <ListItemText
+                        sx={{ marginLeft: 1, color: "text.tertiary" }}
+                        primary={tempCountries[index].label}
+                    />
                 </ListItemButton>
             </ListItem>
         );
@@ -100,7 +105,7 @@ const CountryPicker = (props: any) => {
                 sx={{
                     border: "solid",
                     borderWidth: "1px",
-                    borderColor: "text.tertiary",
+                    borderColor: "divider",
                     borderRadius: 1,
                     width: "100%",
                 }}
@@ -116,11 +121,7 @@ const CountryPicker = (props: any) => {
                             <KeyboardArrowUp color="primary" />
                         )}
                     </Button>
-                    <Divider
-                        orientation="vertical"
-                        sx={{ borderColor: "text.tertiary" }}
-                        flexItem
-                    />
+                    <Divider orientation="vertical" sx={{ borderColor: "divider" }} flexItem />
                     <TextField
                         variant="outlined"
                         margin="normal"
@@ -128,9 +129,12 @@ const CountryPicker = (props: any) => {
                         fullWidth
                         autoFocus
                         size="small"
-                        placeholder="Eg. 98334234"
+                        placeholder={strings.phoneNumberExample}
                         InputProps={{
                             type: "number",
+                        }}
+                        inputProps={{
+                            pattern: "[0-9]*",
                         }}
                         sx={{
                             fieldset: {
@@ -165,7 +169,7 @@ const CountryPicker = (props: any) => {
                             padding: "0.5em",
                             borderStyle: "none solid solid solid",
                             borderWidth: "1px",
-                            borderColor: "text.tertiary",
+                            borderColor: "divider",
                             borderRadius: 1,
                         }}
                     >
@@ -174,14 +178,14 @@ const CountryPicker = (props: any) => {
                             fullWidth
                             autoFocus
                             sx={{
-                                backgroundColor: "common.chatBackground",
+                                backgroundColor: "background.paper",
                                 borderRadius: "1em",
                                 marginTop: "1.0em",
                                 marginBottom: "2em",
                             }}
                             value={searchText}
                             onChange={handleSearch}
-                            placeholder="Search"
+                            placeholder={strings.search}
                             InputProps={{
                                 startAdornment: (
                                     <InputAdornment position="start">
@@ -196,8 +200,12 @@ const CountryPicker = (props: any) => {
                                 },
                             }}
                         />
-                        <Typography color="text.tertiary" marginLeft="1em">
-                            ALL COUNTRIES
+                        <Typography
+                            color="text.tertiary"
+                            textTransform="uppercase"
+                            marginLeft="1em"
+                        >
+                            {strings.allCountries}
                         </Typography>
                         <FixedSizeList
                             height={200}
