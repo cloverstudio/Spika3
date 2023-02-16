@@ -118,3 +118,7 @@ tmp
 tmp
 
 package-lock.json
+
+*.pem
+.terraform
+

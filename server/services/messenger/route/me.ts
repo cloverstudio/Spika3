@@ -16,14 +16,13 @@ import prisma from "../../../components/prisma";
 const updateSchema = yup.object().shape({
     body: yup.object().shape({
         telephoneNumber: yup.string().strict(),
-        telephoneNumberHashed: yup.string().strict(),
         emailAddress: yup.string().strict(),
         displayName: yup.string().strict(),
-        avatarUrl: yup.string().strict(),
+        avatarFileId: yup.number().strict(),
     }),
 });
 
-export default ({ rabbitMQChannel }: InitRouterParams): Router => {
+export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
     const router = Router();
 
     router.get("/", auth, async (req: Request, res: Response) => {
@@ -42,7 +41,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         const id = userReq.user.id;
 
         try {
-            const { telephoneNumber, emailAddress, displayName, avatarUrl } = req.body;
+            const { telephoneNumber, emailAddress, displayName, avatarFileId } = req.body;
 
             const userWithSameEmailAddress =
                 emailAddress &&
@@ -72,7 +71,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     telephoneNumber,
                     emailAddress,
                     displayName,
-                    avatarUrl,
+                    avatarFileId: parseInt(avatarFileId || "0"),
                     ...(telephoneNumber && {
                         telephoneNumberHashed: Utils.sha256(telephoneNumber),
                     }),
@@ -101,6 +100,15 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         )
                     );
                 }
+            }
+
+            const roomsUser = await prisma.roomUser.findMany({
+                where: { userId: user.id },
+            });
+
+            for (const roomUser of roomsUser) {
+                const key = `${Constants.ROOM_PREFIX}${roomUser.roomId}`;
+                await redisClient.del(key);
             }
         } catch (e: any) {
             le(e);

@@ -3,8 +3,6 @@ import { Box } from "@mui/material";
 import Button from "@mui/material/Button";
 
 import { Base } from "../components/Base";
-import LeftSidebar from "../features/chat/LeftSidebar";
-import { Outlet } from "react-router-dom";
 
 import { useShowSnackBar, useShowBasicDialog } from "../hooks/useModal";
 
@@ -120,14 +118,7 @@ export default function Home(): React.ReactElement {
 
             {showConfcall ? (
                 <>
-                    <Confcall
-                        roomId="test"
-                        userId="test"
-                        userName="test"
-                        onClose={() => {
-                            setShowConfcall(false);
-                        }}
-                    />
+                    <Confcall />
                 </>
             ) : null}
         </Base>

@@ -16,22 +16,39 @@ model User {
   telephoneNumber       String?  @unique @map(name: "telephone_number")
   telephoneNumberHashed String?  @unique @map(name: "telephone_number_hashed")
   displayName           String?  @map(name: "display_name")
-  avatarUrl             String?  @map(name: "avatar_url")
+  avatarFileId          Int      @default(0) @map(name: "avatar_file_id")
   verificationCode      String?  @map(name: "verification_code")
   verified              Boolean  @default(false) @map(name: "verified")
+  isBot                 Boolean  @default(false) @map(name: "is_bot")
   createdAt             DateTime @default(now()) @map(name: "created_at")
   modifiedAt            DateTime @default(now()) @map(name: "modified_at")
 
-  rooms RoomUser[]
-  device    Device[]
-  contacts  Contact[] @relation("user")
-  contactee Contact[] @relation("contact")
-  messages Message[]
+  rooms           RoomUser[]
+  device          Device[]
+  contacts        Contact[]       @relation("user")
+  contactee       Contact[]       @relation("contact")
+  messages        Message[]
   messagesRecords MessageRecord[]
-  callHistory CallHistory[]
-  userSetting UserSetting[]
+  callHistory     CallHistory[]
+  userSetting     UserSetting[]
+  blocks          Block[]         @relation("blocks")
+  blockedBy       Block[]         @relation("blockedBy")
 
+  @@index([displayName])
   @@map(name: "user")
+}
+
+model Block {
+  id        Int      @id @default(autoincrement()) @map(name: "id")
+  createdAt DateTime @default(now()) @map(name: "createdn_at")
+
+  userId Int  @map(name: "user_id")
+  user   User @relation(name: "blocks", fields: [userId], references: [id])
+
+  blockedId Int  @map(name: "blocked_id")
+  blocked   User @relation(name: "blockedBy", fields: [blockedId], references: [id])
+
+  @@map(name: "block")
 }
 
 model Device {
@@ -51,18 +68,21 @@ model Device {
   modifiedAt     DateTime  @default(now()) @map(name: "modified_at")
 
   messages Message[]
+
+  @@index([token])
   @@map(name: "device")
 }
 
 model File {
   id         Int    @id @default(autoincrement()) @map(name: "id")
   type       String @map(name: "type")
-  relationId Int?    @map(name: "relation_id")
+  relationId Int?   @map(name: "relation_id")
   path       String @map(name: "path")
   mimeType   String @map(name: "mime_type")
   fileName   String @map(name: "file_name")
   size       Int    @map(name: "size")
   clientId   String @unique @map(name: "client_id")
+  metaData   Json   @default("{}") @map(name: "meta_data")
 
   createdAt  DateTime @default(now()) @map(name: "created_at")
   modifiedAt DateTime @default(now()) @map(name: "modified_at")
@@ -83,29 +103,30 @@ model Contact {
 }
 
 model Room {
-  id Int @id @default(autoincrement()) @map(name: "id")
-  type String @map(name: "type")
-  name String @map(name: "name")
-  avatarUrl String    @map(name: "avatar_url")
-  createdAt  DateTime @default(now()) @map(name: "created_at")
-  modifiedAt DateTime @default(now()) @map(name: "modified_at")
-  deleted Boolean @default(false) @map(name: "deleted")
+  id           Int      @id @default(autoincrement()) @map(name: "id")
+  type         String   @map(name: "type")
+  name         String   @map(name: "name")
+  avatarFileId Int      @default(0) @map(name: "avatar_file_id")
+  createdAt    DateTime @default(now()) @map(name: "created_at")
+  modifiedAt   DateTime @default(now()) @map(name: "modified_at")
+  deleted      Boolean  @default(false) @map(name: "deleted")
 
-  users RoomUser[]
-  messages Message[]
+  users       RoomUser[]
+  messages    Message[]
   callHistory CallHistory[]
-  webhooks Webhook[]
+  webhooks    Webhook[]
+  apiKeys     ApiKey[]
 
   @@map(name: "room")
 }
 
 model RoomUser {
-  id Int @id @default(autoincrement()) @map(name: "id")
-  user User @relation(fields: [userId], references: [id])
-  userId Int @map(name: "user_id")
-  room Room @relation(fields: [roomId], references: [id])
-  roomId Int @map(name: "room_id")
-  isAdmin Boolean @default(false) @map(name: "is_admin")
+  id         Int      @id @default(autoincrement()) @map(name: "id")
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int      @map(name: "user_id")
+  room       Room     @relation(fields: [roomId], references: [id])
+  roomId     Int      @map(name: "room_id")
+  isAdmin    Boolean  @default(false) @map(name: "is_admin")
   createdAt  DateTime @default(now()) @map(name: "created_at")
   modifiedAt DateTime @default(now()) @map(name: "modified_at")
 
@@ -113,62 +134,65 @@ model RoomUser {
 }
 
 model Message {
-  id Int @id @default(autoincrement()) @map(name: "id")
-  fromUserId Int @map(name: "from_user_id")
-  fromUser User @relation(fields: [fromUserId], references: [id])
+  id         Int  @id @default(autoincrement()) @map(name: "id")
+  fromUserId Int  @map(name: "from_user_id")
+  fromUser   User @relation(fields: [fromUserId], references: [id])
 
-  fromDeviceId Int @map(name: "from_device_id")
-  fromDevice Device @relation(fields: [fromDeviceId], references: [id])
+  fromDeviceId Int?    @map(name: "from_device_id")
+  fromDevice   Device? @relation(fields: [fromDeviceId], references: [id])
 
-  roomId Int @map(name: "room_id")
-  room Room @relation(fields: [roomId], references: [id])
+  roomId Int  @map(name: "room_id")
+  room   Room @relation(fields: [roomId], references: [id])
 
-  type String @map(name: "type")
-  seenCount Int @default(0) @map(name: "seen_count")
-  deliveredCount Int @default(0) @map(name: "delivered_count")
-  totalUserCount Int @map(name: "total_user_count")
+  type           String @map(name: "type")
+  seenCount      Int    @default(0) @map(name: "seen_count")
+  deliveredCount Int    @default(0) @map(name: "delivered_count")
+  totalUserCount Int    @map(name: "total_user_count")
 
   createdAt  DateTime @default(now()) @map(name: "created_at")
   modifiedAt DateTime @default(now()) @map(name: "modified_at")
-  deleted Boolean @default(false) @map(name: "deleted")
-  reply Boolean @default(false) @map(name: "reply")
+  deleted    Boolean  @default(false) @map(name: "deleted")
+  replyId    Int?     @map(name: "reply_id")
 
   deviceMessages DeviceMessage[]
   messageRecords MessageRecord[]
 
   localId String? @map(name: "local_id")
 
+  @@index([roomId, createdAt(sort: Desc)])
   @@map(name: "message")
 }
 
 model DeviceMessage {
-  id Int @id @default(autoincrement()) @map(name: "id")
-  deviceId Int @map(name: "device_id")
-  userId Int @map(name: "user_id")
-  fromUserId Int @map(name: "from_user_id")
-  fromDeviceId Int @map(name: "from_device_id")
+  id           Int  @id @default(autoincrement()) @map(name: "id")
+  deviceId     Int  @map(name: "device_id")
+  userId       Int  @map(name: "user_id")
+  fromUserId   Int  @map(name: "from_user_id")
+  fromDeviceId Int? @map(name: "from_device_id")
 
-  messageId Int @map(name: "message_id")
-  message Message @relation(fields: [messageId], references: [id])
+  messageId Int     @map(name: "message_id")
+  message   Message @relation(fields: [messageId], references: [id])
 
-  body Json @map(name: "body")
+  body   Json   @map(name: "body")
   action String @map(name: "action")
 
   createdAt  DateTime @default(now()) @map(name: "created_at")
   modifiedAt DateTime @default(now()) @map(name: "modified_at")
+  deleted    Boolean  @default(false) @map(name: "deleted")
 
+  @@index([deviceId, userId, messageId])
   @@map(name: "message_device")
 }
 
 model MessageRecord {
-  id Int @id @default(autoincrement()) @map(name: "id")
-  messageId Int @map(name: "message_id")
-  message Message @relation(fields: [messageId], references: [id])
+  id        Int     @id @default(autoincrement()) @map(name: "id")
+  messageId Int     @map(name: "message_id")
+  message   Message @relation(fields: [messageId], references: [id])
 
-  userId Int @map(name: "user_id")
-  user User @relation(fields: [userId], references: [id])
+  userId Int  @map(name: "user_id")
+  user   User @relation(fields: [userId], references: [id])
 
-  type String @map("string")
+  type     String  @map("string")
   reaction String? @map("reaction")
 
   createdAt  DateTime @default(now()) @map(name: "created_at")
@@ -178,12 +202,11 @@ model MessageRecord {
   @@map(name: "message_record")
 }
 
-
 model Note {
-  id Int @id @default(autoincrement()) @map(name: "id")
-  roomId Int @map(name: "room_id")
-  content String @db.Text @map("content")
-  title String @default("") @map("title")
+  id      Int    @id @default(autoincrement()) @map(name: "id")
+  roomId  Int    @map(name: "room_id")
+  content String @map("content") @db.Text
+  title   String @default("") @map("title")
 
   createdAt  DateTime @default(now()) @map(name: "created_at")
   modifiedAt DateTime @default(now()) @map(name: "modified_at")
@@ -192,59 +215,77 @@ model Note {
 }
 
 model CallSession {
-  id Int @id @default(autoincrement()) @map(name: "id")
-  roomId Int @map(name: "room_id")
-  isActive Boolean  @default(false) @map(name: "is_active")
-  staredAt  DateTime @default(now()) @map(name: "starte_at")
-  finishedAt  DateTime? @map(name: "finished_at")
+  id         Int       @id @default(autoincrement()) @map(name: "id")
+  roomId     Int       @map(name: "room_id")
+  isActive   Boolean   @default(false) @map(name: "is_active")
+  staredAt   DateTime  @default(now()) @map(name: "starte_at")
+  finishedAt DateTime? @map(name: "finished_at")
+
   @@map(name: "call_session")
 }
 
 model CallHistory {
   id Int @id @default(autoincrement()) @map(name: "id")
 
-  room Room @relation(fields: [roomId], references: [id])
-  roomId Int @map(name: "room_id")
+  room   Room @relation(fields: [roomId], references: [id])
+  roomId Int  @map(name: "room_id")
 
-  user User @relation(fields: [userId], references: [id])
-  userId Int @map(name: "user_id")
+  user   User @relation(fields: [userId], references: [id])
+  userId Int  @map(name: "user_id")
 
-  sessionId Int @map(name: "call_session")
-  isActive Boolean  @default(false) @map(name: "is_active")
-  isInitiator Boolean  @default(false) @map(name: "is_initiator")
-  joinedAt  DateTime @default(now()) @map(name: "joined_at")
-  leftAt   DateTime? @map(name: "left_at")
+  sessionId   Int       @map(name: "call_session")
+  isActive    Boolean   @default(false) @map(name: "is_active")
+  isInitiator Boolean   @default(false) @map(name: "is_initiator")
+  joinedAt    DateTime  @default(now()) @map(name: "joined_at")
+  leftAt      DateTime? @map(name: "left_at")
 
   callParameters Json?
-  
+
   @@map(name: "call_history")
 }
 
 model UserSetting {
   id Int @id @default(autoincrement()) @map(name: "id")
 
-  user User @relation(fields: [userId], references: [id])
-  userId Int @map(name: "user_id")
+  user   User @relation(fields: [userId], references: [id])
+  userId Int  @map(name: "user_id")
 
-  key String @map(name: "key")
+  key   String @map(name: "key")
   value String @map(name: "value")
+
+  createdAt  DateTime @default(now()) @map(name: "created_at")
+  modifiedAt DateTime @default(now()) @map(name: "modified_at")
 
   @@unique([userId, key], name: "userId_key_unique_constraint")
   @@map(name: "user_setting")
 }
 
 model Webhook {
-  id Int @id @default(autoincrement()) @map(name: "id")
+  id              Int    @id @default(autoincrement()) @map(name: "id")
   verifySignature String @default("") @map("verify_signature")
-  url String @default("") @map("url")
+  url             String @default("") @map("url")
 
-  roomId Int @map(name: "room_id")
-  room Room @relation(fields: [roomId], references: [id])
+  roomId Int  @map(name: "room_id")
+  room   Room @relation(fields: [roomId], references: [id])
 
   createdAt  DateTime @default(now()) @map(name: "created_at")
   modifiedAt DateTime @default(now()) @map(name: "modified_at")
 
   @@map(name: "webhook")
+}
+
+model ApiKey {
+  id    Int    @id @default(autoincrement()) @map(name: "id")
+  token String @map("token")
+
+  userId Int  @map(name: "user_id")
+  roomId Int  @map(name: "room_id")
+  room   Room @relation(fields: [roomId], references: [id])
+
+  createdAt  DateTime @default(now()) @map(name: "created_at")
+  modifiedAt DateTime @default(now()) @map(name: "modified_at")
+
+  @@map(name: "api_key")
 }
 
 generator dbml {

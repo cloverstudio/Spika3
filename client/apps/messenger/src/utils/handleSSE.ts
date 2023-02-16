@@ -1,13 +1,6 @@
 import api, { dynamicBaseQuery } from "../api/api";
-import {
-    addMessage,
-    addMessageRecord,
-    deleteMessage,
-    editMessage,
-} from "../features/chat/slice/chatSlice";
 
-import { updateLastMessage } from "../features/chat/slice/roomSlice";
-import { fetchHistory } from "../features/chat/slice/roomSlice";
+import { refreshHistory, removeRoom } from "../features/room/slices/leftSidebar";
 import { store } from "../store/store";
 
 const VALID_SSE_EVENT_TYPES = [
@@ -24,10 +17,16 @@ const VALID_SSE_EVENT_TYPES = [
 ];
 
 import { notify as notifyCallEvent } from "../features/confcall/lib/callEventListener";
-import { fetchContact } from "../features/chat/slice/contactsSlice";
+import { fetchContacts } from "../features/room/slices/contacts";
 import { RoomType } from "../types/Rooms";
 import newMessageSound from "../../../../assets/newmessage.mp3";
 import * as constants from "../../../../lib/constants";
+import {
+    addMessage,
+    addMessageRecord,
+    deleteMessage,
+    editMessage,
+} from "../features/room/slices/messages";
 
 export default async function handleSSE(event: MessageEvent): Promise<void> {
     const data = event.data ? JSON.parse(event.data) : {};
@@ -52,23 +51,24 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                 return;
             }
 
-            await dynamicBaseQuery({
-                url: "/messenger/messages/delivered",
-                method: "POST",
-                data: { messagesIds: [message.id] },
-            });
-
             store.dispatch(addMessage(message));
 
-            if (document.hidden || store.getState().chat.activeRoomId !== message.roomId) {
-                store.dispatch(fetchHistory({ page: 1, keyword: "" }));
+            const userIsInRoom = document.URL.includes(`/rooms/${message.roomId}`);
+
+            if (document.hidden || !userIsInRoom) {
+                await dynamicBaseQuery({
+                    url: "/messenger/messages/delivered",
+                    method: "POST",
+                    data: { messagesIds: [message.id] },
+                });
             } else {
-                store.dispatch(updateLastMessage(message));
                 await dynamicBaseQuery({
                     url: `/messenger/messages/${message.roomId}/seen`,
                     method: "POST",
                 });
             }
+
+            store.dispatch(refreshHistory(message.roomId as number));
 
             const isMute =
                 store
@@ -78,19 +78,15 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                     )?.value === constants.SETTINGS_TRUE;
 
             // play sound logic
-            if (
-                !isMute &&
-                !document.hidden &&
-                store.getState().chat.activeRoomId !== message.roomId &&
-                message.fromUserId !== store.getState().user.id
-            ) {
-                new Audio(newMessageSound).play();
-            } else if (!isMute && document.hidden) {
-                new Audio(newMessageSound).play();
-            } else {
-                console.log("muted !");
+
+            if (isMute || !document.hidden || message.fromUserId === store.getState().user.id) {
+                return;
             }
 
+            const audio = new Audio(newMessageSound);
+            audio.volume = 0.5;
+
+            audio.play();
             return;
         }
 
@@ -115,6 +111,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
             }
 
             store.dispatch(deleteMessage(message));
+            store.dispatch(refreshHistory(message.roomId as number));
 
             return;
         }
@@ -127,6 +124,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
             }
 
             store.dispatch(editMessage(message));
+            store.dispatch(refreshHistory(message.roomId as number));
 
             return;
         }
@@ -158,7 +156,6 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
             }
 
             store.dispatch(api.util.invalidateTags([{ type: "Rooms", id: room.id }]));
-
             return;
         }
 
@@ -171,7 +168,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                 return;
             }
 
-            store.dispatch(fetchContact({ page: 1, keyword: "" }));
+            store.dispatch(fetchContacts());
             const queries = store.getState().api.queries;
 
             if (!queries) {
@@ -183,9 +180,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                     ([key, val]) =>
                         key.startsWith("getRoom(") &&
                         val?.data &&
-                        (val.data as { room: RoomType }).room.users.find(
-                            (u) => u.userId === user.id
-                        )
+                        (val.data as RoomType).users.find((u) => u.userId === user.id)
                 )
                 .map(([_, val]) => val);
 
@@ -199,8 +194,6 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                 );
             }
 
-            store.dispatch(fetchHistory({ page: 1, keyword: "" }));
-
             return;
         }
 
@@ -212,6 +205,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                 return;
             }
 
+            store.dispatch(removeRoom(room.id as number));
             store.dispatch(api.util.invalidateTags([{ type: "Rooms", id: room.id }]));
 
             return;

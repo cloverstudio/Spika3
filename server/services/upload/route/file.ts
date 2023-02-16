@@ -37,6 +37,14 @@ const verifyFilesSchema = yup.object().shape({
         total: yup.number().strict().min(1).required(),
         fileHash: yup.string().required(),
         relationId: yup.number().strict(),
+        metaData: yup
+            .object()
+            .shape({
+                duration: yup.number().strict(),
+                height: yup.number().strict(),
+                width: yup.number().strict(),
+            })
+            .nullable(),
     }),
 });
 
@@ -56,8 +64,11 @@ export default (): Router => {
                     .status(400)
                     .send(errorResponse("File with that clientId already exists", userReq.lang));
             }
-            const tempFileDir = path.join(process.env["UPLOAD_FOLDER"], `.temp/${clientId}`);
+
+            const tempFileDir = path.resolve(process.env["UPLOAD_FOLDER"], ".temp/", clientId);
+
             if (!fs.existsSync(tempFileDir)) {
+                console.log("created", tempFileDir);
                 await mkdir(tempFileDir, { recursive: true });
             }
 
@@ -78,18 +89,30 @@ export default (): Router => {
         const userReq: UserRequest = req as UserRequest;
 
         try {
-            const { total, size, mimeType, fileName, fileHash, type, relationId, clientId } =
-                req.body;
+            const {
+                total,
+                size,
+                mimeType,
+                fileName,
+                fileHash,
+                type,
+                relationId,
+                clientId,
+                metaData, // { duration,width,height}
+            } = req.body;
 
             const exists = await prisma.file.findFirst({ where: { clientId } });
 
             if (exists) {
                 return res
-                    .status(400)
+                    .status(409)
                     .send(errorResponse("File with that clientId already exists", userReq.lang));
             }
-            const tempFileDir = path.join(process.env["UPLOAD_FOLDER"], `.temp/${clientId}`);
+
+            const tempFileDir = path.resolve(process.env["UPLOAD_FOLDER"], ".temp/", clientId);
+
             if (!fs.existsSync(tempFileDir)) {
+                console.log("created", tempFileDir);
                 await mkdir(tempFileDir, { recursive: true });
             }
 
@@ -103,11 +126,12 @@ export default (): Router => {
 
             if (!allChunksUploaded) {
                 return res
-                    .status(400)
+                    .status(410)
                     .send(errorResponse("Not all chunks are uploaded", userReq.lang));
             }
 
-            const filesDir = path.join(process.env["UPLOAD_FOLDER"], "files");
+            const filesDir = path.resolve(process.env["UPLOAD_FOLDER"], "files/");
+
             if (!fs.existsSync(filesDir)) {
                 await mkdir(filesDir);
             }
@@ -134,8 +158,12 @@ export default (): Router => {
             const hashMatches = await checkHashes(fileHash, filePath);
             if (!hashMatches) {
                 await removeFile(filePath);
-                return res.status(400).send(errorResponse("Hash doesn't match", userReq.lang));
+                return res.status(411).send(errorResponse("Hash doesn't match", userReq.lang));
             }
+
+            const durationInt: number = metaData?.duration ? parseInt(metaData.duration) : 0;
+            const widthInt: number = metaData?.width ? parseInt(metaData.width) : 0;
+            const heightInt: number = metaData?.height ? parseInt(metaData.height) : 0;
 
             const file = await prisma.file.create({
                 data: {
@@ -145,6 +173,11 @@ export default (): Router => {
                     type,
                     relationId,
                     clientId,
+                    metaData: {
+                        duration: durationInt,
+                        width: widthInt,
+                        height: heightInt,
+                    },
                     path: "/uploads/files/" + clientId,
                 },
             });
@@ -176,6 +209,10 @@ export default (): Router => {
         try {
             const id = parseInt((req.params.id as string) || "");
 
+            if (!id) {
+                return res.status(400).send(errorResponse("Invalid id", userReq.lang));
+            }
+
             const file = await prisma.file.findFirst({ where: { id } });
 
             if (!file) {
@@ -186,16 +223,14 @@ export default (): Router => {
                 return res.send(successResponse({}, userReq.lang));
             }
 
-            const pathToFile = path.resolve(
-                __dirname,
-                "../../../../../",
-                process.env["UPLOAD_FOLDER"],
-                "files/",
-                file.clientId
-            );
+            const pathToFile = path.resolve(process.env["UPLOAD_FOLDER"], "files/", file.clientId);
+
             if (!fs.existsSync(pathToFile)) {
+                le(`File doesn't exists - ${pathToFile}`);
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
+
+            res.set("Cache-control", "public, max-age=86400");
 
             res.download(pathToFile, file.fileName);
         } catch (e: any) {
@@ -209,7 +244,8 @@ export default (): Router => {
 
         try {
             const { fileName } = req.params;
-            const dirPath = path.join(__dirname, `../uploads/.temp/${fileName}`);
+
+            const dirPath = path.resolve(process.env["UPLOAD_FOLDER"], ".temp/", fileName);
 
             if (!fs.existsSync(dirPath)) {
                 return res.status(404).send(errorResponse("Not found", userReq.lang));

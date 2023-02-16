@@ -1,12 +1,10 @@
-import { useEffect, useState } from "react";
-import faker from "faker";
-
 import { callEventPayload } from "../../../types/confcall";
+import Utils from "./utils";
 
 const listeners: Record<string, (payload: callEventPayload) => void> = {};
 
 export function listen(listener: (payload: callEventPayload) => void): () => void {
-    const identifier = faker.datatype.string(16);
+    const identifier = Utils.randomStr(16);
     listeners[identifier] = listener;
 
     return () => {

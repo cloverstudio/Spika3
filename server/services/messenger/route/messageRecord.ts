@@ -13,6 +13,7 @@ import { InitRouterParams } from "../../types/serviceInterface";
 import sanitize from "../../../components/sanitize";
 import createSSEMessageRecordsNotify from "../lib/sseMessageRecordsNotify";
 import prisma from "../../../components/prisma";
+import { isRoomBlocked } from "./block";
 
 const postMessageRecordSchema = yup.object().shape({
     body: yup.object().shape({
@@ -60,6 +61,12 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     return res.status(404).send(errorResponse("Message not found", userReq.lang));
                 }
 
+                const blocked = await isRoomBlocked(message.roomId, userReq.user.id);
+
+                if (blocked) {
+                    return res.status(403).send(errorResponse("Room is blocked", userReq.lang));
+                }
+
                 if (type === "reaction" && !reaction) {
                     return res
                         .status(400)
@@ -91,7 +98,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     },
                 });
 
-                const messageRecordSanitized = sanitize(messageRecord).messageRecord();
+                const messageRecordSanitized = sanitize({
+                    ...messageRecord,
+                    roomId: message.roomId,
+                }).messageRecord();
 
                 const messageRecordsNotifyData = {
                     types: [type],
@@ -121,6 +131,9 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             const messageRecord = await prisma.messageRecord.findFirst({
                 where: { id, userId },
+                include: {
+                    message: true,
+                },
             });
 
             if (!messageRecord) {
@@ -129,7 +142,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             await prisma.messageRecord.delete({ where: { id } });
 
-            const messageRecordSanitized = sanitize(messageRecord).messageRecord();
+            const messageRecordSanitized = sanitize({
+                ...messageRecord,
+                roomId: messageRecord.message.roomId,
+            }).messageRecord();
 
             /*  sseMessageRecordsNotify(
                 [messageRecordSanitized],
@@ -163,12 +179,14 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     createdAt: { gt: new Date(lastUpdate) },
                     message: {
                         roomId: { in: roomsIds },
+                        createdAt: { gte: userReq.device.createdAt },
                     },
                 },
+                include: { message: true },
             });
 
             const messageRecordsSanitized = messageRecords.map((messageRecord) =>
-                sanitize(messageRecord).messageRecord()
+                sanitize({ ...messageRecord, roomId: messageRecord.message.roomId }).messageRecord()
             );
 
             res.send(successResponse({ messageRecords: messageRecordsSanitized }, userReq.lang));

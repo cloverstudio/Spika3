@@ -334,50 +334,40 @@ describe("API", () => {
             expect(sendPush.run).to.have.been.called.min(deviceMessagesCount - 1);
         });
 
-        it("if message is reply it requires referenceMessage and text", async () => {
+        it("if message is reply it requires valid replyId", async () => {
             const responseInvalidOne = await supertest(app)
                 .post("/api/messenger/messages")
                 .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, reply: true });
+                .send({ ...validParams, replyId: true });
 
             const responseInvalidTwo = await supertest(app)
                 .post("/api/messenger/messages")
                 .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, reply: true, body: { referenceMessage: true } });
+                .send({ ...validParams, replyId: 589878855488751 });
 
-            const responseInvalidThree = await supertest(app)
-                .post("/api/messenger/messages")
-                .set({ accesstoken: globals.userToken })
-                .send({ ...validParams, reply: true, body: { referenceMessage: {}, text: "foo" } });
-
-            const responseInvalidFour = await supertest(app)
-                .post("/api/messenger/messages")
-                .set({ accesstoken: globals.userToken })
-                .send({
-                    ...validParams,
-                    reply: true,
-                    body: { referenceMessage: { id: 12365478987154154 }, text: "foo" },
-                });
-
-            const message = await createFakeMessage({
+            const referenceMessage = await createFakeMessage({
                 room,
                 fromUserId: globals.userId,
                 fromDeviceId: globals.deviceId,
             });
+
+            const responseInvalidThree = await supertest(app)
+                .post("/api/messenger/messages")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, replyId: referenceMessage.id, body: {} });
 
             const response = await supertest(app)
                 .post("/api/messenger/messages")
                 .set({ accesstoken: globals.userToken })
                 .send({
                     ...validParams,
-                    reply: true,
-                    body: { referenceMessage: message, text: "foo" },
+                    replyId: referenceMessage.id,
+                    body: { text: "foo" },
                 });
 
             expect(responseInvalidOne.status).to.eqls(400);
             expect(responseInvalidTwo.status).to.eqls(400);
             expect(responseInvalidThree.status).to.eqls(400);
-            expect(responseInvalidFour.status).to.eqls(400);
             expect(response.status).to.eqls(200);
         });
     });
@@ -448,7 +438,7 @@ describe("API", () => {
 
             expect(response.status).to.eqls(200);
 
-            await wait(0.1);
+            await wait(0.2);
 
             const messageRecords = await globals.prisma.messageRecord.findMany({
                 where: {
@@ -474,12 +464,13 @@ describe("API", () => {
             });
 
             const response = await supertest(app)
-                .post(`/api/messenger/messages/${room.id}/seen`)
-                .set({ accesstoken: globals.userToken });
+                .post(`/api/messenger/messages/delivered`)
+                .set({ accesstoken: globals.userToken })
+                .send({ messagesIds: [messageOne.id, messageTwo.id] });
 
             expect(response.status).to.eqls(200);
 
-            await wait(0.1);
+            await wait(0.2);
 
             const messageRecords = await globals.prisma.messageRecord.findMany({
                 where: {
@@ -488,6 +479,7 @@ describe("API", () => {
                 },
             });
 
+            console.log(messageRecords);
             expect(messageRecords.filter((mr) => mr.type === "delivered")).to.have.lengthOf(2);
         });
 

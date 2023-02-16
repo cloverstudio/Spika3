@@ -104,7 +104,7 @@ describe("API", () => {
                 deviceId: "wrong",
             });
 
-            expect(response.status).to.eqls(403);
+            expect(response.status).to.eqls(404);
         });
 
         it("New user2 change the telephone number before signed up should work", async () => {

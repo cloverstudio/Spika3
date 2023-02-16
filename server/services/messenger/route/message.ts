@@ -1,8 +1,9 @@
 import { Router, Request, Response } from "express";
-import { MessageRecord } from "@prisma/client";
+import { DeviceMessage, Message, MessageRecord } from "@prisma/client";
+import dayjs from "dayjs";
 
 import { UserRequest } from "../lib/types";
-import { error as le } from "../../../components/logger";
+import l, { error as le } from "../../../components/logger";
 
 import auth from "../lib/auth";
 import * as yup from "yup";
@@ -16,6 +17,10 @@ import sanitize from "../../../components/sanitize";
 import { formatMessageBody } from "../../../components/message";
 import createSSEMessageRecordsNotify from "../lib/sseMessageRecordsNotify";
 import prisma from "../../../components/prisma";
+import { isRoomBlocked } from "./block";
+import { handleNewMessage } from "../../../components/chatGPT";
+import { getRoomById } from "./room";
+import utils from "../../../components/utils";
 
 const postMessageSchema = yup.object().shape({
     body: yup.object().shape({
@@ -23,7 +28,7 @@ const postMessageSchema = yup.object().shape({
         type: yup.string().strict().required(),
         body: yup.object().required(),
         localId: yup.string().strict(),
-        reply: yup.boolean().default(false),
+        replyId: yup.number().strict(),
     }),
 });
 
@@ -33,7 +38,7 @@ const deliveredMessagesSchema = yup.object().shape({
     }),
 });
 
-export default ({ rabbitMQChannel }: InitRouterParams): Router => {
+export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
     const router = Router();
     const sseMessageRecordsNotify = createSSEMessageRecordsNotify(rabbitMQChannel);
 
@@ -45,14 +50,19 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             const type = req.body.type;
             const body = req.body.body;
             const localId = req.body.localId;
-            const reply = req.body.reply;
+            const replyId = parseInt(req.body.replyId as string) || undefined;
             const fromUserId = userReq.user.id;
             const fromDeviceId = userReq.device.id;
 
-            const room = await prisma.room.findUnique({
-                where: { id: roomId },
-                include: { users: true },
+            const roomUser = await prisma.roomUser.findFirst({
+                where: { roomId, userId: fromUserId },
             });
+
+            if (!roomUser) {
+                return res.status(400).send(errorResponse("Room user not found", userReq.lang));
+            }
+
+            const room = await getRoomById(roomId, redisClient);
 
             if (!room) {
                 return res.status(400).send(errorResponse("Room not found", userReq.lang));
@@ -60,6 +70,12 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             if (room.deleted) {
                 return res.status(403).send(errorResponse("Room is deleted", userReq.lang));
+            }
+
+            const blocked = await isRoomBlocked(room.id, fromUserId);
+
+            if (blocked) {
+                return res.status(403).send(errorResponse("Room is blocked", userReq.lang));
             }
 
             // validation
@@ -82,26 +98,33 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     if (!exists)
                         return res.status(400).send(errorResponse("Invalid thumbId", userReq.lang));
                 }
-            } else if (reply) {
-                if (!body.referenceMessage)
-                    return res
-                        .status(400)
-                        .send(errorResponse("referenceMessage is missing", userReq.lang));
-                if (!body.referenceMessage.id)
-                    return res
-                        .status(400)
-                        .send(errorResponse("referenceMessage id is missing", userReq.lang));
-
-                if (!body.text)
-                    return res.status(400).send(errorResponse("Text is missing", userReq.lang));
-                const referenceMessageFound = await prisma.message.findUnique({
-                    where: { id: body.referenceMessage.id },
+            } else if (replyId) {
+                const referenceMessage = await prisma.message.findUnique({
+                    where: { id: replyId },
                 });
 
-                if (!referenceMessageFound)
+                if (!referenceMessage) {
                     return res
                         .status(400)
-                        .send(errorResponse("referenceMessage not found", userReq.lang));
+                        .send(errorResponse("there is no message with replyId", userReq.lang));
+                }
+
+                if (!body.text) {
+                    return res.status(400).send(errorResponse("Text is missing", userReq.lang));
+                }
+
+                const deviceMessage = await prisma.deviceMessage.findFirst({
+                    where: { messageId: referenceMessage.id },
+                });
+
+                const formattedBody = await formatMessageBody(
+                    deviceMessage.body,
+                    referenceMessage.type
+                );
+                body.referenceMessage = sanitize({
+                    ...referenceMessage,
+                    body: formattedBody,
+                }).message();
             } else if (type === "text") {
                 if (!body.text)
                     return res.status(400).send(errorResponse("Text is missing", userReq.lang));
@@ -109,9 +132,26 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 return res.status(400).send(errorResponse("Invalid type", userReq.lang));
             }
 
+            const allReceivers = room.users.filter((u) => !u.user.isBot);
+
+            const usersWhoBlockedSender =
+                room.type === "private"
+                    ? await prisma.block.findMany({
+                          where: {
+                              userId: { in: allReceivers.map((u) => u.userId) },
+                              blockedId: fromUserId,
+                          },
+                          select: { userId: true },
+                      })
+                    : [];
+
+            const receivers = allReceivers.filter(
+                (u) => !usersWhoBlockedSender.map((u) => u.userId).includes(u.userId)
+            );
+
             const devices = await prisma.device.findMany({
                 where: {
-                    userId: { in: room.users.map((u) => u.userId) },
+                    userId: { in: receivers.map((u) => u.userId) },
                 },
             });
 
@@ -130,18 +170,49 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     roomId,
                     fromUserId: userReq.user.id,
                     fromDeviceId: userReq.device.id,
-                    totalUserCount: room.users.length,
+                    totalUserCount: allReceivers.length,
                     deliveredCount: 0,
                     seenCount: 0,
                     localId,
-                    reply,
+                    replyId,
                 },
             });
 
             const formattedBody = await formatMessageBody(body, type);
             const sanitizedMessage = sanitize({ ...message, body: formattedBody }).message();
 
-            res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
+            await Promise.all(
+                receivers.map(async (receiver) => {
+                    const key = `unread:${roomId}:${receiver.userId}`;
+                    const current = await redisClient.get(key);
+                    if (!current) {
+                        const unreadMessages = await prisma.message.findMany({
+                            where: {
+                                roomId,
+                                createdAt: {
+                                    gt: receiver.createdAt,
+                                },
+                                messageRecords: {
+                                    none: {
+                                        userId: receiver.userId,
+                                        type: "seen",
+                                    },
+                                },
+                                NOT: {
+                                    fromUserId: receiver.userId,
+                                },
+                            },
+                        });
+
+                        await redisClient.set(key, unreadMessages.length);
+                    } else if (receiver.userId !== fromUserId) {
+                        await redisClient.incr(key);
+                    }
+                })
+            );
+
+            const key = `${Constants.LAST_MESSAGE_PREFIX}${roomId}`;
+            await redisClient.set(key, sanitizedMessage.id.toString());
 
             while (deviceMessages.length) {
                 await Promise.all(
@@ -154,22 +225,52 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                             return;
                         }
 
-                        rabbitMQChannel.sendToQueue(
-                            Constants.QUEUE_PUSH,
-                            Buffer.from(
-                                JSON.stringify({
-                                    type: Constants.PUSH_TYPE_NEW_MESSAGE,
-                                    token: devices.find((d) => d.id == deviceMessage.deviceId)
-                                        ?.pushToken,
-                                    data: {
-                                        message: { ...sanitizedMessage },
-                                        user: sanitize(userReq.user).user(),
-                                        ...(room.type === "group" && { groupName: room.name }),
-                                        toUserId: deviceMessage.userId,
-                                    },
-                                })
-                            )
-                        );
+                        const device = devices.find((d) => d.id === deviceMessage.deviceId);
+
+                        if (!device) {
+                            return;
+                        }
+
+                        const checkIfShouldSendPush = () => {
+                            const tokenExpiredAtTS = dayjs(device.tokenExpiredAt).unix();
+                            const now = dayjs().unix();
+
+                            if (now - tokenExpiredAtTS > Constants.TOKEN_EXPIRED) {
+                                return false;
+                            }
+
+                            if (
+                                message.fromUserId === device.userId &&
+                                device.osName === "android"
+                            ) {
+                                return true;
+                            }
+
+                            if (message.fromUserId === device.userId) {
+                                return false;
+                            }
+
+                            return true;
+                        };
+
+                        if (checkIfShouldSendPush()) {
+                            rabbitMQChannel.sendToQueue(
+                                Constants.QUEUE_PUSH,
+                                Buffer.from(
+                                    JSON.stringify({
+                                        type: Constants.PUSH_TYPE_NEW_MESSAGE,
+                                        token: devices.find((d) => d.id == deviceMessage.deviceId)
+                                            ?.pushToken,
+                                        data: {
+                                            message: { ...sanitizedMessage },
+                                            user: sanitize(userReq.user).user(),
+                                            ...(room.type === "group" && { groupName: room.name }),
+                                            toUserId: deviceMessage.userId,
+                                        },
+                                    })
+                                )
+                            );
+                        }
 
                         rabbitMQChannel.sendToQueue(
                             Constants.QUEUE_SSE,
@@ -186,6 +287,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     })
                 );
             }
+
+            res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
 
             const messageRecordsNotifyData = {
                 types: ["delivered", "seen"],
@@ -205,6 +308,13 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     })
                 )
             );
+
+            handleNewMessage({
+                room,
+                users: room.users.map((u) => u.user),
+                messageType: type,
+                rabbitMQChannel,
+            });
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -239,7 +349,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 successResponse(
                     {
                         messageRecords: message.messageRecords.map((record) =>
-                            sanitize(record).messageRecord()
+                            sanitize({ ...record, roomId: message.roomId }).messageRecord()
                         ),
                     },
                     userReq.lang
@@ -255,49 +365,52 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
     router.get("/roomId/:roomId", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         const userId = userReq.user.id;
-        const deviceId = userReq.device.id;
-        let page = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
-        const messageId: number =
-            parseInt(req.query.messageId ? (req.query.messageId as string) : "") || 0;
+        const targetMessageId = +((req.query.targetMessageId as string) || "");
+        const cursor = +((req.query.cursor as string) || "");
+        const roomId = +((req.params.roomId as string) || "");
 
-        let skip = Constants.MESSAGE_PAGING_LIMIT * (page - 1);
         let take = Constants.MESSAGE_PAGING_LIMIT;
 
         try {
-            const roomId = parseInt(req.params.roomId as string);
+            const room = await getRoomById(roomId, redisClient);
+
+            if (!room) {
+                return res.status(404).send(errorResponse("No room found", userReq.lang));
+            }
+
+            const roomUser = room.users.find((u) => u.userId === userId);
+
+            if (!roomUser) {
+                return res.status(404).send(errorResponse("No room found", userReq.lang));
+            }
 
             // find how many messages needs to reach to the target message
-            if (messageId) {
+            if (targetMessageId) {
                 const targetMessage = await prisma.message.findFirst({
                     where: {
-                        id: messageId,
+                        id: targetMessageId,
                     },
                 });
 
                 if (targetMessage) {
-                    const countToSkip = await prisma.message.count({
+                    const takeToTargetMessage = await prisma.message.count({
                         where: {
                             createdAt: { gte: targetMessage.createdAt },
+                            roomId,
                         },
                     });
 
-                    if (countToSkip > Constants.MESSAGE_PAGING_LIMIT)
-                        take =
-                            Math.ceil(countToSkip / Constants.MESSAGE_PAGING_LIMIT) *
-                            Constants.MESSAGE_PAGING_LIMIT;
-
-                    skip = 0;
-                    page = take / Math.ceil(countToSkip / Constants.MESSAGE_PAGING_LIMIT);
+                    if (takeToTargetMessage > take) {
+                        take = takeToTargetMessage;
+                    }
                 }
             }
 
             const count = await prisma.message.count({
                 where: {
                     roomId,
-                    deviceMessages: {
-                        some: {
-                            deviceId,
-                        },
+                    createdAt: {
+                        gt: roomUser.createdAt,
                     },
                 },
             });
@@ -305,49 +418,77 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             const messages = await prisma.message.findMany({
                 where: {
                     roomId,
-                    deviceMessages: {
-                        some: {
-                            deviceId,
-                        },
+                    createdAt: {
+                        gt: roomUser.createdAt,
                     },
                 },
                 include: {
-                    deviceMessages: true,
                     messageRecords: true,
                 },
                 orderBy: {
-                    modifiedAt: "desc",
+                    createdAt: "desc",
                 },
-                skip: skip,
-                take: take,
+                ...(cursor && {
+                    cursor: {
+                        id: cursor,
+                    },
+                }),
+                take: cursor ? take + 1 : take,
             });
-
-            const messageRecordsNotifyData = {
-                types: ["delivered"],
-                userId,
-                messageIds: messages.map((m) => m.id),
-                pushType: Constants.PUSH_TYPE_NEW_MESSAGE_RECORD,
-            };
-
-            sseMessageRecordsNotify(messageRecordsNotifyData);
 
             const list = await Promise.all(
                 messages.map(async (m) => {
-                    const body = m.deviceMessages.find(
-                        (dm) => dm.messageId === m.id && dm.deviceId === deviceId
-                    )?.body;
+                    const deviceMessage = await prisma.deviceMessage.findFirst({
+                        where: {
+                            messageId: m.id,
+                            userId,
+                        },
+                    });
+
+                    const { body, deleted } = deviceMessage || {};
 
                     const formattedBody = await formatMessageBody(body, m.type);
-                    return sanitize({ ...m, body: formattedBody }).message();
+                    return sanitize({
+                        ...m,
+                        body: formattedBody,
+                        deleted,
+                    }).messageWithReactionRecords();
                 })
             );
 
+            const nextCursor = list.length && list.length >= take ? list[list.length - 1].id : null;
+
             res.send(
                 successResponse(
-                    { list, count, limit: Constants.MESSAGE_PAGING_LIMIT, page },
+                    {
+                        list,
+                        count,
+                        limit: take,
+                        nextCursor,
+                    },
                     userReq.lang
                 )
             );
+
+            const notDeliveredMessagesIds = messages
+                .filter(
+                    (m) =>
+                        !m.messageRecords.find(
+                            (mr) => mr.type === "delivered" && mr.userId === userId
+                        )
+                )
+                .map((m) => m.id);
+
+            if (notDeliveredMessagesIds.length) {
+                const messageRecordsNotifyData = {
+                    types: ["delivered"],
+                    userId,
+                    messageIds: notDeliveredMessagesIds,
+                    pushType: Constants.PUSH_TYPE_NEW_MESSAGE_RECORD,
+                };
+
+                sseMessageRecordsNotify(messageRecordsNotifyData);
+            }
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -439,6 +580,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
     router.get("/sync/:lastUpdate", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         const userId = userReq.user.id;
+        const deviceId = userReq.device.id;
         const lastUpdate = parseInt(req.params.lastUpdate as string);
 
         try {
@@ -455,19 +597,63 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 where: {
                     modifiedAt: { gt: new Date(lastUpdate) },
                     roomId: { in: roomsIds },
+                    deviceMessages: {
+                        some: {
+                            deviceId,
+                        },
+                    },
                 },
                 include: {
                     deviceMessages: true,
                 },
             });
 
-            const sanitizedMessages = await Promise.all(
-                messages.map(async (message) =>
-                    sanitize({
+            const deviceMessages = await prisma.deviceMessage.findMany({
+                where: {
+                    deviceId,
+                    modifiedAt: { gt: new Date(lastUpdate) },
+                },
+                include: { message: true },
+            });
+
+            const dMessages = deviceMessages.reduce((acc, dm) => {
+                const { message } = dm;
+                if (!message) {
+                    return acc;
+                }
+
+                if (messages.find((m) => m.id === message.id)) {
+                    return acc;
+                }
+
+                const { id } = message;
+                const messageIndex = acc.findIndex((m) => m.id === id);
+                if (messageIndex === -1) {
+                    acc.push({
                         ...message,
-                        body: await formatMessageBody(message.deviceMessages[0].body, message.type),
-                    }).message()
-                )
+                        deviceMessages: [dm],
+                    });
+                } else {
+                    acc[messageIndex].deviceMessages.push(dm);
+                }
+
+                return acc;
+            }, [] as (Message & { deviceMessages: DeviceMessage[] })[]);
+
+            const sanitizedMessages = await Promise.all(
+                [...messages, ...dMessages].map(async (m) => {
+                    const deviceMessage = m.deviceMessages.find(
+                        (dm) => dm.messageId === m.id && dm.deviceId === deviceId
+                    );
+
+                    const { body, deleted } = deviceMessage || {};
+
+                    return sanitize({
+                        ...m,
+                        body: await formatMessageBody(body, m.type),
+                        deleted,
+                    }).message();
+                })
             );
 
             res.send(successResponse({ messages: sanitizedMessages }, userReq.lang));
@@ -495,10 +681,18 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     .send(errorResponse("user is not in this room", userReq.lang));
             }
 
-            const messages = await prisma.message.findMany({
+            const notSeenMessages = await prisma.message.findMany({
                 where: {
                     roomId,
-                    createdAt: { gte: roomUser.createdAt },
+                    createdAt: { gt: roomUser.createdAt },
+                    messageRecords: { none: { userId, type: "seen" } },
+                },
+            });
+
+            const notDeliveredMessages = await prisma.message.findMany({
+                where: {
+                    roomId,
+                    createdAt: { gt: roomUser.createdAt },
                     messageRecords: { none: { userId, type: "seen" } },
                 },
             });
@@ -509,14 +703,26 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 }
             >[] = [];
 
-            const messageRecordsNotifyData = {
-                types: ["seen", "delivered"],
+            const messageRecordsNotifySeenData = {
+                types: ["seen"],
                 userId,
-                messageIds: messages.map((m) => m.id),
+                messageIds: notSeenMessages.map((m) => m.id),
                 pushType: Constants.PUSH_TYPE_NEW_MESSAGE_RECORD,
             };
 
-            sseMessageRecordsNotify(messageRecordsNotifyData);
+            sseMessageRecordsNotify(messageRecordsNotifySeenData);
+
+            const messageRecordsNotifyDeliveredData = {
+                types: ["delivered"],
+                userId,
+                messageIds: notDeliveredMessages.map((m) => m.id),
+                pushType: Constants.PUSH_TYPE_NEW_MESSAGE_RECORD,
+            };
+
+            sseMessageRecordsNotify(messageRecordsNotifyDeliveredData);
+
+            const key = `unread:${roomId}:${userId}`;
+            await redisClient.set(key, "0");
 
             res.send(successResponse({ messageRecords }, userReq.lang));
         } catch (e: any) {
@@ -575,7 +781,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             for (const deviceMessage of deviceMessagesToDelete) {
                 await prisma.deviceMessage.update({
                     where: { id: deviceMessage.id },
-                    data: { modifiedAt: new Date(), body: newBody },
+                    data: { modifiedAt: new Date(), body: newBody, deleted: true },
                 });
             }
 
@@ -587,7 +793,11 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 });
             }
 
-            const sanitizedMessage = sanitize({ ...message, body: newBody }).message();
+            const sanitizedMessage = sanitize({
+                ...message,
+                body: newBody,
+                deleted: true,
+            }).message();
 
             res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
 
@@ -648,6 +858,12 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     .send(
                         errorResponse("Only messages with type text can be edited", userReq.lang)
                     );
+            }
+
+            const blocked = await isRoomBlocked(message.roomId, userReq.user.id);
+
+            if (blocked) {
+                return res.status(403).send(errorResponse("Room is blocked", userReq.lang));
             }
 
             for (const deviceMessage of message.deviceMessages) {

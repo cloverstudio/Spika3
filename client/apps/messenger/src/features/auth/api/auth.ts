@@ -1,4 +1,3 @@
-import { boolean } from "yup";
 import api from "../../../api/api";
 import UserType from "../../../types/User";
 import DeviceType from "../../../types/Device";

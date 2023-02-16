@@ -1,17 +1,23 @@
 import React, { useEffect } from "react";
 import { Outlet, useLocation, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Box, Drawer } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
+
+import { Box } from "@mui/material";
+import Drawer from "@mui/material/Drawer";
+import useTheme from "@mui/material/styles/useTheme";
 import useMediaQuery from "@mui/material/useMediaQuery";
 
 import Base from "../components/Base";
-import PushnotificationPermissionDialog from "../components/PushnotificationPermissionDialog";
-import LeftSidebar from "../features/chat/LeftSidebar";
-import RightSidebar from "../features/chat/RightSidebar";
-import { selectLeftSidebarOpen, setLeftSidebar } from "../features/chat/slice/sidebarSlice";
+import PushNotificationPermissionDialog from "../components/PushnotificationPermissionDialog";
+import LeftSidebar from "../features/room/LeftSidebar";
+import RightSidebar from "../features/room/RightSidebar";
+import { selectLeftSidebarOpen, setLeftSidebar } from "../features/room/slices/leftSidebar";
 
-import { hide, selectRightSidebarOpen, show } from "../features/chat/slice/rightSidebarSlice";
+import {
+    hideRightSidebar,
+    selectRightSidebarOpen,
+    showRightSidebar,
+} from "../features/room/slices/rightSidebar";
 
 import { selectUserId, fetchMe, fetchSettings } from "../../src/store/userSlice";
 
@@ -24,19 +30,20 @@ export default function Home(): React.ReactElement {
     const isBigDesktop = useMediaQuery(theme.breakpoints.up("lg"));
     const dispatch = useDispatch();
     const open = useSelector(selectLeftSidebarOpen);
+    const isCall = /^.+\/call.*$/.test(pathname);
+
     const rightSidebarOpen =
-        ((useSelector(selectRightSidebarOpen) && !pathname.includes("/call")) || isBigDesktop) &&
-        roomId;
+        (useSelector(selectRightSidebarOpen) || isBigDesktop) && !isCall && roomId;
 
     useEffect(() => {
         const resizeEventListener = (e: UIEvent) => {
             if ((e.currentTarget as Window).innerWidth > theme.breakpoints.values.lg) {
                 if (!rightSidebarOpen) {
-                    dispatch(show());
+                    dispatch(showRightSidebar());
                 }
             } else {
                 if (rightSidebarOpen) {
-                    dispatch(hide());
+                    dispatch(hideRightSidebar());
                 }
             }
         };
@@ -71,8 +78,8 @@ export default function Home(): React.ReactElement {
                 sx={{
                     gridTemplateColumns: {
                         xs: "1fr",
-                        md: rightSidebarOpen ? "2fr 4fr 2fr" : "1fr 2fr",
-                        xl: rightSidebarOpen ? "1fr 3fr 1fr" : "1fr 4fr",
+                        md: rightSidebarOpen ? "360px 4fr 360px" : "360px 2fr",
+                        xl: rightSidebarOpen ? "360px 3fr 640px" : "360px 4fr",
                     },
                 }}
             >
@@ -93,7 +100,7 @@ export default function Home(): React.ReactElement {
                 {rightSidebarOpen ? <RightSidebar /> : null}
             </Box>
 
-            <PushnotificationPermissionDialog />
+            <PushNotificationPermissionDialog />
         </Base>
     );
 }

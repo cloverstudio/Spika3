@@ -26,7 +26,7 @@ const userModelSchema = yup.object({
     displayName: yup.string().required("Display name is required"),
     telephoneNumber: yup.string().required("Telephone number is required"),
     email: yup.string(),
-    avatarUrl: yup.string(),
+    avataFileId: yup.number(),
     verificationCode: yup.string(),
     verified: yup.boolean(),
 });
@@ -47,7 +47,6 @@ export default function Page(props: EditUserProps) {
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const uploadedFile = e.target.files && e.target.files[0];
-
         setFile(uploadedFile);
     };
 
@@ -56,7 +55,7 @@ export default function Page(props: EditUserProps) {
             displayName: "",
             telephoneNumber: "",
             email: "",
-            avatarUrl: "",
+            avataFileId: 0,
             verificationCode: "",
             verified: false,
         },
@@ -73,7 +72,7 @@ export default function Page(props: EditUserProps) {
             displayName: "",
             telephoneNumber: "",
             email: "",
-            avatarUrl: "",
+            avatarFileId: 0,
             verificationCode: "",
             verified: false,
         },
@@ -88,7 +87,8 @@ export default function Page(props: EditUserProps) {
                 const checkName = response.displayName == null ? "" : response.displayName;
                 const checkPhone = response.telephoneNumber == null ? "" : response.telephoneNumber;
                 const checkEmail = response.emailAddress == null ? "" : response.emailAddress;
-                const checkUrl = response.avatarUrl == null ? "" : response.avatarUrl;
+                const checkAvatarFilerId: number =
+                    response.avatarFileId == null ? 0 : response.avatarFileId;
                 const checkVer = response.verified == null ? false : response.verified;
                 const checkVerCode =
                     response.verificationCode == null ? "" : response.verificationCode;
@@ -96,7 +96,7 @@ export default function Page(props: EditUserProps) {
                     displayName: checkName,
                     telephoneNumber: checkPhone,
                     email: checkEmail,
-                    avatarUrl: checkUrl,
+                    avataFileId: response.avatarFileId,
                     verificationCode: checkVerCode,
                     verified: checkVer,
                 });
@@ -104,7 +104,7 @@ export default function Page(props: EditUserProps) {
                     displayName: checkName,
                     telephoneNumber: checkPhone,
                     email: checkEmail,
-                    avatarUrl: checkUrl,
+                    avatarFileId: checkAvatarFilerId,
                     verificationCode: checkVerCode,
                     verified: checkVer,
                 });
@@ -120,13 +120,14 @@ export default function Page(props: EditUserProps) {
                     type: "avatar",
                     relationId: Number(userId),
                 });
+
                 await updateUser({
                     userId: userId,
                     data: {
                         displayName: formik.values.displayName,
                         emailAddress: formik.values.email,
                         telephoneNumber: formik.values.telephoneNumber,
-                        avatarUrl: uploadedFile.path || "",
+                        avatarFileId: uploadedFile.id || 0,
                         verified: formik.values.verified,
                         verificationCode: formik.values.verificationCode,
                     },
@@ -138,7 +139,7 @@ export default function Page(props: EditUserProps) {
                         displayName: formik.values.displayName,
                         emailAddress: formik.values.email,
                         telephoneNumber: formik.values.telephoneNumber,
-                        avatarUrl: formik.values.avatarUrl,
+                        avatarFileId: formik.values.avataFileId,
                         verified: formik.values.verified,
                         verificationCode: formik.values.verificationCode,
                     },
@@ -167,9 +168,9 @@ export default function Page(props: EditUserProps) {
                         style={{ objectFit: "cover", borderRadius: "50%" }}
                         src={
                             file
-                                ? URL.createObjectURL(file)
-                                : formik.values.avatarUrl.length > 0
-                                ? `${UPLOADS_BASE_URL}${formik.values.avatarUrl}`
+                                ? `${UPLOADS_BASE_URL}/${data.user.avatarFileId}`
+                                : formik.values.avataFileId !== 0
+                                ? `${UPLOADS_BASE_URL}/${formik.values.avataFileId}`
                                 : uploadImage
                         }
                         onClick={() => uploadFileRef.current?.click()}

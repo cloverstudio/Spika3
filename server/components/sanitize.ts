@@ -8,6 +8,8 @@ import {
     MessageRecord,
     Note,
     Webhook,
+    ApiKey,
+    Block,
 } from ".prisma/client";
 
 type SanitizedUserType = Partial<
@@ -24,14 +26,24 @@ export type SanitizedRoomType = Partial<
         createdAt: number;
         modifiedAt: number;
         users: SanitizedRoomUserType[];
+        muted: boolean;
+        pinned: boolean;
     }
 >;
 type SanitizedMessageType = Partial<
     Omit<Message, "createdAt" | "modifiedAt"> & { createdAt: number; modifiedAt: number; body: any }
 >;
+type SanitizedMessageWithReactionRecordsType = Partial<
+    Omit<Message, "createdAt" | "modifiedAt"> & {
+        createdAt: number;
+        modifiedAt: number;
+        body: any;
+        messageRecords: SanitizedMessageRecord[];
+    }
+>;
 type SanitizedFileType = Partial<Omit<File, "createdAt"> & { createdAt: number }>;
 export type SanitizedMessageRecord = Partial<
-    Omit<MessageRecord, "createdAt" | "modifiedAt"> & { createdAt: number }
+    Omit<MessageRecord, "createdAt" | "modifiedAt"> & { createdAt: number; roomId?: number }
 >;
 type SanitizedNoteType = Partial<
     Omit<Note, "createdAt" | "modifiedAt"> & { createdAt: number; modifiedAt: number }
@@ -39,16 +51,23 @@ type SanitizedNoteType = Partial<
 type SanitizedWebhookType = Partial<
     Omit<Webhook, "createdAt" | "modifiedAt"> & { createdAt: number; modifiedAt: number }
 >;
+type SanitizedApiKeyType = Partial<
+    Omit<ApiKey, "createdAt" | "modifiedAt"> & { createdAt: number; modifiedAt: number }
+>;
+type SanitizedBlockType = Partial<Omit<Block, "createdAt"> & { createdAt: number }>;
 
 interface sanitizeTypes {
     user: () => SanitizedUserType;
     device: () => SanitizedDeviceType;
     room: () => SanitizedRoomType;
     message: () => SanitizedMessageType;
+    messageWithReactionRecords: () => SanitizedMessageWithReactionRecordsType;
     file: () => SanitizedFileType;
     messageRecord: () => SanitizedMessageRecord;
     note: () => SanitizedNoteType;
     webhook: () => SanitizedWebhookType;
+    apiKey: () => SanitizedApiKeyType;
+    block: () => SanitizedBlockType;
 }
 
 export default function sanitize(data: any): sanitizeTypes {
@@ -84,8 +103,42 @@ export default function sanitize(data: any): sanitizeTypes {
                 modifiedAt,
                 localId,
                 deleted,
-                reply,
+                replyId,
             } = data as Message & { body: any };
+
+            return {
+                id,
+                roomId,
+                fromUserId,
+                totalUserCount,
+                deliveredCount,
+                seenCount,
+                type,
+                body,
+                createdAt: +new Date(createdAt),
+                modifiedAt: +new Date(modifiedAt),
+                localId,
+                replyId,
+                deleted,
+            };
+        },
+        messageWithReactionRecords: () => {
+            const {
+                id,
+                fromUserId,
+                totalUserCount,
+                deliveredCount,
+                seenCount,
+                roomId,
+                type,
+                body,
+                createdAt,
+                modifiedAt,
+                localId,
+                deleted,
+                replyId,
+                messageRecords,
+            } = data as Message & { body: any; messageRecords: MessageRecord[] };
 
             return {
                 id,
@@ -100,13 +153,33 @@ export default function sanitize(data: any): sanitizeTypes {
                 modifiedAt: +new Date(modifiedAt),
                 localId,
                 deleted,
-                reply,
-                messageRecords: data.messageRecords?.filter((m) => m.type === "reaction"),
+                messageRecords: messageRecords
+                    .filter((m) => m.type === "reaction")
+                    .map(({ id, type, messageId, userId, createdAt, reaction }) => ({
+                        id,
+                        type,
+                        messageId,
+                        userId,
+                        reaction,
+                        roomId,
+                        createdAt: +new Date(createdAt),
+                    })),
+                replyId,
             };
         },
         file: () => {
-            const { id, fileName, size, mimeType, type, relationId, clientId, path, createdAt } =
-                data as File;
+            const {
+                id,
+                fileName,
+                size,
+                mimeType,
+                type,
+                relationId,
+                clientId,
+                path,
+                createdAt,
+                metaData,
+            } = data as File;
 
             return {
                 id,
@@ -117,11 +190,13 @@ export default function sanitize(data: any): sanitizeTypes {
                 relationId,
                 clientId,
                 path,
+                metaData,
                 createdAt: +new Date(createdAt),
             };
         },
         messageRecord: () => {
-            const { id, type, messageId, userId, createdAt, reaction } = data as MessageRecord;
+            const { id, type, messageId, userId, createdAt, reaction, roomId } =
+                data as MessageRecord & { roomId?: number };
 
             return {
                 id,
@@ -129,6 +204,7 @@ export default function sanitize(data: any): sanitizeTypes {
                 messageId,
                 userId,
                 reaction,
+                roomId,
                 createdAt: +new Date(createdAt),
             };
         },
@@ -156,6 +232,30 @@ export default function sanitize(data: any): sanitizeTypes {
                 modifiedAt: +new Date(modifiedAt),
             };
         },
+        apiKey: () => {
+            const { id, displayName, token, avatarFileId, createdAt, modifiedAt, roomId } =
+                data as ApiKey & { displayName: string; avatarFileId?: number };
+
+            return {
+                id,
+                displayName,
+                token,
+                avatarFileId,
+                roomId,
+                createdAt: +new Date(createdAt),
+                modifiedAt: +new Date(modifiedAt),
+            };
+        },
+        block: () => {
+            const { id, createdAt, blockedId, userId } = data as Block;
+
+            return {
+                id,
+                blockedId,
+                userId,
+                createdAt: +new Date(createdAt),
+            };
+        },
     };
 }
 
@@ -165,21 +265,23 @@ function sanitizeUser({
     telephoneNumber,
     telephoneNumberHashed,
     displayName,
-    avatarUrl,
+    avatarFileId,
     verified,
     createdAt,
     modifiedAt,
+    isBot,
 }: Partial<User>): SanitizedUserType {
     return {
         id,
-        emailAddress,
+        displayName,
+        avatarFileId,
         telephoneNumber,
         telephoneNumberHashed,
-        displayName,
-        avatarUrl,
+        emailAddress,
         verified,
         createdAt: +new Date(createdAt),
         modifiedAt: +new Date(modifiedAt),
+        isBot,
     };
 }
 
@@ -187,19 +289,25 @@ function sanitizeRoom({
     id,
     type,
     name,
-    avatarUrl,
+    avatarFileId,
     users,
     createdAt,
     modifiedAt,
     deleted,
-}: Partial<Room & { users: (RoomUser & { user: User })[] }>): SanitizedRoomType {
+    muted,
+    pinned,
+}: Partial<
+    Room & { users: (RoomUser & { user: User })[]; muted: boolean; pinned: boolean }
+>): SanitizedRoomType {
     return {
         id,
-        type,
         name,
-        avatarUrl,
-        deleted,
         users: users.map(sanitizeRoomUser),
+        avatarFileId,
+        muted,
+        type,
+        deleted,
+        pinned,
         createdAt: +new Date(createdAt),
         modifiedAt: +new Date(modifiedAt),
     };

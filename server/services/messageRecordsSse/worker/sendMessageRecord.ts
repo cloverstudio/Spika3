@@ -23,11 +23,17 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
                                 userId,
                             },
                         },
+                        include: { message: true },
                     });
 
                     if (justNotify) {
                         if (record) {
-                            messageRecords.push(sanitize(record).messageRecord());
+                            messageRecords.push(
+                                sanitize({
+                                    ...record,
+                                    roomId: record.message.roomId,
+                                }).messageRecord()
+                            );
                         } else {
                             lw("Can't find messageRecord to justNotify about it!");
                         }
@@ -43,6 +49,7 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
                                     messageId,
                                     ...(type === "reaction" && { reaction }),
                                 },
+                                include: { message: true },
                             });
 
                             if (["delivered", "seen"].includes(type)) {
@@ -57,7 +64,12 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
                                 });
                             }
 
-                            messageRecords.push(sanitize(record).messageRecord());
+                            messageRecords.push(
+                                sanitize({
+                                    ...record,
+                                    roomId: record.message.roomId,
+                                }).messageRecord()
+                            );
                         } catch (error) {
                             lw("create message record failed", error.message);
                         }
@@ -66,7 +78,7 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
             }
 
             for (const record of messageRecords) {
-                const deviceIds = await getDeviceIdsFromMessageId(record.messageId);
+                const deviceIds = await getDeviceIdsFromMessageId(record.messageId, record.userId);
 
                 for (const deviceId of deviceIds) {
                     channel.sendToQueue(
@@ -89,22 +101,46 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
     }
 }
 
-async function getDeviceIdsFromMessageId(messageId: number): Promise<number[]> {
+async function getDeviceIdsFromMessageId(messageId: number, fromUserId: number): Promise<number[]> {
     const message = await prisma.message.findUnique({
         where: { id: messageId },
         select: {
+            createdAt: true,
+            fromUserId: true,
             room: {
                 select: {
-                    users: { select: { user: { select: { device: { select: { id: true } } } } } },
+                    users: {
+                        select: {
+                            user: {
+                                select: {
+                                    device: { select: { id: true, createdAt: true } },
+                                    id: true,
+                                },
+                            },
+                        },
+                    },
+                    type: true,
                 },
             },
         },
     });
 
-    return message.room.users.reduce(
-        (acc, curr) => [...acc, ...curr.user.device.map((d) => d.id)],
-        []
-    );
+    const usersWhoBlockedSender =
+        message.room.type === "private"
+            ? await prisma.block.findMany({
+                  where: {
+                      userId: { in: message.room.users.map((u) => u.user.id) },
+                      blockedId: fromUserId,
+                  },
+                  select: { userId: true },
+              })
+            : [];
+
+    return message.room.users
+        .filter((u) => !usersWhoBlockedSender.map((m) => m.userId).includes(u.user.id))
+        .reduce((acc, curr) => [...acc, ...curr.user.device], [])
+        .filter((d) => +d.createdAt <= +message.createdAt)
+        .map((d) => d.id);
 }
 
 export default new sendMessageRecordWorker();

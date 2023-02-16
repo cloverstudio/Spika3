@@ -10,7 +10,6 @@ const firebaseConfig = {
     appId: "{{appId}}",
 };
 
-
 firebase.initializeApp(firebaseConfig);
 
 const messaging = firebase.messaging();
@@ -25,8 +24,6 @@ messaging.onBackgroundMessage(async function(payload) {
     return;
   } 
 
-  const roomNotifications = await self.registration.getNotifications({tag: message.roomId})
-
   const notificationTitle = isGroup ?  groupName : fromUserName;
   let body = message.type === "text" ? message.body.text : "Media"
 
@@ -34,12 +31,9 @@ messaging.onBackgroundMessage(async function(payload) {
     body = `${fromUserName}: ${body}` 
   }
 
-  if(roomNotifications[0]){
-    body += ` \n${roomNotifications[0].body}`
-  }
   const notificationOptions = {
-    tag: message.roomId,
     body,
+    data: {roomId: message.roomId}
   };
   
   self.registration.showNotification(notificationTitle,
@@ -54,10 +48,10 @@ self.addEventListener('notificationclick', (event) => {
     type: "window"
   }).then((clientList) => {
     for (const client of clientList) {
-      if (client.url.includes(`/messenger/rooms/${event.notification.tag}`) && 'focus' in client)
+      if (client.url.includes(`/messenger/rooms/${event.notification.data.roomId}`) && 'focus' in client)
         return client.focus();
     }
     if (clients.openWindow)
-      return clients.openWindow(`/messenger/rooms/${event.notification.tag}`);
+      return clients.openWindow(`/messenger/rooms/${event.notification.data.roomId}`);
   }));
 });

@@ -1,23 +1,24 @@
-import React, { useEffect, useState, useRef, useMemo } from "react";
-import { Box, Grid, useMediaQuery, Button } from "@mui/material";
-import CSS from "csstype";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+
+import { Box } from "@mui/material";
+import Grid from "@mui/material/Grid";
+import useMediaQuery from "@mui/material/useMediaQuery";
+
+import CSS from "csstype";
 import { useTheme } from "@mui/material/styles";
 import { useSelector, useDispatch } from "react-redux";
-import {
-    Close as CloseIcon,
-    Videocam as VideocamIcon,
-    VideocamOff as VideocamOffIcon,
-    Mic as MicIcon,
-    MicOff as MicOffIcon,
-    KeyboardArrowUp as KeyboardArrowUpIcon,
-    ScreenShare as ScreenShareIcon,
-    StopScreenShare as StopScreenShareIcon,
-} from "@mui/icons-material";
+
+import CloseIcon from "@mui/icons-material/Close";
+import VideocamIcon from "@mui/icons-material/Videocam";
+import VideocamOffIcon from "@mui/icons-material/VideocamOff";
+import MicIcon from "@mui/icons-material/Mic";
+import MicOffIcon from "@mui/icons-material/MicOff";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import ScreenShareIcon from "@mui/icons-material/ScreenShare";
+import StopScreenShareIcon from "@mui/icons-material/StopScreenShare";
 
 import {
-    setShowCall,
-    setRoomId,
     setCameraEnabled,
     setMicrophoneEnabled,
     setSelectedCamera,
@@ -30,7 +31,6 @@ import { RootState } from "../../store/store";
 import { Participant } from "../../types/confcall";
 import { dynamicBaseQuery } from "../../api/api";
 import ButtonsHolder from "./buttonsHolder";
-import * as Constants from "../../../../../lib/constants";
 import { useShowSnackBar } from "../../hooks/useModal";
 import { callEventPayload } from "../../types/confcall";
 import { listen as listenCallEvent } from "./lib/callEventListener";
@@ -42,7 +42,6 @@ import mediasoupHander, { StreamingState } from "./lib/mediasoupHanlder";
 
 //API
 import { useJoinMutation, useLeaveMutation } from "./api";
-import { loadPartialConfig } from "@babel/core";
 
 let showControllbarTimer: NodeJS.Timer;
 
@@ -148,7 +147,7 @@ export default function ConfCall() {
 
         const timerId = setInterval(() => {
             updateParticipants();
-        },2000);
+        }, 2000);
 
         const clearListner = listenCallEvent(async (data: callEventPayload) => {
             try {
@@ -416,12 +415,11 @@ export default function ConfCall() {
                             <CloseIcon
                                 sx={Styles.controlIconDefaultStyle}
                                 onClick={async () => {
-
-                                    if(screenshareEnabled){
+                                    if (screenshareEnabled) {
                                         await mediasoupHander.stopScreenshare();
                                         dispatch(setScreenshareEnabled(false));
                                     }
-                                    
+
                                     await mediasoupHander.stop();
                                     await leaveApi(callState.roomId);
                                     navigate(`/rooms/${callState.roomId}`);
