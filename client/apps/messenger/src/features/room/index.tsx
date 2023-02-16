@@ -10,6 +10,7 @@ import ChatInput from "./components/ChatInput";
 import ConfCall from "../confcall";
 import TitleUpdater from "./components/TitleUpdater";
 import { useParams } from "react-router-dom";
+import { useGetRoomQuery } from "./api/room";
 
 export default function Room(): React.ReactElement {
     const isCall = /^.+\/call.*$/.test(window.location.pathname);
@@ -29,6 +30,8 @@ export default function Room(): React.ReactElement {
 function RoomContainer({ children }: { children: React.ReactNode }) {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+    const roomId = parseInt(useParams().id || "");
+    const { error } = useGetRoomQuery(roomId);
 
     const mobileProps = {
         position: "absolute" as const,
@@ -42,6 +45,10 @@ function RoomContainer({ children }: { children: React.ReactNode }) {
         height: "100vh",
         overflow: "hidden",
     };
+
+    if (error) {
+        return <Box p={2}>Room not found</Box>;
+    }
 
     return (
         <Box display="flex" flexDirection="column" sx={isMobile ? mobileProps : desktopProps}>

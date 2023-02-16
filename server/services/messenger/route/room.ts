@@ -593,20 +593,19 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 return res.status(404).send(errorResponse("Room not found", userReq.lang));
             }
 
-            const roomUser = await prisma.roomUser.findFirst({
-                where: {
-                    roomId: id,
-                    userId: userReq.user.id,
-                },
-            });
+            const room = await getRoomById(id, redisClient);
+
+            if (!room) {
+                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+            }
+
+            const roomUser = room.users.find((u) => u.userId === userReq.user.id);
 
             if (!roomUser) {
                 return res.status(404).send(errorResponse("Room not found", userReq.lang));
             }
 
-            const room = await getRoomById(id, redisClient);
-
-            if (!room) {
+            if (room.type === "private" && room.users.length < 2) {
                 return res.status(404).send(errorResponse("Room not found", userReq.lang));
             }
 
@@ -664,7 +663,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             });
 
             const roomsSanitized = await Promise.all(
-                roomsUser.map(async ({ roomId }) => {
+                roomsUser.map(async ({ roomId, createdAt }) => {
                     const room = await getRoomById(roomId, redisClient);
                     const muted = await isRoomMuted({
                         roomId,
@@ -678,7 +677,14 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                         redisClient,
                     });
 
-                    return sanitize({ ...room, muted, pinned }).room();
+                    const unreadCount = await getRoomUnreadCount({
+                        roomId,
+                        userId,
+                        redisClient,
+                        roomUserCreatedAt: createdAt,
+                    });
+
+                    return sanitize({ ...room, muted, pinned, unreadCount }).room();
                 })
             );
 
@@ -945,6 +951,44 @@ export async function getRoomById(id: number, redisClient: ReturnType<typeof cre
     await redisClient.set(key, JSON.stringify(roomFromDb));
 
     return roomFromDb;
+}
+
+export async function getRoomUnreadCount({
+    roomId,
+    userId,
+    redisClient,
+    roomUserCreatedAt,
+}: {
+    roomId: number;
+    userId: number;
+    roomUserCreatedAt: Date;
+    redisClient: ReturnType<typeof createClient>;
+}) {
+    const key = `${Constants.UNREAD_PREFIX}${roomId}_${userId}`;
+    let unreadCount = await redisClient.get(key);
+    if (!unreadCount) {
+        const unreadMessages = await prisma.message.findMany({
+            where: {
+                roomId: roomId,
+                createdAt: {
+                    gt: roomUserCreatedAt,
+                },
+                messageRecords: {
+                    none: {
+                        userId: userId,
+                        type: "seen",
+                    },
+                },
+                NOT: {
+                    fromUserId: userId,
+                },
+            },
+        });
+        unreadCount = unreadMessages.length.toString();
+        redisClient.set(key, unreadCount);
+    }
+
+    return +unreadCount || 0;
 }
 
 function getRoomName(initialName: string, usersCount: number) {

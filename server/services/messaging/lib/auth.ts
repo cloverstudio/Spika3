@@ -10,14 +10,9 @@ export default async (
     res: Response,
     next: () => void
 ): Promise<Response<any, Record<string, any>> | void> => {
-    // check access token
-
     try {
-        if (!req.headers[constants.ACCESS_TOKEN]) {
-            return res.status(403).send("Invalid access token");
-        }
-
-        const accessToken: string = req.headers[constants.ACCESS_TOKEN] as string;
+        const accessToken = req.headers[constants.ACCESS_TOKEN] as string;
+        if (!accessToken) return res.status(401).send("No access token");
 
         const apiKey = await prisma.apiKey.findFirst({
             where: {
@@ -26,7 +21,7 @@ export default async (
         });
 
         if (!apiKey) {
-            return res.status(403).send("Invalid access token");
+            return res.status(401).send("Invalid access token");
         }
 
         const bot = await prisma.user.findUnique({
@@ -36,7 +31,7 @@ export default async (
         });
 
         if (!bot) {
-            return res.status(403).send("Invalid access token");
+            return res.status(401).send("Invalid access token");
         }
 
         const userRequest: UserRequest = req as UserRequest;
