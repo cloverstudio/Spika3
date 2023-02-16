@@ -12,7 +12,7 @@ import { setActiveTab } from "./slices/rightSidebar";
 export default function RightSidebar(): React.ReactElement {
     const roomId = +useParams().id;
     const dispatch = useDispatch();
-    const { data: room, isLoading } = useGetRoomQuery(roomId);
+    const { data: room, isLoading, error } = useGetRoomQuery(roomId);
 
     useEffect(() => {
         return () => {
@@ -22,6 +22,10 @@ export default function RightSidebar(): React.ReactElement {
 
     if (isLoading) {
         return <Loader />;
+    }
+
+    if (error) {
+        return null;
     }
 
     return (

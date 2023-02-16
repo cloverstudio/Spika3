@@ -593,20 +593,19 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 return res.status(404).send(errorResponse("Room not found", userReq.lang));
             }
 
-            const roomUser = await prisma.roomUser.findFirst({
-                where: {
-                    roomId: id,
-                    userId: userReq.user.id,
-                },
-            });
+            const room = await getRoomById(id, redisClient);
+
+            if (!room) {
+                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+            }
+
+            const roomUser = room.users.find((u) => u.userId === userReq.user.id);
 
             if (!roomUser) {
                 return res.status(404).send(errorResponse("Room not found", userReq.lang));
             }
 
-            const room = await getRoomById(id, redisClient);
-
-            if (!room) {
+            if (room.type === "private" && room.users.length < 2) {
                 return res.status(404).send(errorResponse("Room not found", userReq.lang));
             }
 
