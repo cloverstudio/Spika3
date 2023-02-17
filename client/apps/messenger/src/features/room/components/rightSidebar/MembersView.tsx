@@ -34,7 +34,6 @@ export function DetailsMemberView(props: DetailsMembersProps) {
     const [createRoom] = useCreateRoomMutation();
 
     const userId = useSelector(selectUserId);
-    const dispatch = useDispatch();
     const [update] = useUpdateRoomMutation();
     const [openAddDialog, setOpenAddDialog] = useState(false);
 

@@ -31,7 +31,6 @@ export interface DetailsBasicInfoProps {
 export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
     const strings = useStrings();
     const { roomData } = props;
-    const dispatch = useDispatch();
     const isItPrivateGroup = roomData.type === "private";
     const otherUserId = useSelector(selectOtherUserIdInPrivateRoom(roomData.id));
     const [editGroupPicture, setEditGroupPicture] = useState(false);

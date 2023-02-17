@@ -16,7 +16,6 @@ import prisma from "../../../components/prisma";
 import { handleNewUser } from "../../../components/chatGPT";
 import { UserRequest } from "../lib/types";
 import auth from "../lib/auth";
-import dayjs from "dayjs";
 
 const authSchema = yup.object().shape({
     body: yup.object().shape({
