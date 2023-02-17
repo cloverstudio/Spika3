@@ -64,7 +64,7 @@ function Message({
     const [mouseOver, setMouseOver] = useState(false);
     const [showReactionMenu, setShowReactionMenu] = useState(false);
 
-    const { fromUserId, createdAt, deleted } = message;
+    const { fromUserId, createdAt, deleted, body } = message;
 
     const sender = useSender(fromUserId);
     const roomType = useRoomType();
@@ -96,6 +96,10 @@ function Message({
     };
 
     const highlighted = id === +targetMessageId;
+
+    if (!body) {
+        return null;
+    }
 
     return (
         <MessageContainer
