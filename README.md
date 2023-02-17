@@ -1,69 +1,73 @@
-# Spika3 server and web client 
+<h1>Spika3 </h1>
+
+<div>&nbsp;</div>
+<div>&nbsp;</div>
+<div>&nbsp;</div>
+
+<H2 align="center">
+Spika3 is the ultimate messenger solution for teams, boasting unmatched customizability. We designed it to be easily modified, deployed, and used to meet your team's specific communication needs.
+</H2>
+
+<div>&nbsp;</div>
+<div>&nbsp;</div>
+<div>&nbsp;</div>
+
+
 
 ![Alt text](/documents/screenshot1.png?raw=true "Optional Title")
 
-Spika3 is an open-source communication platform based on Javascript technology, roughly we use MySQL, NodeJS, RabbitMQ, and ReactJS.
 
-The concept of Spika3 is a flexible real-time communication platform for all purposes. Spika3 is built on top of standard technology which should be familiar for most web developers, and it is designed to be easy to change so you can customize it to fit your purpose with minimum effort.
+Spika is a communication platform that is fully customizable and open-source. Backend is developed in Typescript, specifically for organizations that prioritize data protection. Our application is based on Typescript / MySQL / RabbitMQ / ExpressJS / ReactJS, allowing for real-time conversations between colleagues, other companies, or customers, regardless of their mode of connection. Using our platform results in increased productivity and higher customer satisfaction rates.
 
-You can use it to communicate between colleagues, friends, other companies, and customers out of the box at the start. Then you can customize Spika3 to fit your demands and increase the productivity and quality of communication.
+We also have iOS ( Swift ) and Android ( Kotlin ) client in another repository. They are still on heavy development phase, but they will be opensourced soon.
 
-## System requirement
 
-- nodejs >= 12.6.0
-- npm >= 6.14.4
+<div>&nbsp;</div>
+<div>&nbsp;</div>
 
-## Setup server from scratch ( on Ubuntu 20.04)
+# Try Demo
 
-```
-    $ sudo apt-get install curl build-essential python3 pip
-    $ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
-    $ source ~/.bashrc
-    $ nvm install v12.6.0
-    $ nvm use v12.6.0
-    $ sudo apt install mysql-server
-    $ sudo mysql_secure_installation
-    # Then setup mysql user
+Here you can try demo with predefined characteristic chatGPT bot.
 
-    $ git clone https://github.com/cloverstudio/Spika3.git
-    $ cd Spika3
-    $ npm install
-    $ cp .env-sample .env
+https://demo.clover.studio
 
-    # Change parameters to suit with your environment.
-    $ npx prisma db push
+![Alt text](/documents/screenshot2.png?raw=true "Optional Title")
 
-    # Build web clients
-    $ npm run build:management
-    $ npm run build:messenger
 
-    # Start server
-    $ npm run start:server
-```
+<div>&nbsp;</div>
+<div>&nbsp;</div>
 
-## How to setup dev environment
+# Start Local server
 
-```
-    $ sudo apt-get install curl build-essential python3 pip
-    $ docker-compose up
+To obtain further details regarding [the supported operating systems and system requirements](https://doc.spika.chat/docs/intro)
+, kindly refer to the requirements documentation. To install your instance of Spika, please consult the ["Install" guide](https://doc.spika.chat/docs/development).
 
-    # Clone a repo
-    $ git clone https://github.com/cloverstudio/Spika3.git
-    $ cd Spika3
-    $ npm install
-    $ cp .env-sample .env
 
-    # Change parameters to suit with your environment. ( If there are changes )
-    $ npx prisma db push
+<div>&nbsp;</div>
+<div>&nbsp;</div>
 
-    # Confirm build passes
-    $ npm run build:management
-    $ npm run build:messenger
+# Feature request
 
-    # check server works
-    $ npm run start:server
+We are always open to feature requests and bug reports. If you have anything in mind, please post it to the [Issues](https://github.com/cloverstudio/Spika3/issues) section.
 
-    # start development
-    $ npm run dev:management
-    $ npm run dev:messenger
-```
+<div>&nbsp;</div>
+<div>&nbsp;</div>
+
+
+# Learn more
+
+You can find detailed document here.<br />
+https://doc.spika.chat/
+
+Our official landing page is here.<br />
+https://www.spika.chat/
+
+<div>&nbsp;</div>
+<div>&nbsp;</div>
+
+
+# Contact us
+
+Do you need customize or add specific feature to cover your needs ?
+We are mobile and web development agency based in Croatia. Please refer this web site to contact us. 
+https://clover.studio
