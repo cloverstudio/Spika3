@@ -25,7 +25,7 @@ export default function AuthLayout({
 
     useEffect(() => {
         if (isLoggedIn) {
-            navigate("/app");
+            navigate("/messenger/app");
         }
     }, [isLoggedIn, navigate]);
 
@@ -74,7 +74,6 @@ export default function AuthLayout({
                                 {APP_NAME}
                             </Typography>
                         </Box>
-
                         {children}
                     </Box>
                 )}

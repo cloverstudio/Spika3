@@ -33,6 +33,16 @@ const axiosBaseQuery =
                 validateStatus: (status) => status < 500,
             });
 
+            if (result.status === 401 && url !== "/messenger/me") {
+                if (dispatch) {
+                    dispatch({ type: "USER_LOGOUT" });
+                }
+
+                window.localStorage.removeItem(constants.LSKEY_ACCESSTOKEN);
+                window.location.href = "/messenger/?logout=force";
+                return;
+            }
+
             if (result.data.status !== "success") {
                 throw new Error(result.data.message);
             }

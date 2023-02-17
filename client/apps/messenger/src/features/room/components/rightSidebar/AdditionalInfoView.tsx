@@ -19,6 +19,7 @@ import {
 import { selectUserId } from "../../../../../src/store/userSlice";
 
 import useStrings from "../../../../hooks/useStrings";
+import { fetchHistory, setKeyword } from "../../slices/leftSidebar";
 
 export interface Props {
     roomData: RoomType;
@@ -136,6 +137,8 @@ export function DetailsAdditionalInfoView(props: Props) {
                                 } else {
                                     await unpinRoom({ roomId: room.id });
                                 }
+                                dispatch(setKeyword(""));
+                                dispatch(fetchHistory());
                             } catch (e: any) {
                                 console.error(e);
                                 showSnackBar({

@@ -44,7 +44,7 @@ const leaveRoomSchema = yup.object().shape({
 
 export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
     const router = Router();
-    const sseRoomsNotify = createSSERoomsNotify(rabbitMQChannel);
+    const sseRoomsNotify = createSSERoomsNotify(rabbitMQChannel, redisClient);
 
     router.post("/", auth, validate(postRoomSchema), async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;

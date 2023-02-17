@@ -20,6 +20,7 @@ import {
 } from "../features/room/slices/rightSidebar";
 
 import { selectUserId, fetchMe, fetchSettings } from "../../src/store/userSlice";
+import * as constants from "../../../../lib/constants";
 
 export default function Home(): React.ReactElement {
     const theme = useTheme();
@@ -58,11 +59,11 @@ export default function Home(): React.ReactElement {
     const loggedInUserId = useSelector(selectUserId);
 
     useEffect(() => {
-        if (!loggedInUserId) {
+        if (!loggedInUserId && window.localStorage.getItem(constants.LSKEY_ACCESSTOKEN)) {
             dispatch(fetchMe());
             dispatch(fetchSettings());
         }
-    }, []);
+    }, [dispatch, loggedInUserId]);
 
     useEffect(() => {
         if (isMobile) {

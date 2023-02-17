@@ -5,16 +5,13 @@ import { useDispatch } from "react-redux";
 import CssBaseline from "@mui/material/CssBaseline";
 import ThemeProvider from "@mui/material/styles/ThemeProvider";
 
-import { lightTheme, darkTheme, ThemeType, ThemeContext } from "../theme";
-
 import SnackBar from "./SnackBar";
 import BasicDialog from "./BasicDialog";
 import Loader from "./Loader";
 
+import { lightTheme, darkTheme, ThemeType, ThemeContext } from "../theme";
 import { useGetUserQuery } from "../features/auth/api/auth";
-
-import { useGetDeviceQuery, useUpdateDeviceMutation } from "../api/device";
-
+import { useGetDeviceQuery } from "../api/device";
 import handleSSE from "../utils/handleSSE";
 import * as constants from "../../../../lib/constants";
 
@@ -27,17 +24,8 @@ type Props = {
 export default function AuthBase({ children }: Props): React.ReactElement {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { data: user, isFetching, isLoading } = useGetUserQuery();
-    const { data: deviceData, isLoading: deviceIsLoading } = useGetDeviceQuery();
-    const [updateDevice] = useUpdateDeviceMutation();
-
-    const hasPushToken = deviceData && deviceData.device.pushToken;
-
-    useEffect(() => {
-        if (!isFetching && !user) {
-            navigate("/");
-        }
-    }, [user, isFetching, navigate]);
+    const { data: user, isLoading } = useGetUserQuery();
+    const { data: deviceData } = useGetDeviceQuery();
 
     useEffect(() => {
         let source: EventSource;
