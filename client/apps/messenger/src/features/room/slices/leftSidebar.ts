@@ -126,7 +126,7 @@ export const leftSidebarSlice = createSlice({
                 return newRoomInfo || item;
             });
 
-            if (payload.page === 1) {
+            if (payload.data.page === 1) {
                 state.history.list = [...payload.data.list];
             } else {
                 state.history.list = [...list, ...notAdded];
@@ -134,7 +134,7 @@ export const leftSidebarSlice = createSlice({
 
             state.history.count = payload.data.count;
             state.history.loading = "idle";
-            state.history.page = state.history.page + 1;
+            state.history.page = payload.data.page + 1;
         });
         builder.addCase(fetchHistory.pending, (state) => {
             state.history.loading = "pending";

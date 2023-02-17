@@ -25,6 +25,7 @@ export type SanitizedRoomType = Partial<
     Omit<Room, "users" | "createdAt" | "modifiedAt"> & {
         createdAt: number;
         modifiedAt: number;
+        unreadCount?: number;
         users: SanitizedRoomUserType[];
         muted: boolean;
         pinned: boolean;

@@ -1,27 +1,21 @@
-import { Router, Request, Response } from "express";
+import { Request, Response } from "express";
 import dayjs from "dayjs";
-import { Device } from "@prisma/client";
 import * as constants from "../../../components/consts";
-import utils from "../../../components/utils";
 
 import { UserRequest } from "./types";
 import prisma from "../../../components/prisma";
-import { Decipher } from "crypto";
-import l, { error as le } from "../../../components/logger";
+import { error as le } from "../../../components/logger";
 
-export default async (req: Request, res: Response, next: Function) => {
-    // check access token
-
+export default async (req: Request, res: Response, next: () => void) => {
     try {
-        if (!req.headers[constants.ACCESS_TOKEN])
-            return res.status(403).send("Invalid access token");
+        const accessToken = req.headers[constants.ACCESS_TOKEN] as string;
+        if (!accessToken) return res.status(401).send("No access token");
 
         const osName = req.headers["os-name"] as string;
         const osVersion = req.headers["os-version"] as string;
         const deviceName = req.headers["device-name"] as string;
-        const appVersion: string = req.headers["app-version"] as string;
-
-        const accessToken: string = req.headers[constants.ACCESS_TOKEN] as string;
+        const appVersion = req.headers["app-version"] as string;
+        const lang: string = (req.headers["lang"] as string) || "en";
 
         const device = await prisma.device.findFirst({
             where: {
@@ -32,19 +26,19 @@ export default async (req: Request, res: Response, next: Function) => {
             },
         });
 
-        if (!device) return res.status(403).send("Invalid access token");
+        if (!device) return res.status(401).send("Invalid access token");
 
-        const tokenExpiredAtTS: number = dayjs(device.tokenExpiredAt).unix();
-        const now: number = dayjs().unix();
+        const tokenExpiredAtTS = +dayjs(device.tokenExpiredAt);
+        const now = +dayjs();
 
-        if (now - tokenExpiredAtTS > constants.TOKEN_EXPIRED)
-            return res.status(403).send("Token is expired");
+        if (now > tokenExpiredAtTS) return res.status(401).send("Access token expired");
 
-        const userRequset: UserRequest = req as UserRequest;
+        const userRequest: UserRequest = req as UserRequest;
 
-        userRequset.user = device.user;
+        userRequest.user = device.user;
         delete device.user;
-        userRequset.device = device;
+        userRequest.device = device;
+        userRequest.lang = lang;
 
         // update device is there is a change
         if (
@@ -65,7 +59,7 @@ export default async (req: Request, res: Response, next: Function) => {
                     data: { ...updateData, modifiedAt: new Date() },
                 });
 
-                userRequset.device = newDevice;
+                userRequest.device = newDevice;
             }
         }
 
