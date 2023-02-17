@@ -28,6 +28,12 @@ const userApi = api.injectEndpoints({
             },
             invalidatesTags: [{ type: "Auth", id: "me" }],
         }),
+        logout: build.mutation({
+            query: () => {
+                return { url: "/messenger/auth/logout", method: "POST" };
+            },
+            invalidatesTags: [{ type: "Auth", id: "me" }],
+        }),
         getUser: build.query<any, void>({
             query: () => "/messenger/me",
             providesTags: [{ type: "Auth", id: "me" }],
@@ -36,4 +42,10 @@ const userApi = api.injectEndpoints({
     overrideExisting: true,
 });
 
-export const { useSignUpMutation, useVerifyMutation, useUpdateMutation, useGetUserQuery } = userApi;
+export const {
+    useSignUpMutation,
+    useVerifyMutation,
+    useUpdateMutation,
+    useGetUserQuery,
+    useLogoutMutation,
+} = userApi;

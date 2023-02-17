@@ -11,7 +11,7 @@ import messagesReducer from "../features/room/slices/messages";
 import userReducer from "./userSlice";
 import modalReducer from "./modalSlice";
 
-const rootReducer = combineReducers({
+const appReducer = combineReducers({
     contacts: contactsReducer,
     auth: adminAuthReducer,
     leftSidebar: leftSidebarReducer,
@@ -23,5 +23,13 @@ const rootReducer = combineReducers({
     messages: messagesReducer,
     [api.reducerPath]: api.reducer,
 });
+
+const rootReducer = (state, action) => {
+    if (action.type === "USER_LOGOUT") {
+        return appReducer(undefined, action);
+    }
+
+    return appReducer(state, action);
+};
 
 export default rootReducer;

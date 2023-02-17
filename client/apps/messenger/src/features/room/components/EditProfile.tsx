@@ -21,7 +21,7 @@ import Close from "@mui/icons-material/Close";
 
 import uploadFile from "../../../utils/uploadFile";
 
-import { useUpdateMutation } from "../../auth/api/auth";
+import { useLogoutMutation, useUpdateMutation } from "../../auth/api/auth";
 
 import { crop } from "../../../utils/crop";
 
@@ -33,6 +33,7 @@ import { ThemeContext, ThemeType } from "../../../theme";
 import useStrings from "../../../hooks/useStrings";
 import { ContactRow } from "./leftSidebar/ContactList";
 import { useGetBlockedUsersQuery, useRemoveUserFromBlockListMutation } from "../api/user";
+import { useDispatch } from "react-redux";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -44,16 +45,17 @@ export interface EditProfileProps {
 export function EditProfileView({ onClose, user }: EditProfileProps) {
     const strings = useStrings();
     const imageRef = useRef(null);
-    const [name, setName] = React.useState(user.displayName);
-    const [proposedName, setProposedName] = React.useState(user.displayName);
+    const [name, setName] = useState(user.displayName);
+    const [proposedName, setProposedName] = useState(user.displayName);
     const [file, setFile] = useState<File>();
     const [editProfileName, setEditProfileName] = useState(false);
     const [editProfilePicture, setEditProfilePicture] = useState(false);
     const [editingBlockedList, setEditingBlockedList] = useState(false);
     const [loading, setLoading] = useState(false);
     const [update] = useUpdateMutation();
-    const navigate = useNavigate();
+    const [logout] = useLogoutMutation();
     const { theme, setTheme } = useContext(ThemeContext);
+    const dispatch = useDispatch();
 
     const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setProposedName(event.target.value);
@@ -155,6 +157,14 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
 
             console.error("Update failed ", error);
         }
+    };
+
+    const handleLogout = async () => {
+        await logout(null).unwrap();
+        window.localStorage.removeItem(Constants.LSKEY_ACCESSTOKEN);
+        window.localStorage.removeItem(Constants.LSKEY_DEVICEID);
+        dispatch({ type: "USER_LOGOUT" });
+        window.location.href = "/messenger/";
     };
 
     if (editingBlockedList) {
@@ -367,11 +377,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                     fontWeight="bold"
                     variant="h6"
                     underline="none"
-                    onClick={() => {
-                        window.localStorage.removeItem(Constants.LSKEY_ACCESSTOKEN);
-                        window.localStorage.removeItem(Constants.LSKEY_DEVICEID);
-                        navigate("/");
-                    }}
+                    onClick={handleLogout}
                 >
                     {strings.logout}
                 </Link>

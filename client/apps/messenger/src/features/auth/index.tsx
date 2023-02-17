@@ -14,11 +14,14 @@ import uploadFile from "../../utils/uploadFile";
 import * as constants from "../../../../../lib/constants";
 import { getDeviceId } from "../../../../../lib/utils";
 import useStrings from "../../hooks/useStrings";
+import { useDispatch } from "react-redux";
+import { showSnackBar } from "../../store/modalSlice";
 
 export default function Auth(): React.ReactElement {
     const strings = useStrings();
     const navigate = useNavigate();
     const deviceId = getDeviceId();
+    const dispatch = useDispatch();
     const [step, setStep] = useState(0);
     const [loading, setLoading] = useState(false);
     const [signUp, signUpMutation] = useSignUpMutation();
@@ -34,6 +37,20 @@ export default function Auth(): React.ReactElement {
         setInfoMsg("");
         verifyMutation.error && setErrorMsg((verifyMutation.error as any).message);
     }, [verifyMutation]);
+
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const logout = urlParams.get("logout");
+
+        if (logout === "force") {
+            dispatch(
+                showSnackBar({
+                    severity: "error",
+                    text: "You have been logged out due to invalid or expired access token",
+                })
+            );
+        }
+    }, [dispatch]);
 
     const handleSignUp = async (telephoneNumber: string) => {
         try {
