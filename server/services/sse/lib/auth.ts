@@ -9,7 +9,7 @@ import { error as le } from "../../../components/logger";
 export default async (req: Request, res: Response, next: () => void) => {
     try {
         if (!req.headers[constants.ACCESS_TOKEN] && !req.query[constants.ACCESS_TOKEN]) {
-            return res.status(403).send("Invalid access token");
+            return res.status(401).send("Invalid access token");
         }
 
         const osName = req.headers["os-name"] as string;
@@ -30,13 +30,12 @@ export default async (req: Request, res: Response, next: () => void) => {
             },
         });
 
-        if (!device) return res.status(403).send("Invalid access token");
+        if (!device) return res.status(401).send("Invalid access token");
 
         const tokenExpiredAtTS: number = dayjs(device.tokenExpiredAt).unix();
         const now: number = dayjs().unix();
 
-        if (now - tokenExpiredAtTS > constants.TOKEN_EXPIRED)
-            return res.status(403).send("Token is expired");
+        if (now > tokenExpiredAtTS) return res.status(401).send("Token is expired");
 
         const userRequest: UserRequest = req as UserRequest;
 

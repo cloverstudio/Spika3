@@ -12,6 +12,7 @@ import { useGetRoomQuery } from "../../api/room";
 import AttachmentManager from "../../lib/AttachmentManager";
 import { useDispatch } from "react-redux";
 import { setTargetMessage } from "../../slices/messages";
+import { deletedMessageText } from "../../lib/consts";
 
 type MessageBodyProps = {
     id: number;
@@ -35,7 +36,13 @@ export default function MessageBody({
     deleted,
 }: MessageBodyProps): React.ReactElement {
     if (deleted) {
-        return <TextMessage body={body} deleted={deleted} isUsersMessage={side === "right"} />;
+        return (
+            <TextMessage
+                body={{ text: deletedMessageText }}
+                deleted={deleted}
+                isUsersMessage={side === "right"}
+            />
+        );
     }
 
     if (isReply) {

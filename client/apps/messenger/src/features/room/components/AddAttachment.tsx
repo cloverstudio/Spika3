@@ -35,7 +35,9 @@ export default function AddAttachment(): ReactElement {
 
     useEffect(() => {
         const handleResize = () => {
-            setContainerBoxRect(boxRef.current.getBoundingClientRect());
+            if (boxRef.current) {
+                setContainerBoxRect(boxRef.current.getBoundingClientRect());
+            }
         };
 
         handleResize();
