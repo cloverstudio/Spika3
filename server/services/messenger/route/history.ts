@@ -30,6 +30,7 @@ export default ({ redisClient }: InitRouterParams): Router => {
                             },
                         }),
                         deleted: false,
+                        type: "group",
                     },
                     userId,
                 },
@@ -50,14 +51,18 @@ export default ({ redisClient }: InitRouterParams): Router => {
 
                 const matchedRoomUsers = await prisma.roomUser.findMany({
                     where: {
-                        roomId: { in: privateRoomIds },
-                        user: {
-                            displayName: {
-                                startsWith: keyword,
+                        OR: ["startsWith", "contains"].map((key) => ({
+                            user: {
+                                displayName: {
+                                    [key]: keyword,
+                                },
                             },
-                        },
-                        userId: {
-                            not: userId,
+                        })),
+                        AND: {
+                            roomId: { in: privateRoomIds },
+                            userId: {
+                                not: userId,
+                            },
                         },
                     },
                 });
