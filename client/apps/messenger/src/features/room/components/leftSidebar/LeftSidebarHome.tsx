@@ -74,7 +74,13 @@ export default function LeftSidebarHome({
                 <>
                     <Box px={2.5} borderBottom="0.5px solid" sx={{ borderColor: "divider" }}>
                         <Box display="flex" height="80px" justifyContent="space-between">
-                            <Box display="flex" flexDirection="column" justifyContent="center">
+                            <Box
+                                component="a"
+                                href="/messenger/app"
+                                display="flex"
+                                flexDirection="column"
+                                justifyContent="center"
+                            >
                                 <img width="40px" height="40px" src={logo} />
                             </Box>
                             <Box display="flex" gap={2} alignItems="center">
