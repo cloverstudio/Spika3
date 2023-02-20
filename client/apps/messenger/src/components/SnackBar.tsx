@@ -10,17 +10,18 @@ import { RootState } from "../store/store";
 export default function SnackBar() {
     const modal = useSelector((state: RootState) => state.modal);
     const dispatch = useDispatch();
+    const autoHideDuration = modal.snackBarInfo?.autoHideDuration || 6000;
 
     useEffect(() => {
         if (modal.showSnackBar) {
             setTimeout(() => {
                 dispatch(hideSnackBar());
-            }, 6000);
+            }, autoHideDuration);
         }
-    }, [modal.showSnackBar, dispatch]);
+    }, [modal.showSnackBar, dispatch, autoHideDuration]);
 
     return (
-        <Snackbar open={modal.showSnackBar} autoHideDuration={6000}>
+        <Snackbar open={modal.showSnackBar} autoHideDuration={autoHideDuration}>
             <Alert severity={modal.snackBarInfo?.severity} sx={{ width: "100%" }}>
                 {modal.snackBarInfo?.text}
             </Alert>

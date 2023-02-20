@@ -120,6 +120,9 @@ const en = {
     resend: "Send again",
     pinChat: "Pin chat",
     senderActions: "Sender actions",
+    connectionLost: "Connection with the server closed, trying to reconnect...",
+    connectionReestablished: "Connection re-established, window will refresh in 5 seconds...",
+    youHaveBeenLoggedOut: "You have been logged out due to invalid or expired access token",
 };
 
 const strings = {
