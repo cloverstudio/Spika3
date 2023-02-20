@@ -28,9 +28,9 @@ export default ({ redisClient }: InitRouterParams): Router => {
                             name: {
                                 startsWith: keyword,
                             },
+                            type: "group",
                         }),
                         deleted: false,
-                        type: "group",
                     },
                     userId,
                 },
