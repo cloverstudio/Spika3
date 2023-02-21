@@ -10,6 +10,7 @@ interface UIState {
 interface snackBarInfo {
     severity: "error" | "warning" | "info" | "success";
     text: string;
+    autoHideDuration?: number;
 }
 
 interface basicDialogInfo {

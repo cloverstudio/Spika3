@@ -24,13 +24,21 @@ export default ({ redisClient }: InitRouterParams): Router => {
             let roomUsers = await prisma.roomUser.findMany({
                 where: {
                     room: {
-                        ...(keyword && {
-                            name: {
-                                startsWith: keyword,
-                            },
-                            type: "group",
-                        }),
-                        deleted: false,
+                        ...(keyword
+                            ? {
+                                  OR: ["startsWith", "contains"].map((key) => ({
+                                      name: {
+                                          [key]: keyword,
+                                      },
+                                  })),
+                                  AND: {
+                                      type: "group",
+                                      deleted: false,
+                                  },
+                              }
+                            : {
+                                  deleted: false,
+                              }),
                     },
                     userId,
                 },

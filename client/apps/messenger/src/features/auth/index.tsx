@@ -46,11 +46,11 @@ export default function Auth(): React.ReactElement {
             dispatch(
                 showSnackBar({
                     severity: "error",
-                    text: "You have been logged out due to invalid or expired access token",
+                    text: strings.youHaveBeenLoggedOut,
                 })
             );
         }
-    }, [dispatch]);
+    }, [dispatch, strings.youHaveBeenLoggedOut]);
 
     const handleSignUp = async (telephoneNumber: string) => {
         try {

@@ -14,6 +14,8 @@ import { useGetUserQuery } from "../features/auth/api/auth";
 import { useGetDeviceQuery } from "../api/device";
 import handleSSE from "../utils/handleSSE";
 import * as constants from "../../../../lib/constants";
+import { showSnackBar } from "../store/modalSlice";
+import useStrings from "../hooks/useStrings";
 
 declare const API_BASE_URL: string;
 
@@ -26,6 +28,9 @@ export default function AuthBase({ children }: Props): React.ReactElement {
     const navigate = useNavigate();
     const { data: user, isLoading } = useGetUserQuery();
     const { data: deviceData } = useGetDeviceQuery();
+    const [SSEConnectionState, setSSEConnectionState] = useState("pending");
+    const [shouldDisplayBackOnlineSnackbar, setShouldDisplayBackOnlineSnackbar] = useState(false);
+    const strings = useStrings();
 
     useEffect(() => {
         let source: EventSource;
@@ -33,9 +38,16 @@ export default function AuthBase({ children }: Props): React.ReactElement {
             source = new EventSource(`${API_BASE_URL}/sse?accesstoken=${deviceData.device.token}`);
 
             source.onmessage = handleSSE;
+            source.onopen = () => {
+                setSSEConnectionState("open");
+            };
+            source.onerror = () => {
+                setSSEConnectionState("error");
+            };
         }
 
         return () => {
+            setSSEConnectionState("pending");
             source && source.close();
         };
     }, [deviceData?.device?.token, dispatch]);
@@ -55,6 +67,40 @@ export default function AuthBase({ children }: Props): React.ReactElement {
             window.removeEventListener("keydown", handleKeyDown);
         };
     }, [navigate]);
+
+    useEffect(() => {
+        if (SSEConnectionState === "error") {
+            dispatch(
+                showSnackBar({
+                    severity: "error",
+                    text: strings.connectionLost,
+                    autoHideDuration: 5 * 60 * 1000,
+                })
+            );
+            setShouldDisplayBackOnlineSnackbar(true);
+        }
+    }, [SSEConnectionState, dispatch, strings.connectionLost]);
+
+    useEffect(() => {
+        if (shouldDisplayBackOnlineSnackbar && SSEConnectionState === "open") {
+            dispatch(
+                showSnackBar({
+                    severity: "success",
+                    text: strings.connectionReestablished,
+                })
+            );
+            setShouldDisplayBackOnlineSnackbar(false);
+
+            setTimeout(() => {
+                window.location.reload();
+            }, 5000);
+        }
+    }, [
+        SSEConnectionState,
+        shouldDisplayBackOnlineSnackbar,
+        dispatch,
+        strings.connectionReestablished,
+    ]);
 
     if (isLoading) {
         return <Loader />;
