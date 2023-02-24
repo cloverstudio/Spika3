@@ -465,7 +465,11 @@ function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boo
                                 {sender.displayName}
                             </Box>
                         )}
-                        <VideoMessage body={replyMsgBody} isUsersMessage={!isUsersMessage} />
+                        <VideoMessage
+                            onClick={() => true}
+                            body={replyMsgBody}
+                            isUsersMessage={!isUsersMessage}
+                        />
                     </Box>
                 );
             }
