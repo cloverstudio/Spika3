@@ -2,13 +2,14 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { dynamicBaseQuery } from "../../../api/api";
 import type { RootState } from "../../../store/store";
 import MessageType, { MessageListType, MessageRecordType } from "../../../types/Message";
-import uploadFile from "../../../utils/uploadFile";
+import uploadFile from "../../../utils/uploadFileNew";
 import { getVideoThumbnail } from "../../../utils/media";
 import generateThumbFile from "../lib/generateThumbFile";
 import getFileType from "../lib/getFileType";
 import getMessageStatus from "../lib/getMessageStatus";
 import { refreshHistory } from "./leftSidebar";
 import { RoomType } from "../../../types/Rooms";
+import { FileUploader } from "../../../utils/FileUploader";
 
 export const fetchMessages = createAsyncThunk(
     "messages/fetchMessages",
@@ -203,35 +204,44 @@ export const sendFileMessage = createAsyncThunk(
         );
 
         try {
-            const uploaded = await uploadFile({
+            const onProgress = (progress: number) => {
+                console.log({ progress });
+                thunkAPI.dispatch(
+                    messagesSlice.actions.setMessageUploadProgress({
+                        roomId,
+                        localId,
+                        progress,
+                    })
+                );
+            };
+
+            const startTime = performance.now();
+
+            const fileUploader = new FileUploader({
                 file,
                 type,
+                onProgress,
             });
+
+            const uploaded = await fileUploader.upload();
+
+            console.log({ uploaded, time: performance.now() - startTime });
 
             body.fileId = uploaded.id;
 
-            if (type === "image") {
-                const thumbFile = await generateThumbFile(file);
-                if (thumbFile) {
-                    const thumbFileUploaded = await uploadFile({
-                        file: thumbFile,
-                        type: thumbFile.type || "unknown",
-                    });
+            const thumbFile = await fileUploader.createThumbnailFile();
 
-                    body.thumbId = thumbFileUploaded.id;
-                }
-            }
+            console.log({ object: thumbFile });
 
-            if (/^.*video.*$/.test(file.type)) {
-                const thumbFile = await getVideoThumbnail(file);
-                if (thumbFile) {
-                    const thumbFileUploaded = await uploadFile({
-                        file: thumbFile,
-                        type: thumbFile.type || "image/jpeg",
-                    });
+            if (thumbFile) {
+                const thumbUploader = new FileUploader({
+                    file: thumbFile,
+                    type: "image",
+                });
 
-                    body.thumbId = thumbFileUploaded.id;
-                }
+                const thumbFileUploaded = await thumbUploader.upload();
+
+                body.thumbId = thumbFileUploaded.id;
             }
 
             const response = await dynamicBaseQuery({
@@ -393,7 +403,7 @@ type InitialState = {
     [roomId: number]: {
         roomId: number;
         loading: boolean;
-        messages: { [id: string]: MessageType };
+        messages: { [id: string]: MessageType & { progress?: number } };
         reactions: { [messageId: string]: MessageRecordType[] };
         statusCounts: {
             [messageId: string]: {
@@ -461,6 +471,7 @@ export const messagesSlice = createSlice({
                 messageRecords: [],
             };
         },
+
         addMessage(state, action: { payload: MessageType }) {
             const message = action.payload;
             const { roomId, totalUserCount, deliveredCount, seenCount } = message;
@@ -602,6 +613,18 @@ export const messagesSlice = createSlice({
                 };
             } else {
                 room.targetMessageId = action.payload.messageId;
+            }
+        },
+
+        setMessageUploadProgress: (
+            state,
+            action: { payload: { roomId: number; progress: number; localId: string } }
+        ) => {
+            const { roomId, progress, localId } = action.payload;
+            const room = state[roomId];
+
+            if (room) {
+                room.messages[localId].progress = progress;
             }
         },
     },
@@ -794,7 +817,7 @@ export const canLoadMoreMessages =
 
 export const selectMessageById =
     (roomId: number, id: number) =>
-    (state: RootState): MessageType | null => {
+    (state: RootState): (MessageType & { progress?: number }) | null => {
         const room = state.messages[roomId];
 
         if (!room) {

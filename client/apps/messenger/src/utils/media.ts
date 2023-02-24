@@ -91,10 +91,10 @@ export function getVideoThumbnail(file: File): Promise<File> {
                 // return the canvas image as a blob
                 ctx.canvas.toBlob(
                     (blob) => {
-                        const file: File = new File([blob], "videoThumbnail.jpg");
+                        const file: File = new File([blob], "videoThumbnail.png");
                         res(file);
                     },
-                    "image/jpeg",
+                    "image/png",
                     0.75 /* quality */
                 );
                 canvas.remove();

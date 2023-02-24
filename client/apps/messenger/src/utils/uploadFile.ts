@@ -3,7 +3,7 @@ import { dynamicBaseQuery } from "../api/api";
 import { encode } from "./base64";
 import { getImageDimension, getVideoInfo } from "./media";
 
-const chunkSize = 1024 * 72;
+const chunkSize = 1024 * 1024 * 3;
 
 export default async function uploadFile({
     file,

@@ -18,12 +18,12 @@ export default function generateThumbFile(originalFile: File): Promise<File | nu
                 canvas.toBlob(
                     async (blob) => {
                         const thumbFile = new File([blob], "thumb - " + originalFile.name, {
-                            type: "image/jpeg",
+                            type: "image/png",
                         });
 
                         res(thumbFile);
                     },
-                    "image/jpeg",
+                    "image/png",
                     1
                 );
             };

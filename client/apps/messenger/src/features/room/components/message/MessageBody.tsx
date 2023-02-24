@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box } from "@mui/material";
+import { Box, LinearProgress } from "@mui/material";
 import Modal from "@mui/material/Modal";
 import Typography from "@mui/material/Typography";
 
@@ -13,6 +13,7 @@ import AttachmentManager from "../../lib/AttachmentManager";
 import { useDispatch } from "react-redux";
 import { setTargetMessage } from "../../slices/messages";
 import { deletedMessageText } from "../../lib/consts";
+import { PlayCircleFilled } from "@mui/icons-material";
 
 type MessageBodyProps = {
     id: number;
@@ -22,6 +23,7 @@ type MessageBodyProps = {
     isReply?: boolean;
     onImageMessageClick?: () => void;
     deleted: boolean;
+    progress?: number;
 };
 
 declare const API_BASE_URL: string;
@@ -34,6 +36,7 @@ export default function MessageBody({
     isReply,
     onImageMessageClick,
     deleted,
+    progress,
 }: MessageBodyProps): React.ReactElement {
     if (deleted) {
         return (
@@ -56,24 +59,51 @@ export default function MessageBody({
 
         case "image": {
             return (
-                <ImageMessage
-                    body={body}
-                    isUsersMessage={side === "right"}
-                    onClick={onImageMessageClick}
-                />
+                <>
+                    <ImageMessage
+                        body={body}
+                        isUsersMessage={side === "right"}
+                        onClick={onImageMessageClick}
+                    />
+
+                    {progress && <LinearProgress variant="determinate" value={progress} />}
+                    {progress && progress === 100 && <Box>Verifying hash...</Box>}
+                </>
             );
         }
 
         case "video": {
-            return <VideoMessage body={body} isUsersMessage={side === "right"} />;
+            return (
+                <>
+                    <VideoMessage
+                        onClick={onImageMessageClick}
+                        body={body}
+                        isUsersMessage={side === "right"}
+                    />
+                    {progress && <LinearProgress variant="determinate" value={progress} />}
+                    {progress && progress === 100 && <Box>Verifying hash...</Box>}
+                </>
+            );
         }
 
         case "audio": {
-            return <AudioMessage body={body} isUsersMessage={side === "right"} />;
+            return (
+                <>
+                    <AudioMessage body={body} isUsersMessage={side === "right"} />
+                    {progress && <LinearProgress variant="determinate" value={progress} />}
+                    {progress && progress === 100 && <Box>Verifying hash...</Box>}
+                </>
+            );
         }
 
         default: {
-            return <FileMessage body={body} isUsersMessage={side === "right"} />;
+            return (
+                <>
+                    <FileMessage body={body} isUsersMessage={side === "right"} />
+                    {progress && <LinearProgress variant="determinate" value={progress} />}
+                    {progress && progress === 100 && <Box>Verifying hash...</Box>}
+                </>
+            );
         }
     }
 }
@@ -96,15 +126,15 @@ function ImageMessage({
     const handleClose = () => setOpen(false);
 
     useEffect(() => {
-        const handleKeyDown = (event: KeyboardEvent) => {
+        const handleKeyUp = (event: KeyboardEvent) => {
             if (event.key === "Escape") {
                 setOpen(false);
             }
         };
-        document.addEventListener("keydown", handleKeyDown);
+        document.addEventListener("keyup", handleKeyUp);
 
         return () => {
-            document.removeEventListener("keydown", handleKeyDown);
+            document.removeEventListener("keyup", handleKeyUp);
         };
     }, []);
 
@@ -230,8 +260,36 @@ function FileMessage({ body, isUsersMessage }: { body: any; isUsersMessage: bool
     );
 }
 
-function VideoMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boolean }) {
+function VideoMessage({
+    body,
+    isUsersMessage,
+    onClick,
+}: {
+    body: any;
+    isUsersMessage: boolean;
+    onClick: () => void;
+}) {
     const roomId = parseInt(useParams().id || "");
+    const [open, setOpen] = useState(false);
+
+    const handleOpen = () => {
+        setOpen(true);
+        onClick();
+    };
+    const handleClose = () => setOpen(false);
+
+    useEffect(() => {
+        const handleKeyUp = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setOpen(false);
+            }
+        };
+        document.addEventListener("keyup", handleKeyUp);
+
+        return () => {
+            document.removeEventListener("keyup", handleKeyUp);
+        };
+    }, []);
 
     if (!body.file && !body.uploadingFileName) {
         return null;
@@ -243,15 +301,67 @@ function VideoMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
     const file = localFile || fileFromServer;
 
     const src = localFile ? URL.createObjectURL(file) : `${DOWNLOAD_URL}/${body.fileId}`;
+    const thumbSrc = localFile ? null : `${DOWNLOAD_URL}/${body.thumbId}`;
     const mimeType = localFile ? file.type : file.mimeType;
+
+    const style = {
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        bgcolor: "transparent",
+        outline: "none",
+        lineHeight: "1",
+    };
 
     return (
         <>
             {text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
-            <Box component="video" borderRadius="0.625rem" height="43vh" controls pb="0.8125">
-                <source type={mimeType} src={src} />
-                Your browser does not support the video tag.
+            <Box position="relative" onClick={handleOpen}>
+                <Box
+                    component="img"
+                    borderRadius="0.625rem"
+                    maxWidth="256px"
+                    height="10vh"
+                    src={thumbSrc}
+                    pb="0.8125"
+                    sx={{ cursor: "pointer", objectFit: "contain", bgcolor: "transparent" }}
+                />
+                <PlayCircleFilled
+                    fontSize="large"
+                    sx={{
+                        position: "absolute",
+                        inset: 0,
+                        margin: "auto",
+                        cursor: "pointer",
+                    }}
+                />
             </Box>
+            <Modal open={open} onClose={handleClose}>
+                <>
+                    <Box textAlign="right" mr={2} mt={2}>
+                        <CloseOutlined
+                            onClick={handleClose}
+                            sx={{ color: "white", cursor: "pointer" }}
+                            fontSize="large"
+                        />
+                    </Box>
+
+                    <Box sx={style}>
+                        <Box
+                            component="video"
+                            maxWidth="92vw"
+                            maxHeight="92vh"
+                            height="auto"
+                            controls
+                            autoPlay
+                        >
+                            <source type={mimeType} src={src} />
+                            Your browser does not support the video tag.
+                        </Box>
+                    </Box>
+                </>
+            </Modal>
         </>
     );
 }
