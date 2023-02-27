@@ -46,6 +46,13 @@ type SanitizedFileType = Partial<Omit<File, "createdAt"> & { createdAt: number }
 export type SanitizedMessageRecord = Partial<
     Omit<MessageRecord, "createdAt" | "modifiedAt"> & { createdAt: number; roomId?: number }
 >;
+export type SanitizedMessageRecordWithMessage = Partial<
+    Omit<MessageRecord, "createdAt" | "modifiedAt"> & {
+        createdAt: number;
+        roomId?: number;
+        message: SanitizedMessageType;
+    }
+>;
 type SanitizedNoteType = Partial<
     Omit<Note, "createdAt" | "modifiedAt"> & { createdAt: number; modifiedAt: number }
 >;
@@ -65,6 +72,7 @@ interface sanitizeTypes {
     messageWithReactionRecords: () => SanitizedMessageWithReactionRecordsType;
     file: () => SanitizedFileType;
     messageRecord: () => SanitizedMessageRecord;
+    messageRecordWithMessage: () => SanitizedMessageRecordWithMessage;
     note: () => SanitizedNoteType;
     webhook: () => SanitizedWebhookType;
     apiKey: () => SanitizedApiKeyType;
@@ -207,6 +215,21 @@ export default function sanitize(data: any): sanitizeTypes {
                 reaction,
                 roomId,
                 createdAt: +new Date(createdAt),
+            };
+        },
+        messageRecordWithMessage: () => {
+            const { id, type, messageId, userId, createdAt, reaction, roomId, message } =
+                data as MessageRecord & { roomId?: number; message: SanitizedMessageType };
+
+            return {
+                id,
+                type,
+                messageId,
+                userId,
+                reaction,
+                roomId,
+                createdAt: +new Date(createdAt),
+                message,
             };
         },
         note: () => {
