@@ -1,5 +1,5 @@
 import React from "react";
-import { Box } from "@mui/material";
+import { Box, CircularProgress } from "@mui/material";
 import Typography from "@mui/material/Typography";
 
 import getFileIcon from "../../../lib/getFileIcon";
@@ -9,14 +9,16 @@ import AttachmentManager from "../../../lib/AttachmentManager";
 import TextMessage from "./TextMessage";
 import { DOWNLOAD_URL } from "../../../../../../../../lib/constants";
 
-export default function FileMessage({
-    body,
-    isUsersMessage,
-}: {
+type FileMessageType = {
     body: any;
     isUsersMessage: boolean;
-}) {
+    progress?: number;
+};
+
+export default function FileMessage({ body, isUsersMessage, progress }: FileMessageType) {
     const roomId = parseInt(useParams().id || "");
+    const isUploading = progress !== undefined && progress < 100;
+    const isVerifying = progress !== undefined && progress === 100;
 
     if (!body.file && !body.uploadingFileName) {
         return null;
@@ -56,15 +58,41 @@ export default function FileMessage({
                         {+sizeInMB > 0 ? `${sizeInMB} MB` : `${sizeInKB} KB`}
                     </Typography>
                 </Box>
-                <Box
-                    component="a"
-                    href={href}
-                    target="_blank"
-                    download
-                    sx={{ display: "block", color: "inherit" }}
-                >
-                    <DownloadIcon fontSize="large" />
-                </Box>
+
+                {isUploading || isVerifying ? (
+                    <Box position="relative">
+                        <CircularProgress
+                            thickness={6}
+                            variant={isUploading ? "determinate" : "indeterminate"}
+                            value={progress}
+                        />
+                        <Box
+                            sx={{
+                                inset: 0,
+                                position: "absolute",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                            }}
+                        >
+                            <Typography
+                                component="div"
+                                fontSize={"0.6rem"}
+                                color="text.secondary"
+                            >{`${Math.round(progress)}%`}</Typography>
+                        </Box>
+                    </Box>
+                ) : (
+                    <Box
+                        component="a"
+                        href={href}
+                        target="_blank"
+                        download
+                        sx={{ display: "block", color: "inherit" }}
+                    >
+                        <DownloadIcon fontSize="large" />
+                    </Box>
+                )}
             </Box>
         </>
     );

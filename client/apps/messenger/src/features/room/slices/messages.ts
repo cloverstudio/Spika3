@@ -200,12 +200,12 @@ export const sendFileMessage = createAsyncThunk(
                 status: "sending",
                 localId,
                 fromUserId,
+                progress: 0,
             })
         );
 
         try {
             const onProgress = (progress: number) => {
-                console.log({ progress });
                 thunkAPI.dispatch(
                     messagesSlice.actions.setMessageUploadProgress({
                         roomId,
@@ -230,8 +230,6 @@ export const sendFileMessage = createAsyncThunk(
             body.fileId = uploaded.id;
 
             const thumbFile = await fileUploader.createThumbnailFile();
-
-            console.log({ object: thumbFile });
 
             if (thumbFile) {
                 const thumbUploader = new FileUploader({
@@ -437,6 +435,7 @@ export const messagesSlice = createSlice({
                     fromUserId: number;
                     replyId?: number;
                     createdAt?: number;
+                    progress?: number;
                 };
             }
         ) {
@@ -449,6 +448,7 @@ export const messagesSlice = createSlice({
                 fromUserId,
                 replyId,
                 createdAt = +Date.now(),
+                progress,
             } = action.payload;
             const room = state[roomId];
 
@@ -469,6 +469,7 @@ export const messagesSlice = createSlice({
                 replyId,
                 totalUserCount: 100,
                 messageRecords: [],
+                progress,
             };
         },
 

@@ -91,9 +91,11 @@ export default function MessageBody({
         default: {
             return (
                 <>
-                    <FileMessage body={body} isUsersMessage={side === "right"} />
-                    {progress && <LinearProgress variant="determinate" value={progress} />}
-                    {progress && progress === 100 && <Box>Verifying hash...</Box>}
+                    <FileMessage
+                        body={body}
+                        isUsersMessage={side === "right"}
+                        progress={progress}
+                    />
                 </>
             );
         }

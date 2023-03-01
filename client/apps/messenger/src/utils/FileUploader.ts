@@ -2,6 +2,9 @@ import { dynamicBaseQuery } from "../api/api";
 import generateThumbFile from "../features/room/lib/generateThumbFile";
 import { getImageDimension, getVideoInfo, getVideoThumbnail } from "./media";
 
+import ReadChunksWorker from "./readChunksWorker?worker";
+import HashFileWorker from "./hashFileWorker?worker";
+
 type FileUploaderConstructorType = {
     file: File;
     type: string;
@@ -49,7 +52,7 @@ export class FileUploader {
     }: {
         onChunk: (chunk: string, start: number) => Promise<void>;
     }): Promise<void> {
-        const readChunksWorker = this.createWorker("./readChunksWorker.ts");
+        const readChunksWorker = new ReadChunksWorker();
 
         return new Promise((resolve, reject) => {
             readChunksWorker.onmessage = async (e) => {
@@ -68,7 +71,7 @@ export class FileUploader {
             };
 
             readChunksWorker.onerror = (e) => {
-                console.log({ e: e.message });
+                console.error({ e: e.message });
                 readChunksWorker.terminate();
                 reject(e.message);
             };
@@ -91,14 +94,13 @@ export class FileUploader {
         });
 
         this.chunksUploaded++;
-        console.log({ this: this.chunksUploaded, total: this.totalChunks });
         if (onProgress) {
             onProgress(Math.round((this.chunksUploaded / this.totalChunks) * 100));
         }
     }
 
     hashFile(): Promise<string> {
-        const hashFileWorker = this.createWorker("./hashFileWorker.ts");
+        const hashFileWorker = new HashFileWorker();
 
         return new Promise((resolve, reject) => {
             hashFileWorker.onmessage = (e) => {
@@ -143,12 +145,6 @@ export class FileUploader {
         return data.file;
     }
 
-    createWorker(relativeFilePath: string) {
-        return new Worker(new URL(relativeFilePath, import.meta.url), {
-            type: "module",
-        });
-    }
-
     getChunkSize(): number {
         const FIVE_MB = 5 * 1024 * 1024;
         const ONE_MB = 1024 * 1024;
@@ -161,7 +157,6 @@ export class FileUploader {
     }
 
     getMetaData() {
-        console.log(this.file.type);
         if (/^.*image*$/.test(this.file.type)) {
             return getImageDimension(this.file);
         }
@@ -172,16 +167,11 @@ export class FileUploader {
     }
 
     createThumbnailFile() {
-        console.log(this.file.type);
-
-        const time = performance.now();
         if (/video/.test(this.file.type)) {
-            console.log("createVIDEOThumbnailFile", performance.now() - time, "ms");
             return getVideoThumbnail(this.file);
         }
 
         if (/image/.test(this.file.type)) {
-            console.log("createThumbnailFile", performance.now() - time, "ms");
             return generateThumbFile(this.file);
         }
 

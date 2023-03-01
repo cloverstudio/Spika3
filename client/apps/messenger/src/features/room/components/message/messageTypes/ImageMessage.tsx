@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import AttachmentManager from "../../../lib/AttachmentManager";
 import CloseOutlined from "@mui/icons-material/CloseOutlined";
@@ -6,6 +6,7 @@ import Modal from "@mui/material/Modal";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import TextMessage from "./TextMessage";
 import { DOWNLOAD_URL } from "../../../../../../../../lib/constants";
+import useEscapeKey from "../../../../../hooks/useEscapeKey";
 
 type ImageMessageTypes = {
     body: any;
@@ -31,18 +32,7 @@ export default function ImageMessage({
     };
     const handleClose = () => setOpen(false);
 
-    useEffect(() => {
-        const handleKeyUp = (event: KeyboardEvent) => {
-            if (event.key === "Escape") {
-                setOpen(false);
-            }
-        };
-        document.addEventListener("keyup", handleKeyUp);
-
-        return () => {
-            document.removeEventListener("keyup", handleKeyUp);
-        };
-    }, []);
+    useEscapeKey(handleClose);
 
     if (!body.file && !body.uploadingFileName) {
         return null;

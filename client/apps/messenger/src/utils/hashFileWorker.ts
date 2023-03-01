@@ -8,10 +8,8 @@ addEventListener("message", async (event) => {
 
 async function createFileHash(file: File) {
     const GB = 1024 * 1024 * 1024;
-    const time = performance.now();
-
     const buffers = await readFileAsArrayBuffer(file);
-    console.log("chunks", performance.now() - time);
+
     if (file.size > GB) {
         const SHA256 = CryptoJS.algo.SHA256.create();
 
@@ -21,14 +19,10 @@ async function createFileHash(file: File) {
 
         const hash = SHA256.finalize().toString();
 
-        console.log("big hash time", performance.now() - time);
         return hash;
     } else {
         const buffer = concatenateArrayBuffers(buffers);
-
         const hash = hexString(await crypto.subtle.digest("SHA-256", buffer));
-
-        console.log("small hash time", performance.now() - time);
         return hash;
     }
 }

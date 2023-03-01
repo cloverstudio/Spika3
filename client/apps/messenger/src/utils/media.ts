@@ -79,7 +79,6 @@ export function getVideoThumbnail(file: File): Promise<File> {
             }, 200);
             // extract video thumbnail once seeking is complete
             videoPlayer.addEventListener("seeked", () => {
-                console.log("video is now paused at %ss.", seekTo);
                 // define a canvas to have the same dimension as the video
                 const canvas = document.createElement("canvas");
                 canvas.width = THUMB_WIDTH;
