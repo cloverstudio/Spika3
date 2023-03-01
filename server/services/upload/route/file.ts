@@ -87,7 +87,6 @@ export default (): Router => {
 
     router.post("/verify", validate(verifyFilesSchema), async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
-        const startTime = performance.now();
         try {
             const {
                 total,
@@ -127,7 +126,6 @@ export default (): Router => {
                     .status(410)
                     .send(errorResponse("Not all chunks are uploaded", userReq.lang));
             }
-            console.log("have all chunks", performance.now() - startTime);
 
             const filesDir = path.resolve(process.env["UPLOAD_FOLDER"], "files/");
 
@@ -143,7 +141,6 @@ export default (): Router => {
 
                 return res.send(successResponse({ uploadedChunks }, userReq.lang));
             }
-            console.log("before wrote file", performance.now() - startTime);
 
             await writeFile(filePath, "");
             const writeStream = fs.createWriteStream(filePath);
@@ -154,14 +151,12 @@ export default (): Router => {
             }
 
             writeStream.end();
-            console.log("wrote file", performance.now() - startTime);
 
             const hashMatches = await checkHashes(fileHash, filePath);
             if (!hashMatches) {
                 await removeFile(filePath);
                 return res.status(411).send(errorResponse("Hash doesn't match", userReq.lang));
             }
-            console.log("hash check", performance.now() - startTime);
 
             const durationInt: number = metaData?.duration ? parseInt(metaData.duration) : 0;
             const widthInt: number = metaData?.width ? parseInt(metaData.width) : 0;
@@ -183,7 +178,6 @@ export default (): Router => {
                     path: "/uploads/files/" + clientId,
                 },
             });
-            console.log("created file", performance.now() - startTime);
 
             res.send(successResponse({ file: sanitize(file).file() }, userReq.lang));
 
