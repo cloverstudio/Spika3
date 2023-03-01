@@ -121,4 +121,5 @@ package-lock.json
 
 *.pem
 .terraform
+*.http
 

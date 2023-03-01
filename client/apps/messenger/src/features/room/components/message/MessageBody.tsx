@@ -1,19 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Box, LinearProgress } from "@mui/material";
-import Modal from "@mui/material/Modal";
-import Typography from "@mui/material/Typography";
-
-import getFileIcon from "../../lib/getFileIcon";
-import DownloadIcon from "@mui/icons-material/Download";
-import CloseOutlined from "@mui/icons-material/CloseOutlined";
 import { useParams } from "react-router-dom";
-import UserType from "../../../../types/User";
 import { useGetRoomQuery } from "../../api/room";
 import AttachmentManager from "../../lib/AttachmentManager";
 import { useDispatch } from "react-redux";
 import { setTargetMessage } from "../../slices/messages";
 import { deletedMessageText } from "../../lib/consts";
-import { PlayCircleFilled } from "@mui/icons-material";
+import TextMessage from "./messageTypes/TextMessage";
+import ImageMessage from "./messageTypes/ImageMessage";
+import filterText from "../../lib/filterText";
+import VideoMessage from "./messageTypes/VideoMessage";
+import FileMessage from "./messageTypes/FileMessage";
+import { DOWNLOAD_URL } from "../../../../../../../lib/constants";
 
 type MessageBodyProps = {
     id: number;
@@ -25,9 +23,6 @@ type MessageBodyProps = {
     deleted: boolean;
     progress?: number;
 };
-
-declare const API_BASE_URL: string;
-const DOWNLOAD_URL = `${API_BASE_URL}/upload/files`;
 
 export default function MessageBody({
     type,
@@ -64,10 +59,8 @@ export default function MessageBody({
                         body={body}
                         isUsersMessage={side === "right"}
                         onClick={onImageMessageClick}
+                        progress={progress}
                     />
-
-                    {progress && <LinearProgress variant="determinate" value={progress} />}
-                    {progress && progress === 100 && <Box>Verifying hash...</Box>}
                 </>
             );
         }
@@ -79,9 +72,8 @@ export default function MessageBody({
                         onClick={onImageMessageClick}
                         body={body}
                         isUsersMessage={side === "right"}
+                        progress={progress}
                     />
-                    {progress && <LinearProgress variant="determinate" value={progress} />}
-                    {progress && progress === 100 && <Box>Verifying hash...</Box>}
                 </>
             );
         }
@@ -106,264 +98,6 @@ export default function MessageBody({
             );
         }
     }
-}
-
-function ImageMessage({
-    body,
-    isUsersMessage,
-    onClick,
-}: {
-    body: any;
-    isUsersMessage: boolean;
-    onClick: () => void;
-}) {
-    const roomId = parseInt(useParams().id || "");
-    const [open, setOpen] = useState(false);
-    const handleOpen = () => {
-        setOpen(true);
-        onClick();
-    };
-    const handleClose = () => setOpen(false);
-
-    useEffect(() => {
-        const handleKeyUp = (event: KeyboardEvent) => {
-            if (event.key === "Escape") {
-                setOpen(false);
-            }
-        };
-        document.addEventListener("keyup", handleKeyUp);
-
-        return () => {
-            document.removeEventListener("keyup", handleKeyUp);
-        };
-    }, []);
-
-    if (!body.file && !body.uploadingFileName) {
-        return null;
-    }
-
-    const { file: fileFromServer, uploadingFileName, thumbId, fileId, text } = body;
-
-    const localFile =
-        uploadingFileName && AttachmentManager.getFile({ roomId, fileName: uploadingFileName });
-    const file = localFile || fileFromServer;
-
-    if (!file) {
-        return null;
-    }
-    const thumbSrc = localFile ? URL.createObjectURL(file) : `${DOWNLOAD_URL}/${thumbId}`;
-    const imgSrc = localFile ? URL.createObjectURL(file) : `${DOWNLOAD_URL}/${fileId}`;
-
-    const style = {
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        bgcolor: "transparent",
-        outline: "none",
-        lineHeight: "1",
-    };
-
-    const imageIsGif = file.mimeType === "image/gif";
-
-    return (
-        <>
-            {text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
-            <Box
-                onClick={handleOpen}
-                component="img"
-                borderRadius="0.625rem"
-                maxWidth="256px"
-                height="10vh"
-                src={imageIsGif ? imgSrc : thumbSrc}
-                pb="0.8125"
-                sx={{ cursor: "pointer", objectFit: "contain", bgcolor: "transparent" }}
-            />
-            <Modal open={open} onClose={handleClose}>
-                <>
-                    <Box textAlign="right" mr={2} mt={2}>
-                        <CloseOutlined
-                            onClick={handleClose}
-                            sx={{ color: "white", cursor: "pointer" }}
-                            fontSize="large"
-                        />
-                    </Box>
-
-                    <Box sx={style}>
-                        <Box
-                            onClick={handleOpen}
-                            component="img"
-                            maxWidth="92vw"
-                            maxHeight="92vh"
-                            height="auto"
-                            src={imgSrc}
-                        />
-                    </Box>
-                </>
-            </Modal>
-        </>
-    );
-}
-
-function FileMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boolean }) {
-    const roomId = parseInt(useParams().id || "");
-
-    if (!body.file && !body.uploadingFileName) {
-        return null;
-    }
-
-    const { file: fileFromServer, uploadingFileName, text } = body;
-    const localFile =
-        uploadingFileName && AttachmentManager.getFile({ roomId, fileName: uploadingFileName });
-    const file = localFile || fileFromServer;
-
-    const href = localFile ? URL.createObjectURL(file) : `${DOWNLOAD_URL}/${body.fileId}`;
-    const mimeType = localFile ? file.type : file.mimeType;
-    const name = localFile ? file.name : file.fileName;
-
-    const sizeInMB = (file.size / 1024 / 1024).toFixed(2);
-    const sizeInKB = (file.size / 1024).toFixed(2);
-
-    const Icon = getFileIcon(mimeType);
-    return (
-        <>
-            {text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
-            <Box
-                display="flex"
-                alignItems="center"
-                borderRadius="0.625rem"
-                maxWidth="35rem"
-                p="1.25rem"
-                gap="1.25rem"
-                bgcolor={isUsersMessage ? "common.myMessageBackground" : "background.paper"}
-            >
-                <Icon fontSize="large" />
-                <Box>
-                    <Typography fontSize="1rem" fontWeight={800} lineHeight="1.1rem" mb={0.25}>
-                        {name}
-                    </Typography>
-                    <Typography textAlign="left">
-                        {+sizeInMB > 0 ? `${sizeInMB} MB` : `${sizeInKB} KB`}
-                    </Typography>
-                </Box>
-                <Box
-                    component="a"
-                    href={href}
-                    target="_blank"
-                    download
-                    sx={{ display: "block", color: "inherit" }}
-                >
-                    <DownloadIcon fontSize="large" />
-                </Box>
-            </Box>
-        </>
-    );
-}
-
-function VideoMessage({
-    body,
-    isUsersMessage,
-    onClick,
-}: {
-    body: any;
-    isUsersMessage: boolean;
-    onClick: () => void;
-}) {
-    const roomId = parseInt(useParams().id || "");
-    const [open, setOpen] = useState(false);
-
-    const handleOpen = () => {
-        setOpen(true);
-        onClick();
-    };
-    const handleClose = () => setOpen(false);
-
-    useEffect(() => {
-        const handleKeyUp = (event: KeyboardEvent) => {
-            if (event.key === "Escape") {
-                setOpen(false);
-            }
-        };
-        document.addEventListener("keyup", handleKeyUp);
-
-        return () => {
-            document.removeEventListener("keyup", handleKeyUp);
-        };
-    }, []);
-
-    if (!body.file && !body.uploadingFileName) {
-        return null;
-    }
-
-    const { file: fileFromServer, text, uploadingFileName } = body;
-    const localFile =
-        uploadingFileName && AttachmentManager.getFile({ roomId, fileName: uploadingFileName });
-    const file = localFile || fileFromServer;
-
-    const src = localFile ? URL.createObjectURL(file) : `${DOWNLOAD_URL}/${body.fileId}`;
-    const thumbSrc = localFile ? null : `${DOWNLOAD_URL}/${body.thumbId}`;
-    const mimeType = localFile ? file.type : file.mimeType;
-
-    const style = {
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        bgcolor: "transparent",
-        outline: "none",
-        lineHeight: "1",
-    };
-
-    return (
-        <>
-            {text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
-            <Box position="relative" onClick={handleOpen}>
-                <Box
-                    component="img"
-                    borderRadius="0.625rem"
-                    maxWidth="256px"
-                    height="10vh"
-                    src={thumbSrc}
-                    pb="0.8125"
-                    sx={{ cursor: "pointer", objectFit: "contain", bgcolor: "transparent" }}
-                />
-                <PlayCircleFilled
-                    fontSize="large"
-                    sx={{
-                        position: "absolute",
-                        inset: 0,
-                        margin: "auto",
-                        cursor: "pointer",
-                    }}
-                />
-            </Box>
-            <Modal open={open} onClose={handleClose}>
-                <>
-                    <Box textAlign="right" mr={2} mt={2}>
-                        <CloseOutlined
-                            onClick={handleClose}
-                            sx={{ color: "white", cursor: "pointer" }}
-                            fontSize="large"
-                        />
-                    </Box>
-
-                    <Box sx={style}>
-                        <Box
-                            component="video"
-                            maxWidth="92vw"
-                            maxHeight="92vh"
-                            height="auto"
-                            controls
-                            autoPlay
-                        >
-                            <source type={mimeType} src={src} />
-                            Your browser does not support the video tag.
-                        </Box>
-                    </Box>
-                </>
-            </Modal>
-        </>
-    );
 }
 
 function AudioMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boolean }) {
@@ -553,75 +287,4 @@ function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boo
             />
         </Box>
     );
-}
-
-function TextMessage({
-    isUsersMessage,
-    body,
-    sender,
-    deleted,
-}: {
-    body: any;
-    isUsersMessage: boolean;
-    sender?: UserType;
-    deleted?: boolean;
-}) {
-    const backgroundColor = deleted
-        ? "background.transparent"
-        : isUsersMessage
-        ? "common.myMessageBackground"
-        : "background.paper";
-    return (
-        <Box
-            component={"div"}
-            sx={{
-                minWidth: "50px",
-                maxWidth: "100%",
-                backgroundColor: backgroundColor,
-                borderRadius: "0.3rem",
-                padding: "0.4rem",
-                cursor: "pointer",
-                color: deleted ? "text.tertiary" : "common.darkBlue",
-                lineHeight: "1.2rem",
-                whiteSpace: "pre-wrap",
-                margin: "0px",
-                fontSize: "0.95rem",
-                border: deleted ? "1px solid #C9C9CA" : "none",
-            }}
-        >
-            {sender && (
-                <Box mb={1} fontWeight="medium">
-                    {sender.displayName}
-                </Box>
-            )}
-            <Box
-                sx={{ overflowWrap: "break-word" }}
-                dangerouslySetInnerHTML={{ __html: filterText(body.text) }}
-            />
-        </Box>
-    );
-}
-
-function filterText(text: string): string {
-    // escape html
-    text = text
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-
-    // fold multiple new line in one
-    text = text.replace(/\n{3,}/g, "\n");
-
-    // auto link
-    const autolinkRegex = /(?![^<]*>|[^<>]*<\/)((https?:)\/\/[a-z0-9&#%;:~=.\/\-?_+]+)/gi;
-    const internalLink = text.includes(window.origin);
-
-    text = text.replace(
-        autolinkRegex,
-        `<a href="$1" ${!internalLink ? 'target="_blank"' : ""} >$1</a>`
-    );
-
-    return text;
 }
