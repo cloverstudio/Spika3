@@ -3,6 +3,7 @@ import generateThumbFile from "../features/room/lib/generateThumbFile";
 import { getImageDimension, getVideoInfo, getVideoThumbnail } from "./media";
 
 import ReadChunksWorker from "./readChunksWorker?worker";
+import ReadChunkWorker from "./readChunkWorker?worker";
 import HashFileWorker from "./hashFileWorker?worker";
 
 type FileUploaderConstructorType = {
@@ -52,31 +53,46 @@ export class FileUploader {
     }: {
         onChunk: (chunk: string, start: number) => Promise<void>;
     }): Promise<void> {
-        const readChunksWorker = new ReadChunksWorker();
+        const readChunkWorker = new ReadChunkWorker();
+
+        function sleep(ms) {
+            return new Promise((resolve) => setTimeout(resolve, ms));
+        }
 
         return new Promise((resolve, reject) => {
-            readChunksWorker.onmessage = async (e) => {
+            let inProgress = 0;
+            readChunkWorker.onmessage = async (e) => {
                 const { chunk, start } = e.data;
 
                 if (!chunk) {
                     return;
                 }
 
+                while (inProgress > 1) {
+                    console.log("sleeping", "coz", inProgress);
+                    await sleep(1000);
+                }
+                console.log({ inProgress });
+
+                inProgress++;
                 await onChunk(chunk, start);
+                inProgress--;
 
                 if (this.chunksUploaded === this.totalChunks) {
-                    readChunksWorker.terminate();
+                    readChunkWorker.terminate();
                     resolve();
                 }
             };
 
-            readChunksWorker.onerror = (e) => {
+            readChunkWorker.onerror = (e) => {
                 console.error({ e: e.message });
-                readChunksWorker.terminate();
+                readChunkWorker.terminate();
                 reject(e.message);
             };
 
-            readChunksWorker.postMessage({ file: this.file, chunkSize: this.chunkSize });
+            for (let i = 0; i < this.totalChunks; i++) {
+                readChunkWorker.postMessage({ file: this.file, chunkSize: this.chunkSize, i });
+            }
         });
     }
 
@@ -146,14 +162,14 @@ export class FileUploader {
     }
 
     getChunkSize(): number {
-        const FIVE_MB = 5 * 1024 * 1024;
+        const TEN_MB = 10 * 1024 * 1024;
         const ONE_MB = 1024 * 1024;
 
-        if (this.file.size < FIVE_MB) {
-            return ONE_MB;
-        } else {
-            return Math.ceil(this.file.size / 100);
-        }
+        //  if (this.file.size < TEN_MB) {
+        return ONE_MB;
+        // } else {
+        //    return Math.ceil(this.file.size / 100);
+        // }
     }
 
     getMetaData() {
