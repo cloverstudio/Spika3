@@ -1,8 +1,8 @@
 import { dynamicBaseQuery } from "../api/api";
 import generateThumbFile from "../features/room/lib/generateThumbFile";
 import { getImageDimension, getVideoInfo, getVideoThumbnail } from "./media";
+import CryptoJS from "crypto-js";
 
-import ReadChunksWorker from "./readChunksWorker?worker";
 import ReadChunkWorker from "./readChunkWorker?worker";
 import HashFileWorker from "./hashFileWorker?worker";
 
@@ -32,9 +32,9 @@ export class FileUploader {
         this.onProgress = onProgress;
 
         this.clientId = String(Math.round(Math.random() * 100000000));
-        this.hashPromise = this.hashFile();
         this.chunkSize = this.getChunkSize();
         this.totalChunks = Math.ceil(file.size / this.chunkSize);
+        this.hashPromise = this.hashFile();
     }
 
     async upload(): Promise<{
@@ -55,9 +55,16 @@ export class FileUploader {
     }): Promise<void> {
         const readChunkWorker = new ReadChunkWorker();
 
-        function sleep(ms) {
-            return new Promise((resolve) => setTimeout(resolve, ms));
-        }
+        let readChunks = 0;
+
+        const postMessage = (i) => {
+            readChunkWorker.postMessage({
+                file: this.file,
+                chunkSize: this.chunkSize,
+                i,
+                encode: true,
+            });
+        };
 
         return new Promise((resolve, reject) => {
             let inProgress = 0;
@@ -68,12 +75,13 @@ export class FileUploader {
                     return;
                 }
 
-                while (inProgress > 1) {
-                    console.log("sleeping", "coz", inProgress);
+                while (inProgress > 4) {
                     await sleep(1000);
                 }
-                console.log({ inProgress });
 
+                readChunks++;
+
+                postMessage(readChunks);
                 inProgress++;
                 await onChunk(chunk, start);
                 inProgress--;
@@ -90,9 +98,7 @@ export class FileUploader {
                 reject(e.message);
             };
 
-            for (let i = 0; i < this.totalChunks; i++) {
-                readChunkWorker.postMessage({ file: this.file, chunkSize: this.chunkSize, i });
-            }
+            postMessage(readChunks);
         });
     }
 
@@ -116,6 +122,16 @@ export class FileUploader {
     }
 
     hashFile(): Promise<string> {
+        const HALF_GB = 512 * 1024 * 1024;
+
+        if (this.file.size < HALF_GB) {
+            return this.hashSmallFile();
+        }
+
+        return this.hashBigFile();
+    }
+
+    hashSmallFile(): Promise<string> {
         const hashFileWorker = new HashFileWorker();
 
         return new Promise((resolve, reject) => {
@@ -132,6 +148,61 @@ export class FileUploader {
             };
 
             hashFileWorker.postMessage({ file: this.file });
+        });
+    }
+
+    hashBigFile(): Promise<string> {
+        const readChunkWorker = new ReadChunkWorker();
+        const SHA256 = CryptoJS.algo.SHA256.create();
+        const totalChunks = Math.ceil((this.file.size / this.chunkSize) * 4);
+
+        console.log("start hashing");
+
+        return new Promise((resolve, reject) => {
+            let inProgress = 0;
+            let hashedChunks = 0;
+
+            const postMessage = (i: number) => {
+                readChunkWorker.postMessage({
+                    file: this.file,
+                    chunkSize: this.chunkSize * 4,
+                    i,
+                    encode: false,
+                });
+            };
+
+            readChunkWorker.onmessage = async (e) => {
+                const { chunk } = e.data;
+
+                if (!chunk) {
+                    return;
+                }
+
+                inProgress++;
+
+                while (inProgress > 4) {
+                    await sleep(500);
+                }
+
+                postMessage(hashedChunks + 1);
+                SHA256.update(CryptoJS.lib.WordArray.create(chunk as any));
+                inProgress--;
+
+                hashedChunks++;
+
+                if (hashedChunks === totalChunks) {
+                    readChunkWorker.terminate();
+                    resolve(SHA256.finalize().toString());
+                }
+            };
+
+            readChunkWorker.onerror = (e) => {
+                console.error({ e: e.message });
+                readChunkWorker.terminate();
+                reject(e.message);
+            };
+
+            postMessage(0);
         });
     }
 
@@ -162,14 +233,9 @@ export class FileUploader {
     }
 
     getChunkSize(): number {
-        const TEN_MB = 10 * 1024 * 1024;
         const ONE_MB = 1024 * 1024;
 
-        //  if (this.file.size < TEN_MB) {
         return ONE_MB;
-        // } else {
-        //    return Math.ceil(this.file.size / 100);
-        // }
     }
 
     getMetaData() {
@@ -193,4 +259,8 @@ export class FileUploader {
 
         return null;
     }
+}
+
+function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
 }

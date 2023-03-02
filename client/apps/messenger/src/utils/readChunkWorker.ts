@@ -1,7 +1,7 @@
 import { encode as encodeToBase64 } from "./base64";
 
 addEventListener("message", async (event) => {
-    const { file, chunkSize, i } = event.data;
+    const { file, chunkSize, i, encode } = event.data;
 
     const start = i * chunkSize;
     const end = Math.min(start + chunkSize, file.size);
@@ -17,7 +17,7 @@ addEventListener("message", async (event) => {
         reader.readAsArrayBuffer(slice);
     });
 
-    const chunk = encodeToBase64(result);
+    const chunk = encode ? encodeToBase64(result) : result;
 
     postMessage({ chunk, start });
 });
