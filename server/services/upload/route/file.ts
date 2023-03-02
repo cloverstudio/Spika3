@@ -100,6 +100,8 @@ export default (): Router => {
                 metaData, // { duration,width,height}
             } = req.body;
 
+            req.setTimeout(10 * 60 * 1000); // 10 minutes
+
             const exists = await prisma.file.findFirst({ where: { clientId } });
 
             if (exists) {
