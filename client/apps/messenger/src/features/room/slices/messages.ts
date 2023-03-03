@@ -2,14 +2,11 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { dynamicBaseQuery } from "../../../api/api";
 import type { RootState } from "../../../store/store";
 import MessageType, { MessageListType, MessageRecordType } from "../../../types/Message";
-import uploadFile from "../../../utils/uploadFileNew";
-import { getVideoThumbnail } from "../../../utils/media";
-import generateThumbFile from "../lib/generateThumbFile";
 import getFileType from "../lib/getFileType";
 import getMessageStatus from "../lib/getMessageStatus";
 import { refreshHistory } from "./leftSidebar";
 import { RoomType } from "../../../types/Rooms";
-import { FileUploader } from "../../../utils/FileUploader";
+import FileUploader from "../../../utils/FileUploader";
 
 export const fetchMessages = createAsyncThunk(
     "messages/fetchMessages",

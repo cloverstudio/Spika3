@@ -32,7 +32,6 @@ export default function VideoMessage({
     const isVerifying = progress !== undefined && progress === 100;
 
     useEffect(() => {
-        console.log({ body });
         const { uploadingFileName, thumbId, file: fileFromServer } = body || {};
 
         const localFile =

@@ -19,14 +19,11 @@ import CameraAlt from "@mui/icons-material/CameraAlt";
 import ChevronRight from "@mui/icons-material/ChevronRight";
 import Close from "@mui/icons-material/Close";
 
-import uploadFile from "../../../utils/uploadFile";
-
 import { useLogoutMutation, useUpdateMutation } from "../../auth/api/auth";
 
 import { crop } from "../../../utils/crop";
 
 import * as Constants from "../../../../../../lib/constants";
-import { useNavigate } from "react-router-dom";
 
 import ThemeSwitch from "./leftSidebar/ThemeSwitch";
 import { ThemeContext, ThemeType } from "../../../theme";
@@ -34,6 +31,8 @@ import useStrings from "../../../hooks/useStrings";
 import { ContactRow } from "./leftSidebar/ContactList";
 import { useGetBlockedUsersQuery, useRemoveUserFromBlockListMutation } from "../api/user";
 import { useDispatch } from "react-redux";
+import getFileType from "../lib/getFileType";
+import FileUploader from "../../../utils/FileUploader";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -132,11 +131,13 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
             setLoading(true);
 
             if (file) {
-                const uploadedFile = await uploadFile({
+                const type = getFileType(file.type);
+                const fileUploader = new FileUploader({
                     file,
-                    type: "avatar",
-                    relationId: user.id,
+                    type,
                 });
+
+                const uploadedFile = await fileUploader.upload();
 
                 await update({
                     displayName: proposedName,

@@ -13,7 +13,7 @@ type FileUploaderConstructorType = {
     onProgress?: (progress: number) => void;
 };
 
-export class FileUploader {
+class FileUploader {
     file: File;
     type: string;
     relationId: number;
@@ -264,3 +264,5 @@ export class FileUploader {
 function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+export default FileUploader;
