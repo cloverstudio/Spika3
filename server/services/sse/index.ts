@@ -29,10 +29,10 @@ export default class SSEService implements Service {
                 "X-Accel-Buffering": "no",
             };
             res.writeHead(200, headers);
-            res.write("data: " + JSON.stringify({ type: "ping" }) + "\n\n");
+            res.write("data: " + JSON.stringify({ type: "PING" }) + "\n\n");
 
             const interval = setInterval(() => {
-                res.write("data: " + JSON.stringify({ type: "ping" }) + "\n\n");
+                res.write("data: " + JSON.stringify({ type: "PING" }) + "\n\n");
             }, 5000);
 
             const channelId = String(userReq.device.id);
