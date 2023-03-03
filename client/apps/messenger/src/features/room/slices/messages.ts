@@ -212,8 +212,6 @@ export const sendFileMessage = createAsyncThunk(
                 );
             };
 
-            const startTime = performance.now();
-
             const fileUploader = new FileUploader({
                 file,
                 type,
@@ -221,8 +219,6 @@ export const sendFileMessage = createAsyncThunk(
             });
 
             const uploaded = await fileUploader.upload();
-
-            console.log({ uploaded, time: performance.now() - startTime });
 
             body.fileId = uploaded.id;
 

@@ -76,7 +76,7 @@ class FileUploader {
                 }
 
                 while (inProgress > 4) {
-                    await sleep(1000);
+                    await sleep(350);
                 }
 
                 readChunks++;
@@ -154,9 +154,7 @@ class FileUploader {
     hashBigFile(): Promise<string> {
         const readChunkWorker = new ReadChunkWorker();
         const SHA256 = CryptoJS.algo.SHA256.create();
-        const totalChunks = Math.ceil((this.file.size / this.chunkSize) * 4);
-
-        console.log("start hashing");
+        const totalChunks = Math.ceil((this.file.size / this.chunkSize) * 2);
 
         return new Promise((resolve, reject) => {
             let inProgress = 0;
@@ -165,7 +163,7 @@ class FileUploader {
             const postMessage = (i: number) => {
                 readChunkWorker.postMessage({
                     file: this.file,
-                    chunkSize: this.chunkSize * 4,
+                    chunkSize: this.chunkSize * 2,
                     i,
                     encode: false,
                 });
@@ -181,7 +179,7 @@ class FileUploader {
                 inProgress++;
 
                 while (inProgress > 4) {
-                    await sleep(500);
+                    await sleep(350);
                 }
 
                 postMessage(hashedChunks + 1);
@@ -234,8 +232,13 @@ class FileUploader {
 
     getChunkSize(): number {
         const ONE_MB = 1024 * 1024;
+        const ONE_GB = 1024 * 1024 * 1024;
 
-        return ONE_MB;
+        if (this.file.size > ONE_GB) {
+            return ONE_MB * 2;
+        } else {
+            return ONE_MB;
+        }
     }
 
     getMetaData() {
