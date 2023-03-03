@@ -16,12 +16,13 @@ import LeftSidebarHome from "./components/leftSidebar/LeftSidebarHome";
 import SidebarNavigationHeader from "./components/leftSidebar/SidebarNavigationHeader";
 
 import uploadImage from "../../assets/upload-image.svg";
-import uploadFile from "../../utils/uploadFile";
 
 import { crop } from "../../utils/crop";
 import * as Constants from "../../../../../lib/constants";
 import useStrings from "../../hooks/useStrings";
 import SelectedMembers from "./components/SelectedMembers";
+import getFileType from "./lib/getFileType";
+import FileUploader from "../../utils/FileUploader";
 
 export default function LeftSidebar(): React.ReactElement {
     const [sidebar, setSidebar] = useState("");
@@ -110,12 +111,18 @@ function LeftSidebarNewGroup({
             setStep("edit_group_info");
         } else {
             try {
-                const uploadedFile =
-                    file &&
-                    (await uploadFile({
+                let uploadedFile: { id: number };
+
+                if (file) {
+                    const type = getFileType(file.type);
+                    const fileUploader = new FileUploader({
                         file,
-                        type: "avatar",
-                    }));
+                        type,
+                    });
+
+                    uploadedFile = await fileUploader.upload();
+                }
+
                 const res = await createRoom({
                     userIds: selectedUsers.map((u) => u.id),
                     name,

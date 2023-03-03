@@ -87,7 +87,6 @@ export default (): Router => {
 
     router.post("/verify", validate(verifyFilesSchema), async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
-
         try {
             const {
                 total,
@@ -101,6 +100,8 @@ export default (): Router => {
                 metaData, // { duration,width,height}
             } = req.body;
 
+            req.setTimeout(10 * 60 * 1000); // 10 minutes
+
             const exists = await prisma.file.findFirst({ where: { clientId } });
 
             if (exists) {
@@ -112,7 +113,6 @@ export default (): Router => {
             const tempFileDir = path.resolve(process.env["UPLOAD_FOLDER"], ".temp/", clientId);
 
             if (!fs.existsSync(tempFileDir)) {
-                console.log("created", tempFileDir);
                 await mkdir(tempFileDir, { recursive: true });
             }
 
@@ -123,7 +123,6 @@ export default (): Router => {
 
             const uploadedChunks = files.map((f) => +f.split("-")[0]);
             const allChunksUploaded = allChunks.every((c) => uploadedChunks.includes(c));
-
             if (!allChunksUploaded) {
                 return res
                     .status(410)

@@ -10,12 +10,13 @@ import UpdateUserForm from "./components/UpdateUserForm";
 
 import { generateRandomString, sha256 } from "../../../../../lib/utils";
 import useCountdownTimer from "./hooks/useCountdownTimer";
-import uploadFile from "../../utils/uploadFile";
 import * as constants from "../../../../../lib/constants";
 import { getDeviceId } from "../../../../../lib/utils";
 import useStrings from "../../hooks/useStrings";
 import { useDispatch } from "react-redux";
 import { showSnackBar } from "../../store/modalSlice";
+import getFileType from "../room/lib/getFileType";
+import FileUploader from "../../utils/FileUploader";
 
 export default function Auth(): React.ReactElement {
     const strings = useStrings();
@@ -102,13 +103,17 @@ export default function Auth(): React.ReactElement {
     const handleUpdateUser = async ({ username, file }: { username: string; file: File }) => {
         try {
             setLoading(true);
-            const uploadedFile =
-                file &&
-                (await uploadFile({
+            let uploadedFile: { id: number };
+
+            if (file) {
+                const type = getFileType(file.type);
+                const fileUploader = new FileUploader({
                     file,
-                    type: "avatar",
-                    relationId: signUpMutation.data?.user.id,
-                }));
+                    type,
+                });
+
+                uploadedFile = await fileUploader.upload();
+            }
 
             await update({
                 displayName: username,

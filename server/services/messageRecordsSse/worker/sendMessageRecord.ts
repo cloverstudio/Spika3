@@ -5,6 +5,7 @@ import { QUEUE_SSE } from "../../../components/consts";
 import { Channel } from "amqplib";
 import sanitize, { SanitizedMessageRecord } from "../../../components/sanitize";
 import prisma from "../../../components/prisma";
+import { Message } from "@prisma/client";
 
 class sendMessageRecordWorker implements QueueWorkerInterface {
     async run(payload: SendMessageRecordSSEPayload, channel: Channel) {
@@ -52,8 +53,10 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
                                 include: { message: true },
                             });
 
+                            let message: Message;
+
                             if (["delivered", "seen"].includes(type)) {
-                                await prisma.message.update({
+                                message = await prisma.message.update({
                                     where: { id: messageId },
                                     data: {
                                         ...(type === "seen" && { seenCount: { increment: 1 } }),
@@ -68,6 +71,7 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
                                 sanitize({
                                     ...record,
                                     roomId: record.message.roomId,
+                                    ...(message && { message: sanitize(message).message() }),
                                 }).messageRecord()
                             );
                         } catch (error) {

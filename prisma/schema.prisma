@@ -80,7 +80,7 @@ model File {
   path       String @map(name: "path")
   mimeType   String @map(name: "mime_type")
   fileName   String @map(name: "file_name")
-  size       Int    @map(name: "size")
+  size       Float  @map(name: "size")
   clientId   String @unique @map(name: "client_id")
   metaData   Json   @default("{}") @map(name: "meta_data")
 

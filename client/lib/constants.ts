@@ -1,3 +1,5 @@
+declare const API_BASE_URL: string;
+
 export const APP_VERSION = "1.0.0";
 export const DEVICE_TYPE = "browser";
 export const TITLE_PREFIX = "Spika";
@@ -24,3 +26,4 @@ export const SETTINGS_TRUE = "true";
 export const SETTINGS_FALSE = "false";
 export const APP_DEFAULT_LANG = "en";
 export const APP_NAME = "Spika";
+export const DOWNLOAD_URL = `${API_BASE_URL}/upload/files`;

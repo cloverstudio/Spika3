@@ -583,6 +583,46 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
         }
     });
 
+    router.get("/unread-count", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        const userId = userReq.user.id;
+
+        try {
+            const roomUsers = await prisma.roomUser.findMany({
+                where: {
+                    userId,
+                },
+                select: {
+                    roomId: true,
+                    createdAt: true,
+                },
+            });
+
+            const list = await Promise.all(
+                roomUsers.map(async ({ roomId, createdAt }) => {
+                    const unreadCount = await getRoomUnreadCount({
+                        userId,
+                        roomId,
+                        redisClient,
+                        roomUserCreatedAt: createdAt,
+                    });
+
+                    return {
+                        roomId,
+                        unreadCount,
+                    };
+                })
+            );
+
+            res.send(
+                successResponse({ unreadCounts: list.filter((uc) => uc.unreadCount) }, userReq.lang)
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
     router.get("/:id", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
 

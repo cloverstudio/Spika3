@@ -222,7 +222,7 @@ function MessageBodyContainer({
     const user = useSelector(selectUser);
 
     const message = useSelector(selectMessageById(roomId, id));
-    const { fromUserId, body, type, replyId, deleted } = message;
+    const { fromUserId, body, type, replyId, deleted, progress } = message;
 
     const isUsersMessage = fromUserId === user.id;
     const side = isUsersMessage ? "right" : "left";
@@ -236,6 +236,7 @@ function MessageBodyContainer({
             isReply={!!replyId}
             onImageMessageClick={onImageMessageClick}
             deleted={deleted}
+            progress={progress}
         />
     );
 }

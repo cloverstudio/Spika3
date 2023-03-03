@@ -10,17 +10,18 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import CameraAlt from "@mui/icons-material/CameraAlt";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
 import * as Constants from "../../../../../../../lib/constants";
 import useStrings from "../../../../hooks/useStrings";
 import { selectUser } from "../../../../store/userSlice";
 import { RoomType } from "../../../../types/Rooms";
 import { crop } from "../../../../utils/crop";
-import uploadFile from "../../../../utils/uploadFile";
 import { useUpdateRoomMutation } from "../../api/room";
 import { selectOtherUserIdInPrivateRoom } from "../../slices/messages";
 import { EditPhotoDialog } from "../EditProfile";
+import getFileType from "../../lib/getFileType";
+import FileUploader from "../../../../utils/FileUploader";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -126,11 +127,13 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
             setLoading(true);
 
             if (file) {
-                const uploadedFile = await uploadFile({
+                const type = getFileType(file.type);
+                const fileUploader = new FileUploader({
                     file,
-                    type: "avatar",
-                    relationId: roomData.id,
+                    type,
                 });
+
+                const uploadedFile = await fileUploader.upload();
 
                 await update({
                     roomId: roomData.id,

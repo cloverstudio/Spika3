@@ -60,7 +60,7 @@ Table file {
   path String [not null]
   mimeType String [not null]
   fileName String [not null]
-  size Int [not null]
+  size Float [not null]
   clientId String [unique, not null]
   metaData Json [not null, default: '{}']
   createdAt DateTime [default: `now()`, not null]
