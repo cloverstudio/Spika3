@@ -32,7 +32,7 @@ export default class SSEService implements Service {
             res.write("data: \n\n");
 
             const interval = setInterval(() => {
-                res.write("data: \n\n");
+                res.write("data: " + JSON.stringify({ type: "ping" }) + "\n\n");
             }, 5000);
 
             const channelId = String(userReq.device.id);
