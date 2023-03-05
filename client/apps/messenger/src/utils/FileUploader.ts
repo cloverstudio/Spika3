@@ -242,21 +242,21 @@ class FileUploader {
     }
 
     getMetaData() {
-        if (/^.*image*$/.test(this.file.type)) {
+        if (/^image\/.*/.test(this.file.type)) {
             return getImageDimension(this.file);
         }
 
-        if (/^.*video*$/.test(this.file.type)) {
+        if (/^video\/.*/.test(this.file.type)) {
             return getVideoInfo(this.file);
         }
     }
 
     createThumbnailFile() {
-        if (/video/.test(this.file.type)) {
+        if (/^video\/.*/.test(this.file.type)) {
             return getVideoThumbnail(this.file);
         }
 
-        if (/image/.test(this.file.type)) {
+        if (/^image\/.*/.test(this.file.type)) {
             return generateThumbFile(this.file);
         }
 
