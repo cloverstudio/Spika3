@@ -273,6 +273,18 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
                 autoFocus={true}
                 ref={inputRef}
                 value={message}
+                onPaste={(e) => {
+                    const items = e.clipboardData?.items;
+                    if (items) {
+                        for (let i = 0; i < items.length; i++) {
+                            if (items[i].type.indexOf("image") !== -1) {
+                                const blob = items[i].getAsFile();
+                                AttachmentManager.addFiles({ roomId, files: [blob] });
+                                e.preventDefault();
+                            }
+                        }
+                    }
+                }}
                 onChange={({ target }) => {
                     handleSetMessageText(target.value);
                 }}
