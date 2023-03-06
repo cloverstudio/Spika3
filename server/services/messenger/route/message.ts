@@ -558,6 +558,112 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
         }
     );
 
+    router.get("/undelivered", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        const userId = userReq.user.id;
+        const deviceId = userReq.device.id;
+
+        try {
+            const roomsUser = await prisma.roomUser.findMany({
+                where: { userId },
+                select: { roomId: true, createdAt: true },
+            });
+
+            const roomsIds = roomsUser.map((ru) => ru.roomId);
+
+            const lastMessageInEachRoom = await prisma.message.findMany({
+                where: {
+                    roomId: {
+                        in: roomsIds,
+                    },
+                    deviceMessages: {
+                        some: {
+                            deviceId,
+                            userId,
+                        },
+                    },
+                },
+                distinct: "roomId",
+                orderBy: {
+                    createdAt: "desc",
+                },
+            });
+
+            const lastMessageIds = lastMessageInEachRoom.map((m) => m.id);
+
+            const lastMessageDelivered = await prisma.messageRecord.findMany({
+                where: {
+                    messageId: {
+                        in: lastMessageIds,
+                    },
+                    userId,
+                    type: "delivered",
+                },
+                select: { messageId: true },
+            });
+
+            const lastMessageDeliveredIds = lastMessageDelivered.map((m) => m.messageId);
+
+            const lastMessageNotDeliveredIds = lastMessageIds.filter(
+                (id) => !lastMessageDeliveredIds.includes(id)
+            );
+
+            const roomIdsWithUndeliveredMessages = lastMessageInEachRoom
+                .filter((m) => lastMessageNotDeliveredIds.includes(m.id))
+                .map((m) => m.roomId);
+
+            const undeliveredMessages: Message[] = [];
+
+            for (const roomId of roomIdsWithUndeliveredMessages) {
+                const undeliveredRoomMessages = await prisma.message.findMany({
+                    where: {
+                        roomId,
+                        deviceMessages: {
+                            some: {
+                                deviceId,
+                                userId,
+                            },
+                        },
+                        messageRecords: {
+                            none: {
+                                userId,
+                                type: "delivered",
+                            },
+                        },
+                    },
+                });
+
+                undeliveredMessages.push(...undeliveredRoomMessages);
+            }
+
+            const sanitizedMessages = await Promise.all(
+                undeliveredMessages.map(async (m) => {
+                    const deviceMessage = await prisma.deviceMessage.findFirst({
+                        where: {
+                            messageId: m.id,
+                            userId,
+                        },
+                    });
+
+                    const { body, deleted } = deviceMessage || {};
+
+                    const formattedBody = await formatMessageBody(body, m.type);
+
+                    return sanitize({
+                        ...m,
+                        body: formattedBody,
+                        deleted,
+                    }).message();
+                })
+            );
+
+            res.send(successResponse({ messages: sanitizedMessages }, userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
     router.get("/sync/:lastUpdate", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         const userId = userReq.user.id;

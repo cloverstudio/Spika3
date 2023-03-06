@@ -1011,7 +1011,7 @@ export async function getRoomUnreadCount({
     if (!unreadCount) {
         const unreadMessages = await prisma.message.findMany({
             where: {
-                roomId: roomId,
+                roomId,
                 createdAt: {
                     gt: roomUserCreatedAt,
                 },
