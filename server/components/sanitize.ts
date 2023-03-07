@@ -19,6 +19,7 @@ type SanitizedDeviceType = Partial<Omit<Device, "tokenExpiredAt"> & { tokenExpir
 type SanitizedRoomUserType = {
     isAdmin: boolean;
     userId: number;
+    createdAt: number;
     user: SanitizedUserType;
 };
 export type SanitizedRoomType = Partial<
@@ -320,8 +321,14 @@ function sanitizeRoom({
     deleted,
     muted,
     pinned,
+    unreadCount,
 }: Partial<
-    Room & { users: (RoomUser & { user: User })[]; muted: boolean; pinned: boolean }
+    Room & {
+        users: (RoomUser & { user: User })[];
+        muted: boolean;
+        pinned: boolean;
+        unreadCount?: number;
+    }
 >): SanitizedRoomType {
     return {
         id,
@@ -334,17 +341,20 @@ function sanitizeRoom({
         pinned,
         createdAt: +new Date(createdAt),
         modifiedAt: +new Date(modifiedAt),
+        unreadCount,
     };
 }
 
 function sanitizeRoomUser({
     userId,
     isAdmin,
+    createdAt,
     user,
 }: Partial<RoomUser & { user?: User }>): SanitizedRoomUserType {
     return {
         userId,
         isAdmin,
+        createdAt: +new Date(createdAt),
         ...(user && { user: sanitizeUser(user) }),
     };
 }
