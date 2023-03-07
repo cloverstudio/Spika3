@@ -4,7 +4,7 @@ import * as Constants from "../../../components/consts";
 import prisma from "../../../components/prisma";
 import { SanitizedRoomType } from "../../../components/sanitize";
 import { createClient } from "redis";
-import { isRoomMuted, isRoomPinned } from "../route/room";
+import { isRoomMuted, isRoomPinned, getRoomUnreadCount } from "../route/room";
 
 export default function createSSERoomsNotify(
     rabbitMQChannel: amqp.Channel | undefined | null,
@@ -15,6 +15,8 @@ export default function createSSERoomsNotify(
 
         for (const device of devices) {
             const { id: deviceId, userId } = device;
+
+            const roomUser = room.users.find((u) => u.userId === userId);
 
             const muted = await isRoomMuted({
                 roomId: room.id,
@@ -28,6 +30,13 @@ export default function createSSERoomsNotify(
                 redisClient,
             });
 
+            const unreadCount = await getRoomUnreadCount({
+                roomId: room.id,
+                userId,
+                redisClient,
+                roomUserCreatedAt: new Date(roomUser.createdAt),
+            });
+
             rabbitMQChannel.sendToQueue(
                 Constants.QUEUE_SSE,
                 Buffer.from(
@@ -35,7 +44,7 @@ export default function createSSERoomsNotify(
                         channelId: deviceId,
                         data: {
                             type,
-                            room: { ...room, muted, pinned },
+                            room: { ...room, muted, pinned, unreadCount },
                         },
                     })
                 )
