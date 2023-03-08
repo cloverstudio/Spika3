@@ -80,18 +80,6 @@ export default ({ redisClient }: InitRouterParams): Router => {
 
             const roomsIds = roomUsers.map((r) => r.roomId);
 
-            if (!keyword) {
-                const userSettings = await prisma.userSetting.findMany({
-                    where: {
-                        userId,
-                        key: { startsWith: Constants.ROOM_PIN_PREFIX },
-                        value: "true",
-                    },
-                });
-
-                roomsIds.push(...userSettings.map((u) => +u.key.split("_")[1]));
-            }
-
             const count = await prisma.room.count({
                 where: {
                     id: { in: roomsIds },

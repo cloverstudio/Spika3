@@ -100,7 +100,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     },
                     data: {
                         verificationCode,
-                        verified: false,
                         modifiedAt: new Date(),
                     },
                 });
