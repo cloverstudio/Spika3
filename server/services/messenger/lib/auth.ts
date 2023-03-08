@@ -37,6 +37,8 @@ export default async (
         const now = +dayjs();
 
         if (now > tokenExpiredAtTS) return res.status(401).send("Expired access token");
+        if (!device.user) return res.status(401).send("User not found");
+        if (!device.user.verified) return res.status(401).send("User is not verified");
 
         const userRequest: UserRequest = req as UserRequest;
 
