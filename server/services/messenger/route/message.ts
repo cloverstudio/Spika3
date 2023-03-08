@@ -812,6 +812,28 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             await redisClient.set(key, "0");
 
             res.send(successResponse({ messageRecords }, userReq.lang));
+
+            const devices = await prisma.device.findMany({
+                where: {
+                    userId,
+                    id: { not: userReq.device.id },
+                },
+            });
+
+            for (const device of devices) {
+                rabbitMQChannel.sendToQueue(
+                    Constants.QUEUE_SSE,
+                    Buffer.from(
+                        JSON.stringify({
+                            channelId: device.id,
+                            data: {
+                                type: Constants.PUSH_TYPE_SEEN_ROOM,
+                                roomId,
+                            },
+                        })
+                    )
+                );
+            }
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

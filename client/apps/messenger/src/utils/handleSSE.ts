@@ -211,6 +211,20 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
             return;
         }
 
+        case "SEEN_ROOM": {
+            const roomId = data.roomId;
+
+            if (!roomId) {
+                console.log("Invalid SEEN_ROOM payload");
+                return;
+            }
+
+            store.dispatch(api.util.invalidateTags([{ type: "Rooms", id: roomId }]));
+            store.dispatch(refreshHistory(roomId as number));
+
+            return;
+        }
+
         default:
             break;
     }

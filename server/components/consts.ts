@@ -29,6 +29,7 @@ export const PUSH_TYPE_USER_UPDATE = "USER_UPDATE";
 export const PUSH_TYPE_NEW_ROOM = "NEW_ROOM";
 export const PUSH_TYPE_UPDATE_ROOM = "UPDATE_ROOM";
 export const PUSH_TYPE_DELETE_ROOM = "DELETE_ROOM";
+export const PUSH_TYPE_SEEN_ROOM = "SEEN_ROOM";
 
 export const PUSH_TYPE_CALL_JOIN = "CALL_JOIN";
 export const PUSH_TYPE_CALL_LEAVE = "CALL_LEAVE";
