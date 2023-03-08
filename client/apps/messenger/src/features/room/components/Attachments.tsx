@@ -6,6 +6,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useParams } from "react-router-dom";
 import AttachmentManager from "../lib/AttachmentManager";
 import getFileIcon from "../lib/getFileIcon";
+import useEnterKey from "../../../hooks/useEnterKey";
 
 type AttachmentsProps = {
     files: File[];
@@ -13,6 +14,7 @@ type AttachmentsProps = {
 
 export default function Attachments({ files }: AttachmentsProps): React.ReactElement {
     const roomId = parseInt(useParams().id || "");
+    useEnterKey(() => AttachmentManager.send({ roomId }));
 
     return (
         <Box
