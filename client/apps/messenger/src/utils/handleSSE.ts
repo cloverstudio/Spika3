@@ -14,6 +14,7 @@ const VALID_SSE_EVENT_TYPES = [
     "UPDATE_ROOM",
     "DELETE_ROOM",
     "USER_UPDATE",
+    "SEEN_ROOM",
 ];
 
 import { notify as notifyCallEvent } from "../features/confcall/lib/callEventListener";
