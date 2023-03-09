@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import dayjs from "dayjs";
 import * as constants from "../../../components/consts";
+import Utils from "../../../components/utils";
 
 import { UserRequest } from "./types";
 import prisma from "../../../components/prisma";
@@ -12,7 +13,10 @@ export default async (
     next: () => void
 ): Promise<Response<any, Record<string, any>> | void> => {
     try {
-        const accessToken = req.headers[constants.ACCESS_TOKEN] as string;
+        const accessToken =
+            (req.headers[constants.ACCESS_TOKEN_NEW] as string) ||
+            (req.headers[constants.ACCESS_TOKEN] as string);
+
         if (!accessToken) return res.status(401).send("No access token");
 
         const osName = req.headers["os-name"] as string;
@@ -40,6 +44,20 @@ export default async (
         if (!device.user) return res.status(401).send("User not found");
         if (!device.user.verified) return res.status(401).send("User is not verified");
 
+        const tokenNeedsRefresh = now + 1000 * 60 * 60 * 24 * 7 > tokenExpiredAtTS;
+
+        if (tokenNeedsRefresh) {
+            const expireDate = Utils.getTokenExpireDate();
+
+            await prisma.device.update({
+                where: { id: device.id },
+                data: {
+                    tokenExpiredAt: expireDate,
+                    modifiedAt: new Date(),
+                },
+            });
+        }
+
         const userRequest: UserRequest = req as UserRequest;
 
         userRequest.user = device.user;
@@ -47,7 +65,6 @@ export default async (
         userRequest.device = device;
         userRequest.lang = lang;
 
-        // update device is there is a change
         if (
             device.osName !== osName ||
             device.osVersion !== osVersion ||

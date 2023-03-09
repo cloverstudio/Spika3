@@ -11,7 +11,9 @@ export default async (
     next: () => void
 ): Promise<Response<any, Record<string, any>> | void> => {
     try {
-        const accessToken = req.headers[constants.ACCESS_TOKEN] as string;
+        const accessToken =
+            (req.headers[constants.ACCESS_TOKEN_NEW] as string) ||
+            (req.headers[constants.ACCESS_TOKEN] as string);
         if (!accessToken) return res.status(401).send("No access token");
 
         const apiKey = await prisma.apiKey.findFirst({

@@ -42,7 +42,7 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
         res.header("Access-Control-Allow-Headers", "*");
         res.header(
             "Access-Control-Allow-Headers",
-            "Content-Type, Authorization, access-token, admin-accesstoken, accesstoken, device-name, os-name, os-version, device-type, app-version"
+            "Content-Type, Authorization, access-token, admin-accesstoken, accesstoken, accessToken, device-name, os-name, os-version, device-type, app-version"
         );
 
         const start = process.hrtime();
