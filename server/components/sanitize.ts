@@ -19,6 +19,7 @@ type SanitizedDeviceType = Partial<Omit<Device, "tokenExpiredAt"> & { tokenExpir
 type SanitizedRoomUserType = {
     isAdmin: boolean;
     userId: number;
+    roomId: number;
     createdAt: number;
     user: SanitizedUserType;
 };
@@ -348,12 +349,14 @@ function sanitizeRoom({
 function sanitizeRoomUser({
     userId,
     isAdmin,
+    roomId,
     createdAt,
     user,
 }: Partial<RoomUser & { user?: User }>): SanitizedRoomUserType {
     return {
         userId,
         isAdmin,
+        roomId,
         createdAt: +new Date(createdAt),
         ...(user && { user: sanitizeUser(user) }),
     };
