@@ -79,8 +79,6 @@ export default function ImageMessage({
                             left: "50%",
                             transform: "translate(-50%, -50%)",
                             color: "white",
-                            fontSize: "1.5rem",
-                            fontWeight: "bold",
                             display: "inline-flex",
                         }}
                     >

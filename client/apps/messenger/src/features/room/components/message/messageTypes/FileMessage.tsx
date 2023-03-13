@@ -60,7 +60,14 @@ export default function FileMessage({ body, isUsersMessage, progress }: FileMess
                 </Box>
 
                 {isUploading || isVerifying ? (
-                    <Box position="relative">
+                    <Box
+                        sx={{
+                            position: "relative",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                        }}
+                    >
                         <CircularProgress
                             thickness={6}
                             variant={isUploading ? "determinate" : "indeterminate"}
