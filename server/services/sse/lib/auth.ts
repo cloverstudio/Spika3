@@ -8,7 +8,12 @@ import { error as le } from "../../../components/logger";
 
 export default async (req: Request, res: Response, next: () => void) => {
     try {
-        if (!req.headers[constants.ACCESS_TOKEN] && !req.query[constants.ACCESS_TOKEN]) {
+        if (
+            !req.headers[constants.ACCESS_TOKEN] &&
+            !req.query[constants.ACCESS_TOKEN] &&
+            !req.query[constants.ACCESS_TOKEN_NEW] &&
+            !req.headers[constants.ACCESS_TOKEN_NEW]
+        ) {
             return res.status(401).send("Invalid access token");
         }
 
@@ -18,9 +23,12 @@ export default async (req: Request, res: Response, next: () => void) => {
         const appVersion: string = req.headers["app-version"] as string;
         const lang: string = (req.headers["lang"] as string) || "en";
 
-        const accessToken: string =
+        const accessToken =
+            (req.headers[constants.ACCESS_TOKEN_NEW] as string) ||
             (req.headers[constants.ACCESS_TOKEN] as string) ||
+            (req.query[constants.ACCESS_TOKEN_NEW] as string) ||
             (req.query[constants.ACCESS_TOKEN] as string);
+
         const device = await prisma.device.findFirst({
             where: {
                 token: accessToken,

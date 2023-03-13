@@ -15,7 +15,7 @@ const axiosBaseQuery =
     ) => {
         try {
             const additionalHeaders: any = {
-                ...(token && { accesstoken: token }),
+                ...(token && { accessToken: token }),
             };
 
             additionalHeaders["device-type"] = platform.name;

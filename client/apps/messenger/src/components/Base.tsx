@@ -35,7 +35,7 @@ export default function AuthBase({ children }: Props): React.ReactElement {
     useEffect(() => {
         let source: EventSource;
         if (deviceData?.device?.token && !source) {
-            source = new EventSource(`${API_BASE_URL}/sse?accesstoken=${deviceData.device.token}`);
+            source = new EventSource(`${API_BASE_URL}/sse?accessToken=${deviceData.device.token}`);
 
             source.onmessage = handleSSE;
             source.onopen = () => {
