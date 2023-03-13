@@ -664,7 +664,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
         }
     });
 
-    router.get("/sync/updated/:lastUpdate", auth, async (req: Request, res: Response) => {
+    router.get("/sync/modified/:lastUpdate", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         const userId = userReq.user.id;
         const deviceId = userReq.device.id;
@@ -728,19 +728,21 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             }, [] as (Message & { deviceMessages: DeviceMessage[] })[]);
 
             const sanitizedMessages = await Promise.all(
-                [...messages, ...dMessages].map(async (m) => {
-                    const deviceMessage = m.deviceMessages.find(
-                        (dm) => dm.messageId === m.id && dm.deviceId === deviceId
-                    );
+                [...messages, ...dMessages]
+                    .filter((m) => m.createdAt !== m.modifiedAt)
+                    .map(async (m) => {
+                        const deviceMessage = m.deviceMessages.find(
+                            (dm) => dm.messageId === m.id && dm.deviceId === deviceId
+                        );
 
-                    const { body, deleted } = deviceMessage || {};
+                        const { body, deleted } = deviceMessage || {};
 
-                    return sanitize({
-                        ...m,
-                        body: await formatMessageBody(body, m.type),
-                        deleted,
-                    }).message();
-                })
+                        return sanitize({
+                            ...m,
+                            body: await formatMessageBody(body, m.type),
+                            deleted,
+                        }).message();
+                    })
             );
 
             res.send(successResponse({ messages: sanitizedMessages }, userReq.lang));
