@@ -4,6 +4,7 @@ import { warn as lw, error as le } from "../../../components/logger";
 import sendFcmMessage, { FcmMessagePayload } from "../lib/sendFcmMessage";
 import { PUSH_TYPE_NEW_MESSAGE } from "../../../components/consts";
 import prisma from "../../../components/prisma";
+import { getRoomUnreadCount } from "../../messenger/route/room";
 
 class sendPushWorker implements QueueWorkerInterface {
     async run(payload: SendPushPayload) {
@@ -23,7 +24,30 @@ class sendPushWorker implements QueueWorkerInterface {
 }
 
 async function newMessageFormatter(payload: SendPushPayload) {
-    const muted = await checkIfRoomIsMuted(payload);
+    const roomId = payload.data.message.roomId as number;
+    const userId = payload.data.toUserId as number;
+    const redisClient = payload.redisClient;
+
+    const roomUser = await prisma.roomUser.findFirst({
+        where: { roomId, userId },
+    });
+
+    if (!roomUser) {
+        throw new Error("Room user not found");
+    }
+
+    const muted = await checkIfRoomIsMuted({
+        roomId,
+        userId,
+        redisClient,
+    });
+
+    const unreadCount = await getRoomUnreadCount({
+        roomId,
+        userId,
+        redisClient,
+        roomUserCreatedAt: roomUser.createdAt,
+    });
 
     return {
         message: {
@@ -34,6 +58,7 @@ async function newMessageFormatter(payload: SendPushPayload) {
                     fromUserName: payload.data.user.displayName,
                     groupName: payload.data.groupName || "",
                     muted,
+                    unreadCount,
                 }),
             },
         },
@@ -50,12 +75,18 @@ function getFormattingFunction(type: string) {
     }
 }
 
-async function checkIfRoomIsMuted(payload: SendPushPayload) {
-    const roomId = payload.data.message.roomId;
-    const userId = payload.data.toUserId;
+async function checkIfRoomIsMuted({
+    roomId,
+    userId,
+    redisClient,
+}: {
+    roomId: number;
+    userId: number;
+    redisClient: any;
+}) {
     const key = `mute_${userId}_${roomId}`;
 
-    let mutedString = await payload.redisClient.get(key);
+    let mutedString = await redisClient.get(key);
 
     if (!mutedString) {
         const userSettings = await prisma.userSetting.findFirst({
@@ -64,7 +95,7 @@ async function checkIfRoomIsMuted(payload: SendPushPayload) {
 
         mutedString = Number(userSettings?.value === "true").toString();
 
-        await payload.redisClient.set(key, mutedString);
+        await redisClient.set(key, mutedString);
     }
 
     return Boolean(Number(mutedString));
