@@ -729,7 +729,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
 
             const sanitizedMessages = await Promise.all(
                 [...messages, ...dMessages]
-                    .filter((m) => m.createdAt !== m.modifiedAt)
+                    .filter((m) => +m.createdAt !== +m.modifiedAt)
                     .map(async (m) => {
                         const deviceMessage = m.deviceMessages.find(
                             (dm) => dm.messageId === m.id && dm.deviceId === deviceId
