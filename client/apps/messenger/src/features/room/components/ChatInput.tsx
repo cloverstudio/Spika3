@@ -185,24 +185,33 @@ function ChatInput({ handleSetMessageText, handleSend, files }: ChatInputProps) 
                 {replyMessage && <ReplyMessage message={replyMessage} />}
                 <Box width="100%" position="relative">
                     <TextInput onSend={onSend} />
-                    <EmojiEmotionsIcon
-                        color="primary"
-                        onClick={() =>
-                            dispatch(
-                                setInputType(
-                                    inputType === "emoji"
-                                        ? { roomId, type: "text" }
-                                        : { roomId, type: "emoji" }
-                                )
-                            )
-                        }
+                    <Box
                         sx={{
                             position: "absolute",
-                            top: "6px",
-                            right: "20px",
-                            cursor: "pointer",
+                            top: "50%",
+                            right: "40px",
+                            transform: "translate(100%, -50%)",
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "center",
                         }}
-                    />
+                    >
+                        <EmojiEmotionsIcon
+                            color="primary"
+                            onClick={() =>
+                                dispatch(
+                                    setInputType(
+                                        inputType === "emoji"
+                                            ? { roomId, type: "text" }
+                                            : { roomId, type: "emoji" }
+                                    )
+                                )
+                            }
+                            sx={{
+                                cursor: "pointer",
+                            }}
+                        />
+                    </Box>
                 </Box>
             </Box>
             {editMessage ? (
@@ -242,7 +251,7 @@ const useStyles = makeStyles(() => ({
         outline: "none",
         fontSize: "0.9em",
         paddingRight: "46px",
-        resize: "vertical",
+        resize: "none",
     },
 }));
 

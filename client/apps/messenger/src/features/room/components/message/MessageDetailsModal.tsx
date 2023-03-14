@@ -137,7 +137,7 @@ function MessageDetailRow({ record }: MessageDetailsRowProps) {
     const { data, isLoading } = useGetUserByIdQuery(record.userId);
 
     return (
-        <ListItem key={record.id} sx={{ p: 0, display: "block" }}>
+        <ListItem key={record.id} sx={{ p: 0, display: "block", mb: 1 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center">
                 <Box display="flex" alignItems="center">
                     <ListItemAvatar>
