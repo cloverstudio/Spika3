@@ -21,7 +21,7 @@ export function getImageDimension(file: File): Promise<{ width: number; height: 
 export function getVideoInfo(
     file: File
 ): Promise<{ width: number; height: number; duration: number }> {
-    const seekTo = 1.5;
+    let seekTo = 1.5;
 
     return new Promise<{ width: number; height: number; duration: number }>((res, rej) => {
         // load the file to a video player
@@ -35,8 +35,7 @@ export function getVideoInfo(
         videoPlayer.addEventListener("loadedmetadata", () => {
             // seek to user defined timestamp (in seconds) if possible
             if (videoPlayer.duration < seekTo) {
-                rej("video is too short.");
-                return;
+                seekTo = videoPlayer.duration / 2;
             }
             // delay seeking or else 'seeked' event won't fire on Safari
             setTimeout(() => {
@@ -56,7 +55,7 @@ export function getVideoInfo(
 }
 
 export function getVideoThumbnail(file: File): Promise<File> {
-    const seekTo = 1.5;
+    let seekTo = 1.5;
 
     return new Promise<File>((res, rej) => {
         // load the file to a video player
@@ -70,8 +69,7 @@ export function getVideoThumbnail(file: File): Promise<File> {
         videoPlayer.addEventListener("loadedmetadata", () => {
             // seek to user defined timestamp (in seconds) if possible
             if (videoPlayer.duration < seekTo) {
-                rej("video is too short.");
-                return;
+                seekTo = videoPlayer.duration / 2;
             }
             // delay seeking or else 'seeked' event won't fire on Safari
             setTimeout(() => {
