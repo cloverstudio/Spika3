@@ -103,7 +103,11 @@ export default function AuthBase({ children }: Props): React.ReactElement {
     ]);
 
     if (isLoading) {
-        return <Loader />;
+        return (
+            <Base>
+                <Loader />
+            </Base>
+        );
     }
 
     if (!user) {
