@@ -40,6 +40,8 @@ const chatGPTUsersConfig = [
     },
 ];
 
+export const chatGPTUsersCount = chatGPTUsersConfig.length;
+
 async function getOrCreateChatGPTUsers() {
     return Promise.all(
         chatGPTUsersConfig.map(async (user) => {

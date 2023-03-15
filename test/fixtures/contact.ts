@@ -1,4 +1,4 @@
-import { PrismaClient, User, Prisma } from "@prisma/client";
+import { User } from "@prisma/client";
 
 export default async function createFakeContacts({
     userId,
@@ -6,8 +6,12 @@ export default async function createFakeContacts({
 }: {
     userId: number;
     contacts: User[];
-}): Promise<Prisma.BatchPayload> {
-    return global.prisma.contact.createMany({
-        data: contacts.map((u) => ({ userId, contactId: u.id })),
-    });
+}) {
+    return Promise.all(
+        contacts.map(async (u) => {
+            return global.prisma.contact.create({
+                data: { userId, contactId: u.id },
+            });
+        })
+    );
 }

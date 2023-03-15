@@ -7,6 +7,7 @@ import { User } from ".prisma/client";
 import * as Constants from "../server/components/consts";
 import createFakeContacts from "./fixtures/contact";
 import utils from "../server/components/utils";
+import { chatGPTUsersCount } from "../server/components/chatGPT";
 
 describe("API", () => {
     const users: User[] = [];
@@ -26,20 +27,24 @@ describe("API", () => {
             expect(response.body.data).to.has.property("list");
             expect(response.body.data).to.has.property("count");
             expect(response.body.data).to.has.property("limit");
-            expect(response.body.data.limit).to.eqls(Constants.PAGING_LIMIT);
+            expect(response.body.data.limit).to.eqls(Constants.CONTACT_PAGING_LIMIT);
         });
 
-        it("Accepts page query", async () => {
+        it("Accepts cursor query", async () => {
             const contacts = await createFakeContacts({
                 userId: globals.userId,
                 contacts: users,
+            });
+
+            const contactsSorted = contacts.sort((a, b) => {
+                return a.id - b.id;
             });
 
             // force change env var
             const teammode: string = process.env.TEAM_MODE;
             process.env.TEAM_MODE = "0";
             const response = await supertest(app)
-                .get("/api/messenger/contacts?page=2")
+                .get("/api/messenger/contacts?cursor=" + contactsSorted[0].id)
                 .set({ accesstoken: globals.userToken });
             process.env.TEAM_MODE = teammode;
 
@@ -48,11 +53,29 @@ describe("API", () => {
             expect(response.body.data).to.has.property("list");
             expect(response.body.data).to.has.property("count");
             expect(response.body.data).to.has.property("limit");
-            expect(response.body.data.limit).to.eqls(Constants.PAGING_LIMIT);
-            expect(response.body.data.count).to.eqls(contacts.count);
+            expect(response.body.data.limit).to.eqls(Constants.CONTACT_PAGING_LIMIT);
+            expect(response.body.data.count).to.eqls(contacts.length + chatGPTUsersCount);
             expect(response.body.data.list.length === 0).to.eqls(
-                contacts.count > Constants.PAGING_LIMIT ? false : true
+                contacts.length + chatGPTUsersCount > Constants.CONTACT_PAGING_LIMIT
             );
+        });
+
+        it("filter by keyword works", async () => {
+            const contacts = await createFakeContacts({
+                userId: globals.userId,
+                contacts: users,
+            });
+
+            const response = await supertest(app)
+                .get("/api/messenger/contacts?keyword=randomkeyword")
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(200);
+            expect(response.body).to.has.property("data");
+            expect(response.body.data).to.has.property("list");
+            expect(response.body.data).to.has.property("count");
+            expect(response.body.data).to.has.property("limit");
+            expect(response.body.data.list.length).to.eqls(0);
         });
     });
 
@@ -175,55 +198,6 @@ describe("API", () => {
             expect(users.every((u) => contacts.map((c) => c.contactId).includes(u.id))).to.eqls(
                 true
             );
-        });
-
-        describe("/api/messenger/contacts GET", () => {
-            it("Works without any params", async () => {
-                const response = await supertest(app)
-                    .get("/api/messenger/contacts")
-                    .set({ accesstoken: globals.userToken });
-
-                expect(response.status).to.eqls(200);
-                expect(response.body).to.has.property("data");
-                expect(response.body.data).to.has.property("list");
-                expect(response.body.data).to.has.property("count");
-                expect(response.body.data).to.has.property("limit");
-            });
-
-            it("Accepts page query", async () => {
-                const contacts = await createFakeContacts({
-                    userId: globals.userId,
-                    contacts: users,
-                });
-
-                const response = await supertest(app)
-                    .get("/api/messenger/contacts?page=2")
-                    .set({ accesstoken: globals.userToken });
-
-                expect(response.status).to.eqls(200);
-                expect(response.body).to.has.property("data");
-                expect(response.body.data).to.has.property("list");
-                expect(response.body.data).to.has.property("count");
-                expect(response.body.data).to.has.property("limit");
-            });
-
-            it("filter by keyword works", async () => {
-                const contacts = await createFakeContacts({
-                    userId: globals.userId,
-                    contacts: users,
-                });
-
-                const response = await supertest(app)
-                    .get("/api/messenger/contacts?keyword=randomkeyword")
-                    .set({ accesstoken: globals.userToken });
-
-                expect(response.status).to.eqls(200);
-                expect(response.body).to.has.property("data");
-                expect(response.body.data).to.has.property("list");
-                expect(response.body.data).to.has.property("count");
-                expect(response.body.data).to.has.property("limit");
-                expect(response.body.data.list.length).to.eqls(0);
-            });
         });
     });
 });

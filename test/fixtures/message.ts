@@ -39,6 +39,7 @@ export default async function createFakeMessage({
             messageId: message.id,
             deviceId: device.id,
             userId: device.userId,
+            modifiedAt,
         });
     }
 
@@ -51,12 +52,14 @@ async function createFakeDeviceMessage({
     messageId,
     deviceId,
     userId,
+    modifiedAt,
 }: {
     fromUserId: number;
     fromDeviceId: number;
     messageId: number;
     deviceId: number;
     userId: number;
+    modifiedAt?: Date;
 }): Promise<DeviceMessage> {
     return global.prisma.deviceMessage.create({
         data: {
@@ -67,6 +70,7 @@ async function createFakeDeviceMessage({
             deviceId,
             userId,
             action: "action",
+            modifiedAt,
         },
     });
 }

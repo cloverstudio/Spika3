@@ -11,7 +11,6 @@ import validate from "../../../components/validateMiddleware";
 import * as yup from "yup";
 import { successResponse, errorResponse } from "../../../components/response";
 import sanitize from "../../../components/sanitize";
-import * as constants from "../lib/constants";
 import prisma from "../../../components/prisma";
 import { handleNewUser } from "../../../components/chatGPT";
 import { UserRequest } from "../lib/types";
@@ -64,8 +63,9 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 registeredDevice &&
                 registeredDevice.user &&
                 registeredDevice.user.verified &&
+                registeredDevice.token &&
                 registeredDevice.user.telephoneNumber !== telephoneNumber &&
-                deviceType !== constants.DEVICE_TYPE_BROWSER
+                deviceType !== Constants.DEVICE_TYPE_BROWSER
             ) {
                 return res
                     .status(403)
@@ -113,11 +113,11 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             });
 
             // check the user already has browser device
-            if (deviceType === constants.DEVICE_TYPE_BROWSER) {
+            if (deviceType === Constants.DEVICE_TYPE_BROWSER) {
                 const browserDevice = await prisma.device.findFirst({
                     where: {
                         userId: requestUser.id,
-                        type: constants.DEVICE_TYPE_BROWSER,
+                        type: Constants.DEVICE_TYPE_BROWSER,
                     },
                 });
 
@@ -130,7 +130,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     where: {
                         userId: requestUser.id,
                         type: {
-                            not: constants.DEVICE_TYPE_BROWSER,
+                            not: Constants.DEVICE_TYPE_BROWSER,
                         },
                     },
                     data: {
@@ -184,7 +184,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     user: sanitize(requestUser).user(),
                     device: sanitize(requestDevice).device(),
                     browserDeviceId:
-                        requestDevice.type === constants.DEVICE_TYPE_BROWSER
+                        requestDevice.type === Constants.DEVICE_TYPE_BROWSER
                             ? requestDevice.deviceId
                             : undefined,
                 })
