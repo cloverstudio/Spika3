@@ -761,6 +761,124 @@ describe("API", () => {
         });
     });
 
+    describe("/api/messenger/messages/sync/modified/:lastUpdate GET", () => {
+        it("Requires lastUpdate to be number", async () => {
+            const response = await supertest(app)
+                .get("/api/messenger/messages/sync/modified/abc58")
+                .set({ accesstoken: globals.userToken });
+            expect(response.status).to.eqls(400);
+        });
+
+        it("Returns modified messages from lastUpdate", async () => {
+            const lastUpdate = +new Date();
+
+            const user = await createFakeUser();
+            const device = await createFakeDevice(user.id);
+            const room = await createFakeRoom([
+                { userId: globals.userId, isAdmin: true },
+                { userId: user.id },
+            ]);
+
+            const notModifiedMessages = await Promise.all(
+                new Array(18).fill(true).map(() =>
+                    createFakeMessage({
+                        fromUserId: user.id,
+                        room,
+                        fromDeviceId: device.id,
+                    })
+                )
+            );
+
+            const modifiedMessages = await Promise.all(
+                new Array(18).fill(true).map(() =>
+                    createFakeMessage({
+                        fromUserId: user.id,
+                        room,
+                        fromDeviceId: device.id,
+                        modifiedAt: new Date(lastUpdate + 10000),
+                    })
+                )
+            );
+
+            const response = await supertest(app)
+                .get("/api/messenger/messages/sync/modified/" + lastUpdate)
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(200);
+            expect(response.body).to.has.property("data");
+            expect(response.body.data).to.has.property("messages");
+            expect(
+                modifiedMessages.every((m) =>
+                    response.body.data.messages.find((bm: any) => bm.id === m.id)
+                )
+            ).to.be.true;
+            expect(
+                notModifiedMessages.every(
+                    (m) => !response.body.data.messages.find((bm: any) => bm.id === m.id)
+                )
+            ).to.be.true;
+        });
+    });
+
+    describe("/api/messenger/messages/undelivered GET", () => {
+        it("Returns undelivered messages for users device", async () => {
+            const user = await createFakeUser();
+            const device = await createFakeDevice(user.id);
+            const room = await createFakeRoom([
+                { userId: globals.userId, isAdmin: true },
+                { userId: user.id },
+            ]);
+
+            const deliveredMessages = await Promise.all(
+                new Array(18).fill(true).map(() =>
+                    createFakeMessage({
+                        fromUserId: user.id,
+                        room,
+                        fromDeviceId: device.id,
+                    })
+                )
+            );
+
+            await Promise.all(
+                deliveredMessages.map((m) =>
+                    globals.prisma.messageRecord.create({
+                        data: {
+                            messageId: m.id,
+                            userId: globals.userId,
+                            type: "delivered",
+                        },
+                    })
+                )
+            );
+
+            const messages = await Promise.all(
+                new Array(18).fill(true).map(() =>
+                    createFakeMessage({
+                        fromUserId: user.id,
+                        room,
+                        fromDeviceId: device.id,
+                    })
+                )
+            );
+
+            const response = await supertest(app)
+                .get("/api/messenger/messages/undelivered")
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(200);
+            expect(response.body).to.has.property("data");
+            expect(response.body.data).to.has.property("messages");
+            expect(
+                messages.every((m) => response.body.data.messages.find((bm: any) => bm.id === m.id))
+            ).to.be.true;
+            expect(
+                deliveredMessages.every(
+                    (m) => !response.body.data.messages.find((bm: any) => bm.id === m.id)
+                )
+            ).to.be.true;
+        });
+    });
+
     describe("/api/messenger/messages/:id DELETE", () => {
         let room: Room;
 
