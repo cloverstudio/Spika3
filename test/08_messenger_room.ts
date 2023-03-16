@@ -349,7 +349,9 @@ describe("API", () => {
             globals.roomId = response.body.data.room.id;
 
             expect(JSON.stringify(response.body.data.room)).to.eqls(
-                JSON.stringify(sanitize({ ...room, muted: false }).room())
+                JSON.stringify(
+                    sanitize({ ...room, muted: false, pinned: false, unreadCount: 0 }).room()
+                )
             );
         });
 
@@ -657,7 +659,7 @@ describe("API", () => {
             expect(response.status).to.eqls(404);
         });
 
-        it("user can leave mute room", async () => {
+        it("user can mute room", async () => {
             const user = await createFakeUser();
             const room = await createFakeRoom([
                 { userId: user.id, isAdmin: true },
@@ -683,12 +685,16 @@ describe("API", () => {
             expect(response.status).to.eqls(404);
         });
 
-        it("user can leave unmute room", async () => {
+        it("user can unmute room", async () => {
             const user = await createFakeUser();
             const room = await createFakeRoom([
                 { userId: user.id, isAdmin: true },
                 { userId: globals.userId },
             ]);
+
+            await supertest(app)
+                .post(`/api/messenger/rooms/${room.id}/mute`)
+                .set({ accesstoken: globals.userToken });
 
             const response = await supertest(app)
                 .post(`/api/messenger/rooms/${room.id}/unmute`)

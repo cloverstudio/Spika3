@@ -30,10 +30,9 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
 
     redisClient.on("error", (err) => {
         e("Redis Client Error", err);
-        process.exit(1);
     });
 
-    redisClient.connect();
+    await redisClient.connect();
 
     // cors
     app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {

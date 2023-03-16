@@ -7,14 +7,14 @@ import http from "http";
 import * as Constants from "../server/components/consts";
 
 import EventSource from "eventsource";
-import { wait } from "../client/lib/utils";
+import utils from "../server/components/utils";
 
 describe("SSE Service", () => {
     describe("NotificationServer", () => {
         let notificationServer: NotificationServer;
         beforeEach(async () => {
             notificationServer = new NotificationServer(globals.rabbitMQChannel);
-            await wait(0.2);
+            await utils.wait(0.2);
         });
         afterEach(async () => {
             await notificationServer.destroy();
@@ -44,7 +44,7 @@ describe("SSE Service", () => {
             notificationServer.subscribe(channelId, eventSpy);
 
             notificationServer.send(channelId, data);
-            await wait(0.2);
+            await utils.wait(0.2);
             expect(eventSpy).to.have.been.called.once;
             expect(eventSpy).to.have.been.called.with(data);
         });
@@ -58,7 +58,7 @@ describe("SSE Service", () => {
 
             notificationServer.send(channelId, data);
             notificationServer.send(channelId, data);
-            await wait(0.2);
+            await utils.wait(0.2);
             expect(eventSpy).to.have.been.called.exactly(2);
         });
 
@@ -79,7 +79,7 @@ describe("SSE Service", () => {
                 )
             );
 
-            await wait(0.2);
+            await utils.wait(0.2);
             expect(eventSpy).to.have.been.called.once;
             expect(eventSpy).to.have.been.called.with(data);
         });
@@ -96,7 +96,7 @@ describe("SSE Service", () => {
             notificationServer.subscribe(channelTwoId, eventSpyTwo);
 
             notificationServer.send(channelId, data);
-            await wait(0.2);
+            await utils.wait(0.2);
             expect(eventSpyOne).to.have.been.called.once;
             expect(eventSpyTwo).to.not.have.been.called();
         });
@@ -111,7 +111,7 @@ describe("SSE Service", () => {
             notificationServer.unsubscribe(connectionId);
 
             notificationServer.send(channelId, data);
-            await wait(0.2);
+            await utils.wait(0.2);
             expect(eventSpy).to.not.have.been.called();
         });
 
@@ -125,7 +125,7 @@ describe("SSE Service", () => {
             await notificationServer.destroy();
 
             notificationServer.send(channelId, data);
-            await wait(0.2);
+            await utils.wait(0.2);
             expect(eventSpy).to.not.have.been.called();
         });
     });
@@ -157,7 +157,7 @@ describe("SSE Service", () => {
                 if (event.data.length > 0) eventSpy(event.data);
             };
 
-            await wait(0.2);
+            await utils.wait(0.2);
 
             // send data
             globals.rabbitMQChannel.sendToQueue(
@@ -170,7 +170,7 @@ describe("SSE Service", () => {
                 )
             );
 
-            await wait(0.2);
+            await utils.wait(0.2);
 
             source.close();
 

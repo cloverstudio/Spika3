@@ -11,7 +11,7 @@ import { Room, Message, MessageRecord } from ".prisma/client";
 import createFakeDevice, { createFakeDevices } from "./fixtures/device";
 import createFakeUser, { createManyFakeUsers } from "./fixtures/user";
 import sendPush from "../server/services/push/worker/sendPush";
-import { wait } from "../client/lib/utils";
+import utils from "../server/components/utils";
 import sanitize from "../server/components/sanitize";
 
 describe("API", () => {
@@ -165,7 +165,7 @@ describe("API", () => {
             expect(response.body.data).to.has.property("message");
 
             // this is because we create device messages after we send response
-            await wait(0.05);
+            await utils.wait(0.05);
 
             const message = response.body.data.message;
             const devices = await globals.prisma.device.findMany({
@@ -199,7 +199,7 @@ describe("API", () => {
             expect(response.body.data).to.has.property("message");
 
             // this is because we create device messages after we send response
-            await wait(0.05);
+            await utils.wait(0.05);
 
             const message = response.body.data.message;
             expect(message.totalUserCount).to.eqls(3);
@@ -223,7 +223,7 @@ describe("API", () => {
             expect(response.body).to.has.property("data");
             expect(response.body.data).to.has.property("message");
 
-            await wait(0.05);
+            await utils.wait(0.05);
 
             const message = response.body.data.message;
             const deviceMessages = await globals.prisma.deviceMessage.findMany({
@@ -258,7 +258,7 @@ describe("API", () => {
             expect(response.body).to.has.property("data");
             expect(response.body.data).to.has.property("message");
 
-            await wait(0.05);
+            await utils.wait(0.05);
 
             const message = response.body.data.message;
             const deviceMessages = await globals.prisma.deviceMessage.findMany({
@@ -292,7 +292,7 @@ describe("API", () => {
             expect(response.body).to.has.property("data");
             expect(response.body.data).to.has.property("message");
 
-            await wait(0.05);
+            await utils.wait(0.05);
 
             const message = response.body.data.message;
             const deviceMessages = await globals.prisma.deviceMessage.findMany({
@@ -323,7 +323,7 @@ describe("API", () => {
             expect(response.body).to.has.property("data");
             expect(response.body.data).to.has.property("message");
 
-            await wait(0.1);
+            await utils.wait(0.1);
 
             const message = response.body.data.message;
             const deviceMessagesCount = await globals.prisma.deviceMessage.count({
@@ -438,7 +438,7 @@ describe("API", () => {
 
             expect(response.status).to.eqls(200);
 
-            await wait(0.2);
+            await utils.wait(0.2);
 
             const messageRecords = await globals.prisma.messageRecord.findMany({
                 where: {
@@ -470,7 +470,7 @@ describe("API", () => {
 
             expect(response.status).to.eqls(200);
 
-            await wait(0.2);
+            await utils.wait(0.2);
 
             const messageRecords = await globals.prisma.messageRecord.findMany({
                 where: {
@@ -604,7 +604,7 @@ describe("API", () => {
 
             expect(response.status).to.eqls(200);
 
-            await wait(0.1);
+            await utils.wait(0.1);
 
             const messageRecords = await globals.prisma.messageRecord.findMany({
                 where: {
