@@ -1109,7 +1109,7 @@ export async function getRoomUnreadCount({
             where: {
                 roomId,
                 createdAt: {
-                    gt: roomUserCreatedAt,
+                    gte: roomUserCreatedAt,
                 },
                 messageRecords: {
                     none: {

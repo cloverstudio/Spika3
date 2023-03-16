@@ -7,7 +7,8 @@ import { beforeEach, before } from "mocha";
 import createFakeUser, { createManyFakeUsers } from "./fixtures/user";
 import { RoomUser, Room, User } from ".prisma/client";
 import sanitize from "../server/components/sanitize";
-import utils from "../server/components/utils";
+import createFakeMessage from "./fixtures/message";
+import createFakeDevice from "./fixtures/device";
 
 describe("API", () => {
     describe("/api/messenger/rooms POST", () => {
@@ -908,8 +909,6 @@ describe("API", () => {
                 .get("/api/messenger/rooms/sync/" + lastUpdate)
                 .set({ accesstoken: globals.userToken });
 
-            console.log({ d: response.body.data });
-
             expect(response.status).to.eqls(200);
             expect(response.body.data).to.has.property("rooms");
             expect(response.body.data.rooms.some((m: any) => m.id === room.id)).to.be.true;
@@ -932,6 +931,35 @@ describe("API", () => {
             expect(response.body.data).to.has.property("rooms");
             expect(response.body.data.rooms.some((m: any) => m.name === updatedRoom.name)).to.be
                 .true;
+        });
+    });
+
+    describe("/api/messenger/rooms/unread-count GET", () => {
+        it("Returns roomsIds and their unread count", async () => {
+            const user = await createFakeUser();
+            const device = await createFakeDevice(user.id);
+            const room = await createFakeRoom([
+                { userId: globals.userId, isAdmin: true },
+                { userId: user.id, isAdmin: false },
+            ]);
+
+            await createFakeMessage({
+                room,
+                fromUserId: user.id,
+                fromDeviceId: device.id,
+            });
+
+            const response = await supertest(app)
+                .get("/api/messenger/rooms/unread-count")
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(200);
+            expect(response.body.data).to.has.property("unreadCounts");
+            expect(response.body.data.unreadCounts.some((m: any) => m.roomId === room.id)).to.be
+                .true;
+            expect(
+                response.body.data.unreadCounts.find((m: any) => m.roomId === room.id)?.unreadCount
+            ).to.be.eqls(1);
         });
     });
 });

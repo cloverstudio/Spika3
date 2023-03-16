@@ -18,6 +18,7 @@ before(function (done) {
         redisClient.on("error", (err) => console.log("Redis Client Error", err));
 
         await redisClient.connect();
+        await redisClient.flushAll();
 
         globals.rabbitMQChannel = await rabbitMQConnection.createChannel();
         globals.redisClient = redisClient;
