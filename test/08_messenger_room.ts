@@ -648,7 +648,7 @@ describe("API", () => {
         });
     });
 
-    describe("/api/messenger/rooms/:id/mute PUT", () => {
+    describe("/api/messenger/rooms/:id/mute POST", () => {
         it("returns 404 if there is no room with that id", async () => {
             const id = 865454588;
 
@@ -671,10 +671,20 @@ describe("API", () => {
                 .set({ accesstoken: globals.userToken });
 
             expect(response.status).to.eqls(200);
+
+            const roomResponse = await supertest(app)
+                .get(`/api/messenger/rooms/${room.id}`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(roomResponse.status).to.eqls(200);
+            expect(roomResponse.body).to.has.property("data");
+            expect(roomResponse.body.data).to.has.property("room");
+            expect(roomResponse.body.data.room.id).to.eqls(room.id);
+            expect(roomResponse.body.data.room.muted).to.eqls(true);
         });
     });
 
-    describe("/api/messenger/rooms/:id/unmute PUT", () => {
+    describe("/api/messenger/rooms/:id/unmute POST", () => {
         it("returns 404 if there is no room with that id", async () => {
             const id = 865454588;
 
@@ -701,6 +711,92 @@ describe("API", () => {
                 .set({ accesstoken: globals.userToken });
 
             expect(response.status).to.eqls(200);
+
+            const roomResponse = await supertest(app)
+                .get(`/api/messenger/rooms/${room.id}`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(roomResponse.status).to.eqls(200);
+            expect(roomResponse.body).to.has.property("data");
+            expect(roomResponse.body.data).to.has.property("room");
+            expect(roomResponse.body.data.room.id).to.eqls(room.id);
+            expect(roomResponse.body.data.room.muted).to.eqls(false);
+        });
+    });
+
+    describe("/api/messenger/rooms/:id/pin POST", () => {
+        it("returns 404 if there is no room with that id", async () => {
+            const id = 865454588;
+
+            const response = await supertest(app)
+                .post(`/api/messenger/rooms/${id}/pin`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(404);
+        });
+
+        it("user can pin room", async () => {
+            const user = await createFakeUser();
+            const room = await createFakeRoom([
+                { userId: user.id, isAdmin: true },
+                { userId: globals.userId },
+            ]);
+
+            const response = await supertest(app)
+                .post(`/api/messenger/rooms/${room.id}/pin`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(200);
+
+            const roomResponse = await supertest(app)
+                .get(`/api/messenger/rooms/${room.id}`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(roomResponse.status).to.eqls(200);
+            expect(roomResponse.body).to.has.property("data");
+            expect(roomResponse.body.data).to.has.property("room");
+            expect(roomResponse.body.data.room.id).to.eqls(room.id);
+            expect(roomResponse.body.data.room.pinned).to.eqls(true);
+        });
+    });
+
+    describe("/api/messenger/rooms/:id/unpin POST", () => {
+        it("returns 404 if there is no room with that id", async () => {
+            const id = 865454588;
+
+            const response = await supertest(app)
+                .post(`/api/messenger/rooms/${id}/unpin`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(404);
+        });
+
+        it("user can unpin room", async () => {
+            const user = await createFakeUser();
+            const room = await createFakeRoom([
+                { userId: user.id, isAdmin: true },
+                { userId: globals.userId },
+            ]);
+
+            await supertest(app)
+                .post(`/api/messenger/rooms/${room.id}/pin`)
+                .set({ accesstoken: globals.userToken });
+
+            const response = await supertest(app)
+                .post(`/api/messenger/rooms/${room.id}/unpin`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(200);
+
+            const roomResponse = await supertest(app)
+                .get(`/api/messenger/rooms/${room.id}`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(roomResponse.status).to.eqls(200);
+            expect(roomResponse.body).to.has.property("data");
+            expect(roomResponse.body.data).to.has.property("room");
+            expect(roomResponse.body.data.room.id).to.eqls(room.id);
+            expect(roomResponse.body.data.room.pinned).to.eqls(false);
         });
     });
 
