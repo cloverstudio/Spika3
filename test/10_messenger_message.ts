@@ -1148,4 +1148,53 @@ describe("API", () => {
             expect(+messageFromDb.modifiedAt > +message.modifiedAt).to.eqls(true);
         });
     });
+
+    describe("/api/messenger/messages/roomId/:roomId GET", () => {
+        let room: Room;
+
+        before(async () => {
+            room = await createFakeRoom([{ userId: globals.userId, isAdmin: true }]);
+        });
+
+        it("returns 404 if there is no room", async () => {
+            const responseInvalid = await supertest(app)
+                .get("/api/messenger/messages/roomId/65415361531115131")
+                .set({ accesstoken: globals.userToken });
+
+            expect(responseInvalid.status).to.eqls(404);
+        });
+
+        it("returns empty list if there is no messages in room", async () => {
+            const room = await createFakeRoom([{ userId: globals.userId, isAdmin: true }]);
+
+            const response = await supertest(app)
+                .get(`/api/messenger/messages/roomId/${room.id}`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(200);
+            expect(response.body.data).to.has.property("list");
+            expect(response.body.data).to.has.property("count");
+            expect(response.body.data.list.length).to.eqls(0);
+            expect(response.body.data.count).to.eqls(0);
+        });
+
+        it("returns messages from that room", async () => {
+            await createFakeMessage({
+                fromUserId: globals.userId,
+                room,
+                type: "video",
+                fromDeviceId: globals.deviceId,
+            });
+
+            const response = await supertest(app)
+                .get(`/api/messenger/messages/roomId/${room.id}`)
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(200);
+            expect(response.body.data).to.has.property("list");
+            expect(response.body.data).to.has.property("count");
+            expect(response.body.data.list.length).to.eqls(1);
+            expect(response.body.data.count).to.eqls(1);
+        });
+    });
 });
