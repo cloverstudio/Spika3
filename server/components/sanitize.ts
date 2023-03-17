@@ -86,8 +86,19 @@ export default function sanitize(data: any): sanitizeTypes {
         user: () => sanitizeUser(data),
         room: () => sanitizeRoom(data),
         device: () => {
-            const { id, userId, token, tokenExpiredAt, osName, osVersion, appVersion, pushToken } =
-                data as Device;
+            const {
+                id,
+                userId,
+                token,
+                tokenExpiredAt,
+                osName,
+                osVersion,
+                appVersion,
+                pushToken,
+                deviceId,
+                deviceName,
+                type,
+            } = data as Device;
 
             return {
                 id,
@@ -98,6 +109,9 @@ export default function sanitize(data: any): sanitizeTypes {
                 osVersion,
                 appVersion,
                 pushToken,
+                deviceId,
+                deviceName,
+                type,
             };
         },
         message: () => {
