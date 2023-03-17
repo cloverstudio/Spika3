@@ -88,7 +88,7 @@ describe("User API", () => {
         });
     });
 
-    describe("/api/messenger/users/sync/:timestamp PUT", () => {
+    describe("/api/messenger/users/sync/:timestamp GET", () => {
         it("Timestamp must be number", async () => {
             const response = await supertest(app)
                 .get("/api/messenger/users/sync/a54dsa5d4sa5d4as5")
@@ -118,6 +118,16 @@ describe("User API", () => {
             const users = response.body.data.users as User[];
 
             expect(users.some((u) => u.id === user.id)).to.eqls(true);
+        });
+    });
+
+    describe("/api/messenger/me/settings GET", () => {
+        it("Get user settings works", async () => {
+            const response = await supertest(app)
+                .get("/api/messenger/me/settings")
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(200);
         });
     });
 });

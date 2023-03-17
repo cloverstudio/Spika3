@@ -4,6 +4,8 @@ import supertest from "supertest";
 import app from "../server";
 import faker from "faker";
 import globals from "./global";
+import createFakeDevice from "./fixtures/device";
+import createFakeUser from "./fixtures/user";
 
 const telephoneNumber = `+385${faker.fake("{{datatype.number}}")}`;
 const telephoneNumber2 = `+385${faker.fake("{{datatype.number}}")}`;
@@ -184,13 +186,19 @@ describe("API", () => {
         });
     });
 
-    describe("/api/messenger/me/settings GET", () => {
-        it("Get user settings works", async () => {
+    describe("/api/messenger/auth/logout POST", () => {
+        it("Expires token when logout", async () => {
+            const user = await createFakeUser();
+            const device = await createFakeDevice(user.id);
+
             const response = await supertest(app)
-                .get("/api/messenger/me/settings")
-                .set({ accesstoken: globals.userToken });
+                .post("/api/messenger/auth/logout")
+                .set({ accesstoken: device.token });
 
             expect(response.status).to.eqls(200);
+            expect(response.body.data).to.have.property("device");
+            expect(response.body.data.device).to.have.property("token");
+            expect(response.body.data.device.token).to.be.null;
         });
     });
 });
