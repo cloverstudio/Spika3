@@ -12,3 +12,11 @@ export default async function createFakeRoom(users?: any, overrides?: any): Prom
         },
     });
 }
+
+export async function createManyFakeRooms(
+    count: number,
+    users?: any,
+    overrides?: any
+): Promise<Room[]> {
+    return Promise.all(new Array(count).fill(true).map(() => createFakeRoom(users, overrides)));
+}
