@@ -525,7 +525,6 @@ describe("API", () => {
                 },
             });
 
-            console.log(messageRecords);
             expect(messageRecords.filter((mr) => mr.type === "delivered")).to.have.lengthOf(2);
         });
 
