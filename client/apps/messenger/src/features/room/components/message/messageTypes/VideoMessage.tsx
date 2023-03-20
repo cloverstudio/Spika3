@@ -42,9 +42,10 @@ export default function VideoMessage({
         }
 
         const file = localFile || fileFromServer;
-
-        setSrc(localFile ? URL.createObjectURL(file) : `${DOWNLOAD_URL}/${body.fileId}`);
-        setMimeType(localFile ? file.type : file.mimeType);
+        if (file) {
+            setSrc(localFile ? URL.createObjectURL(file) : `${DOWNLOAD_URL}/${body.fileId}`);
+            setMimeType(localFile ? file.type : file.mimeType);
+        }
     }, [body, roomId]);
 
     const handleOpen = () => {
@@ -73,7 +74,10 @@ export default function VideoMessage({
                     sx={{
                         cursor: "pointer",
                         objectFit: "contain",
-                        filter: isVerifying || isUploading ? "blur(4px)" : "none",
+                        filter:
+                            isVerifying || isUploading
+                                ? "blur(4px) brightness(55%)"
+                                : "brightness(55%)",
                     }}
                 />
                 {isUploading || isVerifying ? (
