@@ -34,10 +34,17 @@ export default function MessagesContainer({
     const ref = useRef<HTMLDivElement>();
     const [newMessages, setNewMessages] = useState(0);
     const [dragCounter, setDragCounter] = useState(0);
+    const [scrolledToTargetMessage, setScrolledToTargetMessage] = useState(false);
     const [lastScrollHeight, setLastScrollHeight] = useState<number>();
     const [locked, setLockedForScroll] = useState(false);
     const [initialLoading, setLoading] = useState(true);
     const { isLoading: roomIsLoading } = useGetRoomQuery(roomId);
+
+    useEffect(() => {
+        if (targetMessageId) {
+            setScrolledToTargetMessage(false);
+        }
+    }, [targetMessageId]);
 
     useEffect(() => {
         if (locked) {
@@ -54,8 +61,9 @@ export default function MessagesContainer({
         } else if (!locked && targetMessageId) {
             setTimeout(() => {
                 const ele = document.getElementById(`message_${targetMessageId}`);
-                if (ele) {
+                if (ele && !scrolledToTargetMessage) {
                     ele.scrollIntoView();
+                    setScrolledToTargetMessage(true);
                 }
             }, 500);
         } else if (ref.current.scrollHeight !== lastScrollHeight) {
@@ -65,7 +73,14 @@ export default function MessagesContainer({
         }
 
         messagesLengthRef.current = messagesLength;
-    }, [isLastMessageFromUser, lastScrollHeight, locked, messagesLength, targetMessageId]);
+    }, [
+        isLastMessageFromUser,
+        lastScrollHeight,
+        locked,
+        messagesLength,
+        targetMessageId,
+        scrolledToTargetMessage,
+    ]);
 
     useEffect(() => {
         if (

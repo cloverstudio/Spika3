@@ -136,7 +136,6 @@ function AudioMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
 
 function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boolean }) {
     const roomId = parseInt(useParams().id || "");
-    const dispatch = useDispatch();
     const { data: room } = useGetRoomQuery(roomId);
 
     const renderReplyMessage = () => {
@@ -145,6 +144,7 @@ function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boo
         const sender = room?.users?.find(
             (u) => u.userId === body.referenceMessage.fromUserId
         )?.user;
+
         switch (replyMsgType) {
             case "text": {
                 return (
@@ -259,7 +259,12 @@ function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boo
     };
 
     const handleReplyClick = () => {
-        dispatch(setTargetMessage({ roomId, messageId: body.referenceMessage.id }));
+        if (body.referenceMessage.type === "text") {
+            const ele = document.getElementById(`message_${body.referenceMessage.id}`);
+            if (ele) {
+                ele.scrollIntoView();
+            }
+        }
     };
 
     return (
