@@ -162,7 +162,7 @@ const CountryPicker = (props: any) => {
                     <Box
                         sx={{
                             position: "absolute",
-                            backgroundColor: "white",
+                            backgroundColor: "background.default",
                             zIndex: 10,
                             width: staticBoxCoordinates.width,
                             left: staticBoxCoordinates.left,
@@ -178,10 +178,8 @@ const CountryPicker = (props: any) => {
                             fullWidth
                             autoFocus
                             sx={{
-                                backgroundColor: "background.paper",
-                                borderRadius: "1em",
-                                marginTop: "1.0em",
-                                marginBottom: "2em",
+                                marginTop: "1rem",
+                                marginBottom: "2rem",
                             }}
                             value={searchText}
                             onChange={handleSearch}
@@ -192,11 +190,14 @@ const CountryPicker = (props: any) => {
                                         <Search />
                                     </InputAdornment>
                                 ),
+                                sx: {
+                                    backgroundColor: "background.paper",
+                                    borderRadius: "0.75rem",
+                                },
                             }}
                             inputProps={{
                                 style: {
                                     padding: 10,
-                                    border: "none",
                                 },
                             }}
                         />
