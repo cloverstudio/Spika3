@@ -80,6 +80,7 @@ export default function LeftSidebarHome({
                                 display="flex"
                                 flexDirection="column"
                                 justifyContent="center"
+                                sx={{ userSelect: "none" }}
                             >
                                 <img width="40px" height="40px" src={logo} />
                             </Box>
