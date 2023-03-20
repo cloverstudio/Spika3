@@ -13,6 +13,7 @@ import createFakeUser, { createManyFakeUsers } from "./fixtures/user";
 import sendPush from "../server/services/push/worker/sendPush";
 import utils from "../server/components/utils";
 import sanitize from "../server/components/sanitize";
+import createFakeFile from "./fixtures/file";
 
 describe("API", () => {
     describe("/api/messenger/messages POST", () => {
@@ -368,6 +369,51 @@ describe("API", () => {
             expect(responseInvalidOne.status).to.eqls(400);
             expect(responseInvalidTwo.status).to.eqls(400);
             expect(responseInvalidThree.status).to.eqls(400);
+            expect(response.status).to.eqls(200);
+        });
+
+        it("returns error if file with fileId doesn't exist", async () => {
+            const responseInvalid = await supertest(app)
+                .post("/api/messenger/messages")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, type: "file", body: { fileId: 2131455445 } });
+
+            expect(responseInvalid.status).to.eqls(400);
+
+            const file = await createFakeFile();
+
+            const response = await supertest(app)
+                .post("/api/messenger/messages")
+                .set({ accesstoken: globals.userToken })
+                .send({ ...validParams, type: "file", body: { fileId: file.id } });
+
+            expect(response.status).to.eqls(200);
+        });
+
+        it("returns error if file with thumbId doesn't exist", async () => {
+            const file = await createFakeFile();
+
+            const responseInvalid = await supertest(app)
+                .post("/api/messenger/messages")
+                .set({ accesstoken: globals.userToken })
+                .send({
+                    ...validParams,
+                    type: "file",
+                    body: { fileId: file.id, thumbId: 2131455445 },
+                });
+
+            expect(responseInvalid.status).to.eqls(400);
+
+            const thumb = await createFakeFile();
+            const response = await supertest(app)
+                .post("/api/messenger/messages")
+                .set({ accesstoken: globals.userToken })
+                .send({
+                    ...validParams,
+                    type: "file",
+                    body: { fileId: file.id, thumbId: thumb.id },
+                });
+
             expect(response.status).to.eqls(200);
         });
     });
