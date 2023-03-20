@@ -2,6 +2,7 @@ import { User } from "@prisma/client";
 import { expect } from "chai";
 import supertest from "supertest";
 import app from "../server";
+import createFakeContacts from "./fixtures/contact";
 import createFakeUser from "./fixtures/user";
 import globals from "./global";
 
@@ -88,7 +89,7 @@ describe("User API", () => {
         });
     });
 
-    describe("/api/messenger/users/sync/:timestamp PUT", () => {
+    describe("/api/messenger/users/sync/:timestamp GET", () => {
         it("Timestamp must be number", async () => {
             const response = await supertest(app)
                 .get("/api/messenger/users/sync/a54dsa5d4sa5d4as5")
@@ -118,6 +119,72 @@ describe("User API", () => {
             const users = response.body.data.users as User[];
 
             expect(users.some((u) => u.id === user.id)).to.eqls(true);
+        });
+    });
+
+    describe("/api/messenger/me/settings GET", () => {
+        it("Get user settings works", async () => {
+            const response = await supertest(app)
+                .get("/api/messenger/me/settings")
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(200);
+        });
+    });
+
+    describe("/api/messenger/users/:id GET", () => {
+        it("404 if user doesn't exist", async () => {
+            const response = await supertest(app)
+                .get("/api/messenger/users/123456987")
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(404);
+        });
+
+        it("You can get any user if team mode is on", async () => {
+            const user = await createFakeUser();
+
+            process.env.TEAM_MODE = "1";
+
+            const response = await supertest(app)
+                .get("/api/messenger/users/" + user.id)
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(200);
+            expect(response.body).to.has.property("data");
+            expect(response.body.data).to.has.property("user");
+            expect(response.body.data.user).to.has.property("id");
+            expect(response.body.data.user.id).to.eqls(user.id);
+        });
+
+        it("You can't get any user if team mode is off", async () => {
+            const user = await createFakeUser();
+
+            process.env.TEAM_MODE = "0";
+
+            const response = await supertest(app)
+                .get("/api/messenger/users/" + user.id)
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(404);
+        });
+
+        it("You can get contact user if team mode is off", async () => {
+            const user = await createFakeUser();
+
+            await createFakeContacts({ userId: globals.userId, contacts: [user] });
+
+            process.env.TEAM_MODE = "0";
+
+            const response = await supertest(app)
+                .get("/api/messenger/users/" + user.id)
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(200);
+            expect(response.body).to.has.property("data");
+            expect(response.body.data).to.has.property("user");
+            expect(response.body.data.user).to.has.property("id");
+            expect(response.body.data.user.id).to.eqls(user.id);
         });
     });
 });

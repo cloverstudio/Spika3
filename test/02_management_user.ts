@@ -17,7 +17,6 @@ describe("Admin user management API", () => {
                 })
                 .set({ "admin-accesstoken": globals.adminToken });
 
-            console.log(response.body);
             globals.createdUser = response.body.data.user;
             expect(response.status).to.eqls(200);
         });

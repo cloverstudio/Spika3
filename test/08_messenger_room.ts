@@ -2,13 +2,14 @@ import { expect } from "chai";
 import supertest from "supertest";
 import app from "../server";
 import globals from "./global";
-import createFakeRoom from "./fixtures/room";
+import createFakeRoom, { createManyFakeRooms } from "./fixtures/room";
 import { beforeEach, before } from "mocha";
 import createFakeUser, { createManyFakeUsers } from "./fixtures/user";
 import { RoomUser, Room, User } from ".prisma/client";
 import sanitize from "../server/components/sanitize";
 import createFakeMessage from "./fixtures/message";
 import createFakeDevice from "./fixtures/device";
+import * as Constants from "../server/components/consts";
 
 describe("API", () => {
     describe("/api/messenger/rooms POST", () => {
@@ -584,7 +585,7 @@ describe("API", () => {
             ).to.eqls(true);
         });
 
-        it("Return 0 when keyword is ramdom", async () => {
+        it("Return 0 when keyword is random", async () => {
             const response = await supertest(app)
                 .get("/api/messenger/rooms?keyword=sssssss")
                 .set({ accesstoken: globals.userToken });
@@ -593,6 +594,28 @@ describe("API", () => {
             expect(response.body).to.has.property("data");
             expect(response.body.data).to.has.property("list");
             expect(response.body.data.list.length).to.eqls(0);
+        });
+
+        it("Accept page query param", async () => {
+            const user = await createFakeUser();
+            const device = await createFakeDevice(user.id);
+            const rooms = await createManyFakeRooms(12, [
+                { userId: globals.userId, isAdmin: true },
+                { userId: user.id, isAdmin: true },
+            ]);
+
+            const response = await supertest(app)
+                .get("/api/messenger/rooms?page=2")
+                .set({ accesstoken: device.token });
+
+            expect(response.status).to.eqls(200);
+            expect(response.body).to.has.property("data");
+            expect(response.body.data).to.has.property("list");
+            expect(response.body.data).to.has.property("count");
+            expect(response.body.data).to.has.property("limit");
+            expect(response.body.data.limit).to.eqls(Constants.PAGING_LIMIT);
+            expect(response.body.data.count).to.eqls(rooms.length);
+            expect(response.body.data.list.length).to.eqls(rooms.length - Constants.PAGING_LIMIT);
         });
     });
 
@@ -960,6 +983,46 @@ describe("API", () => {
             expect(
                 response.body.data.unreadCounts.find((m: any) => m.roomId === room.id)?.unreadCount
             ).to.be.eqls(1);
+        });
+    });
+
+    describe("/api/messenger/rooms/users/:userId GET", () => {
+        it("Returns 404 if user doesn't exist", async () => {
+            const response = await supertest(app)
+                .get("/api/messenger/rooms/users/123456789")
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(404);
+        });
+
+        it("Returns 404 if user doesn't have any shared private room", async () => {
+            const user = await createFakeUser();
+
+            const response = await supertest(app)
+                .get("/api/messenger/rooms/users/" + user.id)
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(404);
+        });
+
+        it("Returns shared private room", async () => {
+            const user = await createFakeUser();
+            await createFakeRoom(
+                [
+                    { userId: globals.userId, isAdmin: true },
+                    { userId: user.id, isAdmin: false },
+                ],
+                { type: "private" }
+            );
+
+            const response = await supertest(app)
+                .get("/api/messenger/rooms/users/" + user.id)
+                .set({ accesstoken: globals.userToken });
+
+            expect(response.status).to.eqls(200);
+            expect(response.body.data).to.has.property("room");
+            expect(response.body.data.room).to.has.property("users");
+            expect(response.body.data.room.users.some((u: any) => u.userId === user.id)).to.be.true;
         });
     });
 });

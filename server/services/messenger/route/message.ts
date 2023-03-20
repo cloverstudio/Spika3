@@ -77,15 +77,14 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 return res.status(403).send(errorResponse("Room is blocked", userReq.lang));
             }
 
-            // validation
             if (type === "image" || type === "audio" || type === "video" || type === "file") {
-                if (!body.fileId)
-                    return res.status(400).send(errorResponse("FileID is missing", userReq.lang));
+                if (!body.fileId) {
+                    return res.status(400).send(errorResponse("fileId is missing", userReq.lang));
+                }
 
                 const fileId: number = body.fileId;
                 const thumbId: number = body.thumbId;
 
-                // check existence
                 const exists = await prisma.file.findFirst({ where: { id: fileId } });
                 if (!exists)
                     return res.status(400).send(errorResponse("Invalid fileId", userReq.lang));
@@ -94,8 +93,9 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     const exists = await prisma.file.findFirst({
                         where: { id: thumbId },
                     });
-                    if (!exists)
+                    if (!exists) {
                         return res.status(400).send(errorResponse("Invalid thumbId", userReq.lang));
+                    }
                 }
             } else if (replyId) {
                 const referenceMessage = await prisma.message.findUnique({

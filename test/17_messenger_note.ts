@@ -29,6 +29,22 @@ describe("API", () => {
             expect(validResponse.status).to.eqls(200);
         });
 
+        it("Title max length is 136", async () => {
+            const title = new Array(137).fill("a").join("");
+            const invalidResponse = await supertest(app)
+                .post(`/api/messenger/notes/roomId/${room.id}`)
+                .set({ accesstoken: globals.userToken })
+                .send({ title, content: "dsds" });
+
+            const validResponse = await supertest(app)
+                .post(`/api/messenger/notes/roomId/${room.id}`)
+                .set({ accesstoken: globals.userToken })
+                .send({ title: "lala", content: "dsds" });
+
+            expect(invalidResponse.status).to.eqls(400);
+            expect(validResponse.status).to.eqls(200);
+        });
+
         it("Content is required", async () => {
             const invalidResponse = await supertest(app)
                 .post(`/api/messenger/notes/roomId/${room.id}`)
@@ -138,6 +154,22 @@ describe("API", () => {
                 .put(`/api/messenger/notes/${note.id}`)
                 .set({ accesstoken: globals.userToken })
                 .send({ content: "lalal", title: "lala" });
+
+            expect(invalidResponse.status).to.eqls(400);
+            expect(validResponse.status).to.eqls(200);
+        });
+
+        it("Title max length is 136", async () => {
+            const title = new Array(137).fill("a").join("");
+            const invalidResponse = await supertest(app)
+                .put(`/api/messenger/notes/${note.id}`)
+                .set({ accesstoken: globals.userToken })
+                .send({ title, content: "dsds" });
+
+            const validResponse = await supertest(app)
+                .put(`/api/messenger/notes/${note.id}`)
+                .set({ accesstoken: globals.userToken })
+                .send({ title: "lala", content: "dsds" });
 
             expect(invalidResponse.status).to.eqls(400);
             expect(validResponse.status).to.eqls(200);
