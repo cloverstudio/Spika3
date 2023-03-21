@@ -61,12 +61,14 @@ export default function MessageReactions({ id }: MessageReactionsProps): React.R
             }}
         >
             <Stack
+                flexShrink={0}
                 direction="row"
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
                 bgcolor={isUsersMessage ? "common.myMessageBackground" : "background.paper"}
                 position="relative"
                 top="23px"
+                px={0.75}
                 sx={{
                     borderRadius: "1rem",
                     border: "1px solid",
@@ -114,10 +116,10 @@ type ReactionProps = {
 function Reaction({ emoji, reactions }: ReactionProps): React.ReactElement {
     return (
         <>
-            <Box p={0.25}>
+            <Box p={0.25} flexShrink={0}>
                 {emoji}{" "}
                 {reactions.length > 1 ? (
-                    <Typography ml={-0.5} display="inline" fontSize="0.75rem">
+                    <Typography ml={-0.25} display="inline" fontSize="0.75rem">
                         {reactions.length}
                     </Typography>
                 ) : (

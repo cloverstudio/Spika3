@@ -48,7 +48,6 @@ export default function MessagesList(): React.ReactElement {
     const cursor = useSelector(selectCursor(roomId));
     const shouldDisplayBlockButton = useSelector(selectShouldDisplayBlockButton(roomId));
     const otherUserId = useSelector(selectOtherUserIdInPrivateRoom(roomId));
-    const loading = useSelector(selectRoomMessagesIsLoading(roomId));
 
     const messagesSorted = useMemo(() => {
         const sorted = Object.values(messages).sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1));
@@ -113,7 +112,7 @@ export default function MessagesList(): React.ReactElement {
 
     return (
         <>
-            <MessagesContainer loading={loading}>
+            <MessagesContainer>
                 {Object.entries(messagesSorted).map(([day, messages]) => {
                     return (
                         <Box key={day}>

@@ -222,9 +222,30 @@ function UserMenu({ onRemove, onPromote, onOpenChat }: UserMenuProps) {
             </IconButton>
 
             <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
-                <MenuItem onClick={onRemove}>{strings.remove}</MenuItem>
-                <MenuItem onClick={onPromote}>{strings.makeAdmin}</MenuItem>
-                <MenuItem onClick={onOpenChat}>{strings.goToChat}</MenuItem>
+                <MenuItem
+                    onClick={() => {
+                        onRemove();
+                        handleClose();
+                    }}
+                >
+                    {strings.remove}
+                </MenuItem>
+                <MenuItem
+                    onClick={() => {
+                        onPromote();
+                        handleClose();
+                    }}
+                >
+                    {strings.makeAdmin}
+                </MenuItem>
+                <MenuItem
+                    onClick={() => {
+                        onOpenChat();
+                        handleClose();
+                    }}
+                >
+                    {strings.goToChat}
+                </MenuItem>
             </Menu>
         </div>
     );

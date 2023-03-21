@@ -9,6 +9,7 @@ import {
     fetchMessages,
     selectCursor,
     selectIsLastMessageFromUser,
+    selectRoomMessagesIsLoading,
     selectRoomMessagesLength,
     selectTargetMessage,
 } from "../../slices/messages";
@@ -16,10 +17,8 @@ import NewMessageAlert from "./NewMessageAlert";
 
 export default function MessagesContainer({
     children,
-    loading,
 }: {
     children: React.ReactNode;
-    loading: boolean;
 }): React.ReactElement {
     const roomId = parseInt(useParams().id || "");
     const targetMessageId = useSelector(selectTargetMessage(roomId));
@@ -34,11 +33,13 @@ export default function MessagesContainer({
     const ref = useRef<HTMLDivElement>();
     const [newMessages, setNewMessages] = useState(0);
     const [dragCounter, setDragCounter] = useState(0);
+
     const [scrolledToTargetMessage, setScrolledToTargetMessage] = useState(false);
     const [lastScrollHeight, setLastScrollHeight] = useState<number>();
     const [locked, setLockedForScroll] = useState(false);
     const [initialLoading, setLoading] = useState(true);
     const { isLoading: roomIsLoading } = useGetRoomQuery(roomId);
+    const loading = useSelector(selectRoomMessagesIsLoading(roomId));
 
     useEffect(() => {
         if (targetMessageId) {
@@ -58,7 +59,7 @@ export default function MessagesContainer({
             if (messagesLength - messagesLengthRef.current === 1 && !isLastMessageFromUser) {
                 setNewMessages((m) => m + 1);
             }
-        } else if (!locked && targetMessageId) {
+        } else if (targetMessageId) {
             setTimeout(() => {
                 const ele = document.getElementById(`message_${targetMessageId}`);
                 if (ele && !scrolledToTargetMessage) {
@@ -66,10 +67,12 @@ export default function MessagesContainer({
                     setScrolledToTargetMessage(true);
                 }
             }, 500);
-        } else if (ref.current.scrollHeight !== lastScrollHeight) {
+        } else if (ref.current.scrollHeight !== lastScrollHeight && messagesLength) {
             setTimeout(() => {
                 onScrollDown();
-            }, 500);
+            }, 350);
+        } else if (loading !== undefined && !loading && !roomIsLoading && initialLoading) {
+            setLoading(false);
         }
 
         messagesLengthRef.current = messagesLength;
@@ -80,24 +83,15 @@ export default function MessagesContainer({
         messagesLength,
         targetMessageId,
         scrolledToTargetMessage,
+        roomIsLoading,
+        loading,
+        initialLoading,
     ]);
-
-    useEffect(() => {
-        if (
-            initialLoading &&
-            !loading &&
-            !roomIsLoading &&
-            ref.current.scrollHeight <= ref.current.clientHeight
-        ) {
-            setLoading(false);
-        }
-    }, [initialLoading, loading, roomIsLoading]);
 
     const onScrollDown = () => {
         if (!ref.current) {
             return;
         }
-
         scrollElemBottom(ref.current, () => setLoading(false));
         setLockedForScroll(false);
     };
@@ -252,9 +246,10 @@ export default function MessagesContainer({
 function scrollElemBottom(element: HTMLElement, onScroll?: () => void): void {
     if (element.scrollHeight > element.clientHeight) {
         element.scrollTop = element.scrollHeight - element.clientHeight;
-        if (onScroll) {
-            onScroll();
-        }
+    }
+
+    if (onScroll) {
+        onScroll();
     }
 }
 

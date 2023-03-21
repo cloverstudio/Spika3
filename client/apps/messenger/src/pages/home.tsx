@@ -89,7 +89,13 @@ export default function Home(): React.ReactElement {
                         anchor="left"
                         open={open}
                         onClose={() => setOpen()}
-                        hideBackdrop={false}
+                        hideBackdrop={true}
+                        elevation={0}
+                        PaperProps={{
+                            sx: {
+                                backgroundColor: "background.default",
+                            },
+                        }}
                     >
                         <LeftSidebar />
                     </Drawer>
