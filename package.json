@@ -11,7 +11,7 @@
         "dev:server": "nodemon server/index.ts",
         "build:server": "npx tsc -p tsconfig.server.json",
         "start:server": "node tmp/server/index.js",
-        "dev:management": "vite --mode messenger",
+        "dev:management": "vite --mode management",
         "build:management": "vite build --mode management --emptyOutDir",
         "dev:messenger": "vite --mode messenger",
         "build:messenger": "vite build --mode messenger --emptyOutDir",

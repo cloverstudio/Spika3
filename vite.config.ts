@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
+import * as path from "path";
 
 // https://vitejs.dev/config/
 
@@ -69,6 +70,13 @@ export default defineConfig(({ command, mode }) => {
         server: {
             port: 3001,
             host: "0.0.0.0",
+        },
+        resolve: {
+            alias: [
+                { find: "@assets", replacement: path.resolve(__dirname, "./client/assets") },
+                { find: "@lib", replacement: path.resolve(__dirname, "./client/lib") },
+                { find: "@", replacement: path.resolve(__dirname, "./client/apps/management/src") },
+            ],
         },
     };
 
