@@ -25,9 +25,11 @@ class TokenHandler {
     }
 
     checkToken(token: string): boolean {
-        const matchedToken: Token | undefined = this.tokens.find((item) => item.token === token);
+        const matchedToken = this.tokens.find((item) => item.token === token);
 
-        if (matchedToken === undefined) return false;
+        if (!matchedToken) {
+            return false;
+        }
 
         return matchedToken.expireDate > dayjs().unix();
     }

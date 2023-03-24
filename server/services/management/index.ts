@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import authRouter from "./route/auth";
 import userRouter from "./route/user";
+import countRouter from "./route/count";
 import deviceRouter from "./route/device";
 import roomRouter from "./route/room";
 import messageRouter from "./route/message";
@@ -13,6 +14,7 @@ export default class Management implements Service {
     getRoutes() {
         const userManagementRouter = Router();
         userManagementRouter.use("/auth", authRouter());
+        userManagementRouter.use("/counts", countRouter());
         userManagementRouter.use("/user", userRouter({}));
         userManagementRouter.use("/device", deviceRouter({}));
         userManagementRouter.use("/room", roomRouter({}));

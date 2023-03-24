@@ -19,7 +19,7 @@ type Props = {
 export default function AuthBase({ children }: Props): React.ReactElement {
     const navigate = useNavigate();
     const { isLoggedIn, loading } = useIsLoggedIn();
-    console.log({ isLoggedIn, loading });
+
     useEffect(() => {
         const handleKeyDown = (ev: KeyboardEvent) => {
             if (ev.ctrlKey && ev.key === "o") {
