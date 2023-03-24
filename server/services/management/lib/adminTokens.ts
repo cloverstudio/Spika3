@@ -11,8 +11,6 @@ export interface Token {
 class TokenHandler {
     tokens: Token[] = [];
 
-    constructor() {}
-
     newToken(): Token {
         const newToken = Utils.randomString(16);
 

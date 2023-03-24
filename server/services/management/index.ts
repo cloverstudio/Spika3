@@ -8,11 +8,11 @@ import messageRouter from "./route/message";
 
 import Service from "../types/serviceInterface";
 export default class Management implements Service {
-    async start({}) {}
+    start({}) {}
 
     getRoutes() {
         const userManagementRouter = Router();
-        userManagementRouter.use("/auth", authRouter({}));
+        userManagementRouter.use("/auth", authRouter());
         userManagementRouter.use("/user", userRouter({}));
         userManagementRouter.use("/device", deviceRouter({}));
         userManagementRouter.use("/room", roomRouter({}));
@@ -20,5 +20,5 @@ export default class Management implements Service {
         return userManagementRouter;
     }
 
-    async test() {}
+    test() {}
 }

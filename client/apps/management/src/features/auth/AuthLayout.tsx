@@ -5,11 +5,12 @@ import Typography from "@mui/material/Typography";
 import logo from "@assets/logo.svg";
 import loginBg from "@assets/login-bg.svg";
 
-import Base from "@/components/Base";
+import { Base } from "@/components/Base";
 import useIsLoggedIn from "@/hooks/useIsLoggedIn";
 import Loader from "@/components/Loader";
 import { useNavigate } from "react-router-dom";
 import { APP_NAME } from "@lib/constants";
+import useStrings from "@/hooks/useStrings";
 
 type AuthLayoutProps = {
     children: React.ReactElement | React.ReactElement[];
@@ -22,10 +23,11 @@ export default function AuthLayout({
 }: AuthLayoutProps): React.ReactElement {
     const { loading: isLoggedInLoading, isLoggedIn } = useIsLoggedIn();
     const navigate = useNavigate();
+    const strings = useStrings();
 
     useEffect(() => {
         if (isLoggedIn) {
-            navigate("/app");
+            navigate("/");
         }
     }, [isLoggedIn, navigate]);
 
@@ -74,6 +76,27 @@ export default function AuthLayout({
                                 {APP_NAME}
                             </Typography>
                         </Box>
+
+                        <Typography
+                            display={{ xs: "none", md: "block" }}
+                            mb={3}
+                            component="h1"
+                            variant="h3"
+                            fontWeight="bold"
+                        >
+                            {strings.welcome}!
+                        </Typography>
+
+                        <Typography
+                            component="p"
+                            variant="h6"
+                            mx={{ xs: "auto", md: 0 }}
+                            maxWidth={{ xs: "220px", md: "none" }}
+                            mb={{ xs: 2.5, md: 5 }}
+                            fontWeight="medium"
+                        >
+                            {`${strings.loginToContinue}`}
+                        </Typography>
                         {children}
                     </Box>
                 )}

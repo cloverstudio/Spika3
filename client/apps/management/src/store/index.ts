@@ -1,6 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
-import api from "../api";
-import rootReducer from "./reducer";
+import api from "@/api";
+import rootReducer from "@/store/reducer";
 
 export const store = configureStore({
     reducer: rootReducer,
@@ -12,5 +12,5 @@ export const store = configureStore({
         }).concat(api.middleware),
 });
 
-export type RootState = ReturnType<typeof store.getState>;
+export type RootState = ReturnType<typeof rootReducer>;
 export type AppDispatch = typeof store.dispatch;

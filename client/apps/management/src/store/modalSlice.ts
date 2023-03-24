@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { RootState } from "@/store";
 
 interface UIState {
     showSnackBar: boolean;
@@ -47,5 +48,7 @@ export const uiSlice = createSlice({
 });
 
 export const { showSnackBar, hideSnackBar, hideBasicDialog, showBasicDialog } = uiSlice.actions;
+
+export const selectModal = (state: RootState) => state.modal;
 
 export default uiSlice.reducer;

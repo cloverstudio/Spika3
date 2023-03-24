@@ -1,5 +1,10 @@
+import Base from "@/components/Base";
 import React from "react";
 
 export default function home() {
-    return <div>Home</div>;
+    return (
+        <Base>
+            <div>Hooooo</div>
+        </Base>
+    );
 }

@@ -14,7 +14,7 @@ const axiosBaseQuery =
     ) => {
         try {
             const additionalHeaders: any = {
-                ...(token && { accessToken: token }),
+                ...(token && { adminAccessToken: token }),
             };
 
             const result = await axios({
@@ -35,11 +35,7 @@ const axiosBaseQuery =
                 return;
             }
 
-            if (result.data.status !== "success") {
-                throw new Error(result.data.message);
-            }
-
-            return { data: result.data.data };
+            return result;
         } catch (error) {
             console.error({ [url]: error });
             const text = (error as any)?.message || "Unexpected server error";
@@ -69,7 +65,7 @@ export const dynamicBaseQuery = async (args: any, options?: { dispatch: any }) =
 export default createApi({
     reducerPath: "api",
     baseQuery: dynamicBaseQuery,
-    tagTypes: ["User", "Rooms"],
+    tagTypes: ["Auth", "Users", "Rooms"],
 
     endpoints: () => ({}),
 });
