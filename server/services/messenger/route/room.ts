@@ -658,23 +658,26 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 select: {
                     roomId: true,
                     createdAt: true,
+                    room: true,
                 },
             });
 
             const list = await Promise.all(
-                roomUsers.map(async ({ roomId, createdAt }) => {
-                    const unreadCount = await getRoomUnreadCount({
-                        userId,
-                        roomId,
-                        redisClient,
-                        roomUserCreatedAt: createdAt,
-                    });
+                roomUsers
+                    .filter((r) => !r.room.deleted)
+                    .map(async ({ roomId, createdAt }) => {
+                        const unreadCount = await getRoomUnreadCount({
+                            userId,
+                            roomId,
+                            redisClient,
+                            roomUserCreatedAt: createdAt,
+                        });
 
-                    return {
-                        roomId,
-                        unreadCount,
-                    };
-                })
+                        return {
+                            roomId,
+                            unreadCount,
+                        };
+                    })
             );
 
             res.send(
