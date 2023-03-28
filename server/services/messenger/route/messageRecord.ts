@@ -98,6 +98,19 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     },
                 });
 
+                if (["delivered", "seen"].includes(type)) {
+                    await prisma.message.update({
+                        where: { id: messageId },
+                        data: {
+                            ...(type === "seen" && { seenCount: { increment: 1 } }),
+                            ...(type === "delivered" && {
+                                deliveredCount: { increment: 1 },
+                            }),
+                            modifiedAt: new Date(),
+                        },
+                    });
+                }
+
                 const messageRecordSanitized = sanitize({
                     ...messageRecord,
                     roomId: message.roomId,

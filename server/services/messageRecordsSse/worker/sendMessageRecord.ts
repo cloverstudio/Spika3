@@ -12,7 +12,16 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
         try {
             const { types, userId, messageIds, pushType, reaction, justNotify = false } = payload;
 
-            const messageRecords: SanitizedMessageRecord[] = [];
+            const messageRecords: (SanitizedMessageRecord & {
+                message?: {
+                    id: number;
+                    totalUserCount: number;
+                    deliveredCount: number;
+                    seenCount: number;
+                    roomId: number;
+                    modifiedAt: number;
+                };
+            })[] = [];
 
             for (const messageId of messageIds) {
                 for (const type of types) {
@@ -24,17 +33,32 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
                                 userId,
                             },
                         },
-                        include: { message: true },
+                        include: {
+                            message: {
+                                select: {
+                                    id: true,
+                                    totalUserCount: true,
+                                    deliveredCount: true,
+                                    seenCount: true,
+                                    roomId: true,
+                                    modifiedAt: true,
+                                },
+                            },
+                        },
                     });
 
                     if (justNotify) {
                         if (record) {
-                            messageRecords.push(
-                                sanitize({
+                            messageRecords.push({
+                                ...sanitize({
                                     ...record,
                                     roomId: record.message.roomId,
-                                }).messageRecord()
-                            );
+                                }).messageRecord(),
+                                message: {
+                                    ...record.message,
+                                    modifiedAt: +record.message.modifiedAt,
+                                },
+                            });
                         } else {
                             lw("Can't find messageRecord to justNotify about it!");
                         }
@@ -63,17 +87,27 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
                                         ...(type === "delivered" && {
                                             deliveredCount: { increment: 1 },
                                         }),
+                                        modifiedAt: new Date(),
                                     },
                                 });
                             }
 
-                            messageRecords.push(
-                                sanitize({
+                            messageRecords.push({
+                                ...sanitize({
                                     ...record,
                                     roomId: record.message.roomId,
-                                    ...(message && { message: sanitize(message).message() }),
-                                }).messageRecord()
-                            );
+                                }).messageRecord(),
+                                ...(message && {
+                                    message: {
+                                        id: message.id,
+                                        totalUserCount: message.totalUserCount,
+                                        deliveredCount: message.deliveredCount,
+                                        seenCount: message.seenCount,
+                                        roomId: message.roomId,
+                                        modifiedAt: +message.modifiedAt,
+                                    },
+                                }),
+                            });
                         } catch (error) {
                             lw("create message record failed", error.message);
                         }
