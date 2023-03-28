@@ -5,13 +5,12 @@ import * as consts from "../../../components/consts";
 
 import l, { error as le } from "../../../components/logger";
 
-import { InitRouterParams } from "../../types/serviceInterface";
 import { successResponse, errorResponse } from "../../../components/response";
 import { UserRequest } from "../../messenger/lib/types";
 import { Room } from "@prisma/client";
 import prisma from "../../../components/prisma";
 
-export default (params: InitRouterParams) => {
+export default () => {
     const router = Router();
 
     router.put("/userAdmin", adminAuth, async (req: Request, res: Response) => {

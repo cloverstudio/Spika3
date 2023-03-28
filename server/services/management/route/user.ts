@@ -2,16 +2,47 @@ import { Router, Request, Response } from "express";
 import adminAuth from "../lib/adminAuth";
 import Utils from "../../../components/utils";
 import * as consts from "../../../components/consts";
-import l, { error as le } from "../../../components/logger";
-import { InitRouterParams } from "../../types/serviceInterface";
+import { error as le } from "../../../components/logger";
 import { successResponse, errorResponse } from "../../../components/response";
 import { UserRequest } from "../../messenger/lib/types";
 import { User } from "@prisma/client";
 import sanitize from "../../../components/sanitize";
 import prisma from "../../../components/prisma";
 
-export default (params: InitRouterParams) => {
+export default () => {
     const router = Router();
+
+    router.get("/", adminAuth, async (req: Request, res: Response) => {
+        const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
+        const userReq: UserRequest = req as UserRequest;
+        try {
+            const users = await prisma.user.findMany({
+                where: {
+                    isBot: false,
+                },
+                orderBy: {
+                    displayName: "asc",
+                },
+                skip: consts.ADMIN_USERS_PAGING_LIMIT * page,
+                take: consts.ADMIN_USERS_PAGING_LIMIT,
+            });
+
+            const count = await prisma.user.count({ where: { isBot: false } });
+            res.send(
+                successResponse(
+                    {
+                        list: users,
+                        count: count,
+                        limit: consts.ADMIN_USERS_PAGING_LIMIT,
+                    },
+                    userReq.lang
+                )
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
 
     router.get("/search", adminAuth, async (req: Request, res: Response) => {
         const searchTerm: string = req.query.searchTerm ? (req.query.searchTerm as string) : "";
@@ -101,6 +132,7 @@ export default (params: InitRouterParams) => {
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
     });
+
     router.post("/", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
@@ -154,41 +186,6 @@ export default (params: InitRouterParams) => {
         }
     });
 
-    /**
-     * TODO: impliment order
-     */
-    router.get("/", adminAuth, async (req: Request, res: Response) => {
-        const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 0;
-        const userReq: UserRequest = req as UserRequest;
-        try {
-            const users = await prisma.user.findMany({
-                where: {},
-                orderBy: [
-                    {
-                        createdAt: "asc",
-                    },
-                ],
-                skip: consts.PAGING_LIMIT * page,
-                take: consts.PAGING_LIMIT,
-            });
-
-            const count = await prisma.user.count();
-            res.send(
-                successResponse(
-                    {
-                        list: users,
-                        count: count,
-                        limit: consts.PAGING_LIMIT,
-                    },
-                    userReq.lang
-                )
-            );
-        } catch (e: any) {
-            le(e);
-            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
-        }
-    });
-
     router.get("/:userId", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
@@ -210,6 +207,50 @@ export default (params: InitRouterParams) => {
         }
     });
 
+    router.get("/:userId/groups", adminAuth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        try {
+            const userId: number = parseInt(req.params.userId);
+
+            const user = await prisma.user.findFirst({
+                where: {
+                    id: userId,
+                },
+            });
+
+            if (!user) return res.status(404).send(errorResponse(`Wrong user id`, userReq.lang));
+
+            const roomsUser = await prisma.roomUser.findMany({
+                where: {
+                    userId,
+                },
+            });
+
+            const rooms = await prisma.room.findMany({
+                where: {
+                    id: {
+                        in: roomsUser.map((r) => r.roomId),
+                    },
+                    type: "group",
+                },
+                include: {
+                    users: {
+                        include: {
+                            user: true,
+                        },
+                    },
+                },
+            });
+
+            return res.send(
+                successResponse({ rooms: rooms.map((r) => sanitize(r).room()) }, userReq.lang)
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
     router.put("/:userId", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
@@ -222,21 +263,22 @@ export default (params: InitRouterParams) => {
             const verified: boolean = req.body.verified;
             const verificationCode: string = req.body.verificationCode;
 
-            // check existance
-            const user: User = await prisma.user.findFirst({
+            const user = await prisma.user.findFirst({
                 where: {
                     id: userId,
                 },
             });
 
-            if (!user) return res.status(404).send(errorResponse(`Wrong user id`, userReq.lang));
+            if (!user) {
+                return res.status(404).send(errorResponse(`Wrong user id`, userReq.lang));
+            }
 
-            const phoneNumber: User = await prisma.user.findFirst({
+            const phoneNumber = await prisma.user.findFirst({
                 where: {
                     telephoneNumber: telephoneNumber,
                 },
             });
-            const email: User = await prisma.user.findUnique({
+            const email = await prisma.user.findUnique({
                 where: {
                     emailAddress: emailAddress,
                 },
@@ -267,8 +309,9 @@ export default (params: InitRouterParams) => {
             if (verified != null) updateValues.verified = verified;
             if (verificationCode) updateValues.verificationCode = verificationCode;
 
-            if (Object.keys(updateValues).length == 0)
+            if (Object.keys(updateValues).length == 0) {
                 return res.status(400).send(errorResponse(`Nothing to update`, userReq.lang));
+            }
 
             const updateUser = await prisma.user.update({
                 where: { id: userId },
@@ -294,17 +337,22 @@ export default (params: InitRouterParams) => {
 
             if (!user) return res.status(404).send(errorResponse(`Wrong user id`, userReq.lang));
 
-            const fromDevice = await prisma.device.findMany({ where: { userId: userId } });
+            const fromDevice = await prisma.device.findMany({ where: { userId } });
+
             const fromDeviceIds = fromDevice.map((ru) => ru.id);
+
             const selectedMessages = await prisma.message.findMany({
                 where: {
                     fromDeviceId: { in: fromDeviceIds },
                 },
             });
+
             const selectedMessagesIds = selectedMessages.map((ru) => ru.id);
+
             const deleteMessageDevice = await prisma.deviceMessage.deleteMany({
                 where: { messageId: { in: selectedMessagesIds } },
             });
+
             const deleteMessageRecord = await prisma.messageRecord.deleteMany({
                 where: { messageId: { in: selectedMessagesIds } },
             });
@@ -333,9 +381,10 @@ export default (params: InitRouterParams) => {
                 where: { userId: userId },
             });
 
-            const deleteResult = await prisma.user.delete({
+            await prisma.user.delete({
                 where: { id: userId },
             });
+
             return res.send(successResponse("OK", userReq.lang));
         } catch (e: any) {
             le(e);

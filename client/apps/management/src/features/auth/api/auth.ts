@@ -1,14 +1,4 @@
-import api from "@/api";
-
-type SuccessResponse = {
-    status: "success";
-    data: { token: string };
-};
-
-type ErrorResponse = {
-    status: "error";
-    message: string;
-};
+import api, { SuccessResponse, ErrorResponse } from "@/api";
 
 const authApi = api.injectEndpoints({
     endpoints: (build) => ({
@@ -16,7 +6,7 @@ const authApi = api.injectEndpoints({
             query: (token) => `/management/auth/check?token=${token}`,
         }),
 
-        adminSignIn: build.mutation<SuccessResponse | ErrorResponse, any>({
+        adminSignIn: build.mutation<SuccessResponse<{ token: string }> | ErrorResponse, any>({
             query: (data) => {
                 return { url: "/management/auth", data, method: "POST" };
             },

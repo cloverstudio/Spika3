@@ -69,3 +69,13 @@ export default createApi({
 
     endpoints: () => ({}),
 });
+
+export type SuccessResponse<Data> = {
+    status: "success";
+    data: Data;
+};
+
+export type ErrorResponse = {
+    status: "error";
+    message: string;
+};

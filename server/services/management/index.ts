@@ -15,9 +15,9 @@ export default class Management implements Service {
         const userManagementRouter = Router();
         userManagementRouter.use("/auth", authRouter());
         userManagementRouter.use("/counts", countRouter());
-        userManagementRouter.use("/user", userRouter({}));
+        userManagementRouter.use("/users", userRouter());
         userManagementRouter.use("/device", deviceRouter({}));
-        userManagementRouter.use("/room", roomRouter({}));
+        userManagementRouter.use("/room", roomRouter());
         userManagementRouter.use("/message", messageRouter({}));
         return userManagementRouter;
     }
