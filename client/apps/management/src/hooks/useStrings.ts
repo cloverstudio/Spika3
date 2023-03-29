@@ -26,6 +26,20 @@ const en = {
     userDeleted: "User deleted",
     userUpdated: "User updated",
     groups: "Groups",
+    errorWhileFetchingUsers: "Error while fetching users",
+    errorWhileFetchingUser: "Error while fetching user",
+    errorWhileFetchingGroups: "Error while fetching groups",
+    userRemovedFromGroup: "User removed from group",
+    removeUserFromGroup: "Remove user from group",
+    removeUserFromGroupConfirmation: "Are you sure you want to remove user from this group?",
+    activeDevices: "Active devices",
+    expiredDevices: "Logout devices",
+    logoutUserFromDevice: "Logout user from device",
+    logoutUserFromDeviceConfirmation:
+        "Are you sure you want to logout user from device: {deviceName}?",
+    userLogoutFromDevice: "User logout from device",
+    uploadImageInstructions: "Click on image to change",
+    removeImage: "Remove image",
 };
 
 const strings = {

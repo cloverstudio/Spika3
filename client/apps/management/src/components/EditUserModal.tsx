@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useRef, useState } from "react";
 
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -7,9 +7,11 @@ import DialogActions from "@mui/material/DialogActions";
 import Button from "@mui/material/Button";
 
 import useStrings from "@/hooks/useStrings";
-import { Box, Checkbox, FormLabel, Stack, TextField } from "@mui/material";
+import { Box, Checkbox, FormLabel, Stack, TextField, Typography } from "@mui/material";
 import { useUpdateUserMutation } from "@/features/users/api/users";
 import { useShowSnackBar } from "@/hooks/useModal";
+import uploadImage from "@assets/upload-image.svg";
+import FileUploader from "@/utils/FileUploader";
 
 type UpdateUserFormType = {
     displayName: string;
@@ -19,10 +21,24 @@ type UpdateUserFormType = {
     verificationCode: string;
 };
 
+declare const UPLOADS_BASE_URL: string;
+
 export default function EditUserModal({ onClose, user }: { onClose: () => void; user: any }) {
     const strings = useStrings();
-    const [updateUser, { isLoading, isError }] = useUpdateUserMutation();
+    const [updateUser, { isLoading }] = useUpdateUserMutation();
     const showBasicSnackbar = useShowSnackBar();
+    const [file, setFile] = useState<File>();
+    const [src, setSrc] = useState(
+        user.avatarFileId ? `${UPLOADS_BASE_URL}/${user.avatarFileId}` : uploadImage
+    );
+    const uploadFileRef = useRef(null);
+
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const uploadedFile = e.target.files && e.target.files[0];
+
+        setFile(uploadedFile);
+        setSrc(URL.createObjectURL(uploadedFile));
+    };
 
     const [form, setForm] = useState<UpdateUserFormType>({
         displayName: user.displayName || "",
@@ -38,8 +54,22 @@ export default function EditUserModal({ onClose, user }: { onClose: () => void; 
 
     const handleSubmit = async () => {
         try {
-            const res = await updateUser({ userId: user.id, data: form }).unwrap();
-            console.log({ res });
+            let avatarFileId = 0;
+
+            if (file) {
+                const fileUploader = new FileUploader({
+                    file,
+                    type: "image",
+                });
+
+                const uploadedFile = await fileUploader.upload();
+                avatarFileId = uploadedFile.id;
+            }
+
+            const res = await updateUser({
+                userId: user.id,
+                data: { ...form, avatarFileId },
+            }).unwrap();
             if (res?.status === "success") {
                 showBasicSnackbar({ text: strings.userUpdated, severity: "success" });
                 onClose();
@@ -47,15 +77,13 @@ export default function EditUserModal({ onClose, user }: { onClose: () => void; 
                 showBasicSnackbar({ text: res.message, severity: "error" });
             }
         } catch (error) {
-            console.log({ erroroeroeoreo: error });
+            showBasicSnackbar({ text: strings.genericError, severity: "error" });
         }
     };
 
-    useEffect(() => {
-        if (isError) {
-            showBasicSnackbar({ text: strings.genericError, severity: "error" });
-        }
-    }, [isError]);
+    const handleRemoveImage = () => {
+        setSrc(uploadImage);
+    };
 
     return (
         <Dialog
@@ -66,13 +94,43 @@ export default function EditUserModal({ onClose, user }: { onClose: () => void; 
         >
             <DialogTitle id="alert-dialog-title">{strings.editUser}</DialogTitle>
             <DialogContent>
-                <Box
-                    minWidth={{ xs: "100%", md: "350px" }}
-                    textAlign="left"
-                    mb={{ xs: 3, md: 6 }}
-                    component="form"
-                >
-                    <Stack spacing={2} mb={4}>
+                <Box minWidth={{ xs: "100%", md: "350px" }} textAlign="left" component="form">
+                    <Stack spacing={2} mb={3}>
+                        <Box mx="auto" textAlign="center">
+                            <img
+                                width="100px"
+                                height="100px"
+                                style={{
+                                    objectFit: "cover",
+                                    borderRadius: "50%",
+                                    cursor: "pointer",
+                                }}
+                                src={src}
+                                onClick={() => uploadFileRef.current?.click()}
+                            />
+                            <input
+                                onChange={handleFileUpload}
+                                type="file"
+                                style={{ display: "none" }}
+                                ref={uploadFileRef}
+                                accept="image/*"
+                            />
+
+                            {src !== uploadImage && (
+                                <Typography variant="caption" sx={{ mt: 1, display: "block" }}>
+                                    {strings.uploadImageInstructions} <br />
+                                    <Box
+                                        sx={{ cursor: "pointer" }}
+                                        fontSize="0.85rem"
+                                        textAlign="center"
+                                        color="red"
+                                        onClick={handleRemoveImage}
+                                    >
+                                        {strings.removeImage}
+                                    </Box>
+                                </Typography>
+                            )}
+                        </Box>
                         <Box>
                             <FormLabel sx={{ mb: 1, display: "block" }}>
                                 {strings.displayName}

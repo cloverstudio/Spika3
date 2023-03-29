@@ -1,9 +1,11 @@
 import React, { useState } from "react";
-import { Avatar, Box, Button, Stack, Typography } from "@mui/material";
+import { Avatar, Box, Button, IconButton, Stack, Typography } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 import {
     useDeleteUserMutation,
     useGetUserByIdQuery,
-    useGetUserGroupsQuery,
+    useGetUserDevicesQuery,
+    useExpireUserDeviceMutation,
 } from "@/features/users/api/users";
 import Loader from "@/components/Loader";
 import useStrings from "@/hooks/useStrings";
@@ -12,6 +14,10 @@ import EditUserModal from "@/components/EditUserModal";
 import dayjs from "dayjs";
 import { useShowBasicDialog, useShowSnackBar } from "@/hooks/useModal";
 import { Link } from "react-router-dom";
+import {
+    useGetGroupsByUserIdQuery,
+    useRemoveUserFromGroupMutation,
+} from "@/features/groups/api/groups";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -20,8 +26,6 @@ export default function Users(): React.ReactElement {
     const { data, isLoading, isError } = useGetUserByIdQuery(id);
     const strings = useStrings();
 
-    console.log({ data });
-
     if (isLoading) {
         return <Loader />;
     }
@@ -29,7 +33,7 @@ export default function Users(): React.ReactElement {
     if (isError || data.status === "error") {
         return (
             <Box display="flex" justifyContent="center" alignItems="center" minHeight="95vh">
-                {strings.genericError}
+                {strings.errorWhileFetchingUser}
             </Box>
         );
     }
@@ -40,11 +44,10 @@ export default function Users(): React.ReactElement {
             height="100vh"
             overflow="auto"
             display="grid"
-            p={6}
             alignContent="start"
             sx={{ borderColor: "divider" }}
         >
-            <Box maxHeight="100vh">
+            <Box p={{ base: 2, md: 3, lg: 6 }}>
                 <UserDetails user={data.data.user} />
             </Box>
         </Box>
@@ -90,9 +93,8 @@ function UserDetails({ user }: { user: any }) {
                     alt={user.displayName || "U"}
                     src={`${UPLOADS_BASE_URL}/${user.avatarFileId}`}
                 />
-
                 <Stack my={4} spacing={1}>
-                    <Box display="grid" gridTemplateColumns="1fr 2fr" gap={2}>
+                    <Box display="grid" gridTemplateColumns="2fr 5fr" gap={2}>
                         <Typography color="text.tertiary" fontSize="0.85rem">
                             {strings.displayName}
                         </Typography>
@@ -100,7 +102,7 @@ function UserDetails({ user }: { user: any }) {
                             {user.displayName}
                         </Typography>
                     </Box>
-                    <Box display="grid" gridTemplateColumns="1fr 2fr" gap={2}>
+                    <Box display="grid" gridTemplateColumns="2fr 5fr" gap={2}>
                         <Typography color="text.tertiary" fontSize="0.85rem">
                             {strings.telephoneNumber}
                         </Typography>
@@ -108,7 +110,7 @@ function UserDetails({ user }: { user: any }) {
                             {user.telephoneNumber}
                         </Typography>
                     </Box>
-                    <Box display="grid" gridTemplateColumns="1fr 2fr" gap={2}>
+                    <Box display="grid" gridTemplateColumns="2fr 5fr" gap={2}>
                         <Typography color="text.tertiary" fontSize="0.85rem">
                             {strings.emailAddress}
                         </Typography>
@@ -116,7 +118,7 @@ function UserDetails({ user }: { user: any }) {
                             {user.emailAddress}
                         </Typography>
                     </Box>
-                    <Box display="grid" gridTemplateColumns="1fr 2fr" gap={2}>
+                    <Box display="grid" gridTemplateColumns="2fr 5fr" gap={2}>
                         <Typography color="text.tertiary" fontSize="0.85rem">
                             {strings.createdAt}
                         </Typography>
@@ -126,7 +128,7 @@ function UserDetails({ user }: { user: any }) {
                                 : ""}
                         </Typography>
                     </Box>
-                    <Box display="grid" gridTemplateColumns="1fr 2fr" gap={2}>
+                    <Box display="grid" gridTemplateColumns="2fr 5fr" gap={2}>
                         <Typography color="text.tertiary" fontSize="0.85rem">
                             {strings.modifiedAt}
                         </Typography>
@@ -136,7 +138,7 @@ function UserDetails({ user }: { user: any }) {
                                 : ""}
                         </Typography>
                     </Box>
-                    <Box display="grid" gridTemplateColumns="1fr 2fr" gap={2}>
+                    <Box display="grid" gridTemplateColumns="2fr 5fr" gap={2}>
                         <Typography color="text.tertiary" fontSize="0.85rem">
                             {strings.verified}
                         </Typography>
@@ -144,7 +146,7 @@ function UserDetails({ user }: { user: any }) {
                             {strings.verified ? strings.yes : strings.no}
                         </Typography>
                     </Box>
-                    <Box display="grid" gridTemplateColumns="1fr 2fr" gap={2}>
+                    <Box display="grid" gridTemplateColumns="2fr 5fr" gap={2}>
                         <Typography color="text.tertiary" fontSize="0.85rem">
                             {strings.verificationCode}
                         </Typography>
@@ -153,14 +155,20 @@ function UserDetails({ user }: { user: any }) {
                         </Typography>
                     </Box>
                     <UsersGroups userId={user.id} />
+                    <UsersDevices userId={user.id} />
                 </Stack>
             </Box>
-            <Box display="flex" gap={2}>
-                <Button onClick={() => setShowEdit(true)} variant="contained" color="primary">
-                    Edit
-                </Button>
-                <Button onClick={handleDelete} variant="outlined" color="error">
+            <Box display="flex" gap={1}>
+                <Button size="small" onClick={handleDelete} variant="outlined" color="error">
                     Delete
+                </Button>
+                <Button
+                    size="small"
+                    onClick={() => setShowEdit(true)}
+                    variant="outlined"
+                    color="primary"
+                >
+                    Edit
                 </Button>
             </Box>
             {showEdit && <EditUserModal user={user} onClose={() => setShowEdit(false)} />}
@@ -168,37 +176,189 @@ function UserDetails({ user }: { user: any }) {
     );
 }
 
-function UsersGroups({ userId }: { userId: string }) {
+function UsersGroups({ userId }: { userId: number }) {
     const strings = useStrings();
-    const { data, isLoading } = useGetUserGroupsQuery(userId);
+    const { data, isLoading, isError } = useGetGroupsByUserIdQuery(userId);
+    const [removeUserFromGroup] = useRemoveUserFromGroupMutation();
+    const showBasicDialog = useShowBasicDialog();
+    const showBasicSnackbar = useShowSnackBar();
 
     if (isLoading) {
         return null;
     }
 
-    if (data.status === "error") {
-        return <Box>Error fetching groups</Box>;
+    if (isError || data.status === "error") {
+        return <Box>{strings.errorWhileFetchingGroups}</Box>;
     }
 
+    const handleRemoveUserFromGroup = ({ id, name }: { id: number; name: string }) => {
+        console.log("remove", id);
+        showBasicDialog(
+            {
+                allowButtonLabel: strings.yes,
+                denyButtonLabel: strings.no,
+                text: strings.removeUserFromGroupConfirmation.replace("this", name),
+                title: strings.removeUserFromGroup,
+            },
+            () => {
+                removeUserFromGroup({ userId, groupId: id })
+                    .unwrap()
+                    .then((res) => {
+                        if (res.status === "error") {
+                            showBasicSnackbar({
+                                severity: "error",
+                                text: res.message,
+                            });
+                            return;
+                        }
+                        showBasicSnackbar({
+                            severity: "success",
+                            text: strings.userRemovedFromGroup,
+                        });
+                    });
+            }
+        );
+    };
+
     return (
-        <Box display="grid" gridTemplateColumns="1fr 2fr" gap={2}>
+        <Box display="grid" gridTemplateColumns="2fr 5fr" gap={2}>
             <Typography color="text.tertiary" fontSize="0.85rem">
                 {strings.groups}
             </Typography>
 
-            <Typography fontWeight="medium" color="text.secondary" fontSize="0.8rem">
-                <Box display="flex" flexWrap="wrap" gap={0.5}>
-                    {data?.data?.rooms.map((r) => (
+            <Box display="flex" flexWrap="wrap" gap={0.5}>
+                {data?.data?.rooms.map((r) => (
+                    <Button
+                        key={r.id}
+                        size="small"
+                        variant="outlined"
+                        endIcon={
+                            <CloseIcon
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleRemoveUserFromGroup(r);
+                                }}
+                            />
+                        }
+                        sx={{
+                            px: 1,
+                            py: 0.5,
+                        }}
+                    >
                         <Link
-                            key={r.id}
                             to={`/groups/${r.id}`}
                             style={{ textDecoration: "none", color: "inherit" }}
                         >
                             {r.name}
                         </Link>
-                    ))}
-                </Box>
-            </Typography>
+                    </Button>
+                ))}
+            </Box>
         </Box>
+    );
+}
+
+function UsersDevices({ userId }: { userId: number }) {
+    const strings = useStrings();
+    const { data, isLoading, isError } = useGetUserDevicesQuery(userId);
+    const [expireDevice] = useExpireUserDeviceMutation();
+    const showBasicDialog = useShowBasicDialog();
+    const showBasicSnackbar = useShowSnackBar();
+
+    if (isLoading) {
+        return null;
+    }
+
+    if (isError || data.status === "error") {
+        return <Box>{strings.errorWhileFetchingGroups}</Box>;
+    }
+
+    const handleExpireToken = ({
+        id,
+        osName,
+        osVersion,
+    }: {
+        id: number;
+        osName: string;
+        osVersion: string;
+    }) => {
+        showBasicDialog(
+            {
+                allowButtonLabel: strings.yes,
+                denyButtonLabel: strings.no,
+                text: strings.logoutUserFromDeviceConfirmation.replace(
+                    "{deviceName}",
+                    `${osName} (${osVersion})`
+                ),
+                title: strings.logoutUserFromDevice,
+            },
+            () => {
+                expireDevice({ userId, deviceId: id })
+                    .unwrap()
+                    .then((res) => {
+                        if (res.status === "error") {
+                            showBasicSnackbar({
+                                severity: "error",
+                                text: res.message,
+                            });
+                            return;
+                        }
+                        showBasicSnackbar({
+                            severity: "success",
+                            text: strings.userLogoutFromDevice,
+                        });
+                    });
+            }
+        );
+    };
+
+    return (
+        <>
+            <Box display="grid" gridTemplateColumns="2fr 5fr" gap={2}>
+                <Typography color="text.tertiary" fontSize="0.85rem">
+                    {strings.activeDevices}
+                </Typography>
+
+                <Box display="flex" flexWrap="wrap" gap={0.5}>
+                    {data?.data?.devices
+                        .filter((r) => r.tokenExpiredAt > +new Date())
+                        .map((r) => (
+                            <Typography
+                                key={r.id}
+                                fontWeight="medium"
+                                color="text.secondary"
+                                fontSize="0.8rem"
+                            >
+                                {r.osName} ({r.osVersion})
+                                <IconButton
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        handleExpireToken(r);
+                                    }}
+                                    size="small"
+                                    color="error"
+                                    sx={{ ml: 0.5 }}
+                                >
+                                    <CloseIcon />
+                                </IconButton>
+                            </Typography>
+                        ))}
+                </Box>
+            </Box>
+            <Box display="grid" gridTemplateColumns="2fr 5fr" gap={2}>
+                <Typography color="text.tertiary" fontSize="0.85rem">
+                    {strings.expiredDevices}
+                </Typography>
+
+                <Typography fontWeight="medium" color="text.secondary" fontSize="0.8rem">
+                    {data?.data?.devices
+                        .filter((r) => r.tokenExpiredAt < +new Date())
+                        .map((r) => `${r.osName} (${r.osVersion})`)
+                        .join(", ")}
+                </Typography>
+            </Box>
+        </>
     );
 }

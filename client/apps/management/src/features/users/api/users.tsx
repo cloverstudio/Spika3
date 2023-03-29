@@ -6,9 +6,15 @@ type UserType = {
     avatarFileId: number;
 };
 
-type RoomsType = {
+type DevicesType = {
     id: number;
-    name: string;
+    type: string;
+    osName: string;
+    osVersion: string;
+    deviceId: string;
+    tokenExpiredAt: number;
+    createdAt: number;
+    modifiedAt: number;
 };
 
 type UserListType = {
@@ -30,13 +36,43 @@ const usersApi = api.injectEndpoints({
             providesTags: (res) =>
                 res && res.status === "success" ? [{ type: "Users", id: res.data.user.id }] : [],
         }),
-        getUserGroups: build.query<SuccessResponse<{ rooms: RoomsType[] }> | ErrorResponse, string>(
-            {
-                query: (userId) => {
-                    return `/management/users/${userId}/groups`;
-                },
-            }
-        ),
+        getUserDevices: build.query<
+            SuccessResponse<{ devices: DevicesType[] }> | ErrorResponse,
+            number
+        >({
+            query: (userId) => {
+                return `/management/users/${userId}/devices`;
+            },
+            providesTags: (res, _, args) =>
+                res && res.status === "success"
+                    ? [
+                          {
+                              type: "Devices",
+                              id: `USER_LIST_${args}`,
+                          },
+                      ]
+                    : [],
+        }),
+        expireUserDevice: build.mutation<
+            SuccessResponse<{ expired: boolean }> | ErrorResponse,
+            { userId: number; deviceId: number }
+        >({
+            query: ({ userId, deviceId }) => {
+                return {
+                    url: `/management/users/${userId}/devices/${deviceId}/expire`,
+                    method: "PUT",
+                };
+            },
+            invalidatesTags: (res, _, args) =>
+                res && res.status === "success"
+                    ? [
+                          {
+                              type: "Devices",
+                              id: `USER_LIST_${args.userId}`,
+                          },
+                      ]
+                    : [],
+        }),
         updateUser: build.mutation<
             SuccessResponse<{ user: UserType }> | ErrorResponse,
             { userId: string; data: any }
@@ -67,6 +103,7 @@ export const {
     useGetUserByIdQuery,
     useUpdateUserMutation,
     useDeleteUserMutation,
-    useGetUserGroupsQuery,
+    useGetUserDevicesQuery,
+    useExpireUserDeviceMutation,
 } = usersApi;
 export default usersApi;

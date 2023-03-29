@@ -73,16 +73,51 @@ export default () => {
     router.delete("/:roomId/:userId", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
-            const roomId: number = parseInt(req.params.roomId);
-            const userId: number = parseInt(req.params.userId);
-            const allRoomUsers = await prisma.roomUser.deleteMany({
+            const roomId = parseInt(req.params.roomId);
+            const userId = parseInt(req.params.userId);
+
+            const roomUser = await prisma.roomUser.findFirst({
                 where: {
-                    roomId: roomId,
-                    userId: userId,
+                    roomId,
+                    userId,
                 },
             });
 
-            return res.send(successResponse({ users: allRoomUsers }, userReq.lang));
+            if (!roomUser) {
+                return res.status(404).send(errorResponse("Room User Not Found", userReq.lang));
+            }
+
+            if (roomUser.isAdmin) {
+                const otherAdmins = await prisma.roomUser.findMany({
+                    where: {
+                        roomId,
+                        isAdmin: true,
+                        userId: {
+                            not: userId,
+                        },
+                    },
+                });
+
+                if (otherAdmins.length === 0) {
+                    return res
+                        .status(400)
+                        .send(
+                            errorResponse(
+                                "Can't remove user because he is last admin in that group",
+                                userReq.lang
+                            )
+                        );
+                }
+            }
+
+            await prisma.roomUser.deleteMany({
+                where: {
+                    roomId,
+                    userId,
+                },
+            });
+
+            return res.send(successResponse({ removed: { roomId, userId } }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));

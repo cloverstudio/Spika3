@@ -251,6 +251,84 @@ export default () => {
         }
     });
 
+    router.get("/:userId/devices", adminAuth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        try {
+            const userId: number = parseInt(req.params.userId);
+
+            const user = await prisma.user.findFirst({
+                where: {
+                    id: userId,
+                },
+            });
+
+            if (!user) {
+                return res.status(404).send(errorResponse(`User not found`, userReq.lang));
+            }
+
+            const devices = await prisma.device.findMany({
+                where: {
+                    userId,
+                },
+            });
+
+            return res.send(
+                successResponse({ devices: devices.map((d) => sanitize(d).device()) }, userReq.lang)
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.put(
+        "/:userId/devices/:deviceId/expire",
+        adminAuth,
+        async (req: Request, res: Response) => {
+            const userReq: UserRequest = req as UserRequest;
+            try {
+                const userId = parseInt(req.params.userId);
+                const deviceId = parseInt(req.params.deviceId);
+
+                const user = await prisma.user.findFirst({
+                    where: {
+                        id: userId,
+                    },
+                });
+
+                if (!user) {
+                    return res.status(404).send(errorResponse("User not found", userReq.lang));
+                }
+
+                const device = await prisma.device.findUnique({
+                    where: {
+                        id: deviceId,
+                    },
+                });
+
+                if (!device) {
+                    return res.status(404).send(errorResponse("Device not found", userReq.lang));
+                }
+
+                await prisma.device.update({
+                    where: {
+                        id: device.id,
+                    },
+                    data: {
+                        tokenExpiredAt: new Date(),
+                        token: null,
+                        modifiedAt: new Date(),
+                    },
+                });
+
+                return res.send(successResponse({ expired: true }, userReq.lang));
+            } catch (e: any) {
+                le(e);
+                res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+            }
+        }
+    );
+
     router.put("/:userId", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
@@ -259,7 +337,7 @@ export default () => {
             const displayName: string = req.body.displayName;
             const emailAddress: string = req.body.emailAddress;
             const telephoneNumber: string = req.body.telephoneNumber;
-            const avatarFileId: number = parseInt(req.body.avatarFileId || "0");
+            const avatarFileId: number = req.body.avatarFileId;
             const verified: boolean = req.body.verified;
             const verificationCode: string = req.body.verificationCode;
 
@@ -305,7 +383,7 @@ export default () => {
             if (displayName) updateValues.displayName = displayName;
             if (emailAddress) updateValues.emailAddress = emailAddress;
             if (telephoneNumber) updateValues.telephoneNumber = telephoneNumber;
-            if (avatarFileId) updateValues.avatarFileId = avatarFileId;
+            if (avatarFileId !== undefined) updateValues.avatarFileId = avatarFileId;
             if (verified != null) updateValues.verified = verified;
             if (verificationCode) updateValues.verificationCode = verificationCode;
 

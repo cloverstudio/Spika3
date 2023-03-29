@@ -21,7 +21,7 @@ export default function Users(): React.ReactElement {
     if (isError || data.status === "error") {
         return (
             <Box display="flex" justifyContent="center" alignItems="center" minHeight="95vh">
-                {strings.genericError}
+                {strings.errorWhileFetchingUsers}
             </Box>
         );
     }
@@ -43,7 +43,7 @@ export default function Users(): React.ReactElement {
             <Box
                 maxHeight="100vh"
                 overflow="auto"
-                p={6}
+                p={{ base: 2, md: 3, lg: 6 }}
                 display="grid"
                 gap={4}
                 alignContent="start"
