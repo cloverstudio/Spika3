@@ -106,7 +106,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                             ...(type === "delivered" && {
                                 deliveredCount: { increment: 1 },
                             }),
-                            modifiedAt: new Date(),
                         },
                     });
                 }
@@ -198,9 +197,19 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 include: { message: true },
             });
 
-            const messageRecordsSanitized = messageRecords.map((messageRecord) =>
-                sanitize({ ...messageRecord, roomId: messageRecord.message.roomId }).messageRecord()
-            );
+            const messageRecordsSanitized = messageRecords.map((messageRecord) => ({
+                ...sanitize({
+                    ...messageRecord,
+                    roomId: messageRecord.message.roomId,
+                }).messageRecord(),
+                message: {
+                    id: messageRecord.message.id,
+                    totalUserCount: messageRecord.message.totalUserCount,
+                    deliveredCount: messageRecord.message.deliveredCount,
+                    seenCount: messageRecord.message.seenCount,
+                    roomId: messageRecord.message.roomId,
+                },
+            }));
 
             res.send(successResponse({ messageRecords: messageRecordsSanitized }, userReq.lang));
         } catch (e: any) {

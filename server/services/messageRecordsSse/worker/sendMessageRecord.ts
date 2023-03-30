@@ -19,7 +19,6 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
                     deliveredCount: number;
                     seenCount: number;
                     roomId: number;
-                    modifiedAt: number;
                 };
             })[] = [];
 
@@ -41,7 +40,6 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
                                     deliveredCount: true,
                                     seenCount: true,
                                     roomId: true,
-                                    modifiedAt: true,
                                 },
                             },
                         },
@@ -56,7 +54,6 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
                                 }).messageRecord(),
                                 message: {
                                     ...record.message,
-                                    modifiedAt: +record.message.modifiedAt,
                                 },
                             });
                         } else {
@@ -87,7 +84,6 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
                                         ...(type === "delivered" && {
                                             deliveredCount: { increment: 1 },
                                         }),
-                                        modifiedAt: new Date(),
                                     },
                                 });
                             }
@@ -104,7 +100,6 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
                                         deliveredCount: message.deliveredCount,
                                         seenCount: message.seenCount,
                                         roomId: message.roomId,
-                                        modifiedAt: +message.modifiedAt,
                                     },
                                 }),
                             });
