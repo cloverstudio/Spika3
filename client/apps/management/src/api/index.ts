@@ -35,6 +35,20 @@ const axiosBaseQuery =
                 return;
             }
 
+            if (result.status === 403) {
+                if (dispatch) {
+                    dispatch({ type: "USER_LOGOUT" });
+                }
+
+                return {
+                    data: {
+                        status: "error",
+                        message:
+                            "You don't have permission to perform this action, please login again",
+                    },
+                };
+            }
+
             return result;
         } catch (error) {
             console.error({ [url]: error });
@@ -65,7 +79,17 @@ export const dynamicBaseQuery = async (args: any, options?: { dispatch: any }) =
 export default createApi({
     reducerPath: "api",
     baseQuery: dynamicBaseQuery,
-    tagTypes: ["Auth", "Users", "Rooms"],
+    tagTypes: ["Auth", "Users", "Groups", "Devices"],
 
     endpoints: () => ({}),
 });
+
+export type SuccessResponse<Data> = {
+    status: "success";
+    data: Data;
+};
+
+export type ErrorResponse = {
+    status: "error";
+    message: string;
+};

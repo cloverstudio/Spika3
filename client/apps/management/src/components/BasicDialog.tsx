@@ -29,17 +29,9 @@ export default function BasicDialog() {
                 </DialogContentText>
             </DialogContent>
             <DialogActions>
-                <Button
-                    onClick={() => {
-                        dispatch(hideBasicDialog());
-                        if (uiListeners.onBasicDialogOK) uiListeners.onBasicDialogOK();
-                    }}
-                >
-                    {modalState.basicDialogInfo?.allowButtonLabel}
-                </Button>
-
                 {modalState.basicDialogInfo?.denyButtonLabel ? (
                     <Button
+                        color="error"
                         onClick={(e) => {
                             dispatch(hideBasicDialog());
                             if (uiListeners.onBasicDialogCancel) uiListeners.onBasicDialogCancel();
@@ -48,6 +40,14 @@ export default function BasicDialog() {
                         {modalState.basicDialogInfo?.denyButtonLabel}
                     </Button>
                 ) : null}
+                <Button
+                    onClick={() => {
+                        dispatch(hideBasicDialog());
+                        if (uiListeners.onBasicDialogOK) uiListeners.onBasicDialogOK();
+                    }}
+                >
+                    {modalState.basicDialogInfo?.allowButtonLabel}
+                </Button>
             </DialogActions>
         </Dialog>
     );

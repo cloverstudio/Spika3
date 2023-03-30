@@ -11,7 +11,12 @@ export default () => {
     router.get("/", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
-            const users = await prisma.user.count();
+            const users = await prisma.user.count({
+                where: {
+                    isBot: false,
+                    deleted: false,
+                },
+            });
             const groups = await prisma.room.count({
                 where: {
                     type: "group",

@@ -14,6 +14,7 @@ Table user {
   isBot Boolean [not null, default: false]
   createdAt DateTime [default: `now()`, not null]
   modifiedAt DateTime [default: `now()`, not null]
+  deleted Boolean [not null, default: false]
   rooms room_user [not null]
   device device [not null]
   contacts contact [not null]

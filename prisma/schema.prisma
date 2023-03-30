@@ -22,6 +22,7 @@ model User {
   isBot                 Boolean  @default(false) @map(name: "is_bot")
   createdAt             DateTime @default(now()) @map(name: "created_at")
   modifiedAt            DateTime @default(now()) @map(name: "modified_at")
+  deleted               Boolean  @default(false) @map(name: "deleted")
 
   rooms           RoomUser[]
   device          Device[]

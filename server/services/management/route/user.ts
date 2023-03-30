@@ -2,16 +2,48 @@ import { Router, Request, Response } from "express";
 import adminAuth from "../lib/adminAuth";
 import Utils from "../../../components/utils";
 import * as consts from "../../../components/consts";
-import l, { error as le } from "../../../components/logger";
-import { InitRouterParams } from "../../types/serviceInterface";
+import { error as le } from "../../../components/logger";
 import { successResponse, errorResponse } from "../../../components/response";
 import { UserRequest } from "../../messenger/lib/types";
 import { User } from "@prisma/client";
 import sanitize from "../../../components/sanitize";
 import prisma from "../../../components/prisma";
 
-export default (params: InitRouterParams) => {
+export default () => {
     const router = Router();
+
+    router.get("/", adminAuth, async (req: Request, res: Response) => {
+        const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
+        const userReq: UserRequest = req as UserRequest;
+        try {
+            const users = await prisma.user.findMany({
+                where: {
+                    isBot: false,
+                    deleted: false,
+                },
+                orderBy: {
+                    displayName: "asc",
+                },
+                skip: consts.ADMIN_USERS_PAGING_LIMIT * page,
+                take: consts.ADMIN_USERS_PAGING_LIMIT,
+            });
+
+            const count = await prisma.user.count({ where: { isBot: false, deleted: false } });
+            res.send(
+                successResponse(
+                    {
+                        list: users,
+                        count: count,
+                        limit: consts.ADMIN_USERS_PAGING_LIMIT,
+                    },
+                    userReq.lang
+                )
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
 
     router.get("/search", adminAuth, async (req: Request, res: Response) => {
         const searchTerm: string = req.query.searchTerm ? (req.query.searchTerm as string) : "";
@@ -101,6 +133,7 @@ export default (params: InitRouterParams) => {
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
     });
+
     router.post("/", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
@@ -154,41 +187,6 @@ export default (params: InitRouterParams) => {
         }
     });
 
-    /**
-     * TODO: impliment order
-     */
-    router.get("/", adminAuth, async (req: Request, res: Response) => {
-        const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 0;
-        const userReq: UserRequest = req as UserRequest;
-        try {
-            const users = await prisma.user.findMany({
-                where: {},
-                orderBy: [
-                    {
-                        createdAt: "asc",
-                    },
-                ],
-                skip: consts.PAGING_LIMIT * page,
-                take: consts.PAGING_LIMIT,
-            });
-
-            const count = await prisma.user.count();
-            res.send(
-                successResponse(
-                    {
-                        list: users,
-                        count: count,
-                        limit: consts.PAGING_LIMIT,
-                    },
-                    userReq.lang
-                )
-            );
-        } catch (e: any) {
-            le(e);
-            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
-        }
-    });
-
     router.get("/:userId", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
@@ -210,6 +208,128 @@ export default (params: InitRouterParams) => {
         }
     });
 
+    router.get("/:userId/groups", adminAuth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        try {
+            const userId: number = parseInt(req.params.userId);
+
+            const user = await prisma.user.findFirst({
+                where: {
+                    id: userId,
+                },
+            });
+
+            if (!user) return res.status(404).send(errorResponse(`Wrong user id`, userReq.lang));
+
+            const roomsUser = await prisma.roomUser.findMany({
+                where: {
+                    userId,
+                },
+            });
+
+            const rooms = await prisma.room.findMany({
+                where: {
+                    id: {
+                        in: roomsUser.map((r) => r.roomId),
+                    },
+                    type: "group",
+                },
+                include: {
+                    users: {
+                        include: {
+                            user: true,
+                        },
+                    },
+                },
+            });
+
+            return res.send(
+                successResponse({ rooms: rooms.map((r) => sanitize(r).room()) }, userReq.lang)
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.get("/:userId/devices", adminAuth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        try {
+            const userId: number = parseInt(req.params.userId);
+
+            const user = await prisma.user.findFirst({
+                where: {
+                    id: userId,
+                },
+            });
+
+            if (!user) {
+                return res.status(404).send(errorResponse(`User not found`, userReq.lang));
+            }
+
+            const devices = await prisma.device.findMany({
+                where: {
+                    userId,
+                },
+            });
+
+            return res.send(
+                successResponse({ devices: devices.map((d) => sanitize(d).device()) }, userReq.lang)
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.put(
+        "/:userId/devices/:deviceId/expire",
+        adminAuth,
+        async (req: Request, res: Response) => {
+            const userReq: UserRequest = req as UserRequest;
+            try {
+                const userId = parseInt(req.params.userId);
+                const deviceId = parseInt(req.params.deviceId);
+
+                const user = await prisma.user.findFirst({
+                    where: {
+                        id: userId,
+                    },
+                });
+
+                if (!user) {
+                    return res.status(404).send(errorResponse("User not found", userReq.lang));
+                }
+
+                const device = await prisma.device.findUnique({
+                    where: {
+                        id: deviceId,
+                    },
+                });
+
+                if (!device) {
+                    return res.status(404).send(errorResponse("Device not found", userReq.lang));
+                }
+
+                await prisma.device.update({
+                    where: {
+                        id: device.id,
+                    },
+                    data: {
+                        tokenExpiredAt: new Date(),
+                        token: null,
+                        modifiedAt: new Date(),
+                    },
+                });
+
+                return res.send(successResponse({ expired: true }, userReq.lang));
+            } catch (e: any) {
+                le(e);
+                res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+            }
+        }
+    );
+
     router.put("/:userId", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
@@ -218,25 +338,26 @@ export default (params: InitRouterParams) => {
             const displayName: string = req.body.displayName;
             const emailAddress: string = req.body.emailAddress;
             const telephoneNumber: string = req.body.telephoneNumber;
-            const avatarFileId: number = parseInt(req.body.avatarFileId || "0");
+            const avatarFileId: number = req.body.avatarFileId;
             const verified: boolean = req.body.verified;
             const verificationCode: string = req.body.verificationCode;
 
-            // check existance
-            const user: User = await prisma.user.findFirst({
+            const user = await prisma.user.findFirst({
                 where: {
                     id: userId,
                 },
             });
 
-            if (!user) return res.status(404).send(errorResponse(`Wrong user id`, userReq.lang));
+            if (!user) {
+                return res.status(404).send(errorResponse(`Wrong user id`, userReq.lang));
+            }
 
-            const phoneNumber: User = await prisma.user.findFirst({
+            const phoneNumber = await prisma.user.findFirst({
                 where: {
                     telephoneNumber: telephoneNumber,
                 },
             });
-            const email: User = await prisma.user.findUnique({
+            const email = await prisma.user.findUnique({
                 where: {
                     emailAddress: emailAddress,
                 },
@@ -263,12 +384,13 @@ export default (params: InitRouterParams) => {
             if (displayName) updateValues.displayName = displayName;
             if (emailAddress) updateValues.emailAddress = emailAddress;
             if (telephoneNumber) updateValues.telephoneNumber = telephoneNumber;
-            if (avatarFileId) updateValues.avatarFileId = avatarFileId;
+            if (avatarFileId !== undefined) updateValues.avatarFileId = avatarFileId;
             if (verified != null) updateValues.verified = verified;
             if (verificationCode) updateValues.verificationCode = verificationCode;
 
-            if (Object.keys(updateValues).length == 0)
+            if (Object.keys(updateValues).length == 0) {
                 return res.status(400).send(errorResponse(`Nothing to update`, userReq.lang));
+            }
 
             const updateUser = await prisma.user.update({
                 where: { id: userId },
@@ -284,59 +406,77 @@ export default (params: InitRouterParams) => {
     router.delete("/:userId", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
-            const userId: number = parseInt(req.params.userId);
-            // check existance
-            const user = await prisma.user.findFirst({
+            const userId = parseInt(req.params.userId);
+
+            const user = await prisma.user.update({
                 where: {
                     id: userId,
                 },
-            });
-
-            if (!user) return res.status(404).send(errorResponse(`Wrong user id`, userReq.lang));
-
-            const fromDevice = await prisma.device.findMany({ where: { userId: userId } });
-            const fromDeviceIds = fromDevice.map((ru) => ru.id);
-            const selectedMessages = await prisma.message.findMany({
-                where: {
-                    fromDeviceId: { in: fromDeviceIds },
+                data: {
+                    deleted: true,
+                    modifiedAt: new Date(),
+                    displayName: `Deleted user ${userId}`,
+                    avatarFileId: 0,
+                    telephoneNumberHashed: null,
+                    telephoneNumber: null,
+                    emailAddress: null,
                 },
             });
-            const selectedMessagesIds = selectedMessages.map((ru) => ru.id);
-            const deleteMessageDevice = await prisma.deviceMessage.deleteMany({
-                where: { messageId: { in: selectedMessagesIds } },
-            });
-            const deleteMessageRecord = await prisma.messageRecord.deleteMany({
-                where: { messageId: { in: selectedMessagesIds } },
+
+            if (!user) {
+                return res.status(404).send(errorResponse(`Wrong user id`, userReq.lang));
+            }
+
+            const userDevices = await prisma.device.findMany({ where: { userId } });
+
+            const userDevicesIds = userDevices.map((d) => d.id);
+
+            await prisma.message.updateMany({
+                where: {
+                    fromDeviceId: { in: userDevicesIds },
+                },
+                data: {
+                    fromDeviceId: null,
+                },
             });
 
-            const deleteMessages = await prisma.message.deleteMany({
-                where: { fromDeviceId: { in: fromDeviceIds } },
+            await prisma.deviceMessage.deleteMany({
+                where: { userId },
             });
 
-            const deleteDevice = await prisma.device.deleteMany({
-                where: { userId: userId },
+            await prisma.messageRecord.deleteMany({
+                where: { userId },
             });
 
-            const deleteContactByContactId = await prisma.contact.deleteMany({
-                where: { contactId: userId },
+            await prisma.device.deleteMany({
+                where: { userId },
             });
 
-            const deleteContactByUserId = await prisma.contact.deleteMany({
-                where: { userId: userId },
+            await prisma.contact.deleteMany({
+                where: { OR: [{ contactId: userId }, { userId }] },
             });
 
-            const deleteByMessageRecord = await prisma.messageRecord.deleteMany({
-                where: { userId: userId },
+            const rooms = await prisma.room.findMany({
+                where: { users: { some: { userId } }, type: "group" },
             });
 
-            const deleteFromRoom = await prisma.roomUser.deleteMany({
-                where: { userId: userId },
+            await prisma.roomUser.deleteMany({
+                where: { userId, roomId: { in: rooms.map((r) => r.id) } },
             });
 
-            const deleteResult = await prisma.user.delete({
-                where: { id: userId },
+            await prisma.callHistory.deleteMany({
+                where: { userId },
             });
-            return res.send(successResponse("OK", userReq.lang));
+
+            await prisma.userSetting.deleteMany({
+                where: { userId },
+            });
+
+            await prisma.block.deleteMany({
+                where: { OR: [{ blockedId: userId }, { userId }] },
+            });
+
+            return res.send(successResponse({ deleted: true }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));

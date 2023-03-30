@@ -4,6 +4,7 @@ export const TOKEN_EXPIRED = 60 * 60 * 24 * 30; // sec
 export const ACCESS_TOKEN = "accesstoken";
 export const ACCESS_TOKEN_NEW = "accessToken";
 export const PAGING_LIMIT = 10;
+export const ADMIN_USERS_PAGING_LIMIT = 10;
 export const CONTACT_PAGING_LIMIT = 20;
 export const HISTORY_PAGING_LIMIT = 20;
 export const MESSAGE_PAGING_LIMIT = 50;

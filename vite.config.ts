@@ -68,7 +68,7 @@ export default defineConfig(({ command, mode }) => {
             API_BASE_URL: JSON.stringify(env.API_BASE_URL),
         },
         server: {
-            port: 3001,
+            port: 3002,
             host: "0.0.0.0",
         },
         resolve: {
