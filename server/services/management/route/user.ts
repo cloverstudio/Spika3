@@ -19,6 +19,7 @@ export default () => {
             const users = await prisma.user.findMany({
                 where: {
                     isBot: false,
+                    deleted: false,
                 },
                 orderBy: {
                     displayName: "asc",
@@ -27,7 +28,7 @@ export default () => {
                 take: consts.ADMIN_USERS_PAGING_LIMIT,
             });
 
-            const count = await prisma.user.count({ where: { isBot: false } });
+            const count = await prisma.user.count({ where: { isBot: false, deleted: false } });
             res.send(
                 successResponse(
                     {
@@ -405,65 +406,77 @@ export default () => {
     router.delete("/:userId", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
-            const userId: number = parseInt(req.params.userId);
-            // check existance
-            const user = await prisma.user.findFirst({
+            const userId = parseInt(req.params.userId);
+
+            const user = await prisma.user.update({
                 where: {
                     id: userId,
                 },
-            });
-
-            if (!user) return res.status(404).send(errorResponse(`Wrong user id`, userReq.lang));
-
-            const fromDevice = await prisma.device.findMany({ where: { userId } });
-
-            const fromDeviceIds = fromDevice.map((ru) => ru.id);
-
-            const selectedMessages = await prisma.message.findMany({
-                where: {
-                    fromDeviceId: { in: fromDeviceIds },
+                data: {
+                    deleted: true,
+                    modifiedAt: new Date(),
+                    displayName: `Deleted user ${userId}`,
+                    avatarFileId: 0,
+                    telephoneNumberHashed: null,
+                    telephoneNumber: null,
+                    emailAddress: null,
                 },
             });
 
-            const selectedMessagesIds = selectedMessages.map((ru) => ru.id);
+            if (!user) {
+                return res.status(404).send(errorResponse(`Wrong user id`, userReq.lang));
+            }
 
-            const deleteMessageDevice = await prisma.deviceMessage.deleteMany({
-                where: { messageId: { in: selectedMessagesIds } },
+            const userDevices = await prisma.device.findMany({ where: { userId } });
+
+            const userDevicesIds = userDevices.map((d) => d.id);
+
+            await prisma.message.updateMany({
+                where: {
+                    fromDeviceId: { in: userDevicesIds },
+                },
+                data: {
+                    fromDeviceId: null,
+                },
             });
 
-            const deleteMessageRecord = await prisma.messageRecord.deleteMany({
-                where: { messageId: { in: selectedMessagesIds } },
+            await prisma.deviceMessage.deleteMany({
+                where: { userId },
             });
 
-            const deleteMessages = await prisma.message.deleteMany({
-                where: { fromDeviceId: { in: fromDeviceIds } },
+            await prisma.messageRecord.deleteMany({
+                where: { userId },
             });
 
-            const deleteDevice = await prisma.device.deleteMany({
-                where: { userId: userId },
+            await prisma.device.deleteMany({
+                where: { userId },
             });
 
-            const deleteContactByContactId = await prisma.contact.deleteMany({
-                where: { contactId: userId },
+            await prisma.contact.deleteMany({
+                where: { OR: [{ contactId: userId }, { userId }] },
             });
 
-            const deleteContactByUserId = await prisma.contact.deleteMany({
-                where: { userId: userId },
+            const rooms = await prisma.room.findMany({
+                where: { users: { some: { userId } }, type: "group" },
             });
 
-            const deleteByMessageRecord = await prisma.messageRecord.deleteMany({
-                where: { userId: userId },
+            await prisma.roomUser.deleteMany({
+                where: { userId, roomId: { in: rooms.map((r) => r.id) } },
             });
 
-            const deleteFromRoom = await prisma.roomUser.deleteMany({
-                where: { userId: userId },
+            await prisma.callHistory.deleteMany({
+                where: { userId },
             });
 
-            await prisma.user.delete({
-                where: { id: userId },
+            await prisma.userSetting.deleteMany({
+                where: { userId },
             });
 
-            return res.send(successResponse("OK", userReq.lang));
+            await prisma.block.deleteMany({
+                where: { OR: [{ blockedId: userId }, { userId }] },
+            });
+
+            return res.send(successResponse({ deleted: true }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));

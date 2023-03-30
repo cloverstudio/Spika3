@@ -35,6 +35,20 @@ const axiosBaseQuery =
                 return;
             }
 
+            if (result.status === 403) {
+                if (dispatch) {
+                    dispatch({ type: "USER_LOGOUT" });
+                }
+
+                return {
+                    data: {
+                        status: "error",
+                        message:
+                            "You don't have permission to perform this action, please login again",
+                    },
+                };
+            }
+
             return result;
         } catch (error) {
             console.error({ [url]: error });

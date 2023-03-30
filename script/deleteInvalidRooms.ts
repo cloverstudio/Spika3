@@ -63,6 +63,24 @@ const prisma: PrismaClient =
             });
         }
 
+        await prisma.callHistory.deleteMany({
+            where: {
+                roomId,
+            },
+        });
+
+        await prisma.webhook.deleteMany({
+            where: {
+                roomId,
+            },
+        });
+
+        await prisma.apiKey.deleteMany({
+            where: {
+                roomId,
+            },
+        });
+
         await prisma.roomUser.deleteMany({
             where: {
                 roomId,

@@ -22,7 +22,8 @@ const en = {
     yes: "Yes",
     no: "No",
     deleteUser: "Delete user",
-    deleteUserConfirmation: "Are you sure you want to delete this user?",
+    deleteUserConfirmation:
+        "Are you sure you want to delete this user? Deleting user can take a while.",
     userDeleted: "User deleted",
     userUpdated: "User updated",
     groups: "Groups",
