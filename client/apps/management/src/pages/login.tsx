@@ -10,8 +10,8 @@ import { useNavigate } from "react-router-dom";
 export default function Login() {
     const strings = useStrings();
 
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
+    const [username, setUsername] = useState("admin");
+    const [password, setPassword] = useState("password");
     const [error, setError] = useState("");
     const navigate = useNavigate();
 

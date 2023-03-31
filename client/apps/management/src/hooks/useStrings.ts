@@ -30,6 +30,7 @@ const en = {
     errorWhileFetchingUsers: "Error while fetching users",
     errorWhileFetchingUser: "Error while fetching user",
     errorWhileFetchingGroups: "Error while fetching groups",
+    errorWhileFetchingGroup: "Error while fetching group",
     userRemovedFromGroup: "User removed from group",
     removeUserFromGroup: "Remove user from group",
     removeUserFromGroupConfirmation: "Are you sure you want to remove user from this group?",
@@ -41,6 +42,10 @@ const en = {
     userLogoutFromDevice: "User logout from device",
     uploadImageInstructions: "Click on image to change",
     removeImage: "Remove image",
+    user: "User",
+    group: "Group",
+    noUsers: "No users",
+    name: "Name",
 };
 
 const strings = {

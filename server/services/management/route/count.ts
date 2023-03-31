@@ -20,6 +20,7 @@ export default () => {
             const groups = await prisma.room.count({
                 where: {
                     type: "group",
+                    deleted: false,
                 },
             });
 

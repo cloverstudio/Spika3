@@ -9,6 +9,7 @@ import { successResponse, errorResponse } from "../../../components/response";
 import { UserRequest } from "../../messenger/lib/types";
 import { Room } from "@prisma/client";
 import prisma from "../../../components/prisma";
+import sanitize from "../../../components/sanitize";
 
 export default () => {
     const router = Router();
@@ -254,57 +255,30 @@ export default () => {
      */
     router.get("/", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
-        const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 0;
-        const userId: number = parseInt(req.query.userId ? (req.query.userId as string) : "") || 0;
-        const deleted: boolean = req.query.deleted == "true";
-        try {
-            let rooms: Room[] = null;
-            if (userId == 0) {
-                const clause = !deleted ? {} : { deleted: true };
-                rooms = await prisma.room.findMany({
-                    where: clause,
-                    orderBy: [
-                        {
-                            createdAt: "asc",
-                        },
-                    ],
-                    skip: consts.PAGING_LIMIT * page,
-                    take: consts.PAGING_LIMIT,
-                });
-            } else {
-                if (!deleted) {
-                    rooms = await prisma.room.findMany({
-                        where: {
-                            users: {
-                                some: {
-                                    user: {
-                                        id: userId,
-                                    },
-                                },
-                            },
-                        },
-                        skip: consts.PAGING_LIMIT * page,
-                        take: consts.PAGING_LIMIT,
-                    });
-                } else {
-                    rooms = await prisma.room.findMany({
-                        where: {
-                            deleted: true,
-                            users: {
-                                some: {
-                                    user: {
-                                        id: userId,
-                                    },
-                                },
-                            },
-                        },
-                        skip: consts.PAGING_LIMIT * page,
-                        take: consts.PAGING_LIMIT,
-                    });
-                }
-            }
+        const page = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
 
-            const count = userId == 0 && !deleted ? await prisma.room.count() : rooms.length;
+        const rooms = await prisma.room.findMany({
+            where: {
+                deleted: false,
+                type: "group",
+            },
+            orderBy: {
+                createdAt: "asc",
+            },
+            include: {
+                users: true,
+            },
+            skip: consts.PAGING_LIMIT * page,
+            take: consts.PAGING_LIMIT,
+        });
+
+        try {
+            const count = await prisma.room.count({
+                where: {
+                    deleted: false,
+                    type: "group",
+                },
+            });
 
             res.send(
                 successResponse(
@@ -331,11 +305,18 @@ export default () => {
                 where: {
                     id: roomId,
                 },
+                include: {
+                    users: {
+                        include: {
+                            user: true,
+                        },
+                    },
+                },
             });
 
             if (!room) return res.status(404).send(errorResponse(`Wrong room id`, userReq.lang));
 
-            return res.send(successResponse({ room }, userReq.lang));
+            return res.send(successResponse({ group: sanitize(room).room() }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
@@ -345,32 +326,31 @@ export default () => {
     router.put("/:roomId", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
-            const roomId: number = parseInt(req.params.roomId);
+            const roomId = parseInt(req.params.roomId);
             const name: string = req.body.name;
-            const type: string = req.body.type;
-            const deleted: boolean = req.body.deleted;
+            const avatarFileId = parseInt(req.body.avatarFileId || "0");
+
             const room = await prisma.room.findFirst({
                 where: {
                     id: roomId,
                 },
             });
 
-            if (!room) return res.status(404).send(errorResponse(`Wrong room id`, userReq.lang));
+            if (!room) {
+                return res.status(404).send(errorResponse(`Wrong room id`, userReq.lang));
+            }
+
             if (!name) return res.status(400).send(errorResponse(`Name is required`, userReq.lang));
-            if (!type)
-                return res.status(400).send(errorResponse(`Type id is required`, userReq.lang));
-            const updateValues: any = {};
-            if (name) updateValues.name = name;
-            if (type) updateValues.type = type;
-            if (deleted != null) updateValues.deleted = deleted;
-            if (Object.keys(updateValues).length == 0)
-                return res.status(400).send(errorResponse(`Nothing to update`, userReq.lang));
 
             const updateRoom = await prisma.room.update({
                 where: { id: roomId },
-                data: updateValues,
+                data: {
+                    name,
+                    avatarFileId,
+                    modifiedAt: new Date(),
+                },
             });
-            return res.send(successResponse({ room: updateRoom }, userReq.lang));
+            return res.send(successResponse({ group: updateRoom }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
@@ -390,10 +370,14 @@ export default () => {
 
             if (!room) return res.status(404).send(errorResponse(`Wrong room id`, userReq.lang));
 
-            const deleteResult = await prisma.room.delete({
+            await prisma.room.update({
                 where: { id: roomId },
+                data: {
+                    deleted: true,
+                    modifiedAt: new Date(),
+                },
             });
-            return res.send(successResponse("Room deleted", userReq.lang));
+            return res.send(successResponse({ deleted: true }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
