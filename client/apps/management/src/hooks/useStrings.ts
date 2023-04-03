@@ -46,6 +46,11 @@ const en = {
     group: "Group",
     noUsers: "No users",
     name: "Name",
+    add: "Add",
+    addMembers: "Add members",
+    search: "Search",
+    usersAddedToGroup: "Users added to group",
+    groupUpdated: "Group updated",
 };
 
 const strings = {

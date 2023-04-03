@@ -14,60 +14,67 @@ import sanitize from "../../../components/sanitize";
 export default () => {
     const router = Router();
 
-    router.put("/userAdmin", adminAuth, async (req: Request, res: Response) => {
-        const userReq: UserRequest = req as UserRequest;
+    router.put("/:roomId/add", adminAuth, async (req: Request, res: Response) => {
         try {
-            const roomId: number =
-                parseInt(req.query.roomId ? (req.query.roomId as string) : "") || 0;
-            const userId: number =
-                parseInt(req.query.userId ? (req.query.userId as string) : "") || 0;
+            const roomId = parseInt(req.params.roomId ? (req.params.roomId as string) : "");
+            const usersIds = req.body.usersIds;
+            const isAdmin = !!req.body.admin;
 
-            const roomUser = await prisma.roomUser.findFirst({
+            if (!roomId) {
+                return res.status(400).send(errorResponse("valid roomId is required", "en"));
+            }
+
+            const room = await prisma.room.findFirst({
                 where: {
-                    roomId: roomId,
-                    userId: userId,
+                    id: roomId,
                 },
             });
 
-            const updateRoomUser = await prisma.roomUser.updateMany({
+            if (!room) {
+                return res.status(404).send(errorResponse("Room Not Found", "en"));
+            }
+
+            if (room.type !== "group") {
+                return res.status(400).send(errorResponse("Room is not a group", "en"));
+            }
+
+            if (!usersIds || !usersIds.length) {
+                return res.status(400).send(errorResponse("valid usersIds is required", "en"));
+            }
+
+            const currentRoomUsers = await prisma.roomUser.findMany({
                 where: {
-                    roomId: roomId,
-                    userId: userId,
-                },
-                data: {
-                    isAdmin: !roomUser.isAdmin,
+                    roomId,
+                    isAdmin,
                 },
             });
 
-            return res.send(successResponse({ room: updateRoomUser }, userReq.lang));
-        } catch (e: any) {
-            le(e);
-            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
-        }
-    });
+            const toAdd = usersIds.filter(
+                (id) => !currentRoomUsers.find((roomUser) => roomUser.userId === id)
+            );
 
-    router.put("/addUsers", adminAuth, async (req: Request, res: Response) => {
-        const userReq: UserRequest = req as UserRequest;
-        try {
-            const roomId: number =
-                parseInt(req.query.roomId ? (req.query.roomId as string) : "") || 0;
-            const userIdsString = req.query.userIds;
-            const userIds: string[] = JSON.parse("[" + userIdsString + "]");
+            const roomUsers = toAdd.map((userId) => ({ userId, roomId, isAdmin }));
 
-            const array: { userId: number; roomId: number; isAdmin: boolean }[] = [];
-            userIds.forEach((element) => {
-                const model = { userId: Number(element), roomId: roomId, isAdmin: false };
-                array.push(model);
-            });
+            if (isAdmin) {
+                await prisma.roomUser.deleteMany({
+                    where: {
+                        roomId,
+                        userId: {
+                            in: toAdd,
+                        },
+                        isAdmin: false,
+                    },
+                });
+            }
 
             const allRoomUsers = await prisma.roomUser.createMany({
-                data: array,
+                data: roomUsers,
             });
 
-            return res.send(successResponse({ room: allRoomUsers }, userReq.lang));
+            return res.send(successResponse({ added: toAdd, groupId: roomId }, "en"));
         } catch (e: any) {
             le(e);
-            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+            res.status(500).json(errorResponse(`Server error ${e}`, "en"));
         }
     });
 

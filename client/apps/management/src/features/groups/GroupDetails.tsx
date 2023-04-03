@@ -12,18 +12,24 @@ import { Link } from "react-router-dom";
 import {
     useRemoveUserFromGroupMutation,
     useDeleteGroupMutation,
+    useAddUsersToGroupMutation,
 } from "@/features/groups/api/groups";
+import { RoomType } from "@/types/Room";
+import AddMembersModal from "./AddMembersModal";
 
 declare const UPLOADS_BASE_URL: string;
 
-export default function GroupDetails({ group }: { group: any }) {
+export default function GroupDetails({ group }: { group: RoomType }) {
     const [deleteUser, { isLoading }] = useDeleteGroupMutation();
     const navigate = useNavigate();
     const [showEdit, setShowEdit] = useState(false);
+    const [showAddUsersModal, setShowAddUsersModal] = useState(false);
+    const [showAddAdminsModal, setShowAddAdminsModal] = useState(false);
     const strings = useStrings();
     const showBasicDialog = useShowBasicDialog();
     const showBasicSnackbar = useShowSnackBar();
     const [removeUserFromGroup] = useRemoveUserFromGroupMutation();
+    const [addUsersToGroup] = useAddUsersToGroupMutation();
 
     const handleDelete = async () => {
         showBasicDialog(
@@ -86,6 +92,48 @@ export default function GroupDetails({ group }: { group: any }) {
                     });
             }
         );
+    };
+
+    const handleAddUsersToGroup = (usersIds: number[]) => {
+        addUsersToGroup({ usersIds, groupId: group.id })
+            .unwrap()
+            .then((res) => {
+                if (res.status === "error") {
+                    showBasicSnackbar({
+                        severity: "error",
+                        text: res.message,
+                    });
+                    return;
+                }
+                showBasicSnackbar({
+                    severity: "success",
+                    text: strings.usersAddedToGroup,
+                });
+            })
+            .finally(() => {
+                setShowAddUsersModal(false);
+            });
+    };
+
+    const handleAddAdminsToGroup = (usersIds: number[]) => {
+        addUsersToGroup({ usersIds, groupId: group.id, admin: true })
+            .unwrap()
+            .then((res) => {
+                if (res.status === "error") {
+                    showBasicSnackbar({
+                        severity: "error",
+                        text: res.message,
+                    });
+                    return;
+                }
+                showBasicSnackbar({
+                    severity: "success",
+                    text: strings.usersAddedToGroup,
+                });
+            })
+            .finally(() => {
+                setShowAddAdminsModal(false);
+            });
     };
 
     return (
@@ -160,10 +208,10 @@ export default function GroupDetails({ group }: { group: any }) {
                                     }}
                                 >
                                     <Link
-                                        to={`/users/${user.id}`}
+                                        to={`/users/${user.user.id}`}
                                         style={{ textDecoration: "none", color: "inherit" }}
                                     >
-                                        {user.user.displayName}
+                                        {user.user.displayName} {user.isAdmin ? "(admin)" : ""}
                                     </Link>
                                 </Button>
                             ))}
@@ -183,8 +231,41 @@ export default function GroupDetails({ group }: { group: any }) {
                 >
                     Edit
                 </Button>
+                <Button
+                    size="small"
+                    onClick={() => setShowAddUsersModal(true)}
+                    variant="outlined"
+                    color="primary"
+                >
+                    Add users
+                </Button>
+
+                <Button
+                    size="small"
+                    onClick={() => setShowAddAdminsModal(true)}
+                    variant="outlined"
+                    color="primary"
+                >
+                    Add admins
+                </Button>
             </Box>
             {showEdit && <EditGroupModal group={group} onClose={() => setShowEdit(false)} />}
+            {showAddUsersModal && (
+                <AddMembersModal
+                    onSave={handleAddUsersToGroup}
+                    open={true}
+                    existingMembers={group.users}
+                    onClose={() => setShowAddUsersModal(false)}
+                />
+            )}
+            {showAddAdminsModal && (
+                <AddMembersModal
+                    onSave={handleAddAdminsToGroup}
+                    open={true}
+                    existingMembers={group.users.filter((u) => u.isAdmin)}
+                    onClose={() => setShowAddAdminsModal(false)}
+                />
+            )}
         </Box>
     );
 }

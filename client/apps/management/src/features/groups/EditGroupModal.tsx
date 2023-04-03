@@ -46,7 +46,7 @@ export default function EditGroupModal({ onClose, group }: { onClose: () => void
 
     const handleSubmit = async () => {
         try {
-            let avatarFileId = 0;
+            let avatarFileId = group.avatarFileId || 0;
 
             if (file) {
                 const fileUploader = new FileUploader({
@@ -62,9 +62,9 @@ export default function EditGroupModal({ onClose, group }: { onClose: () => void
                 groupId: group.id,
                 data: { ...form, avatarFileId },
             }).unwrap();
-            console.log({ res });
+
             if (res?.status === "success") {
-                showBasicSnackbar({ text: strings.userUpdated, severity: "success" });
+                showBasicSnackbar({ text: strings.groupUpdated, severity: "success" });
                 onClose();
             } else {
                 showBasicSnackbar({ text: res.message, severity: "error" });

@@ -70,6 +70,35 @@ const groupsApi = api.injectEndpoints({
                       ]
                     : [],
         }),
+        addUsersToGroup: build.mutation<
+            SuccessResponse<{ added: number[]; groupId: number }> | ErrorResponse,
+            { usersIds: number[]; groupId: number; admin?: boolean }
+        >({
+            query: ({ usersIds, groupId, admin }) => {
+                return {
+                    url: `/management/groups/${groupId}/add`,
+                    method: "PUT",
+                    data: { usersIds, admin },
+                };
+            },
+            invalidatesTags: (res, _, args) =>
+                res && res.status === "success"
+                    ? [
+                          ...res.data.added.map((id) => ({
+                              type: "Groups" as const,
+                              id: `USER_LIST_${id}`,
+                          })),
+                          {
+                              type: "Groups",
+                              id: args.groupId,
+                          },
+                          {
+                              type: "Groups",
+                              id: "LIST",
+                          },
+                      ]
+                    : [],
+        }),
         updateGroup: build.mutation<
             SuccessResponse<{ group: RoomType }> | ErrorResponse,
             { groupId: string; data: any }
@@ -102,5 +131,6 @@ export const {
     useDeleteGroupMutation,
     useUpdateGroupMutation,
     useGetGroupByIdQuery,
+    useAddUsersToGroupMutation,
 } = groupsApi;
 export default groupsApi;
