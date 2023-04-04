@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Avatar, Box, Button, Stack, Typography } from "@mui/material";
+import { Avatar, Box, Button, IconButton, Menu, MenuItem, Stack, Typography } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import MoreHoriz from "@mui/icons-material/MoreHoriz";
 
 import Loader from "@/components/Loader";
 import useStrings from "@/hooks/useStrings";
@@ -20,7 +21,7 @@ import AddMembersModal from "./AddMembersModal";
 declare const UPLOADS_BASE_URL: string;
 
 export default function GroupDetails({ group }: { group: RoomType }) {
-    const [deleteUser, { isLoading }] = useDeleteGroupMutation();
+    const [deleteGroup, { isLoading }] = useDeleteGroupMutation();
     const navigate = useNavigate();
     const [showEdit, setShowEdit] = useState(false);
     const [showAddUsersModal, setShowAddUsersModal] = useState(false);
@@ -36,15 +37,15 @@ export default function GroupDetails({ group }: { group: RoomType }) {
             {
                 allowButtonLabel: strings.yes,
                 denyButtonLabel: strings.no,
-                text: strings.deleteUserConfirmation,
-                title: strings.deleteUser,
+                text: strings.deleteGroupConfirmation,
+                title: strings.deleteGroup,
             },
             () => {
-                deleteUser(group.id)
+                deleteGroup(group.id)
                     .unwrap()
                     .then((res) => {
                         if (res?.status === "success") {
-                            showBasicSnackbar({ severity: "success", text: strings.userDeleted });
+                            showBasicSnackbar({ severity: "success", text: strings.groupDeleted });
                             navigate("/groups");
                             return;
                         }
@@ -139,9 +140,18 @@ export default function GroupDetails({ group }: { group: RoomType }) {
     return (
         <Box>
             <Box mb={3}>
-                <Typography variant="h3" mb={4} fontWeight="bold">
-                    {group.name || "{name}"}
-                </Typography>
+                <Box display="flex" mb={4} gap={1} alignItems="center">
+                    <Typography variant="h3" fontWeight="bold">
+                        {group.name || "{name}"}
+                    </Typography>
+
+                    <EditGroupMenu
+                        onRemove={handleDelete}
+                        onEdit={() => setShowEdit(true)}
+                        onAddUser={() => setShowAddUsersModal(true)}
+                        onAddAdmin={() => setShowAddAdminsModal(true)}
+                    />
+                </Box>
 
                 <Avatar
                     sx={{ width: 100, height: 100 }}
@@ -219,36 +229,7 @@ export default function GroupDetails({ group }: { group: RoomType }) {
                     </Box>
                 </Stack>
             </Box>
-            <Box display="flex" gap={1}>
-                <Button size="small" onClick={handleDelete} variant="outlined" color="error">
-                    Delete
-                </Button>
-                <Button
-                    size="small"
-                    onClick={() => setShowEdit(true)}
-                    variant="outlined"
-                    color="primary"
-                >
-                    Edit
-                </Button>
-                <Button
-                    size="small"
-                    onClick={() => setShowAddUsersModal(true)}
-                    variant="outlined"
-                    color="primary"
-                >
-                    Add users
-                </Button>
 
-                <Button
-                    size="small"
-                    onClick={() => setShowAddAdminsModal(true)}
-                    variant="outlined"
-                    color="primary"
-                >
-                    Add admins
-                </Button>
-            </Box>
             {showEdit && <EditGroupModal group={group} onClose={() => setShowEdit(false)} />}
             {showAddUsersModal && (
                 <AddMembersModal
@@ -267,5 +248,85 @@ export default function GroupDetails({ group }: { group: RoomType }) {
                 />
             )}
         </Box>
+    );
+}
+
+type EditGroupMenuProps = {
+    onRemove: () => void;
+    onAddAdmin: () => void;
+    onAddUser: () => void;
+    onEdit: () => void;
+};
+
+function EditGroupMenu({ onRemove, onAddUser, onAddAdmin, onEdit }: EditGroupMenuProps) {
+    const strings = useStrings();
+
+    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const open = Boolean(anchorEl);
+
+    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleClose = () => {
+        setAnchorEl(null);
+    };
+
+    return (
+        <div>
+            <IconButton size="large" onClick={handleClick} color="primary">
+                <MoreHoriz />
+            </IconButton>
+
+            <Menu
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleClose}
+                sx={{
+                    "& .MuiMenu-list": {
+                        p: 0,
+                    },
+                }}
+            >
+                <MenuItem
+                    divider={true}
+                    sx={{
+                        color: "red",
+                    }}
+                    onClick={() => {
+                        onRemove();
+                        handleClose();
+                    }}
+                >
+                    {strings.delete}
+                </MenuItem>
+                <MenuItem
+                    divider={true}
+                    onClick={() => {
+                        onEdit();
+                        handleClose();
+                    }}
+                >
+                    {strings.edit}
+                </MenuItem>
+                <MenuItem
+                    divider={true}
+                    onClick={() => {
+                        onAddUser();
+                        handleClose();
+                    }}
+                >
+                    {strings.addUser}
+                </MenuItem>
+                <MenuItem
+                    onClick={() => {
+                        onAddAdmin();
+                        handleClose();
+                    }}
+                >
+                    {strings.addAdmin}
+                </MenuItem>
+            </Menu>
+        </div>
     );
 }

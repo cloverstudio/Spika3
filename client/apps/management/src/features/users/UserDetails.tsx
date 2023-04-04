@@ -17,10 +17,11 @@ import {
     useGetGroupsByUserIdQuery,
     useRemoveUserFromGroupMutation,
 } from "@/features/groups/api/groups";
+import UserType from "@/types/User";
 
 declare const UPLOADS_BASE_URL: string;
 
-export default function UserDetails({ user }: { user: any }) {
+export default function UserDetails({ user }: { user: UserType }) {
     const [deleteUser, { isLoading }] = useDeleteUserMutation();
     const navigate = useNavigate();
     const [showEdit, setShowEdit] = useState(false);

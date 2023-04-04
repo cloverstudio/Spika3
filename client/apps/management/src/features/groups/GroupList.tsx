@@ -3,13 +3,13 @@ import { Avatar, Box, Typography } from "@mui/material";
 import Icon from "@mui/icons-material/ArrowRightAlt";
 import { Link } from "react-router-dom";
 import useStrings from "@/hooks/useStrings";
+import { RoomType } from "@/types/Room";
 
 declare const UPLOADS_BASE_URL: string;
 
-export default function GroupsList({ groups }: { groups: any[] }) {
-    console.log(groups);
+export default function GroupsList({ groups }: { groups: RoomType[] }) {
     return (
-        <Box maxWidth="21rem" mx="auto">
+        <Box maxWidth="21rem">
             {groups.map((group) => (
                 <Group
                     id={group.id}

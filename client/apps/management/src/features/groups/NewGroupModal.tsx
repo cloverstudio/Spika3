@@ -12,6 +12,7 @@ import { useShowSnackBar } from "@/hooks/useModal";
 import uploadImage from "@assets/upload-image.svg";
 import FileUploader from "@/utils/FileUploader";
 import { useCreateGroupMutation } from "@/features/groups/api/groups";
+import { useNavigate } from "react-router-dom";
 
 type UpdateUserFormType = {
     name: string;
@@ -24,6 +25,7 @@ export default function NewGroupModal({ onClose }: { onClose: () => void }) {
     const [file, setFile] = useState<File>();
     const [src, setSrc] = useState(uploadImage);
     const uploadFileRef = useRef(null);
+    const navigate = useNavigate();
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const uploadedFile = e.target.files && e.target.files[0];
@@ -59,6 +61,7 @@ export default function NewGroupModal({ onClose }: { onClose: () => void }) {
             if (res?.status === "success") {
                 showBasicSnackbar({ text: strings.groupCreated, severity: "success" });
                 onClose();
+                navigate(`/groups/${res.data.group.id}`);
             } else {
                 showBasicSnackbar({ text: res.message, severity: "error" });
             }

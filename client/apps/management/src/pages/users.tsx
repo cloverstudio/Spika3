@@ -45,7 +45,7 @@ export default function Users(): React.ReactElement {
                 gap={4}
                 alignContent="start"
             >
-                <Typography variant="h2" textAlign="center" fontWeight="bold">
+                <Typography variant="h2" fontWeight="bold">
                     {strings.users}
                 </Typography>
                 <Pagination
@@ -53,7 +53,6 @@ export default function Users(): React.ReactElement {
                     page={page}
                     onChange={handlePageChange}
                     size="small"
-                    sx={{ mx: "auto" }}
                 />
                 <UserList users={data.data.list} />
             </Box>

@@ -2,12 +2,13 @@ import React from "react";
 import { Avatar, Box, Typography } from "@mui/material";
 import Icon from "@mui/icons-material/ArrowRightAlt";
 import { Link } from "react-router-dom";
+import UserType from "@/types/User";
 
 declare const UPLOADS_BASE_URL: string;
 
-export default function UserList({ users }: { users: any[] }) {
+export default function UserList({ users }: { users: UserType[] }) {
     return (
-        <Box maxWidth="21rem" mx="auto">
+        <Box maxWidth="21rem">
             {users.map((user) => (
                 <User
                     id={user.id}
@@ -25,7 +26,7 @@ type UserRowProps = {
     name: string;
     id: number;
     avatarFileId?: number;
-    telephoneNumber?: number;
+    telephoneNumber?: string;
     SelectedIcon?: () => React.ReactElement;
 };
 

@@ -248,7 +248,7 @@ export default () => {
                 },
             });
 
-            return res.send(successResponse({ room: newRoom }, userReq.lang));
+            return res.send(successResponse({ group: newRoom }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));

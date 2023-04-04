@@ -52,8 +52,16 @@ const en = {
     usersAddedToGroup: "Users added to group",
     groupUpdated: "Group updated",
     groupCreated: "Group created",
-    createGroup: "Create group",
+    createNew: "Create new",
     editGroup: "Edit group",
+    createGroup: "Create group",
+    delete: "Delete",
+    edit: "Edit",
+    addUser: "Add user",
+    addAdmin: "Add admin",
+    groupDeleted: "Group deleted",
+    deleteGroup: "Delete group",
+    deleteGroupConfirmation: "Are you sure you want to delete this group?",
 };
 
 const strings = {
