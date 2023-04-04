@@ -1,15 +1,5 @@
 import api, { SuccessResponse, ErrorResponse } from "@/api";
-
-type UserType = {
-    id: number;
-    displayName: string;
-    avatarFileId: number;
-};
-
-type RoomType = {
-    id: number;
-    name: string;
-};
+import { RoomType } from "@/types/Room";
 
 type RoomListType = {
     list: RoomType[];
@@ -120,6 +110,16 @@ const groupsApi = api.injectEndpoints({
             },
             invalidatesTags: (res) => (res ? [{ type: "Groups", id: "LIST" }] : []),
         }),
+        createGroup: build.mutation<
+            SuccessResponse<{ group: RoomType }> | ErrorResponse,
+            { name: string; avatarFileId?: number }
+        >({
+            query: (data) => {
+                return { url: `/management/groups`, method: "POST", data };
+            },
+            invalidatesTags: (res) =>
+                res && res.status === "success" ? [{ type: "Groups", id: "LIST" }] : [],
+        }),
     }),
     overrideExisting: true,
 });
@@ -132,5 +132,6 @@ export const {
     useUpdateGroupMutation,
     useGetGroupByIdQuery,
     useAddUsersToGroupMutation,
+    useCreateGroupMutation,
 } = groupsApi;
 export default groupsApi;

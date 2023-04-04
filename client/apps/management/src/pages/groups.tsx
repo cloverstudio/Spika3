@@ -1,13 +1,15 @@
 import React, { useState } from "react";
-import { Box, Pagination, Typography } from "@mui/material";
+import { Box, Button, Pagination, Typography } from "@mui/material";
 import { useGetGroupsQuery } from "@/features/groups/api/groups";
 import Loader from "@/components/Loader";
 import useStrings from "@/hooks/useStrings";
 import { Outlet } from "react-router-dom";
 import GroupList from "@/features/groups/GroupList";
+import NewGroupModal from "@/features/groups/NewGroupModal";
 
 export default function Groups(): React.ReactElement {
     const [page, setPage] = useState(1);
+    const [showNewGroupModal, setShowNewGroupModal] = useState(false);
     const { data, isLoading, isError } = useGetGroupsQuery(page);
     const strings = useStrings();
 
@@ -48,6 +50,14 @@ export default function Groups(): React.ReactElement {
                 <Typography variant="h2" textAlign="center" fontWeight="bold">
                     {strings.groups}
                 </Typography>
+                <Button
+                    size="small"
+                    onClick={() => setShowNewGroupModal(true)}
+                    variant="outlined"
+                    color="primary"
+                >
+                    {strings.createGroup}
+                </Button>
                 <Pagination
                     count={Math.floor(data.data.count / data.data.limit)}
                     page={page}
@@ -57,6 +67,8 @@ export default function Groups(): React.ReactElement {
                 />
                 <GroupList groups={data.data.list} />
             </Box>
+
+            {showNewGroupModal && <NewGroupModal onClose={() => setShowNewGroupModal(false)} />}
 
             <Outlet />
         </Box>

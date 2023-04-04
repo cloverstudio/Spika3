@@ -33,6 +33,7 @@ export default () => {
 
             const condition: any = {
                 verified: true,
+                deleted: false,
             };
 
             if (keyword && keyword.length > 0)
@@ -157,40 +158,6 @@ export default () => {
                 successResponse(
                     {
                         list: allUsers,
-                        count: count,
-                        limit: consts.PAGING_LIMIT,
-                    },
-                    userReq.lang
-                )
-            );
-        } catch (e: any) {
-            le(e);
-            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
-        }
-    });
-
-    router.get("/verified", adminAuth, async (req: Request, res: Response) => {
-        const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 0;
-        const userReq: UserRequest = req as UserRequest;
-        try {
-            const users = await prisma.user.findMany({
-                where: {
-                    verified: true,
-                },
-                orderBy: [
-                    {
-                        createdAt: "asc",
-                    },
-                ],
-                skip: consts.PAGING_LIMIT * page,
-                take: consts.PAGING_LIMIT,
-            });
-
-            const count = users.length;
-            res.send(
-                successResponse(
-                    {
-                        list: users,
                         count: count,
                         limit: consts.PAGING_LIMIT,
                     },

@@ -235,18 +235,16 @@ export default () => {
     router.post("/", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
-            const name: string = req.body.name;
-            const type: string = req.body.type;
-            const deleted: boolean = req.body.verified;
+            const name = req.body.name as string;
+            const avatarFileId = parseInt(req.body.avatarFileId || "0");
 
             if (!name) return res.status(400).send(errorResponse(`Name is required`, userReq.lang));
-            if (!type)
-                return res.status(400).send(errorResponse(`Type id is required`, userReq.lang));
+
             const newRoom = await prisma.room.create({
                 data: {
                     name: name,
-                    type: type,
-                    deleted: deleted,
+                    avatarFileId,
+                    type: "group",
                 },
             });
 
@@ -257,9 +255,6 @@ export default () => {
         }
     });
 
-    /**
-     * TODO: impliment order
-     */
     router.get("/", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         const page = parseInt(req.query.page ? (req.query.page as string) : "") || 1;

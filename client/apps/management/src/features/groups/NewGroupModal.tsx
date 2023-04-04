@@ -11,22 +11,18 @@ import { Box, FormLabel, Stack, TextField, Typography } from "@mui/material";
 import { useShowSnackBar } from "@/hooks/useModal";
 import uploadImage from "@assets/upload-image.svg";
 import FileUploader from "@/utils/FileUploader";
-import { useUpdateGroupMutation } from "@/features/groups/api/groups";
+import { useCreateGroupMutation } from "@/features/groups/api/groups";
 
 type UpdateUserFormType = {
     name: string;
 };
 
-declare const UPLOADS_BASE_URL: string;
-
-export default function EditGroupModal({ onClose, group }: { onClose: () => void; group: any }) {
+export default function NewGroupModal({ onClose }: { onClose: () => void }) {
     const strings = useStrings();
-    const [updateGroup, { isLoading }] = useUpdateGroupMutation();
+    const [createGroup, { isLoading }] = useCreateGroupMutation();
     const showBasicSnackbar = useShowSnackBar();
     const [file, setFile] = useState<File>();
-    const [src, setSrc] = useState(
-        group.avatarFileId ? `${UPLOADS_BASE_URL}/${group.avatarFileId}` : uploadImage
-    );
+    const [src, setSrc] = useState(uploadImage);
     const uploadFileRef = useRef(null);
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,7 +33,7 @@ export default function EditGroupModal({ onClose, group }: { onClose: () => void
     };
 
     const [form, setForm] = useState<UpdateUserFormType>({
-        name: group.name || "",
+        name: "",
     });
 
     const handleChange = (key: string, value: string | boolean) => {
@@ -46,7 +42,7 @@ export default function EditGroupModal({ onClose, group }: { onClose: () => void
 
     const handleSubmit = async () => {
         try {
-            let avatarFileId = group.avatarFileId || 0;
+            let avatarFileId = 0;
 
             if (file) {
                 const fileUploader = new FileUploader({
@@ -58,13 +54,10 @@ export default function EditGroupModal({ onClose, group }: { onClose: () => void
                 avatarFileId = uploadedFile.id;
             }
 
-            const res = await updateGroup({
-                groupId: group.id,
-                data: { ...form, avatarFileId },
-            }).unwrap();
+            const res = await createGroup({ ...form, avatarFileId }).unwrap();
 
             if (res?.status === "success") {
-                showBasicSnackbar({ text: strings.groupUpdated, severity: "success" });
+                showBasicSnackbar({ text: strings.groupCreated, severity: "success" });
                 onClose();
             } else {
                 showBasicSnackbar({ text: res.message, severity: "error" });
@@ -85,7 +78,7 @@ export default function EditGroupModal({ onClose, group }: { onClose: () => void
             aria-labelledby="alert-dialog-title"
             aria-describedby="alert-dialog-description"
         >
-            <DialogTitle id="alert-dialog-title">{strings.editGroup}</DialogTitle>
+            <DialogTitle id="alert-dialog-title">{strings.createGroup}</DialogTitle>
             <DialogContent>
                 <Box minWidth={{ xs: "100%", md: "350px" }} textAlign="left" component="form">
                     <Stack spacing={2} mb={3}>

@@ -51,6 +51,9 @@ const en = {
     search: "Search",
     usersAddedToGroup: "Users added to group",
     groupUpdated: "Group updated",
+    groupCreated: "Group created",
+    createGroup: "Create group",
+    editGroup: "Edit group",
 };
 
 const strings = {
