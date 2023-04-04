@@ -67,7 +67,7 @@ export function User({
                             {telephoneNumber}
                         </Typography>
                     </Box>
-                    <Icon sx={{ ml: 6 }} />
+                    <Icon sx={{ ml: "auto" }} />
                 </Box>
             </Box>
         </Link>

@@ -67,7 +67,7 @@ export function Group({ name, id, avatarFileId, userCount }: GroupRowProps): Rea
                                 : strings.noUsers}
                         </Typography>
                     </Box>
-                    <Icon sx={{ ml: 6 }} />
+                    <Icon sx={{ ml: "auto" }} />
                 </Box>
             </Box>
         </Link>
