@@ -10,8 +10,8 @@ import { useNavigate } from "react-router-dom";
 export default function Login() {
     const strings = useStrings();
 
-    const [username, setUsername] = useState("admin");
-    const [password, setPassword] = useState("password");
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const navigate = useNavigate();
 
@@ -65,9 +65,13 @@ export default function Login() {
                     id="password"
                     name="password"
                     autoComplete="password"
-                    autoFocus
                     value={password}
                     onChange={({ target }) => setPassword(target.value)}
+                    onKeyDown={({ key }) => {
+                        if (key === "Enter") {
+                            handleSubmit();
+                        }
+                    }}
                 />
 
                 <Button
