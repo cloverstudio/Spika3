@@ -83,22 +83,57 @@ export default () => {
     );
 
     router.get("/", adminAuth, async (req: Request, res: Response) => {
-        const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
+        const page = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
         const userReq: UserRequest = req as UserRequest;
+        const keyword = req.query.keyword as string;
+
         try {
             const users = await prisma.user.findMany({
                 where: {
-                    isBot: false,
-                    deleted: false,
+                    ...(keyword
+                        ? {
+                              OR: ["startsWith", "contains"].map((key) => ({
+                                  displayName: {
+                                      [key]: keyword,
+                                  },
+                              })),
+                              AND: {
+                                  isBot: false,
+                                  deleted: false,
+                              },
+                          }
+                        : {
+                              isBot: false,
+                              deleted: false,
+                          }),
                 },
                 orderBy: {
                     displayName: "asc",
                 },
-                skip: consts.ADMIN_USERS_PAGING_LIMIT * page,
+                skip: consts.ADMIN_USERS_PAGING_LIMIT * (page - 1),
                 take: consts.ADMIN_USERS_PAGING_LIMIT,
             });
 
-            const count = await prisma.user.count({ where: { isBot: false, deleted: false } });
+            const count = await prisma.user.count({
+                where: {
+                    ...(keyword
+                        ? {
+                              OR: ["startsWith", "contains"].map((key) => ({
+                                  displayName: {
+                                      [key]: keyword,
+                                  },
+                              })),
+                              AND: {
+                                  isBot: false,
+                                  deleted: false,
+                              },
+                          }
+                        : {
+                              isBot: false,
+                              deleted: false,
+                          }),
+                },
+            });
             res.send(
                 successResponse(
                     {
