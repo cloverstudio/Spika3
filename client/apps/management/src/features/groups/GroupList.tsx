@@ -2,42 +2,38 @@ import React from "react";
 import { Avatar, Box, Typography } from "@mui/material";
 import Icon from "@mui/icons-material/ArrowRightAlt";
 import { Link } from "react-router-dom";
-import UserType from "@/types/User";
+import useStrings from "@/hooks/useStrings";
+import { RoomType } from "@/types/Room";
 
 declare const UPLOADS_BASE_URL: string;
 
-export default function UserList({ users }: { users: UserType[] }) {
+export default function GroupsList({ groups }: { groups: RoomType[] }) {
     return (
         <Box maxWidth="21rem">
-            {users.map((user) => (
-                <User
-                    id={user.id}
-                    key={user.id}
-                    name={user.displayName}
-                    avatarFileId={user.avatarFileId}
-                    telephoneNumber={user.telephoneNumber}
+            {groups.map((group) => (
+                <Group
+                    id={group.id}
+                    key={group.id}
+                    name={group.name}
+                    avatarFileId={group.avatarFileId}
+                    userCount={group.users?.length}
                 />
             ))}
         </Box>
     );
 }
 
-type UserRowProps = {
+type GroupRowProps = {
     name: string;
     id: number;
     avatarFileId?: number;
-    telephoneNumber?: string;
-    SelectedIcon?: () => React.ReactElement;
+    userCount?: number;
 };
 
-export function User({
-    name,
-    id,
-    avatarFileId,
-    telephoneNumber,
-}: UserRowProps): React.ReactElement {
+export function Group({ name, id, avatarFileId, userCount }: GroupRowProps): React.ReactElement {
+    const strings = useStrings();
     return (
-        <Link to={`/users/${id}`} style={{ textDecoration: "none" }}>
+        <Link to={`/groups/${id}`} style={{ textDecoration: "none" }}>
             <Box
                 display="flex"
                 color="text.primary"
@@ -64,7 +60,11 @@ export function User({
                     <Box>
                         <Typography fontWeight="500">{name || "{name}"}</Typography>
                         <Typography fontWeight="400" fontSize="0.8rem">
-                            {telephoneNumber}
+                            {userCount
+                                ? userCount === 1
+                                    ? `1 ${strings.user.toLowerCase()}`
+                                    : `${userCount} ${strings.users.toLowerCase()}`
+                                : strings.noUsers}
                         </Typography>
                     </Box>
                     <Icon sx={{ ml: "auto" }} />

@@ -65,9 +65,13 @@ export default function Login() {
                     id="password"
                     name="password"
                     autoComplete="password"
-                    autoFocus
                     value={password}
                     onChange={({ target }) => setPassword(target.value)}
+                    onKeyDown={({ key }) => {
+                        if (key === "Enter") {
+                            handleSubmit();
+                        }
+                    }}
                 />
 
                 <Button

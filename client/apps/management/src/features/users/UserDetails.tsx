@@ -17,10 +17,13 @@ import {
     useGetGroupsByUserIdQuery,
     useRemoveUserFromGroupMutation,
 } from "@/features/groups/api/groups";
+import UserType from "@/types/User";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 
 declare const UPLOADS_BASE_URL: string;
 
-export default function UserDetails({ user }: { user: any }) {
+export default function UserDetails({ user }: { user: UserType }) {
     const [deleteUser, { isLoading }] = useDeleteUserMutation();
     const navigate = useNavigate();
     const [showEdit, setShowEdit] = useState(false);
@@ -58,10 +61,21 @@ export default function UserDetails({ user }: { user: any }) {
     return (
         <Box>
             <Box mb={3}>
-                <Typography variant="h3" mb={4} fontWeight="bold">
-                    {user.displayName || "{name}"}
-                </Typography>
+                <Box display="flex" mb={4} gap={1} alignItems="center">
+                    <Typography variant="h3" fontWeight="bold">
+                        {user.displayName || "{name}"}
+                    </Typography>
 
+                    <Box display="flex" gap={0.5}>
+                        <IconButton size="large" onClick={handleDelete} color="error">
+                            <DeleteIcon />
+                        </IconButton>
+
+                        <IconButton size="large" onClick={() => setShowEdit(true)} color="primary">
+                            <EditIcon />
+                        </IconButton>
+                    </Box>
+                </Box>
                 <Avatar
                     sx={{ width: 100, height: 100 }}
                     alt={user.displayName || "U"}
@@ -132,19 +146,7 @@ export default function UserDetails({ user }: { user: any }) {
                     <UsersDevices userId={user.id} />
                 </Stack>
             </Box>
-            <Box display="flex" gap={1}>
-                <Button size="small" onClick={handleDelete} variant="outlined" color="error">
-                    Delete
-                </Button>
-                <Button
-                    size="small"
-                    onClick={() => setShowEdit(true)}
-                    variant="outlined"
-                    color="primary"
-                >
-                    Edit
-                </Button>
-            </Box>
+
             {showEdit && <EditUserModal user={user} onClose={() => setShowEdit(false)} />}
         </Box>
     );

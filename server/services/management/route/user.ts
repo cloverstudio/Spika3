@@ -1,4 +1,6 @@
 import { Router, Request, Response } from "express";
+import * as yup from "yup";
+
 import adminAuth from "../lib/adminAuth";
 import Utils from "../../../components/utils";
 import * as consts from "../../../components/consts";
@@ -8,9 +10,77 @@ import { UserRequest } from "../../messenger/lib/types";
 import { User } from "@prisma/client";
 import sanitize from "../../../components/sanitize";
 import prisma from "../../../components/prisma";
+import validate from "../../../components/validateMiddleware";
+
+const getContactsSchema = yup.object().shape({
+    query: yup.object().shape({
+        cursor: yup.number().nullable(),
+        keyword: yup.string().strict(),
+    }),
+});
 
 export default () => {
     const router = Router();
+
+    router.get(
+        "/members",
+        adminAuth,
+        validate(getContactsSchema),
+        async (req: Request, res: Response) => {
+            const keyword = req.query.keyword as string;
+            const cursor = parseInt(req.query.cursor ? (req.query.cursor as string) : "") || null;
+            const take = cursor ? consts.CONTACT_PAGING_LIMIT + 1 : consts.CONTACT_PAGING_LIMIT;
+
+            const condition: any = {
+                verified: true,
+                deleted: false,
+            };
+
+            if (keyword && keyword.length > 0)
+                condition.displayName = {
+                    startsWith: keyword,
+                };
+
+            try {
+                const users = await prisma.user.findMany({
+                    where: condition,
+                    orderBy: [
+                        {
+                            displayName: "asc",
+                        },
+                    ],
+                    ...(cursor && {
+                        cursor: {
+                            id: cursor,
+                        },
+                    }),
+                    take,
+                });
+
+                const count = await prisma.user.count({
+                    where: condition,
+                });
+
+                const nextCursor =
+                    users.length && users.length >= take ? users[users.length - 1].id : null;
+
+                res.send(
+                    successResponse(
+                        {
+                            list: users.map((c) => sanitize(c).user()),
+                            count,
+                            limit: consts.CONTACT_PAGING_LIMIT,
+                            nextCursor,
+                        },
+                        "en"
+                    )
+                );
+            } catch (e: any) {
+                le(e);
+                res.status(500).send(errorResponse(`Server error ${e}`, "en"));
+            }
+        }
+    );
 
     router.get("/", adminAuth, async (req: Request, res: Response) => {
         const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
@@ -88,40 +158,6 @@ export default () => {
                 successResponse(
                     {
                         list: allUsers,
-                        count: count,
-                        limit: consts.PAGING_LIMIT,
-                    },
-                    userReq.lang
-                )
-            );
-        } catch (e: any) {
-            le(e);
-            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
-        }
-    });
-
-    router.get("/verified", adminAuth, async (req: Request, res: Response) => {
-        const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 0;
-        const userReq: UserRequest = req as UserRequest;
-        try {
-            const users = await prisma.user.findMany({
-                where: {
-                    verified: true,
-                },
-                orderBy: [
-                    {
-                        createdAt: "asc",
-                    },
-                ],
-                skip: consts.PAGING_LIMIT * page,
-                take: consts.PAGING_LIMIT,
-            });
-
-            const count = users.length;
-            res.send(
-                successResponse(
-                    {
-                        list: users,
                         count: count,
                         limit: consts.PAGING_LIMIT,
                     },

@@ -2,9 +2,11 @@ import { combineReducers } from "@reduxjs/toolkit";
 import api from "@/api";
 
 import modalReducer from "@/store/modalSlice";
+import usersReducer from "@/store/usersSlice";
 
 const appReducer = combineReducers({
     modal: modalReducer,
+    users: usersReducer,
     [api.reducerPath]: api.reducer,
 });
 

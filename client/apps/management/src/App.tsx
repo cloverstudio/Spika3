@@ -7,6 +7,7 @@ import HomePage, { homeLoader } from "@/pages/home";
 import UsersPage from "@/pages/users";
 import UserDetailPage from "@/pages/user";
 import GroupsPage from "@/pages/groups";
+import GroupPage from "@/pages/group";
 
 declare const BASE_URL: string;
 
@@ -35,6 +36,12 @@ const router = createBrowserRouter(
                 {
                     path: "groups",
                     element: <GroupsPage />,
+                    children: [
+                        {
+                            path: ":id",
+                            element: <GroupPage />,
+                        },
+                    ],
                 },
             ],
         },
