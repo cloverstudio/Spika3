@@ -2,15 +2,14 @@ import { Router, Request, Response } from "express";
 import * as yup from "yup";
 
 import adminAuth from "../lib/adminAuth";
-import Utils from "../../../components/utils";
 import * as consts from "../../../components/consts";
 import { error as le } from "../../../components/logger";
 import { successResponse, errorResponse } from "../../../components/response";
 import { UserRequest } from "../../messenger/lib/types";
-import { User } from "@prisma/client";
 import sanitize from "../../../components/sanitize";
 import prisma from "../../../components/prisma";
 import validate from "../../../components/validateMiddleware";
+import { InitRouterParams } from "../../types/serviceInterface";
 
 const getContactsSchema = yup.object().shape({
     query: yup.object().shape({
@@ -19,7 +18,7 @@ const getContactsSchema = yup.object().shape({
     }),
 });
 
-export default () => {
+export default ({ redisClient }: InitRouterParams) => {
     const router = Router();
 
     router.get(
@@ -150,120 +149,11 @@ export default () => {
         }
     });
 
-    router.get("/search", adminAuth, async (req: Request, res: Response) => {
-        const searchTerm: string = req.query.searchTerm ? (req.query.searchTerm as string) : "";
-        const userReq: UserRequest = req as UserRequest;
-        try {
-            let allUsers: User[] = [];
-            if (onlyNumbers(searchTerm)) {
-                const phoneUsers: User[] = await prisma.user.findMany({
-                    where: {
-                        telephoneNumber: {
-                            contains: searchTerm,
-                        },
-                    },
-                });
-                allUsers.push(...phoneUsers);
-            }
-
-            const emailUsers: User[] = await prisma.user.findMany({
-                where: {
-                    emailAddress: {
-                        contains: searchTerm,
-                    },
-                },
-            });
-            const nameUsers: User[] = await prisma.user.findMany({
-                where: {
-                    displayName: {
-                        contains: searchTerm,
-                    },
-                },
-            });
-            allUsers.push(...emailUsers);
-            allUsers.push(...nameUsers);
-
-            allUsers = allUsers.filter(
-                (value, index, self) => index === self.findIndex((t) => t.id === value.id)
-            );
-
-            const count = allUsers.length;
-
-            return res.send(
-                successResponse(
-                    {
-                        list: allUsers,
-                        count: count,
-                        limit: consts.PAGING_LIMIT,
-                    },
-                    userReq.lang
-                )
-            );
-        } catch (e: any) {
-            le(e);
-            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
-        }
-    });
-
-    router.post("/", adminAuth, async (req: Request, res: Response) => {
-        const userReq: UserRequest = req as UserRequest;
-        try {
-            const displayName: string = req.body.displayName;
-            const emailAddress: string = req.body.emailAddress;
-            const telephoneNumber: string = req.body.telephoneNumber;
-            const avatarFileId: number = parseInt(req.body.avatarFileId || "0");
-            const verified: boolean = req.body.verified;
-
-            if (Utils.isEmpty(displayName))
-                return res
-                    .status(400)
-                    .send(errorResponse(`Display name is required`, userReq.lang));
-
-            const user = await prisma.user.findMany({
-                where: {
-                    telephoneNumber: telephoneNumber,
-                },
-            });
-            const email = await prisma.user.findUnique({
-                where: {
-                    emailAddress: emailAddress,
-                },
-            });
-
-            if (user.length > 0 && email != null) {
-                return res
-                    .status(400)
-                    .send(errorResponse(`Phone number and email are already in use`, userReq.lang));
-            } else if (user.length > 0) {
-                return res
-                    .status(400)
-                    .send(errorResponse(`Phone number is already in use`, userReq.lang));
-            } else if (email != null) {
-                return res.status(400).send(errorResponse(`Email is already in use`, userReq.lang));
-            }
-            const newUser = await prisma.user.create({
-                data: {
-                    displayName: displayName,
-                    emailAddress: emailAddress,
-                    telephoneNumber: telephoneNumber,
-                    avatarFileId: avatarFileId,
-                    verified: verified,
-                },
-            });
-
-            return res.send(successResponse({ user: newUser }, userReq.lang));
-        } catch (e: any) {
-            le(e);
-            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
-        }
-    });
-
     router.get("/:userId", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
             const userId: number = parseInt(req.params.userId);
 
-            // check existance
             const user = await prisma.user.findFirst({
                 where: {
                     id: userId,
@@ -467,7 +357,17 @@ export default () => {
                 where: { id: userId },
                 data: updateValues,
             });
-            return res.send(successResponse({ user: updateUser }, userReq.lang));
+
+            res.send(successResponse({ user: updateUser }, userReq.lang));
+
+            const roomsUser = await prisma.roomUser.findMany({
+                where: { userId },
+            });
+
+            for (const roomUser of roomsUser) {
+                const key = `${consts.ROOM_PREFIX}${roomUser.roomId}`;
+                await redisClient.del(key);
+            }
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
@@ -547,15 +447,28 @@ export default () => {
                 where: { OR: [{ blockedId: userId }, { userId }] },
             });
 
-            return res.send(successResponse({ deleted: true }, userReq.lang));
+            res.send(successResponse({ deleted: true }, userReq.lang));
+
+            // delete private rooms from redis
+            const roomsUser = await prisma.roomUser.findMany({
+                where: { userId },
+            });
+
+            for (const roomUser of roomsUser) {
+                const key = `${consts.ROOM_PREFIX}${roomUser.roomId}`;
+                await redisClient.del(key);
+            }
+
+            // delete group rooms from redis
+            for (const room of rooms) {
+                const key = `${consts.ROOM_PREFIX}${room.id}`;
+                await redisClient.del(key);
+            }
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
     });
 
-    function onlyNumbers(str: string) {
-        return /^[0-9]+$/.test(str);
-    }
     return router;
 };

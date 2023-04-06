@@ -9,8 +9,9 @@ import { successResponse, errorResponse } from "../../../components/response";
 import { UserRequest } from "../../messenger/lib/types";
 import prisma from "../../../components/prisma";
 import sanitize from "../../../components/sanitize";
+import { InitRouterParams } from "../../types/serviceInterface";
 
-export default () => {
+export default ({ redisClient }: InitRouterParams) => {
     const router = Router();
 
     router.put("/:roomId/add", adminAuth, async (req: Request, res: Response) => {
@@ -66,11 +67,14 @@ export default () => {
                 });
             }
 
-            const allRoomUsers = await prisma.roomUser.createMany({
+            await prisma.roomUser.createMany({
                 data: roomUsers,
             });
 
-            return res.send(successResponse({ added: toAdd, groupId: roomId }, "en"));
+            res.send(successResponse({ added: toAdd, groupId: roomId }, "en"));
+
+            const key = `${consts.ROOM_PREFIX}${roomId}`;
+            await redisClient.del(key);
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, "en"));
@@ -124,7 +128,10 @@ export default () => {
                 },
             });
 
-            return res.send(successResponse({ removed: { roomId, userId } }, userReq.lang));
+            res.send(successResponse({ removed: { roomId, userId } }, userReq.lang));
+
+            const key = `${consts.ROOM_PREFIX}${roomId}`;
+            await redisClient.del(key);
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
@@ -280,7 +287,10 @@ export default () => {
                     modifiedAt: new Date(),
                 },
             });
-            return res.send(successResponse({ group: updateRoom }, userReq.lang));
+            res.send(successResponse({ group: updateRoom }, userReq.lang));
+
+            const key = `${consts.ROOM_PREFIX}${roomId}`;
+            await redisClient.del(key);
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
@@ -290,8 +300,8 @@ export default () => {
     router.delete("/:roomId", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
-            const roomId: number = parseInt(req.params.roomId);
-            // check existance
+            const roomId = parseInt(req.params.roomId);
+
             const room = await prisma.room.findFirst({
                 where: {
                     id: roomId,
@@ -307,7 +317,10 @@ export default () => {
                     modifiedAt: new Date(),
                 },
             });
-            return res.send(successResponse({ deleted: true }, userReq.lang));
+            res.send(successResponse({ deleted: true }, userReq.lang));
+
+            const key = `${consts.ROOM_PREFIX}${roomId}`;
+            await redisClient.del(key);
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
