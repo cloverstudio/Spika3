@@ -25,8 +25,12 @@ type UserListType = {
 
 const usersApi = api.injectEndpoints({
     endpoints: (build) => ({
-        getUsers: build.query<SuccessResponse<UserListType> | ErrorResponse, number>({
-            query: (page) => `/management/users?page=${page}`,
+        getUsers: build.query<
+            SuccessResponse<UserListType> | ErrorResponse,
+            { page: number; keyword?: string }
+        >({
+            query: ({ page, keyword }) =>
+                `/management/users?page=${page}${keyword ? `&keyword=${keyword}` : ""}`,
             providesTags: [{ type: "Users", id: "LIST" }],
         }),
         getUserById: build.query<SuccessResponse<{ user: UserType }> | ErrorResponse, string>({

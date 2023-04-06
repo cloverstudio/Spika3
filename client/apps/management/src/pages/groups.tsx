@@ -7,11 +7,13 @@ import { Outlet } from "react-router-dom";
 import GroupList from "@/features/groups/GroupList";
 import NewGroupModal from "@/features/groups/NewGroupModal";
 import AddIcon from "@mui/icons-material/Add";
+import SearchBox from "@/features/groups/SearchBox";
 
 export default function Groups(): React.ReactElement {
     const [page, setPage] = useState(1);
+    const [keyword, setKeyword] = useState("");
     const [showNewGroupModal, setShowNewGroupModal] = useState(false);
-    const { data, isLoading, isError } = useGetGroupsQuery(page);
+    const { data, isLoading, isError } = useGetGroupsQuery({ page, keyword });
     const strings = useStrings();
 
     if (isLoading) {
@@ -30,42 +32,57 @@ export default function Groups(): React.ReactElement {
         setPage(newPage);
     };
 
+    const pageCount = Math.ceil(data.data.count / data.data.limit);
+
     return (
         <Box
             display="grid"
             sx={{
                 gridTemplateColumns: {
                     xs: "1fr",
-                    md: "2fr 3fr",
+                    md: "26rem 3fr",
                 },
             }}
         >
             <Box
                 maxHeight="100vh"
                 overflow="auto"
-                p={{ base: 2, md: 3, lg: 6 }}
+                m={{ base: 2, md: 3, lg: 5 }}
                 display="grid"
                 gap={3}
                 alignContent="start"
             >
-                <Box display="flex" alignItems="center" gap={1}>
-                    <Typography variant="h2" mb={1} textAlign="center" fontWeight="bold">
-                        {strings.groups}
-                    </Typography>
-                    <IconButton
-                        size="large"
-                        onClick={() => setShowNewGroupModal(true)}
-                        color="primary"
-                    >
-                        <AddIcon />
-                    </IconButton>
+                <Box>
+                    <Box display="flex" justifyContent="center" alignItems="center" gap={1} mb={2}>
+                        <Typography variant="h2" textAlign="center" fontWeight="bold">
+                            {strings.groups}
+                        </Typography>
+                        <IconButton
+                            size="large"
+                            onClick={() => setShowNewGroupModal(true)}
+                            color="primary"
+                        >
+                            <AddIcon />
+                        </IconButton>
+                    </Box>
+                    <Box mx="auto" mb={-2}>
+                        <SearchBox
+                            onSearch={(val) => {
+                                setPage(1);
+                                setKeyword(val);
+                            }}
+                        />
+                    </Box>
                 </Box>
-                <Pagination
-                    count={Math.floor(data.data.count / data.data.limit)}
-                    page={page}
-                    onChange={handlePageChange}
-                    size="small"
-                />
+                {pageCount > 1 && (
+                    <Pagination
+                        count={pageCount}
+                        page={page}
+                        onChange={handlePageChange}
+                        size="small"
+                        sx={{ mx: "auto" }}
+                    />
+                )}
                 <GroupList groups={data.data.list} />
             </Box>
 
