@@ -131,7 +131,7 @@ export default function UserDetails({ user }: { user: UserType }) {
                             {strings.verified}
                         </Typography>
                         <Typography fontWeight="medium" color="text.secondary" fontSize="0.8rem">
-                            {strings.verified ? strings.yes : strings.no}
+                            {user.verified ? strings.yes : strings.no}
                         </Typography>
                     </Box>
                     <Box display="grid" gridTemplateColumns="2fr 5fr" gap={2}>

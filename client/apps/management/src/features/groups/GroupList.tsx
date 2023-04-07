@@ -9,7 +9,7 @@ declare const UPLOADS_BASE_URL: string;
 
 export default function GroupsList({ groups }: { groups: RoomType[] }) {
     return (
-        <Box maxWidth="21rem">
+        <Box>
             {groups.map((group) => (
                 <Group
                     id={group.id}

@@ -98,7 +98,7 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
     if (+process.env["USE_MNG_API"]) {
         const userManagementAPIService: UserManagementAPIService = new UserManagementAPIService();
         userManagementAPIService.start({
-            rabbitMQChannel,
+            redisClient,
         });
 
         app.use("/api/management", userManagementAPIService.getRoutes());

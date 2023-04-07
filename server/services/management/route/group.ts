@@ -3,15 +3,15 @@ import { Router, Request, Response } from "express";
 import adminAuth from "../lib/adminAuth";
 import * as consts from "../../../components/consts";
 
-import l, { error as le } from "../../../components/logger";
+import { error as le } from "../../../components/logger";
 
 import { successResponse, errorResponse } from "../../../components/response";
 import { UserRequest } from "../../messenger/lib/types";
-import { Room } from "@prisma/client";
 import prisma from "../../../components/prisma";
 import sanitize from "../../../components/sanitize";
+import { InitRouterParams } from "../../types/serviceInterface";
 
-export default () => {
+export default ({ redisClient }: InitRouterParams) => {
     const router = Router();
 
     router.put("/:roomId/add", adminAuth, async (req: Request, res: Response) => {
@@ -67,11 +67,14 @@ export default () => {
                 });
             }
 
-            const allRoomUsers = await prisma.roomUser.createMany({
+            await prisma.roomUser.createMany({
                 data: roomUsers,
             });
 
-            return res.send(successResponse({ added: toAdd, groupId: roomId }, "en"));
+            res.send(successResponse({ added: toAdd, groupId: roomId }, "en"));
+
+            const key = `${consts.ROOM_PREFIX}${roomId}`;
+            await redisClient.del(key);
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, "en"));
@@ -125,111 +128,14 @@ export default () => {
                 },
             });
 
-            return res.send(successResponse({ removed: { roomId, userId } }, userReq.lang));
+            res.send(successResponse({ removed: { roomId, userId } }, userReq.lang));
+
+            const key = `${consts.ROOM_PREFIX}${roomId}`;
+            await redisClient.del(key);
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
-    });
-
-    router.get("/users", adminAuth, async (req: Request, res: Response) => {
-        const roomId = Number(req.query.roomId);
-        const userReq: UserRequest = req as UserRequest;
-
-        try {
-            const room = await prisma.room.findUnique({
-                where: { id: roomId },
-                include: { users: true },
-            });
-
-            const userIds = room.users.map((ru) => ru.userId);
-            const users = await prisma.user.findMany({
-                where: { id: { in: userIds } },
-            });
-            return res.send(
-                successResponse(
-                    {
-                        room: room,
-                        users: users,
-                    },
-                    userReq.lang
-                )
-            );
-        } catch (e: any) {
-            le(e);
-            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
-        }
-    });
-
-    router.get("/search", adminAuth, async (req: Request, res: Response) => {
-        const searchTerm: string = req.query.searchTerm ? (req.query.searchTerm as string) : "";
-        const userReq: UserRequest = req as UserRequest;
-
-        try {
-            const allRooms: Room[] = await prisma.room.findMany({
-                where: {
-                    OR: [
-                        {
-                            name: {
-                                contains: searchTerm,
-                            },
-                        },
-                    ],
-                },
-            });
-            const count = allRooms.length;
-
-            return res.send(
-                successResponse(
-                    {
-                        list: allRooms,
-                        count: count,
-                        limit: consts.PAGING_LIMIT,
-                    },
-                    userReq.lang
-                )
-            );
-        } catch (e: any) {
-            le(e);
-            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
-        }
-    });
-
-    router.get("/group", adminAuth, async (req: Request, res: Response) => {
-        const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 0;
-        const type: string = req.query.type ? (req.query.type as string) : "";
-        const userReq: UserRequest = req as UserRequest;
-        // if (type.length > 0) {
-        try {
-            const rooms = await prisma.room.findMany({
-                where: {
-                    type: type,
-                },
-                orderBy: [
-                    {
-                        createdAt: "asc",
-                    },
-                ],
-                skip: consts.PAGING_LIMIT * page,
-                take: consts.PAGING_LIMIT,
-            });
-
-            const count = rooms.length;
-            res.send(
-                successResponse(
-                    {
-                        list: rooms,
-                        count: count,
-                        limit: consts.PAGING_LIMIT,
-                    },
-                    userReq.lang
-                )
-            );
-        } catch (e: any) {
-            le(e);
-            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
-        }
-        // }
     });
 
     router.post("/", adminAuth, async (req: Request, res: Response) => {
@@ -258,11 +164,26 @@ export default () => {
     router.get("/", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         const page = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
+        const keyword = req.query.keyword as string;
 
         const rooms = await prisma.room.findMany({
             where: {
-                deleted: false,
-                type: "group",
+                ...(keyword
+                    ? {
+                          OR: ["startsWith", "contains"].map((key) => ({
+                              name: {
+                                  [key]: keyword,
+                              },
+                          })),
+                          AND: {
+                              deleted: false,
+                              type: "group",
+                          },
+                      }
+                    : {
+                          deleted: false,
+                          type: "group",
+                      }),
             },
             orderBy: {
                 createdAt: "asc",
@@ -270,15 +191,29 @@ export default () => {
             include: {
                 users: true,
             },
-            skip: consts.PAGING_LIMIT * page,
+            skip: consts.PAGING_LIMIT * (page - 1),
             take: consts.PAGING_LIMIT,
         });
 
         try {
             const count = await prisma.room.count({
                 where: {
-                    deleted: false,
-                    type: "group",
+                    ...(keyword
+                        ? {
+                              OR: ["startsWith", "contains"].map((key) => ({
+                                  name: {
+                                      [key]: keyword,
+                                  },
+                              })),
+                              AND: {
+                                  deleted: false,
+                                  type: "group",
+                              },
+                          }
+                        : {
+                              deleted: false,
+                              type: "group",
+                          }),
                 },
             });
 
@@ -352,7 +287,10 @@ export default () => {
                     modifiedAt: new Date(),
                 },
             });
-            return res.send(successResponse({ group: updateRoom }, userReq.lang));
+            res.send(successResponse({ group: updateRoom }, userReq.lang));
+
+            const key = `${consts.ROOM_PREFIX}${roomId}`;
+            await redisClient.del(key);
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
@@ -362,8 +300,8 @@ export default () => {
     router.delete("/:roomId", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
-            const roomId: number = parseInt(req.params.roomId);
-            // check existance
+            const roomId = parseInt(req.params.roomId);
+
             const room = await prisma.room.findFirst({
                 where: {
                     id: roomId,
@@ -379,7 +317,10 @@ export default () => {
                     modifiedAt: new Date(),
                 },
             });
-            return res.send(successResponse({ deleted: true }, userReq.lang));
+            res.send(successResponse({ deleted: true }, userReq.lang));
+
+            const key = `${consts.ROOM_PREFIX}${roomId}`;
+            await redisClient.del(key);
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));

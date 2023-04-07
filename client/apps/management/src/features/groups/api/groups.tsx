@@ -9,8 +9,12 @@ type RoomListType = {
 
 const groupsApi = api.injectEndpoints({
     endpoints: (build) => ({
-        getGroups: build.query<SuccessResponse<RoomListType> | ErrorResponse, number>({
-            query: (page) => `/management/groups?page=${page}`,
+        getGroups: build.query<
+            SuccessResponse<RoomListType> | ErrorResponse,
+            { page: number; keyword?: string }
+        >({
+            query: ({ page, keyword }) =>
+                `/management/groups?page=${page}${keyword ? `&keyword=${keyword}` : ""}`,
             providesTags: [{ type: "Groups", id: "LIST" }],
         }),
         getGroupById: build.query<SuccessResponse<{ group: RoomType }> | ErrorResponse, number>({
