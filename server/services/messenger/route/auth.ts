@@ -159,10 +159,12 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         id: requestDevice.id,
                     },
                     data: {
-                        tokenExpiredAt: new Date(),
                         userId: requestUser.id,
-                        pushToken: null,
-                        modifiedAt: new Date(),
+                        ...(deviceType !== Constants.DEVICE_TYPE_BROWSER && {
+                            tokenExpiredAt: new Date(),
+                            pushToken: null,
+                            modifiedAt: new Date(),
+                        }),
                     },
                 });
             }
