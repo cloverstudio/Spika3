@@ -44,6 +44,19 @@ export default function AuthBase({ children }: Props): React.ReactElement {
             source.onerror = () => {
                 setSSEConnectionState("error");
             };
+
+            addEventListener("offline", (event) => {
+                console.log({ event });
+                setSSEConnectionState("error");
+                source && source.close();
+            });
+
+            addEventListener("online", () => {
+                source = new EventSource(
+                    `${API_BASE_URL}/sse?accessToken=${deviceData.device.token}`
+                );
+                setSSEConnectionState("pending");
+            });
         }
 
         return () => {
