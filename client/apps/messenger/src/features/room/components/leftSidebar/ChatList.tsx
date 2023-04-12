@@ -128,7 +128,7 @@ function RoomRow({ id, isActive, lastMessage, handleClick, unreadCount }: RoomRo
         }
     }, [lastMessage]);
 
-    if (isLoading)
+    if (isLoading) {
         return (
             <Link to={`/rooms/${id}`} onClick={handleClick} style={{ textDecoration: "none" }}>
                 <Box
@@ -155,6 +155,11 @@ function RoomRow({ id, isActive, lastMessage, handleClick, unreadCount }: RoomRo
                 </Box>
             </Link>
         );
+    }
+
+    if (!data) {
+        return null;
+    }
 
     const room = formatRoomInfo(data, me.id);
     const { name, users, avatarFileId, type, muted, pinned } = room;
