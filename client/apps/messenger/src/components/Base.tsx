@@ -45,8 +45,7 @@ export default function AuthBase({ children }: Props): React.ReactElement {
                 setSSEConnectionState("error");
             };
 
-            addEventListener("offline", (event) => {
-                console.log({ event });
+            addEventListener("offline", () => {
                 setSSEConnectionState("error");
                 source && source.close();
             });
