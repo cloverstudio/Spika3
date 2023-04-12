@@ -123,6 +123,8 @@ const en = {
     connectionLost: "Connection with the server closed, trying to reconnect...",
     connectionReestablished: "Connection re-established, window will refresh in 5 seconds...",
     youHaveBeenLoggedOut: "You have been logged out due to invalid or expired access token",
+    unblockUser: "Unblock user",
+    unblockUserQuestion: "Do you want to unblock user?",
 };
 
 const strings = {

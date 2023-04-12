@@ -9,14 +9,18 @@ import DeleteOutline from "@mui/icons-material/DeleteOutline";
 
 import { RoomType } from "../../../../types/Rooms";
 import { useShowBasicDialog } from "../../../../hooks/useModal";
-import { useDeleteRoomMutation, useLeaveRoomMutation } from "../../api/room";
+import {
+    useDeleteRoomMutation,
+    useGetRoomBlockedQuery,
+    useLeaveRoomMutation,
+} from "../../api/room";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { hideRightSidebar } from "../../slices/rightSidebar";
 import { removeRoom } from "../../slices/leftSidebar";
 import { selectUserId } from "../../../../store/userSlice";
 import useStrings from "../../../../hooks/useStrings";
-import { useBlockUserMutation } from "../../api/user";
+import { useBlockUserMutation, useRemoveUserFromBlockListMutation } from "../../api/user";
 
 export interface DetailsDestructiveActionsProps {
     room: RoomType;
@@ -33,6 +37,9 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const [blockUser] = useBlockUserMutation();
+    const [unblockUser] = useRemoveUserFromBlockListMutation();
+
+    const { data: roomBlock } = useGetRoomBlockedQuery(id);
 
     const userIsAdmin = users.find((u) => u.userId === userId).isAdmin;
     const otherUserId = users.find((u) => u.userId !== userId)?.userId;
@@ -102,9 +109,26 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
         );
     };
 
+    const handleUnblock = () => {
+        showBasicDialog(
+            {
+                text: strings.unblockUserQuestion,
+                title: strings.confirm,
+                allowButtonLabel: strings.yes,
+                denyButtonLabel: strings.cancel,
+            },
+            () =>
+                unblockUser(otherUserId)
+                    .unwrap()
+                    .then(() => {
+                        console.log("done");
+                    })
+        );
+    };
+
     return (
         <Stack pt={5.5} spacing={1}>
-            {type === "private" && (
+            {type === "private" && !roomBlock && (
                 <IconButton
                     size="large"
                     sx={{
@@ -130,6 +154,35 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
                         <DoDisturb style={{ fill: "red" }} />
                         <Typography variant="subtitle1" color="red">
                             {strings.blockUser}
+                        </Typography>
+                    </Stack>
+                </IconButton>
+            )}
+            {type === "private" && roomBlock && (
+                <IconButton
+                    size="large"
+                    sx={{
+                        p: 1,
+                        "&.MuiButtonBase-root:hover": {
+                            bgcolor: "transparent",
+                        },
+                        width: "100%",
+                    }}
+                    onClick={handleUnblock}
+                >
+                    <Stack
+                        direction="row"
+                        alignItems="center"
+                        spacing={1}
+                        sx={{
+                            display: "flex",
+                            flexDirection: "row",
+                            justifyContent: "flex-start",
+                            width: "100%",
+                        }}
+                    >
+                        <Typography variant="subtitle1" color="red">
+                            {strings.unblockUser}
                         </Typography>
                     </Stack>
                 </IconButton>
