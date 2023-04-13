@@ -78,7 +78,20 @@ export default ({ redisClient }: InitRouterParams): Router => {
                 roomUsers = [...roomUsers, ...matchedRoomUsers];
             }
 
-            const roomsIds = roomUsers.map((r) => r.roomId);
+            const allRoomsIds = roomUsers.map((r) => r.roomId);
+
+            const allRooms = await prisma.room.findMany({
+                where: {
+                    id: { in: allRoomsIds },
+                },
+                include: {
+                    users: true,
+                },
+            });
+
+            const roomsIds = allRooms
+                .filter((r) => r.type === "group" || r.users.length === 2)
+                .map((r) => r.id);
 
             const count = await prisma.room.count({
                 where: {

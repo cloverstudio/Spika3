@@ -266,7 +266,7 @@ function Menu({ id, mouseOver, setMouseOver, setShowReactionMenu }: MenuProps) {
     if (deleted) return null;
 
     if (roomBlock) {
-        contextMenuIcons = IconConfigs.showInfo | IconConfigs.showDelete;
+        contextMenuIcons = IconConfigs.showInfo;
     } else if (isUsersMessage && type === "text") {
         contextMenuIcons =
             IconConfigs.showEmoticon |

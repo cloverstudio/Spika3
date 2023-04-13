@@ -126,7 +126,7 @@ export default function MessagesContainer({
             setNewMessages(0);
         }
 
-        setLockedForScroll(getScrollBottom(ref.current) > 800);
+        setLockedForScroll(getScrollBottom(ref.current) > 300);
     };
 
     const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {

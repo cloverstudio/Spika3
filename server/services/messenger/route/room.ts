@@ -108,6 +108,12 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const type = userDefinedType || (users.length < 3 ? "private" : "group");
             const name = getRoomName(userDefinedName, users.length);
 
+            if (type === "private" && users.length !== 2) {
+                return res
+                    .status(400)
+                    .send(errorResponse("Private room must have 2 users", userReq.lang));
+            }
+
             if (users.length === 2 && type === "private") {
                 const userIdsStr: string = users.map((u) => u.userId).join(",");
                 const query = `
