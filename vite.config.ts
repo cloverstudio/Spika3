@@ -32,9 +32,6 @@ export default defineConfig(({ command, mode }) => {
         plugins: [react()],
         build: {
             outDir: "../../../public/messenger",
-            commonjsOptions: {
-                warnOnError: true,
-            },
         },
         define: {
             ENV: JSON.stringify(env.ENV),
