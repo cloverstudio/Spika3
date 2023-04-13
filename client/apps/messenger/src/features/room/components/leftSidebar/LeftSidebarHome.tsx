@@ -28,6 +28,7 @@ import { EditProfileView } from "../EditProfile";
 
 import logo from "../../../../assets/logo.svg";
 import { useGetUserQuery } from "../../../auth/api/auth";
+import { Link } from "react-router-dom";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -75,8 +76,8 @@ export default function LeftSidebarHome({
                     <Box px={2.5} borderBottom="0.5px solid" sx={{ borderColor: "divider" }}>
                         <Box display="flex" height="80px" justifyContent="space-between">
                             <Box
-                                component="a"
-                                href="/messenger/app"
+                                component={Link}
+                                to="/app"
                                 display="flex"
                                 flexDirection="column"
                                 justifyContent="center"
