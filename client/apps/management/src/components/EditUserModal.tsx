@@ -64,6 +64,8 @@ export default function EditUserModal({ onClose, user }: { onClose: () => void; 
 
                 const uploadedFile = await fileUploader.upload();
                 avatarFileId = uploadedFile.id;
+            } else if (src !== uploadImage) {
+                avatarFileId = user.avatarFileId;
             }
 
             const res = await updateUser({
