@@ -237,6 +237,7 @@ export default function GroupDetails({ group }: { group: RoomType }) {
                     open={true}
                     existingMembers={group.users}
                     onClose={() => setShowAddUsersModal(false)}
+                    title={strings.addUsersToGroup}
                 />
             )}
             {showAddAdminsModal && (
@@ -245,6 +246,7 @@ export default function GroupDetails({ group }: { group: RoomType }) {
                     open={true}
                     existingMembers={group.users.filter((u) => u.isAdmin)}
                     onClose={() => setShowAddAdminsModal(false)}
+                    title={strings.addAdminsToGroup}
                 />
             )}
         </Box>

@@ -62,6 +62,8 @@ const en = {
     groupDeleted: "Group deleted",
     deleteGroup: "Delete group",
     deleteGroupConfirmation: "Are you sure you want to delete this group?",
+    addUsersToGroup: "Add users",
+    addAdminsToGroup: "Add admins",
 };
 
 const strings = {

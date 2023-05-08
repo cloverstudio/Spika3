@@ -24,6 +24,7 @@ type AddMembersModalProps = {
     onClose: () => void;
     onSave: (userIds: number[]) => void;
     existingMembers: RoomUserType[];
+    title: string;
 };
 
 export default function AddMembersModal(props: AddMembersModalProps) {
@@ -31,7 +32,7 @@ export default function AddMembersModal(props: AddMembersModalProps) {
     const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
     const { theme } = useContext(ThemeContext);
 
-    const { onClose, open, onSave, existingMembers } = props;
+    const { onClose, open, onSave, existingMembers, title } = props;
 
     const handleSave = () => {
         onSave(selectedUsers.map((u) => u.id));
@@ -62,9 +63,7 @@ export default function AddMembersModal(props: AddMembersModalProps) {
             }}
         >
             <Box width={{ md: 428 }} px={2.5} py={2} sx={{ overflow: "hidden" }} className={theme}>
-                <DialogTitle sx={{ textAlign: "center", p: 0, mb: 2 }}>
-                    {strings.addMembers}
-                </DialogTitle>
+                <DialogTitle sx={{ textAlign: "center", p: 0, mb: 2 }}>{title}</DialogTitle>
                 <IconButton
                     size="large"
                     sx={{
