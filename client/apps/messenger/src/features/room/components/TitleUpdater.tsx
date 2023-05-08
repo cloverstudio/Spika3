@@ -16,8 +16,15 @@ export default function TitleUpdater(): React.ReactElement {
 
     useEffect(() => {
         const unreadCount: number = list.reduce<number>((totalCount, row) => {
-            if (row.unreadCount) return totalCount + row.unreadCount;
-            else return totalCount;
+            if (row.muted) {
+                return totalCount;
+            }
+
+            if (!row.unreadCount) {
+                return totalCount;
+            }
+
+            return totalCount + 1;
         }, 0);
 
         utils.updateBrowserTitle(name, unreadCount);
