@@ -21,6 +21,7 @@ import {
 
 import { selectUserId, fetchMe, fetchSettings } from "../../src/store/userSlice";
 import * as constants from "../../../../lib/constants";
+import TitleUpdater from "../features/room/components/TitleUpdater";
 
 export default function Home(): React.ReactElement {
     const theme = useTheme();
@@ -108,6 +109,7 @@ export default function Home(): React.ReactElement {
             </Box>
 
             <PushNotificationPermissionDialog />
+            <TitleUpdater />
         </Base>
     );
 }

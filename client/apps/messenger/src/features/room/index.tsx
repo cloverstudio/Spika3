@@ -8,7 +8,6 @@ import useTheme from "@mui/material/styles/useTheme";
 import Messages from "./components/Messages";
 import ChatInput from "./components/ChatInput";
 import ConfCall from "../confcall";
-import TitleUpdater from "./components/TitleUpdater";
 import { useParams } from "react-router-dom";
 import { useGetRoomQuery } from "./api/room";
 
@@ -22,7 +21,6 @@ export default function Room(): React.ReactElement {
             <Messages />
             <ChatInput />
             {isCall && <ConfCall />}
-            <TitleUpdater />
         </RoomContainer>
     );
 }

@@ -7,7 +7,17 @@ import * as utils from "../../../../../../lib/utils";
 import { useGetRoomQuery } from "../api/room";
 import { selectHistory } from "../slices/leftSidebar";
 
-export default function TitleUpdater(): React.ReactElement {
+export default function TitleUpdaterContainer(): React.ReactElement {
+    const roomId = parseInt(useParams().id || "");
+
+    if (!roomId) {
+        return <HomeTitleUpdater />;
+    } else {
+        return <TitleUpdater />;
+    }
+}
+
+function TitleUpdater(): React.ReactElement {
     const roomId = parseInt(useParams().id || "");
     const { data: room } = useGetRoomQuery(roomId);
 
@@ -29,6 +39,28 @@ export default function TitleUpdater(): React.ReactElement {
 
         utils.updateBrowserTitle(name, unreadCount);
     }, [name, list]);
+
+    return <></>;
+}
+
+export function HomeTitleUpdater(): React.ReactElement {
+    const list = useSelector(selectHistory);
+
+    useEffect(() => {
+        const unreadCount: number = list.reduce<number>((totalCount, row) => {
+            if (row.muted) {
+                return totalCount;
+            }
+
+            if (!row.unreadCount) {
+                return totalCount;
+            }
+
+            return totalCount + 1;
+        }, 0);
+
+        utils.updateBrowserTitle("Home", unreadCount);
+    }, [list]);
 
     return <></>;
 }
