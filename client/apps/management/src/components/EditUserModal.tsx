@@ -94,7 +94,7 @@ export default function EditUserModal({ onClose, user }: { onClose: () => void; 
         >
             <DialogTitle id="alert-dialog-title">{strings.editUser}</DialogTitle>
             <DialogContent>
-                <Box minWidth={{ xs: "100%", md: "350px" }} textAlign="left" component="form">
+                <Box minWidth={{ xs: "100%", md: "350px" }} textAlign="left">
                     <Stack spacing={2} mb={3}>
                         <Box mx="auto" textAlign="center">
                             <img

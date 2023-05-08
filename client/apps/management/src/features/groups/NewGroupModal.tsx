@@ -83,7 +83,7 @@ export default function NewGroupModal({ onClose }: { onClose: () => void }) {
         >
             <DialogTitle id="alert-dialog-title">{strings.createGroup}</DialogTitle>
             <DialogContent>
-                <Box minWidth={{ xs: "100%", md: "350px" }} textAlign="left" component="form">
+                <Box minWidth={{ xs: "100%", md: "350px" }} textAlign="left">
                     <Stack spacing={2} mb={3}>
                         <Box mx="auto" textAlign="center">
                             <img
