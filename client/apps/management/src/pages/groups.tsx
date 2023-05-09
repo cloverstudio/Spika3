@@ -47,7 +47,7 @@ export default function Groups(): React.ReactElement {
             <Box
                 maxHeight="100vh"
                 overflow="auto"
-                m={{ base: 2, md: 3, lg: 5 }}
+                p={{ base: 2, md: 3, lg: 5 }}
                 display="grid"
                 gap={3}
                 alignContent="start"
