@@ -1,7 +1,7 @@
 import api, { dynamicBaseQuery } from "../api/api";
 
 import { refreshHistory, removeRoom } from "../features/room/slices/leftSidebar";
-import { store } from "../store/store";
+import { RootState, store } from "../store/store";
 
 const VALID_SSE_EVENT_TYPES = [
     "NEW_MESSAGE_RECORD",
@@ -21,7 +21,6 @@ import { notify as notifyCallEvent } from "../features/confcall/lib/callEventLis
 import { fetchContacts } from "../features/room/slices/contacts";
 import { RoomType } from "../types/Rooms";
 import newMessageSound from "../../../../assets/newmessage.mp3";
-import * as constants from "../../../../lib/constants";
 import {
     addMessage,
     addMessageRecord,
@@ -70,13 +69,19 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
             }
 
             store.dispatch(refreshHistory(message.roomId as number));
+            const queries = (store.getState() as RootState).api.queries;
 
-            const isMute =
-                store
-                    .getState()
-                    .user.settings?.find(
-                        (r) => r.key === `${constants.SETTINGS_ROOM_MUTE_PREFIX}${message.roomId}`
-                    )?.value === constants.SETTINGS_TRUE;
+            if (!queries) {
+                return;
+            }
+
+            const getRoomQueries = Object.entries(queries)
+                .filter(([key]) => key.startsWith("getRoom("))
+                .map(([_, val]) => val);
+
+            const getRoomQuery = getRoomQueries.find((q) => q.originalArgs === message.roomId);
+
+            const isMute = getRoomQuery?.data?.muted;
 
             // play sound logic
 
