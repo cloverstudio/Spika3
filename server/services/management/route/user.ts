@@ -355,7 +355,7 @@ export default ({ redisClient }: InitRouterParams) => {
 
             const updateUser = await prisma.user.update({
                 where: { id: userId },
-                data: updateValues,
+                data: { ...updateValues, modifiedAt: new Date() },
             });
 
             res.send(successResponse({ user: updateUser }, userReq.lang));
