@@ -236,7 +236,14 @@ function RightActionTextIcon({ onSend }: { onSend: () => void }): React.ReactEle
     const message = useSelector(selectInputText(roomId));
 
     if (message.length) {
-        return <SendIcon onClick={() => onSend()} color="primary" sx={{ cursor: "pointer" }} />;
+        return (
+            <SendIcon
+                id="send-button"
+                onClick={() => onSend()}
+                color="primary"
+                sx={{ cursor: "pointer" }}
+            />
+        );
     }
 
     return <KeyboardVoiceIcon fontSize="large" color="primary" />;
@@ -282,6 +289,7 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
                 autoFocus={true}
                 ref={inputRef}
                 value={message}
+                id="chat-input"
                 onPaste={(e) => {
                     const items = e.clipboardData?.items;
                     if (items) {

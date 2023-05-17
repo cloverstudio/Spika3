@@ -104,6 +104,7 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
                                 }),
                             });
                         } catch (error) {
+                            lw({ type, userId, messageId });
                             lw("create message record failed", error.message);
                         }
                     }

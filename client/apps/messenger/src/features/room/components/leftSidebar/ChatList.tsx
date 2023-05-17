@@ -184,6 +184,7 @@ function RoomRow({ id, isActive, lastMessage, handleClick, unreadCount }: RoomRo
                 px={2.5}
                 py={1.5}
                 display="flex"
+                id={`room_${id}`}
             >
                 <Avatar
                     alt={name}

@@ -65,6 +65,7 @@ export default function TelephoneNumberForm({
                     disabled={!validPhoneNumber}
                     fullWidth
                     variant="contained"
+                    id="submitButton"
                     sx={{ marginTop: "1em" }}
                 >
                     {strings.next}
