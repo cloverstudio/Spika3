@@ -25,7 +25,7 @@ const postMessageSchema = yup.object().shape({
     }),
 });
 
-export default ({ rabbitMQChannel }: InitRouterParams): Router => {
+export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
     const router = Router();
 
     router.post("/", auth, validate(postMessageSchema), async (req: Request, res: Response) => {
@@ -143,6 +143,9 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             const formattedBody = await formatMessageBody(body, type);
             const sanitizedMessage = sanitize({ ...message, body: formattedBody }).message();
+
+            const key = `${Constants.LAST_MESSAGE_PREFIX}${roomId}`;
+            await redisClient.set(key, sanitizedMessage.id.toString());
 
             res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
 

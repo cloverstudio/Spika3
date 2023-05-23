@@ -165,6 +165,7 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
         const messaging: MessagingService = new MessagingService();
         messaging.start({
             rabbitMQChannel,
+            redisClient,
         });
 
         app.use("/api/messaging", messaging.getRoutes());

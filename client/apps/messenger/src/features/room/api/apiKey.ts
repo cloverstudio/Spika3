@@ -19,19 +19,28 @@ const apiKeyApi = api.injectEndpoints({
             query: (data) => {
                 return { url: `/messenger/api-keys/roomId/${data.roomId}`, data, method: "POST" };
             },
-            invalidatesTags: () => [{ type: "ApiKeys", id: "LIST" }],
+            invalidatesTags: (result) => [
+                { type: "ApiKeys", id: "LIST" },
+                { type: "Rooms", id: result.apiKey.roomId },
+            ],
         }),
         editApiKey: build.mutation<{ apiKey: ApiKeyType }, { id: number; data: any }>({
             query: ({ id, data }) => {
                 return { url: `/messenger/api-keys/${id}`, method: "PUT", data };
             },
-            invalidatesTags: (result) => [{ type: "ApiKeys", id: result.apiKey.id }],
+            invalidatesTags: (result) => [
+                { type: "ApiKeys", id: result.apiKey.id },
+                { type: "Rooms", id: result.apiKey.roomId },
+            ],
         }),
-        deleteApiKey: build.mutation<{ apiKey: ApiKeyType }, number>({
+        deleteApiKey: build.mutation<{ roomId: number }, number>({
             query: (id) => {
                 return { url: `/messenger/api-keys/${id}`, method: "DELETE" };
             },
-            invalidatesTags: () => [{ type: "ApiKeys", id: "LIST" }],
+            invalidatesTags: (result) => [
+                { type: "ApiKeys", id: "LIST" },
+                { type: "Rooms", id: result.roomId },
+            ],
         }),
     }),
     overrideExisting: true,

@@ -11,6 +11,7 @@ import { successResponse, errorResponse } from "../../../components/response";
 import sanitize from "../../../components/sanitize";
 import utils from "../../../components/utils";
 import prisma from "../../../components/prisma";
+import * as Constants from "../../../components/consts";
 
 const postApiKeySchema = yup.object().shape({
     body: yup.object().shape({
@@ -18,7 +19,7 @@ const postApiKeySchema = yup.object().shape({
     }),
 });
 
-export default ({}: InitRouterParams): Router => {
+export default ({ redisClient }: InitRouterParams): Router => {
     const router = Router();
 
     router.post(
@@ -54,6 +55,9 @@ export default ({}: InitRouterParams): Router => {
                 });
 
                 await prisma.roomUser.create({ data: { userId: botUser.id, roomId } });
+
+                const key = `${Constants.ROOM_PREFIX}${roomId}`;
+                await redisClient.del(key);
 
                 res.send(successResponse({ apiKey: sanitize(apiKey).apiKey() }, userReq.lang));
             } catch (e: any) {
@@ -139,6 +143,9 @@ export default ({}: InitRouterParams): Router => {
                 data: { displayName },
             });
 
+            const key = `${Constants.ROOM_PREFIX}${apiKey.roomId}`;
+            await redisClient.del(key);
+
             res.send(
                 successResponse(
                     { apiKey: sanitize({ ...apiKey, displayName }).apiKey() },
@@ -183,9 +190,12 @@ export default ({}: InitRouterParams): Router => {
                 where: { userId: apiKey.userId, roomId: apiKey.roomId },
             });
 
+            const key = `${Constants.ROOM_PREFIX}${apiKey.roomId}`;
+            await redisClient.del(key);
+
             await prisma.apiKey.delete({ where: { id } });
 
-            res.send(successResponse({ deleted: true }, userReq.lang));
+            res.send(successResponse({ deleted: true, roomId: apiKey.roomId }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));

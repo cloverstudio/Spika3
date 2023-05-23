@@ -76,7 +76,7 @@ export default class Messenger implements Service {
             })
         );
         messengerRouter.use("/webhooks", webhookRouter({}));
-        messengerRouter.use("/api-keys", apiKeyRouter({}));
+        messengerRouter.use("/api-keys", apiKeyRouter({ redisClient: this.redisClient }));
         messengerRouter.use("/blocks", blockRouter());
 
         return messengerRouter;
