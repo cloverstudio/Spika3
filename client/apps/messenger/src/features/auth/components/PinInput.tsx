@@ -99,7 +99,6 @@ function NumberInput({
                     type: "number",
                 }}
                 id={`code_${id.toString()}`}
-                className={`code_${id.toString()}`}
                 value={value}
                 onChange={({ target }) => {
                     handleChange(target.value);
