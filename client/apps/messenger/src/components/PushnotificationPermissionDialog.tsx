@@ -78,6 +78,7 @@ export default function PushNotifPermissionDialog(): React.ReactElement {
                         initPushNotification();
                         setShowPermissionDialog(false);
                     }}
+                    id="enable-push-notification-button"
                 >
                     {strings.enableDesktopNotifications}
                 </Button>

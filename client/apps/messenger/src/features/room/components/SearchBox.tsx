@@ -23,6 +23,7 @@ export default function SearchBox({ onSearch }: SearchBoxProps): React.ReactElem
                     </InputAdornment>
                 }
                 fullWidth
+                id="search"
                 placeholder={strings.search}
                 sx={{
                     backgroundColor: "background.paper",

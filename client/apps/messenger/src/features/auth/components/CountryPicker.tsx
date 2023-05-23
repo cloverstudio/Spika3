@@ -130,6 +130,7 @@ const CountryPicker = (props: any) => {
                         autoFocus
                         size="small"
                         placeholder={strings.phoneNumberExample}
+                        id="phoneNumber"
                         InputProps={{
                             type: "number",
                         }}

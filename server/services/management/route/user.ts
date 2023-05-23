@@ -149,6 +149,31 @@ export default ({ redisClient }: InitRouterParams) => {
         }
     });
 
+    router.get(
+        "/telephoneNumber/:telephoneNumber",
+        adminAuth,
+        async (req: Request, res: Response) => {
+            const userReq: UserRequest = req as UserRequest;
+            try {
+                const telephoneNumber: string = req.params.telephoneNumber;
+
+                const user = await prisma.user.findFirst({
+                    where: {
+                        telephoneNumber,
+                    },
+                });
+
+                if (!user)
+                    return res.status(404).send(errorResponse(`User not found`, userReq.lang));
+
+                return res.send(successResponse({ user: sanitize(user).user() }, userReq.lang));
+            } catch (e: any) {
+                le(e);
+                res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+            }
+        }
+    );
+
     router.get("/:userId", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
@@ -464,6 +489,67 @@ export default ({ redisClient }: InitRouterParams) => {
                 const key = `${consts.ROOM_PREFIX}${room.id}`;
                 await redisClient.del(key);
             }
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.post("/", adminAuth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        try {
+            const displayName: string = req.body.displayName;
+            const emailAddress: string = req.body.emailAddress;
+            const telephoneNumber: string = req.body.telephoneNumber;
+            const avatarFileId: number = req.body.avatarFileId;
+
+            if (!displayName) {
+                return res.status(400).send(errorResponse("Display name required", userReq.lang));
+            }
+
+            if (!telephoneNumber) {
+                return res
+                    .status(400)
+                    .send(errorResponse("Telephone number required", userReq.lang));
+            }
+
+            if (emailAddress) {
+                const sameEmailUser = await prisma.user.findUnique({
+                    where: {
+                        emailAddress,
+                    },
+                });
+
+                if (sameEmailUser) {
+                    return res
+                        .status(400)
+                        .send(errorResponse("Email is already in use", userReq.lang));
+                }
+            }
+
+            const samePhoneNumberUser = await prisma.user.findFirst({
+                where: {
+                    telephoneNumber,
+                },
+            });
+
+            if (samePhoneNumberUser) {
+                return res
+                    .status(400)
+                    .send(errorResponse(`Phone number is already in use`, userReq.lang));
+            }
+
+            const user = await prisma.user.create({
+                data: {
+                    displayName,
+                    telephoneNumber,
+                    avatarFileId: avatarFileId || 0,
+                    emailAddress: emailAddress || null,
+                    verified: true,
+                },
+            });
+
+            return res.status(200).send(successResponse({ user }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));

@@ -26,6 +26,7 @@ export default function PinInput({ codeArr, setCodeArr, handleSubmit }: Props): 
                 return (
                     <NumberInput
                         key={i}
+                        id={i}
                         value={c.value}
                         inputRef={c.ref}
                         handleSubmit={handleSubmit}
@@ -67,6 +68,7 @@ export default function PinInput({ codeArr, setCodeArr, handleSubmit }: Props): 
 
 function NumberInput({
     value,
+    id,
     handleChange,
     inputRef,
     handleSubmit,
@@ -75,6 +77,7 @@ function NumberInput({
     handleChange: (v: string) => void;
     inputRef: React.MutableRefObject<any>;
     handleSubmit: () => void;
+    id: number;
 }): React.ReactElement {
     const handleKeyDown: React.KeyboardEventHandler<HTMLInputElement | HTMLTextAreaElement> = (
         event
@@ -95,6 +98,7 @@ function NumberInput({
                     pattern: "[0-9]*",
                     type: "number",
                 }}
+                id={`code_${id.toString()}`}
                 value={value}
                 onChange={({ target }) => {
                     handleChange(target.value);

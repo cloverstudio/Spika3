@@ -72,7 +72,7 @@ describe("API", () => {
 
         it("Verify verification code", async () => {
             const response = await supertest(app).post("/api/messenger/auth/verify").send({
-                code: "eureka",
+                code: "000000",
                 deviceId,
             });
             expect(response.status).to.eqls(200);
@@ -83,7 +83,7 @@ describe("API", () => {
 
         it("Verify verification code fail", async () => {
             const response = await supertest(app).post("/api/messenger/auth/verify").send({
-                code: "eureka22",
+                code: "00000022",
                 deviceId,
             });
 
@@ -92,7 +92,7 @@ describe("API", () => {
 
         it("Verify verification code wrong device id", async () => {
             const response = await supertest(app).post("/api/messenger/auth/verify").send({
-                code: "eureka",
+                code: "000000",
                 deviceId: "wrong",
             });
 
@@ -126,7 +126,7 @@ describe("API", () => {
             expect(response.body.data.isNewUser).equals(true);
 
             const response2 = await supertest(app).post("/api/messenger/auth/verify").send({
-                code: "eureka",
+                code: "000000",
                 deviceId: deviceId4,
             });
 
@@ -152,7 +152,7 @@ describe("API", () => {
             expect(response.body.data.isNewUser).equals(true);
 
             const response2 = await supertest(app).post("/api/messenger/auth/verify").send({
-                code: "eureka",
+                code: "000000",
                 deviceId: deviceId6,
             });
 
@@ -177,7 +177,7 @@ describe("API", () => {
 
             // should work
             const response5 = await supertest(app).post("/api/messenger/auth/verify").send({
-                code: "eureka",
+                code: "000000",
                 deviceId: deviceId7,
             });
 
