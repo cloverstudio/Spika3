@@ -2,26 +2,22 @@ import { Router, Request, Response } from "express";
 import { error as le } from "../../../components/logger";
 import adminTokens from "../lib/adminTokens";
 import { successResponse, errorResponse } from "../../../components/response";
-import dayjs from "dayjs";
+import { InitRouterParams } from "../../types/serviceInterface";
 
-export default () => {
+export default ({ redisClient }: InitRouterParams) => {
     const router = Router();
 
-    router.get("/check", (req: Request, res: Response) => {
+    router.get("/check", async (req: Request, res: Response) => {
         try {
             const token = req.query.token as string;
             if (!token) {
                 return res.status(403).send(errorResponse("Missing token"));
             }
 
-            const tokenObj = adminTokens.tokens.find((item) => item.token === token);
+            const tokenValid = await redisClient.get(`ADMIN_TOKEN_${token}`);
 
-            if (!tokenObj) {
+            if (!tokenValid) {
                 return res.status(403).send(errorResponse("Invalid token"));
-            }
-
-            if (tokenObj.expireDate < dayjs().unix()) {
-                return res.status(403).send(errorResponse("Token expired"));
             }
 
             return res.send(successResponse("OK"));
@@ -31,16 +27,7 @@ export default () => {
         }
     });
 
-    router.get("/", (req: Request, res: Response) => {
-        try {
-            return res.send("OK");
-        } catch (e: any) {
-            le(e);
-            res.status(500).send(errorResponse(`Server error ${e}`));
-        }
-    });
-
-    router.post("/", (req: Request, res: Response) => {
+    router.post("/", async (req: Request, res: Response) => {
         try {
             const username = process.env.ADMIN_USERNAME as string;
             const password = process.env.ADMIN_PASSWORD as string;
@@ -48,6 +35,10 @@ export default () => {
                 return res.status(403).send(errorResponse("Invalid username or password"));
 
             const newToken = adminTokens.newToken();
+
+            await redisClient.set(`ADMIN_TOKEN_${newToken.token}`, "1", {
+                EX: 60 * 60 * 24 * 30, // 30 days
+            });
 
             res.send(successResponse({ token: newToken.token }));
         } catch (e: any) {

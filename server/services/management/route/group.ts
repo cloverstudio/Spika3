@@ -14,7 +14,7 @@ import { InitRouterParams } from "../../types/serviceInterface";
 export default ({ redisClient }: InitRouterParams) => {
     const router = Router();
 
-    router.put("/:roomId/add", adminAuth, async (req: Request, res: Response) => {
+    router.put("/:roomId/add", adminAuth(redisClient), async (req: Request, res: Response) => {
         try {
             const roomId = parseInt(req.params.roomId ? (req.params.roomId as string) : "");
             const usersIds = req.body.usersIds;
@@ -81,64 +81,68 @@ export default ({ redisClient }: InitRouterParams) => {
         }
     });
 
-    router.delete("/:roomId/:userId", adminAuth, async (req: Request, res: Response) => {
-        const userReq: UserRequest = req as UserRequest;
-        try {
-            const roomId = parseInt(req.params.roomId);
-            const userId = parseInt(req.params.userId);
+    router.delete(
+        "/:roomId/:userId",
+        adminAuth(redisClient),
+        async (req: Request, res: Response) => {
+            const userReq: UserRequest = req as UserRequest;
+            try {
+                const roomId = parseInt(req.params.roomId);
+                const userId = parseInt(req.params.userId);
 
-            const roomUser = await prisma.roomUser.findFirst({
-                where: {
-                    roomId,
-                    userId,
-                },
-            });
-
-            if (!roomUser) {
-                return res.status(404).send(errorResponse("Room User Not Found", userReq.lang));
-            }
-
-            if (roomUser.isAdmin) {
-                const otherAdmins = await prisma.roomUser.findMany({
+                const roomUser = await prisma.roomUser.findFirst({
                     where: {
                         roomId,
-                        isAdmin: true,
-                        userId: {
-                            not: userId,
-                        },
+                        userId,
                     },
                 });
 
-                if (otherAdmins.length === 0) {
-                    return res
-                        .status(400)
-                        .send(
-                            errorResponse(
-                                "Can't remove user because he is last admin in that group",
-                                userReq.lang
-                            )
-                        );
+                if (!roomUser) {
+                    return res.status(404).send(errorResponse("Room User Not Found", userReq.lang));
                 }
+
+                if (roomUser.isAdmin) {
+                    const otherAdmins = await prisma.roomUser.findMany({
+                        where: {
+                            roomId,
+                            isAdmin: true,
+                            userId: {
+                                not: userId,
+                            },
+                        },
+                    });
+
+                    if (otherAdmins.length === 0) {
+                        return res
+                            .status(400)
+                            .send(
+                                errorResponse(
+                                    "Can't remove user because he is last admin in that group",
+                                    userReq.lang
+                                )
+                            );
+                    }
+                }
+
+                await prisma.roomUser.deleteMany({
+                    where: {
+                        roomId,
+                        userId,
+                    },
+                });
+
+                res.send(successResponse({ removed: { roomId, userId } }, userReq.lang));
+
+                const key = `${consts.ROOM_PREFIX}${roomId}`;
+                await redisClient.del(key);
+            } catch (e: any) {
+                le(e);
+                res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
             }
-
-            await prisma.roomUser.deleteMany({
-                where: {
-                    roomId,
-                    userId,
-                },
-            });
-
-            res.send(successResponse({ removed: { roomId, userId } }, userReq.lang));
-
-            const key = `${consts.ROOM_PREFIX}${roomId}`;
-            await redisClient.del(key);
-        } catch (e: any) {
-            le(e);
-            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
-    });
+    );
 
-    router.post("/", adminAuth, async (req: Request, res: Response) => {
+    router.post("/", adminAuth(redisClient), async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
             const name = req.body.name as string;
@@ -161,7 +165,7 @@ export default ({ redisClient }: InitRouterParams) => {
         }
     });
 
-    router.get("/", adminAuth, async (req: Request, res: Response) => {
+    router.get("/", adminAuth(redisClient), async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         const page = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
         const keyword = req.query.keyword as string;
@@ -233,7 +237,7 @@ export default ({ redisClient }: InitRouterParams) => {
         }
     });
 
-    router.get("/:roomId", adminAuth, async (req: Request, res: Response) => {
+    router.get("/:roomId", adminAuth(redisClient), async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
             const roomId: number = parseInt(req.params.roomId);
@@ -260,7 +264,7 @@ export default ({ redisClient }: InitRouterParams) => {
         }
     });
 
-    router.put("/:roomId", adminAuth, async (req: Request, res: Response) => {
+    router.put("/:roomId", adminAuth(redisClient), async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
             const roomId = parseInt(req.params.roomId);
@@ -297,7 +301,7 @@ export default ({ redisClient }: InitRouterParams) => {
         }
     });
 
-    router.delete("/:roomId", adminAuth, async (req: Request, res: Response) => {
+    router.delete("/:roomId", adminAuth(redisClient), async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
             const roomId = parseInt(req.params.roomId);

@@ -23,7 +23,7 @@ export default ({ redisClient }: InitRouterParams) => {
 
     router.get(
         "/members",
-        adminAuth,
+        adminAuth(redisClient),
         validate(getContactsSchema),
         async (req: Request, res: Response) => {
             const keyword = req.query.keyword as string;
@@ -81,7 +81,7 @@ export default ({ redisClient }: InitRouterParams) => {
         }
     );
 
-    router.get("/", adminAuth, async (req: Request, res: Response) => {
+    router.get("/", adminAuth(redisClient), async (req: Request, res: Response) => {
         const page = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
         const userReq: UserRequest = req as UserRequest;
         const keyword = req.query.keyword as string;
@@ -151,7 +151,7 @@ export default ({ redisClient }: InitRouterParams) => {
 
     router.get(
         "/telephoneNumber/:telephoneNumber",
-        adminAuth,
+        adminAuth(redisClient),
         async (req: Request, res: Response) => {
             const userReq: UserRequest = req as UserRequest;
             try {
@@ -174,7 +174,7 @@ export default ({ redisClient }: InitRouterParams) => {
         }
     );
 
-    router.get("/:userId", adminAuth, async (req: Request, res: Response) => {
+    router.get("/:userId", adminAuth(redisClient), async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
             const userId: number = parseInt(req.params.userId);
@@ -194,7 +194,7 @@ export default ({ redisClient }: InitRouterParams) => {
         }
     });
 
-    router.get("/:userId/groups", adminAuth, async (req: Request, res: Response) => {
+    router.get("/:userId/groups", adminAuth(redisClient), async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
             const userId: number = parseInt(req.params.userId);
@@ -238,7 +238,7 @@ export default ({ redisClient }: InitRouterParams) => {
         }
     });
 
-    router.get("/:userId/devices", adminAuth, async (req: Request, res: Response) => {
+    router.get("/:userId/devices", adminAuth(redisClient), async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
             const userId: number = parseInt(req.params.userId);
@@ -270,7 +270,7 @@ export default ({ redisClient }: InitRouterParams) => {
 
     router.put(
         "/:userId/devices/:deviceId/expire",
-        adminAuth,
+        adminAuth(redisClient),
         async (req: Request, res: Response) => {
             const userReq: UserRequest = req as UserRequest;
             try {
@@ -316,7 +316,7 @@ export default ({ redisClient }: InitRouterParams) => {
         }
     );
 
-    router.put("/:userId", adminAuth, async (req: Request, res: Response) => {
+    router.put("/:userId", adminAuth(redisClient), async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
             const userId: number = parseInt(req.params.userId);
@@ -399,7 +399,7 @@ export default ({ redisClient }: InitRouterParams) => {
         }
     });
 
-    router.delete("/:userId", adminAuth, async (req: Request, res: Response) => {
+    router.delete("/:userId", adminAuth(redisClient), async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
             const userId = parseInt(req.params.userId);
@@ -495,7 +495,7 @@ export default ({ redisClient }: InitRouterParams) => {
         }
     });
 
-    router.post("/", adminAuth, async (req: Request, res: Response) => {
+    router.post("/", adminAuth(redisClient), async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
             const displayName: string = req.body.displayName;

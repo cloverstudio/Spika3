@@ -4,11 +4,12 @@ import { error as le } from "../../../components/logger";
 import { successResponse, errorResponse } from "../../../components/response";
 import { UserRequest } from "../../messenger/lib/types";
 import prisma from "../../../components/prisma";
+import { InitRouterParams } from "../../types/serviceInterface";
 
-export default () => {
+export default ({ redisClient }: InitRouterParams) => {
     const router = Router();
 
-    router.get("/", adminAuth, async (req: Request, res: Response) => {
+    router.get("/", adminAuth(redisClient), async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
             const users = await prisma.user.count({

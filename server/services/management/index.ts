@@ -17,8 +17,8 @@ export default class Management implements Service {
 
     getRoutes() {
         const userManagementRouter = Router();
-        userManagementRouter.use("/auth", authRouter());
-        userManagementRouter.use("/counts", countRouter());
+        userManagementRouter.use("/auth", authRouter({ redisClient: this.redisClient }));
+        userManagementRouter.use("/counts", countRouter({ redisClient: this.redisClient }));
         userManagementRouter.use("/users", userRouter({ redisClient: this.redisClient }));
         userManagementRouter.use("/groups", groupsRouter({ redisClient: this.redisClient }));
         return userManagementRouter;
