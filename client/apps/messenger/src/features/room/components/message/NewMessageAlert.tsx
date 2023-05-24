@@ -12,12 +12,13 @@ export default function NewMessageAlert({
     onScrollDown,
 }: NewMessageAlertProps): React.ReactElement {
     return (
-        <Box position="absolute" width="100%" textAlign="center">
+        <Box position="absolute" width="100%" textAlign="center" zIndex={1}>
             <Box display="inline-block" onClick={onScrollDown}>
                 <Box
                     bgcolor="common.myMessageBackground"
                     borderRadius="0.625rem"
                     display="flex"
+                    zIndex={9999}
                     m={0.5}
                     p={1}
                     sx={{ cursor: "pointer" }}
