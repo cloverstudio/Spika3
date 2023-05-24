@@ -50,6 +50,11 @@ export default function RightSidebarNoteDetailContent() {
                             fontSize: "1.00rem",
                         },
                     },
+                    a: {
+                        props: {
+                            target: "_blank",
+                        },
+                    },
                 }}
             >
                 {data.note.content}
