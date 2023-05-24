@@ -11,7 +11,7 @@ import { successResponse, errorResponse } from "../../../components/response";
 import * as Constants from "../../../components/consts";
 import sanitize from "../../../components/sanitize";
 import { InitRouterParams } from "../../types/serviceInterface";
-import createSSERoomsNotify from "../lib/sseRoomsNotify";
+import createSSERoomsNotify, { createSSERoomsRemovedNotify } from "../lib/sseRoomsNotify";
 import prisma from "../../../components/prisma";
 import { createClient } from "redis";
 import { handleNewRoom } from "../../../components/chatGPT";
@@ -45,6 +45,7 @@ const leaveRoomSchema = yup.object().shape({
 export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
     const router = Router();
     const sseRoomsNotify = createSSERoomsNotify(rabbitMQChannel, redisClient);
+    const sseRoomsRemovedNotify = createSSERoomsRemovedNotify(rabbitMQChannel);
 
     router.post("/", auth, validate(postRoomSchema), async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
@@ -217,7 +218,11 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const shouldUpdateAdminUsers = typeof adminUserIds !== "undefined";
 
             if (shouldUpdateUsers) {
-                await updateRoomUsers({ newIds: userIds, room });
+                await updateRoomUsers({
+                    newIds: userIds,
+                    room,
+                    removedNotifier: sseRoomsRemovedNotify,
+                });
             }
 
             if (shouldUpdateAdminUsers) {
@@ -225,7 +230,11 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     adminUserIds.push(userReq.user.id);
                 }
 
-                await updateRoomAdminUsers({ room, newAdminIds: adminUserIds });
+                await updateRoomAdminUsers({
+                    room,
+                    newAdminIds: adminUserIds,
+                    removedNotifier: sseRoomsRemovedNotify,
+                });
             }
 
             const userCount = await prisma.roomUser.count({ where: { roomId: id } });
@@ -454,6 +463,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                         },
                     });
                 }
+
+                sseRoomsRemovedNotify([userId], id);
 
                 const key = `${Constants.ROOM_PREFIX}${id}`;
                 await redisClient.set(key, JSON.stringify(updated));
@@ -1181,9 +1192,14 @@ function canLeaveRoomCheck(userId: number, roomUsers: RoomUser[]) {
 type UpdateRoomUsersParams = {
     room: Room & { users: RoomUser[] };
     newIds: number[];
+    removedNotifier: (usersIds: number[], roomId: number) => void;
 };
 
-async function updateRoomUsers({ newIds, room }: UpdateRoomUsersParams): Promise<void> {
+async function updateRoomUsers({
+    newIds,
+    room,
+    removedNotifier,
+}: UpdateRoomUsersParams): Promise<void> {
     const currentIds = room.users.map((u) => u.userId);
 
     const foundUsers = await prisma.user.findMany({
@@ -1197,6 +1213,8 @@ async function updateRoomUsers({ newIds, room }: UpdateRoomUsersParams): Promise
         where: { roomId: room.id, userId: { in: userIdsToRemove }, isAdmin: false },
     });
 
+    removedNotifier(userIdsToRemove, room.id);
+
     const userIdsToAdd = foundUserIds.filter((id) => !currentIds.includes(id));
     await prisma.roomUser.createMany({
         data: userIdsToAdd.map((userId) => ({ userId, roomId: room.id, isAdmin: false })),
@@ -1206,11 +1224,13 @@ async function updateRoomUsers({ newIds, room }: UpdateRoomUsersParams): Promise
 type UpdateRoomAdminUsersParams = {
     room: Room & { users: RoomUser[] };
     newAdminIds: number[];
+    removedNotifier: (usersIds: number[], roomId: number) => void;
 };
 
 async function updateRoomAdminUsers({
     newAdminIds,
     room,
+    removedNotifier,
 }: UpdateRoomAdminUsersParams): Promise<void> {
     const currentAdminIds = room.users.filter((u) => u.isAdmin).map((u) => u.userId);
 
@@ -1225,6 +1245,7 @@ async function updateRoomAdminUsers({
         where: { roomId: room.id, userId: { in: userAdminIdsToRemove }, isAdmin: true },
         data: { isAdmin: false },
     });
+    removedNotifier(userAdminIdsToRemove, room.id);
 
     await prisma.roomUser.updateMany({
         where: { roomId: room.id, userId: { in: newAdminUserIds }, isAdmin: false },

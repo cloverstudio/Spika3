@@ -15,6 +15,7 @@ const VALID_SSE_EVENT_TYPES = [
     "DELETE_ROOM",
     "USER_UPDATE",
     "SEEN_ROOM",
+    "REMOVED_FROM_ROOM",
 ];
 
 import { notify as notifyCallEvent } from "../features/confcall/lib/callEventListener";
@@ -227,6 +228,20 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
 
             store.dispatch(api.util.invalidateTags([{ type: "Rooms", id: roomId }]));
             store.dispatch(refreshHistory(roomId as number));
+
+            return;
+        }
+
+        case "REMOVED_FROM_ROOM": {
+            const roomId = data.roomId;
+
+            if (!roomId) {
+                console.log("Invalid REMOVED_FROM_ROOM payload");
+                return;
+            }
+
+            store.dispatch(api.util.invalidateTags([{ type: "Rooms", id: roomId }]));
+            store.dispatch(removeRoom(roomId as number));
 
             return;
         }

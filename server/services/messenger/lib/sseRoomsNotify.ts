@@ -53,6 +53,29 @@ export default function createSSERoomsNotify(
     };
 }
 
+export function createSSERoomsRemovedNotify(rabbitMQChannel: amqp.Channel | undefined | null) {
+    return async (usersIds: number[], roomId: number): Promise<void> => {
+        const devices = await getDeviceIdsFromUsersIds(usersIds);
+
+        for (const device of devices) {
+            const { id: deviceId } = device;
+
+            rabbitMQChannel.sendToQueue(
+                Constants.QUEUE_SSE,
+                Buffer.from(
+                    JSON.stringify({
+                        channelId: deviceId,
+                        data: {
+                            type: Constants.PUSH_TYPE_REMOVED_FROM_ROOM,
+                            roomId,
+                        },
+                    })
+                )
+            );
+        }
+    };
+}
+
 async function getDeviceIdsFromUsersIds(usersIds: number[]) {
     const devices = await prisma.device.findMany({
         where: { userId: { in: usersIds } },
