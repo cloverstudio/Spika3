@@ -210,7 +210,7 @@ function RoomRow({ id, isActive, lastMessage, handleClick, unreadCount }: RoomRo
                                 overflow: "hidden",
                             }}
                             color="text.secondary"
-                            lineHeight="1.125rem"
+                            lineHeight="1.3rem"
                         >
                             {lastMessageText}
                         </Typography>

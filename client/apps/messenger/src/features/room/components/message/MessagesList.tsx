@@ -118,12 +118,14 @@ export default function MessagesList(): React.ReactElement {
                         <Box key={day}>
                             <Date day={day} />
 
-                            {messages.map((m) => {
+                            {messages.map((m, i) => {
                                 return (
                                     <Message
                                         key={m.id}
                                         id={m.id}
-                                        previousMessageFromUserId={m.previousMessageFromUserId}
+                                        previousMessageFromUserId={
+                                            i !== 0 && m.previousMessageFromUserId
+                                        }
                                         nextMessageFromUserId={m.nextMessageFromUserId}
                                     />
                                 );

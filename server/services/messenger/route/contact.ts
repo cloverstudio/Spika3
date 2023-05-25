@@ -49,7 +49,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
     router.get("/", auth, validate(getContactsSchema), async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
-        const keyword = req.query.keyword;
+        const keyword = req.query.keyword as string;
         const cursor = parseInt(req.query.cursor ? (req.query.cursor as string) : "") || null;
         const take = cursor ? Constants.CONTACT_PAGING_LIMIT + 1 : Constants.CONTACT_PAGING_LIMIT;
 
@@ -58,16 +58,27 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         }
 
         const condition: any = {
-            verified: true,
-            id: {
-                not: userReq.user.id,
-            },
+            ...(keyword
+                ? {
+                      OR: ["startsWith", "contains"].map((key) => ({
+                          displayName: {
+                              [key]: keyword,
+                          },
+                      })),
+                      AND: {
+                          verified: true,
+                          id: {
+                              not: userReq.user.id,
+                          },
+                      },
+                  }
+                : {
+                      verified: true,
+                      id: {
+                          not: userReq.user.id,
+                      },
+                  }),
         };
-
-        if (keyword && keyword.length > 0)
-            condition.displayName = {
-                startsWith: keyword,
-            };
 
         try {
             if (+process.env["TEAM_MODE"]) {

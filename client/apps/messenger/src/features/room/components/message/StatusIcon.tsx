@@ -79,8 +79,8 @@ export default function StatusIcon({ status, id }: StatusIconProps): React.React
 
     return (
         <Box alignSelf="end">
-            <Box onClick={handleClick} sx={{ cursor: isFailed ? "pointer" : "auto" }}>
-                <img src={Icon} width="12px" style={{ marginLeft: "0.375rem" }} />
+            <Box onClick={handleClick} width="16px" sx={{ cursor: isFailed ? "pointer" : "auto" }}>
+                <img src={Icon} style={{ marginLeft: "0.375rem" }} />
             </Box>
             <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
                 <MenuItem onClick={handleResend}>
