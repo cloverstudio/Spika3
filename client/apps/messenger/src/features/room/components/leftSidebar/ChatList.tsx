@@ -216,7 +216,7 @@ function RoomRow({ id, isActive, lastMessage, handleClick, unreadCount }: RoomRo
                         </Typography>
                     </Box>
                     <Box
-                        minWidth="90px"
+                        minWidth="95px"
                         height="100%"
                         display="flex"
                         justifyContent="space-between"
