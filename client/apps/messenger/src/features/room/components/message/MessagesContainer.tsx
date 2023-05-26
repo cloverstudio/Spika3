@@ -65,6 +65,7 @@ export default function MessagesContainer({
                 if (ele && !scrolledToTargetMessage) {
                     ele.scrollIntoView();
                     setScrolledToTargetMessage(true);
+                    setLoading(false);
                 }
             }, 500);
         } else if (ref.current.scrollHeight !== lastScrollHeight && messagesLength) {

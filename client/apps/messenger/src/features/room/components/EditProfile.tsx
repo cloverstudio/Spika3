@@ -292,6 +292,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                             ) : (
                                 <Button
                                     variant="contained"
+                                    disabled={proposedName.length === 0}
                                     size="small"
                                     onClick={() => {
                                         if (name.length > 0) {

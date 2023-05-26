@@ -133,6 +133,29 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 if (existingRoomResult.length > 0) {
                     return res.status(409).send(errorResponse("Room already exists", userReq.lang));
                 }
+
+                if (!+process.env["TEAM_MODE"]) {
+                    const otherUser = users.find((u) => u.userId !== userReq.user.id);
+
+                    if (!otherUser) {
+                        return res
+                            .status(400)
+                            .send(errorResponse("Other user not found", userReq.lang));
+                    }
+
+                    const otherUserIsContact = await prisma.contact.findFirst({
+                        where: {
+                            userId: userReq.user.id,
+                            contactId: otherUser.userId,
+                        },
+                    });
+
+                    if (!otherUserIsContact) {
+                        return res
+                            .status(400)
+                            .send(errorResponse("Other user is not your contact", userReq.lang));
+                    }
+                }
             }
 
             const room = await prisma.room.create({

@@ -344,6 +344,7 @@ function ReplyMessage({ message }: { message: MessageType }): React.ReactElement
                 borderRadius: "0.3rem",
                 padding: "0.4rem",
                 color: "common.darkBlue",
+                wordBreak: "break-word",
             }}
             mb={1}
         >

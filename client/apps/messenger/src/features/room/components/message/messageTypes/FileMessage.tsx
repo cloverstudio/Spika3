@@ -50,8 +50,21 @@ export default function FileMessage({ body, isUsersMessage, progress }: FileMess
                 bgcolor={isUsersMessage ? "common.myMessageBackground" : "background.paper"}
             >
                 <Icon fontSize="large" />
-                <Box>
-                    <Typography fontSize="1rem" fontWeight={800} lineHeight="1.1rem" mb={0.25}>
+                <Box overflow="hidden">
+                    <Typography
+                        fontSize="1rem"
+                        fontWeight={800}
+                        lineHeight="1.1rem"
+                        mb={0.25}
+                        sx={{
+                            wordBreak: "break-word",
+                            textOverflow: "ellipsis",
+                            overflow: "hidden",
+                            WebkitLineClamp: 2,
+                            display: "-webkit-box",
+                            WebkitBoxOrient: "vertical",
+                        }}
+                    >
                         {name}
                     </Typography>
                     <Typography textAlign="left">

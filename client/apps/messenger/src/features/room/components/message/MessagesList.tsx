@@ -15,7 +15,6 @@ import {
     selectCursor,
     selectOtherUserIdInPrivateRoom,
     selectRoomMessages,
-    selectRoomMessagesIsLoading,
     selectShouldDisplayBlockButton,
     selectTargetMessage,
     selectTargetMessageIsInList,
