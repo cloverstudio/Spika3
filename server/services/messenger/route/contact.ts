@@ -34,6 +34,7 @@ const postContactsSchema = yup.object().shape({
                               `${path} must be array or string, currently: ${originalValue}`
                       )
         ),
+        isLastPage: yup.boolean().default(false),
     }),
 });
 
@@ -173,6 +174,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         const userReq: UserRequest = req as UserRequest;
         try {
             const hashList: Array<string> = req.body.contacts;
+            const isLastPage: boolean = req.body.isLastPage;
 
             const verifiedUsers = await prisma.user.findMany({
                 where: {
@@ -181,8 +183,12 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 },
             });
 
-            verifiedUsers.forEach((contact) => {
-                const payload = { userId: userReq.user.id, contactId: contact.id };
+            verifiedUsers.forEach((contact, i) => {
+                const payload = {
+                    userId: userReq.user.id,
+                    contactId: contact.id,
+                    shouldRunDeleteOldContacts: i === verifiedUsers.length - 1 && isLastPage,
+                };
 
                 rabbitMQChannel.sendToQueue(
                     Constants.QUEUE_CREATE_CONTACT,

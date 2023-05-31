@@ -92,13 +92,14 @@ model File {
 }
 
 model Contact {
-  id         Int      @id @default(autoincrement()) @map(name: "id")
-  userId     Int
-  user       User     @relation("user", fields: [userId], references: [id])
-  contactId  Int
-  contact    User     @relation("contact", fields: [contactId], references: [id])
-  createdAt  DateTime @default(now()) @map(name: "created_at")
-  modifiedAt DateTime @default(now()) @map(name: "modified_at")
+  id              Int      @id @default(autoincrement()) @map(name: "id")
+  userId          Int
+  user            User     @relation("user", fields: [userId], references: [id])
+  contactId       Int
+  contact         User     @relation("contact", fields: [contactId], references: [id])
+  createdAt       DateTime @default(now()) @map(name: "created_at")
+  modifiedAt      DateTime @default(now()) @map(name: "modified_at")
+  lastConfirmedAt DateTime @default(now()) @map(name: "last_confirmed_at")
 
   @@map(name: "contact")
 }

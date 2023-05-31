@@ -76,6 +76,7 @@ Table contact {
   contact user [not null]
   createdAt DateTime [default: `now()`, not null]
   modifiedAt DateTime [default: `now()`, not null]
+  lastConfirmedAt DateTime [default: `now()`, not null]
 }
 
 Table room {

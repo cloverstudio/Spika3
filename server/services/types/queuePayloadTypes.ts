@@ -8,6 +8,7 @@ export type SendSMSPayload = {
 export type CreateContactPayload = {
     userId: number;
     contactId: number;
+    shouldRunDeleteOldContacts: boolean;
 };
 
 export type SendPushPayload = {

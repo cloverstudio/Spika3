@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `contact` ADD COLUMN `last_confirmed_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3);
