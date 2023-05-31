@@ -4,6 +4,7 @@ import Modal from "@mui/material/Modal";
 import { useParams } from "react-router-dom";
 
 import CloseOutlined from "@mui/icons-material/CloseOutlined";
+import DownloadIcon from "@mui/icons-material/Download";
 import AttachmentManager from "../../../lib/AttachmentManager";
 import { PlayCircleFilled } from "@mui/icons-material";
 import TextMessage from "./TextMessage";
@@ -127,7 +128,17 @@ export default function VideoMessage({
             </Box>
             <Modal open={open} onClose={handleClose}>
                 <>
-                    <Box textAlign="right" mr={2} mt={2}>
+                    <Box display="flex" gap={2} justifyContent="end" mr={2} mt={2}>
+                        <Box
+                            component="a"
+                            href={src}
+                            target="_blank"
+                            download
+                            sx={{ display: "block", color: "white" }}
+                        >
+                            <DownloadIcon fontSize="large" />
+                        </Box>
+
                         <CloseOutlined
                             onClick={handleClose}
                             sx={{ color: "white", cursor: "pointer" }}

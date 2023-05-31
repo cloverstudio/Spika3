@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import AttachmentManager from "../../../lib/AttachmentManager";
 import CloseOutlined from "@mui/icons-material/CloseOutlined";
+import DownloadIcon from "@mui/icons-material/Download";
 import Modal from "@mui/material/Modal";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import TextMessage from "./TextMessage";
@@ -108,7 +109,17 @@ export default function ImageMessage({
 
             <Modal open={open} onClose={handleClose}>
                 <>
-                    <Box textAlign="right" mr={2} mt={2}>
+                    <Box display="flex" gap={2} justifyContent="end" mr={2} mt={2}>
+                        <Box
+                            component="a"
+                            href={imgSrc}
+                            target="_blank"
+                            download
+                            sx={{ display: "block", color: "white" }}
+                        >
+                            <DownloadIcon fontSize="large" />
+                        </Box>
+
                         <CloseOutlined
                             onClick={handleClose}
                             sx={{ color: "white", cursor: "pointer" }}
