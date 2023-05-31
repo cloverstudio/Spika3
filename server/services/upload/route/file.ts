@@ -215,18 +215,20 @@ export default (): Router => {
             const file = await prisma.file.findFirst({ where: { id } });
 
             if (!file) {
-                return res.status(404).send(errorResponse("Not found", userReq.lang));
-            }
-
-            if (process.env.IS_TEST === "1") {
-                return res.send(successResponse({}, userReq.lang));
+                return res.download(
+                    path.resolve(__dirname, "..", "assets/no-image-icon.png"),
+                    "no-image-icon.png"
+                );
             }
 
             const pathToFile = path.resolve(process.env["UPLOAD_FOLDER"], "files/", file.clientId);
 
             if (!fs.existsSync(pathToFile)) {
                 le(`File doesn't exists - ${pathToFile}`);
-                return res.status(404).send(errorResponse("Not found", userReq.lang));
+                return res.download(
+                    path.resolve(__dirname, "..", "assets/no-image-icon.png"),
+                    "no-image-icon.png"
+                );
             }
 
             res.set("Cache-control", "public, max-age=86400");
