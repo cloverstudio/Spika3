@@ -2,6 +2,7 @@ import QueueWorkerInterface from "../../types/queueWorkerInterface";
 import { CreateContactPayload } from "../../types/queuePayloadTypes";
 import { error as le } from "../../../components/logger";
 import prisma from "../../../components/prisma";
+import removeOlderContacts from "../lib/removeOlderContacts";
 
 class saveContactWorker implements QueueWorkerInterface {
     async run(payload: CreateContactPayload) {
@@ -31,19 +32,6 @@ class saveContactWorker implements QueueWorkerInterface {
             le("Create contact worker failed: ", error);
         }
     }
-}
-
-function removeOlderContacts(userId: number) {
-    const tenMinutes = 10 * 60 * 1000;
-
-    return prisma.contact.deleteMany({
-        where: {
-            userId,
-            lastConfirmedAt: {
-                lte: new Date(+new Date() - tenMinutes),
-            },
-        },
-    });
 }
 
 export default new saveContactWorker();

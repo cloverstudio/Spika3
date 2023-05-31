@@ -12,6 +12,7 @@ import { successResponse, errorResponse } from "../../../components/response";
 import sanitize from "../../../components/sanitize";
 import prisma from "../../../components/prisma";
 import { checkForChatGPTContacts } from "../../../components/chatGPT";
+import removeOlderContacts from "../lib/removeOlderContacts";
 
 const postContactsSchema = yup.object().shape({
     body: yup.object().shape({
@@ -195,6 +196,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     Buffer.from(JSON.stringify(payload))
                 );
             });
+
+            if (verifiedUsers.length === 0 && isLastPage) {
+                removeOlderContacts(userReq.user.id);
+            }
 
             res.send(
                 successResponse(
