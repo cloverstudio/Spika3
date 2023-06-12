@@ -146,9 +146,10 @@ export const leftSidebarSlice = createSlice({
             refreshHistory.fulfilled,
             (state, { payload }: { payload: HistoryListItem }) => {
                 const roomsIds = state.history.list.map((r) => r.roomId);
+                const keyword = state.history.keyword;
                 const exists = roomsIds.includes(payload.roomId);
 
-                if (!exists) {
+                if (!exists && !keyword) {
                     state.history.list = [...state.history.list, payload];
                 } else {
                     state.history.list = state.history.list.map((item) => {
