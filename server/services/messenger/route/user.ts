@@ -74,19 +74,7 @@ export default (): Router => {
                     },
                 });
             } else {
-                const userContact = await prisma.contact.findMany({
-                    where: {
-                        userId: userReq.user.id,
-                        contact: {
-                            modifiedAt: { gt: new Date(timestamp) },
-                        },
-                    },
-                    include: {
-                        contact: true,
-                    },
-                });
-
-                users = userContact.map((uc) => uc.contact);
+                users = await getUsers(userReq.user.id, timestamp);
             }
 
             res.send(
@@ -100,3 +88,48 @@ export default (): Router => {
 
     return router;
 };
+
+export async function getUsers(userId: number, timestamp: number): Promise<User[]> {
+    const userContact = await prisma.contact.findMany({
+        where: {
+            userId: userId,
+            contact: {
+                modifiedAt: { gt: new Date(timestamp) },
+            },
+        },
+        include: {
+            contact: true,
+        },
+    });
+
+    const usersContacts = userContact.map((uc) => uc.contact);
+
+    const usersRooms = await prisma.roomUser.findMany({
+        where: {
+            userId,
+        },
+    });
+
+    const userRoomsIds = usersRooms.map((ur) => ur.roomId);
+
+    const allUsersInRooms = await prisma.roomUser.findMany({
+        where: {
+            roomId: {
+                in: userRoomsIds,
+            },
+            user: {
+                modifiedAt: { gt: new Date(timestamp) },
+                id: {
+                    notIn: [userId, ...usersContacts.map((u) => u.id)],
+                },
+            },
+        },
+        include: {
+            user: true,
+        },
+    });
+
+    const usersFromRooms = allUsersInRooms.map((ur) => ur.user);
+
+    return [...usersContacts, ...usersFromRooms];
+}

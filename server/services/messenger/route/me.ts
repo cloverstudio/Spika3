@@ -137,10 +137,50 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
 };
 
 async function getUserContacts(userId: number): Promise<(User & { device: Device[] })[]> {
-    const contacts = await prisma.contact.findMany({
-        where: { userId },
-        include: { contact: { include: { device: true } } },
+    const userContact = await prisma.contact.findMany({
+        where: {
+            userId,
+        },
+        include: {
+            contact: {
+                include: {
+                    device: true,
+                },
+            },
+        },
     });
 
-    return contacts.map((c) => c.contact);
+    const usersContacts = userContact.map((uc) => uc.contact);
+
+    const usersRooms = await prisma.roomUser.findMany({
+        where: {
+            userId,
+        },
+    });
+
+    const userRoomsIds = usersRooms.map((ur) => ur.roomId);
+
+    const allUsersInRooms = await prisma.roomUser.findMany({
+        where: {
+            roomId: {
+                in: userRoomsIds,
+            },
+            user: {
+                id: {
+                    notIn: [userId, ...usersContacts.map((u) => u.id)],
+                },
+            },
+        },
+        include: {
+            user: {
+                include: {
+                    device: true,
+                },
+            },
+        },
+    });
+
+    const usersFromRooms = allUsersInRooms.map((ur) => ur.user);
+
+    return [...usersContacts, ...usersFromRooms];
 }
