@@ -114,11 +114,14 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
     };
 
     const removeProfilePhoto = async () => {
+        const displayName = proposedName ? proposedName.trim() : undefined;
+
         try {
             setLoading(true);
-            await update({ displayName: proposedName, avatarFileId: 0 }).unwrap();
-            setLoading(false);
             closeEditName();
+            await update({ displayName, avatarFileId: 0 }).unwrap();
+            setLoading(false);
+            setProposedName(displayName || user.displayName);
         } catch (error) {
             setLoading(false);
 
@@ -129,6 +132,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
     const handleUpdateUser = async () => {
         try {
             setLoading(true);
+            const displayName = proposedName ? proposedName.trim() : user.displayName;
 
             if (file) {
                 const type = getFileType(file.type);
@@ -140,17 +144,18 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                 const uploadedFile = await fileUploader.upload();
 
                 await update({
-                    displayName: proposedName,
+                    displayName,
                     avatarFileId: uploadedFile.id,
                 }).unwrap();
             } else {
                 await update({
-                    displayName: proposedName,
+                    displayName,
                     avatarFileId: user.avatarFileId,
                 }).unwrap();
             }
 
-            setName(proposedName);
+            setName(displayName);
+            setProposedName(displayName);
             setLoading(false);
             closeEditName();
         } catch (error) {
