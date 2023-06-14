@@ -115,7 +115,13 @@ export default function ChatInputContainer(): React.ReactElement {
             <canvas ref={canvasRef} style={{ display: "none" }} />
 
             <Box display="flex" flexDirection="column" justifyContent="center">
-                <Stack spacing={2} direction="row" alignItems="center" width="100%">
+                <Stack
+                    spacing={2}
+                    direction="row"
+                    alignItems="center"
+                    width="100%"
+                    overflow="hidden"
+                >
                     <AddAttachment />
 
                     <ChatInput
