@@ -63,6 +63,7 @@ export default function ImageMessage({
                     borderRadius="0.625rem"
                     maxWidth="256px"
                     height="10vh"
+                    minHeight="128px"
                     src={imageIsGif ? imgSrc : thumbSrc}
                     pb="0.8125"
                     sx={{

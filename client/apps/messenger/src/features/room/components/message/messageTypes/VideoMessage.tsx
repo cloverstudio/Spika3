@@ -70,6 +70,7 @@ export default function VideoMessage({
                     borderRadius="0.625rem"
                     maxWidth="256px"
                     height="10vh"
+                    minHeight="128px"
                     src={thumbSrc || src}
                     pb="0.8125"
                     sx={{
