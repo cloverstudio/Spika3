@@ -189,18 +189,44 @@ function RoomRow({ id, isActive, lastMessage, handleClick, unreadCount }: RoomRo
                     sx={{ width: 50, height: 50 }}
                     src={`${UPLOADS_BASE_URL}/${avatarFileId}`}
                 />
-                <Box
-                    display="flex"
-                    justifyContent="space-between"
-                    alignItems="center"
-                    ml={2}
-                    flexGrow={1}
-                    overflow="hidden"
-                >
-                    <Box flexGrow={1} overflow="hidden">
-                        <Typography mb={1} fontWeight="600" color="text.primary">
+                <Box ml={2} flexGrow={1} overflow="hidden">
+                    <Box
+                        display="flex"
+                        justifyContent="space-between"
+                        alignItems="baseline"
+                        gap={1}
+                        overflow="hidden"
+                        mb={0.5}
+                    >
+                        <Typography
+                            fontWeight="600"
+                            color="text.primary"
+                            sx={{
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                            }}
+                        >
                             {name}
                         </Typography>
+
+                        <Typography
+                            fontSize="small"
+                            color="text.tertiary"
+                            fontWeight="500"
+                            lineHeight="1rem"
+                            flexShrink={0}
+                        >
+                            {time === "a few seconds ago" ? strings.now : time}
+                        </Typography>
+                    </Box>
+
+                    <Box
+                        display="flex"
+                        justifyContent="space-between"
+                        alignItems="baseline"
+                        gap={1}
+                    >
                         <Typography
                             sx={{
                                 textOverflow: "ellipsis",
@@ -212,26 +238,9 @@ function RoomRow({ id, isActive, lastMessage, handleClick, unreadCount }: RoomRo
                         >
                             {lastMessageText}
                         </Typography>
-                    </Box>
-                    <Box
-                        minWidth="95px"
-                        height="100%"
-                        display="flex"
-                        justifyContent="space-between"
-                        flexDirection="column"
-                        textAlign="right"
-                    >
-                        <Typography
-                            fontSize="small"
-                            color="text.tertiary"
-                            fontWeight="500"
-                            lineHeight="1rem"
-                        >
-                            {time === "a few seconds ago" ? strings.now : time}
-                        </Typography>
+
                         <Box
                             display="flex"
-                            mt={1}
                             justifyContent="end"
                             alignItems="center"
                             gap={1}
