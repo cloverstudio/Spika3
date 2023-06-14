@@ -157,6 +157,11 @@ const CountryPicker = (props: any) => {
                             },
                         }}
                         onChange={handlePhoneNumber}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                                props.onEnter();
+                            }
+                        }}
                     />
                 </Stack>
                 {openMenu ? (
