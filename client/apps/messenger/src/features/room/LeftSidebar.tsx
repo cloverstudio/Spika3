@@ -49,7 +49,7 @@ function LeftSidebarNewChat({
         <LeftSidebarLayout>
             <SidebarNavigationHeader handleBack={() => setSidebar("")} title="New chat" />
 
-            <Box textAlign="center">
+            <Box textAlign="center" mb={1}>
                 <Button onClick={() => setSidebar("new_group")}>{strings.newGroupChat}</Button>
             </Box>
             <SidebarContactList />

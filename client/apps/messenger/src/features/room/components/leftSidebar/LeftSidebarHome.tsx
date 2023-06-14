@@ -121,7 +121,7 @@ export default function LeftSidebarHome({
                             </Box>
                         </Box>
                     </Box>
-                    <Box order={isMobile ? 2 : 0} px={5} pt={2}>
+                    <Box order={isMobile ? 2 : 0} px={5} pt={2} pb={3}>
                         <Box display="flex" justifyContent="space-between">
                             {navigation.map((item) => (
                                 <ActionIcon

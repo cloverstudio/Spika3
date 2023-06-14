@@ -65,14 +65,12 @@ export default function SidebarChatList(): React.ReactElement {
 
     return (
         <Box sx={{ overflowY: "auto", maxHeight: "100%" }}>
-            <Box mt={3}>
-                <SearchBox
-                    onSearch={(keyword) => {
-                        dispatch(setKeyword(keyword));
-                        dispatch(fetchHistory());
-                    }}
-                />
-            </Box>
+            <SearchBox
+                onSearch={(keyword) => {
+                    dispatch(setKeyword(keyword));
+                    dispatch(fetchHistory());
+                }}
+            />
 
             {list.length === 0 && !isFetching && (
                 <Typography align="center">{strings.noRooms}</Typography>

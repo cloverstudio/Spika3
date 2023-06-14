@@ -85,14 +85,12 @@ export default function SidebarContactList({
 
     return (
         <Box sx={{ overflowY: "auto", maxHeight: "100%" }}>
-            <Box mt={3}>
-                <SearchBox
-                    onSearch={(keyword: string) => {
-                        dispatch(setKeyword(keyword));
-                        dispatch(fetchContacts());
-                    }}
-                />
-            </Box>
+            <SearchBox
+                onSearch={(keyword: string) => {
+                    dispatch(setKeyword(keyword));
+                    dispatch(fetchContacts());
+                }}
+            />
 
             {!sortedByDisplayName.length && !isFetching && (
                 <Typography align="center">{strings.noContacts}</Typography>
