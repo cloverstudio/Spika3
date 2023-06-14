@@ -12,12 +12,14 @@ import { SvgIconTypeMap } from "@mui/material/SvgIcon";
 import { OverridableComponent } from "@mui/material/OverridableComponent";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import Badge from "@mui/material/Badge";
 
 import {
     selectActiveTab,
     setActiveTab,
     shouldShowProfileEditor,
     setOpenEditProfile,
+    selectHistory,
 } from "../../slices/leftSidebar";
 
 import SidebarContactList from "./ContactList";
@@ -129,6 +131,7 @@ export default function LeftSidebarHome({
                                     Icon={item.icon}
                                     handleClick={() => handleChangeTab(item.name)}
                                     isActive={activeTab === item.name}
+                                    isChat={item.name === "chat"}
                                 />
                             ))}
                         </Box>
@@ -148,9 +151,26 @@ type ActionIconProps = {
     };
     handleClick: () => void;
     isActive?: boolean;
+    isChat: boolean;
 };
 
-function ActionIcon({ Icon, isActive, handleClick }: ActionIconProps) {
+function ActionIcon({ Icon, isActive, handleClick, isChat }: ActionIconProps) {
+    const list = useSelector(selectHistory);
+
+    const unreadCount = isChat
+        ? list.reduce<number>((totalCount, row) => {
+              if (row.muted) {
+                  return totalCount;
+              }
+
+              if (!row.unreadCount) {
+                  return totalCount;
+              }
+
+              return totalCount + 1;
+          }, 0)
+        : 0;
+
     return (
         <Box
             onClick={handleClick}
@@ -169,7 +189,23 @@ function ActionIcon({ Icon, isActive, handleClick }: ActionIconProps) {
                     bgcolor: "action.hover",
                 },
             }}
+            position="relative"
         >
+            {unreadCount > 0 && (
+                <Badge
+                    sx={{
+                        "& .MuiBadge-badge": {
+                            position: "absolute",
+                            top: "-8px",
+                            left: "2px",
+                            transform: "none",
+                        },
+                    }}
+                    color="error"
+                    badgeContent={unreadCount}
+                    max={99}
+                />
+            )}
             <Icon sx={{ width: "25px", color: isActive ? "primary.main" : "text.navigation" }} />
         </Box>
     );
