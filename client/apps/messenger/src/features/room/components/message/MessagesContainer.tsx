@@ -69,9 +69,14 @@ export default function MessagesContainer({
                 }
             }, 500);
         } else if (ref.current.scrollHeight !== lastScrollHeight && messagesLength) {
-            setTimeout(() => {
-                onScrollDown();
-            }, 350);
+            const isOneMessageChange = messagesLength - messagesLengthRef.current === 1;
+            const behavior = isOneMessageChange ? "smooth" : "instant";
+            setTimeout(
+                () => {
+                    onScrollDown(behavior);
+                },
+                isOneMessageChange ? 10 : 350
+            );
         } else if (loading !== undefined && !loading && !roomIsLoading && initialLoading) {
             setLoading(false);
         }
@@ -89,11 +94,11 @@ export default function MessagesContainer({
         initialLoading,
     ]);
 
-    const onScrollDown = () => {
+    const onScrollDown = (behavior?: ScrollBehavior) => {
         if (!ref.current) {
             return;
         }
-        scrollElemBottom(ref.current, () => setLoading(false));
+        scrollElemBottom(ref.current, () => setLoading(false), behavior || "instant");
         setLockedForScroll(false);
     };
 
@@ -244,9 +249,13 @@ export default function MessagesContainer({
     );
 }
 
-function scrollElemBottom(element: HTMLElement, onScroll?: () => void): void {
+function scrollElemBottom(
+    element: HTMLElement,
+    onScroll?: () => void,
+    behavior?: ScrollBehavior
+): void {
     if (element.scrollHeight > element.clientHeight) {
-        element.scrollTop = element.scrollHeight - element.clientHeight;
+        element.scrollTo({ top: element.scrollHeight - element.clientHeight, behavior });
     }
 
     if (onScroll) {

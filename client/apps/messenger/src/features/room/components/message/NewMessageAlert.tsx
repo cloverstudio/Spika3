@@ -4,7 +4,7 @@ import React from "react";
 
 type NewMessageAlertProps = {
     newMessages: number;
-    onScrollDown: () => void;
+    onScrollDown: (arg: ScrollBehavior) => void;
 };
 
 export default function NewMessageAlert({
@@ -13,7 +13,7 @@ export default function NewMessageAlert({
 }: NewMessageAlertProps): React.ReactElement {
     return (
         <Box position="absolute" width="100%" textAlign="center" zIndex={1}>
-            <Box display="inline-block" onClick={onScrollDown}>
+            <Box display="inline-block" onClick={() => onScrollDown("smooth")}>
                 <Box
                     bgcolor="common.myMessageBackground"
                     borderRadius="0.625rem"

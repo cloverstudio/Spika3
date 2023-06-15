@@ -4,7 +4,7 @@ import SentIcon from "../../../../assets/sent-icon.svg";
 import DeliveredIcon from "../../../../assets/delivered-icon.svg";
 import SeenIcon from "../../../../assets/seen-icon.svg";
 import FailedIcon from "../../../../assets/failed-icon.svg";
-import { Box, Typography } from "@mui/material";
+import { Box, Slide, Typography } from "@mui/material";
 import { useDispatch } from "react-redux";
 import { removeMessage, resendMessage } from "../../slices/messages";
 import { useParams } from "react-router-dom";
@@ -78,24 +78,30 @@ export default function StatusIcon({ status, id }: StatusIconProps): React.React
     };
 
     return (
-        <Box alignSelf="end">
-            <Box onClick={handleClick} width="16px" sx={{ cursor: isFailed ? "pointer" : "auto" }}>
-                <img src={Icon} style={{ marginLeft: "0.375rem" }} />
+        <Slide direction="left" in={true} mountOnEnter unmountOnExit>
+            <Box alignSelf="end">
+                <Box
+                    onClick={handleClick}
+                    width="16px"
+                    sx={{ cursor: isFailed ? "pointer" : "auto" }}
+                >
+                    <img src={Icon} style={{ marginLeft: "0.375rem" }} />
+                </Box>
+                <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
+                    <MenuItem onClick={handleResend}>
+                        <Box display="flex" gap={1}>
+                            <UploadOutlined />
+                            <Typography>{strings.resend}</Typography>
+                        </Box>
+                    </MenuItem>
+                    <MenuItem onClick={handleRemove}>
+                        <Box display="flex" gap={1} color="red">
+                            <Delete />
+                            <Typography>{strings.delete}</Typography>
+                        </Box>
+                    </MenuItem>
+                </Menu>
             </Box>
-            <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
-                <MenuItem onClick={handleResend}>
-                    <Box display="flex" gap={1}>
-                        <UploadOutlined />
-                        <Typography>{strings.resend}</Typography>
-                    </Box>
-                </MenuItem>
-                <MenuItem onClick={handleRemove}>
-                    <Box display="flex" gap={1} color="red">
-                        <Delete />
-                        <Typography>{strings.delete}</Typography>
-                    </Box>
-                </MenuItem>
-            </Menu>
-        </Box>
+        </Slide>
     );
 }
