@@ -229,21 +229,39 @@ function MessageBodyContainer({
     const isUsersMessage = fromUserId === user.id;
     const side = isUsersMessage ? "right" : "left";
 
+    if (!isUsersMessage && !progress && !deleted) {
+        return (
+            <Slide
+                direction={side === "right" ? "left" : "right"}
+                in={true}
+                mountOnEnter
+                unmountOnExit
+            >
+                <Box>
+                    <MessageBody
+                        body={body}
+                        type={type}
+                        side={side}
+                        isReply={!!replyId}
+                        onImageMessageClick={onImageMessageClick}
+                        deleted={deleted}
+                        progress={progress}
+                    />
+                </Box>
+            </Slide>
+        );
+    }
+
     return (
-        <Slide direction={side === "right" ? "left" : "right"} in={true} mountOnEnter unmountOnExit>
-            <Box>
-                <MessageBody
-                    body={body}
-                    id={id}
-                    type={type}
-                    side={side}
-                    isReply={!!replyId}
-                    onImageMessageClick={onImageMessageClick}
-                    deleted={deleted}
-                    progress={progress}
-                />
-            </Box>
-        </Slide>
+        <MessageBody
+            body={body}
+            type={type}
+            side={side}
+            isReply={!!replyId}
+            onImageMessageClick={onImageMessageClick}
+            deleted={deleted}
+            progress={progress}
+        />
     );
 }
 

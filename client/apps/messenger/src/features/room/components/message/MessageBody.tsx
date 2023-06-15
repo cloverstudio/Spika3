@@ -3,8 +3,6 @@ import { Box, LinearProgress } from "@mui/material";
 import { useParams } from "react-router-dom";
 import { useGetRoomQuery } from "../../api/room";
 import AttachmentManager from "../../lib/AttachmentManager";
-import { useDispatch } from "react-redux";
-import { setTargetMessage } from "../../slices/messages";
 import { deletedMessageText } from "../../lib/consts";
 import TextMessage from "./messageTypes/TextMessage";
 import ImageMessage from "./messageTypes/ImageMessage";
@@ -14,7 +12,6 @@ import FileMessage from "./messageTypes/FileMessage";
 import { DOWNLOAD_URL } from "../../../../../../../lib/constants";
 
 type MessageBodyProps = {
-    id: number;
     type: string;
     body: any;
     side: "left" | "right";
