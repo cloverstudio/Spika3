@@ -44,10 +44,6 @@ export function HomeTitleUpdater(): React.ReactElement {
 
     useEffect(() => {
         const unreadCount: number = list.reduce<number>((totalCount, row) => {
-            if (row.muted) {
-                return totalCount;
-            }
-
             if (!row.unreadCount) {
                 return totalCount;
             }
