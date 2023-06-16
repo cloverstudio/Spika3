@@ -159,10 +159,6 @@ function ActionIcon({ Icon, isActive, handleClick, isChat }: ActionIconProps) {
 
     const unreadCount = isChat
         ? list.reduce<number>((totalCount, row) => {
-              if (row.muted) {
-                  return totalCount;
-              }
-
               if (!row.unreadCount) {
                   return totalCount;
               }

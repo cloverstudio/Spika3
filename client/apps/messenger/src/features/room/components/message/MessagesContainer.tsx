@@ -71,12 +71,8 @@ export default function MessagesContainer({
         } else if (ref.current.scrollHeight !== lastScrollHeight && messagesLength) {
             const isOneMessageChange = messagesLength - messagesLengthRef.current === 1;
             const behavior = isOneMessageChange ? "smooth" : "instant";
-            setTimeout(
-                () => {
-                    onScrollDown(behavior);
-                },
-                isOneMessageChange ? 10 : 350
-            );
+
+            setTimeout(() => onScrollDown(behavior), isOneMessageChange ? 10 : 350);
         } else if (loading !== undefined && !loading && !roomIsLoading && initialLoading) {
             setLoading(false);
         }
