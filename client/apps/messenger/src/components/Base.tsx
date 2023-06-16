@@ -33,9 +33,10 @@ export default function AuthBase({ children }: Props): React.ReactElement {
     const strings = useStrings();
 
     useEffect(() => {
-        let source: EventSource;
-        if (deviceData?.device?.token && !source) {
-            source = new EventSource(`${API_BASE_URL}/sse?accessToken=${deviceData.device.token}`);
+        function createSource() {
+            const source = new EventSource(
+                `${API_BASE_URL}/sse?accessToken=${deviceData.device.token}`
+            );
 
             source.onmessage = handleSSE;
             source.onopen = () => {
@@ -45,16 +46,20 @@ export default function AuthBase({ children }: Props): React.ReactElement {
                 setSSEConnectionState("error");
             };
 
+            return source;
+        }
+
+        let source: EventSource;
+        if (deviceData?.device?.token && !source) {
+            source = createSource();
+
             addEventListener("offline", () => {
                 setSSEConnectionState("error");
                 source && source.close();
             });
 
             addEventListener("online", () => {
-                source = new EventSource(
-                    `${API_BASE_URL}/sse?accessToken=${deviceData.device.token}`
-                );
-                setSSEConnectionState("pending");
+                source = createSource();
             });
         }
 
