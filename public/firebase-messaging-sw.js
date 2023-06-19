@@ -16,11 +16,12 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage(async function(payload) {
   const message = payload?.data?.message ? JSON.parse(payload.data.message) : {};
-  const fromUserName = message.fromUserName || "";
-  const groupName = message.groupName || "";
+  const fromUserName = payload?.data?.fromUserName || "";
+  const groupName = payload?.data?.groupName || "";
+  const muted = payload?.data?.muted || "";
   const isGroup = !!groupName
 
-  if(!message || message.muted){
+  if(!message || muted === '1'){
     return;
   } 
 

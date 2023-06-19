@@ -26,6 +26,7 @@ class sendPushWorker implements QueueWorkerInterface {
 async function newMessageFormatter(payload: SendPushPayload) {
     const roomId = payload.data.message.roomId as number;
     const userId = payload.data.toUserId as number;
+    const message = payload.data.message;
     const redisClient = payload.redisClient;
 
     const roomUser = await prisma.roomUser.findFirst({
@@ -50,19 +51,12 @@ async function newMessageFormatter(payload: SendPushPayload) {
     });
 
     return {
-        message: {
-            token: payload.token,
-            data: {
-                message: JSON.stringify({
-                    ...payload.data.message,
-                    fromUserName: payload.data.user.displayName,
-                    groupName: payload.data.groupName || "",
-                    muted,
-                    unreadCount,
-                }),
-            },
-        },
+        message,
+        token: payload.token,
         muted,
+        fromUserName: payload.data.user.displayName,
+        groupName: payload.data.groupName || "",
+        unreadCount,
     };
 }
 

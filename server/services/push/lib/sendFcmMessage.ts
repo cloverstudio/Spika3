@@ -34,14 +34,22 @@ function getAccessToken() {
 }
 
 export type FcmMessagePayload = {
-    message: {
-        token: string;
-        data?: any;
-    };
+    token: string;
+    message: any;
     muted: boolean;
+    fromUserName: string;
+    groupName: string;
+    unreadCount: number;
 };
 
-export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Promise<any> {
+export default async function sendFcmMessage({
+    message,
+    token,
+    muted,
+    fromUserName,
+    groupName,
+    unreadCount,
+}: FcmMessagePayload): Promise<any> {
     if (process.env.IS_TEST === "1") {
         return;
     }
@@ -50,9 +58,6 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
         await getAccessToken();
     }
 
-    const message = JSON.parse(fcmMessage.message.data.message);
-
-    const muted = fcmMessage.muted;
     const apns = {
         payload: {
             aps: {
@@ -79,10 +84,17 @@ export default async function sendFcmMessage(fcmMessage: FcmMessagePayload): Pro
 
     const data = {
         message: {
-            ...fcmMessage.message,
+            token,
             apns,
             android,
             webpush,
+            data: {
+                message: JSON.stringify(message),
+                fromUserName,
+                groupName,
+                unreadCount: unreadCount.toString(),
+                muted: Number(muted).toString(),
+            },
         },
     };
 
