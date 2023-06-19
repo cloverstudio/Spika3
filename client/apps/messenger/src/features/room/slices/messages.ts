@@ -479,11 +479,18 @@ export const messagesSlice = createSlice({
             }
         },
 
-        addMessageRecord(state, action: { payload: MessageRecordType }) {
-            const messageRecord = action.payload;
-
-            const { roomId, messageId, type } = messageRecord;
-
+        addMessageRecord(
+            state,
+            action: {
+                payload: {
+                    messageRecord: MessageRecordType;
+                    seenCount: number;
+                    deliveredCount: number;
+                };
+            }
+        ) {
+            const { messageRecord, seenCount, deliveredCount } = action.payload;
+            const { roomId, messageId, type, userId } = messageRecord;
             const room = state[roomId];
 
             if (!room) {
@@ -493,27 +500,35 @@ export const messagesSlice = createSlice({
             if (type === "reaction") {
                 if (room.reactions[messageId]) {
                     room.reactions[messageId] = room.reactions[messageId].filter(
-                        (r) => r.userId !== messageRecord.userId
+                        (r) => r.userId !== userId
                     );
                     room.reactions[messageId].push(messageRecord);
                 } else {
                     room.reactions[messageId] = [messageRecord];
                 }
-            } else {
-                if (room.statusCounts[messageId]) {
-                    if (type === "seen") {
-                        if (room.statusCounts[messageId]?.seenCount) {
-                            room.statusCounts[messageId].seenCount += 1;
-                        } else {
-                            room.statusCounts[messageId].seenCount = 1;
-                        }
-                    } else if (type === "delivered") {
-                        if (room.statusCounts[messageId]?.deliveredCount) {
-                            room.statusCounts[messageId].deliveredCount += 1;
-                        } else {
-                            room.statusCounts[messageId].deliveredCount = 1;
-                        }
-                    }
+
+                return;
+            }
+
+            const roomCurrentStatus = room.statusCounts[messageId];
+
+            if (!roomCurrentStatus) {
+                return;
+            }
+
+            if (type === "seen") {
+                if (seenCount) {
+                    roomCurrentStatus.seenCount = seenCount;
+                } else {
+                    roomCurrentStatus.seenCount = 1;
+                }
+            }
+
+            if (type === "delivered") {
+                if (deliveredCount) {
+                    roomCurrentStatus.deliveredCount = deliveredCount;
+                } else {
+                    roomCurrentStatus.deliveredCount = 1;
                 }
             }
         },

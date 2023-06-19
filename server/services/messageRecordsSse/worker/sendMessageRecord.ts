@@ -112,6 +112,8 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
 
             for (const record of messageRecords) {
                 const deviceIds = await getDeviceIdsFromMessageId(record.messageId, record.userId);
+                const { message, ...messageRecord } = record;
+                const { deliveredCount, seenCount, totalUserCount } = message;
 
                 for (const deviceId of deviceIds) {
                     channel.sendToQueue(
@@ -121,7 +123,8 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
                                 channelId: deviceId,
                                 data: {
                                     type: pushType,
-                                    messageRecord: record,
+                                    messageRecord,
+                                    ...(message && { deliveredCount, seenCount, totalUserCount }),
                                 },
                             })
                         )
