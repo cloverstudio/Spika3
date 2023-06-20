@@ -90,10 +90,14 @@ export default async function sendFcmMessage({
             webpush,
             data: {
                 message: JSON.stringify(message),
-                fromUserName: String(fromUserName || ""),
-                unreadCount: unreadCount.toString(),
-                muted: Number(muted).toString(),
-                ...(groupName && { groupName: String(groupName) }),
+                messageAttributes: JSON.stringify({
+                    fromUserName,
+                    ...(groupName && { groupName }),
+                }),
+                roomAttributes: JSON.stringify({
+                    unreadCount,
+                    muted,
+                }),
             },
         },
     };
