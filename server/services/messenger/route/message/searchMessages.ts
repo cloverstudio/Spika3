@@ -56,6 +56,9 @@ export default ({ redisClient }: InitRouterParams): RequestHandler[] => {
                             path: "$.text",
                             string_contains: keyword,
                         },
+                        message: {
+                            roomId,
+                        },
                     },
                 });
 

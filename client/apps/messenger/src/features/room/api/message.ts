@@ -49,6 +49,11 @@ const messageApi = api.injectEndpoints({
                 res &&
                 res.messageRecord && [{ type: "MessageRecords", id: res.messageRecord.messageId }],
         }),
+        searchMessages: build.query<any, { roomId: number; keyword: string }>({
+            query: ({ roomId, keyword }) => {
+                return `/messenger/messages/${roomId}/search?keyword=${keyword}`;
+            },
+        }),
     }),
     overrideExisting: true,
 });
@@ -60,5 +65,7 @@ export const {
     useDeleteMessageMutation,
     useEditMessageMutation,
     useCreateReactionMutation,
+    useSearchMessagesQuery,
+    useLazySearchMessagesQuery,
 } = messageApi;
 export default messageApi;
