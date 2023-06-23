@@ -23,6 +23,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
     router.get("/:id/message-records", getMessageRecordsRoute({}));
 
     // only web should call this route
+    router.get("/search", searchMessagesRoute({ redisClient }));
     router.get("/roomId/:roomId", getMessagesByRoomRoute({ rabbitMQChannel, redisClient }));
 
     router.post("/delivered", createDeliveredMessageRecordRoute({ rabbitMQChannel }));
@@ -30,8 +31,6 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
 
     router.get("/sync/modified/:lastUpdate", getModifiedMessagesSyncRoute({}));
     router.get("/sync/:lastUpdate", getMessagesSyncRoute({}));
-
-    router.get("/:roomId/search", searchMessagesRoute({ redisClient }));
 
     return router;
 };

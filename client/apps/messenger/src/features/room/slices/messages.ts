@@ -647,12 +647,28 @@ export const messagesSlice = createSlice({
                 state[roomId].cursor = payload.nextCursor;
                 state[roomId].loading = false;
 
-                payload.list.forEach((m) => {
-                    const { messageRecords, totalUserCount, deliveredCount, seenCount, id } = m;
-                    state[roomId].messages[id] = m;
-                    state[roomId].reactions[id] = messageRecords || [];
-                    state[roomId].statusCounts[id] = { totalUserCount, deliveredCount, seenCount };
-                });
+                const messages = payload.list.reduce((acc, m) => {
+                    acc[m.id] = m;
+                    return acc;
+                }, {});
+
+                const reactions = payload.list.reduce((acc, m) => {
+                    acc[m.id] = m.messageRecords || [];
+                    return acc;
+                }, {});
+
+                const statusCounts = payload.list.reduce((acc, m) => {
+                    acc[m.id] = {
+                        totalUserCount: m.totalUserCount,
+                        deliveredCount: m.deliveredCount,
+                        seenCount: m.seenCount,
+                    };
+                    return acc;
+                }, {});
+
+                state[roomId].messages = { ...state[roomId].messages, ...messages };
+                state[roomId].reactions = { ...state[roomId].reactions, ...reactions };
+                state[roomId].statusCounts = { ...state[roomId].statusCounts, ...statusCounts };
             }
         );
         builder.addCase(fetchMessages.pending, (state, { meta }) => {

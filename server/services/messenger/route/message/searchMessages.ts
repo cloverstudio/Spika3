@@ -9,7 +9,7 @@ import { InitRouterParams } from "../../../types/serviceInterface";
 import { errorResponse, successResponse } from "../../../../components/response";
 import prisma from "../../../../components/prisma";
 
-export default ({ redisClient }: InitRouterParams): RequestHandler[] => {
+export default ({}: InitRouterParams): RequestHandler[] => {
     return [
         auth,
         async (req: Request, res: Response) => {
@@ -18,8 +18,12 @@ export default ({ redisClient }: InitRouterParams): RequestHandler[] => {
             const userId = userReq.user.id;
 
             try {
-                const roomId = parseInt(req.params.roomId as string);
+                const roomId = parseInt(req.query.roomId as string);
                 const keyword = req.query.keyword as string;
+
+                if (!roomId) {
+                    return res.status(400).send(errorResponse("roomId required", userReq.lang));
+                }
 
                 const roomUser = await prisma.roomUser.findFirst({
                     where: { roomId, userId },
@@ -59,6 +63,9 @@ export default ({ redisClient }: InitRouterParams): RequestHandler[] => {
                         message: {
                             roomId,
                         },
+                    },
+                    orderBy: {
+                        createdAt: "desc",
                     },
                 });
 

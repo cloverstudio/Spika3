@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import React, { useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useTheme } from "@mui/material/styles";
 import { useNavigate, useParams } from "react-router-dom";
 import Call from "@mui/icons-material/Call";
@@ -24,6 +24,7 @@ import { toggleRightSidebar } from "../slices/rightSidebar";
 import { RoomType } from "../../../types/Rooms";
 import useStrings from "../../../hooks/useStrings";
 import { useLazySearchMessagesQuery } from "../api/message";
+import { selectTargetMessage, setTargetMessage } from "../slices/messages";
 
 export default function Header() {
     const roomId = parseInt(useParams().id || "");
@@ -114,32 +115,68 @@ function Search({ onClose }: { onClose: () => void }) {
     const roomId = parseInt(useParams().id || "");
     const [keyword, setKeyword] = useState("");
     const [results, setResults] = useState([]);
+    const dispatch = useDispatch();
+    const currentTargetMessageId = useSelector(selectTargetMessage(roomId));
+    const currentTargetMessageIndex = results.indexOf(currentTargetMessageId);
+    const ref = useRef<HTMLInputElement>(null);
+    const [searchMessages, { isFetching, data }] = useLazySearchMessagesQuery();
 
-    const [searchMessages, { isFetching, data, currentData }] = useLazySearchMessagesQuery();
-
-    console.log({ data, currentData, isFetching });
     const onSearch = (keyword: string) => {
-        console.log("search start", { keyword });
         if (keyword.length > 2) {
             searchMessages({ roomId, keyword });
         } else {
             setResults([]);
+            dispatch(setTargetMessage({ roomId, messageId: null }));
         }
     };
 
     useEffect(() => {
         if (data && data.messagesIds?.length > 0) {
             setResults(data.messagesIds);
+            dispatch(setTargetMessage({ roomId, messageId: data.messagesIds[0] }));
         } else {
             setResults([]);
         }
-    }, [data]);
+    }, [data, dispatch, roomId]);
+
+    useEffect(() => {
+        if (ref?.current) {
+            ref.current.focus();
+        }
+    }, []);
+
+    const hasNext = results.length > 0 && currentTargetMessageIndex < results.length - 1;
+    const hasPrev = results.length > 0 && currentTargetMessageIndex > 0;
+
+    const handlePrev = () => {
+        if (hasPrev) {
+            dispatch(
+                setTargetMessage({ roomId, messageId: results[currentTargetMessageIndex - 1] })
+            );
+        }
+    };
+
+    const handleNext = () => {
+        if (hasNext) {
+            dispatch(
+                setTargetMessage({ roomId, messageId: results[currentTargetMessageIndex + 1] })
+            );
+        }
+    };
+
+    const handleClose = () => {
+        setKeyword("");
+        setResults([]);
+        dispatch(setTargetMessage({ roomId, messageId: null }));
+        onClose();
+    };
 
     return (
         <>
             <Box width="100%" mr={3}>
                 <Input
                     disableUnderline={true}
+                    inputRef={ref}
                     startAdornment={
                         <InputAdornment sx={{ pr: 2 }} position="start">
                             <SearchIcon sx={{ width: "18px", color: "text.tertiary" }} />
@@ -150,20 +187,26 @@ function Search({ onClose }: { onClose: () => void }) {
                             {isFetching ? (
                                 <CircularProgress size={20} />
                             ) : (
-                                <Box display="flex" alignItems="center">
-                                    {results.length > 0 && (
-                                        <Typography mr={2}>1/{results.length}</Typography>
-                                    )}
-                                    {keyword.length > 0 && (
+                                keyword.length > 0 && (
+                                    <Box display="flex" alignItems="center">
+                                        <Typography mr={2}>
+                                            {!isNaN(currentTargetMessageIndex)
+                                                ? currentTargetMessageIndex + 1
+                                                : "-"}
+                                            /{results.length}
+                                        </Typography>
                                         <CancelIcon
                                             onClick={() => {
                                                 setKeyword("");
                                                 setResults([]);
+                                                dispatch(
+                                                    setTargetMessage({ roomId, messageId: null })
+                                                );
                                             }}
                                             sx={{ color: "text.tertiary", cursor: "pointer" }}
                                         />
-                                    )}
-                                </Box>
+                                    </Box>
+                                )
                             )}
                         </InputAdornment>
                     }
@@ -191,10 +234,16 @@ function Search({ onClose }: { onClose: () => void }) {
             </Box>
 
             <Box display="flex" gap={2} justifyItems="center" mr={1}>
-                <ExpandLess sx={{ color: "text.tertiary", cursor: "pointer" }} />
-                <ExpandMore sx={{ color: "text.tertiary", cursor: "pointer" }} />
+                <ExpandLess
+                    onClick={handleNext}
+                    sx={{ color: hasNext ? "primary.main" : "text.tertiary", cursor: "pointer" }}
+                />
+                <ExpandMore
+                    onClick={handlePrev}
+                    sx={{ color: hasPrev ? "primary.main" : "text.tertiary", cursor: "pointer" }}
+                />
             </Box>
-            <Button onClick={onClose}>{strings.cancel}</Button>
+            <Button onClick={handleClose}>{strings.cancel}</Button>
         </>
     );
 }

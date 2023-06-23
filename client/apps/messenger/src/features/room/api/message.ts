@@ -51,7 +51,7 @@ const messageApi = api.injectEndpoints({
         }),
         searchMessages: build.query<any, { roomId: number; keyword: string }>({
             query: ({ roomId, keyword }) => {
-                return `/messenger/messages/${roomId}/search?keyword=${keyword}`;
+                return `/messenger/messages/search?keyword=${keyword}&roomId=${roomId}`;
             },
         }),
     }),
