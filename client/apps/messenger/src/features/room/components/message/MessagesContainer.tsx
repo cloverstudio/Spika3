@@ -60,19 +60,18 @@ export default function MessagesContainer({
                 setNewMessages((m) => m + 1);
             }
         } else if (targetMessageId) {
-            setTimeout(() => {
-                const ele = document.getElementById(`message_${targetMessageId}`);
-                if (ele && !scrolledToTargetMessage) {
-                    ele.scrollIntoView();
-                    setScrolledToTargetMessage(true);
-                    setLoading(false);
-                }
-            }, 500);
-        } else if (ref.current.scrollHeight !== lastScrollHeight && messagesLength) {
-            const isOneMessageChange = messagesLength - messagesLengthRef.current === 1;
-            const behavior = isOneMessageChange ? "smooth" : "instant";
+            const ele = document.getElementById(`message_${targetMessageId}`);
 
-            setTimeout(() => onScrollDown(behavior), isOneMessageChange ? 10 : 350);
+            if (ele && !scrolledToTargetMessage) {
+                ele.scrollIntoView();
+                setScrolledToTargetMessage(true);
+                setLoading(false);
+            }
+        } else if (ref.current.scrollHeight !== lastScrollHeight && messagesLength) {
+            const isOneMessageDiff = messagesLength - messagesLengthRef.current === 1;
+            const behavior = isOneMessageDiff ? "smooth" : "instant";
+
+            setTimeout(() => onScrollDown(behavior), isOneMessageDiff ? 10 : 350);
         } else if (loading !== undefined && !loading && !roomIsLoading && initialLoading) {
             setLoading(false);
         }

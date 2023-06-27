@@ -1,6 +1,7 @@
 import React, { memo, useEffect, useMemo } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import dayjs from "dayjs";
 
 import DoDisturb from "@mui/icons-material/DoDisturb";
 import { Box } from "@mui/material";
@@ -20,6 +21,7 @@ import {
 } from "../../slices/messages";
 import Message from "./Message";
 import MessagesContainer from "./MessagesContainer";
+import MessageType from "../../../../types/Message";
 
 const Date = memo(function Date({ day }: { day: string }) {
     return (
@@ -46,17 +48,30 @@ export default function MessagesList(): React.ReactElement {
     const shouldDisplayBlockButton = useSelector(selectShouldDisplayBlockButton(roomId));
     const otherUserId = useSelector(selectOtherUserIdInPrivateRoom(roomId));
 
-    const messagesSorted = useMemo(
-        () =>
-            Object.values(messages)
-                .sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))
-                .map((m, i, all) => ({
-                    ...m,
-                    previousMessageFromUserId: all[i - 1]?.fromUserId || null,
-                    nextMessageFromUserId: all[i + 1]?.fromUserId,
-                })),
-        [messages]
-    );
+    const messagesSorted = useMemo(() => {
+        const sorted = Object.values(messages).sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1));
+
+        return sorted.reduce((acc, curr, i) => {
+            const day = dayjs.unix(curr.createdAt / 1000).format("dddd, MMM D");
+            const message = {
+                ...curr,
+                previousMessageFromUserId: sorted[i - 1]?.fromUserId || null,
+                nextMessageFromUserId: sorted[i + 1]?.fromUserId,
+            };
+            if (!acc[day]) {
+                acc[day] = [message];
+            } else {
+                acc[day].push(message);
+            }
+
+            return acc;
+        }, {}) as {
+            [day: string]: (MessageType & {
+                previousMessageFromUserId: number | null;
+                nextMessageFromUserId: number | null;
+            })[];
+        };
+    }, [messages]);
 
     useEffect(() => {
         if (messageId) {
@@ -97,14 +112,29 @@ export default function MessagesList(): React.ReactElement {
     return (
         <>
             <MessagesContainer>
-                {messagesSorted.map((m, i) => (
-                    <Message
-                        key={m.id}
-                        id={m.id}
-                        previousMessageFromUserId={i !== 0 && m.previousMessageFromUserId}
-                        nextMessageFromUserId={m.nextMessageFromUserId}
-                    />
-                ))}
+                {Object.entries(messagesSorted).map(([day, messages], dayIndex) => {
+                    const isLastDay = dayIndex === Object.keys(messagesSorted).length - 1;
+                    return (
+                        <Box key={day}>
+                            <Date day={day} />
+
+                            {messages.map((m, i) => {
+                                const isLastMessageInDay = i === messages.length - 1;
+                                return (
+                                    <Message
+                                        key={m.id}
+                                        id={m.id}
+                                        previousMessageFromUserId={
+                                            i !== 0 && m.previousMessageFromUserId
+                                        }
+                                        nextMessageFromUserId={m.nextMessageFromUserId}
+                                        animate={isLastDay && isLastMessageInDay}
+                                    />
+                                );
+                            })}
+                        </Box>
+                    );
+                })}
             </MessagesContainer>
 
             {shouldDisplayBlockButton && (

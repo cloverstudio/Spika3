@@ -2,7 +2,7 @@ import React, { memo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import Avatar from "@mui/material/Avatar";
-import { Box } from "@mui/material";
+import { Box, Slide } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import { useShowSnackBar } from "../../../../hooks/useModal";
 import { selectUser } from "../../../../store/userSlice";
@@ -49,10 +49,12 @@ function Message({
     id,
     previousMessageFromUserId,
     nextMessageFromUserId,
+    animate,
 }: {
     id: number;
     previousMessageFromUserId: number | null;
     nextMessageFromUserId: number | null;
+    animate: boolean;
 }) {
     const roomId = parseInt(useParams().id || "");
     const targetMessageId = useSelector(selectTargetMessage(roomId));
@@ -97,6 +99,34 @@ function Message({
 
     const highlighted = id === +targetMessageId;
 
+    const renderAvatar = () => {
+        if (!shouldDisplayAvatar) {
+            return (side === "left" && isGroup && <Box />) || null;
+        }
+
+        if (animate) {
+            return (
+                <Slide direction="right" in={true}>
+                    <Box mt="auto" mr={1}>
+                        <Avatar
+                            sx={{ width: 26, height: 26 }}
+                            src={`${UPLOADS_BASE_URL}/${sender?.avatarFileId}`}
+                        />
+                    </Box>
+                </Slide>
+            );
+        }
+
+        return (
+            <Box mt="auto" mr={1}>
+                <Avatar
+                    sx={{ width: 26, height: 26 }}
+                    src={`${UPLOADS_BASE_URL}/${sender?.avatarFileId}`}
+                />
+            </Box>
+        );
+    };
+
     if (!body) {
         return null;
     }
@@ -118,16 +148,7 @@ function Message({
                 gap={1}
                 gridTemplateColumns={side === "right" || !isGroup ? "1fr" : "26px 1fr"}
             >
-                {shouldDisplayAvatar ? (
-                    <Box mt="auto" mr={1}>
-                        <Avatar
-                            sx={{ width: 26, height: 26 }}
-                            src={`${UPLOADS_BASE_URL}/${sender?.avatarFileId}`}
-                        />
-                    </Box>
-                ) : (
-                    side === "left" && isGroup && <Box />
-                )}
+                {renderAvatar()}
                 <Box display="flex" position="relative">
                     {!deleted && <MessageReactions id={id} />}
                     <Box
@@ -146,6 +167,7 @@ function Message({
                         <MessageBodyContainer
                             id={id}
                             onImageMessageClick={handleImageMessageClick}
+                            animate={animate}
                         />
                     </Box>
                     {shouldDisplayStatusIcons && <StatusIcon status={status} id={id} />}
@@ -214,9 +236,11 @@ function MessageContainer({ side, children, id, handleMouseLeave }: MessageConta
 function MessageBodyContainer({
     id,
     onImageMessageClick,
+    animate,
 }: {
     id: number;
     onImageMessageClick: () => void;
+    animate: boolean;
 }) {
     const roomId = parseInt(useParams().id || "");
     const user = useSelector(selectUser);
@@ -227,19 +251,26 @@ function MessageBodyContainer({
     const isUsersMessage = fromUserId === user.id;
     const side = isUsersMessage ? "right" : "left";
 
-    if (!isUsersMessage && !progress && !deleted) {
+    if (!isUsersMessage && !progress && !deleted && animate) {
         return (
-            <Box>
-                <MessageBody
-                    body={body}
-                    type={type}
-                    side={side}
-                    isReply={!!replyId}
-                    onImageMessageClick={onImageMessageClick}
-                    deleted={deleted}
-                    progress={progress}
-                />
-            </Box>
+            <Slide
+                direction={side === "right" ? "left" : "right"}
+                in={true}
+                mountOnEnter
+                unmountOnExit
+            >
+                <Box>
+                    <MessageBody
+                        body={body}
+                        type={type}
+                        side={side}
+                        isReply={!!replyId}
+                        onImageMessageClick={onImageMessageClick}
+                        deleted={deleted}
+                        progress={progress}
+                    />
+                </Box>
+            </Slide>
         );
     }
 
