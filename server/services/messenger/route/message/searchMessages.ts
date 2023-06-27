@@ -51,7 +51,7 @@ export default ({}: InitRouterParams): RequestHandler[] => {
                         .send(errorResponse("Keyword must be at least 3 characters", userReq.lang));
                 }
 
-                const time = performance.now();
+                const time = +new Date();
                 console.log("searching...", keyword);
                 const deviceMessages = await prisma.deviceMessage.findMany({
                     where: {
@@ -69,7 +69,7 @@ export default ({}: InitRouterParams): RequestHandler[] => {
                     },
                 });
 
-                le(`Search time: ${performance.now() - time}ms`);
+                le(`Search time: ${+new Date() - time}ms`);
 
                 le(`Found ${deviceMessages.length} messages`);
 
