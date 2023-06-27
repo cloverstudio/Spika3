@@ -57,29 +57,7 @@ export default ({}: InitRouterParams): RequestHandler[] => {
                 const time = +new Date();
                 console.log("searching...", keyword);
 
-                /* const devicesIds = await getDevicesIds(device, userId);
-
-                async function getDevicesIds(device, userId) {
-                    const isBrowser = userReq.device.type === Constants.DEVICE_TYPE_BROWSER;
-
-                    if (isBrowser) {
-                        const browserDevices = await prisma.device.findMany({
-                            where: {
-                                userId,
-                                type: Constants.DEVICE_TYPE_BROWSER,
-                            },
-                            select: {
-                                id: true,
-                            },
-                        });
-
-                        return browserDevices.map((d) => d.id);
-                    } else {
-                        return [device.id];
-                    }
-                } */
-
-                const deviceMessages = await prisma.deviceMessage.findMany({
+                const deviceMessagesIds = await prisma.deviceMessage.findMany({
                     where: {
                         userId,
                         body: {
@@ -93,20 +71,20 @@ export default ({}: InitRouterParams): RequestHandler[] => {
                     orderBy: {
                         createdAt: "desc",
                     },
+                    select: {
+                        messageId: true,
+                    },
                 });
 
                 le(`Search time: ${+new Date() - time}ms`);
 
-                le(`Found ${deviceMessages.length} messages`);
-
-                le(deviceMessages.map((dm) => dm.messageId));
-
-                return res.send(
-                    successResponse(
-                        { messagesIds: deviceMessages.map((dm) => dm.messageId) },
-                        userReq.lang
-                    )
+                const messagesIds = Array.from(
+                    new Set(deviceMessagesIds.map((dm) => dm.messageId))
                 );
+
+                le(`Found ${messagesIds.length} messages`);
+
+                return res.send(successResponse({ messagesIds }, userReq.lang));
             } catch (e: any) {
                 le(e);
                 res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
