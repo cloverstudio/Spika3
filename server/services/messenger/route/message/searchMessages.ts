@@ -8,18 +8,19 @@ import auth from "../../lib/auth";
 import { InitRouterParams } from "../../../types/serviceInterface";
 import { errorResponse, successResponse } from "../../../../components/response";
 import prisma from "../../../../components/prisma";
+import * as Constants from "../../../../components/consts";
 
 export default ({}: InitRouterParams): RequestHandler[] => {
     return [
         auth,
         async (req: Request, res: Response) => {
             const userReq: UserRequest = req as UserRequest;
-            const deviceId = userReq.device.id;
+            const device = userReq.device;
             const userId = userReq.user.id;
 
             try {
                 const roomId = parseInt(req.query.roomId as string);
-                const keyword = req.query.keyword as string;
+                const keywordRaw = req.query.keyword as string;
 
                 if (!roomId) {
                     return res.status(400).send(errorResponse("roomId required", userReq.lang));
@@ -41,9 +42,11 @@ export default ({}: InitRouterParams): RequestHandler[] => {
                     return res.status(404).send(errorResponse("No room found", userReq.lang));
                 }
 
-                if (!keyword) {
+                if (!keywordRaw || !keywordRaw.trim()) {
                     return res.status(400).send(errorResponse("Keyword required", userReq.lang));
                 }
+
+                const keyword = keywordRaw.trim();
 
                 if (keyword.length < 3) {
                     return res
@@ -53,9 +56,34 @@ export default ({}: InitRouterParams): RequestHandler[] => {
 
                 const time = +new Date();
                 console.log("searching...", keyword);
+
+                const devicesIds = await getDevicesIds(device, userId);
+
+                async function getDevicesIds(device, userId) {
+                    const isBrowser = userReq.device.type === Constants.DEVICE_TYPE_BROWSER;
+
+                    if (isBrowser) {
+                        const browserDevices = await prisma.device.findMany({
+                            where: {
+                                userId,
+                                type: Constants.DEVICE_TYPE_BROWSER,
+                            },
+                            select: {
+                                id: true,
+                            },
+                        });
+
+                        return browserDevices.map((d) => d.id);
+                    } else {
+                        return [device.id];
+                    }
+                }
+
                 const deviceMessages = await prisma.deviceMessage.findMany({
                     where: {
-                        deviceId,
+                        deviceId: {
+                            in: devicesIds,
+                        },
                         body: {
                             path: "$.text",
                             string_contains: keyword,
