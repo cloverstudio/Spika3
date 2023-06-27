@@ -57,7 +57,7 @@ export default ({}: InitRouterParams): RequestHandler[] => {
                 const time = +new Date();
                 console.log("searching...", keyword);
 
-                const devicesIds = await getDevicesIds(device, userId);
+                /* const devicesIds = await getDevicesIds(device, userId);
 
                 async function getDevicesIds(device, userId) {
                     const isBrowser = userReq.device.type === Constants.DEVICE_TYPE_BROWSER;
@@ -77,13 +77,11 @@ export default ({}: InitRouterParams): RequestHandler[] => {
                     } else {
                         return [device.id];
                     }
-                }
+                } */
 
                 const deviceMessages = await prisma.deviceMessage.findMany({
                     where: {
-                        deviceId: {
-                            in: devicesIds,
-                        },
+                        userId,
                         body: {
                             path: "$.text",
                             string_contains: keyword,
