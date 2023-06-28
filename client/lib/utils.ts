@@ -57,6 +57,6 @@ export function getDeviceId(): string {
 }
 
 export function updateBrowserTitle(roomName: string, unreadMessage: number): void {
-    if (unreadMessage === 0) window.document.title = `${constants.TITLE_PREFIX}/${roomName}`;
-    else window.document.title = `(${unreadMessage}) ${constants.TITLE_PREFIX}/${roomName}`;
+    if (unreadMessage === 0) window.document.title = `${roomName} - ${constants.TITLE_PREFIX}`;
+    else window.document.title = `(${unreadMessage}) ${roomName} - ${constants.TITLE_PREFIX}`;
 }

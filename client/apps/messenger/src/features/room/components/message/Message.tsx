@@ -10,6 +10,7 @@ import { useGetRoomBlockedQuery, useGetRoomQuery } from "../../api/room";
 import { setEditMessage, setReplyMessage } from "../../slices/input";
 import {
     selectHasMessageReactions,
+    selectKeyword,
     selectMessageById,
     selectMessageStatus,
     selectTargetMessage,
@@ -62,6 +63,7 @@ function Message({
     const user = useSelector(selectUser);
     const status = useSelector(selectMessageStatus(roomId, id));
     const message = useSelector(selectMessageById(roomId, id));
+    const keyword = useSelector(selectKeyword(roomId));
 
     const [mouseOver, setMouseOver] = useState(false);
     const [showReactionMenu, setShowReactionMenu] = useState(false);
@@ -97,7 +99,7 @@ function Message({
         setMouseOver(false);
     };
 
-    const highlighted = id === +targetMessageId;
+    const highlighted = id === +targetMessageId && !keyword;
 
     const renderAvatar = () => {
         if (!shouldDisplayAvatar) {

@@ -59,14 +59,28 @@ export default function MessagesContainer({
             if (messagesLength - messagesLengthRef.current === 1 && !isLastMessageFromUser) {
                 setNewMessages((m) => m + 1);
             }
-        } else if (targetMessageId) {
-            const ele = document.getElementById(`message_${targetMessageId}`);
 
-            if (ele && !scrolledToTargetMessage) {
-                ele.scrollIntoView();
-                setScrolledToTargetMessage(true);
-                setLoading(false);
+            if (targetMessageId) {
+                setTimeout(() => {
+                    const ele = document.getElementById(`message_${targetMessageId}`);
+
+                    if (ele && !scrolledToTargetMessage) {
+                        ele.scrollIntoView();
+                        setScrolledToTargetMessage(true);
+                        setLoading(false);
+                    }
+                }, 10);
             }
+        } else if (targetMessageId) {
+            setTimeout(() => {
+                const ele = document.getElementById(`message_${targetMessageId}`);
+
+                if (ele && !scrolledToTargetMessage) {
+                    ele.scrollIntoView();
+                    setScrolledToTargetMessage(true);
+                    setLoading(false);
+                }
+            }, 10);
         } else if (ref.current.scrollHeight !== lastScrollHeight && messagesLength) {
             const isOneMessageDiff = messagesLength - messagesLengthRef.current === 1;
             const behavior = isOneMessageDiff ? "smooth" : "instant";

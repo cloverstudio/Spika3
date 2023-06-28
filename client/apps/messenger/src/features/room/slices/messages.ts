@@ -7,6 +7,7 @@ import getMessageStatus from "../lib/getMessageStatus";
 import { refreshHistory } from "./leftSidebar";
 import { RoomType } from "../../../types/Rooms";
 import FileUploader from "../../../utils/FileUploader";
+import filterText from "../lib/filterText";
 
 export const fetchMessages = createAsyncThunk(
     "messages/fetchMessages",
@@ -409,6 +410,7 @@ type InitialState = {
         targetMessageId: number | null;
         count?: number;
         cursor?: number;
+        keyword?: string;
     };
 };
 
@@ -636,6 +638,15 @@ export const messagesSlice = createSlice({
                 room.messages[localId].progress = progress;
             }
         },
+
+        setKeyword(state, action: { payload: { roomId: number; keyword: string } }) {
+            const { roomId, keyword } = action.payload;
+            const room = state[roomId];
+
+            if (room) {
+                room.keyword = keyword;
+            }
+        },
     },
     extraReducers: (builder) => {
         builder.addCase(
@@ -797,6 +808,7 @@ export const {
     editMessage,
     setTargetMessage,
     removeMessage,
+    setKeyword,
 } = messagesSlice.actions;
 
 export const selectRoomMessages =
@@ -1040,6 +1052,66 @@ export const selectOtherUserIdInPrivateRoom =
         const otherUser = roomData.users.find((m) => m.userId !== state.user.id);
 
         return otherUser?.userId;
+    };
+
+export const selectKeyword =
+    (roomId: number) =>
+    (state: RootState): string => {
+        const room = state.messages[roomId];
+
+        return room?.keyword;
+    };
+
+export const selectChangeTerm =
+    ({ roomId, text }: { roomId: number; text: string }) =>
+    (state: RootState): { from: string; to: string } | null => {
+        const room = state.messages[roomId];
+
+        if (
+            !room ||
+            !room.messages ||
+            !room.keyword ||
+            room.keyword.length < 3 ||
+            !room.targetMessageId
+        ) {
+            return null;
+        }
+
+        if (!text) {
+            return null;
+        }
+
+        const targetMessage = room.messages[room.targetMessageId];
+
+        if (!targetMessage) {
+            return null;
+        }
+
+        const targetMessageText = targetMessage.body?.text;
+
+        if (!targetMessageText) {
+            return null;
+        }
+
+        const messageIsTargetMessage = filterText(targetMessageText) === text;
+
+        if (!messageIsTargetMessage) {
+            return null;
+        }
+
+        const textContainsKeyword = text.match(new RegExp(room.keyword, "gi"));
+
+        if (!textContainsKeyword) {
+            return null;
+        }
+
+        const from = text;
+        const to = text.replace(
+            new RegExp(room.keyword, "gi"),
+            `<span style="background-color: #d7aa5a;">$&</span>`
+        );
+
+        return { from, to };
     };
 
 export default messagesSlice.reducer;

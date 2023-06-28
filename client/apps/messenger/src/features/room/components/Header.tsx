@@ -24,7 +24,7 @@ import { toggleRightSidebar } from "../slices/rightSidebar";
 import { RoomType } from "../../../types/Rooms";
 import useStrings from "../../../hooks/useStrings";
 import { useLazySearchMessagesQuery } from "../api/message";
-import { selectTargetMessage, setTargetMessage } from "../slices/messages";
+import { selectTargetMessage, setKeyword, setTargetMessage } from "../slices/messages";
 
 export default function Header() {
     const roomId = parseInt(useParams().id || "");
@@ -113,8 +113,8 @@ let timer: NodeJS.Timeout;
 function Search({ onClose }: { onClose: () => void }) {
     const strings = useStrings();
     const roomId = parseInt(useParams().id || "");
-    const [keyword, setKeyword] = useState("");
     const [results, setResults] = useState([]);
+    const [keyword, setLocalKeyword] = useState("");
     const dispatch = useDispatch();
     const currentTargetMessageId = useSelector(selectTargetMessage(roomId));
     const currentTargetMessageIndex = results.indexOf(currentTargetMessageId);
@@ -122,12 +122,19 @@ function Search({ onClose }: { onClose: () => void }) {
     const [searchMessages, { isFetching, data }] = useLazySearchMessagesQuery();
 
     const onSearch = (keyword: string) => {
-        if (keyword.length > 2) {
+        if (keyword?.length > 2) {
             searchMessages({ roomId, keyword });
+            dispatch(setKeyword({ roomId, keyword }));
         } else {
             setResults([]);
             dispatch(setTargetMessage({ roomId, messageId: null }));
+            dispatch(setKeyword({ roomId, keyword: "" }));
         }
+    };
+
+    const handleChangeKeyword = (keyword: string) => {
+        dispatch(setKeyword({ roomId, keyword }));
+        setLocalKeyword(keyword);
     };
 
     useEffect(() => {
@@ -165,7 +172,7 @@ function Search({ onClose }: { onClose: () => void }) {
     };
 
     const handleClose = () => {
-        setKeyword("");
+        handleChangeKeyword("");
         setResults([]);
         dispatch(setTargetMessage({ roomId, messageId: null }));
         onClose();
@@ -187,7 +194,7 @@ function Search({ onClose }: { onClose: () => void }) {
                             {isFetching ? (
                                 <CircularProgress size={20} />
                             ) : (
-                                keyword.length > 0 && (
+                                keyword?.length > 0 && (
                                     <Box display="flex" alignItems="center">
                                         <Typography mr={2}>
                                             {!isNaN(currentTargetMessageIndex)
@@ -197,7 +204,7 @@ function Search({ onClose }: { onClose: () => void }) {
                                         </Typography>
                                         <CancelIcon
                                             onClick={() => {
-                                                setKeyword("");
+                                                handleChangeKeyword("");
                                                 setResults([]);
                                                 dispatch(
                                                     setTargetMessage({ roomId, messageId: null })
@@ -222,14 +229,19 @@ function Search({ onClose }: { onClose: () => void }) {
                         },
                     }}
                     onChange={(e) => {
-                        setKeyword(e.target.value);
+                        setLocalKeyword(e.target.value);
 
                         if (timer) {
                             clearTimeout(timer);
                         }
                         timer = setTimeout(() => onSearch(e.target.value), 700);
                     }}
-                    value={keyword}
+                    onKeyUp={(e) => {
+                        if (e.key === "Escape") {
+                            handleClose();
+                        }
+                    }}
+                    value={keyword || ""}
                 />
             </Box>
 

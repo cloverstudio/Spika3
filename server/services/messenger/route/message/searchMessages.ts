@@ -8,14 +8,13 @@ import auth from "../../lib/auth";
 import { InitRouterParams } from "../../../types/serviceInterface";
 import { errorResponse, successResponse } from "../../../../components/response";
 import prisma from "../../../../components/prisma";
-import * as Constants from "../../../../components/consts";
+import { k } from "../../../../../public/messenger/assets/index-f66f6ba7";
 
 export default ({}: InitRouterParams): RequestHandler[] => {
     return [
         auth,
         async (req: Request, res: Response) => {
             const userReq: UserRequest = req as UserRequest;
-            const device = userReq.device;
             const userId = userReq.user.id;
 
             try {
@@ -57,15 +56,36 @@ export default ({}: InitRouterParams): RequestHandler[] => {
                 const time = +new Date();
                 console.log("searching...", keyword);
 
+                const firstChar = keyword[0];
+
+                const isUpperCased = firstChar === firstChar.toUpperCase();
+
+                const keywordWithOppositeFirstChar = isUpperCased
+                    ? firstChar.toLowerCase() + keyword.slice(1)
+                    : firstChar.toUpperCase() + keyword.slice(1);
+
+                const [lowerKeyword] = [keyword.toLowerCase(), keyword.toUpperCase()];
+
+                const keywords = Array.from(
+                    new Set([keyword, keywordWithOppositeFirstChar, lowerKeyword])
+                );
+
                 const deviceMessagesIds = await prisma.deviceMessage.findMany({
                     where: {
-                        userId,
-                        body: {
-                            path: "$.text",
-                            string_contains: keyword,
-                        },
-                        message: {
-                            roomId,
+                        OR: [
+                            ...keywords.map((key) => ({
+                                body: {
+                                    path: "$.text",
+                                    string_contains: key,
+                                },
+                            })),
+                        ],
+                        AND: {
+                            deleted: false,
+                            userId,
+                            message: {
+                                roomId,
+                            },
                         },
                     },
                     orderBy: {

@@ -55,8 +55,9 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
             store.dispatch(addMessage(message));
 
             const userIsInRoom = document.URL.includes(`/rooms/${message.roomId}`);
+            const hidden = document.visibilityState === "hidden";
 
-            if (document.hidden || !userIsInRoom) {
+            if (hidden || !userIsInRoom) {
                 await dynamicBaseQuery({
                     url: "/messenger/messages/delivered",
                     method: "POST",
@@ -86,10 +87,9 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
 
             // play sound logic
 
-            if (isMute || !document.hidden || message.fromUserId === store.getState().user.id) {
+            if (isMute || !hidden || message.fromUserId === store.getState().user.id) {
                 return;
             }
-
             const audio = new Audio(newMessageSound);
             audio.volume = 0.5;
 

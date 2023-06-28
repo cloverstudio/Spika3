@@ -2,6 +2,9 @@ import React from "react";
 import { Box } from "@mui/material";
 import UserType from "../../../../../types/User";
 import filterText from "../../../lib/filterText";
+import { useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
+import { selectChangeTerm } from "../../../slices/messages";
 
 export default function TextMessage({
     isUsersMessage,
@@ -14,11 +17,16 @@ export default function TextMessage({
     sender?: UserType;
     deleted?: boolean;
 }) {
+    const roomId = parseInt(useParams().id || "");
+    const changeTerm = useSelector(selectChangeTerm({ text: filterText(body.text), roomId }));
     const backgroundColor = deleted
         ? "background.transparent"
         : isUsersMessage
         ? "common.myMessageBackground"
         : "background.paper";
+
+    const filteredText = changeTerm ? changeTerm.to : filterText(body.text);
+
     return (
         <Box
             component={"div"}
@@ -44,7 +52,7 @@ export default function TextMessage({
             )}
             <Box
                 sx={{ overflowWrap: "break-word" }}
-                dangerouslySetInnerHTML={{ __html: filterText(body.text) }}
+                dangerouslySetInnerHTML={{ __html: filteredText }}
             />
         </Box>
     );
