@@ -8,7 +8,6 @@ import auth from "../../lib/auth";
 import { InitRouterParams } from "../../../types/serviceInterface";
 import { errorResponse, successResponse } from "../../../../components/response";
 import prisma from "../../../../components/prisma";
-import { k } from "../../../../../public/messenger/assets/index-f66f6ba7";
 
 export default ({}: InitRouterParams): RequestHandler[] => {
     return [
