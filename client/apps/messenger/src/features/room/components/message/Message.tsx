@@ -10,6 +10,7 @@ import { useGetRoomBlockedQuery, useGetRoomQuery } from "../../api/room";
 import { setEditMessage, setReplyMessage } from "../../slices/input";
 import {
     selectHasMessageReactions,
+    selectKeyword,
     selectMessageById,
     selectMessageStatus,
     selectTargetMessage,
@@ -49,10 +50,12 @@ function Message({
     id,
     previousMessageFromUserId,
     nextMessageFromUserId,
+    animate,
 }: {
     id: number;
     previousMessageFromUserId: number | null;
     nextMessageFromUserId: number | null;
+    animate: boolean;
 }) {
     const roomId = parseInt(useParams().id || "");
     const targetMessageId = useSelector(selectTargetMessage(roomId));
@@ -60,6 +63,7 @@ function Message({
     const user = useSelector(selectUser);
     const status = useSelector(selectMessageStatus(roomId, id));
     const message = useSelector(selectMessageById(roomId, id));
+    const keyword = useSelector(selectKeyword(roomId));
 
     const [mouseOver, setMouseOver] = useState(false);
     const [showReactionMenu, setShowReactionMenu] = useState(false);
@@ -95,7 +99,35 @@ function Message({
         setMouseOver(false);
     };
 
-    const highlighted = id === +targetMessageId;
+    const highlighted = id === +targetMessageId && !keyword;
+
+    const renderAvatar = () => {
+        if (!shouldDisplayAvatar) {
+            return (side === "left" && isGroup && <Box />) || null;
+        }
+
+        if (animate) {
+            return (
+                <Slide direction="right" in={true}>
+                    <Box mt="auto" mr={1}>
+                        <Avatar
+                            sx={{ width: 26, height: 26 }}
+                            src={`${UPLOADS_BASE_URL}/${sender?.avatarFileId}`}
+                        />
+                    </Box>
+                </Slide>
+            );
+        }
+
+        return (
+            <Box mt="auto" mr={1}>
+                <Avatar
+                    sx={{ width: 26, height: 26 }}
+                    src={`${UPLOADS_BASE_URL}/${sender?.avatarFileId}`}
+                />
+            </Box>
+        );
+    };
 
     if (!body) {
         return null;
@@ -118,18 +150,7 @@ function Message({
                 gap={1}
                 gridTemplateColumns={side === "right" || !isGroup ? "1fr" : "26px 1fr"}
             >
-                {shouldDisplayAvatar ? (
-                    <Slide direction="right" in={true}>
-                        <Box mt="auto" mr={1}>
-                            <Avatar
-                                sx={{ width: 26, height: 26 }}
-                                src={`${UPLOADS_BASE_URL}/${sender?.avatarFileId}`}
-                            />
-                        </Box>
-                    </Slide>
-                ) : (
-                    side === "left" && isGroup && <Box />
-                )}
+                {renderAvatar()}
                 <Box display="flex" position="relative">
                     {!deleted && <MessageReactions id={id} />}
                     <Box
@@ -148,6 +169,7 @@ function Message({
                         <MessageBodyContainer
                             id={id}
                             onImageMessageClick={handleImageMessageClick}
+                            animate={animate}
                         />
                     </Box>
                     {shouldDisplayStatusIcons && <StatusIcon status={status} id={id} />}
@@ -216,9 +238,11 @@ function MessageContainer({ side, children, id, handleMouseLeave }: MessageConta
 function MessageBodyContainer({
     id,
     onImageMessageClick,
+    animate,
 }: {
     id: number;
     onImageMessageClick: () => void;
+    animate: boolean;
 }) {
     const roomId = parseInt(useParams().id || "");
     const user = useSelector(selectUser);
@@ -229,7 +253,7 @@ function MessageBodyContainer({
     const isUsersMessage = fromUserId === user.id;
     const side = isUsersMessage ? "right" : "left";
 
-    if (!isUsersMessage && !progress && !deleted) {
+    if (!isUsersMessage && !progress && !deleted && animate) {
         return (
             <Slide
                 direction={side === "right" ? "left" : "right"}

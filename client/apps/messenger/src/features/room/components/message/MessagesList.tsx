@@ -1,14 +1,13 @@
 import React, { memo, useEffect, useMemo } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import dayjs from "dayjs";
 
 import DoDisturb from "@mui/icons-material/DoDisturb";
 import { Box } from "@mui/material";
 import Button from "@mui/material/Button";
-import dayjs from "dayjs";
 import { useShowBasicDialog } from "../../../../hooks/useModal";
 import useStrings from "../../../../hooks/useStrings";
-import MessageType from "../../../../types/Message";
 import { useBlockUserMutation } from "../../api/user";
 import {
     fetchMessages,
@@ -22,6 +21,7 @@ import {
 } from "../../slices/messages";
 import Message from "./Message";
 import MessagesContainer from "./MessagesContainer";
+import MessageType from "../../../../types/Message";
 
 const Date = memo(function Date({ day }: { day: string }) {
     return (
@@ -112,12 +112,14 @@ export default function MessagesList(): React.ReactElement {
     return (
         <>
             <MessagesContainer>
-                {Object.entries(messagesSorted).map(([day, messages]) => {
+                {Object.entries(messagesSorted).map(([day, messages], dayIndex) => {
+                    const isLastDay = dayIndex === Object.keys(messagesSorted).length - 1;
                     return (
                         <Box key={day}>
                             <Date day={day} />
 
                             {messages.map((m, i) => {
+                                const isLastMessageInDay = i === messages.length - 1;
                                 return (
                                     <Message
                                         key={m.id}
@@ -126,6 +128,7 @@ export default function MessagesList(): React.ReactElement {
                                             i !== 0 && m.previousMessageFromUserId
                                         }
                                         nextMessageFromUserId={m.nextMessageFromUserId}
+                                        animate={isLastDay && isLastMessageInDay}
                                     />
                                 );
                             })}

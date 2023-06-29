@@ -25,6 +25,7 @@ import useStrings from "../../../../hooks/useStrings";
 import { useGetRoomQuery } from "../../api/room";
 import formatRoomInfo from "../../lib/formatRoomInfo";
 import { selectUser } from "../../../../store/userSlice";
+import silenceSound from "../../../../../../../assets/silence.mp3";
 
 dayjs.extend(relativeTime);
 declare const UPLOADS_BASE_URL: string;
@@ -38,7 +39,13 @@ export default function SidebarChatList(): React.ReactElement {
     const loading = useSelector(selectHistoryLoading());
 
     const { isInViewPort, elementRef } = useIsInViewport();
-    const onChatClick = () => dispatch(setLeftSidebar(false));
+    const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
+    const onChatClick = () => {
+        if (audioElement) {
+            audioElement.play();
+        }
+        dispatch(setLeftSidebar(false));
+    };
     const isFetching = loading === "pending";
 
     useEffect(() => {
@@ -48,6 +55,9 @@ export default function SidebarChatList(): React.ReactElement {
     }, [dispatch, isInViewPort]);
 
     useEffect(() => {
+        const audio = new Audio(silenceSound);
+
+        setAudioElement(audio);
         return () => {
             dispatch(setKeyword(""));
             dispatch(fetchHistory());

@@ -59,20 +59,33 @@ export default function MessagesContainer({
             if (messagesLength - messagesLengthRef.current === 1 && !isLastMessageFromUser) {
                 setNewMessages((m) => m + 1);
             }
+
+            if (targetMessageId) {
+                setTimeout(() => {
+                    const ele = document.getElementById(`message_${targetMessageId}`);
+
+                    if (ele && !scrolledToTargetMessage) {
+                        ele.scrollIntoView();
+                        setScrolledToTargetMessage(true);
+                        setLoading(false);
+                    }
+                }, 10);
+            }
         } else if (targetMessageId) {
             setTimeout(() => {
                 const ele = document.getElementById(`message_${targetMessageId}`);
+
                 if (ele && !scrolledToTargetMessage) {
                     ele.scrollIntoView();
                     setScrolledToTargetMessage(true);
                     setLoading(false);
                 }
-            }, 500);
+            }, 10);
         } else if (ref.current.scrollHeight !== lastScrollHeight && messagesLength) {
-            const isOneMessageChange = messagesLength - messagesLengthRef.current === 1;
-            const behavior = isOneMessageChange ? "smooth" : "instant";
+            const isOneMessageDiff = messagesLength - messagesLengthRef.current === 1;
+            const behavior = isOneMessageDiff ? "smooth" : "instant";
 
-            setTimeout(() => onScrollDown(behavior), isOneMessageChange ? 10 : 350);
+            setTimeout(() => onScrollDown(behavior), isOneMessageDiff ? 10 : 350);
         } else if (loading !== undefined && !loading && !roomIsLoading && initialLoading) {
             setLoading(false);
         }

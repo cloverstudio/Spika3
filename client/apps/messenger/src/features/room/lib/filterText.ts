@@ -1,3 +1,5 @@
+import * as linkify from "linkifyjs";
+
 export default function filterText(text: string): string {
     // escape html
     text = text
@@ -8,16 +10,29 @@ export default function filterText(text: string): string {
         .replace(/'/g, "&#39;");
 
     // fold multiple new line in one
-    text = text.replace(/\n{3,}/g, "\n");
+    text = text.replace(/\n{3,}/g, "\n\n");
 
-    // auto link
-    const autolinkRegex = /(?![^<]*>|[^<>]*<\/)((https?:)\/\/[a-z0-9&#%;:~=.\/\-?_+()]+)/gi;
-    const internalLink = text.includes(window.origin);
+    linkify.find(text).forEach((found) => {
+        if (found.type === "email") {
+            text = text.replace(
+                found.value,
+                `<a href="mailto:${found.value}" target="_blank">${found.value}</a>`
+            );
+            return;
+        }
 
-    text = text.replace(
-        autolinkRegex,
-        `<a href="$1" ${!internalLink ? 'target="_blank"' : ""} >$1</a>`
-    );
+        if (found.type === "url") {
+            const internalLink = text.includes(window.origin);
+
+            text = text.replace(
+                found.value,
+                `<a href="${found.href}" ${!internalLink ? 'target="_blank"' : ""} >${
+                    found.value
+                }</a>`
+            );
+            return;
+        }
+    });
 
     return text;
 }

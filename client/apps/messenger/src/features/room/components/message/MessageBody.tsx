@@ -10,6 +10,8 @@ import filterText from "../../lib/filterText";
 import VideoMessage from "./messageTypes/VideoMessage";
 import FileMessage from "./messageTypes/FileMessage";
 import { DOWNLOAD_URL } from "../../../../../../../lib/constants";
+import { useSelector } from "react-redux";
+import { selectChangeTerm } from "../../slices/messages";
 
 type MessageBodyProps = {
     type: string;
@@ -134,6 +136,9 @@ function AudioMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
 function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boolean }) {
     const roomId = parseInt(useParams().id || "");
     const { data: room } = useGetRoomQuery(roomId);
+    const changeTerm = useSelector(selectChangeTerm({ text: filterText(body.text), roomId }));
+
+    const filteredText = changeTerm ? changeTerm.to : filterText(body.text);
 
     const renderReplyMessage = () => {
         const { type: replyMsgType, body: replyMsgBody } = body.referenceMessage;
@@ -287,7 +292,7 @@ function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boo
 
             <Box
                 sx={{ overflowWrap: "break-word" }}
-                dangerouslySetInnerHTML={{ __html: filterText(body.text) }}
+                dangerouslySetInnerHTML={{ __html: filteredText }}
             />
         </Box>
     );
