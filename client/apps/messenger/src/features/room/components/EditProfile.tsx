@@ -45,7 +45,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
     const strings = useStrings();
     const imageRef = useRef(null);
     const [name, setName] = useState(user.displayName);
-    const [proposedName, setProposedName] = useState(user.displayName);
+    const [proposedName, setProposedName] = useState(user.displayName || "");
     const [file, setFile] = useState<File>();
     const [editProfileName, setEditProfileName] = useState(false);
     const [editProfilePicture, setEditProfilePicture] = useState(false);
@@ -114,7 +114,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
     };
 
     const removeProfilePhoto = async () => {
-        const displayName = proposedName ? proposedName.trim() : undefined;
+        const displayName = proposedName.trim() ? proposedName.trim() : undefined;
 
         try {
             setLoading(true);
@@ -132,7 +132,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
     const handleUpdateUser = async () => {
         try {
             setLoading(true);
-            const displayName = proposedName ? proposedName.trim() : user.displayName;
+            const displayName = proposedName.trim() ? proposedName.trim() : user.displayName;
 
             if (file) {
                 const type = getFileType(file.type);
@@ -297,7 +297,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                             ) : (
                                 <Button
                                     variant="contained"
-                                    disabled={proposedName.length === 0}
+                                    disabled={proposedName.trim().length === 0}
                                     size="small"
                                     onClick={() => {
                                         if (name.length > 0) {
