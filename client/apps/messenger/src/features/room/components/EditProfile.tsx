@@ -190,7 +190,9 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                             }}
                         >
                             <IconButton onClick={() => setEditingBlockedList(false)}>
-                                <ArrowBackIos />
+                                <ArrowBackIos
+                                    sx={{ color: "primary.main", position: "relative", left: 3 }}
+                                />
                             </IconButton>
                             <Typography variant="h6">{strings.blockedUsers}</Typography>
                         </Stack>
@@ -221,7 +223,9 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                                 closeEditor();
                             }}
                         >
-                            <ArrowBackIos />
+                            <ArrowBackIos
+                                sx={{ color: "primary.main", position: "relative", left: 3 }}
+                            />
                         </IconButton>
                         <Typography variant="h6">{strings.settings}</Typography>
                     </Stack>

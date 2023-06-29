@@ -23,8 +23,8 @@ export default function EditNoteHeader() {
 
     return (
         <>
-            <IconButton size="large" onClick={() => dispatch(setActiveNoteId(note.id))}>
-                <ArrowBackIos />
+            <IconButton onClick={() => dispatch(setActiveNoteId(note.id))}>
+                <ArrowBackIos sx={{ color: "primary.main", position: "relative", left: 3 }} />
             </IconButton>
             <Typography variant="h6">{strings.editNote}</Typography>
         </>

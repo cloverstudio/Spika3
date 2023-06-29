@@ -41,7 +41,7 @@ export default function RightSidebarHeader({ type }: RightSidebarHeaderProps): R
                     {isBigDesktop ? (
                         <Box width={48} height={48} />
                     ) : (
-                        <IconButton size="large" onClick={() => dispatch(hideRightSidebar())}>
+                        <IconButton onClick={() => dispatch(hideRightSidebar())}>
                             <Close />
                         </IconButton>
                     )}
@@ -57,15 +57,14 @@ export default function RightSidebarHeader({ type }: RightSidebarHeaderProps): R
         if (activeTab === "notes") {
             return (
                 <>
-                    <IconButton size="large" onClick={() => dispatch(setActiveTab("details"))}>
-                        <ArrowBackIos />
+                    <IconButton onClick={() => dispatch(setActiveTab("details"))}>
+                        <ArrowBackIos
+                            sx={{ color: "primary.main", position: "relative", left: 3 }}
+                        />
                     </IconButton>
                     <Typography variant="h6">{strings.notes}</Typography>
                     <Box ml="auto" flex={1} textAlign="right">
-                        <IconButton
-                            size="large"
-                            onClick={() => dispatch(setActiveTab("createNote"))}
-                        >
+                        <IconButton onClick={() => dispatch(setActiveTab("createNote"))}>
                             <AddCircleOutline />
                         </IconButton>
                     </Box>
@@ -76,8 +75,10 @@ export default function RightSidebarHeader({ type }: RightSidebarHeaderProps): R
         if (activeTab === "createNote") {
             return (
                 <>
-                    <IconButton size="large" onClick={() => dispatch(setActiveTab("notes"))}>
-                        <ArrowBackIos />
+                    <IconButton onClick={() => dispatch(setActiveTab("notes"))}>
+                        <ArrowBackIos
+                            sx={{ color: "primary.main", position: "relative", left: 3 }}
+                        />
                     </IconButton>
                     <Typography variant="h6">{strings.newNote}</Typography>
                 </>
@@ -108,7 +109,7 @@ function RightSidebarHeaderContainer({
     children,
 }: RightSidebarHeaderContainerProps): React.ReactElement {
     return (
-        <Box height="80.5px" borderBottom="0.5px solid" sx={{ borderColor: "divider" }}>
+        <Box height="80.5px" px={2} borderBottom="0.5px solid" sx={{ borderColor: "divider" }}>
             <Stack
                 direction="row"
                 alignItems="center"

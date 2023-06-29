@@ -53,8 +53,8 @@ export default function NoteDetailHeader() {
     if (!data) {
         return (
             <>
-                <IconButton size="large" onClick={() => dispatch(setActiveTab("notes"))}>
-                    <ArrowBackIos />
+                <IconButton onClick={() => dispatch(setActiveTab("notes"))}>
+                    <ArrowBackIos sx={{ color: "primary.main", position: "relative", left: 3 }} />
                 </IconButton>
                 <Typography variant="h6">{strings.noteNotFound}</Typography>
             </>
@@ -65,8 +65,8 @@ export default function NoteDetailHeader() {
 
     return (
         <>
-            <IconButton size="large" onClick={() => dispatch(setActiveTab("notes"))}>
-                <ArrowBackIos />
+            <IconButton onClick={() => dispatch(setActiveTab("notes"))}>
+                <ArrowBackIos sx={{ color: "primary.main", position: "relative", left: 3 }} />
             </IconButton>
             <Box flex={1} minWidth="7.5rem" textAlign="right">
                 <IconButton onClick={handleCopyNoteLink}>
@@ -104,7 +104,6 @@ function DeleteNoteDialog({ onClose, open, onConfirm }: DeleteNoteDialogProps) {
             <DialogTitle sx={{ textAlign: "center" }}>{strings.confirm}</DialogTitle>
             <IconButton
                 disableRipple
-                size="large"
                 sx={{
                     ml: 1,
                     "&.MuiButtonBase-root:hover": {

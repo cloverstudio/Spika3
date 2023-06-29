@@ -14,8 +14,8 @@ export default function EditNoteHeader() {
 
     return (
         <>
-            <IconButton size="large" onClick={() => dispatch(setActiveTab("details"))}>
-                <ArrowBackIos />
+            <IconButton onClick={() => dispatch(setActiveTab("details"))}>
+                <ArrowBackIos sx={{ color: "primary.main", position: "relative", left: 3 }} />
             </IconButton>
             <Typography variant="h6">{strings.settings}</Typography>
         </>
