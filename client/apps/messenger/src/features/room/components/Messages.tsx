@@ -1,8 +1,7 @@
-import { Box, CircularProgress } from "@mui/material";
 import React, { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
-import { dynamicBaseQuery } from "../../../api/api";
+import api, { dynamicBaseQuery } from "../../../api/api";
 import { resetUnreadCount } from "../slices/leftSidebar";
 
 import DeleteMessageDialog from "./message/DeleteMessageDialog";
@@ -20,6 +19,7 @@ export default function Messages(): React.ReactElement {
                 method: "POST",
             }).then(() => {
                 dispatch(resetUnreadCount(roomId));
+                dispatch(api.util.invalidateTags([{ type: "UnreadCount" }]));
             });
 
         markAsSeen();

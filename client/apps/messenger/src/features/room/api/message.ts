@@ -13,7 +13,8 @@ const messageApi = api.injectEndpoints({
             query: (roomId) => {
                 return { url: `/messenger/messages/${roomId}/seen`, method: "POST" };
             },
-            invalidatesTags: (res) => res && [{ type: "Rooms", id: "HISTORY" }],
+            invalidatesTags: (res) =>
+                res && [{ type: "Rooms", id: "HISTORY" }, { type: "UnreadCount" }],
         }),
         getMessageRecordsById: build.query<MessageRecordListType, number>({
             query: (messageId) => {

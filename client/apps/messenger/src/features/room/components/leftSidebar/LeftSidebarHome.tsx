@@ -19,7 +19,6 @@ import {
     setActiveTab,
     shouldShowProfileEditor,
     setOpenEditProfile,
-    selectHistory,
 } from "../../slices/leftSidebar";
 
 import SidebarContactList from "./ContactList";
@@ -31,6 +30,7 @@ import { EditProfileView } from "../EditProfile";
 import logo from "../../../../assets/logo.svg";
 import { useGetUserQuery } from "../../../auth/api/auth";
 import { Link } from "react-router-dom";
+import { useGetUnreadCountQuery } from "../../api/room";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -155,17 +155,7 @@ type ActionIconProps = {
 };
 
 function ActionIcon({ Icon, isActive, handleClick, isChat }: ActionIconProps) {
-    const list = useSelector(selectHistory);
-
-    const unreadCount = isChat
-        ? list.reduce<number>((totalCount, row) => {
-              if (!row.unreadCount) {
-                  return totalCount;
-              }
-
-              return totalCount + 1;
-          }, 0)
-        : 0;
+    const { data: unreadCount } = useGetUnreadCountQuery();
 
     return (
         <Box
@@ -187,7 +177,7 @@ function ActionIcon({ Icon, isActive, handleClick, isChat }: ActionIconProps) {
             }}
             position="relative"
         >
-            {unreadCount > 0 && (
+            {isChat && unreadCount > 0 && (
                 <Badge
                     sx={{
                         "& .MuiBadge-badge": {

@@ -53,6 +53,11 @@ export default function Login() {
                     autoFocus
                     value={username}
                     onChange={({ target }) => setUsername(target.value)}
+                    InputProps={{
+                        sx: {
+                            borderRadius: "10px",
+                        },
+                    }}
                 />
 
                 <FormLabel sx={{ mb: 1, display: "block" }}>{strings.password}</FormLabel>
@@ -71,6 +76,11 @@ export default function Login() {
                         if (key === "Enter") {
                             handleSubmit();
                         }
+                    }}
+                    InputProps={{
+                        sx: {
+                            borderRadius: "10px",
+                        },
                     }}
                 />
 

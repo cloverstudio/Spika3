@@ -68,6 +68,21 @@ const roomApi = api.injectEndpoints({
             transformResponse: (res) => res.block,
             providesTags: [{ type: "BlockList", id: "Room" }],
         }),
+
+        getUnreadCount: build.query<number, void>({
+            query: () => {
+                return `/messenger/rooms/unread-count`;
+            },
+            transformResponse: (res) =>
+                res.unreadCounts.reduce((acc, cur) => {
+                    if (cur.unreadCount > 0) {
+                        return acc + 1;
+                    } else {
+                        return acc;
+                    }
+                }, 0),
+            providesTags: [{ type: "UnreadCount" }],
+        }),
     }),
     overrideExisting: true,
 });
@@ -84,6 +99,7 @@ export const {
     useGetRoomBlockedQuery,
     usePinRoomMutation,
     useUnpinRoomMutation,
+    useGetUnreadCountQuery,
 } = roomApi;
 
 export default roomApi;

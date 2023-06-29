@@ -88,6 +88,7 @@ export default createApi({
         "Webhooks",
         "ApiKeys",
         "BlockList",
+        "UnreadCount",
     ],
 
     endpoints: () => ({}),

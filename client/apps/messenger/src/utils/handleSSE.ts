@@ -58,6 +58,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
             const hidden = document.visibilityState === "hidden";
 
             if (hidden || !userIsInRoom) {
+                store.dispatch(api.util.invalidateTags([{ type: "UnreadCount" }]));
                 await dynamicBaseQuery({
                     url: "/messenger/messages/delivered",
                     method: "POST",
@@ -213,6 +214,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
 
             store.dispatch(removeRoom(room.id as number));
             store.dispatch(api.util.invalidateTags([{ type: "Rooms", id: room.id }]));
+            store.dispatch(api.util.invalidateTags([{ type: "UnreadCount" }]));
 
             return;
         }
@@ -227,6 +229,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
 
             store.dispatch(api.util.invalidateTags([{ type: "Rooms", id: roomId }]));
             store.dispatch(refreshHistory(roomId as number));
+            store.dispatch(api.util.invalidateTags([{ type: "UnreadCount" }]));
 
             return;
         }
@@ -241,6 +244,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
 
             store.dispatch(api.util.invalidateTags([{ type: "Rooms", id: roomId }]));
             store.dispatch(removeRoom(roomId as number));
+            store.dispatch(api.util.invalidateTags([{ type: "UnreadCount" }]));
 
             return;
         }
