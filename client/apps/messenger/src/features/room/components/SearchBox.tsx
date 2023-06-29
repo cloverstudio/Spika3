@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { Box } from "@mui/material";
 import Input from "@mui/material/Input";
 import InputAdornment from "@mui/material/InputAdornment";
 import Search from "@mui/icons-material/Search";
 import useStrings from "../../../hooks/useStrings";
+import CancelIcon from "@mui/icons-material/Cancel";
 
 type SearchBoxProps = {
     onSearch?: (keyword: string) => void;
@@ -13,6 +14,8 @@ let timer: NodeJS.Timeout;
 
 export default function SearchBox({ onSearch }: SearchBoxProps): React.ReactElement {
     const strings = useStrings();
+    const [keyword, setKeyword] = useState("");
+
     return (
         <Box px={2.5} mb={2}>
             <Input
@@ -33,14 +36,32 @@ export default function SearchBox({ onSearch }: SearchBoxProps): React.ReactElem
                         padding: 0,
                     },
                 }}
+                value={keyword}
                 onChange={(e) => {
+                    const value = e.target.value;
+                    setKeyword(value);
                     if (timer) clearTimeout(timer);
                     if (onSearch) {
                         timer = setTimeout(() => {
-                            onSearch(e.target.value);
+                            onSearch(value);
                         }, 500);
                     }
                 }}
+                endAdornment={
+                    <InputAdornment sx={{ pl: 2 }} position="end">
+                        {keyword?.length > 0 && (
+                            <Box display="flex" alignItems="center">
+                                <CancelIcon
+                                    onClick={() => {
+                                        setKeyword("");
+                                        onSearch("");
+                                    }}
+                                    sx={{ color: "text.tertiary", cursor: "pointer" }}
+                                />
+                            </Box>
+                        )}
+                    </InputAdornment>
+                }
             />
         </Box>
     );
