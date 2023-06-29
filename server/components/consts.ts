@@ -11,6 +11,7 @@ export const MESSAGE_PAGING_LIMIT = 50;
 
 export const TOKEN_VALID_DAY = 30;
 export const CONTACT_SYNC_LIMIT = 40;
+export const SYNC_LIMIT = 2;
 
 export const BACKDOOR_VERIFICATION_CODE = "000000";
 

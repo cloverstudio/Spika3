@@ -791,12 +791,19 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
         const userReq: UserRequest = req as UserRequest;
         const userId = userReq.user.id;
         const lastUpdate = parseInt(req.params.lastUpdate as string);
+        const page = parseInt((req.query.page as string) || "1");
 
         try {
             if (isNaN(lastUpdate)) {
                 return res
                     .status(400)
                     .send(errorResponse("lastUpdate must be number", userReq.lang));
+            }
+
+            if (isNaN(page)) {
+                return res
+                    .status(400)
+                    .send(errorResponse("page must be valid number", userReq.lang));
             }
 
             const userSettings = await prisma.userSetting.findMany({
@@ -811,6 +818,17 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const roomIds = userSettings.map((u) => +u.key.split("_")[1]);
 
             const roomsUser = await prisma.roomUser.findMany({
+                where: {
+                    userId,
+                    room: {
+                        OR: [{ modifiedAt: { gt: new Date(lastUpdate) } }, { id: { in: roomIds } }],
+                    },
+                },
+                take: Constants.SYNC_LIMIT,
+                skip: (page - 1) * Constants.SYNC_LIMIT,
+            });
+
+            const roomsUserCount = await prisma.roomUser.count({
                 where: {
                     userId,
                     room: {
@@ -845,7 +863,12 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 })
             );
 
-            res.send(successResponse({ rooms: roomsSanitized }, userReq.lang));
+            res.send(
+                successResponse(
+                    { list: roomsSanitized, count: roomsUserCount, limit: Constants.SYNC_LIMIT },
+                    userReq.lang
+                )
+            );
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

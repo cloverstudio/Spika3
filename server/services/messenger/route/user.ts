@@ -6,6 +6,8 @@ import { successResponse, errorResponse } from "../../../components/response";
 import auth from "../lib/auth";
 import { UserRequest } from "../lib/types";
 import sanitize from "../../../components/sanitize";
+import * as Constants from "../../../components/consts";
+
 import prisma from "../../../components/prisma";
 
 export default (): Router => {
@@ -57,6 +59,9 @@ export default (): Router => {
     router.get("/sync/:timestamp", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         const timestamp = parseInt(req.params.timestamp as string);
+        const page = parseInt((req.query.page as string) || "1");
+
+        const skip = Constants.SYNC_LIMIT * (page - 1);
 
         try {
             if (isNaN(timestamp)) {
@@ -65,20 +70,42 @@ export default (): Router => {
                     .send(errorResponse("timestamp must be number", userReq.lang));
             }
 
+            if (isNaN(page)) {
+                return res
+                    .status(400)
+                    .send(errorResponse("page must be valid number", userReq.lang));
+            }
+
             let users: User[];
+            let count: number;
 
             if (+process.env["TEAM_MODE"]) {
                 users = await prisma.user.findMany({
                     where: {
                         modifiedAt: { gt: new Date(timestamp) },
                     },
+                    skip,
+                    take: Constants.SYNC_LIMIT,
+                });
+                count = await prisma.user.count({
+                    where: {
+                        modifiedAt: { gt: new Date(timestamp) },
+                    },
                 });
             } else {
-                users = await getUsers(userReq.user.id, timestamp);
+                users = await getUsers(userReq.user.id, timestamp, skip);
+                count = await getUsersCount(userReq.user.id, timestamp);
             }
 
             res.send(
-                successResponse({ users: users.map((user) => sanitize(user).user()) }, userReq.lang)
+                successResponse(
+                    {
+                        list: users.map((user) => sanitize(user).user()),
+                        count,
+                        limit: Constants.SYNC_LIMIT,
+                    },
+                    userReq.lang
+                )
             );
         } catch (e: any) {
             le(e);
@@ -89,7 +116,7 @@ export default (): Router => {
     return router;
 };
 
-export async function getUsers(userId: number, timestamp: number): Promise<User[]> {
+export async function getUsers(userId: number, timestamp: number, skip: number): Promise<User[]> {
     const userContact = await prisma.contact.findMany({
         where: {
             userId: userId,
@@ -112,24 +139,90 @@ export async function getUsers(userId: number, timestamp: number): Promise<User[
 
     const userRoomsIds = usersRooms.map((ur) => ur.roomId);
 
-    const allUsersInRooms = await prisma.roomUser.findMany({
+    const allUsers = await prisma.user.findMany({
         where: {
-            roomId: {
-                in: userRoomsIds,
-            },
-            user: {
-                modifiedAt: { gt: new Date(timestamp) },
-                id: {
-                    notIn: [userId, ...usersContacts.map((u) => u.id)],
+            OR: [
+                {
+                    id: {
+                        notIn: [userId, ...usersContacts.map((u) => u.id)],
+                    },
+                    rooms: {
+                        some: {
+                            id: {
+                                in: userRoomsIds,
+                            },
+                        },
+                    },
                 },
+                {
+                    id: {
+                        in: usersContacts.map((u) => u.id),
+                    },
+                },
+            ],
+            AND: {
+                modifiedAt: { gt: new Date(timestamp) },
+            },
+        },
+        take: Constants.SYNC_LIMIT,
+        skip,
+    });
+
+    return allUsers;
+}
+
+export async function getUsersCount(userId: number, timestamp: number): Promise<number> {
+    const userContact = await prisma.contact.findMany({
+        where: {
+            userId: userId,
+            contact: {
+                modifiedAt: { gt: new Date(timestamp) },
             },
         },
         include: {
-            user: true,
+            contact: true,
         },
     });
 
-    const usersFromRooms = allUsersInRooms.map((ur) => ur.user);
+    const usersContacts = userContact.map((uc) => uc.contact);
 
-    return [...usersContacts, ...usersFromRooms];
+    const usersRooms = await prisma.roomUser.findMany({
+        where: {
+            userId,
+        },
+    });
+
+    const userRoomsIds = usersRooms.map((ur) => ur.roomId);
+
+    const allUsersCount = await prisma.user.count({
+        where: {
+            OR: [
+                {
+                    id: {
+                        notIn: usersContacts.map((u) => u.id),
+                    },
+                    rooms: {
+                        some: {
+                            id: {
+                                in: userRoomsIds,
+                            },
+                        },
+                    },
+                },
+                {
+                    id: {
+                        in: usersContacts.map((u) => u.id),
+                    },
+                },
+            ],
+            AND: {
+                id: {
+                    notIn: [userId],
+                },
+                modifiedAt: { gt: new Date(timestamp) },
+            },
+        },
+    });
+
+    return allUsersCount;
 }
