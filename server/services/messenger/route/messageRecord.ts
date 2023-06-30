@@ -175,12 +175,19 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         const userReq: UserRequest = req as UserRequest;
         const userId = userReq.user.id;
         const lastUpdate = parseInt(req.params.lastUpdate as string);
+        const page = parseInt((req.query.page as string) || "1");
 
         try {
             if (isNaN(lastUpdate)) {
                 return res
                     .status(400)
                     .send(errorResponse("lastUpdate must be number", userReq.lang));
+            }
+
+            if (isNaN(page)) {
+                return res
+                    .status(400)
+                    .send(errorResponse("page must be valid number", userReq.lang));
             }
 
             const roomsUser = await prisma.roomUser.findMany({ where: { userId } });
@@ -194,7 +201,19 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         createdAt: { gte: userReq.device.createdAt },
                     },
                 },
+                take: Constants.SYNC_LIMIT,
+                skip: (page - 1) * Constants.SYNC_LIMIT,
                 include: { message: true },
+            });
+
+            const count = await prisma.messageRecord.count({
+                where: {
+                    createdAt: { gt: new Date(lastUpdate) },
+                    message: {
+                        roomId: { in: roomsIds },
+                        createdAt: { gte: userReq.device.createdAt },
+                    },
+                },
             });
 
             const messageRecordsSanitized = messageRecords.map((messageRecord) => ({
@@ -211,7 +230,14 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 },
             }));
 
-            res.send(successResponse({ messageRecords: messageRecordsSanitized }, userReq.lang));
+            const hasNext = count > page * Constants.SYNC_LIMIT;
+
+            res.send(
+                successResponse(
+                    { list: messageRecordsSanitized, limit: Constants.SYNC_LIMIT, count, hasNext },
+                    userReq.lang
+                )
+            );
         } catch (e: any) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

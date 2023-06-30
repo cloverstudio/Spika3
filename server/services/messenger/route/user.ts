@@ -97,12 +97,15 @@ export default (): Router => {
                 count = await getUsersCount(userReq.user.id, timestamp);
             }
 
+            const hasNext = count > page * Constants.SYNC_LIMIT;
+
             res.send(
                 successResponse(
                     {
                         list: users.map((user) => sanitize(user).user()),
                         count,
                         limit: Constants.SYNC_LIMIT,
+                        hasNext,
                     },
                     userReq.lang
                 )

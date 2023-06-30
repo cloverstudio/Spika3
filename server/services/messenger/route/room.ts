@@ -828,7 +828,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 skip: (page - 1) * Constants.SYNC_LIMIT,
             });
 
-            const roomsUserCount = await prisma.roomUser.count({
+            const count = await prisma.roomUser.count({
                 where: {
                     userId,
                     room: {
@@ -863,9 +863,16 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 })
             );
 
+            const hasNext = count > page * Constants.SYNC_LIMIT;
+
             res.send(
                 successResponse(
-                    { list: roomsSanitized, count: roomsUserCount, limit: Constants.SYNC_LIMIT },
+                    {
+                        list: roomsSanitized,
+                        limit: Constants.SYNC_LIMIT,
+                        count,
+                        hasNext,
+                    },
                     userReq.lang
                 )
             );
