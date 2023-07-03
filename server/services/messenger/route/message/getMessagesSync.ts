@@ -58,6 +58,7 @@ export default ({}: InitRouterParams): RequestHandler[] => {
                     },
                     take: Constants.SYNC_LIMIT,
                     skip: (page - 1) * Constants.SYNC_LIMIT,
+                    orderBy: { modifiedAt: "asc" },
                 });
 
                 const count = await prisma.deviceMessage.count({
@@ -73,12 +74,13 @@ export default ({}: InitRouterParams): RequestHandler[] => {
                     [...deviceMessages].map(async (deviceMessage) => {
                         const m = deviceMessage.message;
 
-                        const { body, deleted } = deviceMessage || {};
+                        const { body, deleted, modifiedAt } = deviceMessage || {};
 
                         return sanitize({
                             ...m,
                             body: await formatMessageBody(body, m.type),
                             deleted,
+                            modifiedAt,
                         }).message();
                     })
                 );

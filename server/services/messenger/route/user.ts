@@ -86,6 +86,9 @@ export default (): Router => {
                     },
                     skip,
                     take: Constants.SYNC_LIMIT,
+                    orderBy: {
+                        modifiedAt: "asc",
+                    },
                 });
                 count = await prisma.user.count({
                     where: {
@@ -169,6 +172,9 @@ export async function getUsers(userId: number, timestamp: number, skip: number):
         },
         take: Constants.SYNC_LIMIT,
         skip,
+        orderBy: {
+            modifiedAt: "asc",
+        },
     });
 
     return allUsers;

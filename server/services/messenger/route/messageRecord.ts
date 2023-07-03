@@ -204,6 +204,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 take: Constants.SYNC_LIMIT,
                 skip: (page - 1) * Constants.SYNC_LIMIT,
                 include: { message: true },
+                orderBy: { createdAt: "asc" },
             });
 
             const count = await prisma.messageRecord.count({
