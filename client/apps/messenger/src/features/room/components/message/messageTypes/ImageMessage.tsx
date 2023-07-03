@@ -66,11 +66,14 @@ export default function ImageMessage({
                     minHeight="128px"
                     src={imageIsGif ? imgSrc : thumbSrc}
                     pb="0.8125"
+                    draggable={false}
                     sx={{
                         cursor: "pointer",
                         objectFit: "contain",
                         bgcolor: "transparent",
                         filter: isVerifying || isUploading ? "blur(4px)" : "none",
+                        userSelect: "none",
+                        touchAction: "none",
                     }}
                 />
                 {(isUploading || isVerifying) && (
@@ -146,6 +149,12 @@ export default function ImageMessage({
                             maxHeight="92vh"
                             height="auto"
                             src={imgSrc}
+                            draggable={false}
+                            sx={{
+                                userSelect: "none",
+                                touchAction: "none",
+                                pointerEvents: "none",
+                            }}
                         />
                     </Box>
                 </>

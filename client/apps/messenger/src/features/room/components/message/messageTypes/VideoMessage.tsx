@@ -73,6 +73,7 @@ export default function VideoMessage({
                     minHeight="128px"
                     src={thumbSrc || src}
                     pb="0.8125"
+                    draggable={false}
                     sx={{
                         cursor: "pointer",
                         objectFit: "contain",
@@ -80,6 +81,8 @@ export default function VideoMessage({
                             isVerifying || isUploading
                                 ? "blur(4px) brightness(55%)"
                                 : "brightness(55%)",
+                        userSelect: "none",
+                        touchAction: "none",
                     }}
                 />
                 {isUploading || isVerifying ? (
@@ -165,6 +168,10 @@ export default function VideoMessage({
                             height="auto"
                             controls
                             autoPlay
+                            draggable={false}
+                            sx={{
+                                userSelect: "none",
+                            }}
                         >
                             <source type={mimeType} src={src} />
                             Your browser does not support the video tag.
