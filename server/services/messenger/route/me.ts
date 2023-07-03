@@ -133,6 +133,98 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
         }
     });
 
+    router.delete("/", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        try {
+            const userId = userReq.user.id;
+
+            await prisma.user.update({
+                where: {
+                    id: userId,
+                },
+                data: {
+                    deleted: true,
+                    modifiedAt: new Date(),
+                    displayName: `Deleted user ${userId}`,
+                    avatarFileId: 0,
+                    telephoneNumberHashed: null,
+                    telephoneNumber: null,
+                    emailAddress: null,
+                },
+            });
+
+            const userDevices = await prisma.device.findMany({ where: { userId } });
+
+            const userDevicesIds = userDevices.map((d) => d.id);
+
+            await prisma.message.updateMany({
+                where: {
+                    fromDeviceId: { in: userDevicesIds },
+                },
+                data: {
+                    fromDeviceId: null,
+                },
+            });
+
+            await prisma.deviceMessage.deleteMany({
+                where: { userId },
+            });
+
+            await prisma.messageRecord.deleteMany({
+                where: { userId },
+            });
+
+            await prisma.device.deleteMany({
+                where: { userId },
+            });
+
+            await prisma.contact.deleteMany({
+                where: { OR: [{ contactId: userId }, { userId }] },
+            });
+
+            const rooms = await prisma.room.findMany({
+                where: { users: { some: { userId } }, type: "group" },
+            });
+
+            await prisma.roomUser.deleteMany({
+                where: { userId, roomId: { in: rooms.map((r) => r.id) } },
+            });
+
+            await prisma.callHistory.deleteMany({
+                where: { userId },
+            });
+
+            await prisma.userSetting.deleteMany({
+                where: { userId },
+            });
+
+            await prisma.block.deleteMany({
+                where: { OR: [{ blockedId: userId }, { userId }] },
+            });
+
+            res.send(successResponse({ deleted: true }, userReq.lang));
+
+            // delete private rooms from redis
+            const roomsUser = await prisma.roomUser.findMany({
+                where: { userId },
+            });
+
+            for (const roomUser of roomsUser) {
+                const key = `${Constants.ROOM_PREFIX}${roomUser.roomId}`;
+                await redisClient.del(key);
+            }
+
+            // delete group rooms from redis
+            for (const room of rooms) {
+                const key = `${Constants.ROOM_PREFIX}${room.id}`;
+                await redisClient.del(key);
+            }
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
     return router;
 };
 
