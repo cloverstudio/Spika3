@@ -1,5 +1,4 @@
 import { RequestHandler, Request, Response } from "express";
-import { DeviceMessage, Message } from "@prisma/client";
 
 import { UserRequest } from "../../lib/types";
 import { error as le } from "../../../../components/logger";
@@ -11,6 +10,7 @@ import { InitRouterParams } from "../../../types/serviceInterface";
 import sanitize from "../../../../components/sanitize";
 import { formatMessageBody } from "../../../../components/message";
 import prisma from "../../../../components/prisma";
+import * as Constants from "../../../../components/consts";
 
 export default ({}: InitRouterParams): RequestHandler[] => {
     return [
@@ -20,6 +20,7 @@ export default ({}: InitRouterParams): RequestHandler[] => {
             const userId = userReq.user.id;
             const deviceId = userReq.device.id;
             const lastUpdate = parseInt(req.params.lastUpdate as string);
+            const page = parseInt((req.query.page as string) || "1");
 
             try {
                 if (isNaN(lastUpdate)) {
@@ -28,75 +29,72 @@ export default ({}: InitRouterParams): RequestHandler[] => {
                         .send(errorResponse("lastUpdate must be number", userReq.lang));
                 }
 
+                if (isNaN(page)) {
+                    return res
+                        .status(400)
+                        .send(errorResponse("page must be valid number", userReq.lang));
+                }
+
                 const roomsUser = await prisma.roomUser.findMany({ where: { userId } });
                 const roomsIds = roomsUser.map((ru) => ru.roomId);
 
-                const messages = await prisma.message.findMany({
-                    where: {
-                        modifiedAt: { gt: new Date(lastUpdate) },
-                        roomId: { in: roomsIds },
-                        deviceMessages: {
-                            some: {
-                                deviceId,
-                            },
-                        },
-                    },
-                    include: {
-                        deviceMessages: true,
-                    },
-                });
+                const modifiedDeviceMessages = await prisma.$queryRaw<
+                    { id: number }[]
+                >`SELECT \`id\` FROM \`message_device\` WHERE \`user_id\` = ${userId} AND \`device_id\` = ${deviceId} AND \`modified_at\` > ${new Date(
+                    lastUpdate
+                ).toISOString()} AND  \`created_at\` < \`modified_at\`;`;
+
+                const modifiedDeviceMessagesIds = modifiedDeviceMessages.map((m) => m.id);
 
                 const deviceMessages = await prisma.deviceMessage.findMany({
                     where: {
-                        deviceId,
-                        modifiedAt: { gt: new Date(lastUpdate) },
+                        id: { in: modifiedDeviceMessagesIds },
+                        message: {
+                            roomId: { in: roomsIds },
+                        },
                     },
-                    include: { message: true },
+                    include: {
+                        message: true,
+                    },
+                    take: Constants.SYNC_LIMIT,
+                    skip: (page - 1) * Constants.SYNC_LIMIT,
+                    orderBy: {
+                        modifiedAt: "asc",
+                    },
                 });
 
-                const dMessages = deviceMessages.reduce((acc, dm) => {
-                    const { message } = dm;
-                    if (!message) {
-                        return acc;
-                    }
-
-                    if (messages.find((m) => m.id === message.id)) {
-                        return acc;
-                    }
-
-                    const { id } = message;
-                    const messageIndex = acc.findIndex((m) => m.id === id);
-                    if (messageIndex === -1) {
-                        acc.push({
-                            ...message,
-                            deviceMessages: [dm],
-                        });
-                    } else {
-                        acc[messageIndex].deviceMessages.push(dm);
-                    }
-
-                    return acc;
-                }, [] as (Message & { deviceMessages: DeviceMessage[] })[]);
+                const count = await prisma.deviceMessage.count({
+                    where: {
+                        id: { in: modifiedDeviceMessagesIds },
+                        message: {
+                            roomId: { in: roomsIds },
+                        },
+                    },
+                });
 
                 const sanitizedMessages = await Promise.all(
-                    [...messages, ...dMessages]
-                        .filter((m) => +m.createdAt !== +m.modifiedAt)
-                        .map(async (m) => {
-                            const deviceMessage = m.deviceMessages.find(
-                                (dm) => dm.messageId === m.id && dm.deviceId === deviceId
-                            );
+                    [...deviceMessages].map(async (deviceMessage) => {
+                        const m = deviceMessage.message;
 
-                            const { body, deleted } = deviceMessage || {};
+                        const { body, deleted, modifiedAt } = deviceMessage || {};
 
-                            return sanitize({
-                                ...m,
-                                body: await formatMessageBody(body, m.type),
-                                deleted,
-                            }).message();
-                        })
+                        return sanitize({
+                            ...m,
+                            body: await formatMessageBody(body, m.type),
+                            deleted,
+                            modifiedAt,
+                        }).message();
+                    })
                 );
 
-                res.send(successResponse({ messages: sanitizedMessages }, userReq.lang));
+                const hasNext = count > page * Constants.SYNC_LIMIT;
+
+                res.send(
+                    successResponse(
+                        { list: sanitizedMessages, limit: Constants.SYNC_LIMIT, count, hasNext },
+                        userReq.lang
+                    )
+                );
             } catch (e: any) {
                 le(e);
                 res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
