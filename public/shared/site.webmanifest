@@ -1,6 +1,7 @@
 {
-    "name": "Spika 3",
+    "name": "Spika 3 Chat",
     "short_name": "Spika 3",
+    "description": "Chat application",
     "icons": [
         {
             "src": "/messenger/android-chrome-192x192.png",
@@ -13,8 +14,8 @@
             "type": "image/png"
         }
     ],
-    "theme_color": "#ffffff",
+    "theme_color": "#4696f0",
     "background_color": "#ffffff",
-    "display": "standalone",
+    "display": "fullscreen",
     "start_url": "/"
 }
