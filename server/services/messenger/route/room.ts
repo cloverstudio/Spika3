@@ -14,7 +14,7 @@ import { InitRouterParams } from "../../types/serviceInterface";
 import createSSERoomsNotify, { createSSERoomsRemovedNotify } from "../lib/sseRoomsNotify";
 import prisma from "../../../components/prisma";
 import { createClient } from "redis";
-import { handleNewRoom } from "../../../components/chatGPT";
+import { handleNewRoom } from "../../../components/agent";
 
 const postRoomSchema = yup.object().shape({
     body: yup.object().shape({
