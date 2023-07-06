@@ -74,13 +74,12 @@ export default ({}: InitRouterParams): RequestHandler[] => {
                     [...deviceMessages].map(async (deviceMessage) => {
                         const m = deviceMessage.message;
 
-                        const { body, deleted, modifiedAt } = deviceMessage || {};
+                        const { body, deleted } = deviceMessage || {};
 
                         return sanitize({
                             ...m,
                             body: await formatMessageBody(body, m.type),
                             deleted,
-                            modifiedAt,
                         }).message();
                     })
                 );
@@ -89,7 +88,13 @@ export default ({}: InitRouterParams): RequestHandler[] => {
 
                 res.send(
                     successResponse(
-                        { list: sanitizedMessages, limit: Constants.SYNC_LIMIT, count, hasNext },
+                        {
+                            list: sanitizedMessages,
+                            limit: Constants.SYNC_LIMIT,
+                            count,
+                            hasNext,
+                            messages: sanitizedMessages,
+                        },
                         userReq.lang
                     )
                 );

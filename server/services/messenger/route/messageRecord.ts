@@ -235,7 +235,13 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             res.send(
                 successResponse(
-                    { list: messageRecordsSanitized, limit: Constants.SYNC_LIMIT, count, hasNext },
+                    {
+                        list: messageRecordsSanitized,
+                        limit: Constants.SYNC_LIMIT,
+                        count,
+                        hasNext,
+                        messageRecords: messageRecordsSanitized,
+                    },
                     userReq.lang
                 )
             );
