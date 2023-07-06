@@ -3,15 +3,29 @@ import { ChatOpenAI } from "langchain/chat_models/openai";
 import { initializeAgentExecutorWithOptions, AgentExecutor } from "langchain/agents";
 import { SerpAPI } from "langchain/tools";
 import { Calculator } from "langchain/tools/calculator";
-import { exec } from "child_process";
+
+import {
+    ChatPromptTemplate,
+    HumanMessagePromptTemplate,
+    PromptTemplate,
+    SystemMessagePromptTemplate,
+} from "langchain/prompts";
+import { LLMChain } from "langchain/chains";
 
 class GoogleSearchAgent extends AgentBase {
     agentExecuters: AgentExecutor[];
+    model: ChatOpenAI;
 
     constructor() {
         super();
         this.name = "Petra";
         this.agentExecuters = [];
+
+        this.model = new ChatOpenAI({
+            temperature: 0,
+            openAIApiKey: process.env.OPEN_API_KEY,
+            modelName: "gpt-3.5-turbo",
+        });
     }
 
     test() {
@@ -21,10 +35,7 @@ class GoogleSearchAgent extends AgentBase {
     async createMessage(fromUserId: number, body: string): Promise<string> {
         if (!this.agentExecuters[fromUserId]) {
             process.env.LANGCHAIN_HANDLER = "langchain";
-            const model = new ChatOpenAI({
-                temperature: 0,
-                openAIApiKey: process.env.OPEN_API_KEY,
-            });
+
             const tools = [
                 new SerpAPI(process.env.SERPAPI_API_KEY, {
                     location: "Croatia",
@@ -34,11 +45,7 @@ class GoogleSearchAgent extends AgentBase {
                 new Calculator(),
             ];
 
-            // Passing "chat-conversational-react-description" as the agent type
-            // automatically creates and uses BufferMemory with the executor.
-            // If you would like to override this, you can pass in a custom
-            // memory option, but the memoryKey set on it must be "chat_history".
-            const executor = await initializeAgentExecutorWithOptions(tools, model, {
+            const executor = await initializeAgentExecutorWithOptions(tools, this.model, {
                 agentType: "chat-conversational-react-description",
                 verbose: true,
             });
@@ -46,9 +53,29 @@ class GoogleSearchAgent extends AgentBase {
             this.agentExecuters[fromUserId] = executor;
         }
 
-        const response = await this.agentExecuters[fromUserId].call({ input: body });
+        const translatePrompt = ChatPromptTemplate.fromPromptMessages([
+            SystemMessagePromptTemplate.fromTemplate(
+                "You are a helpful assistant that translates {input_language} to {output_language}. As also all units should be fit with the {output_language}"
+            ),
+            HumanMessagePromptTemplate.fromTemplate("{text}"),
+        ]);
 
-        return response.output;
+        const chainEng = new LLMChain({ llm: this.model, prompt: translatePrompt });
+        const responseEng = await chainEng.call({
+            input_language: "Croatian",
+            output_language: "English",
+            text: body,
+        });
+
+        const response = await this.agentExecuters[fromUserId].call({ input: responseEng.text });
+
+        const responseCro = await chainEng.call({
+            input_language: "English",
+            output_language: "Croatian",
+            text: response.output,
+        });
+
+        return responseCro.text;
     }
 
     async helloMessage(): Promise<string> {
