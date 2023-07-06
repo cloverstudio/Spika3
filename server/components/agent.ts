@@ -16,6 +16,10 @@ const openai = new OpenAIApi(configuration);
 const loadedAgents: AgentBase[] = [];
 const loadedAgentFiles: string[] = [];
 
+const dirPath: string = path.resolve(__dirname, "agents");
+const fileNames: string[] = fs.readdirSync(dirPath);
+export const chatGPTUsersCount = fileNames.filter((f) => /js$/.test(f)).length - 1;
+
 export async function loadAgents() {
     const dirPath: string = path.resolve(__dirname, "agents");
     const fileNames: string[] = fs.readdirSync(dirPath);
