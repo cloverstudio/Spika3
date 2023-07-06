@@ -16,7 +16,7 @@ import sanitize from "../../../../components/sanitize";
 import { formatMessageBody } from "../../../../components/message";
 import createSSEMessageRecordsNotify from "../../lib/sseMessageRecordsNotify";
 import prisma from "../../../../components/prisma";
-import { handleNewMessage } from "../../../../components/chatGPT";
+import { handleNewMessage } from "../../../../components/agent";
 import { getRoomById, getRoomUnreadCount } from "../room";
 import { isRoomBlocked } from "../block";
 
@@ -292,6 +292,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                 );
 
                 handleNewMessage({
+                    body,
+                    fromUserId,
                     room,
                     users: room.users.map((u) => u.user),
                     messageType: type,

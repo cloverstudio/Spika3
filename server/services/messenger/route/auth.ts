@@ -12,7 +12,7 @@ import * as yup from "yup";
 import { successResponse, errorResponse } from "../../../components/response";
 import sanitize from "../../../components/sanitize";
 import prisma from "../../../components/prisma";
-import { handleNewUser } from "../../../components/chatGPT";
+import { handleNewUser } from "../../../components/agent";
 import { UserRequest } from "../lib/types";
 import auth from "../lib/auth";
 

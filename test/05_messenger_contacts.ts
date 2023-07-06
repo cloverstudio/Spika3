@@ -7,7 +7,7 @@ import { User } from ".prisma/client";
 import * as Constants from "../server/components/consts";
 import createFakeContacts from "./fixtures/contact";
 import utils from "../server/components/utils";
-import { chatGPTUsersCount } from "../server/components/chatGPT";
+import { chatGPTUsersCount } from "../server/components/agent";
 
 describe("API", () => {
     const users: User[] = [];

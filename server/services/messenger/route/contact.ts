@@ -11,7 +11,7 @@ import validate from "../../../components/validateMiddleware";
 import { successResponse, errorResponse } from "../../../components/response";
 import sanitize from "../../../components/sanitize";
 import prisma from "../../../components/prisma";
-import { checkForChatGPTContacts } from "../../../components/chatGPT";
+import { checkForAgentContacts } from "../../../components/agent";
 import removeOlderContacts from "../lib/removeOlderContacts";
 
 const postContactsSchema = yup.object().shape({
@@ -56,7 +56,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         const take = cursor ? Constants.CONTACT_PAGING_LIMIT + 1 : Constants.CONTACT_PAGING_LIMIT;
 
         if (!cursor) {
-            await checkForChatGPTContacts(userReq.user.id);
+            await checkForAgentContacts(userReq.user.id);
         }
 
         const condition: any = {

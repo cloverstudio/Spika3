@@ -21,6 +21,8 @@ import WebhookService from "./services/webhook";
 import MessagingService from "./services/messaging";
 import utils from "./components/utils";
 
+import { loadAgents } from "./components/agent";
+
 const app: express.Express = express();
 const redisClient = createClient({ url: process.env.REDIS_URL });
 
@@ -65,6 +67,9 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
 
     const server: http.Server = app.listen(process.env["SERVER_PORT"], () => {
         l(`Start on port ${process.env["SERVER_PORT"]}.`);
+
+        // Load agents
+        loadAgents();
     });
 
     // override static access only for this file
