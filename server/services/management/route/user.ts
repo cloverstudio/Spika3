@@ -97,12 +97,10 @@ export default ({ redisClient }: InitRouterParams) => {
                                   },
                               })),
                               AND: {
-                                  isBot: false,
                                   deleted: false,
                               },
                           }
                         : {
-                              isBot: false,
                               deleted: false,
                           }),
                 },
