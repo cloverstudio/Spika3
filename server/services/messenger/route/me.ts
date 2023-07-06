@@ -153,6 +153,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 },
             });
 
+            res.send(successResponse({ deleted: true }, userReq.lang));
+
             const userDevices = await prisma.device.findMany({ where: { userId } });
 
             const userDevicesIds = userDevices.map((d) => d.id);
@@ -201,8 +203,6 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             await prisma.block.deleteMany({
                 where: { OR: [{ blockedId: userId }, { userId }] },
             });
-
-            res.send(successResponse({ deleted: true }, userReq.lang));
 
             // delete private rooms from redis
             const roomsUser = await prisma.roomUser.findMany({
