@@ -33,6 +33,14 @@ function TitleUpdater(): React.ReactElement {
             return totalCount + 1;
         }, 0);
 
+        if (navigator.setAppBadge) {
+            if (unreadCount) {
+                navigator.setAppBadge(unreadCount);
+            } else {
+                navigator.clearAppBadge();
+            }
+        }
+
         utils.updateBrowserTitle(name, unreadCount);
     }, [name, list]);
 
@@ -50,6 +58,15 @@ export function HomeTitleUpdater(): React.ReactElement {
 
             return totalCount + 1;
         }, 0);
+
+        if (navigator.setAppBadge) {
+            // The API is supported, use it.
+            if (unreadCount) {
+                navigator.setAppBadge(unreadCount);
+            } else {
+                navigator.clearAppBadge();
+            }
+        }
 
         utils.updateBrowserTitle("Home", unreadCount);
     }, [list]);
