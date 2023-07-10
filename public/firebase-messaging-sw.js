@@ -12,6 +12,8 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 
+const UPLOADS_BASE_URL = "{{uploadsBaseUrl}}"
+
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage(async function (payload) {
@@ -27,13 +29,13 @@ messaging.onBackgroundMessage(async function (payload) {
 
   const { fromUserName, groupName } = messageAttributes
   const isGroup = !!groupName
-  const { muted } = roomAttributes
+  const { muted, avatarFileId, unreadCount } = roomAttributes
 
   if (!message || muted) {
     return;
   }
 
-  const notificationTitle = isGroup ? groupName : fromUserName;
+  let notificationTitle = isGroup ? groupName : fromUserName;
   let body = message.type === "text" ? message.body.text : "Media"
 
   if (isGroup) {
@@ -42,8 +44,20 @@ messaging.onBackgroundMessage(async function (payload) {
 
   const notificationOptions = {
     body,
-    data: { roomId: message.roomId }
+    renotify: true,
+    tag: message.roomId,
+    icon: `${UPLOADS_BASE_URL}/${avatarFileId}`,
+    image: "",
+    badge: "https://clover.spika.chat/messenger/android-chrome-192x192.png",
   };
+
+  if (message.body.thumbId) {
+    notificationOptions.image = `${UPLOADS_BASE_URL}/${message.body.thumbId}`;
+  }
+
+  if(unreadCount && unreadCount > 1) {
+    notificationTitle += ` (${unreadCount})`
+  }
 
   self.registration.showNotification(notificationTitle,
     notificationOptions);

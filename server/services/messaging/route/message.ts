@@ -49,7 +49,13 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
 
             const room = await prisma.room.findUnique({
                 where: { id: roomId },
-                include: { users: true },
+                include: {
+                    users: {
+                        include: {
+                            user: true,
+                        },
+                    },
+                },
             });
 
             if (!room) {
@@ -149,12 +155,27 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
 
             res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
 
+            function getRoomAvatarFileId(room: any, userId: number) {
+                if (room.type === "group") {
+                    return room.avatarFileId;
+                }
+                const otherUser = room.users.find((u: any) => u.userId !== userId);
+
+                if (!otherUser) {
+                    return 0;
+                }
+
+                return otherUser.user.avatarFileId;
+            }
+
             while (deviceMessages.length) {
                 await Promise.all(
                     deviceMessages.splice(0, 10).map(async (deviceMessage) => {
                         await prisma.deviceMessage.create({
                             data: { ...deviceMessage, messageId: message.id },
                         });
+
+                        const roomAvatarFileId = getRoomAvatarFileId(room, deviceMessage.userId);
 
                         rabbitMQChannel.sendToQueue(
                             Constants.QUEUE_PUSH,
@@ -164,10 +185,12 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                                     token: devices.find((d) => d.id == deviceMessage.deviceId)
                                         ?.pushToken,
                                     data: {
-                                        message: { ...sanitizedMessage },
+                                        message: sanitizedMessage,
                                         user: sanitize(userReq.user).user(),
                                         ...(room.type === "group" && { groupName: room.name }),
                                         toUserId: deviceMessage.userId,
+                                        roomUserCreatedAt: roomUser.createdAt,
+                                        roomAvatarFileId,
                                     },
                                 })
                             )

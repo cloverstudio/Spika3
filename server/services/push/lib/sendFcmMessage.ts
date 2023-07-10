@@ -39,6 +39,7 @@ export type FcmMessagePayload = {
     muted: boolean;
     fromUserName: string;
     groupName: string;
+    roomAvatarFileId: number;
     unreadCount: number;
 };
 
@@ -48,12 +49,9 @@ export default async function sendFcmMessage({
     muted,
     fromUserName,
     groupName,
+    roomAvatarFileId,
     unreadCount,
 }: FcmMessagePayload): Promise<any> {
-    if (process.env.IS_TEST === "1") {
-        return;
-    }
-
     if (!accessToken || +new Date() > accessTokenExpiryMS - 1000) {
         await getAccessToken();
     }
@@ -97,6 +95,7 @@ export default async function sendFcmMessage({
                 roomAttributes: JSON.stringify({
                     unreadCount,
                     muted,
+                    avatarFileId: roomAvatarFileId,
                 }),
             },
         },

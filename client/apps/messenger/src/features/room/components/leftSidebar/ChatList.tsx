@@ -39,11 +39,7 @@ export default function SidebarChatList(): React.ReactElement {
     const loading = useSelector(selectHistoryLoading());
 
     const { isInViewPort, elementRef } = useIsInViewport();
-    const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
     const onChatClick = () => {
-        if (audioElement) {
-            audioElement.play();
-        }
         dispatch(setLeftSidebar(false));
     };
     const isFetching = loading === "pending";
@@ -55,9 +51,6 @@ export default function SidebarChatList(): React.ReactElement {
     }, [dispatch, isInViewPort]);
 
     useEffect(() => {
-        const audio = new Audio(silenceSound);
-
-        setAudioElement(audio);
         return () => {
             dispatch(setKeyword(""));
             dispatch(fetchHistory());

@@ -21,7 +21,6 @@ const VALID_SSE_EVENT_TYPES = [
 import { notify as notifyCallEvent } from "../features/confcall/lib/callEventListener";
 import { fetchContacts } from "../features/room/slices/contacts";
 import { RoomType } from "../types/Rooms";
-import newMessageSound from "../../../../assets/newmessage.mp3";
 import {
     addMessage,
     addMessageRecord,
@@ -75,7 +74,6 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
 
             const queries = (store.getState() as RootState).api.queries;
             let isMuted = false;
-            let room;
 
             if (queries) {
                 const getRoomQueries = Object.entries(queries)
@@ -85,53 +83,6 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                 const getRoomQuery = getRoomQueries.find((q) => q.originalArgs === message.roomId);
 
                 isMuted = getRoomQuery?.data?.muted;
-                room = getRoomQuery?.data;
-            }
-
-            if (hidden && !isMuted && message.fromUserId !== store.getState().user.id) {
-                const isGroup = room.type === "group";
-                const groupName = room.name;
-                const senderUser = room?.users?.find((u) => u.userId === message.fromUserId)?.user;
-                const fromUserName = senderUser?.displayName || "_";
-                const notificationTitle = isGroup ? groupName : fromUserName;
-                let body = message.type === "text" ? message.body.text : "Media";
-
-                if (isGroup) {
-                    body = `${fromUserName}: ${body}`;
-                }
-
-                const notificationOptions = {
-                    body,
-                    data: { roomId: message.roomId },
-                    renotify: true,
-                    tag: message.roomId,
-                    icon: `${UPLOADS_BASE_URL}/${room.avatarFileId}`,
-                    image: "",
-                    badge: "https://clover.spika.chat/messenger/android-chrome-192x192.png",
-                };
-
-                if (message.body.thumbId) {
-                    notificationOptions.image = `${UPLOADS_BASE_URL}/${message.body.thumbId}`;
-                }
-
-                if (Notification.permission === "granted") {
-                    const notification = new Notification(notificationTitle, notificationOptions);
-                    notification.onclick = () => {
-                        window.focus();
-                    };
-                } else if (Notification.permission !== "denied") {
-                    Notification.requestPermission().then((permission) => {
-                        if (permission === "granted") {
-                            const notification = new Notification(
-                                notificationTitle,
-                                notificationOptions
-                            );
-                            notification.onclick = () => {
-                                window.focus();
-                            };
-                        }
-                    });
-                }
             }
 
             // play sound logic
@@ -139,10 +90,6 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
             if (isMuted || !hidden || message.fromUserId === store.getState().user.id) {
                 return;
             }
-            const audio = new Audio(newMessageSound);
-            audio.volume = 0.5;
-
-            audio.play();
 
             return;
         }

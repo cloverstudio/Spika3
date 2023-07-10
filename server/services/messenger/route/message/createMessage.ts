@@ -201,6 +201,19 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                 const key = `${Constants.LAST_MESSAGE_PREFIX}${roomId}`;
                 await redisClient.set(key, sanitizedMessage.id.toString());
 
+                function getRoomAvatarFileId(room: any, userId: number) {
+                    if (room.type === "group") {
+                        return room.avatarFileId;
+                    }
+                    const otherUser = room.users.find((u: any) => u.userId !== userId);
+
+                    if (!otherUser) {
+                        return 0;
+                    }
+
+                    return otherUser.user.avatarFileId;
+                }
+
                 while (devices.length) {
                     await Promise.all(
                         devices.splice(0, 10).map(async (device) => {
@@ -235,6 +248,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                             };
 
                             if (checkIfShouldSendPush()) {
+                                const roomAvatarFileId = getRoomAvatarFileId(room, device.userId);
+
                                 rabbitMQChannel.sendToQueue(
                                     Constants.QUEUE_PUSH,
                                     Buffer.from(
@@ -248,6 +263,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                                                     groupName: room.name,
                                                 }),
                                                 toUserId: device.userId,
+                                                roomUserCreatedAt: roomUser.createdAt,
+                                                roomAvatarFileId,
                                             },
                                         })
                                     )

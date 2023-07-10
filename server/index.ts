@@ -83,6 +83,7 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
         content = content.replace("{{storageBucket}}", process.env["FCM_STORAGE_BUCKET"]);
         content = content.replace("{{messagingSenderId}}", process.env["FCM_SENDER_ID"]);
         content = content.replace("{{appId}}", process.env["FCM_APP_ID"]);
+        content = content.replace("{{uploadsBaseUrl}}", process.env["UPLOADS_BASE_URL"]);
 
         res.contentType("text/javascript");
         res.send(content);

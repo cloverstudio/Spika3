@@ -24,18 +24,10 @@ class sendPushWorker implements QueueWorkerInterface {
 }
 
 async function newMessageFormatter(payload: SendPushPayload) {
-    const roomId = payload.data.message.roomId as number;
     const userId = payload.data.toUserId as number;
-    const message = payload.data.message;
+    const { message, user, groupName = "", roomAvatarFileId, roomUserCreatedAt } = payload.data;
+    const roomId = message.roomId as number;
     const redisClient = payload.redisClient;
-
-    const roomUser = await prisma.roomUser.findFirst({
-        where: { roomId, userId },
-    });
-
-    if (!roomUser) {
-        throw new Error("Room user not found");
-    }
 
     const muted = await checkIfRoomIsMuted({
         roomId,
@@ -47,16 +39,17 @@ async function newMessageFormatter(payload: SendPushPayload) {
         roomId,
         userId,
         redisClient,
-        roomUserCreatedAt: roomUser.createdAt,
+        roomUserCreatedAt,
     });
 
     return {
         message,
         token: payload.token,
         muted,
-        fromUserName: payload.data.user.displayName,
-        groupName: payload.data.groupName || "",
+        fromUserName: user.displayName,
+        groupName: groupName || "",
         unreadCount,
+        roomAvatarFileId,
     };
 }
 
