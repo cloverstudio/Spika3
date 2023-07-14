@@ -72,8 +72,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     .send(errorResponse(`There is already phone number tied to this device`));
             }
 
+            const isTester = Constants.TESTER_PHONE_NUMBERS.includes(telephoneNumber);
+
             const verificationCode =
-                process.env.IS_TEST === "1"
+                process.env.IS_TEST === "1" || isTester
                     ? Constants.BACKDOOR_VERIFICATION_CODE
                     : Utils.randomNumber(6);
 
@@ -169,15 +171,17 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 });
             }
 
-            const SMSPayload: SendSMSPayload = {
-                telephoneNumber,
-                content: verificationCodeSMS({ verificationCode, osName }),
-            };
+            if (process.env.IS_TEST !== "1" && !isTester) {
+                const SMSPayload: SendSMSPayload = {
+                    telephoneNumber,
+                    content: verificationCodeSMS({ verificationCode, osName }),
+                };
 
-            rabbitMQChannel.sendToQueue(
-                Constants.QUEUE_SMS,
-                Buffer.from(JSON.stringify(SMSPayload))
-            );
+                rabbitMQChannel.sendToQueue(
+                    Constants.QUEUE_SMS,
+                    Buffer.from(JSON.stringify(SMSPayload))
+                );
+            }
 
             // Browser device id is used to override device id in browser to support multiple browser
             res.send(
