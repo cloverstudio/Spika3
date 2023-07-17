@@ -1,4 +1,4 @@
-import * as linkify from "linkifyjs";
+import linkifyHtml from "linkify-html";
 
 export default function filterText(text: string): string {
     // escape html
@@ -12,26 +12,15 @@ export default function filterText(text: string): string {
     // fold multiple new line in one
     text = text.replace(/\n{3,}/g, "\n\n");
 
-    linkify.find(text).forEach((found) => {
-        if (found.type === "email") {
-            text = text.replace(
-                found.value,
-                `<a href="mailto:${found.value}" target="_blank">${found.value}</a>`
-            );
-            return;
-        }
-
-        if (found.type === "url") {
-            const internalLink = text.includes(window.origin);
-
-            text = text.replace(
-                found.value,
-                `<a href="${found.href}" ${!internalLink ? 'target="_blank"' : ""} >${
-                    found.value
-                }</a>`
-            );
-            return;
-        }
+    text = linkifyHtml(text, {
+        defaultProtocol: "https",
+        attributes(value, type) {
+            if (type === "url" && !value.includes(window.origin)) {
+                return {
+                    target: "_blank",
+                };
+            }
+        },
     });
 
     return text;
