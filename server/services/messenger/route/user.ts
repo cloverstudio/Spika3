@@ -83,6 +83,7 @@ export default (): Router => {
                 users = await prisma.user.findMany({
                     where: {
                         modifiedAt: { gt: new Date(timestamp) },
+                        verified: true,
                     },
                     skip,
                     take: Constants.SYNC_LIMIT,
@@ -129,6 +130,7 @@ export async function getUsers(userId: number, timestamp: number, skip: number):
             userId: userId,
             contact: {
                 modifiedAt: { gt: new Date(timestamp) },
+                verified: true,
             },
         },
         include: {
@@ -169,6 +171,7 @@ export async function getUsers(userId: number, timestamp: number, skip: number):
             ],
             AND: {
                 modifiedAt: { gt: new Date(timestamp) },
+                verified: true,
             },
         },
         take: Constants.SYNC_LIMIT,
@@ -187,6 +190,7 @@ export async function getUsersCount(userId: number, timestamp: number): Promise<
             userId: userId,
             contact: {
                 modifiedAt: { gt: new Date(timestamp) },
+                verified: true,
             },
         },
         include: {
@@ -230,6 +234,7 @@ export async function getUsersCount(userId: number, timestamp: number): Promise<
                     notIn: [userId],
                 },
                 modifiedAt: { gt: new Date(timestamp) },
+                verified: true,
             },
         },
     });
