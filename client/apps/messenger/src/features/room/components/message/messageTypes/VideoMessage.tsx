@@ -6,7 +6,7 @@ import { useParams } from "react-router-dom";
 import CloseOutlined from "@mui/icons-material/CloseOutlined";
 import DownloadIcon from "@mui/icons-material/Download";
 import AttachmentManager from "../../../lib/AttachmentManager";
-import { PlayCircleFilled } from "@mui/icons-material";
+import PlayCircleFilled from "@mui/icons-material/PlayCircleFilled";
 import TextMessage from "./TextMessage";
 import { DOWNLOAD_URL } from "../../../../../../../../lib/constants";
 import useEscapeKey from "../../../../../hooks/useEscapeKey";

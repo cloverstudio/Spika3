@@ -25,7 +25,6 @@ import useStrings from "../../../../hooks/useStrings";
 import { useGetRoomQuery } from "../../api/room";
 import formatRoomInfo from "../../lib/formatRoomInfo";
 import { selectUser } from "../../../../store/userSlice";
-import silenceSound from "../../../../../../../assets/silence.mp3";
 
 dayjs.extend(relativeTime);
 declare const UPLOADS_BASE_URL: string;

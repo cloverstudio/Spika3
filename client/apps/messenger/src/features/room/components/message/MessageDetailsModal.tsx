@@ -29,7 +29,7 @@ import {
     selectShowMessageDetails,
 } from "../../slices/messages";
 import useStrings from "../../../../hooks/useStrings";
-import { ImportExport } from "@mui/icons-material";
+import ImportExport from "@mui/icons-material/ImportExport";
 
 declare const UPLOADS_BASE_URL: string;
 
