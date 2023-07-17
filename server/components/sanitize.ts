@@ -310,6 +310,7 @@ function sanitizeUser({
     createdAt,
     modifiedAt,
     isBot,
+    deleted
 }: Partial<User>): SanitizedUserType {
     return {
         id,
@@ -322,6 +323,7 @@ function sanitizeUser({
         createdAt: +new Date(createdAt),
         modifiedAt: +new Date(modifiedAt),
         isBot,
+        deleted
     };
 }
 

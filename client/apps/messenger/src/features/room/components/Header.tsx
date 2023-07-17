@@ -19,12 +19,12 @@ import Input from "@mui/material/Input";
 import InputAdornment from "@mui/material/InputAdornment";
 
 import { useGetRoomQuery } from "../api/room";
-import { showLeftSidebar } from "../slices/leftSidebar";
 import { toggleRightSidebar } from "../slices/rightSidebar";
 import { RoomType } from "../../../types/Rooms";
 import useStrings from "../../../hooks/useStrings";
 import { useLazySearchMessagesQuery } from "../api/message";
 import { selectTargetMessage, setKeyword, setTargetMessage } from "../slices/messages";
+import { Link } from "react-router-dom";
 
 export default function Header() {
     const roomId = parseInt(useParams().id || "");
@@ -93,18 +93,20 @@ function HeaderContent({ room }: { room: RoomType }) {
 }
 
 function MobileBackButton() {
-    const dispatch = useDispatch();
-
     const iconSxProps = { width: "25px", height: "25px", color: "primary.main", cursor: "pointer" };
 
     return (
-        <ChevronLeft
-            sx={{
-                ...iconSxProps,
-                mr: 0.5,
-            }}
-            onClick={() => dispatch(showLeftSidebar())}
-        />
+        <Link
+            to="/app"
+            style={{ textDecoration: "none", display: "grid", justifyContent: "center" }}
+        >
+            <ChevronLeft
+                sx={{
+                    ...iconSxProps,
+                    mr: 0.5,
+                }}
+            />
+        </Link>
     );
 }
 

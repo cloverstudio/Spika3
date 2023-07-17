@@ -17,7 +17,6 @@ import useIsInViewport from "../../../../hooks/useIsInViewport";
 import MessageType from "../../../../types/Message";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { setLeftSidebar } from "../../slices/leftSidebar";
 import SearchBox from "../SearchBox";
 import NotificationsOff from "@mui/icons-material/NotificationsOff";
 import Pin from "@mui/icons-material/PushPin";
@@ -38,9 +37,7 @@ export default function SidebarChatList(): React.ReactElement {
     const loading = useSelector(selectHistoryLoading());
 
     const { isInViewPort, elementRef } = useIsInViewport();
-    const onChatClick = () => {
-        dispatch(setLeftSidebar(false));
-    };
+
     const isFetching = loading === "pending";
 
     useEffect(() => {
@@ -86,7 +83,6 @@ export default function SidebarChatList(): React.ReactElement {
                         lastMessage={lastMessage}
                         unreadCount={unreadCount}
                         isActive={roomId === activeRoomId}
-                        handleClick={onChatClick}
                     />
                 );
             })}
@@ -102,11 +98,10 @@ type RoomRowProps = {
     id: number;
     unreadCount: number;
     lastMessage: MessageType;
-    handleClick: () => void;
     isActive?: boolean;
 };
 
-function RoomRow({ id, isActive, lastMessage, handleClick, unreadCount }: RoomRowProps) {
+function RoomRow({ id, isActive, lastMessage, unreadCount }: RoomRowProps) {
     const strings = useStrings();
     const me = useSelector(selectUser);
     const [time, setTime] = useState(
@@ -130,7 +125,7 @@ function RoomRow({ id, isActive, lastMessage, handleClick, unreadCount }: RoomRo
 
     if (isLoading) {
         return (
-            <Link to={`/rooms/${id}`} onClick={handleClick} style={{ textDecoration: "none" }}>
+            <Link to={`/rooms/${id}`} style={{ textDecoration: "none" }}>
                 <Box
                     bgcolor={isActive ? "action.hover" : "transparent"}
                     px={2.5}
@@ -178,7 +173,7 @@ function RoomRow({ id, isActive, lastMessage, handleClick, unreadCount }: RoomRo
     }
 
     return (
-        <Link to={`/rooms/${id}`} onClick={handleClick} style={{ textDecoration: "none" }}>
+        <Link to={`/rooms/${id}`} style={{ textDecoration: "none" }}>
             <Box
                 bgcolor={isActive ? "action.hover" : "transparent"}
                 px={2.5}

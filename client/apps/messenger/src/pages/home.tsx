@@ -3,7 +3,6 @@ import { Outlet, useLocation, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
 import { Box } from "@mui/material";
-import Drawer from "@mui/material/Drawer";
 import useTheme from "@mui/material/styles/useTheme";
 import useMediaQuery from "@mui/material/useMediaQuery";
 
@@ -11,7 +10,6 @@ import Base from "../components/Base";
 import PushNotificationPermissionDialog from "../components/PushnotificationPermissionDialog";
 import LeftSidebar from "../features/room/LeftSidebar";
 import RightSidebar from "../features/room/RightSidebar";
-import { selectLeftSidebarOpen, setLeftSidebar } from "../features/room/slices/leftSidebar";
 
 import {
     hideRightSidebar,
@@ -31,11 +29,11 @@ export default function Home(): React.ReactElement {
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
     const isBigDesktop = useMediaQuery(theme.breakpoints.up("lg"));
     const dispatch = useDispatch();
-    const open = useSelector(selectLeftSidebarOpen);
     const isCall = /^.+\/call.*$/.test(pathname);
+    const isHome = pathname === "/app" || pathname === "/app/";
 
     const rightSidebarOpen =
-        (useSelector(selectRightSidebarOpen) || isBigDesktop) && !isCall && roomId;
+        (useSelector(selectRightSidebarOpen) || isBigDesktop) && !isCall && !!roomId;
 
     useEffect(() => {
         const resizeEventListener = (e: UIEvent) => {
@@ -66,13 +64,13 @@ export default function Home(): React.ReactElement {
         }
     }, [dispatch, loggedInUserId]);
 
-    useEffect(() => {
-        if (isMobile) {
-            dispatch(setLeftSidebar(true));
-        }
-    }, [isMobile, dispatch]);
-
-    const setOpen = () => dispatch(setLeftSidebar(!open));
+    if (isHome && isMobile) {
+        return (
+            <Base>
+                <LeftSidebar />
+            </Base>
+        );
+    }
     return (
         <Base>
             <Box
@@ -85,27 +83,11 @@ export default function Home(): React.ReactElement {
                     },
                 }}
             >
-                {isMobile ? (
-                    <Drawer
-                        anchor="left"
-                        open={open}
-                        onClose={() => setOpen()}
-                        hideBackdrop={true}
-                        elevation={0}
-                        PaperProps={{
-                            sx: {
-                                backgroundColor: "background.default",
-                            },
-                        }}
-                    >
-                        <LeftSidebar />
-                    </Drawer>
-                ) : (
-                    <LeftSidebar />
-                )}
+                {!isMobile && <LeftSidebar />}
+
                 <Outlet />
 
-                {rightSidebarOpen ? <RightSidebar /> : null}
+                {rightSidebarOpen && <RightSidebar />}
             </Box>
 
             <PushNotificationPermissionDialog />

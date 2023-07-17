@@ -19,7 +19,6 @@ import {
 import User from "../../../../types/User";
 
 import useIsInViewport from "../../../../hooks/useIsInViewport";
-import { hideLeftSidebar } from "../../slices/leftSidebar";
 
 import SearchBox from "../SearchBox";
 import useStrings from "../../../../hooks/useStrings";
@@ -45,7 +44,6 @@ export default function SidebarContactList({
 
     const navigate = useNavigate();
     const [createRoom] = useCreateRoomMutation();
-    const onChatClick = () => dispatch(hideLeftSidebar());
 
     useEffect(() => {
         if (isInViewPort) {
@@ -78,7 +76,6 @@ export default function SidebarContactList({
                 navigate(`/rooms/${created.room.id}`);
             }
         }
-        onChatClick();
     };
 
     const onUserClick = handleUserClick || defaultHandleUserClick;

@@ -49,7 +49,6 @@ type HistoryStateType = {
 
 type ActiveTabType = "chat" | "call" | "contact";
 type InitialState = {
-    show: boolean;
     activeTab: ActiveTabType;
     showProfileEditing: boolean;
     history: HistoryStateType;
@@ -58,7 +57,6 @@ type InitialState = {
 export const leftSidebarSlice = createSlice({
     name: <string>"leftSidebar",
     initialState: <InitialState>{
-        show: true,
         activeTab: "chat",
         showProfileEditing: false,
         history: { list: [], loading: "idle", keyword: "", count: null, page: 1 },
@@ -66,15 +64,6 @@ export const leftSidebarSlice = createSlice({
     reducers: {
         setActiveTab(state, action: { payload: ActiveTabType }) {
             state.activeTab = action.payload;
-        },
-        show(state) {
-            state.show = true;
-        },
-        hide(state) {
-            state.show = false;
-        },
-        set(state, action: { payload: boolean }) {
-            state.show = action.payload;
         },
         setOpenEditProfile(state, action: { payload: boolean }) {
             state.showProfileEditing = action.payload;
@@ -170,15 +159,10 @@ export const leftSidebarSlice = createSlice({
 export const selectActiveTab = (state: RootState): "chat" | "call" | "contact" =>
     state.leftSidebar.activeTab;
 
-export const selectLeftSidebarOpen = (state: RootState): boolean => state.leftSidebar.show;
-
 export const shouldShowProfileEditor = (state: RootState): boolean =>
     state.leftSidebar.showProfileEditing;
 
 export const {
-    show: showLeftSidebar,
-    hide: hideLeftSidebar,
-    set: setLeftSidebar,
     setActiveTab,
     setOpenEditProfile,
     updateLastMessage,

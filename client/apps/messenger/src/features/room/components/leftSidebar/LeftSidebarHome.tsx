@@ -75,7 +75,12 @@ export default function LeftSidebarHome({
                 <EditProfileView user={userData?.user} onClose={closeEditor} />
             ) : (
                 <>
-                    <Box px={2.5} borderBottom="0.5px solid" sx={{ borderColor: "divider" }}>
+                    <Box
+                        px={2.5}
+                        mb={isMobile ? 2 : 0}
+                        borderBottom="0.5px solid"
+                        sx={{ borderColor: "divider" }}
+                    >
                         <Box display="flex" height="80px" justifyContent="space-between">
                             <Box
                                 component={Link}
