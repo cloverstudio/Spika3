@@ -24,9 +24,9 @@ export default function PushNotifPermissionDialog(): React.ReactElement {
     const initPushNotification = useCallback(async () => {
         localStorage.setItem(constants.LSKEY_DISABLEPUSHALER, "1");
 
-        if (!Notification) return;
+        if (!window.Notification) return;
 
-        const permission = await Notification.requestPermission();
+        const permission = await window.Notification.requestPermission();
 
         if (permission === "granted") {
             const pushToken = await setupPushNotification();
@@ -42,7 +42,7 @@ export default function PushNotifPermissionDialog(): React.ReactElement {
             data &&
             data.device &&
             !data.device.pushToken &&
-            Notification &&
+            window.Notification &&
             !localStorage.getItem(constants.LSKEY_DISABLEPUSHALER)
         ) {
             setShowPermissionDialog(true);
