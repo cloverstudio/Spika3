@@ -10,8 +10,8 @@ export const HISTORY_PAGING_LIMIT = 20;
 export const MESSAGE_PAGING_LIMIT = 50;
 
 export const TOKEN_VALID_DAY = 30;
-export const CONTACT_SYNC_LIMIT = 40;
-export const SYNC_LIMIT = 30;
+export const CONTACT_SYNC_LIMIT = 100;
+export const SYNC_LIMIT = 100;
 
 export const BACKDOOR_VERIFICATION_CODE = "000000";
 
@@ -48,4 +48,9 @@ export const ROOM_PREFIX = "room_";
 export const LAST_MESSAGE_PREFIX = "lastMessage_";
 export const UNREAD_PREFIX = "unread_";
 export const DEVICE_TYPE_BROWSER = "browser";
-export const TESTER_PHONE_NUMBERS = ["+385987654321", "+3850987654321"];
+export const TESTER_PHONE_NUMBERS = [
+    "+385987654321",
+    "+3850987654321",
+    "+385998765432",
+    "+3850998765432",
+];
