@@ -18,7 +18,7 @@ export const LSKEY_ACCESSTOKEN = "access-token";
 export const LSKEY_DEVICEID = "deviceId";
 export const LSKEY_THEME = "theme";
 export const ADMIN_ACCESS_TOKEN = "admin-access-token";
-export const THUMB_WIDTH = 256;
+export const THUMB_WIDTH = 256 * 2;
 export const MESSAGE_PAGING_LIMIT = 50;
 
 export const SETTINGS_ROOM_MUTE_PREFIX = "mute_";
