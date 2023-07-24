@@ -103,7 +103,27 @@ export default function MessagesContainer({
         roomIsLoading,
         loading,
         initialLoading,
+        searchKeyword,
     ]);
+
+    useEffect(() => {
+        if (initialLoading || loading || roomIsLoading) {
+            return;
+        }
+        const resize = new ResizeObserver(function () {
+            if (!locked) {
+                onScrollDown("smooth");
+            }
+        });
+
+        if (ref.current) {
+            resize.observe(ref.current);
+        }
+
+        return () => {
+            resize.disconnect();
+        };
+    }, [initialLoading, loading, locked, roomIsLoading]);
 
     const onScrollDown = (behavior?: ScrollBehavior) => {
         if (!ref.current) {
@@ -184,6 +204,7 @@ export default function MessagesContainer({
 
         setDragCounter(0);
     };
+
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
     };
