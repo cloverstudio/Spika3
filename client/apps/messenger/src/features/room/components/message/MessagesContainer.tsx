@@ -9,6 +9,7 @@ import {
     fetchMessages,
     selectCursor,
     selectIsLastMessageFromUser,
+    selectKeyword,
     selectRoomMessagesIsLoading,
     selectRoomMessagesLength,
     selectTargetMessage,
@@ -40,6 +41,7 @@ export default function MessagesContainer({
     const [initialLoading, setLoading] = useState(true);
     const { isLoading: roomIsLoading } = useGetRoomQuery(roomId);
     const loading = useSelector(selectRoomMessagesIsLoading(roomId));
+    const searchKeyword = useSelector(selectKeyword(roomId));
 
     useEffect(() => {
         if (targetMessageId) {
@@ -48,7 +50,7 @@ export default function MessagesContainer({
     }, [targetMessageId]);
 
     useEffect(() => {
-        if (locked) {
+        if (locked || searchKeyword) {
             if (
                 ref.current.scrollHeight > lastScrollHeight &&
                 messagesLength - messagesLengthRef.current > 1

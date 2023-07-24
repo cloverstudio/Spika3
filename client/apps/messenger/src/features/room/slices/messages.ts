@@ -474,7 +474,9 @@ export const messagesSlice = createSlice({
 
             const room = state[roomId];
             if (room) {
-                room.targetMessageId = null;
+                if (!room.keyword) {
+                    room.targetMessageId = null;
+                }
                 room.messages[message.id] = message;
                 room.reactions[message.id] = [];
                 room.statusCounts[message.id] = { totalUserCount, deliveredCount, seenCount };
@@ -725,7 +727,9 @@ export const messagesSlice = createSlice({
             const room = state[roomId];
 
             delete room.messages[localId];
-            room.targetMessageId = null;
+            if (!room.keyword) {
+                room.targetMessageId = null;
+            }
             room.messages[id] = message;
             room.reactions[id] = messageRecords || [];
             room.statusCounts[id] = { totalUserCount, deliveredCount, seenCount };
@@ -746,7 +750,9 @@ export const messagesSlice = createSlice({
             const room = state[roomId];
 
             delete room.messages[localId];
-            room.targetMessageId = null;
+            if (!room.keyword) {
+                room.targetMessageId = null;
+            }
             room.messages[id] = message;
             room.reactions[id] = messageRecords || [];
             room.statusCounts[id] = { totalUserCount, deliveredCount, seenCount };
@@ -767,7 +773,9 @@ export const messagesSlice = createSlice({
             const room = state[roomId];
 
             delete room.messages[localId];
-            room.targetMessageId = null;
+            if (!room.keyword) {
+                room.targetMessageId = null;
+            }
             room.messages[id] = message;
             room.reactions[id] = messageRecords || [];
             room.statusCounts[id] = { totalUserCount, deliveredCount, seenCount };
@@ -788,7 +796,9 @@ export const messagesSlice = createSlice({
             const room = state[roomId];
 
             delete room.messages[localId];
-            room.targetMessageId = null;
+            if (!room.keyword) {
+                room.targetMessageId = null;
+            }
             room.messages[id] = message;
             room.reactions[id] = messageRecords || [];
             room.statusCounts[id] = { totalUserCount, deliveredCount, seenCount };
