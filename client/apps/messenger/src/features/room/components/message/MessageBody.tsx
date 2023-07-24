@@ -10,8 +10,8 @@ import filterText from "../../lib/filterText";
 import VideoMessage from "./messageTypes/VideoMessage";
 import FileMessage from "./messageTypes/FileMessage";
 import { DOWNLOAD_URL } from "../../../../../../../lib/constants";
-import { useSelector } from "react-redux";
-import { selectChangeTerm } from "../../slices/messages";
+import { useDispatch, useSelector } from "react-redux";
+import { selectChangeTerm, setTargetMessage } from "../../slices/messages";
 
 type MessageBodyProps = {
     type: string;
@@ -137,6 +137,7 @@ function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boo
     const roomId = parseInt(useParams().id || "");
     const { data: room } = useGetRoomQuery(roomId);
     const changeTerm = useSelector(selectChangeTerm({ text: filterText(body.text), roomId }));
+    const dispatch = useDispatch();
 
     const filteredText = changeTerm ? changeTerm.to : filterText(body.text);
 
@@ -261,12 +262,7 @@ function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boo
     };
 
     const handleReplyClick = () => {
-        if (body.referenceMessage.type === "text") {
-            const ele = document.getElementById(`message_${body.referenceMessage.id}`);
-            if (ele) {
-                ele.scrollIntoView();
-            }
-        }
+        dispatch(setTargetMessage({ roomId, messageId: body.referenceMessage.id }));
     };
 
     return (
