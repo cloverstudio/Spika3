@@ -43,7 +43,15 @@ export default function MessageBody({
     }
 
     if (isReply) {
-        return <ReplyMessage body={body} isUsersMessage={side === "right"} />;
+        return (
+            <ReplyMessage
+                body={body}
+                isUsersMessage={side === "right"}
+                type={type}
+                onImageMessageClick={onImageMessageClick}
+                progress={progress}
+            />
+        );
     }
 
     switch (type) {
@@ -133,13 +141,22 @@ function AudioMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
     );
 }
 
-function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boolean }) {
+function ReplyMessage({
+    isUsersMessage,
+    body,
+    type,
+    onImageMessageClick,
+    progress,
+}: {
+    body: any;
+    isUsersMessage: boolean;
+    type: string;
+    onImageMessageClick?: () => void;
+    progress?: number;
+}) {
     const roomId = parseInt(useParams().id || "");
     const { data: room } = useGetRoomQuery(roomId);
-    const changeTerm = useSelector(selectChangeTerm({ text: filterText(body.text), roomId }));
     const dispatch = useDispatch();
-
-    const filteredText = changeTerm ? changeTerm.to : filterText(body.text);
 
     const renderReplyMessage = () => {
         const { type: replyMsgType, body: replyMsgBody } = body.referenceMessage;
@@ -261,6 +278,62 @@ function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boo
         }
     };
 
+    const renderMessage = () => {
+        switch (type) {
+            case "text": {
+                return <TextMessage body={body} isUsersMessage={isUsersMessage} />;
+            }
+
+            case "image": {
+                return (
+                    <>
+                        <ImageMessage
+                            body={body}
+                            isUsersMessage={isUsersMessage}
+                            onClick={onImageMessageClick}
+                            progress={progress}
+                        />
+                    </>
+                );
+            }
+
+            case "video": {
+                return (
+                    <>
+                        <VideoMessage
+                            onClick={onImageMessageClick}
+                            body={body}
+                            isUsersMessage={isUsersMessage}
+                            progress={progress}
+                        />
+                    </>
+                );
+            }
+
+            case "audio": {
+                return (
+                    <>
+                        <AudioMessage body={body} isUsersMessage={isUsersMessage} />
+                        {progress && <LinearProgress variant="determinate" value={progress} />}
+                        {progress && progress === 100 && <Box>Verifying hash...</Box>}
+                    </>
+                );
+            }
+
+            default: {
+                return (
+                    <>
+                        <FileMessage
+                            body={body}
+                            isUsersMessage={isUsersMessage}
+                            progress={progress}
+                        />
+                    </>
+                );
+            }
+        }
+    };
+
     const handleReplyClick = () => {
         dispatch(setTargetMessage({ roomId, messageId: body.referenceMessage.id }));
     };
@@ -286,10 +359,7 @@ function ReplyMessage({ isUsersMessage, body }: { body: any; isUsersMessage: boo
                 {renderReplyMessage()}
             </Box>
 
-            <Box
-                sx={{ overflowWrap: "break-word" }}
-                dangerouslySetInnerHTML={{ __html: filteredText }}
-            />
+            {renderMessage()}
         </Box>
     );
 }
