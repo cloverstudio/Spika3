@@ -309,35 +309,5 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         }
     });
 
-    router.post("/refresh", auth, async (req: Request, res: Response) => {
-        try {
-            const userReq: UserRequest = req as UserRequest;
-            const id = userReq.device.id;
-
-            const newToken = Utils.createToken();
-            const expireDate = Utils.getTokenExpireDate();
-
-            const device = await prisma.device.update({
-                where: {
-                    id,
-                },
-                data: {
-                    tokenExpiredAt: expireDate,
-                    modifiedAt: new Date(),
-                    token: newToken,
-                },
-            });
-
-            res.send(
-                successResponse({
-                    device: sanitize(device).device(),
-                })
-            );
-        } catch (e: any) {
-            le(e);
-            res.status(500).send(errorResponse(`Server error ${e}`));
-        }
-    });
-
     return router;
 };
