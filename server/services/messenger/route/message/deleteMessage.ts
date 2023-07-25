@@ -20,6 +20,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): RequestHandler[] => {
             try {
                 const id = parseInt((req.params.id as string) || "");
                 const target = ((req.query.target as string) || "").toLowerCase();
+                const fromUserId = userReq.user.id;
+                const fromDeviceId = userReq.device.id;
 
                 if (!target || !["all", "user"].includes(target)) {
                     return res
@@ -80,10 +82,20 @@ export default ({ rabbitMQChannel }: InitRouterParams): RequestHandler[] => {
                     });
                 }
 
+                const userDeviceMessage = await prisma.deviceMessage.findFirst({
+                    where: {
+                        userId: fromUserId,
+                        messageId: message.id,
+                        deviceId: fromDeviceId,
+                    },
+                });
+
                 const sanitizedMessage = sanitize({
                     ...message,
                     body: newBody,
                     deleted: true,
+                    createdAt: userDeviceMessage.createdAt,
+                    modifiedAt: userDeviceMessage.modifiedAt,
                 }).message();
 
                 res.send(successResponse({ message: sanitizedMessage }, userReq.lang));

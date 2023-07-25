@@ -103,13 +103,15 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                             },
                         });
 
-                        const { body, deleted } = deviceMessage || {};
+                        const { body, deleted, createdAt, modifiedAt } = deviceMessage || {};
 
                         const formattedBody = await formatMessageBody(body, m.type);
                         return sanitize({
                             ...m,
                             body: formattedBody,
                             deleted,
+                            createdAt,
+                            modifiedAt,
                         }).messageWithReactionRecords();
                     })
                 );

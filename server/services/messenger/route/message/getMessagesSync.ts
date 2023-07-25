@@ -71,7 +71,7 @@ export default ({}: InitRouterParams): RequestHandler[] => {
                 });
 
                 const sanitizedMessages = await Promise.all(
-                    [...deviceMessages].map(async (deviceMessage) => {
+                    deviceMessages.map(async (deviceMessage) => {
                         const m = deviceMessage.message;
 
                         const { body, deleted } = deviceMessage || {};
@@ -80,6 +80,8 @@ export default ({}: InitRouterParams): RequestHandler[] => {
                             ...m,
                             body: await formatMessageBody(body, m.type),
                             deleted,
+                            createdAt: deviceMessage.createdAt,
+                            modifiedAt: deviceMessage.modifiedAt,
                         }).message();
                     })
                 );

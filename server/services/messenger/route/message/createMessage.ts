@@ -179,8 +179,21 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                     })),
                 });
 
+                const userDeviceMessage = await prisma.deviceMessage.findFirst({
+                    where: {
+                        userId: fromUserId,
+                        messageId: message.id,
+                        deviceId: fromDeviceId,
+                    },
+                });
+
                 const formattedBody = await formatMessageBody(body, type);
-                const sanitizedMessage = sanitize({ ...message, body: formattedBody }).message();
+                const sanitizedMessage = sanitize({
+                    ...message,
+                    body: formattedBody,
+                    createdAt: userDeviceMessage.createdAt,
+                    modifiedAt: userDeviceMessage.modifiedAt,
+                }).message();
 
                 await Promise.all(
                     receivers.map(async ({ userId, createdAt }) => {

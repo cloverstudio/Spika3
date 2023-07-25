@@ -18,6 +18,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): RequestHandler[] => {
         async (req: Request, res: Response) => {
             const userReq: UserRequest = req as UserRequest;
             const userId = userReq.user.id;
+            const deviceId = userReq.device.id;
 
             try {
                 const id = parseInt((req.params.id as string) || "");
@@ -80,9 +81,15 @@ export default ({ rabbitMQChannel }: InitRouterParams): RequestHandler[] => {
                     include: { deviceMessages: true },
                 });
 
+                const userDeviceMessage = message.deviceMessages.find(
+                    (dm) => dm.deviceId === deviceId && dm.userId === userId
+                );
+
                 const sanitizedMessage = sanitize({
                     ...message,
-                    body: { ...(message.deviceMessages[0].body as Record<string, unknown>), text },
+                    body: { ...(userDeviceMessage.body as Record<string, unknown>), text },
+                    createdAt: userDeviceMessage.createdAt,
+                    modifiedAt: userDeviceMessage.modifiedAt,
                 }).message();
 
                 res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
