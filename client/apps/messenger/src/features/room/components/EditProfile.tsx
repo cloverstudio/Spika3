@@ -169,6 +169,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
         await logout(null).unwrap();
         window.localStorage.removeItem(Constants.LSKEY_ACCESSTOKEN);
         window.localStorage.removeItem(Constants.LSKEY_DEVICEID);
+
         dispatch({ type: "USER_LOGOUT" });
         window.location.href = "/messenger/";
     };

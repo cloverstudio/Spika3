@@ -254,6 +254,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     token: newToken,
                     tokenExpiredAt: expireDate,
                     modifiedAt: new Date(),
+                    pushToken: null,
                 },
             });
 
