@@ -17,12 +17,8 @@ export default function DatePopover({
     const styleModifier: any = {
         opacity: 0,
     };
-    if (!isUsersMessage) styleModifier.left = "0";
-    else styleModifier.right = "18px";
 
     if (mouseOver) styleModifier.opacity = 1;
-
-    if (!mouseOver) return <></>;
 
     return (
         <Box
@@ -30,13 +26,10 @@ export default function DatePopover({
                 ...{
                     transition: "opacity 0.2s ease",
                     minWidth: "100px",
-                    backgroundColor: "#0009",
-                    display: "inline-block",
+                    display: "flex",
+                    alignItems: "end",
+                    justifyContent: isUsersMessage ? "end" : "start",
                     borderRadius: "5px",
-                    padding: "1px",
-                    position: "absolute",
-                    bottom: "-20px",
-                    zIndex: 1000,
                 },
                 ...styleModifier,
             }}
@@ -44,11 +37,11 @@ export default function DatePopover({
             <Typography
                 sx={{
                     color: "common.white",
-                    fontSize: "0.9em",
-                    padding: "3px",
+                    fontSize: "0.75em",
+                    padding: "0 5px",
                 }}
             >
-                {dayjs(createdAt).format("ddd HH:mm")}
+                {dayjs(createdAt).format("HH:mm")}
             </Typography>
         </Box>
     );

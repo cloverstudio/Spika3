@@ -17,7 +17,6 @@ export enum IconConfigs {
 
 type Props = {
     isUsersMessage: boolean;
-    handleClose: () => void;
     mouseOver: boolean;
     handleEmoticon?: (e: React.MouseEvent<any>) => void;
     handleInfo?: (e: React.MouseEvent<any>) => void;
@@ -62,19 +61,17 @@ export default function MessageContextMenu({
     return (
         <Box
             sx={{
-                ...{
-                    position: "absolute",
-                    minWidth: "100px",
-                    backgroundColor: "background.paper",
-                    border: "2px solid",
-                    borderColor: "divider",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    borderRadius: "5px",
-                    padding: "10px",
-                    top: "-50px",
-                    zIndex: 1000,
-                },
+                position: "absolute",
+                minWidth: "100px",
+                backgroundColor: "background.paper",
+                border: "2px solid",
+                borderColor: "divider",
+                display: "flex",
+                justifyContent: "space-between",
+                borderRadius: "5px",
+                padding: "10px",
+                bottom: "-51px",
+                zIndex: 1000,
                 ...styleModifier,
             }}
         >
