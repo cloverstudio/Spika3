@@ -134,11 +134,7 @@ function Message({
     }
 
     return (
-        <MessageContainer
-            id={id}
-            side={isUsersMessage ? "right" : "left"}
-            handleMouseLeave={handleMouseLeave}
-        >
+        <MessageContainer id={id} side={side} handleMouseLeave={handleMouseLeave}>
             {shouldDisplaySenderLabel && (
                 <Typography lineHeight={1} color="text.tertiary" fontWeight={600} pl="34px" mt={2}>
                     {senderLabel}
@@ -148,11 +144,18 @@ function Message({
             <Box
                 display="grid"
                 gap={1}
-                gridTemplateColumns={side === "right" || !isGroup ? "1fr" : "26px 1fr"}
+                gridTemplateColumns={isUsersMessage || !isGroup ? "1fr" : "26px 1fr"}
             >
                 {renderAvatar()}
                 <Box display="flex" position="relative">
                     {!deleted && <MessageReactions id={id} />}
+                    {isUsersMessage && (
+                        <DatePopover
+                            mouseOver={mouseOver}
+                            isUsersMessage={isUsersMessage}
+                            createdAt={createdAt}
+                        />
+                    )}
                     <Box
                         onMouseEnter={handleMouseEnter}
                         border={highlighted ? "1px solid red" : ""}
@@ -173,11 +176,13 @@ function Message({
                         />
                     </Box>
                     {shouldDisplayStatusIcons && <StatusIcon status={status} id={id} />}
+                    {!isUsersMessage && (
                     <DatePopover
                         mouseOver={mouseOver}
-                        isUsersMessage={side === "right"}
+                            isUsersMessage={isUsersMessage}
                         createdAt={createdAt}
                     />
+                    )}
                     <Menu
                         id={id}
                         mouseOver={mouseOver}
@@ -185,7 +190,7 @@ function Message({
                         setShowReactionMenu={setShowReactionMenu}
                     />
                     <ReactionOptionsPopover
-                        isUsersMessage={side === "right"}
+                        isUsersMessage={isUsersMessage}
                         show={showReactionMenu}
                         messageId={id}
                         handleClose={() => setShowReactionMenu(false)}
