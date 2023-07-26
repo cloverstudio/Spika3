@@ -28,6 +28,12 @@ const userApi = api.injectEndpoints({
             },
             invalidatesTags: [{ type: "Auth", id: "me" }],
         }),
+        remove: build.mutation({
+            query: () => {
+                return { url: "/messenger/me", method: "DELETE" };
+            },
+            invalidatesTags: [{ type: "Auth", id: "me" }],
+        }),
         logout: build.mutation({
             query: () => {
                 return { url: "/messenger/auth/logout", method: "POST" };
@@ -47,4 +53,5 @@ export const {
     useUpdateMutation,
     useGetUserQuery,
     useLogoutMutation,
+    useRemoveMutation,
 } = userApi;

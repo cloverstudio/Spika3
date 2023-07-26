@@ -17,13 +17,14 @@ import { useDispatch } from "react-redux";
 import { showSnackBar } from "../../store/modalSlice";
 import getFileType from "../room/lib/getFileType";
 import FileUploader from "../../utils/FileUploader";
+import TermsAndConditions from "./components/TearmsAndConditions";
 
 export default function Auth(): React.ReactElement {
     const strings = useStrings();
     const navigate = useNavigate();
     const deviceId = getDeviceId();
     const dispatch = useDispatch();
-    const [step, setStep] = useState(0);
+    const [step, setStep] = useState(-1);
     const [loading, setLoading] = useState(false);
     const [signUp, signUpMutation] = useSignUpMutation();
     const [verify, verifyMutation] = useVerifyMutation();
@@ -132,6 +133,7 @@ export default function Auth(): React.ReactElement {
     return (
         <AuthLayout loading={signUpMutation.isLoading || verifyMutation.isLoading || loading}>
             <>
+                {step === -1 && <TermsAndConditions onSubmit={() => setStep(0)} />}
                 {step === 0 && <TelephoneNumberForm onSubmit={handleSignUp} />}
 
                 {step === 1 && (

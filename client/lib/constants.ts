@@ -27,3 +27,5 @@ export const SETTINGS_FALSE = "false";
 export const APP_DEFAULT_LANG = "en";
 export const APP_NAME = "Spika";
 export const DOWNLOAD_URL = `${API_BASE_URL}/upload/files`;
+export const TERMS_AND_CONDITIONS_URL =
+    "https://clover.studio/projects/spika/spika-messenger-terms-and-coditions/";

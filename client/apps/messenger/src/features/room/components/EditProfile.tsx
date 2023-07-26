@@ -19,7 +19,7 @@ import CameraAlt from "@mui/icons-material/CameraAlt";
 import ChevronRight from "@mui/icons-material/ChevronRight";
 import Close from "@mui/icons-material/Close";
 
-import { useLogoutMutation, useUpdateMutation } from "../../auth/api/auth";
+import { useLogoutMutation, useRemoveMutation, useUpdateMutation } from "../../auth/api/auth";
 
 import { crop } from "../../../utils/crop";
 
@@ -33,6 +33,10 @@ import { useGetBlockedUsersQuery, useRemoveUserFromBlockListMutation } from "../
 import { useDispatch } from "react-redux";
 import getFileType from "../lib/getFileType";
 import FileUploader from "../../../utils/FileUploader";
+import setupPushNotification from "../../../components/firebaseInit";
+import { useUpdateDeviceMutation } from "../../../api/device";
+import LogoutIcon from "@mui/icons-material/Logout";
+import { useShowBasicDialog } from "../../../hooks/useModal";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -51,10 +55,20 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
     const [editProfilePicture, setEditProfilePicture] = useState(false);
     const [editingBlockedList, setEditingBlockedList] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [pushNotificationsAllowed, setPushNotificationsAllowed] = useState(true);
     const [update] = useUpdateMutation();
     const [logout] = useLogoutMutation();
     const { theme, setTheme } = useContext(ThemeContext);
     const dispatch = useDispatch();
+    const [updateDevice] = useUpdateDeviceMutation();
+    const [remove] = useRemoveMutation();
+    const showBasicDialog = useShowBasicDialog();
+
+    useEffect(() => {
+        if (window.Notification && Notification.permission !== "granted") {
+            setPushNotificationsAllowed(false);
+        }
+    }, []);
 
     const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setProposedName(event.target.value);
@@ -172,6 +186,40 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
 
         dispatch({ type: "USER_LOGOUT" });
         window.location.href = "/messenger/";
+    };
+
+    const handleDelete = async () => {
+        showBasicDialog(
+            {
+                allowButtonLabel: strings.yes,
+                denyButtonLabel: strings.cancel,
+                text: strings.deleteUserDescription,
+                title: strings.deleteUserQuestion,
+            },
+            () => {
+                remove(null)
+                    .unwrap()
+                    .then(() => {
+                        window.localStorage.removeItem(Constants.LSKEY_ACCESSTOKEN);
+                        window.localStorage.removeItem(Constants.LSKEY_DEVICEID);
+
+                        dispatch({ type: "USER_LOGOUT" });
+                        window.location.href = "/messenger/";
+                    });
+            }
+        );
+    };
+
+    const handleAllowNotifications = async () => {
+        const permission = await window.Notification?.requestPermission();
+        if (permission === "granted") {
+            const pushToken = await setupPushNotification();
+
+            if (pushToken && pushToken.length > 0) {
+                await updateDevice({ pushToken }).unwrap();
+                setPushNotificationsAllowed(true);
+            }
+        }
     };
 
     if (editingBlockedList) {
@@ -329,25 +377,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                 )}
             </Stack>
 
-            <Box p={2} mt={2}>
-                {localStorage.getItem(Constants.LSKEY_DISABLEPUSHALER) && (
-                    <>
-                        <Link
-                            component="button"
-                            align="left"
-                            fontWeight="bold"
-                            variant="h6"
-                            underline="none"
-                            onClick={() => {
-                                localStorage.removeItem(Constants.LSKEY_DISABLEPUSHALER);
-                                location.reload();
-                            }}
-                        >
-                            {strings.enableDesktopNotifications}
-                        </Link>
-                        <br />
-                    </>
-                )}
+            <Box display="grid" gap={1} p={2} mt={2}>
                 <Stack
                     direction="row"
                     spacing={1}
@@ -383,16 +413,86 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                     <ChevronRight />
                 </Stack>
 
-                <Link
-                    component="button"
-                    align="left"
-                    fontWeight="bold"
-                    variant="h6"
-                    underline="none"
-                    onClick={handleLogout}
+                <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                    component="a"
+                    href={Constants.TERMS_AND_CONDITIONS_URL}
+                    target="_blank"
+                    sx={{
+                        height: "40px",
+                        display: "flex",
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        width: "100%",
+                        cursor: "pointer",
+                        textDecoration: "none",
+                        color: "white",
+                        "&:visited": {
+                            color: "white",
+                        },
+                    }}
                 >
-                    {strings.logout}
-                </Link>
+                    <Box component="span">{strings.termsAndConditions}</Box>
+                    <ChevronRight />
+                </Stack>
+
+                {!pushNotificationsAllowed && (
+                    <Stack
+                        direction="row"
+                        alignItems="center"
+                        spacing={1}
+                        onClick={handleAllowNotifications}
+                        sx={{
+                            height: "40px",
+                            display: "flex",
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            width: "100%",
+                            cursor: "pointer",
+                        }}
+                    >
+                        <Box component="span">{strings.enableDesktopNotifications}</Box>
+                        <ChevronRight />
+                    </Stack>
+                )}
+
+                <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                    onClick={handleDelete}
+                    color="error.main"
+                    sx={{
+                        height: "40px",
+                        display: "flex",
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        width: "100%",
+                        cursor: "pointer",
+                    }}
+                >
+                    <Box component="span">{strings.deleteMyAccount}</Box>
+                </Stack>
+
+                <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                    onClick={handleLogout}
+                    sx={{
+                        height: "40px",
+                        display: "flex",
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        width: "100%",
+                        cursor: "pointer",
+                    }}
+                >
+                    <Box component="span">{strings.logout}</Box>
+                    <LogoutIcon />
+                </Stack>
             </Box>
             {editProfilePicture ? (
                 <EditPhotoDialog
