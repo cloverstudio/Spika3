@@ -11,15 +11,19 @@ export default function TextMessage({
     body,
     sender,
     deleted,
+    highlighted,
 }: {
     body: any;
     isUsersMessage: boolean;
     sender?: UserType;
     deleted?: boolean;
+    highlighted?: boolean;
 }) {
     const roomId = parseInt(useParams().id || "");
     const changeTerm = useSelector(selectChangeTerm({ text: filterText(body.text), roomId }));
-    const backgroundColor = deleted
+    const backgroundColor = highlighted
+        ? "#d7aa5a"
+        : deleted
         ? "background.transparent"
         : isUsersMessage
         ? "common.myMessageBackground"

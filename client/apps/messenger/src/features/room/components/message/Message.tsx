@@ -158,7 +158,6 @@ function Message({
                     )}
                     <Box
                         onMouseEnter={handleMouseEnter}
-                        border={highlighted ? "1px solid red" : ""}
                         sx={{
                             borderRadius: "0.3rem",
                             maxWidth: {
@@ -173,15 +172,16 @@ function Message({
                             id={id}
                             onImageMessageClick={handleImageMessageClick}
                             animate={animate}
+                            highlighted={highlighted}
                         />
                     </Box>
                     {shouldDisplayStatusIcons && <StatusIcon status={status} id={id} />}
                     {!isUsersMessage && (
-                    <DatePopover
-                        mouseOver={mouseOver}
+                        <DatePopover
+                            mouseOver={mouseOver}
                             isUsersMessage={isUsersMessage}
-                        createdAt={createdAt}
-                    />
+                            createdAt={createdAt}
+                        />
                     )}
                     <Menu
                         id={id}
@@ -244,10 +244,12 @@ function MessageBodyContainer({
     id,
     onImageMessageClick,
     animate,
+    highlighted,
 }: {
     id: number;
     onImageMessageClick: () => void;
     animate: boolean;
+    highlighted: boolean;
 }) {
     const roomId = parseInt(useParams().id || "");
     const user = useSelector(selectUser);
@@ -266,7 +268,7 @@ function MessageBodyContainer({
                 mountOnEnter
                 unmountOnExit
             >
-                <Box>
+                <Box border="1px solid red">
                     <MessageBody
                         body={body}
                         type={type}
@@ -275,6 +277,7 @@ function MessageBodyContainer({
                         onImageMessageClick={onImageMessageClick}
                         deleted={deleted}
                         progress={progress}
+                        highlighted={highlighted}
                     />
                 </Box>
             </Slide>
@@ -290,6 +293,7 @@ function MessageBodyContainer({
             onImageMessageClick={onImageMessageClick}
             deleted={deleted}
             progress={progress}
+            highlighted={highlighted}
         />
     );
 }
@@ -342,7 +346,6 @@ function Menu({ id, mouseOver, setMouseOver, setShowReactionMenu }: MenuProps) {
             iconConfig={contextMenuIcons}
             mouseOver={mouseOver}
             isUsersMessage={isUsersMessage}
-            handleClose={() => setMouseOver(false)}
             handleEmoticon={() => {
                 setShowReactionMenu(true);
                 setMouseOver(false);

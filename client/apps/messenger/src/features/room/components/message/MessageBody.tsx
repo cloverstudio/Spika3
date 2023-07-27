@@ -6,12 +6,11 @@ import AttachmentManager from "../../lib/AttachmentManager";
 import { deletedMessageText } from "../../lib/consts";
 import TextMessage from "./messageTypes/TextMessage";
 import ImageMessage from "./messageTypes/ImageMessage";
-import filterText from "../../lib/filterText";
 import VideoMessage from "./messageTypes/VideoMessage";
 import FileMessage from "./messageTypes/FileMessage";
 import { DOWNLOAD_URL } from "../../../../../../../lib/constants";
-import { useDispatch, useSelector } from "react-redux";
-import { selectChangeTerm, setTargetMessage } from "../../slices/messages";
+import { useDispatch } from "react-redux";
+import { setTargetMessage } from "../../slices/messages";
 
 type MessageBodyProps = {
     type: string;
@@ -21,6 +20,7 @@ type MessageBodyProps = {
     onImageMessageClick?: () => void;
     deleted: boolean;
     progress?: number;
+    highlighted: boolean;
 };
 
 export default function MessageBody({
@@ -31,6 +31,7 @@ export default function MessageBody({
     onImageMessageClick,
     deleted,
     progress,
+    highlighted,
 }: MessageBodyProps): React.ReactElement {
     if (deleted) {
         return (
@@ -38,6 +39,7 @@ export default function MessageBody({
                 body={{ text: deletedMessageText }}
                 deleted={deleted}
                 isUsersMessage={side === "right"}
+                highlighted={highlighted}
             />
         );
     }
@@ -50,13 +52,20 @@ export default function MessageBody({
                 type={type}
                 onImageMessageClick={onImageMessageClick}
                 progress={progress}
+                highlighted={highlighted}
             />
         );
     }
 
     switch (type) {
         case "text": {
-            return <TextMessage body={body} isUsersMessage={side === "right"} />;
+            return (
+                <TextMessage
+                    body={body}
+                    isUsersMessage={side === "right"}
+                    highlighted={highlighted}
+                />
+            );
         }
 
         case "image": {
@@ -67,6 +76,7 @@ export default function MessageBody({
                         isUsersMessage={side === "right"}
                         onClick={onImageMessageClick}
                         progress={progress}
+                        highlighted={highlighted}
                     />
                 </>
             );
@@ -80,6 +90,7 @@ export default function MessageBody({
                         body={body}
                         isUsersMessage={side === "right"}
                         progress={progress}
+                        highlighted={highlighted}
                     />
                 </>
             );
@@ -88,7 +99,11 @@ export default function MessageBody({
         case "audio": {
             return (
                 <>
-                    <AudioMessage body={body} isUsersMessage={side === "right"} />
+                    <AudioMessage
+                        body={body}
+                        isUsersMessage={side === "right"}
+                        highlighted={highlighted}
+                    />
                     {progress && <LinearProgress variant="determinate" value={progress} />}
                     {progress && progress === 100 && <Box>Verifying hash...</Box>}
                 </>
@@ -102,6 +117,7 @@ export default function MessageBody({
                         body={body}
                         isUsersMessage={side === "right"}
                         progress={progress}
+                        highlighted={highlighted}
                     />
                 </>
             );
@@ -109,7 +125,15 @@ export default function MessageBody({
     }
 }
 
-function AudioMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boolean }) {
+function AudioMessage({
+    body,
+    isUsersMessage,
+    highlighted,
+}: {
+    body: any;
+    isUsersMessage: boolean;
+    highlighted?: boolean;
+}) {
     const roomId = parseInt(useParams().id || "");
 
     if (!body.file && !body.uploadingFileName) {
@@ -126,14 +150,20 @@ function AudioMessage({ body, isUsersMessage }: { body: any; isUsersMessage: boo
 
     return (
         <>
-            {text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
+            {text && (
+                <TextMessage
+                    body={body}
+                    highlighted={highlighted}
+                    isUsersMessage={isUsersMessage}
+                />
+            )}
             <Box
                 component="audio"
                 controls
+                bgcolor={highlighted ? "#d7aa5a" : "transparent"}
                 borderRadius="0.625rem"
                 maxWidth="35rem"
-                height="5vh"
-                pb="0.8125"
+                p="2px"
             >
                 <source type={mimeType} src={src} />
             </Box>
@@ -147,12 +177,14 @@ function ReplyMessage({
     type,
     onImageMessageClick,
     progress,
+    highlighted,
 }: {
     body: any;
     isUsersMessage: boolean;
     type: string;
     onImageMessageClick?: () => void;
     progress?: number;
+    highlighted: boolean;
 }) {
     const roomId = parseInt(useParams().id || "");
     const { data: room } = useGetRoomQuery(roomId);
@@ -281,7 +313,13 @@ function ReplyMessage({
     const renderMessage = () => {
         switch (type) {
             case "text": {
-                return <TextMessage body={body} isUsersMessage={isUsersMessage} />;
+                return (
+                    <TextMessage
+                        highlighted={highlighted}
+                        body={body}
+                        isUsersMessage={isUsersMessage}
+                    />
+                );
             }
 
             case "image": {
@@ -292,6 +330,7 @@ function ReplyMessage({
                             isUsersMessage={isUsersMessage}
                             onClick={onImageMessageClick}
                             progress={progress}
+                            highlighted={highlighted}
                         />
                     </>
                 );
@@ -305,6 +344,7 @@ function ReplyMessage({
                             body={body}
                             isUsersMessage={isUsersMessage}
                             progress={progress}
+                            highlighted={highlighted}
                         />
                     </>
                 );
@@ -313,7 +353,11 @@ function ReplyMessage({
             case "audio": {
                 return (
                     <>
-                        <AudioMessage body={body} isUsersMessage={isUsersMessage} />
+                        <AudioMessage
+                            body={body}
+                            isUsersMessage={isUsersMessage}
+                            highlighted={highlighted}
+                        />
                         {progress && <LinearProgress variant="determinate" value={progress} />}
                         {progress && progress === 100 && <Box>Verifying hash...</Box>}
                     </>
@@ -327,6 +371,7 @@ function ReplyMessage({
                             body={body}
                             isUsersMessage={isUsersMessage}
                             progress={progress}
+                            highlighted={highlighted}
                         />
                     </>
                 );
@@ -344,7 +389,11 @@ function ReplyMessage({
             sx={{
                 minWidth: "50px",
                 maxWidth: "50rem",
-                backgroundColor: isUsersMessage ? "common.myMessageBackground" : "background.paper",
+                backgroundColor: highlighted
+                    ? "#d7aa5a"
+                    : isUsersMessage
+                    ? "common.myMessageBackground"
+                    : "background.paper",
                 borderRadius: "0.3rem",
                 padding: "0.4rem",
                 cursor: "pointer",

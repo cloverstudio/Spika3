@@ -14,6 +14,7 @@ type ImageMessageTypes = {
     isUsersMessage: boolean;
     onClick: () => void;
     progress?: number;
+    highlighted?: boolean;
 };
 
 export default function ImageMessage({
@@ -21,6 +22,7 @@ export default function ImageMessage({
     isUsersMessage,
     onClick,
     progress,
+    highlighted,
 }: ImageMessageTypes) {
     const roomId = parseInt(useParams().id || "");
     const [open, setOpen] = useState(false);
@@ -55,17 +57,24 @@ export default function ImageMessage({
 
     return (
         <>
-            {text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
-            <Box>
+            {text && (
+                <TextMessage
+                    body={body}
+                    highlighted={highlighted}
+                    isUsersMessage={isUsersMessage}
+                />
+            )}
+            <Box position="relative">
                 <Box
                     onClick={handleOpen}
+                    display="block"
                     component="img"
+                    border={highlighted ? "2px solid #d7aa5a" : "2px solid transparent"}
                     borderRadius="0.625rem"
                     maxWidth="256px"
                     height="10vh"
                     minHeight="128px"
                     src={imageIsGif ? imgSrc : thumbSrc}
-                    pb="0.8125"
                     draggable={false}
                     sx={{
                         cursor: "pointer",

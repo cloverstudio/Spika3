@@ -13,9 +13,15 @@ type FileMessageType = {
     body: any;
     isUsersMessage: boolean;
     progress?: number;
+    highlighted?: boolean;
 };
 
-export default function FileMessage({ body, isUsersMessage, progress }: FileMessageType) {
+export default function FileMessage({
+    body,
+    isUsersMessage,
+    progress,
+    highlighted,
+}: FileMessageType) {
     const roomId = parseInt(useParams().id || "");
     const isUploading = progress !== undefined && progress < 100;
     const isVerifying = progress !== undefined && progress === 100;
@@ -39,7 +45,13 @@ export default function FileMessage({ body, isUsersMessage, progress }: FileMess
     const Icon = getFileIcon(mimeType);
     return (
         <>
-            {text && <TextMessage body={body} isUsersMessage={isUsersMessage} />}
+            {text && (
+                <TextMessage
+                    highlighted={highlighted}
+                    body={body}
+                    isUsersMessage={isUsersMessage}
+                />
+            )}
             <Box
                 display="flex"
                 alignItems="center"
@@ -47,7 +59,13 @@ export default function FileMessage({ body, isUsersMessage, progress }: FileMess
                 maxWidth="35rem"
                 p="1.25rem"
                 gap="1.25rem"
-                bgcolor={isUsersMessage ? "common.myMessageBackground" : "background.paper"}
+                bgcolor={
+                    highlighted
+                        ? "#d7aa5a"
+                        : isUsersMessage
+                        ? "common.myMessageBackground"
+                        : "background.paper"
+                }
             >
                 <Icon fontSize="large" />
                 <Box overflow="hidden">

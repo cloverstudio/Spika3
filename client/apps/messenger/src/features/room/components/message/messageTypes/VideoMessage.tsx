@@ -16,6 +16,7 @@ type VideoMessageTypes = {
     isUsersMessage: boolean;
     onClick: () => void;
     progress?: number;
+    highlighted?: boolean;
 };
 
 export default function VideoMessage({
@@ -23,6 +24,7 @@ export default function VideoMessage({
     isUsersMessage,
     onClick,
     progress,
+    highlighted,
 }: VideoMessageTypes) {
     const roomId = parseInt(useParams().id || "");
     const [open, setOpen] = useState(false);
@@ -71,6 +73,8 @@ export default function VideoMessage({
                     maxWidth="256px"
                     height="10vh"
                     minHeight="128px"
+                    display="block"
+                    border={highlighted ? "2px solid #d7aa5a" : "2px solid transparent"}
                     src={thumbSrc || src}
                     pb="0.8125"
                     draggable={false}
