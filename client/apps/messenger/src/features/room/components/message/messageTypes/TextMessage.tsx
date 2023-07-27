@@ -30,6 +30,7 @@ export default function TextMessage({
         : "background.paper";
 
     const filteredText = changeTerm ? changeTerm.to : filterText(body.text);
+    const isEmoji = isSingleEmoji(filteredText);
 
     return (
         <Box
@@ -37,15 +38,15 @@ export default function TextMessage({
             sx={{
                 minWidth: "50px",
                 maxWidth: "100%",
-                backgroundColor: backgroundColor,
+                backgroundColor: isEmoji ? "transparent" : backgroundColor,
                 borderRadius: "0.3rem",
-                padding: "0.4rem",
+                padding: isEmoji ? "1rem 0.4rem" : "0.4rem",
                 cursor: "pointer",
                 color: deleted ? "text.tertiary" : "common.darkBlue",
-                lineHeight: "1.2rem",
+                lineHeight: isEmoji ? "3rem" : "1.2rem",
                 whiteSpace: "pre-wrap",
                 margin: "0px",
-                fontSize: "0.95rem",
+                fontSize: isEmoji ? "3rem" : "0.95rem",
                 border: deleted ? "1px solid #C9C9CA" : "none",
             }}
         >
@@ -60,4 +61,10 @@ export default function TextMessage({
             />
         </Box>
     );
+}
+
+function isSingleEmoji(text: string) {
+    const emojiRegex = /^[\u{1F000}-\u{1FFFF}\u{200D}\u{FE0F}]*$/u;
+
+    return emojiRegex.test(text);
 }
