@@ -36,7 +36,7 @@ export default function DatePopover({
         >
             <Typography
                 sx={{
-                    color: "common.white",
+                    color: "text.tertiary",
                     fontSize: "0.75em",
                     padding: "0 5px",
                 }}

@@ -204,6 +204,7 @@ function ReplyMessage({
                         body={replyMsgBody}
                         isUsersMessage={!isUsersMessage}
                         sender={sender}
+                        isReply={true}
                     />
                 );
             }
