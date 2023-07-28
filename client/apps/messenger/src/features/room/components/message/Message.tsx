@@ -268,7 +268,7 @@ function MessageBodyContainer({
                 mountOnEnter
                 unmountOnExit
             >
-                <Box border="1px solid red">
+                <Box>
                     <MessageBody
                         body={body}
                         type={type}
