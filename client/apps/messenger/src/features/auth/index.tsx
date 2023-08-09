@@ -33,7 +33,7 @@ export default function Auth(): React.ReactElement {
     const [errorMsg, setErrorMsg] = useState<string>("");
     const [sentCount, setSentCount] = useState<number>(0);
 
-    const timer = useCountdownTimer(60);
+    const timer = useCountdownTimer(120);
 
     useEffect(() => {
         setInfoMsg("");
