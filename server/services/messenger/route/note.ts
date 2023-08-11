@@ -127,7 +127,7 @@ export default ({}: InitRouterParams): Router => {
 
             const updated = await prisma.note.update({
                 where: { id },
-                data: { title, content },
+                data: { title: title, content: content, modifiedAt: new Date() },
             });
 
             res.send(successResponse({ note: sanitize(updated).note() }, userReq.lang));
