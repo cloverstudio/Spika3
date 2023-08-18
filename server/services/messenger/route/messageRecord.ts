@@ -159,10 +159,14 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 roomId: messageRecord.message.roomId,
             }).messageRecord();
 
-            /*  sseMessageRecordsNotify(
-                [messageRecordSanitized],
-                Constants.PUSH_TYPE_DELETED_MESSAGE_RECORD
-            ); */
+            const messageRecordsNotifyData = {
+                types: [messageRecord.type],
+                userId,
+                messageIds: [messageRecord.message.id],
+                pushType: Constants.PUSH_TYPE_DELETED_MESSAGE_RECORD,
+                justNotify: true,
+            };
+            sseMessageRecordsNotify(messageRecordsNotifyData);
 
             res.send(successResponse({ messageRecord: messageRecordSanitized }, userReq.lang));
         } catch (e: any) {
