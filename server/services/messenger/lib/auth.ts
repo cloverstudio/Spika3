@@ -95,3 +95,12 @@ export default async (
         res.status(500).send(`Server error ${e}`);
     }
 };
+
+export function isTester(phoneNumber: string): boolean {
+    if (process.env.TESTER_PHONE_NUMBERS != undefined) {
+        const testerNumbers = process.env.TESTER_PHONE_NUMBERS.split(",");
+        return testerNumbers.some((number: string) => number.trim() === phoneNumber);
+    } else {
+        return false;
+    }
+}

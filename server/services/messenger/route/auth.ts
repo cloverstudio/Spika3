@@ -14,7 +14,7 @@ import sanitize from "../../../components/sanitize";
 import prisma from "../../../components/prisma";
 import { handleNewUser } from "../../../components/agent";
 import { UserRequest } from "../lib/types";
-import auth from "../lib/auth";
+import auth, { isTester } from "../lib/auth";
 
 const authSchema = yup.object().shape({
     body: yup.object().shape({
@@ -72,10 +72,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     .send(errorResponse(`There is already phone number tied to this device`));
             }
 
-            const isTester = Constants.TESTER_PHONE_NUMBERS.includes(telephoneNumber);
-
             const verificationCode =
-                process.env.IS_TEST === "1" || isTester
+                process.env.IS_TEST === "1" || isTester(telephoneNumber)
                     ? Constants.BACKDOOR_VERIFICATION_CODE
                     : Utils.randomNumber(6);
 
