@@ -171,6 +171,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 });
             }
 
+            console.log("aaa");
+
             if (process.env.IS_TEST !== "1" && !isTester) {
                 const SMSPayload: SendSMSPayload = {
                     telephoneNumber,
