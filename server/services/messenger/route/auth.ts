@@ -171,11 +171,9 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 });
             }
 
-            console.log("aaa", process.env.IS_TEST, isTester);
+            console.log("aaa", process.env.IS_TEST, isTester(telephoneNumber));
 
-            if (process.env.IS_TEST !== "1" && !isTester) {
-                console.log("bbb");
-
+            if (process.env.IS_TEST !== "1" && !isTester(telephoneNumber)) {
                 const SMSPayload: SendSMSPayload = {
                     telephoneNumber,
                     content: verificationCodeSMS({ verificationCode, osName }),
