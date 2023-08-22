@@ -8,6 +8,8 @@ const client = require("twilio")(accountSid, authToken);
 
 class sendSMSWorker implements QueueWorkerInterface {
     async run(payload: SendSMSPayload) {
+        console.log("SMS queue get message");
+
         if (process.env.IS_TEST === "1") {
             return l("Ignore sending SMS");
         }
@@ -19,6 +21,7 @@ class sendSMSWorker implements QueueWorkerInterface {
                 to: payload.telephoneNumber,
             });
 
+            console.log(twilioResult);
             l("Twilio: ", twilioResult.body);
         } catch (error) {
             le("Twilio error: ", error);

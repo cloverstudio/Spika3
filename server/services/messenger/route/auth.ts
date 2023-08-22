@@ -177,6 +177,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     content: verificationCodeSMS({ verificationCode, osName }),
                 };
 
+                console.log("sent to queue");
                 rabbitMQChannel.sendToQueue(
                     Constants.QUEUE_SMS,
                     Buffer.from(JSON.stringify(SMSPayload))
