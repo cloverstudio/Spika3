@@ -237,7 +237,7 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
                                 >
                                     <TextField
                                         id="outlined-basic"
-                                        label="User name"
+                                        label={strings.groupName}
                                         variant="outlined"
                                         sx={{ width: "70%" }}
                                         value={proposedName}
@@ -286,6 +286,7 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
                     open={editGroupPicture}
                     onClose={closeEditPicture}
                     onConfirm={selectedEditAction}
+                    havePhoto={roomData.avatarFileId > 0}
                 />
             ) : null}
         </Box>

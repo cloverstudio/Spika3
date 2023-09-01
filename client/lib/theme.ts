@@ -48,7 +48,7 @@ const basePalette: PaletteOptions = {
 };
 
 const typography: TypographyVariantsOptions = {
-    fontFamily: `"Roboto" , sans-serif`,
+    fontFamily: `"Montserrat" , sans-serif`,
     fontSize: 14,
     fontWeightLight: 300,
     fontWeightRegular: 400,

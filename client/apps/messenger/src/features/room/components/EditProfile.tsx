@@ -428,9 +428,8 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                         width: "100%",
                         cursor: "pointer",
                         textDecoration: "none",
-                        color: "white",
                         "&:visited": {
-                            color: "white",
+                            color: "inherit",
                         },
                     }}
                 >
@@ -499,6 +498,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                     open={editProfilePicture}
                     onClose={closeEditPicture}
                     onConfirm={selectedEditAction}
+                    havePhoto={user.avatarFileId > 0}
                 />
             ) : null}
         </Box>
@@ -509,6 +509,7 @@ export interface EditPhotoDialogProps {
     open: boolean;
     onClose: () => void;
     onConfirm: (value: string) => void;
+    havePhoto: boolean;
 }
 
 export function EditPhotoDialog(props: EditPhotoDialogProps) {
@@ -566,6 +567,7 @@ export function EditPhotoDialog(props: EditPhotoDialogProps) {
                         <FormControlLabel
                             value="remove"
                             control={<Radio />}
+                            disabled={!props.havePhoto}
                             label={strings.removePhoto}
                         />
                     </RadioGroup>

@@ -27,7 +27,7 @@ const styles: Record<string, CSS.Properties> = {
         alignItems: "center",
         justifyContent: "center",
         color: "common.confCallFirstLetterColor",
-        fontFamily: "'Roboto', sans-serif",
+        fontFamily: "'Montserrat', sans-serif",
         fontWeight: "bold",
         backgroundColor: "common.videoBackground",
         fontSize: "72px",
