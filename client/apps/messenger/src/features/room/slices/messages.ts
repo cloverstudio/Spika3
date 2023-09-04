@@ -1073,7 +1073,7 @@ export const selectKeyword =
     };
 
 export const selectChangeTerm =
-    ({ roomId, text }: { roomId: number; text: string }) =>
+    ({ roomId, text, id }: { roomId: number; text: string; id?: number }) =>
     (state: RootState): { from: string; to: string } | null => {
         const room = state.messages[roomId];
 
@@ -1098,12 +1098,17 @@ export const selectChangeTerm =
         }
 
         const targetMessageText = targetMessage.body?.text;
+        const targetMessageId = targetMessage.id;
 
         if (!targetMessageText) {
             return null;
         }
 
-        const messageIsTargetMessage = filterText(targetMessageText) === text;
+        if (!id) {
+            return null;
+        }
+
+        const messageIsTargetMessage = id === targetMessageId;
 
         if (!messageIsTargetMessage) {
             return null;

@@ -23,7 +23,12 @@ import { toggleRightSidebar } from "../slices/rightSidebar";
 import { RoomType } from "../../../types/Rooms";
 import useStrings from "../../../hooks/useStrings";
 import { useLazySearchMessagesQuery } from "../api/message";
-import { selectTargetMessage, setKeyword, setTargetMessage } from "../slices/messages";
+import {
+    selectRoomMessages,
+    selectTargetMessage,
+    setKeyword,
+    setTargetMessage,
+} from "../slices/messages";
 import { Link } from "react-router-dom";
 
 export default function Header() {
@@ -122,6 +127,7 @@ function Search({ onClose }: { onClose: () => void }) {
     const currentTargetMessageIndex = results.indexOf(currentTargetMessageId);
     const ref = useRef<HTMLInputElement>(null);
     const [searchMessages, { isFetching, data }] = useLazySearchMessagesQuery();
+    const messages = useSelector(selectRoomMessages(roomId));
 
     const onSearch = (keyword: string) => {
         if (keyword?.length > 2) {
@@ -134,6 +140,14 @@ function Search({ onClose }: { onClose: () => void }) {
         }
     };
 
+    const currentMessagesLength = Object.keys(messages).length;
+
+    useEffect(() => {
+        if (keyword?.length > 2 && currentMessagesLength > 0) {
+            onSearch(keyword);
+        }
+    }, [currentMessagesLength, keyword]);
+
     const handleChangeKeyword = (keyword: string) => {
         dispatch(setKeyword({ roomId, keyword }));
         setLocalKeyword(keyword);
@@ -142,11 +156,13 @@ function Search({ onClose }: { onClose: () => void }) {
     useEffect(() => {
         if (data && data.messagesIds?.length > 0) {
             setResults(data.messagesIds);
-            dispatch(setTargetMessage({ roomId, messageId: data.messagesIds[0] }));
+            if (currentTargetMessageIndex === -1 && keyword.length > 2) {
+                dispatch(setTargetMessage({ roomId, messageId: data.messagesIds[0] }));
+            }
         } else {
             setResults([]);
         }
-    }, [data, dispatch, roomId]);
+    }, [data, dispatch, roomId, currentTargetMessageIndex, keyword]);
 
     useEffect(() => {
         if (ref?.current) {

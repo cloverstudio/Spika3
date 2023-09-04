@@ -13,6 +13,7 @@ export default function TextMessage({
     deleted,
     highlighted,
     isReply,
+    id,
 }: {
     body: any;
     isUsersMessage: boolean;
@@ -20,9 +21,10 @@ export default function TextMessage({
     deleted?: boolean;
     highlighted?: boolean;
     isReply?: boolean;
+    id?: number;
 }) {
     const roomId = parseInt(useParams().id || "");
-    const changeTerm = useSelector(selectChangeTerm({ text: filterText(body.text), roomId }));
+    const changeTerm = useSelector(selectChangeTerm({ text: filterText(body.text), roomId, id }));
     const backgroundColor = highlighted
         ? "#d7aa5a"
         : deleted

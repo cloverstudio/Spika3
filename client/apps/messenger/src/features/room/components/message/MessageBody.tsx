@@ -13,6 +13,7 @@ import { useDispatch } from "react-redux";
 import { setTargetMessage } from "../../slices/messages";
 
 type MessageBodyProps = {
+    id: number;
     type: string;
     body: any;
     side: "left" | "right";
@@ -32,6 +33,7 @@ export default function MessageBody({
     deleted,
     progress,
     highlighted,
+    id,
 }: MessageBodyProps): React.ReactElement {
     if (deleted) {
         return (
@@ -40,6 +42,7 @@ export default function MessageBody({
                 deleted={deleted}
                 isUsersMessage={side === "right"}
                 highlighted={highlighted}
+                id={id}
             />
         );
     }
@@ -53,6 +56,7 @@ export default function MessageBody({
                 onImageMessageClick={onImageMessageClick}
                 progress={progress}
                 highlighted={highlighted}
+                id={id}
             />
         );
     }
@@ -64,6 +68,7 @@ export default function MessageBody({
                     body={body}
                     isUsersMessage={side === "right"}
                     highlighted={highlighted}
+                    id={id}
                 />
             );
         }
@@ -178,6 +183,7 @@ function ReplyMessage({
     onImageMessageClick,
     progress,
     highlighted,
+    id,
 }: {
     body: any;
     isUsersMessage: boolean;
@@ -185,6 +191,7 @@ function ReplyMessage({
     onImageMessageClick?: () => void;
     progress?: number;
     highlighted: boolean;
+    id: number;
 }) {
     const roomId = parseInt(useParams().id || "");
     const { data: room } = useGetRoomQuery(roomId);
@@ -319,6 +326,7 @@ function ReplyMessage({
                         highlighted={highlighted}
                         body={body}
                         isUsersMessage={isUsersMessage}
+                        id={id}
                     />
                 );
             }

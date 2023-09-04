@@ -278,6 +278,7 @@ function MessageBodyContainer({
                         deleted={deleted}
                         progress={progress}
                         highlighted={highlighted}
+                        id={id}
                     />
                 </Box>
             </Slide>
@@ -294,6 +295,7 @@ function MessageBodyContainer({
             deleted={deleted}
             progress={progress}
             highlighted={highlighted}
+            id={id}
         />
     );
 }
