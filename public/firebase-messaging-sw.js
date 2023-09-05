@@ -71,10 +71,10 @@ self.addEventListener('notificationclick', (event) => {
     type: "window"
   }).then((clientList) => {
     for (const client of clientList) {
-      if (client.url.includes(`/messenger/rooms/${event.notification.data.roomId}`) && 'focus' in client)
+      if (client.url.includes(`/messenger/rooms/${event.notification.tag}`) && 'focus' in client)
         return client.focus();
     }
     if (clients.openWindow)
-      return clients.openWindow(`/messenger/rooms/${event.notification.data.roomId}`);
+      return clients.openWindow(`/messenger/rooms/${event.notification.tag}`);
   }));
 });
