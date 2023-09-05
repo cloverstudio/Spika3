@@ -127,7 +127,6 @@ export default function ImageMessage({
                             component="a"
                             href={imgSrc}
                             target="_blank"
-                            download
                             sx={{ display: "block", color: "white" }}
                         >
                             <DownloadIcon fontSize="large" />

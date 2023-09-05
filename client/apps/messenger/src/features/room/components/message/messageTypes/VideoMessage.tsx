@@ -141,7 +141,6 @@ export default function VideoMessage({
                             component="a"
                             href={src}
                             target="_blank"
-                            download
                             sx={{ display: "block", color: "white" }}
                         >
                             <DownloadIcon fontSize="large" />
