@@ -17,7 +17,6 @@ export default ({ redisClient }: InitRouterParams): Router => {
     router.get("/", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         const userId = userReq.user.id;
-        const deviceId = userReq.device.id;
         const page = parseInt(req.query.page ? (req.query.page as string) : "") || 1;
         const keyword = req.query.keyword as string;
         try {
@@ -155,7 +154,7 @@ export default ({ redisClient }: InitRouterParams): Router => {
             });
 
             const deviceMessages = await prisma.deviceMessage.findMany({
-                where: { userId, deviceId, messageId: { in: messages.map((m) => m.id) } },
+                where: { userId, messageId: { in: messages.map((m) => m.id) } },
                 select: {
                     messageId: true,
                     body: true,
