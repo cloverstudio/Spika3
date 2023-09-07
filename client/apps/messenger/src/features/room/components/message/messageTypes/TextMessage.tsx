@@ -14,6 +14,7 @@ export default function TextMessage({
     highlighted,
     isReply,
     id,
+    showBoxShadow = true,
 }: {
     body: any;
     isUsersMessage: boolean;
@@ -22,6 +23,7 @@ export default function TextMessage({
     highlighted?: boolean;
     isReply?: boolean;
     id?: number;
+    showBoxShadow?: boolean;
 }) {
     const roomId = parseInt(useParams().id || "");
     const changeTerm = useSelector(selectChangeTerm({ text: filterText(body.text), roomId, id }));
@@ -43,7 +45,7 @@ export default function TextMessage({
                 minWidth: "50px",
                 maxWidth: "100%",
                 backgroundColor: isEmoji ? "transparent" : backgroundColor,
-                borderRadius: "0.3rem",
+                borderRadius: "10px",
                 padding: isEmoji ? "1rem 0.4rem" : "0.4rem",
                 cursor: "pointer",
                 color: deleted ? "text.tertiary" : "common.darkBlue",
@@ -52,6 +54,7 @@ export default function TextMessage({
                 margin: "0px",
                 fontSize: isEmoji ? "3rem" : "0.95rem",
                 border: deleted ? "1px solid #C9C9CA" : "none",
+                ...(showBoxShadow && !isEmoji && { boxShadow: "0 2px 5px 0 rgba(0, 0, 0, 0.15)" }),
             }}
         >
             {sender && (

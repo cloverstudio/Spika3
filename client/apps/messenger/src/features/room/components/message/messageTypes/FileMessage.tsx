@@ -66,6 +66,7 @@ export default function FileMessage({
                         ? "common.myMessageBackground"
                         : "background.paper"
                 }
+                boxShadow="0 2px 5px 0 rgba(0, 0, 0, 0.15)"
             >
                 <Icon fontSize="large" />
                 <Box overflow="hidden">

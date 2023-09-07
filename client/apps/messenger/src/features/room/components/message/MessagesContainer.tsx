@@ -1,5 +1,5 @@
 import { Box, CircularProgress } from "@mui/material";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { useGetRoomQuery } from "../../api/room";
@@ -15,6 +15,7 @@ import {
     selectTargetMessage,
 } from "../../slices/messages";
 import NewMessageAlert from "./NewMessageAlert";
+import { ThemeContext } from "../../../../theme";
 
 export default function MessagesContainer({
     children,
@@ -29,6 +30,8 @@ export default function MessagesContainer({
     const canLoadMore = useSelector(canLoadMoreMessages(roomId));
     const cursor = useSelector(selectCursor(roomId));
     const dispatch = useDispatch();
+
+    const { theme } = useContext(ThemeContext);
 
     const messagesLengthRef = useRef(0);
     const ref = useRef<HTMLDivElement>();
@@ -216,7 +219,10 @@ export default function MessagesContainer({
             flexDirection="column"
             justifyContent="end"
             position="relative"
-            sx={{ overflowY: "hidden" }}
+            sx={{
+                overflowY: "hidden",
+                backgroundColor: theme === "light" ? "#F9F9F9" : "#282828",
+            }}
         >
             {(initialLoading || loading || roomIsLoading) && (
                 <Box

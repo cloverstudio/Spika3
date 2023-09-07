@@ -176,7 +176,7 @@ export const lightTheme = createTheme({
         },
         background: {
             default: "#fff",
-            paper: "#f0f0f0",
+            paper: "#F2F2F2",
         },
         action: {
             disabled: "#fff",
@@ -191,7 +191,7 @@ export const lightTheme = createTheme({
         },
         common: {
             myMessageBackground: "#C8EBFE",
-            otherMessageBackground: "#f0f0f0",
+            otherMessageBackground: "#F2F2F2",
             disabledBackground: "rgba(256,256,256,0.65)",
         },
     },
@@ -208,7 +208,7 @@ export const darkTheme = createTheme({
         },
         background: {
             default: "#202020",
-            paper: "#404040",
+            paper: "#3D3D3D",
         },
         action: {
             disabled: "#222",
@@ -222,8 +222,8 @@ export const darkTheme = createTheme({
             navigation: "#fff",
         },
         common: {
-            otherMessageBackground: "#303030",
-            myMessageBackground: "#303040",
+            otherMessageBackground: "#3D3D3D",
+            myMessageBackground: "#0078FF",
             disabledBackground: "rgba(0,0,0,0.65)",
         },
     },
