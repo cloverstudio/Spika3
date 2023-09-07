@@ -139,7 +139,7 @@ export const leftSidebarSlice = createSlice({
                 const exists = roomsIds.includes(payload.roomId);
 
                 if (!exists && !keyword) {
-                    state.history.list = [...state.history.list, payload];
+                    state.history.list = [payload, ...state.history.list];
                 } else {
                     state.history.list = state.history.list.map((item) => {
                         const id = item.roomId;

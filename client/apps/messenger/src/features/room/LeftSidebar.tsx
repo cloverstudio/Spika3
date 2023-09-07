@@ -23,6 +23,8 @@ import useStrings from "../../hooks/useStrings";
 import SelectedMembers from "./components/SelectedMembers";
 import getFileType from "./lib/getFileType";
 import FileUploader from "../../utils/FileUploader";
+import { refreshHistory } from "./slices/leftSidebar";
+import { useDispatch } from "react-redux";
 
 export default function LeftSidebar(): React.ReactElement {
     const [sidebar, setSidebar] = useState("");
@@ -68,6 +70,7 @@ function LeftSidebarNewGroup({
     const [name, setName] = useState("");
     const [file, setFile] = useState<File>();
     const uploadFileRef = React.useRef(null);
+    const dispatch = useDispatch();
 
     const [createRoom] = useCreateRoomMutation();
     const navigate = useNavigate();
@@ -132,6 +135,7 @@ function LeftSidebarNewGroup({
 
                 if (res && res.room?.id) {
                     setSidebar("");
+                    dispatch(refreshHistory(res.room.id));
                     navigate(`/rooms/${res.room.id}`);
                 }
             } catch (error) {

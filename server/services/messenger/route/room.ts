@@ -186,6 +186,20 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 unreadCount: 0,
             }).room();
 
+            if (room.type === "group") {
+                // create fake message so group room can be shown in chat list
+                await prisma.message.create({
+                    data: {
+                        type: "text",
+                        roomId: room.id,
+                        fromUserId: userReq.user.id,
+                        totalUserCount: users.length,
+                        deliveredCount: 0,
+                        seenCount: 0,
+                    },
+                });
+            }
+
             res.send(
                 successResponse(
                     {
