@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Dispatch } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Avatar from "@mui/material/Avatar";
 import { Box } from "@mui/material";
@@ -51,7 +51,7 @@ const navigation: NavigationType[] = [
 export default function LeftSidebarHome({
     setSidebar,
 }: {
-    setSidebar: (s: string) => void;
+    setSidebar: Dispatch<React.SetStateAction<string>>;
 }): React.ReactElement {
     const dispatch = useDispatch();
     const activeTab = useSelector(selectActiveTab);
@@ -68,83 +68,144 @@ export default function LeftSidebarHome({
     const setOpenEditor = () => dispatch(setOpenEditProfile(!profileEditingOpen));
     const closeEditor = () => dispatch(setOpenEditProfile(false));
     const ActiveElement = navigation.find((n) => n.name === activeTab)?.Element;
+    const generalLayout = !isMobile
+        ? { display: "flex", height: "100vh" }
+        : { display: "flex", flexDirection: "column", height: "100vh" };
+    const userSettingsAndMessageLayout = !isMobile
+        ? {
+              display: "flex",
+              flexDirection: "column",
+              width: "80px",
+              justifyContent: "space-between",
+              backgroundColor: theme.palette.mode === "light" ? "#F9F9F9" : "#282828",
+              alignItems: "center",
+          }
+        : { display: "flex", height: "80px", justifyContent: "space-between" };
+
+    const settingsBoxProps = !isMobile ? {} : { display: "flex", gap: 2, alignItems: "center" };
 
     return (
         <LeftSidebarLayout>
             {profileEditingOpen ? (
                 <EditProfileView user={userData?.user} onClose={closeEditor} />
             ) : (
-                <>
+                <Box sx={{ ...generalLayout }}>
                     <Box
-                        px={2.5}
+                        px={isMobile ? 2.5 : 0}
                         mb={isMobile ? 2 : 0}
                         borderBottom="0.5px solid"
                         sx={{ borderColor: "divider" }}
                     >
-                        <Box display="flex" height="80px" justifyContent="space-between">
-                            <Box
-                                component={Link}
-                                to="/app"
-                                display="flex"
-                                flexDirection="column"
-                                justifyContent="center"
-                                sx={{ userSelect: "none" }}
-                            >
-                                <img width="40px" height="40px" src={logo} />
-                            </Box>
-                            <Box display="flex" gap={2} alignItems="center">
-                                <Box>
-                                    <Avatar
-                                        alt={userData?.user.displayName}
-                                        src={`${UPLOADS_BASE_URL}/${userData?.user.avatarFileId}`}
+                        <Box sx={{ ...userSettingsAndMessageLayout }}>
+                            {isMobile && (
+                                <Box
+                                    component={Link}
+                                    to="/app"
+                                    display="flex"
+                                    flexDirection="column"
+                                    justifyContent="center"
+                                    sx={{ userSelect: "none" }}
+                                >
+                                    <img width="40px" height="40px" src={logo} />
+                                </Box>
+                            )}
+                            {isMobile ? (
+                                <Box sx={{ ...settingsBoxProps }}>
+                                    <Box>
+                                        <Avatar
+                                            alt={userData?.user.displayName}
+                                            src={`${UPLOADS_BASE_URL}/${userData?.user.avatarFileId}`}
+                                        />
+                                    </Box>
+                                    <Box>
+                                        <IconButton onClick={() => setOpenEditor()}>
+                                            <Settings
+                                                fontSize="large"
+                                                sx={{
+                                                    width: "25px",
+                                                    height: "25px",
+                                                    color: "text.navigation",
+                                                    cursor: "pointer",
+                                                }}
+                                            />
+                                        </IconButton>
+                                    </Box>
+                                    <Box>
+                                        <IconButton onClick={() => setSidebar("new_chat")}>
+                                            <Add
+                                                fontSize="large"
+                                                sx={{
+                                                    width: "25px",
+                                                    height: "25px",
+                                                    color: "text.navigation",
+                                                    cursor: "pointer",
+                                                }}
+                                            />
+                                        </IconButton>
+                                    </Box>
+                                </Box>
+                            ) : (
+                                <Box
+                                    display="flex"
+                                    flexDirection="column"
+                                    justifyContent="space-between"
+                                    alignContent="center"
+                                    height="100vh"
+                                >
+                                    <Box
+                                        display="flex"
+                                        justifyContent="space-between"
+                                        flexDirection="column"
+                                        mt="24px"
+                                        gap="24px"
+                                    >
+                                        {navigation.map((item) => (
+                                            <ActionIcon
+                                                key={item.name}
+                                                Icon={item.icon}
+                                                handleClick={() => handleChangeTab(item.name)}
+                                                isActive={activeTab === item.name}
+                                                isChat={item.name === "chat"}
+                                            />
+                                        ))}
+                                    </Box>
+                                    <Box mb="24px">
+                                        <Avatar
+                                            sx={{
+                                                width: "52px",
+                                                height: "52px",
+                                                cursor: "pointer",
+                                            }}
+                                            alt={userData?.user.displayName}
+                                            src={`${UPLOADS_BASE_URL}/${userData?.user.avatarFileId}`}
+                                            onClick={() => setOpenEditor()}
+                                        />
+                                    </Box>
+                                </Box>
+                            )}
+                        </Box>
+                    </Box>
+
+                    {isMobile && (
+                        <Box order={1} px={5} pt={2} pb={3}>
+                            <Box display="flex" justifyContent="space-between">
+                                {navigation.map((item) => (
+                                    <ActionIcon
+                                        key={item.name}
+                                        Icon={item.icon}
+                                        handleClick={() => handleChangeTab(item.name)}
+                                        isActive={activeTab === item.name}
+                                        isChat={item.name === "chat"}
                                     />
-                                </Box>
-                                <Box>
-                                    <IconButton onClick={() => setOpenEditor()}>
-                                        <Settings
-                                            fontSize="large"
-                                            sx={{
-                                                width: "25px",
-                                                height: "25px",
-                                                color: "text.navigation",
-                                                cursor: "pointer",
-                                            }}
-                                        />
-                                    </IconButton>
-                                </Box>
-                                <Box>
-                                    <IconButton onClick={() => setSidebar("new_chat")}>
-                                        <Add
-                                            fontSize="large"
-                                            sx={{
-                                                width: "25px",
-                                                height: "25px",
-                                                color: "text.navigation",
-                                                cursor: "pointer",
-                                            }}
-                                        />
-                                    </IconButton>
-                                </Box>
+                                ))}
                             </Box>
                         </Box>
+                    )}
+
+                    <Box flex={1} overflow="hidden" pt={!isMobile && "16px"} pb="16px">
+                        <ActiveElement isMobile={isMobile} setSidebar={setSidebar} />
                     </Box>
-                    <Box order={isMobile ? 2 : 0} px={5} pt={2} pb={3}>
-                        <Box display="flex" justifyContent="space-between">
-                            {navigation.map((item) => (
-                                <ActionIcon
-                                    key={item.name}
-                                    Icon={item.icon}
-                                    handleClick={() => handleChangeTab(item.name)}
-                                    isActive={activeTab === item.name}
-                                    isChat={item.name === "chat"}
-                                />
-                            ))}
-                        </Box>
-                    </Box>
-                    <Box flex={1} overflow="hidden">
-                        <ActiveElement />
-                    </Box>
-                </>
+                </Box>
             )}
         </LeftSidebarLayout>
     );

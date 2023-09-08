@@ -78,8 +78,8 @@ export default function Home(): React.ReactElement {
                 sx={{
                     gridTemplateColumns: {
                         xs: "1fr",
-                        md: rightSidebarOpen ? "360px 4fr 360px" : "360px 2fr",
-                        xl: rightSidebarOpen ? "360px 3fr 640px" : "360px 4fr",
+                        md: rightSidebarOpen ? "500px 4fr 360px" : "500px 2fr",
+                        xl: rightSidebarOpen ? "500px 3fr 640px" : "500px 4fr",
                     },
                 }}
             >
