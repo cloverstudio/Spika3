@@ -19,7 +19,7 @@ const postMessageRecordSchema = yup.object().shape({
     body: yup.object().shape({
         messageId: yup.number().strict().min(1).required(),
         type: yup.string().strict().required(),
-        reaction: yup.string().strict(),
+        reaction: yup.string().strict().required(),
     }),
 });
 
@@ -40,17 +40,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 const reaction = req.body.reaction;
                 const userId = userReq.user.id;
 
-                if (!Constants.MESSAGE_RECORD_VALID_TYPES.includes(type)) {
-                    return res
-                        .status(400)
-                        .send(
-                            errorResponse(
-                                `Invalid type, allowed: ${Constants.MESSAGE_RECORD_VALID_TYPES.join(
-                                    ","
-                                )}`,
-                                userReq.lang
-                            )
-                        );
+                if (type !== "reaction") {
+                    return res.status(400).send(errorResponse("Invalid mr type", userReq.lang));
                 }
 
                 const message = await prisma.message.findUnique({
@@ -67,45 +58,36 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     return res.status(403).send(errorResponse("Room is blocked", userReq.lang));
                 }
 
-                if (type === "reaction" && !reaction) {
-                    return res
-                        .status(400)
-                        .send(
-                            errorResponse(
-                                "reaction field is required when type='reaction'",
-                                userReq.lang
-                            )
-                        );
-                }
+                let messageRecord;
 
-                if (type === "reaction") {
-                    // delete previous reaction
-                    await prisma.messageRecord.deleteMany({
-                        where: {
-                            messageId,
-                            type,
-                            userId,
-                        },
-                    });
-                }
-
-                const messageRecord = await prisma.messageRecord.create({
-                    data: {
+                const currentReaction = await prisma.messageRecord.findFirst({
+                    where: {
                         messageId,
                         type,
                         userId,
-                        ...(type === "reaction" && { reaction }),
                     },
                 });
 
-                if (["delivered", "seen"].includes(type)) {
-                    await prisma.message.update({
-                        where: { id: messageId },
+                if (currentReaction) {
+                    await prisma.messageRecord.update({
+                        where: { id: currentReaction.id },
                         data: {
-                            ...(type === "seen" && { seenCount: { increment: 1 } }),
-                            ...(type === "delivered" && {
-                                deliveredCount: { increment: 1 },
-                            }),
+                            reaction,
+                            modifiedAt: new Date(),
+                            isDeleted: false,
+                        },
+                    });
+
+                    messageRecord = await prisma.messageRecord.findUnique({
+                        where: { id: currentReaction.id },
+                    });
+                } else {
+                    messageRecord = await prisma.messageRecord.create({
+                        data: {
+                            messageId,
+                            type,
+                            userId,
+                            reaction,
                         },
                     });
                 }
@@ -152,10 +134,26 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
-            await prisma.messageRecord.delete({ where: { id } });
+            if (messageRecord.type !== "reaction") {
+                return res
+                    .status(404)
+                    .send(errorResponse("Only reactions can be deleted", userReq.lang));
+            }
+
+            const updatedFields = {
+                isDeleted: true,
+                reaction: "Deleted reaction",
+                modifiedAt: new Date(),
+            };
+
+            await prisma.messageRecord.update({
+                where: { id },
+                data: updatedFields,
+            });
 
             const messageRecordSanitized = sanitize({
                 ...messageRecord,
+                ...updatedFields,
                 roomId: messageRecord.message.roomId,
             }).messageRecord();
 
@@ -199,24 +197,24 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             const messageRecords = await prisma.messageRecord.findMany({
                 where: {
-                    createdAt: { gt: new Date(lastUpdate) },
+                    modifiedAt: { gt: new Date(lastUpdate) },
                     message: {
                         roomId: { in: roomsIds },
-                        createdAt: { gte: userReq.device.createdAt },
+                        modifiedAt: { gte: userReq.device.createdAt },
                     },
                 },
                 take: Constants.SYNC_LIMIT,
                 skip: (page - 1) * Constants.SYNC_LIMIT,
                 include: { message: true },
-                orderBy: { createdAt: "asc" },
+                orderBy: { modifiedAt: "asc" },
             });
 
             const count = await prisma.messageRecord.count({
                 where: {
-                    createdAt: { gt: new Date(lastUpdate) },
+                    modifiedAt: { gt: new Date(lastUpdate) },
                     message: {
                         roomId: { in: roomsIds },
-                        createdAt: { gte: userReq.device.createdAt },
+                        modifiedAt: { gte: userReq.device.createdAt },
                     },
                 },
             });

@@ -180,15 +180,28 @@ export default function sanitize(data: any): sanitizeTypes {
                 deleted,
                 messageRecords: messageRecords
                     .filter((m) => m.type === "reaction")
-                    .map(({ id, type, messageId, userId, createdAt, reaction }) => ({
-                        id,
-                        type,
-                        messageId,
-                        userId,
-                        reaction,
-                        roomId,
-                        createdAt: +new Date(createdAt),
-                    })),
+                    .map(
+                        ({
+                            id,
+                            type,
+                            messageId,
+                            userId,
+                            createdAt,
+                            modifiedAt,
+                            reaction,
+                            isDeleted,
+                        }) => ({
+                            id,
+                            type,
+                            messageId,
+                            userId,
+                            reaction,
+                            roomId,
+                            createdAt: +new Date(createdAt),
+                            isDeleted,
+                            modifiedAt: +new Date(modifiedAt),
+                        })
+                    ),
                 replyId,
             };
         },
@@ -220,8 +233,17 @@ export default function sanitize(data: any): sanitizeTypes {
             };
         },
         messageRecord: () => {
-            const { id, type, messageId, userId, createdAt, reaction, roomId } =
-                data as MessageRecord & { roomId?: number };
+            const {
+                id,
+                type,
+                messageId,
+                userId,
+                createdAt,
+                reaction,
+                roomId,
+                modifiedAt,
+                isDeleted,
+            } = data as MessageRecord & { roomId?: number };
 
             return {
                 id,
@@ -231,11 +253,23 @@ export default function sanitize(data: any): sanitizeTypes {
                 reaction,
                 roomId,
                 createdAt: +new Date(createdAt),
+                isDeleted,
+                modifiedAt: +new Date(modifiedAt),
             };
         },
         messageRecordWithMessage: () => {
-            const { id, type, messageId, userId, createdAt, reaction, roomId, message } =
-                data as MessageRecord & { roomId?: number; message: SanitizedMessageType };
+            const {
+                id,
+                type,
+                messageId,
+                userId,
+                createdAt,
+                reaction,
+                roomId,
+                message,
+                modifiedAt,
+                isDeleted,
+            } = data as MessageRecord & { roomId?: number; message: SanitizedMessageType };
 
             return {
                 id,
@@ -246,6 +280,8 @@ export default function sanitize(data: any): sanitizeTypes {
                 roomId,
                 createdAt: +new Date(createdAt),
                 message,
+                isDeleted,
+                modifiedAt: +new Date(modifiedAt),
             };
         },
         note: () => {
@@ -310,7 +346,7 @@ function sanitizeUser({
     createdAt,
     modifiedAt,
     isBot,
-    deleted
+    deleted,
 }: Partial<User>): SanitizedUserType {
     return {
         id,
@@ -323,7 +359,7 @@ function sanitizeUser({
         createdAt: +new Date(createdAt),
         modifiedAt: +new Date(modifiedAt),
         isBot,
-        deleted
+        deleted,
     };
 }
 

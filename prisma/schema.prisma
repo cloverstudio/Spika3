@@ -200,6 +200,8 @@ model MessageRecord {
   createdAt  DateTime @default(now()) @map(name: "created_at")
   modifiedAt DateTime @default(now()) @map(name: "modified_at")
 
+  isDeleted Boolean @default(false) @map(name: "deleted")
+
   @@unique([messageId, userId, type], name: "messageId_userId_type_unique_constraint")
   @@map(name: "message_record")
 }
