@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useMemo } from "react";
+import React, { memo, useContext, useEffect, useMemo } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import dayjs from "dayjs";
@@ -22,6 +22,7 @@ import {
 import Message from "./Message";
 import MessagesContainer from "./MessagesContainer";
 import MessageType from "../../../../types/Message";
+import { ThemeContext } from "../../../../theme";
 
 const Date = memo(function Date({ day }: { day: string }) {
     return (
@@ -47,6 +48,10 @@ export default function MessagesList(): React.ReactElement {
     const cursor = useSelector(selectCursor(roomId));
     const shouldDisplayBlockButton = useSelector(selectShouldDisplayBlockButton(roomId));
     const otherUserId = useSelector(selectOtherUserIdInPrivateRoom(roomId));
+
+    const { theme } = useContext(ThemeContext);
+
+    const bgColor = theme === "light" ? "#F9F9F9" : "#282828";
 
     const messagesSorted = useMemo(() => {
         const sorted = Object.values(messages).sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1));
@@ -111,7 +116,7 @@ export default function MessagesList(): React.ReactElement {
 
     return (
         <>
-            <MessagesContainer>
+            <MessagesContainer bgColor={bgColor}>
                 {Object.entries(messagesSorted).map(([day, messages], dayIndex) => {
                     const isLastDay = dayIndex === Object.keys(messagesSorted).length - 1;
                     return (
@@ -138,7 +143,7 @@ export default function MessagesList(): React.ReactElement {
             </MessagesContainer>
 
             {shouldDisplayBlockButton && (
-                <Box textAlign="center" my={2}>
+                <Box textAlign="center" py={2} bgcolor={bgColor}>
                     <Button
                         color="error"
                         sx={{ bgcolor: "common.chatBackground" }}

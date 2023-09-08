@@ -15,12 +15,13 @@ import {
     selectTargetMessage,
 } from "../../slices/messages";
 import NewMessageAlert from "./NewMessageAlert";
-import { ThemeContext } from "../../../../theme";
 
 export default function MessagesContainer({
     children,
+    bgColor,
 }: {
     children: React.ReactNode;
+    bgColor: string;
 }): React.ReactElement {
     const roomId = parseInt(useParams().id || "");
     const targetMessageId = useSelector(selectTargetMessage(roomId));
@@ -30,8 +31,6 @@ export default function MessagesContainer({
     const canLoadMore = useSelector(canLoadMoreMessages(roomId));
     const cursor = useSelector(selectCursor(roomId));
     const dispatch = useDispatch();
-
-    const { theme } = useContext(ThemeContext);
 
     const messagesLengthRef = useRef(0);
     const ref = useRef<HTMLDivElement>();
@@ -221,7 +220,7 @@ export default function MessagesContainer({
             position="relative"
             sx={{
                 overflowY: "hidden",
-                backgroundColor: theme === "light" ? "#F9F9F9" : "#282828",
+                backgroundColor: bgColor,
             }}
         >
             {(initialLoading || loading || roomIsLoading) && (
