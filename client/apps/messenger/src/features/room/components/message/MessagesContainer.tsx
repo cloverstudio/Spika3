@@ -1,5 +1,5 @@
 import { Box, CircularProgress } from "@mui/material";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { useGetRoomQuery } from "../../api/room";
@@ -18,8 +18,10 @@ import NewMessageAlert from "./NewMessageAlert";
 
 export default function MessagesContainer({
     children,
+    bgColor,
 }: {
     children: React.ReactNode;
+    bgColor: string;
 }): React.ReactElement {
     const roomId = parseInt(useParams().id || "");
     const targetMessageId = useSelector(selectTargetMessage(roomId));
@@ -216,7 +218,10 @@ export default function MessagesContainer({
             flexDirection="column"
             justifyContent="end"
             position="relative"
-            sx={{ overflowY: "hidden" }}
+            sx={{
+                overflowY: "hidden",
+                backgroundColor: bgColor,
+            }}
         >
             {(initialLoading || loading || roomIsLoading) && (
                 <Box

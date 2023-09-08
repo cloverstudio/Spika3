@@ -327,6 +327,7 @@ function ReplyMessage({
                         body={body}
                         isUsersMessage={isUsersMessage}
                         id={id}
+                        showBoxShadow={false}
                     />
                 );
             }
@@ -403,7 +404,8 @@ function ReplyMessage({
                     : isUsersMessage
                     ? "common.myMessageBackground"
                     : "background.paper",
-                borderRadius: "0.3rem",
+                borderRadius: "10px",
+                boxShadow: "0 2px 5px 0 rgba(0, 0, 0, 0.15)",
                 padding: "0.4rem",
                 cursor: "pointer",
                 color: "common.darkBlue",
