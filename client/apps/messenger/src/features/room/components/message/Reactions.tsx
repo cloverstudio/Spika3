@@ -56,6 +56,7 @@ export default function MessageReactions({ id }: MessageReactionsProps): React.R
             justifyContent={isUsersMessage ? "flex-end" : "flex-start"}
             position="absolute"
             bottom={0}
+            zIndex={1}
             sx={{
                 ...(isUsersMessage ? { right: 18 } : { left: 0 }),
             }}

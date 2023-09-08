@@ -16,6 +16,7 @@ const VALID_SSE_EVENT_TYPES = [
     "USER_UPDATE",
     "SEEN_ROOM",
     "REMOVED_FROM_ROOM",
+    "DELETE_MESSAGE_RECORD",
 ];
 
 import { notify as notifyCallEvent } from "../features/confcall/lib/callEventListener";
@@ -26,6 +27,7 @@ import {
     addMessageRecord,
     deleteMessage,
     editMessage,
+    removeMessageRecord,
 } from "../features/room/slices/messages";
 
 export default async function handleSSE(event: MessageEvent): Promise<void> {
@@ -102,6 +104,18 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
             }
 
             store.dispatch(addMessageRecord({ messageRecord, seenCount, deliveredCount }));
+
+            return;
+        }
+
+        case "DELETE_MESSAGE_RECORD": {
+            const { messageRecord } = data;
+            if (!messageRecord) {
+                console.log("Invalid DELETE_MESSAGE_RECORD payload");
+                return;
+            }
+
+            store.dispatch(removeMessageRecord({ messageRecord }));
 
             return;
         }

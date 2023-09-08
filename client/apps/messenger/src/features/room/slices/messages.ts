@@ -537,6 +537,31 @@ export const messagesSlice = createSlice({
             }
         },
 
+        removeMessageRecord(
+            state,
+            action: {
+                payload: {
+                    messageRecord: MessageRecordType;
+                };
+            }
+        ) {
+            const { messageRecord } = action.payload;
+            const { roomId, messageId, type } = messageRecord;
+            const room = state[roomId];
+
+            if (!room) {
+                return;
+            }
+
+            if (type === "reaction") {
+                if (room.reactions[messageId]) {
+                    room.reactions[messageId] = room.reactions[messageId].filter(
+                        (r) => r.id !== messageRecord.id
+                    );
+                }
+            }
+        },
+
         showMessageDetails(state, action: { payload: { roomId: number; messageId: number } }) {
             const { roomId, messageId } = action.payload;
             const room = state[roomId];
@@ -819,6 +844,7 @@ export const {
     setTargetMessage,
     removeMessage,
     setKeyword,
+    removeMessageRecord,
 } = messagesSlice.actions;
 
 export const selectRoomMessages =
