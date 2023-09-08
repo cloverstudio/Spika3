@@ -18,7 +18,6 @@ import { isRoomBlocked } from "./block";
 const postMessageRecordSchema = yup.object().shape({
     body: yup.object().shape({
         messageId: yup.number().strict().min(1).required(),
-        type: yup.string().strict().required(),
         reaction: yup.string().strict().required(),
     }),
 });
@@ -36,13 +35,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
             try {
                 const messageId = parseInt(req.body.messageId as string);
-                const type = req.body.type;
                 const reaction = req.body.reaction;
                 const userId = userReq.user.id;
-
-                if (type !== "reaction") {
-                    return res.status(400).send(errorResponse("Invalid mr type", userReq.lang));
-                }
 
                 const message = await prisma.message.findUnique({
                     where: { id: messageId },
@@ -63,7 +57,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 const currentReaction = await prisma.messageRecord.findFirst({
                     where: {
                         messageId,
-                        type,
+                        type: "reaction",
                         userId,
                     },
                 });
@@ -85,7 +79,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     messageRecord = await prisma.messageRecord.create({
                         data: {
                             messageId,
-                            type,
+                            type: "reaction",
                             userId,
                             reaction,
                         },
@@ -98,7 +92,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 }).messageRecord();
 
                 const messageRecordsNotifyData = {
-                    types: [type],
+                    types: ["reaction"],
                     userId,
                     messageIds: [message.id],
                     pushType: Constants.PUSH_TYPE_NEW_MESSAGE_RECORD,
