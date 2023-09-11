@@ -55,7 +55,7 @@ export default function RightSidebarEditNoteContent(): React.ReactElement {
                 placeholder={strings.description}
                 id="content"
                 name="content"
-                rows={36}
+                minRows={20}
                 multiline
                 value={content}
                 onChange={({ target }) => setContent(target.value)}
