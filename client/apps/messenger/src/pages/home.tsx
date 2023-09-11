@@ -13,6 +13,7 @@ import RightSidebar from "../features/room/RightSidebar";
 
 import {
     hideRightSidebar,
+    selectRightSidebarActiveNoteId,
     selectRightSidebarOpen,
     showRightSidebar,
 } from "../features/room/slices/rightSidebar";
@@ -27,13 +28,12 @@ export default function Home(): React.ReactElement {
     const roomId = +useParams().id;
 
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-    const isBigDesktop = useMediaQuery(theme.breakpoints.up("lg"));
     const dispatch = useDispatch();
     const isCall = /^.+\/call.*$/.test(pathname);
     const isHome = pathname === "/app" || pathname === "/app/";
 
-    const rightSidebarOpen =
-        (useSelector(selectRightSidebarOpen) || isBigDesktop) && !isCall && !!roomId;
+    const rightSidebarOpen = useSelector(selectRightSidebarOpen) && !isCall && !!roomId;
+    const activeSidebarNoteId = useSelector(selectRightSidebarActiveNoteId);
 
     useEffect(() => {
         const resizeEventListener = (e: UIEvent) => {
@@ -78,8 +78,12 @@ export default function Home(): React.ReactElement {
                 sx={{
                     gridTemplateColumns: {
                         xs: "1fr",
-                        md: rightSidebarOpen ? "500px 4fr 360px" : "500px 2fr",
-                        xl: rightSidebarOpen ? "500px 3fr 640px" : "500px 4fr",
+                        md: rightSidebarOpen
+                            ? `500px 4fr ${activeSidebarNoteId ? "420px" : "340px"}`
+                            : "500px 2fr",
+                        xl: rightSidebarOpen
+                            ? `500px 3fr ${activeSidebarNoteId ? "640px" : "420px"}`
+                            : "500px 4fr",
                     },
                 }}
             >

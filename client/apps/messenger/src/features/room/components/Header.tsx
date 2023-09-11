@@ -19,7 +19,7 @@ import Input from "@mui/material/Input";
 import InputAdornment from "@mui/material/InputAdornment";
 
 import { useGetRoomQuery } from "../api/room";
-import { toggleRightSidebar } from "../slices/rightSidebar";
+import { selectRightSidebarOpen, toggleRightSidebar } from "../slices/rightSidebar";
 import { RoomType } from "../../../types/Rooms";
 import useStrings from "../../../hooks/useStrings";
 import { useLazySearchMessagesQuery } from "../api/message";
@@ -71,7 +71,15 @@ function HeaderContent({ room }: { room: RoomType }) {
         <>
             <Box display="flex" alignItems="center">
                 {isMobile && <MobileBackButton />}
-                <Avatar alt={room?.name} src={`${UPLOADS_BASE_URL}/${room.avatarFileId}`} />
+                <Avatar
+                    alt={room?.name}
+                    src={`${UPLOADS_BASE_URL}/${room.avatarFileId}`}
+                    onClick={() => {
+                        if (isMobile) return;
+                        else dispatch(toggleRightSidebar());
+                    }}
+                    sx={{ cursor: isMobile ? "default" : "pointer" }}
+                />
 
                 <Typography
                     fontWeight="500"
