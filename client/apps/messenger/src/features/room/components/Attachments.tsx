@@ -17,15 +17,7 @@ export default function Attachments({ files }: AttachmentsProps): React.ReactEle
     useEnterKey(() => AttachmentManager.send({ roomId }));
 
     return (
-        <Box
-            width="100%"
-            display="flex"
-            gap={1}
-            ml="4.75rem"
-            mb={0.5}
-            pb={0.5}
-            sx={{ overflowX: "auto" }}
-        >
+        <Box width="100%" display="flex" gap={1} mb={0.5} pb={0.5} sx={{ overflowX: "auto" }}>
             {files.length > 0 &&
                 files.map((file) => {
                     const Icon = getFileIcon(file.type);

@@ -7,11 +7,10 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import makeStyles from "@mui/styles/makeStyles";
 
-import KeyboardVoiceIcon from "@mui/icons-material/KeyboardVoice";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import { useParams } from "react-router-dom";
 import AttachmentManager from "../lib/AttachmentManager";
-import SendIcon from "@mui/icons-material/Send";
+import SendIcon from "@mui/icons-material/SendRounded";
 import {
     selectEditMessage,
     selectReplyMessage,
@@ -35,6 +34,7 @@ import useStrings from "../../../hooks/useStrings";
 import { useRemoveBlockByIdMutation } from "../api/user";
 import DoDisturb from "@mui/icons-material/DoDisturb";
 import useAutoSizeTextArea from "../hooks/useAutoSizeTextArea";
+import { string } from "yup";
 
 export default function ChatInputContainer(): React.ReactElement {
     const dispatch = useDispatch();
@@ -111,26 +111,18 @@ export default function ChatInputContainer(): React.ReactElement {
     }
 
     return (
-        <Box borderTop="1px solid" sx={{ borderColor: "divider" }} px={2} py={1}>
+        <Box borderTop="1px solid" sx={{ borderColor: "divider" }}>
             <canvas ref={canvasRef} style={{ display: "none" }} />
 
-            <Box display="flex" flexDirection="column" justifyContent="center">
-                <Stack
-                    spacing={2}
-                    direction="row"
-                    alignItems="center"
-                    width="100%"
-                    overflow="hidden"
-                >
-                    <AddAttachment />
+            <Stack direction="row" alignItems="center" width="100%" overflow="hidden" py={1}>
+                <AddAttachment />
 
-                    <ChatInput
-                        handleSetMessageText={handleSetMessageText}
-                        handleSend={handleSend}
-                        files={files}
-                    />
-                </Stack>
-            </Box>
+                <ChatInput
+                    handleSetMessageText={handleSetMessageText}
+                    handleSend={handleSend}
+                    files={files}
+                />
+            </Stack>
         </Box>
     );
 }
@@ -148,6 +140,7 @@ function ChatInput({ handleSetMessageText, handleSend, files }: ChatInputProps) 
     const editMessage = useSelector(selectEditMessage(roomId));
     const replyMessage = useSelector(selectReplyMessage(roomId));
     const inputType = useSelector(selectInputType(roomId));
+    const strings = useStrings();
 
     const onSend = async () => {
         if (!editMessage && !replyMessage) {
@@ -170,13 +163,9 @@ function ChatInput({ handleSetMessageText, handleSend, files }: ChatInputProps) 
         return (
             <>
                 <Attachments files={files} />
-
-                <SendIcon
-                    onClick={() => handleSend()}
-                    fontSize="large"
-                    color="primary"
-                    sx={{ cursor: "pointer" }}
-                />
+                <Box minWidth="70px" display="flex" justifyContent="center">
+                    <SendButton onClick={handleSend} />
+                </Box>
             </>
         );
     }
@@ -221,38 +210,52 @@ function ChatInput({ handleSetMessageText, handleSend, files }: ChatInputProps) 
                 </Box>
             </Box>
             {editMessage ? (
-                <Box display="flex">
-                    <Button onClick={handleCloseEdit} variant="outlined" sx={{ mr: 1 }}>
-                        Cancel
+                <Box display="flex" mx={1}>
+                    <Button
+                        size="small"
+                        onClick={handleCloseEdit}
+                        variant="outlined"
+                        sx={{ mr: 1 }}
+                    >
+                        {strings.cancel}
                     </Button>
-                    <Button onClick={onSend} variant="contained">
-                        Save
+                    <Button size="small" onClick={onSend} variant="contained">
+                        {strings.save}
                     </Button>
                 </Box>
             ) : (
-                <RightActionTextIcon onSend={onSend} />
+                <Box minWidth="70px" display="flex" justifyContent="center">
+                    <SendButton onClick={onSend} />
+                </Box>
             )}
         </>
     );
 }
 
-function RightActionTextIcon({ onSend }: { onSend: () => void }): React.ReactElement {
-    const roomId = parseInt(useParams().id || "");
-
-    const message = useSelector(selectInputText(roomId));
-
-    if (message.length) {
-        return (
+function SendButton({ onClick }: { onClick: () => void }): React.ReactElement {
+    return (
+        <Box
+            id="send-button"
+            width={35}
+            height={35}
+            onClick={onClick}
+            sx={{ cursor: "pointer" }}
+            bgcolor="primary.main"
+            borderRadius="50%"
+            color="white"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+        >
             <SendIcon
-                id="send-button"
-                onClick={() => onSend()}
-                color="primary"
-                sx={{ cursor: "pointer" }}
+                color="inherit"
+                sx={{
+                    position: "relative",
+                    left: "2px",
+                }}
             />
-        );
-    }
-
-    return <KeyboardVoiceIcon fontSize="large" color="primary" />;
+        </Box>
+    );
 }
 
 const useStyles = makeStyles(() => ({
@@ -265,6 +268,8 @@ const useStyles = makeStyles(() => ({
         fontSize: "0.9em",
         paddingRight: "46px",
         resize: "none",
+        borderRadius: "10px",
+        fontFamily: "inherit",
     },
 }));
 
@@ -275,6 +280,7 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
     const message = useSelector(selectInputText(roomId));
     const inputRef = useRef<HTMLTextAreaElement>();
     const dispatch = useDispatch();
+    const inputType = useSelector(selectInputType(roomId));
 
     useAutoSizeTextArea(inputRef.current, message);
 
@@ -289,6 +295,8 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
             sx={{
                 color: "text.primary",
                 backgroundColor: "background.paper",
+                borderRadius: "10px",
+                ml: message || inputType === "emoji" ? 2 : 0,
             }}
         >
             <textarea

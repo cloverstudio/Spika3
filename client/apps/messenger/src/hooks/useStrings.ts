@@ -131,6 +131,7 @@ const en = {
     youHaveBeenLoggedOut: "You have been logged out due to invalid or expired access token",
     unblockUser: "Unblock user",
     unblockUserQuestion: "Do you want to unblock user?",
+    library: "Library",
 };
 
 const strings = {
