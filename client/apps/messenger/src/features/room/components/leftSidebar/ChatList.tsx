@@ -72,9 +72,6 @@ export default function SidebarChatList({
     const searchBoxProps = !isMobile
         ? {
               display: "flex",
-              gap: "4px",
-              justifyContent: "space-evenly",
-              alignContent: "center",
               marginBottom: "20px",
           }
         : {};
@@ -91,17 +88,19 @@ export default function SidebarChatList({
                     }}
                 />
                 {!isMobile && (
-                    <IconButton onClick={() => setSidebar("new_chat")}>
-                        <Add
-                            fontSize="large"
-                            sx={{
-                                width: "25px",
-                                height: "25px",
-                                color: "text.navigation",
-                                cursor: "pointer",
-                            }}
-                        />
-                    </IconButton>
+                    <Box marginLeft="-10px">
+                        <IconButton onClick={() => setSidebar("new_chat")}>
+                            <Add
+                                fontSize="large"
+                                sx={{
+                                    width: "25px",
+                                    height: "25px",
+                                    color: "text.navigation",
+                                    cursor: "pointer",
+                                }}
+                            />
+                        </IconButton>
+                    </Box>
                 )}
             </Box>
 

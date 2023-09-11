@@ -149,7 +149,7 @@ export default function LeftSidebarHome({
                                     display="flex"
                                     flexDirection="column"
                                     justifyContent="space-between"
-                                    alignContent="center"
+                                    alignItems="center"
                                     height="100vh"
                                 >
                                     <Box
@@ -172,8 +172,8 @@ export default function LeftSidebarHome({
                                     <Box mb="24px">
                                         <Avatar
                                             sx={{
-                                                width: "52px",
-                                                height: "52px",
+                                                width: "40px",
+                                                height: "40px",
                                                 cursor: "pointer",
                                             }}
                                             alt={userData?.user.displayName}
@@ -196,6 +196,7 @@ export default function LeftSidebarHome({
                                         handleClick={() => handleChangeTab(item.name)}
                                         isActive={activeTab === item.name}
                                         isChat={item.name === "chat"}
+                                        isMobile={true}
                                     />
                                 ))}
                             </Box>
@@ -218,10 +219,15 @@ type ActionIconProps = {
     handleClick: () => void;
     isActive?: boolean;
     isChat: boolean;
+    isMobile?: boolean;
 };
 
-function ActionIcon({ Icon, isActive, handleClick, isChat }: ActionIconProps) {
+function ActionIcon({ Icon, isActive, handleClick, isChat, isMobile = false }: ActionIconProps) {
     const { data: unreadCount } = useGetUnreadCountQuery();
+
+    const styles = isMobile
+        ? { width: "52px", height: "52px", borderRadius: "50%" }
+        : { width: "40px", height: "40px", borderRadius: "10px" };
 
     return (
         <Box
@@ -230,9 +236,6 @@ function ActionIcon({ Icon, isActive, handleClick, isChat }: ActionIconProps) {
             flexDirection="column"
             justifyContent="center"
             alignItems="center"
-            width="52px"
-            height="52px"
-            borderRadius="50%"
             p={1}
             bgcolor={isActive ? "action.hover" : "transparent"}
             sx={{
@@ -242,6 +245,7 @@ function ActionIcon({ Icon, isActive, handleClick, isChat }: ActionIconProps) {
                 },
             }}
             position="relative"
+            {...styles}
         >
             {isChat && unreadCount > 0 && (
                 <Badge
