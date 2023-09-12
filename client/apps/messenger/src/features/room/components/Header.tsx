@@ -76,7 +76,7 @@ function HeaderContent({ room }: { room: RoomType }) {
                     src={`${UPLOADS_BASE_URL}/${room.avatarFileId}`}
                     onClick={() => {
                         if (isMobile) return;
-                        else dispatch(toggleRightSidebar());
+                        dispatch(toggleRightSidebar());
                     }}
                     sx={{ cursor: isMobile ? "default" : "pointer" }}
                 />
