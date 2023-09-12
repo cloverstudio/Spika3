@@ -196,7 +196,6 @@ export default function LeftSidebarHome({
                                         handleClick={() => handleChangeTab(item.name)}
                                         isActive={activeTab === item.name}
                                         isChat={item.name === "chat"}
-                                        isMobile={true}
                                     />
                                 ))}
                             </Box>
@@ -219,11 +218,14 @@ type ActionIconProps = {
     handleClick: () => void;
     isActive?: boolean;
     isChat: boolean;
-    isMobile?: boolean;
 };
 
-function ActionIcon({ Icon, isActive, handleClick, isChat, isMobile = false }: ActionIconProps) {
+function ActionIcon({ Icon, isActive, handleClick, isChat }: ActionIconProps) {
     const { data: unreadCount } = useGetUnreadCountQuery();
+
+    const theme = useTheme();
+
+    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
     const styles = isMobile
         ? { width: "52px", height: "52px", borderRadius: "50%" }

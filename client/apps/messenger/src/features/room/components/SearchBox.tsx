@@ -9,7 +9,6 @@ import CancelIcon from "@mui/icons-material/Cancel";
 type SearchBoxProps = {
     onSearch?: (keyword: string) => void;
     marginBottom?: number | null;
-    isMobile?: boolean;
 };
 
 let timer: NodeJS.Timeout;
@@ -17,7 +16,6 @@ let timer: NodeJS.Timeout;
 export default function SearchBox({
     onSearch,
     marginBottom = 2,
-    isMobile,
 }: SearchBoxProps): React.ReactElement {
     const strings = useStrings();
     const [keyword, setKeyword] = useState("");

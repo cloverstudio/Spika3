@@ -19,7 +19,7 @@ import Input from "@mui/material/Input";
 import InputAdornment from "@mui/material/InputAdornment";
 
 import { useGetRoomQuery } from "../api/room";
-import { selectRightSidebarOpen, toggleRightSidebar } from "../slices/rightSidebar";
+import { toggleRightSidebar } from "../slices/rightSidebar";
 import { RoomType } from "../../../types/Rooms";
 import useStrings from "../../../hooks/useStrings";
 import { useLazySearchMessagesQuery } from "../api/message";

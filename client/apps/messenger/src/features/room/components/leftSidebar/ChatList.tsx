@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import Avatar from "@mui/material/Avatar";
 import Badge from "@mui/material/Badge";
-import { Box, CircularProgress, IconButton, Skeleton } from "@mui/material";
+import { Box, CircularProgress, IconButton, Skeleton, useMediaQuery } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import {
     fetchHistory,
@@ -25,15 +25,14 @@ import useStrings from "../../../../hooks/useStrings";
 import { useGetRoomQuery } from "../../api/room";
 import formatRoomInfo from "../../lib/formatRoomInfo";
 import { selectUser } from "../../../../store/userSlice";
+import { useTheme } from "@mui/material/styles";
 
 dayjs.extend(relativeTime);
 declare const UPLOADS_BASE_URL: string;
 
 export default function SidebarChatList({
-    isMobile,
     setSidebar,
 }: {
-    isMobile: boolean;
     setSidebar: Dispatch<React.SetStateAction<string>>;
 }): React.ReactElement {
     const strings = useStrings();
@@ -46,6 +45,10 @@ export default function SidebarChatList({
     const { isInViewPort, elementRef } = useIsInViewport();
 
     const isFetching = loading === "pending";
+
+    const theme = useTheme();
+
+    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
     useEffect(() => {
         if (isInViewPort) {
@@ -80,7 +83,6 @@ export default function SidebarChatList({
         <Box sx={{ overflowY: "auto", maxHeight: "100%" }}>
             <Box sx={{ ...searchBoxProps }}>
                 <SearchBox
-                    isMobile={isMobile}
                     marginBottom={isMobile ? 2 : 0}
                     onSearch={(keyword) => {
                         dispatch(setKeyword(keyword));
