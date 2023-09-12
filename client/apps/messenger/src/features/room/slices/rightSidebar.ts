@@ -24,6 +24,7 @@ export const rightSidebarSlice = createSlice({
         },
         setActiveTab(state, action: { payload: ActiveTabType }) {
             state.activeTab = action.payload;
+            state.activeNoteId = null;
         },
         setActiveNoteId(state, action: { payload: number }) {
             state.activeTab = "noteDetail";

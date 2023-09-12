@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { Dispatch, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import Avatar from "@mui/material/Avatar";
 import Badge from "@mui/material/Badge";
-import { Box, CircularProgress, Skeleton } from "@mui/material";
+import { Box, CircularProgress, IconButton, Skeleton, useMediaQuery } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import {
     fetchHistory,
@@ -18,17 +18,23 @@ import MessageType from "../../../../types/Message";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import SearchBox from "../SearchBox";
+import Add from "@mui/icons-material/AddOutlined";
 import NotificationsOff from "@mui/icons-material/NotificationsOff";
 import Pin from "@mui/icons-material/PushPin";
 import useStrings from "../../../../hooks/useStrings";
 import { useGetRoomQuery } from "../../api/room";
 import formatRoomInfo from "../../lib/formatRoomInfo";
 import { selectUser } from "../../../../store/userSlice";
+import { useTheme } from "@mui/material/styles";
 
 dayjs.extend(relativeTime);
 declare const UPLOADS_BASE_URL: string;
 
-export default function SidebarChatList(): React.ReactElement {
+export default function SidebarChatList({
+    setSidebar,
+}: {
+    setSidebar: Dispatch<React.SetStateAction<string>>;
+}): React.ReactElement {
     const strings = useStrings();
     const dispatch = useDispatch();
     const activeRoomId = parseInt(useParams().id || "");
@@ -39,6 +45,10 @@ export default function SidebarChatList(): React.ReactElement {
     const { isInViewPort, elementRef } = useIsInViewport();
 
     const isFetching = loading === "pending";
+
+    const theme = useTheme();
+
+    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
     useEffect(() => {
         if (isInViewPort) {
@@ -62,14 +72,39 @@ export default function SidebarChatList(): React.ReactElement {
         return [...pinned, ...sorted.filter((r) => !r.pinned)];
     };
 
+    const searchBoxProps = !isMobile
+        ? {
+              display: "flex",
+              marginBottom: "20px",
+          }
+        : {};
+
     return (
         <Box sx={{ overflowY: "auto", maxHeight: "100%" }}>
-            <SearchBox
-                onSearch={(keyword) => {
-                    dispatch(setKeyword(keyword));
-                    dispatch(fetchHistory());
-                }}
-            />
+            <Box sx={{ ...searchBoxProps }}>
+                <SearchBox
+                    marginBottom={isMobile ? 2 : 0}
+                    onSearch={(keyword) => {
+                        dispatch(setKeyword(keyword));
+                        dispatch(fetchHistory());
+                    }}
+                />
+                {!isMobile && (
+                    <Box marginLeft="-10px">
+                        <IconButton onClick={() => setSidebar("new_chat")}>
+                            <Add
+                                fontSize="large"
+                                sx={{
+                                    width: "25px",
+                                    height: "25px",
+                                    color: "text.navigation",
+                                    cursor: "pointer",
+                                }}
+                            />
+                        </IconButton>
+                    </Box>
+                )}
+            </Box>
 
             {list.length === 0 && !isFetching && (
                 <Typography align="center">{strings.noRooms}</Typography>

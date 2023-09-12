@@ -8,16 +8,20 @@ import CancelIcon from "@mui/icons-material/Cancel";
 
 type SearchBoxProps = {
     onSearch?: (keyword: string) => void;
+    marginBottom?: number | null;
 };
 
 let timer: NodeJS.Timeout;
 
-export default function SearchBox({ onSearch }: SearchBoxProps): React.ReactElement {
+export default function SearchBox({
+    onSearch,
+    marginBottom = 2,
+}: SearchBoxProps): React.ReactElement {
     const strings = useStrings();
     const [keyword, setKeyword] = useState("");
 
     return (
-        <Box px={2.5} mb={2}>
+        <Box mb={marginBottom} px={2.5}>
             <Input
                 disableUnderline={true}
                 startAdornment={
