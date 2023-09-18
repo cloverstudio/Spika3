@@ -171,7 +171,7 @@ export const lightTheme = createTheme({
         primary: {
             main: "#4696F0",
             light: "#f2f2f2",
-            dark: "#f2f2f2",
+            dark: "#4696F0",
             contrastText: "#f2f2f2",
         },
         background: {
