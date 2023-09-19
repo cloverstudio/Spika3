@@ -91,11 +91,13 @@ export default function Home(): React.ReactElement {
                 {!isMobile && <LeftSidebar />}
                 <Outlet />
 
-                <Fade in={rightSidebarOpen} timeout={500} mountOnEnter unmountOnExit>
+                <Fade in={rightSidebarOpen && !isMobile} timeout={500} mountOnEnter unmountOnExit>
                     <Box>
                         <RightSidebar />
                     </Box>
                 </Fade>
+
+                {isMobile && rightSidebarOpen && <RightSidebar />}
             </Box>
 
             <PushNotificationPermissionDialog />
