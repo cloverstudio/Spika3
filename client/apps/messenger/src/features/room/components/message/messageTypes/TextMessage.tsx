@@ -46,24 +46,28 @@ export default function TextMessage({
                 maxWidth: "100%",
                 backgroundColor: isEmoji ? "transparent" : backgroundColor,
                 borderRadius: "10px",
-                padding: isEmoji ? "1rem 0.4rem" : "0.4rem",
+                padding: "6px",
                 cursor: "pointer",
                 color: deleted ? "text.tertiary" : "common.darkBlue",
-                lineHeight: isEmoji ? "3.5rem" : "1.2rem",
+                lineHeight: isEmoji ? "3.5rem" : "22px",
                 whiteSpace: "pre-wrap",
-                margin: "0px",
                 fontSize: isEmoji ? "3rem" : "0.95rem",
                 border: deleted ? "1px solid #C9C9CA" : "none",
-                ...(showBoxShadow && !isEmoji && { boxShadow: "0 2px 5px 0 rgba(0, 0, 0, 0.15)" }),
+                ...(showBoxShadow && !isEmoji && { boxShadow: "0 2px 5px 0 rgba(0, 0, 0, 0.10)" }),
             }}
         >
             {sender && (
-                <Box mb={1} fontWeight="medium">
+                <Box mb={1} fontWeight="600">
                     {sender.displayName}
                 </Box>
             )}
             <Box
-                sx={{ overflowWrap: "break-word" }}
+                sx={{
+                    overflowWrap: "break-word",
+                    fontWeight: "500",
+                    fontSize: isEmoji ? "48px" : "14px",
+                    margin: "2px 0",
+                }}
                 dangerouslySetInnerHTML={{ __html: filteredText }}
             />
         </Box>

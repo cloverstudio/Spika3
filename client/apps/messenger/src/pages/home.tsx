@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { Outlet, useLocation, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
-import { Box } from "@mui/material";
+import { Box, Fade } from "@mui/material";
 import useTheme from "@mui/material/styles/useTheme";
 import useMediaQuery from "@mui/material/useMediaQuery";
 
@@ -80,18 +80,22 @@ export default function Home(): React.ReactElement {
                         xs: "1fr",
                         md: rightSidebarOpen
                             ? `500px 4fr ${activeSidebarNoteId ? "420px" : "340px"}`
-                            : "500px 2fr",
+                            : "500px 2fr 0px",
                         xl: rightSidebarOpen
                             ? `500px 3fr ${activeSidebarNoteId ? "640px" : "420px"}`
-                            : "500px 4fr",
+                            : "500px 4fr 0px",
                     },
+                    transition: "grid-template-columns 0.2s ease-in",
                 }}
             >
                 {!isMobile && <LeftSidebar />}
-
                 <Outlet />
 
-                {rightSidebarOpen && <RightSidebar />}
+                <Fade in={rightSidebarOpen} timeout={500} mountOnEnter unmountOnExit>
+                    <Box>
+                        <RightSidebar />
+                    </Box>
+                </Fade>
             </Box>
 
             <PushNotificationPermissionDialog />

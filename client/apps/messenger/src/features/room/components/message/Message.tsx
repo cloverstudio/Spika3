@@ -35,7 +35,7 @@ function useSender(id: number) {
     return room.users?.find((u) => u.userId === id)?.user;
 }
 
-function useRoomType() {
+export function useRoomType() {
     const roomId = parseInt(useParams().id || "");
     const { data: room } = useGetRoomQuery(roomId);
 
@@ -51,11 +51,13 @@ function Message({
     previousMessageFromUserId,
     nextMessageFromUserId,
     animate,
+    separateWithMarginTop,
 }: {
     id: number;
     previousMessageFromUserId: number | null;
     nextMessageFromUserId: number | null;
     animate: boolean;
+    separateWithMarginTop: boolean;
 }) {
     const roomId = parseInt(useParams().id || "");
     const targetMessageId = useSelector(selectTargetMessage(roomId));
@@ -136,7 +138,14 @@ function Message({
     return (
         <MessageContainer id={id} side={side} handleMouseLeave={handleMouseLeave}>
             {shouldDisplaySenderLabel && (
-                <Typography lineHeight={1} color="text.tertiary" fontWeight={600} pl="34px" mt={2}>
+                <Typography
+                    lineHeight={1}
+                    color="text.tertiary"
+                    fontWeight={600}
+                    pl="34px"
+                    mt={2}
+                    fontSize="13px"
+                >
                     {senderLabel}
                 </Typography>
             )}
@@ -173,6 +182,7 @@ function Message({
                             onImageMessageClick={handleImageMessageClick}
                             animate={animate}
                             highlighted={highlighted}
+                            separateWithMarginTop={separateWithMarginTop}
                         />
                     </Box>
                     {shouldDisplayStatusIcons && <StatusIcon status={status} id={id} />}
@@ -245,11 +255,13 @@ function MessageBodyContainer({
     onImageMessageClick,
     animate,
     highlighted,
+    separateWithMarginTop,
 }: {
     id: number;
     onImageMessageClick: () => void;
     animate: boolean;
     highlighted: boolean;
+    separateWithMarginTop: boolean;
 }) {
     const roomId = parseInt(useParams().id || "");
     const user = useSelector(selectUser);
@@ -268,7 +280,7 @@ function MessageBodyContainer({
                 mountOnEnter
                 unmountOnExit
             >
-                <Box>
+                <Box marginTop={separateWithMarginTop ? "8px" : "4px"}>
                     <MessageBody
                         body={body}
                         type={type}
@@ -286,17 +298,19 @@ function MessageBodyContainer({
     }
 
     return (
-        <MessageBody
-            body={body}
-            type={type}
-            side={side}
-            isReply={!!replyId}
-            onImageMessageClick={onImageMessageClick}
-            deleted={deleted}
-            progress={progress}
-            highlighted={highlighted}
-            id={id}
-        />
+        <Box marginTop={separateWithMarginTop ? "8px" : "4px"}>
+            <MessageBody
+                body={body}
+                type={type}
+                side={side}
+                isReply={!!replyId}
+                onImageMessageClick={onImageMessageClick}
+                deleted={deleted}
+                progress={progress}
+                highlighted={highlighted}
+                id={id}
+            />
+        </Box>
     );
 }
 

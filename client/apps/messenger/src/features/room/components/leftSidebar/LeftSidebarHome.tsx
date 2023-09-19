@@ -77,7 +77,7 @@ export default function LeftSidebarHome({
               flexDirection: "column",
               width: "80px",
               justifyContent: "space-between",
-              backgroundColor: theme.palette.mode === "light" ? "#F9F9F9" : "#282828",
+              borderRight: `0.5px solid ${theme.palette.mode === "light" ? "#C9C9CA" : "#606060"}`,
               alignItems: "center",
           }
         : { display: "flex", height: "80px", justifyContent: "space-between" };
@@ -226,6 +226,7 @@ function ActionIcon({ Icon, isActive, handleClick, isChat }: ActionIconProps) {
     const theme = useTheme();
 
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+    const isDarkTheme = theme.palette.mode === "dark";
 
     const styles = isMobile
         ? { width: "52px", height: "52px", borderRadius: "50%" }
@@ -239,11 +240,13 @@ function ActionIcon({ Icon, isActive, handleClick, isChat }: ActionIconProps) {
             justifyContent="center"
             alignItems="center"
             p={1}
-            bgcolor={isActive ? "action.hover" : "transparent"}
+            bgcolor={
+                isDarkTheme && isActive ? "#000000" : isActive ? "action.hover" : "transparent"
+            }
             sx={{
                 cursor: "pointer",
                 "&:hover": {
-                    bgcolor: "action.hover",
+                    bgcolor: isDarkTheme ? "#000000" : "action.hover",
                 },
             }}
             position="relative"
@@ -264,7 +267,17 @@ function ActionIcon({ Icon, isActive, handleClick, isChat }: ActionIconProps) {
                     max={99}
                 />
             )}
-            <Icon sx={{ width: "25px", color: isActive ? "primary.main" : "text.navigation" }} />
+            <Icon
+                sx={{
+                    width: "25px",
+                    color:
+                        isDarkTheme && isActive
+                            ? "#0078FF"
+                            : isActive
+                            ? "primary.main"
+                            : "text.navigation",
+                }}
+            />
         </Box>
     );
 }

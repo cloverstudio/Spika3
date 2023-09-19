@@ -4,6 +4,7 @@ import { useTheme } from "@mui/material/styles";
 import { useNavigate, useParams } from "react-router-dom";
 import Call from "@mui/icons-material/Call";
 import SearchIcon from "@mui/icons-material/Search";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 import Videocam from "@mui/icons-material/Videocam";
 import ChevronLeft from "@mui/icons-material/ChevronLeft";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -100,6 +101,10 @@ function HeaderContent({ room }: { room: RoomType }) {
                     onClick={() => navigate(`${lobbyBaseUrl}/audio`, { replace: true })}
                 />
                 <SearchIcon sx={iconSxProps} onClick={() => setSearchOn(true)} />
+                <MoreVertIcon
+                    sx={iconSxProps}
+                    onClick={() => dispatch(toggleRightSidebar())}
+                ></MoreVertIcon>
             </Box>
         </>
     );

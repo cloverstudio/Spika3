@@ -62,6 +62,7 @@ export default function MessagesList(): React.ReactElement {
                 ...curr,
                 previousMessageFromUserId: sorted[i - 1]?.fromUserId || null,
                 nextMessageFromUserId: sorted[i + 1]?.fromUserId,
+                separateWithMarginTop: sorted[i - 1]?.fromUserId !== curr.fromUserId,
             };
             if (!acc[day]) {
                 acc[day] = [message];
@@ -74,6 +75,7 @@ export default function MessagesList(): React.ReactElement {
             [day: string]: (MessageType & {
                 previousMessageFromUserId: number | null;
                 nextMessageFromUserId: number | null;
+                separateWithMarginTop: boolean;
             })[];
         };
     }, [messages]);
@@ -134,6 +136,7 @@ export default function MessagesList(): React.ReactElement {
                                         }
                                         nextMessageFromUserId={m.nextMessageFromUserId}
                                         animate={isLastDay && isLastMessageInDay}
+                                        separateWithMarginTop={m.separateWithMarginTop}
                                     />
                                 );
                             })}

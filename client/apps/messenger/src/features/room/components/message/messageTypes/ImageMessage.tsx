@@ -70,7 +70,7 @@ export default function ImageMessage({
                     display="block"
                     component="img"
                     border={highlighted ? "2px solid #d7aa5a" : "2px solid transparent"}
-                    boxShadow="0 2px 5px 0 rgba(0, 0, 0, 0.15)"
+                    boxShadow="0 2px 5px 0 rgba(0, 0, 0, 0.10)"
                     borderRadius="0.625rem"
                     maxWidth="256px"
                     height="10vh"

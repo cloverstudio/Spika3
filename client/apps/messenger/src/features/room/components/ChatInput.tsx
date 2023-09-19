@@ -334,6 +334,9 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
                 style={{
                     color: "inherit",
                     backgroundColor: "transparent",
+                    fontSize: "16px",
+                    padding: "12px 16px 12px 16px",
+                    fontWeight: "500",
                 }}
             />
         </Box>
@@ -348,10 +351,11 @@ function ReplyMessage({ message }: { message: MessageType }): React.ReactElement
 
     const sender = room.users?.find((u) => u.userId === message.fromUserId)?.user;
     const Icon = getFileIcon(message.body?.file?.mimeType);
+    const inputText = useSelector(selectInputText(roomId));
 
     return (
         <Box
-            width="100%"
+            width="auto"
             position="relative"
             sx={{
                 backgroundColor: "background.paper",
@@ -361,6 +365,7 @@ function ReplyMessage({ message }: { message: MessageType }): React.ReactElement
                 wordBreak: "break-word",
             }}
             mb={1}
+            ml={inputText.length > 0 ? 2 : 0}
         >
             {sender && (
                 <Box mb={0.75} fontWeight="medium">
