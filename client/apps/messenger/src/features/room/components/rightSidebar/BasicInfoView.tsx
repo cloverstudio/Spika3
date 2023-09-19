@@ -88,6 +88,14 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
         }
     };
 
+    useEffect(() => {
+        return () => {
+            if (editGroupName) {
+                setEditGroupName(false);
+            }
+        };
+    }, [editGroupName, roomData.id]);
+
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const uploadedFile = e.target.files && e.target.files[0];
         const objectUrl = URL.createObjectURL(uploadedFile);
@@ -181,6 +189,7 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
                     <Avatar
                         alt={otherUser.displayName}
                         src={`${UPLOADS_BASE_URL}/${otherUser.avatarFileId}`}
+                        sx={{ width: 100, height: 100 }}
                     />
                 ) : (
                     <Box sx={{ position: "relative" }}>

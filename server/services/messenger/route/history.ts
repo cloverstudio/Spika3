@@ -98,9 +98,11 @@ export default ({ redisClient }: InitRouterParams): Router => {
                     messages: {
                         some: {},
                     },
-                    name: {
-                        startsWith: keyword,
-                    },
+                    ...(keyword && {
+                        name: {
+                            startsWith: keyword,
+                        },
+                    }),
                 },
             });
 
@@ -181,11 +183,13 @@ export default ({ redisClient }: InitRouterParams): Router => {
                         roomId: m.roomId,
                         muted,
                         pinned,
-                        lastMessage: sanitize({
-                            ...m,
-                            ...(body && { body }),
-                            deleted,
-                        }).message(),
+                        lastMessage: dm
+                            ? sanitize({
+                                  ...m,
+                                  ...(body && { body }),
+                                  deleted,
+                              }).message()
+                            : null,
                         unreadCount: +unreadCount,
                     };
                 })

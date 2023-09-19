@@ -79,6 +79,9 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                         createdAt: {
                             gt: roomUser.createdAt,
                         },
+                        deviceMessages: {
+                            some: {},
+                        },
                     },
                     include: {
                         messageRecords: true,

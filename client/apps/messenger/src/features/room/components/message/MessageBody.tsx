@@ -199,16 +199,23 @@ function ReplyMessage({
 
     const renderReplyMessage = () => {
         const { type: replyMsgType, body: replyMsgBody } = body.referenceMessage;
-
         const sender = room?.users?.find(
             (u) => u.userId === body.referenceMessage.fromUserId
         )?.user;
+
+        const needsToTruncate =
+            replyMsgType === "text" && (replyMsgBody.text as string).length > 120;
 
         switch (replyMsgType) {
             case "text": {
                 return (
                     <TextMessage
-                        body={replyMsgBody}
+                        body={{
+                            ...replyMsgBody,
+                            ...(needsToTruncate && {
+                                text: `${replyMsgBody.text.slice(0, 120)}...`,
+                            }),
+                        }}
                         isUsersMessage={!isUsersMessage}
                         sender={sender}
                         isReply={true}
@@ -327,6 +334,7 @@ function ReplyMessage({
                         body={body}
                         isUsersMessage={isUsersMessage}
                         id={id}
+                        isReply={true}
                         showBoxShadow={false}
                     />
                 );

@@ -1,11 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
-import { useNavigate, useParams } from "react-router-dom";
-import Call from "@mui/icons-material/Call";
+import { useParams } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import Videocam from "@mui/icons-material/Videocam";
 import ChevronLeft from "@mui/icons-material/ChevronLeft";
 import CancelIcon from "@mui/icons-material/Cancel";
 import ExpandLess from "@mui/icons-material/ExpandLess";
@@ -30,7 +29,6 @@ import {
     setKeyword,
     setTargetMessage,
 } from "../slices/messages";
-import { Link } from "react-router-dom";
 
 export default function Header() {
     const roomId = parseInt(useParams().id || "");
@@ -51,11 +49,9 @@ function HeaderContent({ room }: { room: RoomType }) {
     const dispatch = useDispatch();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-    const navigate = useNavigate();
     const [searchOn, setSearchOn] = useState(false);
 
     const iconSxProps = { width: "25px", height: "25px", color: "primary.main", cursor: "pointer" };
-    const lobbyBaseUrl = `/rooms/${room.id}/call/lobby`;
 
     if (searchOn) {
         return (
@@ -92,14 +88,6 @@ function HeaderContent({ room }: { room: RoomType }) {
                 </Typography>
             </Box>
             <Box display="flex" gap={3} alignItems="center">
-                <Videocam
-                    sx={iconSxProps}
-                    onClick={() => navigate(`${lobbyBaseUrl}/video`, { replace: true })}
-                />
-                <Call
-                    sx={iconSxProps}
-                    onClick={() => navigate(`${lobbyBaseUrl}/audio`, { replace: true })}
-                />
                 <SearchIcon sx={iconSxProps} onClick={() => setSearchOn(true)} />
                 <MoreVertIcon
                     sx={iconSxProps}

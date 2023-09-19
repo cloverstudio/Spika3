@@ -6,7 +6,6 @@ import IconButton from "@mui/material/IconButton";
 import Settings from "@mui/icons-material/Settings";
 import Add from "@mui/icons-material/AddOutlined";
 import ChatIcon from "@mui/icons-material/Chat";
-import CallIcon from "@mui/icons-material/Call";
 import ContactIcon from "@mui/icons-material/AccountCircle";
 import { SvgIconTypeMap } from "@mui/material/SvgIcon";
 import { OverridableComponent } from "@mui/material/OverridableComponent";
@@ -22,7 +21,6 @@ import {
 } from "../../slices/leftSidebar";
 
 import SidebarContactList from "./ContactList";
-import SidebarCallList from "./CallList";
 import SidebarChatList from "./ChatList";
 import LeftSidebarLayout from "./LeftSidebarLayout";
 import { EditProfileView } from "../EditProfile";
@@ -44,7 +42,6 @@ type NavigationType = {
 
 const navigation: NavigationType[] = [
     { name: "chat", icon: ChatIcon, Element: SidebarChatList },
-    { name: "call", icon: CallIcon, Element: SidebarCallList },
     { name: "contact", icon: ContactIcon, Element: () => <SidebarContactList /> },
 ];
 

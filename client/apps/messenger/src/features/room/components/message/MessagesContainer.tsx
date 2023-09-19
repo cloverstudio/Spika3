@@ -241,12 +241,8 @@ export default function MessagesContainer({
                     left="0"
                     right="0"
                     bottom="0"
-                    zIndex={1}
-                    bgcolor={
-                        loading && messagesLength > 0
-                            ? "common.disabledBackground"
-                            : "background.default"
-                    }
+                    zIndex={10}
+                    bgcolor={loading && messagesLength > 0 ? "common.disabledBackground" : bgColor}
                 >
                     <CircularProgress />
                 </Box>

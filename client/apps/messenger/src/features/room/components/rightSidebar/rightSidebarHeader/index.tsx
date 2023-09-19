@@ -5,12 +5,9 @@ import { Box } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import AddCircleOutline from "@mui/icons-material/AddCircleOutline";
 import ArrowBackIos from "@mui/icons-material/ArrowBackIos";
 import Close from "@mui/icons-material/Close";
-
-import useTheme from "@mui/material/styles/useTheme";
 
 import {
     hideRightSidebar,
@@ -30,21 +27,14 @@ export default function RightSidebarHeader({ type }: RightSidebarHeaderProps): R
     const strings = useStrings();
     const activeTab = useSelector(selectRightSidebarActiveTab);
     const dispatch = useDispatch();
-    const theme = useTheme();
-
-    const isBigDesktop = useMediaQuery(theme.breakpoints.up("lg"));
 
     const getSidebarContent = () => {
         if (activeTab === "details") {
             return (
                 <>
-                    {isBigDesktop ? (
-                        <Box width={48} height={48} />
-                    ) : (
-                        <IconButton onClick={() => dispatch(hideRightSidebar())}>
-                            <Close />
-                        </IconButton>
-                    )}
+                    <IconButton onClick={() => dispatch(hideRightSidebar())}>
+                        <Close />
+                    </IconButton>
                     {type === "private" ? (
                         <Typography variant="h6">{strings.chatDetails}</Typography>
                     ) : (

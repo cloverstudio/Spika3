@@ -346,70 +346,81 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
 function ReplyMessage({ message }: { message: MessageType }): React.ReactElement {
     const dispatch = useDispatch();
     const roomId = parseInt(useParams().id || "");
+    const messageInput = useSelector(selectInputText(roomId));
 
     const { data: room } = useGetRoomQuery(roomId);
 
     const sender = room.users?.find((u) => u.userId === message.fromUserId)?.user;
     const Icon = getFileIcon(message.body?.file?.mimeType);
-    const inputText = useSelector(selectInputText(roomId));
+
+    const needsToTruncate = message.type === "text" && (message.body.text as string).length > 120;
 
     return (
         <Box
-            width="auto"
-            position="relative"
             sx={{
-                backgroundColor: "background.paper",
-                borderRadius: "0.3rem",
-                padding: "0.4rem",
-                color: "common.darkBlue",
-                wordBreak: "break-word",
+                ...(messageInput.length && {
+                    ml: 2,
+                }),
             }}
-            mb={1}
-            ml={inputText.length > 0 ? 2 : 0}
         >
-            {sender && (
-                <Box mb={0.75} fontWeight="medium">
-                    {sender.displayName}
-                </Box>
-            )}
+            <Box
+                width="100%"
+                position="relative"
+                sx={{
+                    backgroundColor: "background.paper",
+                    borderRadius: "0.3rem",
+                    padding: "0.4rem",
+                    color: "common.darkBlue",
+                    wordBreak: "break-word",
+                }}
+                mb={1}
+            >
+                {sender && (
+                    <Box mb={0.75} fontWeight="medium">
+                        {sender.displayName}
+                    </Box>
+                )}
 
-            {message.body?.text && message.body?.text}
-            {message.type === "image" && (
-                <Box
-                    component="img"
-                    borderRadius="0.3rem"
-                    maxWidth="10rem"
-                    height="3rem"
-                    width="auto"
-                    src={`${API_BASE_URL}/upload/files/${message.body.thumbId}`}
-                    sx={{ cursor: "pointer", objectFit: "contain" }}
-                />
-            )}
-            {message.type === "audio" && (
-                <Box component="audio" controls borderRadius="0.3rem" maxWidth="10rem">
-                    <source
-                        type={message.body.file.type}
+                {message.body?.text && needsToTruncate
+                    ? `${message.body.text.slice(0, 120)}...`
+                    : message.body?.text}
+                {message.type === "image" && (
+                    <Box
+                        component="img"
+                        borderRadius="0.3rem"
+                        maxWidth="10rem"
+                        height="3rem"
+                        width="auto"
+                        src={`${API_BASE_URL}/upload/files/${message.body.thumbId}`}
+                        sx={{ cursor: "pointer", objectFit: "contain" }}
+                    />
+                )}
+                {message.type === "audio" && (
+                    <Box component="audio" controls borderRadius="0.3rem" maxWidth="10rem">
+                        <source
+                            type={message.body.file.type}
+                            src={`${API_BASE_URL}/upload/files/${message.body.fileId}`}
+                        />
+                    </Box>
+                )}
+                {message.type === "video" && (
+                    <Box
+                        component="video"
+                        borderRadius="0.3rem"
+                        maxWidth="10rem"
+                        controls
                         src={`${API_BASE_URL}/upload/files/${message.body.fileId}`}
                     />
-                </Box>
-            )}
-            {message.type === "video" && (
-                <Box
-                    component="video"
-                    borderRadius="0.3rem"
-                    maxWidth="10rem"
-                    controls
-                    src={`${API_BASE_URL}/upload/files/${message.body.fileId}`}
-                />
-            )}
-            {message.type === "file" && <Icon fontSize="large" />}
-            <IconButton
-                size="small"
-                onClick={() => dispatch(setReplyMessage({ message: null, roomId }))}
-                sx={{ position: "absolute", right: "4px", top: "4px" }}
-            >
-                <Close fontSize="inherit" />
-            </IconButton>
+                )}
+                {message.type === "file" && <Icon fontSize="large" />}
+                <IconButton
+                    size="small"
+                    onClick={() => dispatch(setReplyMessage({ message: null, roomId }))}
+                    sx={{ position: "absolute", right: "4px", top: "4px" }}
+                >
+                    <Close fontSize="inherit" />
+                </IconButton>
+            </Box>
         </Box>
     );
 }
