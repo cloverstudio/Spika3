@@ -108,7 +108,7 @@ function RightSidebarHeaderContainer({
                     display: "flex",
                     flexDirection: "row",
                     justifyContent: "left",
-                    paddingTop: "15px",
+                    paddingTop: "20px",
                 }}
             >
                 {children}

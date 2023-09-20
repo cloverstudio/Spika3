@@ -18,7 +18,6 @@ import MessageType from "../../../../types/Message";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import SearchBox from "../SearchBox";
-import Add from "@mui/icons-material/AddOutlined";
 import NotificationsOff from "@mui/icons-material/NotificationsOff";
 import Pin from "@mui/icons-material/PushPin";
 import useStrings from "../../../../hooks/useStrings";
@@ -26,6 +25,7 @@ import { useGetRoomQuery } from "../../api/room";
 import formatRoomInfo from "../../lib/formatRoomInfo";
 import { selectUser } from "../../../../store/userSlice";
 import { useTheme } from "@mui/material/styles";
+import { ReactComponent as NewChatIcon } from "../../../../assets/new-chat.svg";
 
 dayjs.extend(relativeTime);
 declare const UPLOADS_BASE_URL: string;
@@ -76,6 +76,7 @@ export default function SidebarChatList({
         ? {
               display: "flex",
               marginBottom: "20px",
+              width: "96%",
           }
         : {};
 
@@ -90,15 +91,18 @@ export default function SidebarChatList({
                     }}
                 />
                 {!isMobile && (
-                    <Box marginLeft="-10px">
-                        <IconButton onClick={() => setSidebar("new_chat")}>
-                            <Add
-                                fontSize="large"
-                                sx={{
-                                    width: "25px",
-                                    height: "25px",
-                                    color: "text.navigation",
-                                    cursor: "pointer",
+                    <Box>
+                        <IconButton
+                            onClick={() => setSidebar("new_chat")}
+                            sx={{
+                                "&:hover": {
+                                    bgcolor: theme.palette.mode === "dark" ? "#000000" : "default",
+                                },
+                            }}
+                        >
+                            <NewChatIcon
+                                style={{
+                                    fill: theme.palette.mode === "dark" ? "#0078FF" : "#4696F0",
                                 }}
                             />
                         </IconButton>

@@ -1,5 +1,5 @@
-import { Box, CircularProgress } from "@mui/material";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import { Box, CircularProgress, useMediaQuery } from "@mui/material";
+import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { useGetRoomQuery } from "../../api/room";
@@ -15,6 +15,8 @@ import {
     selectTargetMessage,
 } from "../../slices/messages";
 import NewMessageAlert from "./NewMessageAlert";
+import { useTheme } from "@mui/material/styles";
+import { useRoomType } from "./Message";
 
 export default function MessagesContainer({
     children,
@@ -44,6 +46,11 @@ export default function MessagesContainer({
     const { isLoading: roomIsLoading } = useGetRoomQuery(roomId);
     const loading = useSelector(selectRoomMessagesIsLoading(roomId));
     const searchKeyword = useSelector(selectKeyword(roomId));
+
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+    const roomType = useRoomType();
+    const isGroup = roomType === "group";
 
     useEffect(() => {
         if (targetMessageId) {
@@ -251,6 +258,8 @@ export default function MessagesContainer({
                     height: "100%",
                     paddingTop: "50px",
                     paddingBottom: "50px",
+                    paddingRight: isMobile ? "8px" : "48px",
+                    paddingLeft: isMobile ? "8px" : isGroup ? "32px" : "56px",
                 }}
                 id="room-container"
                 px={1}

@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import { useParams } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ChevronLeft from "@mui/icons-material/ChevronLeft";
 import CancelIcon from "@mui/icons-material/Cancel";
 import ExpandLess from "@mui/icons-material/ExpandLess";
@@ -88,6 +89,10 @@ function HeaderContent({ room }: { room: RoomType }) {
             </Box>
             <Box display="flex" gap={3} alignItems="center">
                 <SearchIcon sx={iconSxProps} onClick={() => setSearchOn(true)} />
+                <MoreVertIcon
+                    sx={iconSxProps}
+                    onClick={() => dispatch(toggleRightSidebar())}
+                ></MoreVertIcon>
             </Box>
         </>
     );

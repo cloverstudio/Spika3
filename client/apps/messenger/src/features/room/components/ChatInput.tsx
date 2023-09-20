@@ -334,6 +334,9 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
                 style={{
                     color: "inherit",
                     backgroundColor: "transparent",
+                    fontSize: "16px",
+                    padding: "12px 16px 12px 16px",
+                    fontWeight: "500",
                 }}
             />
         </Box>

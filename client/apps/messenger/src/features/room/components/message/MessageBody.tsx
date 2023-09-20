@@ -237,7 +237,7 @@ function ReplyMessage({
                         }}
                     >
                         {sender && (
-                            <Box mb={0.75} fontWeight="medium">
+                            <Box mb={0.75} fontWeight="600">
                                 {sender.displayName}
                             </Box>
                         )}
@@ -413,8 +413,8 @@ function ReplyMessage({
                     ? "common.myMessageBackground"
                     : "background.paper",
                 borderRadius: "10px",
-                boxShadow: "0 2px 5px 0 rgba(0, 0, 0, 0.15)",
-                padding: "0.4rem",
+                boxShadow: "0 2px 5px 0 rgba(0, 0, 0, 0.10)",
+                padding: "0.4rem 0.4rem 0 0.4rem",
                 cursor: "pointer",
                 color: "common.darkBlue",
                 lineHeight: "1.2rem",

@@ -163,7 +163,27 @@ const components: any = {
 };
 
 export const lightTheme = createTheme({
-    components,
+    components: {
+        ...components,
+        ...{
+            MuiCssBaseline: {
+                styleOverrides: {
+                    body: {
+                        "*::-webkit-scrollbar": {
+                            width: "4px",
+                        },
+                        "*::-webkit-scrollbar-thumb": {
+                            background: "#888",
+                            borderRadius: "4px",
+                        },
+                        "*::-webkit-scrollbar-track": {
+                            background: "transparent",
+                        },
+                    },
+                },
+            },
+        },
+    },
     typography,
     palette: {
         ...basePalette,
@@ -198,7 +218,27 @@ export const lightTheme = createTheme({
 });
 
 export const darkTheme = createTheme({
-    components,
+    components: {
+        ...components,
+        ...{
+            MuiCssBaseline: {
+                styleOverrides: {
+                    body: {
+                        "*::-webkit-scrollbar": {
+                            width: "4px",
+                        },
+                        "*::-webkit-scrollbar-thumb": {
+                            background: "#888",
+                            borderRadius: "4px",
+                        },
+                        "*::-webkit-scrollbar-track": {
+                            background: "transparent",
+                        },
+                    },
+                },
+            },
+        },
+    },
     typography,
     palette: {
         ...basePalette,
