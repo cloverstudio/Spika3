@@ -19,6 +19,7 @@ class GoogleSearchAgent extends AgentBase {
     constructor() {
         super();
         this.name = "Petra";
+        this.enabled = false;
         this.agentExecuters = [];
 
         this.model = new ChatOpenAI({

@@ -72,6 +72,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                           id: {
                               not: userReq.user.id,
                           },
+                          deleted:false
                       },
                   }
                 : {
@@ -79,6 +80,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                       id: {
                           not: userReq.user.id,
                       },
+                      deleted:false
                   }),
         };
 
@@ -118,6 +120,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     )
                 );
             } else {
+
                 const contacts = await prisma.contact.findMany({
                     where: {
                         userId: userReq.user.id,
@@ -145,7 +148,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     where: {
                         userId: userReq.user.id,
                         contact: condition,
-                    },
+                    }
                 });
 
                 const nextCursor =
