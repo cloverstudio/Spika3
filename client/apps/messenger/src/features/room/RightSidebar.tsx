@@ -44,11 +44,8 @@ function RightSidebarContainer({ children }: RightSidebarContainerProps): React.
     return (
         <Box
             borderLeft="0.5px solid #C9C9CA"
-            height="100vh"
             sx={{
                 borderColor: "divider",
-                overflowY: "auto",
-                overflowX: "hidden",
                 zIndex: 1100,
                 backgroundColor: "background.default",
             }}

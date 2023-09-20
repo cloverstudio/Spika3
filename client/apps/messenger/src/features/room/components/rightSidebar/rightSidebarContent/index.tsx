@@ -23,7 +23,7 @@ export default function RightSidebarContentContainer({
     room,
 }: RightSidebarContentProps): React.ReactElement {
     return (
-        <Box pt={3} px={2.5}>
+        <Box pt={3} px={2.5} height="calc(100vh - 80.5px)" pb={1} sx={{ overflowY: "auto" }}>
             <RightSidebarContent room={room} />
         </Box>
     );

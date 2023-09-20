@@ -23,6 +23,7 @@ export default function RightSidebarNoteDetailContent() {
         <Box
             sx={{
                 whiteSpace: "pre-wrap",
+                overflowY: "auto",
             }}
         >
             <Typography variant="h6" mb={3}>
