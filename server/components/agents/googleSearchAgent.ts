@@ -24,7 +24,7 @@ class GoogleSearchAgent extends AgentBase {
 
         this.model = new ChatOpenAI({
             temperature: 0,
-            openAIApiKey: process.env.OPEN_API_KEY,
+            openAIApiKey: process.env.OPENAI_API_KEY,
             modelName: "gpt-3.5-turbo",
         });
     }
