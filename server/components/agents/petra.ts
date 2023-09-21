@@ -1,18 +1,18 @@
 import AgentBase from "./agentBase";
 
-class EchoAgent extends AgentBase {
+class Petra extends AgentBase {
     constructor() {
         super();
-        this.name = "EchoBot";
-        this.enabled = false;
+        this.name = "Petra";
+        this.enabled = true;
     }
 
     test() {
-        console.log("I'm echo agent");
+        console.log("Ja sam Petra");
     }
 
     async createMessage(fromUserId: number, body: string): Promise<string> {
-        return `Hello I'm echo bot. You said ${body}`;
+        return `Hello`;
     }
 
     async helloMessage(): Promise<string> {
@@ -20,4 +20,4 @@ class EchoAgent extends AgentBase {
     }
 }
 
-export default new EchoAgent();
+export default new Petra();

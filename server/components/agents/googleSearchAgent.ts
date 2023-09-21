@@ -18,7 +18,7 @@ class GoogleSearchAgent extends AgentBase {
 
     constructor() {
         super();
-        this.name = "Petra";
+        this.name = "Search Agent";
         this.enabled = false;
         this.agentExecuters = [];
 
