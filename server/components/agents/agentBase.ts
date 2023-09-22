@@ -7,6 +7,7 @@ import sanitize from "../sanitize";
 export default class AgentBase {
     name: string;
     agentUser: User;
+    enabled: boolean;
 
     constructor() {
         this.name = "";
@@ -31,8 +32,20 @@ export default class AgentBase {
                     displayName: this.name,
                     verified: true,
                     isBot: true,
+                    deleted: !this.enabled
                 },
             });
+        }else{
+            const existedUser = await prisma.user.findFirst({
+                where:{
+                    displayName: this.name,
+                }
+            })
+            existedUser && 
+                await prisma.user.update({
+                    where: { id: existedUser.id },
+                    data: { deleted: !this.enabled },
+                })
         }
     }
 
