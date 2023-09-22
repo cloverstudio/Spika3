@@ -4,7 +4,8 @@ class EchoAgent extends AgentBase {
     constructor() {
         super();
         this.name = "EchoBot";
-        this.enabled = true;
+
+        this.enabled = false;
     }
 
     test() {
