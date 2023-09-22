@@ -95,7 +95,7 @@ So, go ahead! 🌟
                 orderBy:{
                     createdAt:"desc"
                 },
-                take:10*2
+                take:5*2
             });
 
             const messageIds: number[] = previousMessages.map(row=>{
@@ -125,6 +125,8 @@ So, go ahead! 🌟
                 }
             })
 
+            console.log(`messages ${messages.length}`);
+            
             messages.map(item=>{
                 prompt.push({
                     role:item.userType,
