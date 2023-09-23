@@ -1,6 +1,6 @@
 import {Configuration,OpenAIApi,ChatCompletionRequestMessage,ChatCompletionRequestMessageRoleEnum} from 'openai';
 import AgentBase from "./agentBase";
-import { RoomUser, Room, Message } from "@prisma/client";
+import { RoomUser, Room, DeviceMessage } from "@prisma/client";
 import { response } from 'express';
 import prisma from "../prisma";
 import {DateTime} from "luxon";
@@ -111,10 +111,20 @@ So, go ahead! 🌟
                 }
             })
 
+            // remove duplicated message when user has multipe message id
+            const existedIds: number[] = [];
+            const uniqueMessageEntities = previousMessageEntities.filter((row: DeviceMessage) => {
+                if (existedIds.indexOf(row.messageId) == -1) {
+                    existedIds.push(row.messageId);
+                    return true;
+                } else
+                    return false;
+            });
+            
             const messages: {
                 userType:ChatCompletionRequestMessageRoleEnum
                 content:string
-            }[] = previousMessageEntities.map(row=>{
+            }[] = uniqueMessageEntities.map(row=>{
 
                 const messageUser: ChatCompletionRequestMessageRoleEnum 
                     = row.fromUserId == fromUserId ? ChatCompletionRequestMessageRoleEnum.User : ChatCompletionRequestMessageRoleEnum.Assistant;
@@ -125,12 +135,15 @@ So, go ahead! 🌟
                 }
             })
 
+
+            
             messages.map(item=>{
                 prompt.push({
                     role:item.userType,
                     content:item.content
                 })
             })
+
         }
 
         
