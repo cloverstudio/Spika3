@@ -13,7 +13,7 @@ class Petra extends AgentBase {
 
     constructor() {
         super();
-        this.name = "Petra";
+        this.name = "Petra 🤖";
         this.enabled = true;
 
         const configuration = new Configuration({
