@@ -78,9 +78,14 @@ export default class AgentBase {
         room: Room;
         rabbitMQChannel: amqp.Channel;
     }) {
+        console.log("new room 1");
+
         if (room.type !== "private") {
             return;
         }
+
+        console.log("new room 2");
+
 
         const isMyChat = users.find((u) => u.displayName === this.agentUser.displayName);
 
@@ -88,14 +93,27 @@ export default class AgentBase {
             return;
         }
 
+        
+        console.log("new room 3");
+
+
         let responseText: string;
 
+        console.log("new room 4");
+
         try {
+            console.log("new room 5");
+
             responseText = await this.helloMessage();
+
+            console.log("new room 6");
+
         } catch (error) {
             console.log({ error });
             responseText = "Error ocurred, please try again latter!";
         }
+
+        console.log("new room 7");
 
         await this.sendMessage({
             fromUser: this.agentUser,

@@ -210,6 +210,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             );
 
             sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_NEW_ROOM);
+
+            console.log("calling agent new room")
             handleNewRoom({ users: foundUsers, room, rabbitMQChannel });
         } catch (e: any) {
             le(e);
