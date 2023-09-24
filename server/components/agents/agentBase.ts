@@ -86,6 +86,8 @@ export default class AgentBase {
 
         console.log("new room 2");
 
+        console.log("users", users);
+        console.log("agent name",this.agentUser.displayName);
 
         const isMyChat = users.find((u) => u.displayName === this.agentUser.displayName);
 
