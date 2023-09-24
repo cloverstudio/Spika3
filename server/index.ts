@@ -48,6 +48,12 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
 
         const start = process.hrtime();
 
+        l(
+            `${req.method} ${
+                req.originalUrl
+            } [START] ${start.toLocaleString()}`
+        );
+
         res.on("finish", () => {
             const durationInMilliseconds = utils.getDurationInMilliseconds(start);
             l(
