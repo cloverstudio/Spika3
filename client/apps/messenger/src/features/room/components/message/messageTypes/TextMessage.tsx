@@ -67,6 +67,12 @@ export default function TextMessage({
                     fontWeight: "500",
                     fontSize: isEmoji ? "48px" : "14px",
                     margin: "2px 0",
+                    "a:visited": {
+                        color: "inherit",
+                    },
+                    "a:link": {
+                        color: "inherit",
+                    },
                 }}
                 dangerouslySetInnerHTML={{ __html: filteredText }}
             />
