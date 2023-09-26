@@ -6,6 +6,7 @@ import Typography from "@mui/material/Typography";
 
 import useStrings from "../../../hooks/useStrings";
 import { TERMS_AND_CONDITIONS_URL } from "../../../../../../lib/constants";
+import { useTheme } from "@mui/material/styles";
 
 type TermsAndConditionsProps = {
     onSubmit: () => void;
@@ -15,6 +16,9 @@ export default function TermsAndConditions({
     onSubmit,
 }: TermsAndConditionsProps): React.ReactElement {
     const strings = useStrings();
+
+    const theme = useTheme();
+    const isDarkTheme = theme.palette.mode === "dark";
 
     return (
         <>
@@ -41,6 +45,7 @@ export default function TermsAndConditions({
                     href={TERMS_AND_CONDITIONS_URL}
                     target="_blank"
                     rel="noreferrer"
+                    style={{ color: isDarkTheme ? "#0078FF" : "default" }}
                 >{` ${strings.termsAndConditions}`}</a>
             </Typography>
 

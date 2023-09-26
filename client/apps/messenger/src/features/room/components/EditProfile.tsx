@@ -428,9 +428,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                         width: "100%",
                         cursor: "pointer",
                         textDecoration: "none",
-                        "&:visited": {
-                            color: "inherit",
-                        },
+                        color: "inherit",
                     }}
                 >
                     <Box component="span">{strings.termsAndConditions}</Box>
