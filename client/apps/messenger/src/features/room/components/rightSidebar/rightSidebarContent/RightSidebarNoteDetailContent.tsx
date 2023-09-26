@@ -54,6 +54,9 @@ export default function RightSidebarNoteDetailContent() {
                     a: {
                         props: {
                             target: "_blank",
+                            style: {
+                                color: "inherit",
+                            },
                         },
                     },
                 }}
