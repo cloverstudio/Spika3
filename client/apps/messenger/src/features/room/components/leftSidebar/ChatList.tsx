@@ -7,8 +7,10 @@ import { Box, CircularProgress, IconButton, Skeleton, useMediaQuery } from "@mui
 import Typography from "@mui/material/Typography";
 import {
     fetchHistory,
+    selectCurrentKeyword,
     selectHistory,
     selectHistoryLoading,
+    setCurrentKeyword,
     setKeyword,
 } from "../../slices/leftSidebar";
 
@@ -17,7 +19,7 @@ import useIsInViewport from "../../../../hooks/useIsInViewport";
 import MessageType from "../../../../types/Message";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import SearchBox from "../SearchBox";
+import { ControlledSearchBox } from "../SearchBox";
 import NotificationsOff from "@mui/icons-material/NotificationsOff";
 import Pin from "@mui/icons-material/PushPin";
 import useStrings from "../../../../hooks/useStrings";
@@ -41,6 +43,7 @@ export default function SidebarChatList({
 
     const list = useSelector(selectHistory);
     const loading = useSelector(selectHistoryLoading());
+    const currentKeyword = useSelector(selectCurrentKeyword);
 
     const { isInViewPort, elementRef } = useIsInViewport();
 
@@ -83,7 +86,11 @@ export default function SidebarChatList({
     return (
         <Box sx={{ overflowY: "auto", maxHeight: "100%" }}>
             <Box sx={{ ...searchBoxProps }}>
-                <SearchBox
+                <ControlledSearchBox
+                    keyword={currentKeyword}
+                    setKeyword={(keyword) => {
+                        dispatch(setCurrentKeyword(keyword));
+                    }}
                     marginBottom={isMobile ? 2 : 0}
                     onSearch={(keyword) => {
                         dispatch(setKeyword(keyword));

@@ -5,7 +5,6 @@ import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import makeStyles from "@mui/styles/makeStyles";
 
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import { useParams } from "react-router-dom";
@@ -34,7 +33,6 @@ import useStrings from "../../../hooks/useStrings";
 import { useRemoveBlockByIdMutation } from "../api/user";
 import DoDisturb from "@mui/icons-material/DoDisturb";
 import useAutoSizeTextArea from "../hooks/useAutoSizeTextArea";
-import { string } from "yup";
 
 export default function ChatInputContainer(): React.ReactElement {
     const dispatch = useDispatch();
@@ -133,14 +131,13 @@ type ChatInputProps = {
     files: File[];
 };
 
-function ChatInput({ handleSetMessageText, handleSend, files }: ChatInputProps) {
+function ChatInput({ handleSend, files }: ChatInputProps) {
     const roomId = parseInt(useParams().id || "");
 
     const dispatch = useDispatch();
     const editMessage = useSelector(selectEditMessage(roomId));
     const replyMessage = useSelector(selectReplyMessage(roomId));
     const inputType = useSelector(selectInputType(roomId));
-    const strings = useStrings();
 
     const onSend = async () => {
         if (!editMessage && !replyMessage) {
@@ -152,11 +149,6 @@ function ChatInput({ handleSetMessageText, handleSend, files }: ChatInputProps) 
         }
 
         dispatch(editMessageThunk(roomId));
-    };
-
-    const handleCloseEdit = () => {
-        dispatch(setEditMessage({ message: null, roomId }));
-        handleSetMessageText("");
     };
 
     if (inputType === "files") {
@@ -178,52 +170,9 @@ function ChatInput({ handleSetMessageText, handleSend, files }: ChatInputProps) 
                 )}
 
                 {replyMessage && <ReplyMessage message={replyMessage} />}
-                <Box width="100%" position="relative">
-                    <TextInput onSend={onSend} />
-                    <Box
-                        sx={{
-                            position: "absolute",
-                            top: "50%",
-                            right: "40px",
-                            transform: "translate(100%, -50%)",
-                            display: "flex",
-                            flexDirection: "column",
-                            justifyContent: "center",
-                        }}
-                    >
-                        <EmojiEmotionsIcon
-                            color="primary"
-                            onClick={() =>
-                                dispatch(
-                                    setInputType(
-                                        inputType === "emoji"
-                                            ? { roomId, type: "text" }
-                                            : { roomId, type: "emoji" }
-                                    )
-                                )
-                            }
-                            sx={{
-                                cursor: "pointer",
-                            }}
-                        />
-                    </Box>
-                </Box>
+                <TextInput onSend={onSend} />
             </Box>
-            {editMessage ? (
-                <Box display="flex" mx={1}>
-                    <Button
-                        size="small"
-                        onClick={handleCloseEdit}
-                        variant="outlined"
-                        sx={{ mr: 1 }}
-                    >
-                        {strings.cancel}
-                    </Button>
-                    <Button size="small" onClick={onSend} variant="contained">
-                        {strings.save}
-                    </Button>
-                </Box>
-            ) : (
+            {!editMessage && (
                 <Box minWidth="70px" display="flex" justifyContent="center">
                     <SendButton onClick={onSend} />
                 </Box>
@@ -258,37 +207,57 @@ function SendButton({ onClick }: { onClick: () => void }): React.ReactElement {
     );
 }
 
-const useStyles = makeStyles(() => ({
-    input: {
-        border: "none",
-        padding: "10px",
-        display: "block",
-        width: "100%",
-        outline: "none",
-        fontSize: "0.9em",
-        paddingRight: "46px",
-        resize: "none",
-        borderRadius: "10px",
-        fontFamily: "inherit",
-    },
-}));
-
 function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
-    const strings = useStrings();
-    const style = useStyles();
     const roomId = parseInt(useParams().id || "");
+    const editMessage = useSelector(selectEditMessage(roomId));
+
+    const strings = useStrings();
     const message = useSelector(selectInputText(roomId));
-    const inputRef = useRef<HTMLTextAreaElement>();
     const dispatch = useDispatch();
     const inputType = useSelector(selectInputType(roomId));
 
-    useAutoSizeTextArea(inputRef.current, message);
-
     const handleSetMessageText = (text: string) => dispatch(setInputText({ text, roomId }));
 
-    useEffect(() => {
-        inputRef.current.focus();
-    });
+    const handleCloseEdit = () => {
+        dispatch(setEditMessage({ message: null, roomId }));
+        handleSetMessageText("");
+    };
+
+    if (editMessage) {
+        return (
+            <Box
+                display="flex"
+                gap={1}
+                justifyContent="center"
+                alignItems="center"
+                flexWrap="wrap"
+                mr={2}
+            >
+                <Box
+                    sx={{
+                        color: "text.primary",
+                        backgroundColor: "background.paper",
+                        borderRadius: "10px",
+                        ml: message || inputType === "emoji" ? 2 : 0,
+                        position: "relative",
+                        flexGrow: 1,
+                    }}
+                >
+                    <TextArea onSend={onSend} />
+                    <ReactionIcon />
+                </Box>
+
+                <Box display="flex" gap={0.5}>
+                    <Button size="small" onClick={handleCloseEdit} variant="text">
+                        {strings.cancel}
+                    </Button>
+                    <Button size="small" onClick={onSend} variant="contained">
+                        {strings.save}
+                    </Button>
+                </Box>
+            </Box>
+        );
+    }
 
     return (
         <Box
@@ -297,46 +266,112 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
                 backgroundColor: "background.paper",
                 borderRadius: "10px",
                 ml: message || inputType === "emoji" ? 2 : 0,
+                position: "relative",
             }}
         >
-            <textarea
-                autoFocus={true}
-                ref={inputRef}
-                value={message}
-                id="chat-input"
-                onPaste={(e) => {
-                    const items = e.clipboardData?.items;
-                    if (items) {
-                        for (let i = 0; i < items.length; i++) {
-                            if (items[i].type.indexOf("image") !== -1) {
-                                const blob = items[i].getAsFile();
-                                AttachmentManager.addFiles({ roomId, files: [blob] });
-                                e.preventDefault();
-                            }
+            <TextArea onSend={onSend} />
+            <ReactionIcon />
+        </Box>
+    );
+}
+
+function TextArea({ onSend }: { onSend: () => void }): React.ReactElement {
+    const roomId = parseInt(useParams().id || "");
+
+    const strings = useStrings();
+    const message = useSelector(selectInputText(roomId));
+    const dispatch = useDispatch();
+    const inputRef = useRef<HTMLTextAreaElement>();
+
+    useAutoSizeTextArea(inputRef.current, message);
+
+    useEffect(() => {
+        inputRef.current.focus();
+    });
+    const handleSetMessageText = (text: string) => dispatch(setInputText({ text, roomId }));
+
+    return (
+        <textarea
+            autoFocus={true}
+            ref={inputRef}
+            value={message}
+            id="chat-input"
+            onPaste={(e) => {
+                const items = e.clipboardData?.items;
+                if (items) {
+                    for (let i = 0; i < items.length; i++) {
+                        if (items[i].type.indexOf("image") !== -1) {
+                            const blob = items[i].getAsFile();
+                            AttachmentManager.addFiles({ roomId, files: [blob] });
+                            e.preventDefault();
                         }
                     }
-                }}
-                onChange={({ target }) => {
-                    handleSetMessageText(target.value);
-                }}
-                onKeyDown={(e) => {
-                    if (e.key === "Enter" && e.shiftKey === true) {
-                        handleSetMessageText(e.currentTarget.value);
-                    } else if (e.key === "Enter") {
-                        e.preventDefault();
-                        onSend();
-                    } else {
-                    }
-                }}
-                placeholder={strings.typeHere}
-                className={style.input}
-                rows={1}
-                style={{
-                    color: "inherit",
-                    backgroundColor: "transparent",
-                    fontSize: "16px",
-                    padding: "12px 16px 12px 16px",
-                    fontWeight: "500",
+                }
+            }}
+            onChange={({ target }) => {
+                handleSetMessageText(target.value);
+            }}
+            onKeyDown={(e) => {
+                if (e.key === "Enter" && e.shiftKey === true) {
+                    handleSetMessageText(e.currentTarget.value);
+                } else if (e.key === "Enter") {
+                    e.preventDefault();
+                    onSend();
+                } else {
+                }
+            }}
+            placeholder={strings.typeHere}
+            rows={1}
+            style={{
+                color: "inherit",
+                backgroundColor: "transparent",
+                fontSize: "16px",
+                padding: "12px 16px 12px 16px",
+                fontWeight: "500",
+                border: "none",
+                display: "block",
+                width: "100%",
+                outline: "none",
+                paddingRight: "46px",
+                resize: "none",
+                borderRadius: "10px",
+                fontFamily: "inherit",
+            }}
+        />
+    );
+}
+
+function ReactionIcon(): React.ReactElement {
+    const roomId = parseInt(useParams().id || "");
+
+    const dispatch = useDispatch();
+    const inputType = useSelector(selectInputType(roomId));
+
+    return (
+        <Box
+            sx={{
+                position: "absolute",
+                top: "50%",
+                right: "40px",
+                transform: "translate(100%, -50%)",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+            }}
+        >
+            <EmojiEmotionsIcon
+                color="primary"
+                onClick={() =>
+                    dispatch(
+                        setInputType(
+                            inputType === "emoji"
+                                ? { roomId, type: "text" }
+                                : { roomId, type: "emoji" }
+                        )
+                    )
+                }
+                sx={{
+                    cursor: "pointer",
                 }}
             />
         </Box>

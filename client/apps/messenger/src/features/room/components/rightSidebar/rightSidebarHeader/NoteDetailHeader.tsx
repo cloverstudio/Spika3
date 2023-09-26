@@ -100,7 +100,17 @@ type DeleteNoteDialogProps = {
 function DeleteNoteDialog({ onClose, open, onConfirm }: DeleteNoteDialogProps) {
     const strings = useStrings();
     return (
-        <Dialog onClose={onClose} open={open}>
+        <Dialog
+            sx={{
+                ".MuiDialog-paper": {
+                    backgroundColor: "background.default",
+                },
+                "& .MuiDialog-paper": { width: "100%" },
+            }}
+            onClose={onClose}
+            open={open}
+            maxWidth="xs"
+        >
             <DialogTitle sx={{ textAlign: "center" }}>{strings.confirm}</DialogTitle>
             <IconButton
                 disableRipple

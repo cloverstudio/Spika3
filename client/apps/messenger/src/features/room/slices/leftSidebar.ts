@@ -45,6 +45,7 @@ type HistoryStateType = {
     page: number;
     loading: "idle" | "pending" | "succeeded" | "failed";
     keyword: string;
+    currentKeyword: string;
 };
 
 type ActiveTabType = "chat" | "call" | "contact";
@@ -100,6 +101,9 @@ export const leftSidebarSlice = createSlice({
             state.history.count = null;
             state.history.page = 1;
             state.history.loading = "idle";
+        },
+        setCurrentKeyword(state, { payload: keyword }: { payload: string }) {
+            state.history.currentKeyword = keyword;
         },
     },
     extraReducers: (builder) => {
@@ -169,11 +173,14 @@ export const {
     removeRoom,
     resetUnreadCount,
     setKeyword,
+    setCurrentKeyword,
 } = leftSidebarSlice.actions;
 
 export const selectHistory = (state: RootState): HistoryListItem[] =>
     state.leftSidebar.history.list;
 export const selectKeyword = (state: RootState): string => state.leftSidebar.history.keyword;
+export const selectCurrentKeyword = (state: RootState): string =>
+    state.leftSidebar.history.currentKeyword;
 export const selectHistoryLoading =
     () =>
     (state: RootState): "idle" | "pending" | "succeeded" | "failed" =>

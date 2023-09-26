@@ -13,7 +13,7 @@ type EmojiPickerProps = {
 };
 
 const emojiSize = 22;
-const emojiSpacing = 1;
+const emojiSpacing = 10;
 const groupedEmojis = getGroupedEmojis("native", 12.0);
 
 export default function EmojiPickerContainer({ onSelect }: EmojiPickerProps): React.ReactElement {
@@ -46,7 +46,7 @@ export default function EmojiPickerContainer({ onSelect }: EmojiPickerProps): Re
     const activeCategory = Object.entries(groupedEmojis)[tabIndex];
 
     return (
-        <Box width="100%" mb={0.5} p={0.5} sx={{ overflowX: "auto" }}>
+        <Box width="100%" mb={0.5} px={1} sx={{ overflowY: "auto", overflowX: "hidden" }}>
             <Box>
                 <Box
                     display="flex"
@@ -83,7 +83,7 @@ export default function EmojiPickerContainer({ onSelect }: EmojiPickerProps): Re
                             <Button
                                 key={`emoji-${data.native}`}
                                 onClick={(e) => handleEmojiClick(e, data)}
-                                sx={{ p: 0.5 }}
+                                sx={{ p: 0, m: 0, minWidth: "auto" }}
                             >
                                 <span
                                     className="emoji-native"
@@ -101,7 +101,7 @@ export default function EmojiPickerContainer({ onSelect }: EmojiPickerProps): Re
                                 <Button
                                     key={`emoji-${data.native}`}
                                     onClick={(e) => handleEmojiClick(e, data)}
-                                    sx={{ p: 0.5 }}
+                                    sx={{ p: 0, m: 0, minWidth: "auto" }}
                                 >
                                     <span
                                         className="emoji-native"

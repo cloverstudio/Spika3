@@ -13,10 +13,13 @@ export default function EmojiGrid({
 }: EmojiGridProps): React.ReactElement {
     return (
         <div
-            className="emoji-grid"
             style={{
+                display: "grid",
+                gridTemplateColumns: `repeat(auto-fill, minmax(${emojiSize}px, 1fr))`,
                 gap: `${emojiSpacing}px`,
-                gridTemplateColumns: `repeat(auto-fill, minmax(min(${emojiSize}px, 100%), 1fr))`,
+                flexWrap: "wrap",
+                maxWidth: "64rem",
+                margin: "0 auto",
             }}
         >
             {children}

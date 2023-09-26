@@ -14,6 +14,7 @@ import PushNotificationInstructionImage from "../assets/pushnotification-instruc
 
 import { useUpdateDeviceMutation, useGetDeviceQuery } from "../api/device";
 import useStrings from "../hooks/useStrings";
+import { Box } from "@mui/material";
 
 export default function PushNotifPermissionDialog(): React.ReactElement {
     const strings = useStrings();
@@ -58,6 +59,7 @@ export default function PushNotifPermissionDialog(): React.ReactElement {
             open={showPermissionDialog}
             aria-labelledby="alert-dialog-title"
             aria-describedby="alert-dialog-description"
+            sx={{ "& .MuiDialog-paper": { width: "100%", maxWidth: "md" } }}
         >
             <DialogTitle id="alert-dialog-title">{strings.usePushNotificationService}</DialogTitle>
             <DialogContent>
@@ -69,7 +71,14 @@ export default function PushNotifPermissionDialog(): React.ReactElement {
                         textAlign: "center",
                     }}
                 >
-                    <img src={PushNotificationInstructionImage} />
+                    <Box
+                        component="img"
+                        width="100%"
+                        maxWidth="sm"
+                        height="auto"
+                        mt={2}
+                        src={PushNotificationInstructionImage}
+                    />
                 </div>
             </DialogContent>
             <DialogActions>
@@ -79,6 +88,9 @@ export default function PushNotifPermissionDialog(): React.ReactElement {
                         setShowPermissionDialog(false);
                     }}
                     id="enable-push-notification-button"
+                    color="primary"
+                    autoFocus
+                    variant="contained"
                 >
                     {strings.enableDesktopNotifications}
                 </Button>

@@ -53,7 +53,9 @@ export default function BasicDialog({
             aria-describedby="alert-dialog-description"
             sx={{
                 zIndex: 600,
+                "& .MuiDialog-paper": { width: "100%" },
             }}
+            maxWidth="xs"
         >
             <DialogTitle id="alert-dialog-title">{title}</DialogTitle>
             <DialogContent>

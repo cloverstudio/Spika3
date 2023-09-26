@@ -22,6 +22,8 @@ export default function BasicDialog() {
             onClose={(e) => dispatch(hideBasicDialog())}
             aria-labelledby="alert-dialog-title"
             aria-describedby="alert-dialog-description"
+            sx={{ "& .MuiDialog-paper": { width: "100%" } }}
+            maxWidth="xs"
         >
             <DialogTitle id="alert-dialog-title">{modalState.basicDialogInfo?.title}</DialogTitle>
             <DialogContent>

@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { Outlet, useLocation, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
-import { Box, Fade } from "@mui/material";
+import { Box, Fade, Typography } from "@mui/material";
 import useTheme from "@mui/material/styles/useTheme";
 import useMediaQuery from "@mui/material/useMediaQuery";
 
@@ -21,6 +21,7 @@ import {
 import { selectUserId, fetchMe, fetchSettings } from "../../src/store/userSlice";
 import * as constants from "../../../../lib/constants";
 import TitleUpdater from "../features/room/components/TitleUpdater";
+import homeImg from "../assets/home.svg";
 
 export default function Home(): React.ReactElement {
     const theme = useTheme();
@@ -90,6 +91,27 @@ export default function Home(): React.ReactElement {
             >
                 {!isMobile && <LeftSidebar />}
                 <Outlet />
+
+                {isHome && !isMobile && (
+                    <Box
+                        display="flex"
+                        justifyContent="center"
+                        flexDirection="column"
+                        alignItems="center"
+                        height="100vh"
+                        gap={8}
+                    >
+                        <Box component="img" src={homeImg} />
+                        <Typography
+                            color="textSecondary"
+                            textAlign="center"
+                            sx={{ maxWidth: "sm" }}
+                        >
+                            Feel inspired by our custom SDK chat engine, Spika, designed to
+                            seamlessly integrate with your system.
+                        </Typography>
+                    </Box>
+                )}
 
                 <Fade in={rightSidebarOpen && !isMobile} timeout={500} mountOnEnter unmountOnExit>
                     <Box>

@@ -18,6 +18,9 @@ import {
     setActiveTab,
     shouldShowProfileEditor,
     setOpenEditProfile,
+    setKeyword,
+    fetchHistory,
+    setCurrentKeyword,
 } from "../../slices/leftSidebar";
 
 import SidebarContactList from "./ContactList";
@@ -29,6 +32,7 @@ import logo from "../../../../assets/logo.svg";
 import { useGetUserQuery } from "../../../auth/api/auth";
 import { Link } from "react-router-dom";
 import { useGetUnreadCountQuery } from "../../api/room";
+import { doc } from "prettier";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -61,7 +65,13 @@ export default function LeftSidebarHome({
 
     const handleChangeTab = (value: "call" | "chat" | "contact"): void => {
         dispatch(setActiveTab(value));
+        if (value === "chat") {
+            dispatch(setKeyword(""));
+            dispatch(fetchHistory());
+            dispatch(setCurrentKeyword(""));
+        }
     };
+
     const setOpenEditor = () => dispatch(setOpenEditProfile(!profileEditingOpen));
     const closeEditor = () => dispatch(setOpenEditProfile(false));
     const ActiveElement = navigation.find((n) => n.name === activeTab)?.Element;

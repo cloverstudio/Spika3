@@ -54,14 +54,15 @@ export default function AddMembersModal(props: AddMembersModalProps) {
         <Dialog
             onClose={onClose}
             open={open}
-            maxWidth="lg"
+            maxWidth="xs"
             sx={{
                 ".MuiDialog-paper": {
                     backgroundColor: "background.default",
                 },
+                "& .MuiDialog-paper": { width: "100%" },
             }}
         >
-            <Box width={{ md: 428 }} px={2.5} py={2} sx={{ overflow: "hidden" }} className={theme}>
+            <Box px={2.5} py={2} sx={{ overflow: "hidden" }} className={theme}>
                 <DialogTitle sx={{ textAlign: "center", p: 0, mb: 2 }}>
                     {strings.addMembers}
                 </DialogTitle>

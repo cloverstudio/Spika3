@@ -51,7 +51,12 @@ function DeleteMessageDialog({ message, onClose }: { message: MessageType; onClo
     };
 
     return (
-        <Dialog onClose={onClose} open={true}>
+        <Dialog
+            onClose={onClose}
+            open={true}
+            maxWidth="xs"
+            sx={{ "& .MuiDialog-paper": { width: "100%" } }}
+        >
             <DialogTitle sx={{ textAlign: "center" }}>{strings.delete}</DialogTitle>
             <IconButton
                 disableRipple

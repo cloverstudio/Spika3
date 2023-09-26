@@ -526,7 +526,12 @@ export function EditPhotoDialog(props: EditPhotoDialogProps) {
     };
 
     return (
-        <Dialog onClose={handleClose} open={open}>
+        <Dialog
+            maxWidth="xs"
+            sx={{ "& .MuiDialog-paper": { width: "100%" } }}
+            onClose={handleClose}
+            open={open}
+        >
             <DialogTitle sx={{ textAlign: "center" }}>Photo</DialogTitle>
             <IconButton
                 disableRipple
