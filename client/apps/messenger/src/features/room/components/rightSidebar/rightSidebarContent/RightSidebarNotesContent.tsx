@@ -1,5 +1,4 @@
 import React from "react";
-import { useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
 
 import { Box } from "@mui/material";
@@ -11,11 +10,12 @@ import Loader from "../../../../../components/Loader";
 import useStrings from "../../../../../hooks/useStrings";
 import { useGetNotesByRoomIdQuery } from "../../../api/note";
 import { setActiveNoteId } from "../../../slices/rightSidebar";
+import { useAppDispatch } from "../../../../../hooks";
 
 export default function RightSidebarNotesContent(): React.ReactElement {
     const strings = useStrings();
     const roomId = +useParams().id;
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
 
     const { data, isLoading } = useGetNotesByRoomIdQuery(roomId);
 

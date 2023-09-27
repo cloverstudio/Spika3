@@ -1,6 +1,6 @@
 import React, { memo, useContext, useEffect, useMemo } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import dayjs from "dayjs";
 
 import DoDisturb from "@mui/icons-material/DoDisturb";
@@ -23,6 +23,7 @@ import Message from "./Message";
 import MessagesContainer from "./MessagesContainer";
 import MessageType from "../../../../types/Message";
 import { ThemeContext } from "../../../../theme";
+import { useAppDispatch } from "../../../../hooks";
 
 const Date = memo(function Date({ day }: { day: string }) {
     return (
@@ -43,7 +44,7 @@ export default function MessagesList(): React.ReactElement {
 
     const [blockUser] = useBlockUserMutation();
 
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const messages = useSelector(selectRoomMessages(roomId));
     const cursor = useSelector(selectCursor(roomId));
     const shouldDisplayBlockButton = useSelector(selectShouldDisplayBlockButton(roomId));
@@ -54,7 +55,9 @@ export default function MessagesList(): React.ReactElement {
     const bgColor = theme === "light" ? "#F9F9F9" : "#282828";
 
     const messagesSorted = useMemo(() => {
-        const sorted = Object.values(messages).sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1));
+        const sorted = Object.values(messages || {}).sort((a, b) =>
+            a.createdAt > b.createdAt ? 1 : -1,
+        );
 
         return sorted.reduce((acc, curr, i) => {
             const day = dayjs.unix(curr.createdAt / 1000).format("dddd, MMM D");
@@ -112,7 +115,7 @@ export default function MessagesList(): React.ReactElement {
                     .then(() => {
                         console.log("done");
                     });
-            }
+            },
         );
     };
 

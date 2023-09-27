@@ -1,5 +1,5 @@
 import React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
@@ -8,10 +8,11 @@ import useStrings from "../../../../../hooks/useStrings";
 
 import { useGetNoteByIdQuery } from "../../../api/note";
 import { selectRightSidebarActiveNoteId, setActiveNoteId } from "../../../slices/rightSidebar";
+import { useAppDispatch } from "../../../../../hooks";
 
 export default function EditNoteHeader() {
     const strings = useStrings();
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const noteId = useSelector(selectRightSidebarActiveNoteId);
     const { data, isLoading } = useGetNoteByIdQuery(noteId);
 

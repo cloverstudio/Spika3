@@ -1,5 +1,5 @@
 import React, { memo, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import Avatar from "@mui/material/Avatar";
 import { Box, Slide } from "@mui/material";
@@ -23,6 +23,7 @@ import MessageContextMenu, { IconConfigs } from "./MessageContextMenu";
 import ReactionOptionsPopover from "./ReactionOptionsPopover";
 import MessageReactions from "./Reactions";
 import StatusIcon from "./StatusIcon";
+import { useAppDispatch } from "../../../../hooks";
 
 function useSender(id: number) {
     const roomId = parseInt(useParams().id || "");
@@ -331,7 +332,7 @@ function Menu({ id, mouseOver, setMouseOver, setShowReactionMenu }: MenuProps) {
 
     const isUsersMessage = fromUserId === user.id;
 
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const showSnackBar = useShowSnackBar();
 
     let contextMenuIcons = IconConfigs.showInfo;

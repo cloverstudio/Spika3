@@ -15,12 +15,13 @@ import {
     useLeaveRoomMutation,
 } from "../../api/room";
 import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { hideRightSidebar } from "../../slices/rightSidebar";
 import { removeRoom } from "../../slices/leftSidebar";
 import { selectUserId } from "../../../../store/userSlice";
 import useStrings from "../../../../hooks/useStrings";
 import { useBlockUserMutation, useRemoveUserFromBlockListMutation } from "../../api/user";
+import { useAppDispatch } from "../../../../hooks";
 
 export interface DetailsDestructiveActionsProps {
     room: RoomType;
@@ -35,7 +36,7 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
     const [leaveRoom] = useLeaveRoomMutation();
     const [deleteRoom] = useDeleteRoomMutation();
     const navigate = useNavigate();
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const [blockUser] = useBlockUserMutation();
     const [unblockUser] = useRemoveUserFromBlockListMutation();
 
@@ -69,7 +70,7 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
                         dispatch(hideRightSidebar());
                         dispatch(removeRoom(id));
                         navigate("/app");
-                    })
+                    }),
         );
     };
 
@@ -88,7 +89,7 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
                         dispatch(hideRightSidebar());
                         dispatch(removeRoom(id));
                         navigate("/app");
-                    })
+                    }),
         );
     };
 
@@ -105,7 +106,7 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
                     .unwrap()
                     .then(() => {
                         console.log("done");
-                    })
+                    }),
         );
     };
 
@@ -122,7 +123,7 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
                     .unwrap()
                     .then(() => {
                         console.log("done");
-                    })
+                    }),
         );
     };
 

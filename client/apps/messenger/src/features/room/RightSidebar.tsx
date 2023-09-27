@@ -1,6 +1,5 @@
 import { Box } from "@mui/material";
 import React, { useEffect } from "react";
-import { useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
 import Loader from "../../components/Loader";
 
@@ -8,10 +7,11 @@ import { useGetRoomQuery } from "./api/room";
 import RightSidebarContent from "./components/rightSidebar/rightSidebarContent";
 import RightSidebarHeader from "./components/rightSidebar/rightSidebarHeader";
 import { setActiveTab } from "./slices/rightSidebar";
+import { useAppDispatch } from "../../hooks";
 
 export default function RightSidebar(): React.ReactElement {
     const roomId = +useParams().id;
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const { data: room, isLoading, error } = useGetRoomQuery(roomId);
 
     useEffect(() => {

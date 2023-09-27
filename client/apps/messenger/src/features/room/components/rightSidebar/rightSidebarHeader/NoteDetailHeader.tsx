@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
 import { Box } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
@@ -21,10 +21,11 @@ import { useDeleteNoteMutation, useGetNoteByIdQuery } from "../../../api/note";
 import { useParams } from "react-router-dom";
 import { useShowSnackBar } from "../../../../../hooks/useModal";
 import useStrings from "../../../../../hooks/useStrings";
+import { useAppDispatch } from "../../../../../hooks";
 
 export default function NoteDetailHeader() {
     const strings = useStrings();
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const noteId = useSelector(selectRightSidebarActiveNoteId);
     const roomId = +useParams().id;
     const showSnackbar = useShowSnackBar();

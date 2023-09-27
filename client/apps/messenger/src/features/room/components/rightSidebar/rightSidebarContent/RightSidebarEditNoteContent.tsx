@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
 import { Box } from "@mui/material";
 import Button from "@mui/material/Button";
@@ -9,6 +9,7 @@ import useStrings from "../../../../../hooks/useStrings";
 
 import { useEditNoteMutation, useGetNoteByIdQuery } from "../../../api/note";
 import { selectRightSidebarActiveNoteId, setActiveNoteId } from "../../../slices/rightSidebar";
+import { useAppDispatch } from "../../../../../hooks";
 
 export default function RightSidebarEditNoteContent(): React.ReactElement {
     const strings = useStrings();
@@ -16,7 +17,7 @@ export default function RightSidebarEditNoteContent(): React.ReactElement {
 
     const { data } = useGetNoteByIdQuery(noteId);
 
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [editNote, { isLoading }] = useEditNoteMutation();

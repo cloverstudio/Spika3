@@ -1,13 +1,10 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { save, load } from "redux-localstorage-simple";
 import counterReducer from "./counterSlice";
 
 export const store = configureStore({
     reducer: {
         counter: counterReducer,
     },
-    preloadedState: load(),
-    middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(save()),
 });
 
 // Infer the `RootState` and `AppDispatch` types from the store itself

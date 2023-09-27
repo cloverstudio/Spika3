@@ -1,5 +1,5 @@
 import React from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import CssBaseline from "@mui/material/CssBaseline";
@@ -25,6 +25,7 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import { styled, ThemeProvider } from "@mui/material/styles";
 import { createTheme } from "@mui/material";
+import { useAppDispatch } from "../../hooks";
 
 const drawerWidth = 240;
 
@@ -52,7 +53,7 @@ interface AppBarProps extends MuiAppBarProps {
 
 export default function Dashboard() {
     const token = useSelector((state: RootState) => state.auth.token);
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const navigate = useNavigate();
 
     const [open, setOpen] = React.useState(true);

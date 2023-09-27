@@ -4,7 +4,7 @@ import { Box } from "@mui/material";
 import Stack from "@mui/material/Stack";
 import Switch from "@mui/material/Switch";
 import ChevronRight from "@mui/icons-material/ChevronRight";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
 import { RoomType } from "../../../../types/Rooms";
 import { setActiveTab } from "../../slices/rightSidebar";
@@ -20,6 +20,7 @@ import { selectUserId } from "../../../../../src/store/userSlice";
 
 import useStrings from "../../../../hooks/useStrings";
 import { fetchHistory, setKeyword } from "../../slices/leftSidebar";
+import { useAppDispatch } from "../../../../hooks";
 
 export interface Props {
     roomData: RoomType;
@@ -28,7 +29,7 @@ export interface Props {
 export function DetailsAdditionalInfoView(props: Props) {
     const strings = useStrings();
     const room: RoomType = props.roomData;
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const showSnackBar = useShowSnackBar();
     const [muteRoom] = useMuteRoomMutation();
     const [unmuteRoom] = useUnmuteRoomMutation();

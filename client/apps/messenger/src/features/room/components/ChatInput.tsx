@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { Box } from "@mui/material";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
@@ -33,9 +33,10 @@ import useStrings from "../../../hooks/useStrings";
 import { useRemoveBlockByIdMutation } from "../api/user";
 import DoDisturb from "@mui/icons-material/DoDisturb";
 import useAutoSizeTextArea from "../hooks/useAutoSizeTextArea";
+import { useAppDispatch } from "../../../hooks";
 
 export default function ChatInputContainer(): React.ReactElement {
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const roomId = parseInt(useParams().id || "");
     const inputType = useSelector(selectInputType(roomId));
     const { data: roomBlock } = useGetRoomBlockedQuery(roomId);
@@ -64,7 +65,7 @@ export default function ChatInputContainer(): React.ReactElement {
                     roomId,
                     type: "text",
                     body: {},
-                })
+                }),
             );
         }
     };
@@ -134,7 +135,7 @@ type ChatInputProps = {
 function ChatInput({ handleSend, files }: ChatInputProps) {
     const roomId = parseInt(useParams().id || "");
 
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const editMessage = useSelector(selectEditMessage(roomId));
     const replyMessage = useSelector(selectReplyMessage(roomId));
     const inputType = useSelector(selectInputType(roomId));
@@ -172,11 +173,6 @@ function ChatInput({ handleSend, files }: ChatInputProps) {
                 {replyMessage && <ReplyMessage message={replyMessage} />}
                 <TextInput onSend={onSend} />
             </Box>
-            {!editMessage && (
-                <Box minWidth="70px" display="flex" justifyContent="center">
-                    <SendButton onClick={onSend} />
-                </Box>
-            )}
         </>
     );
 }
@@ -213,7 +209,7 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
 
     const strings = useStrings();
     const message = useSelector(selectInputText(roomId));
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const inputType = useSelector(selectInputType(roomId));
 
     const handleSetMessageText = (text: string) => dispatch(setInputText({ text, roomId }));
@@ -260,17 +256,23 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
     }
 
     return (
-        <Box
-            sx={{
-                color: "text.primary",
-                backgroundColor: "background.paper",
-                borderRadius: "10px",
-                ml: message || inputType === "emoji" ? 2 : 0,
-                position: "relative",
-            }}
-        >
-            <TextArea onSend={onSend} />
-            <ReactionIcon />
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Box
+                sx={{
+                    color: "text.primary",
+                    backgroundColor: "background.paper",
+                    borderRadius: "10px",
+                    ml: message || inputType === "emoji" ? 2 : 0,
+                    position: "relative",
+                    flexGrow: 1,
+                }}
+            >
+                <TextArea onSend={onSend} />
+                <ReactionIcon />
+            </Box>
+            <Box minWidth="70px" display="flex" justifyContent="center">
+                <SendButton onClick={onSend} />
+            </Box>
         </Box>
     );
 }
@@ -280,7 +282,7 @@ function TextArea({ onSend }: { onSend: () => void }): React.ReactElement {
 
     const strings = useStrings();
     const message = useSelector(selectInputText(roomId));
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const inputRef = useRef<HTMLTextAreaElement>();
 
     useAutoSizeTextArea(inputRef.current, message);
@@ -344,7 +346,7 @@ function TextArea({ onSend }: { onSend: () => void }): React.ReactElement {
 function ReactionIcon(): React.ReactElement {
     const roomId = parseInt(useParams().id || "");
 
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const inputType = useSelector(selectInputType(roomId));
 
     return (
@@ -366,8 +368,8 @@ function ReactionIcon(): React.ReactElement {
                         setInputType(
                             inputType === "emoji"
                                 ? { roomId, type: "text" }
-                                : { roomId, type: "emoji" }
-                        )
+                                : { roomId, type: "emoji" },
+                        ),
                     )
                 }
                 sx={{
@@ -379,7 +381,7 @@ function ReactionIcon(): React.ReactElement {
 }
 
 function ReplyMessage({ message }: { message: MessageType }): React.ReactElement {
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const roomId = parseInt(useParams().id || "");
     const messageInput = useSelector(selectInputText(roomId));
 

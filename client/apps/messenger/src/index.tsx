@@ -1,5 +1,5 @@
 import React from "react";
-import ReactDom from "react-dom";
+import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
 
 import App from "./app";
@@ -7,9 +7,10 @@ import "./style/app.scss";
 
 import { store } from "./store/store";
 
-ReactDom.render(
+const container = document.getElementById("app");
+const root = createRoot(container); // createRoot(container!) if you use TypeScript
+root.render(
     <Provider store={store}>
         <App />
-    </Provider>,
-    document.getElementById("app")
+    </Provider>
 );

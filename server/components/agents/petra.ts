@@ -1,12 +1,15 @@
-import {Configuration,OpenAIApi,ChatCompletionRequestMessage,ChatCompletionRequestMessageRoleEnum} from 'openai';
+import {
+    Configuration,
+    OpenAIApi,
+    ChatCompletionRequestMessage,
+    ChatCompletionRequestMessageRoleEnum,
+} from "openai";
 import AgentBase from "./agentBase";
-import { RoomUser, Room, DeviceMessage } from "@prisma/client";
-import { response } from 'express';
+import { Room, DeviceMessage } from "@prisma/client";
 import prisma from "../prisma";
-import {DateTime} from "luxon";
+import { DateTime } from "luxon";
 
-
-type TimeOfDay = "morning"|"noon"|"evening"|"night";
+type TimeOfDay = "morning" | "noon" | "evening" | "night";
 
 class Petra extends AgentBase {
     openai: OpenAIApi;
@@ -18,37 +21,35 @@ class Petra extends AgentBase {
 
         const configuration = new Configuration({
             apiKey: process.env.OPENAI_API_KEY,
-          });
+        });
         this.openai = new OpenAIApi(configuration);
-
     }
 
     test() {
         console.log("Ja sam Petra");
     }
 
-    getTimeOfDay(now : DateTime): TimeOfDay{
-        const certTime : DateTime = now.setZone("Europe/Paris");
+    getTimeOfDay(now: DateTime): TimeOfDay {
+        const certTime: DateTime = now.setZone("Europe/Paris");
         const currentHour: number = certTime.toFormat("HH");
 
-        if(currentHour > 5 && currentHour <= 10) return "morning";
-        else if(currentHour > 10 && currentHour <= 18) return "noon";
-        else if(currentHour > 18 && currentHour <= 22) return "evening";
-        else if(currentHour > 22 && currentHour <= 5) return "night";
+        if (currentHour > 5 && currentHour <= 10) return "morning";
+        else if (currentHour > 10 && currentHour <= 18) return "noon";
+        else if (currentHour > 18 && currentHour <= 22) return "evening";
+        else if (currentHour > 22 && currentHour <= 5) return "night";
         else return "night";
     }
     async createMessage(fromUserId: number, body: string): Promise<string> {
-
         // fetch previous conversations
         const user = await prisma.user.findFirst({
-            where:{
-                id: fromUserId
-            }
+            where: {
+                id: fromUserId,
+            },
         });
 
         let userName = "";
 
-        if(user) userName = user.displayName;
+        if (user) userName = user.displayName;
 
         const query = `
         select * from room 
@@ -63,11 +64,12 @@ class Petra extends AgentBase {
 
         const existingRoomResult: Room[] = await prisma.$queryRawUnsafe<Room[]>(query);
 
-        const strTime : TimeOfDay = this.getTimeOfDay(DateTime.now());
+        const strTime: TimeOfDay = this.getTimeOfDay(DateTime.now());
 
         const prompt: ChatCompletionRequestMessage[] = [
-
-            {"role": "system", "content": `
+            {
+                role: "system",
+                content: `
 Your name is ${this.name}.
 The current time is ${strTime}.
 The name of your conversation partner is ${userName}. 
@@ -83,33 +85,34 @@ If you receive a greeting, consider the current time and respond with a greeting
 Think in Japanese, but respond in Croatian with emojis.
 
 So, go ahead! 🌟
-`},
+`,
+            },
         ];
 
-        if(existingRoomResult && existingRoomResult.length > 0){
+        if (existingRoomResult && existingRoomResult.length > 0) {
             const roomId: number = existingRoomResult[0].id;
 
             // get previous messages
             const previousMessages = await prisma.message.findMany({
-                where: { roomId: { in: roomId } },
-                orderBy:{
-                    createdAt:"desc"
+                where: { roomId: { in: [roomId] } },
+                orderBy: {
+                    createdAt: "desc",
                 },
-                take:10*2
+                take: 10 * 2,
             });
 
-            const messageIds: number[] = previousMessages.map(row=>{
-                return row.id
+            const messageIds: number[] = previousMessages.map((row) => {
+                return row.id;
             });
 
             const previousMessageEntities = await prisma.deviceMessage.findMany({
-                where:{
-                    messageId: { in: messageIds}
+                where: {
+                    messageId: { in: messageIds },
                 },
-                orderBy:{
-                    createdAt:"asc"
-                }
-            })
+                orderBy: {
+                    createdAt: "asc",
+                },
+            });
 
             // remove duplicated message when user has multipe message id
             const existedIds: number[] = [];
@@ -117,52 +120,47 @@ So, go ahead! 🌟
                 if (existedIds.indexOf(row.messageId) == -1) {
                     existedIds.push(row.messageId);
                     return true;
-                } else
-                    return false;
+                } else return false;
             });
-            
-            const messages: {
-                userType:ChatCompletionRequestMessageRoleEnum
-                content:string
-            }[] = uniqueMessageEntities.map(row=>{
 
-                const messageUser: ChatCompletionRequestMessageRoleEnum 
-                    = row.fromUserId == fromUserId ? ChatCompletionRequestMessageRoleEnum.User : ChatCompletionRequestMessageRoleEnum.Assistant;
+            const messages: {
+                userType: ChatCompletionRequestMessageRoleEnum;
+                content: string;
+            }[] = uniqueMessageEntities.map((row) => {
+                const messageUser: ChatCompletionRequestMessageRoleEnum =
+                    row.fromUserId == fromUserId
+                        ? ChatCompletionRequestMessageRoleEnum.User
+                        : ChatCompletionRequestMessageRoleEnum.Assistant;
 
                 return {
-                    userType:messageUser,
-                    content:(row.body as any).text
-                }
-            })
+                    userType: messageUser,
+                    content: (row.body as any).text,
+                };
+            });
 
-
-            
-            messages.map(item=>{
+            messages.map((item) => {
                 prompt.push({
-                    role:item.userType,
-                    content:item.content
-                })
-            })
-
+                    role: item.userType,
+                    content: item.content,
+                });
+            });
         }
 
-        
         prompt.push({
-            "role": "user", "content": body
+            role: "user",
+            content: body,
         });
 
         const response = await this.openai.createChatCompletion({
             model: "gpt-3.5-turbo",
-            messages:prompt,
+            messages: prompt,
             temperature: 0.3,
-          }
-        )
+        });
 
         return response.data.choices[0].message.content;
     }
 
     async helloMessage(): Promise<string> {
-        
         return `
 Ja sam Petra! 💁‍♀️ Ja sam AI četbot, ali zbilja nemam puno iskustva. 
 😅 Ali, hej, mogu biti tvoja chat buddy! 😄 Slobodno se opusti i pričaj sa mnom! 💬✨

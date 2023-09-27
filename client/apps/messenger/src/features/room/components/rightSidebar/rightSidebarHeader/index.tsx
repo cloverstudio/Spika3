@@ -1,5 +1,5 @@
 import React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
 import { Box } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
@@ -18,6 +18,7 @@ import EditNoteHeader from "./EditNoteHeader";
 import SettingsHeader from "./SettingsHeader";
 import NoteDetailHeader from "./NoteDetailHeader";
 import useStrings from "../../../../../hooks/useStrings";
+import { useAppDispatch } from "../../../../../hooks";
 
 type RightSidebarHeaderProps = {
     type: string;
@@ -26,7 +27,7 @@ type RightSidebarHeaderProps = {
 export default function RightSidebarHeader({ type }: RightSidebarHeaderProps): React.ReactElement {
     const strings = useStrings();
     const activeTab = useSelector(selectRightSidebarActiveTab);
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
 
     const getSidebarContent = () => {
         if (activeTab === "details") {

@@ -9,8 +9,8 @@ import ImageMessage from "./messageTypes/ImageMessage";
 import VideoMessage from "./messageTypes/VideoMessage";
 import FileMessage from "./messageTypes/FileMessage";
 import { DOWNLOAD_URL } from "../../../../../../../lib/constants";
-import { useDispatch } from "react-redux";
 import { setTargetMessage } from "../../slices/messages";
+import { useAppDispatch } from "../../../../hooks";
 
 type MessageBodyProps = {
     id: number;
@@ -195,13 +195,12 @@ function ReplyMessage({
 }) {
     const roomId = parseInt(useParams().id || "");
     const { data: room } = useGetRoomQuery(roomId);
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
 
     const renderReplyMessage = () => {
         const { type: replyMsgType, body: replyMsgBody } = body.referenceMessage;
-        const sender = room?.users?.find(
-            (u) => u.userId === body.referenceMessage.fromUserId
-        )?.user;
+        const sender = room?.users?.find((u) => u.userId === body.referenceMessage.fromUserId)
+            ?.user;
 
         const needsToTruncate =
             replyMsgType === "text" && (replyMsgBody.text as string).length > 120;

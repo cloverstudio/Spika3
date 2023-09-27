@@ -1,6 +1,6 @@
 import { Box, CircularProgress, useMediaQuery } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { useGetRoomQuery } from "../../api/room";
 import AttachmentManager from "../../lib/AttachmentManager";
@@ -17,6 +17,7 @@ import {
 import NewMessageAlert from "./NewMessageAlert";
 import { useTheme } from "@mui/material/styles";
 import { useRoomType } from "./Message";
+import { useAppDispatch } from "../../../../hooks";
 
 export default function MessagesContainer({
     children,
@@ -32,7 +33,7 @@ export default function MessagesContainer({
     const isLastMessageFromUser = useSelector(selectIsLastMessageFromUser(roomId));
     const canLoadMore = useSelector(canLoadMoreMessages(roomId));
     const cursor = useSelector(selectCursor(roomId));
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
 
     const messagesLengthRef = useRef(0);
     const ref = useRef<HTMLDivElement>();
@@ -294,7 +295,7 @@ export default function MessagesContainer({
 function scrollElemBottom(
     element: HTMLElement,
     onScroll?: () => void,
-    behavior?: ScrollBehavior
+    behavior?: ScrollBehavior,
 ): void {
     if (element.scrollHeight > element.clientHeight) {
         element.scrollTo({ top: element.scrollHeight - element.clientHeight, behavior });

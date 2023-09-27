@@ -28,6 +28,7 @@ import formatRoomInfo from "../../lib/formatRoomInfo";
 import { selectUser } from "../../../../store/userSlice";
 import { useTheme } from "@mui/material/styles";
 import { ReactComponent as NewChatIcon } from "../../../../assets/new-chat.svg";
+import { AppDispatch } from "../../../../store/store";
 
 dayjs.extend(relativeTime);
 declare const UPLOADS_BASE_URL: string;
@@ -38,7 +39,7 @@ export default function SidebarChatList({
     setSidebar: Dispatch<React.SetStateAction<string>>;
 }): React.ReactElement {
     const strings = useStrings();
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const activeRoomId = parseInt(useParams().id || "");
 
     const list = useSelector(selectHistory);
@@ -68,7 +69,7 @@ export default function SidebarChatList({
 
     const sortRooms = (): typeof list => {
         const sorted = [...list].sort((a, b) =>
-            a.lastMessage?.createdAt > b.lastMessage?.createdAt ? -1 : 1
+            a.lastMessage?.createdAt > b.lastMessage?.createdAt ? -1 : 1,
         );
 
         const pinned = sorted.filter((r) => r.pinned);
@@ -151,7 +152,7 @@ function RoomRow({ id, isActive, lastMessage, unreadCount }: RoomRowProps) {
     const strings = useStrings();
     const me = useSelector(selectUser);
     const [time, setTime] = useState(
-        lastMessage?.createdAt && dayjs(lastMessage.createdAt).fromNow()
+        lastMessage?.createdAt && dayjs(lastMessage.createdAt).fromNow(),
     );
     const { data, isLoading } = useGetRoomQuery(id);
 

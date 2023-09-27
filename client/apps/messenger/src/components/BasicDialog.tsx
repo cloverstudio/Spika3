@@ -9,12 +9,12 @@ import Button from "@mui/material/Button";
 
 import { useSelector, useDispatch } from "react-redux";
 import { hideBasicDialog } from "../store/modalSlice";
-import { RootState } from "../store/store";
+import { AppDispatch, RootState } from "../store/store";
 import { uiListeners } from "../hooks/useModal";
 
 export default function BasicDialog() {
     const modalState = useSelector((state: RootState) => state.modal);
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
 
     return (
         <Dialog

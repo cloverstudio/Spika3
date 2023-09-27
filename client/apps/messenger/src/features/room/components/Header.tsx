@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import { useParams } from "react-router-dom";
@@ -29,6 +29,7 @@ import {
     setKeyword,
     setTargetMessage,
 } from "../slices/messages";
+import { useAppDispatch } from "../../../hooks";
 
 export default function Header() {
     const roomId = parseInt(useParams().id || "");
@@ -46,7 +47,7 @@ export default function Header() {
 }
 
 function HeaderContent({ room }: { room: RoomType }) {
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
     const [searchOn, setSearchOn] = useState(false);
@@ -123,7 +124,7 @@ function Search({ onClose }: { onClose: () => void }) {
     const roomId = parseInt(useParams().id || "");
     const [results, setResults] = useState([]);
     const [keyword, setLocalKeyword] = useState("");
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const currentTargetMessageId = useSelector(selectTargetMessage(roomId));
     const currentTargetMessageIndex = results.indexOf(currentTargetMessageId);
     const ref = useRef<HTMLInputElement>(null);
@@ -177,7 +178,7 @@ function Search({ onClose }: { onClose: () => void }) {
     const handlePrev = () => {
         if (hasPrev) {
             dispatch(
-                setTargetMessage({ roomId, messageId: results[currentTargetMessageIndex - 1] })
+                setTargetMessage({ roomId, messageId: results[currentTargetMessageIndex - 1] }),
             );
         }
     };
@@ -185,7 +186,7 @@ function Search({ onClose }: { onClose: () => void }) {
     const handleNext = () => {
         if (hasNext) {
             dispatch(
-                setTargetMessage({ roomId, messageId: results[currentTargetMessageIndex + 1] })
+                setTargetMessage({ roomId, messageId: results[currentTargetMessageIndex + 1] }),
             );
         }
     };
@@ -226,7 +227,7 @@ function Search({ onClose }: { onClose: () => void }) {
                                                 handleChangeKeyword("");
                                                 setResults([]);
                                                 dispatch(
-                                                    setTargetMessage({ roomId, messageId: null })
+                                                    setTargetMessage({ roomId, messageId: null }),
                                                 );
                                             }}
                                             sx={{ color: "text.tertiary", cursor: "pointer" }}

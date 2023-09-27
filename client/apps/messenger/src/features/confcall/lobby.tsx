@@ -15,7 +15,7 @@ import {
     setSelectedCamera,
     setSelectedMicrophone,
 } from "./slice/callSlice";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 
 import CloseIcon from "@mui/icons-material/Close";
 import VideocamIcon from "@mui/icons-material/Videocam";
@@ -26,7 +26,6 @@ import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
-import { User } from "@prisma/client";
 
 import { Participant } from "../../types/confcall";
 import { dynamicBaseQuery } from "../../api/api";
@@ -40,13 +39,13 @@ import { getCameras, getMicrophones } from "./lib/utils";
 import deviceHandler from "./lib/deviceHandler";
 import { callEventPayload } from "../../types/confcall";
 import { listen as listenCallEvent } from "./lib/callEventListener";
+import { useAppDispatch } from "../../hooks";
 
 declare const UPLOADS_BASE_URL: string;
 let timer: NodeJS.Timeout;
 
 export default function ConfCall() {
     const isCall = /^.+\/call\/.+$/.test(window.location.pathname);
-    const isLobby = /^.+\/call\/lobby\/.+$/.test(window.location.pathname);
     const urlState = /^.+\/call\/lobby\/video$/.test(window.location.pathname) ? "video" : "audio";
 
     const callState = useSelector((state: RootState) => state.call);
@@ -55,7 +54,7 @@ export default function ConfCall() {
     const selectedCamera = useSelector((state: RootState) => state.call.selectedCamera);
     const selectedMicrophone = useSelector((state: RootState) => state.call.selectedMicrophone);
 
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));

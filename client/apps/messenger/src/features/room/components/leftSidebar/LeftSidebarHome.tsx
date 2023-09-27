@@ -1,5 +1,5 @@
 import React, { Dispatch } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import Avatar from "@mui/material/Avatar";
 import { Box } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
@@ -32,7 +32,7 @@ import logo from "../../../../assets/logo.svg";
 import { useGetUserQuery } from "../../../auth/api/auth";
 import { Link } from "react-router-dom";
 import { useGetUnreadCountQuery } from "../../api/room";
-import { doc } from "prettier";
+import { useAppDispatch } from "../../../../hooks";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -41,7 +41,7 @@ type NavigationType = {
     icon: OverridableComponent<SvgIconTypeMap<unknown, "svg">> & {
         muiName: string;
     };
-    Element: (props: any) => React.ReactElement;
+    Element: (props) => React.ReactElement;
 };
 
 const navigation: NavigationType[] = [
@@ -54,7 +54,7 @@ export default function LeftSidebarHome({
 }: {
     setSidebar: Dispatch<React.SetStateAction<string>>;
 }): React.ReactElement {
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const activeTab = useSelector(selectActiveTab);
     const { data: userData } = useGetUserQuery();
     const theme = useTheme();

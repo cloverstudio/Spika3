@@ -1,7 +1,5 @@
-import { useSelector, useDispatch } from "react-redux";
-
-import { RootState } from "../store/store";
 import { showSnackBar, showBasicDialog } from "../store/modalSlice";
+import { useAppDispatch } from ".";
 
 interface useShowSnackBarParams {
     severity: "error" | "warning" | "info" | "success";
@@ -27,20 +25,20 @@ export const uiListeners: listeners = {
 };
 
 export function useShowSnackBar() {
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
 
     return (param: useShowSnackBarParams) => {
         dispatch(
             showSnackBar({
                 severity: param.severity,
                 text: param.text,
-            })
+            }),
         );
     };
 }
 
 export function useShowBasicDialog() {
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
 
     return (param: useShowBasicDialogParams, onOK?: () => void, onCancel?: () => void) => {
         uiListeners.onBasicDialogOK = onOK;
@@ -52,7 +50,7 @@ export function useShowBasicDialog() {
                 allowButtonLabel: param.allowButtonLabel || "OK",
                 denyButtonLabel: param.denyButtonLabel || null,
                 title: param.title || "",
-            })
+            }),
         );
     };
 }

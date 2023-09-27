@@ -12,7 +12,7 @@ import Close from "@mui/icons-material/Close";
 import { useDeleteMessageMutation } from "../../api/message";
 import MessageType from "../../../../types/Message";
 import { useParams } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import {
     hideDeleteModal,
     selectActiveMessage,
@@ -20,10 +20,11 @@ import {
 } from "../../slices/messages";
 import { selectUser } from "../../../../store/userSlice";
 import useStrings from "../../../../hooks/useStrings";
+import { useAppDispatch } from "../../../../hooks";
 
 export default function DeleteMessageDialogContainer() {
     const roomId = parseInt(useParams().id || "");
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const activeMessage = useSelector(selectActiveMessage(roomId));
     const showDeleteMessage = useSelector(selectShowDeleteMessage(roomId));
 

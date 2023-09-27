@@ -1,5 +1,5 @@
 import React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import Avatar from "@mui/material/Avatar";
 import { Box, Typography } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
@@ -30,12 +30,13 @@ import {
 } from "../../slices/messages";
 import useStrings from "../../../../hooks/useStrings";
 import ImportExport from "@mui/icons-material/ImportExport";
+import { useAppDispatch } from "../../../../hooks";
 
 declare const UPLOADS_BASE_URL: string;
 
 export default function MessageDetailsDialogContainer() {
     const roomId = parseInt(useParams().id || "");
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const activeMessage = useSelector(selectActiveMessage(roomId));
     const showMessageDetails = useSelector(selectShowMessageDetails(roomId));
 
@@ -59,14 +60,14 @@ function MessageDetailsDialog({ message, onClose }: { message: MessageType; onCl
     const messageRecords = data?.messageRecords || [];
 
     const seenMembers = messageRecords.filter(
-        (mr) => mr.type === "seen" && mr.userId !== me.id && mr.userId !== message.fromUserId
+        (mr) => mr.type === "seen" && mr.userId !== me.id && mr.userId !== message.fromUserId,
     );
     const deliveredMembers = messageRecords.filter(
         (mr) =>
             mr.type === "delivered" &&
             mr.userId !== me.id &&
             mr.userId !== message.fromUserId &&
-            !seenMembers.find((s) => s.userId === mr.userId)
+            !seenMembers.find((s) => s.userId === mr.userId),
     );
 
     return (

@@ -13,17 +13,17 @@ import useCountdownTimer from "./hooks/useCountdownTimer";
 import * as constants from "../../../../../lib/constants";
 import { getDeviceId } from "../../../../../lib/utils";
 import useStrings from "../../hooks/useStrings";
-import { useDispatch } from "react-redux";
 import { showSnackBar } from "../../store/modalSlice";
 import getFileType from "../room/lib/getFileType";
 import FileUploader from "../../utils/FileUploader";
 import TermsAndConditions from "./components/TearmsAndConditions";
+import { useAppDispatch } from "../../hooks";
 
 export default function Auth(): React.ReactElement {
     const strings = useStrings();
     const navigate = useNavigate();
     const deviceId = getDeviceId();
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const [step, setStep] = useState(-1);
     const [loading, setLoading] = useState(false);
     const [signUp, signUpMutation] = useSignUpMutation();
@@ -49,7 +49,7 @@ export default function Auth(): React.ReactElement {
                 showSnackBar({
                     severity: "error",
                     text: strings.youHaveBeenLoggedOut,
-                })
+                }),
             );
         }
     }, [dispatch, strings.youHaveBeenLoggedOut]);

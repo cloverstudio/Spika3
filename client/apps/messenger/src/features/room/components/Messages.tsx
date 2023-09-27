@@ -1,5 +1,4 @@
 import React, { useEffect } from "react";
-import { useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
 import api, { dynamicBaseQuery } from "../../../api/api";
 import { resetUnreadCount } from "../slices/leftSidebar";
@@ -7,10 +6,11 @@ import { resetUnreadCount } from "../slices/leftSidebar";
 import DeleteMessageDialog from "./message/DeleteMessageDialog";
 import MessageDetailDialog from "./message/MessageDetailsModal";
 import MessagesList from "./message/MessagesList";
+import { useAppDispatch } from "../../../hooks";
 
 export default function Messages(): React.ReactElement {
     const roomId = parseInt(useParams().id || "");
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
 
     useEffect(() => {
         const markAsSeen = () =>

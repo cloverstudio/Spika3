@@ -107,9 +107,9 @@ export const leftSidebarSlice = createSlice({
         },
     },
     extraReducers: (builder) => {
-        builder.addCase(fetchHistory.fulfilled, (state, { payload }: any) => {
+        builder.addCase(fetchHistory.fulfilled, (state, { payload }) => {
             const roomsIds = state.history.list.map((r) => r.roomId);
-            const notAdded = payload.data.list.filter((u: any) => !roomsIds.includes(u.roomId));
+            const notAdded = payload.data.list.filter((u) => !roomsIds.includes(u.roomId));
 
             const list = state.history.list.map((item) => {
                 const id = item.roomId;
@@ -155,7 +155,7 @@ export const leftSidebarSlice = createSlice({
                         return item;
                     });
                 }
-            }
+            },
         );
     },
 });

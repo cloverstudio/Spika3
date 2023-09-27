@@ -30,13 +30,13 @@ import { ThemeContext, ThemeType } from "../../../theme";
 import useStrings from "../../../hooks/useStrings";
 import { ContactRow } from "./leftSidebar/ContactList";
 import { useGetBlockedUsersQuery, useRemoveUserFromBlockListMutation } from "../api/user";
-import { useDispatch } from "react-redux";
 import getFileType from "../lib/getFileType";
 import FileUploader from "../../../utils/FileUploader";
 import setupPushNotification from "../../../components/firebaseInit";
 import { useUpdateDeviceMutation } from "../../../api/device";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { useShowBasicDialog } from "../../../hooks/useModal";
+import { useAppDispatch } from "../../../hooks";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -59,7 +59,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
     const [update] = useUpdateMutation();
     const [logout] = useLogoutMutation();
     const { theme, setTheme } = useContext(ThemeContext);
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const [updateDevice] = useUpdateDeviceMutation();
     const [remove] = useRemoveMutation();
     const showBasicDialog = useShowBasicDialog();
@@ -107,7 +107,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
             selectedFileUrl,
             1,
             Constants.LSKEY_CROPSIZE,
-            Constants.LSKEY_CROPSIZE
+            Constants.LSKEY_CROPSIZE,
         );
         const file = new File([croppedImage], "image.png");
         setFile(file);
@@ -206,7 +206,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                         dispatch({ type: "USER_LOGOUT" });
                         window.location.href = "/messenger/";
                     });
-            }
+            },
         );
     };
 

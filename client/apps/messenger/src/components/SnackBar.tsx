@@ -5,11 +5,11 @@ import Snackbar from "@mui/material/Snackbar";
 
 import { useSelector, useDispatch } from "react-redux";
 import { hideSnackBar } from "../store/modalSlice";
-import { RootState } from "../store/store";
+import { AppDispatch, RootState } from "../store/store";
 
 export default function SnackBar() {
     const modal = useSelector((state: RootState) => state.modal);
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const autoHideDuration = modal.snackBarInfo?.autoHideDuration || 6000;
 
     useEffect(() => {

@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Outlet, useLocation, useParams } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
 import { Box, Fade, Typography } from "@mui/material";
 import useTheme from "@mui/material/styles/useTheme";
@@ -22,6 +22,7 @@ import { selectUserId, fetchMe, fetchSettings } from "../../src/store/userSlice"
 import * as constants from "../../../../lib/constants";
 import TitleUpdater from "../features/room/components/TitleUpdater";
 import homeImg from "../assets/home.svg";
+import { useAppDispatch } from "../hooks";
 
 export default function Home(): React.ReactElement {
     const theme = useTheme();
@@ -29,7 +30,7 @@ export default function Home(): React.ReactElement {
     const roomId = +useParams().id;
 
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const isCall = /^.+\/call.*$/.test(pathname);
     const isHome = pathname === "/app" || pathname === "/app/";
 

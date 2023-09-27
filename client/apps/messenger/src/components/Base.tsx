@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
 
 import CssBaseline from "@mui/material/CssBaseline";
 import ThemeProvider from "@mui/material/styles/ThemeProvider";
@@ -16,6 +15,7 @@ import handleSSE from "../utils/handleSSE";
 import * as constants from "../../../../lib/constants";
 import { showSnackBar } from "../store/modalSlice";
 import useStrings from "../hooks/useStrings";
+import { useAppDispatch } from "../hooks";
 
 declare const API_BASE_URL: string;
 
@@ -24,7 +24,7 @@ type Props = {
 };
 
 export default function AuthBase({ children }: Props): React.ReactElement {
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const { data: user, isLoading } = useGetUserQuery();
     const { data: deviceData } = useGetDeviceQuery();
@@ -35,7 +35,7 @@ export default function AuthBase({ children }: Props): React.ReactElement {
     useEffect(() => {
         function createSource() {
             const source = new EventSource(
-                `${API_BASE_URL}/sse?accessToken=${deviceData.device.token}`
+                `${API_BASE_URL}/sse?accessToken=${deviceData.device.token}`,
             );
 
             source.onmessage = handleSSE;
@@ -92,7 +92,7 @@ export default function AuthBase({ children }: Props): React.ReactElement {
                     severity: "error",
                     text: strings.connectionLost,
                     autoHideDuration: 5 * 60 * 1000,
-                })
+                }),
             );
             setShouldDisplayBackOnlineSnackbar(true);
         }
@@ -104,7 +104,7 @@ export default function AuthBase({ children }: Props): React.ReactElement {
                 showSnackBar({
                     severity: "success",
                     text: strings.connectionReestablished,
-                })
+                }),
             );
             setShouldDisplayBackOnlineSnackbar(false);
 

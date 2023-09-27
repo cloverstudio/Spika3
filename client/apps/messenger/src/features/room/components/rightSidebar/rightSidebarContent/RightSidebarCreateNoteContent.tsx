@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
 
 import { Box } from "@mui/material";
@@ -10,10 +9,11 @@ import useStrings from "../../../../../hooks/useStrings";
 
 import { useCreateNoteMutation } from "../../../api/note";
 import { setActiveNoteId } from "../../../slices/rightSidebar";
+import { useAppDispatch } from "../../../../../hooks";
 
 export default function RightSidebarCreateNoteContent(): React.ReactElement {
     const strings = useStrings();
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const roomId = +useParams().id;
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");

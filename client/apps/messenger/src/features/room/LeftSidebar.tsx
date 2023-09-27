@@ -24,7 +24,7 @@ import SelectedMembers from "./components/SelectedMembers";
 import getFileType from "./lib/getFileType";
 import FileUploader from "../../utils/FileUploader";
 import { refreshHistory } from "./slices/leftSidebar";
-import { useDispatch } from "react-redux";
+import { useAppDispatch } from "../../hooks";
 
 export default function LeftSidebar(): React.ReactElement {
     const [sidebar, setSidebar] = useState("");
@@ -70,7 +70,7 @@ function LeftSidebarNewGroup({
     const [name, setName] = useState("");
     const [file, setFile] = useState<File>();
     const uploadFileRef = React.useRef(null);
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
 
     const [createRoom] = useCreateRoomMutation();
     const navigate = useNavigate();
@@ -83,7 +83,7 @@ function LeftSidebarNewGroup({
             objectUrl,
             1,
             Constants.LSKEY_CROPSIZE,
-            Constants.LSKEY_CROPSIZE
+            Constants.LSKEY_CROPSIZE,
         );
         const file = new File([croppedImage], "image.png");
 

@@ -1,5 +1,4 @@
 import React from "react";
-import { useDispatch } from "react-redux";
 
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
@@ -7,10 +6,11 @@ import ArrowBackIos from "@mui/icons-material/ArrowBackIos";
 import useStrings from "../../../../../hooks/useStrings";
 
 import { setActiveTab } from "../../../slices/rightSidebar";
+import { useAppDispatch } from "../../../../../hooks";
 
 export default function EditNoteHeader() {
     const strings = useStrings();
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
 
     return (
         <>

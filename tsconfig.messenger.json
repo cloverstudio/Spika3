@@ -2,7 +2,8 @@
     "extends": "./tsconfig.json",
     "compilerOptions": {
         "outDir": "./client/apps/messenger/dist" /* Specify an output folder for all emitted files. */,
-        "rootDir": "./"
+        "rootDir": "./",
+        "types": ["react/next", "react-dom/next"]
     },
     "include": ["index.d.ts", "./client/apps/messenger"]
 }

@@ -8,9 +8,8 @@ import Button from "@mui/material/Button";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 
-import { useSelector, useDispatch } from "react-redux";
 import { hideBasicDialog } from "../store/modalSlice";
-import { RootState } from "../store/store";
+import { useAppDispatch } from "../hooks";
 
 type Props = {
     show: boolean;
@@ -34,8 +33,7 @@ export default function BasicDialog({
     items,
 }: Props) {
     const [selectedValue, setSelectedValue] = useState<string>(initialValue);
-    const modalState = useSelector((state: RootState) => state.modal);
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
 
     useEffect(() => {
         if (!items) return;

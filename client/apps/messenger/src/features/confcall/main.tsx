@@ -27,7 +27,7 @@ import {
 } from "./slice/callSlice";
 
 import { useGetUserQuery } from "../auth/api/auth";
-import { RootState } from "../../store/store";
+import { AppDispatch, RootState } from "../../store/store";
 import { Participant } from "../../types/confcall";
 import { dynamicBaseQuery } from "../../api/api";
 import ButtonsHolder from "./buttonsHolder";
@@ -76,7 +76,7 @@ const styles: Record<string, CSS.Properties> = {
 };
 
 export default function ConfCall() {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));

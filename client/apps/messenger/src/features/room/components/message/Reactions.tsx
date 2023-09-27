@@ -33,6 +33,10 @@ export default function MessageReactions({ id }: MessageReactionsProps): React.R
 
     const open = Boolean(anchorEl);
 
+    if (!reactions || !reactions.length) {
+        return null;
+    }
+
     const messageRecordsByReaction: { [key: string]: MessageRecordType[] } = reactions.reduce(
         (acc, curr) => {
             if (acc[curr.reaction]) {
@@ -42,7 +46,7 @@ export default function MessageReactions({ id }: MessageReactionsProps): React.R
             }
             return acc;
         },
-        {}
+        {},
     );
 
     if (!reactions.length) {

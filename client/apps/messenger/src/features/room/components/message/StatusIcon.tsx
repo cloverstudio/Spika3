@@ -5,7 +5,6 @@ import DeliveredIcon from "../../../../assets/delivered-icon.svg";
 import SeenIcon from "../../../../assets/seen-icon.svg";
 import FailedIcon from "../../../../assets/failed-icon.svg";
 import { Box, Typography } from "@mui/material";
-import { useDispatch } from "react-redux";
 import { removeMessage, resendMessage } from "../../slices/messages";
 import { useParams } from "react-router-dom";
 import Menu from "@mui/material/Menu";
@@ -13,6 +12,7 @@ import MenuItem from "@mui/material/MenuItem";
 import useStrings from "../../../../hooks/useStrings";
 import Delete from "@mui/icons-material/DeleteOutline";
 import UploadOutlined from "@mui/icons-material/UploadRounded";
+import { useAppDispatch } from "../../../../hooks";
 
 type StatusIconProps = {
     status: string;
@@ -23,7 +23,7 @@ export default function StatusIcon({ status, id }: StatusIconProps): React.React
     const strings = useStrings();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const roomId = parseInt(useParams().id || "");
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
 
     const open = Boolean(anchorEl);
     const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {

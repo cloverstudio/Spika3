@@ -21,7 +21,7 @@ export const fetchMessages = createAsyncThunk(
             targetMessageId?: number;
             cursor?: number;
         },
-        thunkAPI
+        thunkAPI,
     ) => {
         const room = (thunkAPI.getState() as RootState).messages[roomId];
         const { count } = room || {};
@@ -43,7 +43,7 @@ export const fetchMessages = createAsyncThunk(
 
         const response = await dynamicBaseQuery(url);
         return response.data;
-    }
+    },
 );
 
 export const sendMessage = createAsyncThunk(
@@ -54,7 +54,7 @@ export const sendMessage = createAsyncThunk(
             type: string;
             body: any;
         },
-        thunkAPI
+        thunkAPI,
     ): Promise<{ message: MessageType }> => {
         const { roomId, type, body } = data;
         const text = (thunkAPI.getState() as RootState).input.list[roomId]?.text.trim() || "";
@@ -80,7 +80,7 @@ export const sendMessage = createAsyncThunk(
                 status: "sending",
                 localId,
                 fromUserId,
-            })
+            }),
         );
 
         try {
@@ -107,12 +107,12 @@ export const sendMessage = createAsyncThunk(
                     status: "failed",
                     localId,
                     fromUserId,
-                })
+                }),
             );
             console.error({ error });
             throw error;
         }
-    }
+    },
 );
 
 export const resendMessage = createAsyncThunk(
@@ -122,7 +122,7 @@ export const resendMessage = createAsyncThunk(
             messageId: number;
             roomId: number;
         },
-        thunkAPI
+        thunkAPI,
     ): Promise<{ message: MessageType }> => {
         const { roomId, messageId } = data;
         const message = (thunkAPI.getState() as RootState).messages[roomId].messages[messageId];
@@ -137,7 +137,7 @@ export const resendMessage = createAsyncThunk(
                 status: "sending",
                 localId,
                 fromUserId,
-            })
+            }),
         );
 
         try {
@@ -164,12 +164,12 @@ export const resendMessage = createAsyncThunk(
                     status: "failed",
                     localId,
                     fromUserId,
-                })
+                }),
             );
             console.error({ error });
             throw error;
         }
-    }
+    },
 );
 
 export const sendFileMessage = createAsyncThunk(
@@ -179,7 +179,7 @@ export const sendFileMessage = createAsyncThunk(
             roomId: number;
             file: File;
         },
-        thunkAPI
+        thunkAPI,
     ): Promise<{ message: MessageType }> => {
         const { roomId, file } = data;
         const fromUserId = (thunkAPI.getState() as RootState).user.id;
@@ -199,7 +199,7 @@ export const sendFileMessage = createAsyncThunk(
                 localId,
                 fromUserId,
                 progress: 0,
-            })
+            }),
         );
 
         try {
@@ -209,7 +209,7 @@ export const sendFileMessage = createAsyncThunk(
                         roomId,
                         localId,
                         progress,
-                    })
+                    }),
                 );
             };
 
@@ -262,12 +262,12 @@ export const sendFileMessage = createAsyncThunk(
                     status: "failed",
                     localId,
                     fromUserId,
-                })
+                }),
             );
             console.error({ error });
             throw error;
         }
-    }
+    },
 );
 
 export const editMessageThunk = createAsyncThunk(
@@ -294,7 +294,7 @@ export const editMessageThunk = createAsyncThunk(
                 status: "sending",
                 replyId,
                 createdAt,
-            })
+            }),
         );
 
         try {
@@ -318,20 +318,20 @@ export const editMessageThunk = createAsyncThunk(
                     status: "failed",
                     replyId,
                     createdAt,
-                })
+                }),
             );
 
             console.error({ error });
             throw error;
         }
-    }
+    },
 );
 
 export const replyMessageThunk = createAsyncThunk(
     "messages/replyMessage",
     async (
         { type, roomId }: { type: string; roomId: number },
-        thunkAPI
+        thunkAPI,
     ): Promise<{ message: MessageType }> => {
         const { replyMessage: referenceMessage, text } = (thunkAPI.getState() as RootState).input
             .list[roomId];
@@ -353,7 +353,7 @@ export const replyMessageThunk = createAsyncThunk(
                 localId,
                 fromUserId,
                 replyId: referenceMessage.id,
-            })
+            }),
         );
 
         try {
@@ -382,13 +382,13 @@ export const replyMessageThunk = createAsyncThunk(
                     localId,
                     fromUserId,
                     replyId: referenceMessage.id,
-                })
+                }),
             );
 
             console.error({ error });
             throw error;
         }
-    }
+    },
 );
 
 type InitialState = {
@@ -432,7 +432,7 @@ export const messagesSlice = createSlice({
                     createdAt?: number;
                     progress?: number;
                 };
-            }
+            },
         ) {
             const {
                 roomId,
@@ -491,7 +491,7 @@ export const messagesSlice = createSlice({
                     seenCount: number;
                     deliveredCount: number;
                 };
-            }
+            },
         ) {
             const { messageRecord, seenCount, deliveredCount } = action.payload;
             const { roomId, messageId, type, userId } = messageRecord;
@@ -504,7 +504,7 @@ export const messagesSlice = createSlice({
             if (type === "reaction") {
                 if (room.reactions[messageId]) {
                     room.reactions[messageId] = room.reactions[messageId].filter(
-                        (r) => r.userId !== userId
+                        (r) => r.userId !== userId,
                     );
                     room.reactions[messageId].push(messageRecord);
                 } else {
@@ -543,7 +543,7 @@ export const messagesSlice = createSlice({
                 payload: {
                     messageRecord: MessageRecordType;
                 };
-            }
+            },
         ) {
             const { messageRecord } = action.payload;
             const { roomId, messageId, type } = messageRecord;
@@ -556,7 +556,7 @@ export const messagesSlice = createSlice({
             if (type === "reaction") {
                 if (room.reactions[messageId]) {
                     room.reactions[messageId] = room.reactions[messageId].filter(
-                        (r) => r.id !== messageRecord.id
+                        (r) => r.id !== messageRecord.id,
                     );
                 }
             }
@@ -632,7 +632,7 @@ export const messagesSlice = createSlice({
 
         setTargetMessage: (
             state,
-            action: { payload: { roomId: number; messageId: number | null } }
+            action: { payload: { roomId: number; messageId: number | null } },
         ) => {
             const roomId = action.payload.roomId;
             const room = state[roomId];
@@ -656,7 +656,7 @@ export const messagesSlice = createSlice({
 
         setMessageUploadProgress: (
             state,
-            action: { payload: { roomId: number; progress: number; localId: string } }
+            action: { payload: { roomId: number; progress: number; localId: string } },
         ) => {
             const { roomId, progress, localId } = action.payload;
             const room = state[roomId];
@@ -707,7 +707,7 @@ export const messagesSlice = createSlice({
                 state[roomId].messages = { ...state[roomId].messages, ...messages };
                 state[roomId].reactions = { ...state[roomId].reactions, ...reactions };
                 state[roomId].statusCounts = { ...state[roomId].statusCounts, ...statusCounts };
-            }
+            },
         );
         builder.addCase(fetchMessages.pending, (state, { meta }) => {
             const roomId = meta.arg.roomId;
@@ -850,11 +850,11 @@ export const {
 export const selectRoomMessages =
     (roomId: number) =>
     (
-        state: RootState
+        state: RootState,
     ): {
         [id: string]: MessageType;
     } => {
-        return state.messages[roomId]?.messages || {};
+        return state.messages[roomId]?.messages;
     };
 
 export const selectRoomMessagesLength =
@@ -915,7 +915,7 @@ export const selectMessageReactions =
             return null;
         }
 
-        return room.reactions[id] || [];
+        return room.reactions[id];
     };
 
 export const selectHasMessageReactions =
@@ -1066,7 +1066,7 @@ export const selectShouldDisplayBlockButton =
 
         const allMessagesLoaded = room.cursor === null;
         const noUserMessages = Object.values(room.messages || {}).every(
-            (m) => m.fromUserId !== state.user.id
+            (m) => m.fromUserId !== state.user.id,
         );
 
         return allMessagesLoaded && noUserMessages && roomData.type === "private";
@@ -1149,7 +1149,7 @@ export const selectChangeTerm =
         const from = text;
         const to = text.replace(
             new RegExp(room.keyword, "gi"),
-            `<span style="background-color: #d7aa5a;">$&</span>`
+            `<span style="background-color: #d7aa5a;">$&</span>`,
         );
 
         return { from, to };

@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Avatar from "@mui/material/Avatar";
 import { Box, CircularProgress } from "@mui/material";
@@ -22,6 +22,7 @@ import useIsInViewport from "../../../../hooks/useIsInViewport";
 
 import SearchBox from "../SearchBox";
 import useStrings from "../../../../hooks/useStrings";
+import { useAppDispatch } from "../../../../hooks";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -35,7 +36,7 @@ export default function SidebarContactList({
     hideBots?: boolean;
 }): React.ReactElement {
     const strings = useStrings();
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const { sortedByDisplayName } = useSelector(selectContacts(hideBots));
     const loading = useSelector(selectContactLoading());
     const isFetching = loading === "pending";
