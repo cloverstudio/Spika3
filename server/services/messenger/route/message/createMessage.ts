@@ -53,23 +53,23 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                 });
 
                 if (!roomUser) {
-                    return res.status(400).send(errorResponse("Room user not found", userReq.lang));
+                    return res.status(400).send(errorResponse("Chat user not found", userReq.lang));
                 }
 
                 const room = await getRoomById(roomId, redisClient);
 
                 if (!room) {
-                    return res.status(400).send(errorResponse("Room not found", userReq.lang));
+                    return res.status(400).send(errorResponse("Chat not found", userReq.lang));
                 }
 
                 if (room.deleted) {
-                    return res.status(403).send(errorResponse("Room is deleted", userReq.lang));
+                    return res.status(403).send(errorResponse("Chat is deleted", userReq.lang));
                 }
 
                 const blocked = await isRoomBlocked(room.id, fromUserId);
 
                 if (blocked) {
-                    return res.status(403).send(errorResponse("Room is blocked", userReq.lang));
+                    return res.status(403).send(errorResponse("Chat is blocked", userReq.lang));
                 }
 
                 if (type === "image" || type === "audio" || type === "video" || type === "file") {
@@ -117,7 +117,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
 
                     const formattedBody = await formatMessageBody(
                         deviceMessage.body,
-                        referenceMessage.type
+                        referenceMessage.type,
                     );
                     body.referenceMessage = sanitize({
                         ...referenceMessage,
@@ -144,7 +144,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                         : [];
 
                 const receivers = allReceivers.filter(
-                    (u) => !usersWhoBlockedSender.map((u) => u.userId).includes(u.userId)
+                    (u) => !usersWhoBlockedSender.map((u) => u.userId).includes(u.userId),
                 );
 
                 const devices = await prisma.device.findMany({
@@ -208,7 +208,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                         if (userId !== fromUserId) {
                             await redisClient.incr(key);
                         }
-                    })
+                    }),
                 );
 
                 const key = `${Constants.LAST_MESSAGE_PREFIX}${roomId}`;
@@ -279,8 +279,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                                                 roomUserCreatedAt: roomUser.createdAt,
                                                 roomAvatarFileId,
                                             },
-                                        })
-                                    )
+                                        }),
+                                    ),
                                 );
                             }
 
@@ -293,10 +293,10 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                                             type: Constants.PUSH_TYPE_NEW_MESSAGE,
                                             message: sanitizedMessage,
                                         },
-                                    })
-                                )
+                                    }),
+                                ),
                             );
-                        })
+                        }),
                     );
                 }
 
@@ -317,8 +317,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                         JSON.stringify({
                             messageId: message.id,
                             body,
-                        })
-                    )
+                        }),
+                    ),
                 );
 
                 handleNewMessage({

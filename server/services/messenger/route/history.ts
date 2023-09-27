@@ -141,7 +141,7 @@ export default ({ redisClient }: InitRouterParams): Router => {
                     }
 
                     return lastMessage.id;
-                })
+                }),
             );
 
             const messages = await prisma.message.findMany({
@@ -192,7 +192,7 @@ export default ({ redisClient }: InitRouterParams): Router => {
                             : null,
                         unreadCount: +unreadCount,
                     };
-                })
+                }),
             );
 
             res.send(
@@ -201,7 +201,7 @@ export default ({ redisClient }: InitRouterParams): Router => {
                     count,
                     limit: Constants.PAGING_LIMIT,
                     page,
-                })
+                }),
             );
         } catch (e: any) {
             le(e);
@@ -224,14 +224,14 @@ export default ({ redisClient }: InitRouterParams): Router => {
             const room = await getRoomById(roomId, redisClient);
 
             if (!room) {
-                res.status(404).send(errorResponse("Room not found", userReq.lang));
+                res.status(404).send(errorResponse("Chat not found", userReq.lang));
                 return;
             }
 
             const roomUser = room.users.find((ru) => ru.userId === userId);
 
             if (!roomUser) {
-                res.status(404).send(errorResponse("Room not found", userReq.lang));
+                res.status(404).send(errorResponse("Chat not found", userReq.lang));
                 return;
             }
 
@@ -320,7 +320,7 @@ export default ({ redisClient }: InitRouterParams): Router => {
                     lastMessage: lastMessageSanitized ? lastMessageSanitized : null,
                     muted,
                     pinned,
-                })
+                }),
             );
         } catch (e: any) {
             le(e);

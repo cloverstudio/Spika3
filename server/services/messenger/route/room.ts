@@ -72,7 +72,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             });
 
             const notAddedUsers = userIds.filter(
-                (id: number) => !foundUsers.map((fu) => fu.id).includes(id)
+                (id: number) => !foundUsers.map((fu) => fu.id).includes(id),
             );
 
             if (notAddedUsers.length) {
@@ -81,13 +81,13 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     .send(
                         errorResponse(
                             `Users doesn't exist, ids: ${notAddedUsers.join(",")}`,
-                            userReq.lang
-                        )
+                            userReq.lang,
+                        ),
                     );
             }
 
             const notAddedAdminUsers = adminUserIds.filter(
-                (id: number) => !foundUsers.map((fu) => fu.id).includes(id)
+                (id: number) => !foundUsers.map((fu) => fu.id).includes(id),
             );
 
             if (notAddedAdminUsers.length) {
@@ -96,8 +96,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     .send(
                         errorResponse(
                             `Admin users doesn't exist, ids: ${notAddedAdminUsers.join(",")}`,
-                            userReq.lang
-                        )
+                            userReq.lang,
+                        ),
                     );
             }
 
@@ -205,8 +205,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     {
                         room: sanitizedRoom,
                     },
-                    userReq.lang
-                )
+                    userReq.lang,
+                ),
             );
 
             sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_NEW_ROOM);
@@ -471,7 +471,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     const foundUsersIds = foundUsers.map((u) => u.id);
 
                     const roomUsersToPromote = room.users.filter((u) =>
-                        foundUsersIds.includes(u.userId)
+                        foundUsersIds.includes(u.userId),
                     );
 
                     updated = await prisma.room.update({
@@ -533,7 +533,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 le(e);
                 res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
             }
-        }
+        },
     );
 
     router.get("/", auth, async (req: Request, res: Response) => {
@@ -612,7 +612,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     await redisClient.set(key, JSON.stringify(room));
 
                     return sanitize({ ...room, muted, pinned, unreadCount }).room();
-                })
+                }),
             );
 
             res.send(
@@ -622,8 +622,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                         count,
                         limit: Constants.PAGING_LIMIT,
                     },
-                    userReq.lang
-                )
+                    userReq.lang,
+                ),
             );
         } catch (e: any) {
             le(e);
@@ -640,7 +640,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const user = await prisma.user.findFirst({ where: { id: userId } });
 
             if (!user) {
-                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+                return res.status(404).send(errorResponse("Chat not found", userReq.lang));
             }
 
             // Get room id where two user belongs to.
@@ -658,13 +658,13 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const existingRoomResult: Room[] = await prisma.$queryRawUnsafe<Room[]>(query);
 
             if (existingRoomResult.length === 0) {
-                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+                return res.status(404).send(errorResponse("Chat not found", userReq.lang));
             }
 
             const room = await getRoomById(existingRoomResult[0].id, redisClient);
 
             if (!room || room.users.length < 2) {
-                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+                return res.status(404).send(errorResponse("Chat not found", userReq.lang));
             }
 
             const roomUser = room.users.find((ru) => ru.userId === reqUserId);
@@ -691,8 +691,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             res.send(
                 successResponse(
                     { room: sanitize({ ...room, muted, pinned, unreadCount }).room() },
-                    userReq.lang
-                )
+                    userReq.lang,
+                ),
             );
         } catch (e: any) {
             le(e);
@@ -731,11 +731,14 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                             roomId,
                             unreadCount,
                         };
-                    })
+                    }),
             );
 
             res.send(
-                successResponse({ unreadCounts: list.filter((uc) => uc.unreadCount) }, userReq.lang)
+                successResponse(
+                    { unreadCounts: list.filter((uc) => uc.unreadCount) },
+                    userReq.lang,
+                ),
             );
         } catch (e: any) {
             le(e);
@@ -751,23 +754,23 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const id = parseInt((req.params.id as string) || "");
 
             if (!id) {
-                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+                return res.status(404).send(errorResponse("Chat not found", userReq.lang));
             }
 
             const room = await getRoomById(id, redisClient);
 
             if (!room) {
-                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+                return res.status(404).send(errorResponse("Chat not found", userReq.lang));
             }
 
             const roomUser = room.users.find((u) => u.userId === userId);
 
             if (!roomUser) {
-                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+                return res.status(404).send(errorResponse("Chat not found", userReq.lang));
             }
 
             if (room.type === "private" && room.users.length < 2) {
-                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+                return res.status(404).send(errorResponse("Chat not found", userReq.lang));
             }
 
             const muted = await isRoomMuted({
@@ -792,8 +795,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             res.send(
                 successResponse(
                     { room: sanitize({ ...room, muted, pinned, unreadCount }).room() },
-                    userReq.lang
-                )
+                    userReq.lang,
+                ),
             );
         } catch (e: any) {
             le(e);
@@ -874,7 +877,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     });
 
                     return sanitize({ ...room, muted, pinned, unreadCount }).room();
-                })
+                }),
             );
 
             const hasNext = count > page * Constants.SYNC_LIMIT;
@@ -888,8 +891,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                         hasNext,
                         rooms: roomsSanitized,
                     },
-                    userReq.lang
-                )
+                    userReq.lang,
+                ),
             );
         } catch (e: any) {
             le(e);
@@ -911,13 +914,13 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const room = await getRoomById(id, redisClient);
 
             if (!room) {
-                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+                return res.status(404).send(errorResponse("Chat not found", userReq.lang));
             }
 
             const roomUser = room.users.find((u) => u.userId === userId);
 
             if (!roomUser) {
-                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+                return res.status(404).send(errorResponse("Chat not found", userReq.lang));
             }
 
             await prisma.userSetting.upsert({
@@ -978,13 +981,13 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const room = await getRoomById(id, redisClient);
 
             if (!room) {
-                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+                return res.status(404).send(errorResponse("Chat not found", userReq.lang));
             }
 
             const roomUser = room.users.find((u) => u.userId === userId);
 
             if (!roomUser) {
-                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+                return res.status(404).send(errorResponse("Chat not found", userReq.lang));
             }
 
             await prisma.userSetting.delete({
@@ -1036,13 +1039,13 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const room = await getRoomById(id, redisClient);
 
             if (!room) {
-                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+                return res.status(404).send(errorResponse("Chat not found", userReq.lang));
             }
 
             const roomUser = room.users.find((u) => u.userId === userId);
 
             if (!roomUser) {
-                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+                return res.status(404).send(errorResponse("Chat not found", userReq.lang));
             }
 
             await prisma.userSetting.upsert({
@@ -1103,13 +1106,13 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const room = await getRoomById(id, redisClient);
 
             if (!room) {
-                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+                return res.status(404).send(errorResponse("Chat not found", userReq.lang));
             }
 
             const roomUser = room.users.find((u) => u.userId === userId);
 
             if (!roomUser) {
-                return res.status(404).send(errorResponse("Room not found", userReq.lang));
+                return res.status(404).send(errorResponse("Chat not found", userReq.lang));
             }
 
             await prisma.userSetting.delete({

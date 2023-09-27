@@ -29,7 +29,7 @@ export default (params: InitRouterParams) => {
                 },
             });
             if (!room) {
-                le(`room not found ${roomId}`);
+                le(`Chat not found ${roomId}`);
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
@@ -47,7 +47,7 @@ export default (params: InitRouterParams) => {
 
             const { peerId, transportParams, rtpCapabilities } = await mediasoupHandler.join(
                 roomId,
-                userReq.user
+                userReq.user,
             );
 
             res.send(
@@ -57,8 +57,8 @@ export default (params: InitRouterParams) => {
                         transportParams,
                         rtpCapabilities,
                     },
-                    userReq.lang
-                )
+                    userReq.lang,
+                ),
             );
         } catch (e: any) {
             le(e);
@@ -77,7 +77,7 @@ export default (params: InitRouterParams) => {
                 },
             });
             if (!room) {
-                le(`room not found ${roomId}`);
+                le(`Chat not found ${roomId}`);
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
@@ -111,7 +111,7 @@ export default (params: InitRouterParams) => {
                 },
             });
             if (!room) {
-                le(`room not found ${roomId}`);
+                le(`Chat not found ${roomId}`);
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
@@ -164,7 +164,7 @@ export default (params: InitRouterParams) => {
                 },
             });
             if (!room) {
-                le(`room not found ${roomId}`);
+                le(`Chat not found ${roomId}`);
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
@@ -200,7 +200,7 @@ export default (params: InitRouterParams) => {
                 peerId,
                 kind,
                 rtpParameters,
-                appData
+                appData,
             );
 
             const callParams: CallParamsInDB = (callHistory.callParameters as CallParamsInDB) ?? {
@@ -238,8 +238,8 @@ export default (params: InitRouterParams) => {
                     {
                         producerId: producerId,
                     },
-                    userReq.lang
-                )
+                    userReq.lang,
+                ),
             );
         } catch (e: any) {
             le(e);
@@ -265,7 +265,7 @@ export default (params: InitRouterParams) => {
                 },
             });
             if (!room) {
-                le(`room not found ${roomId}`);
+                le(`Chat not found ${roomId}`);
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
@@ -306,8 +306,8 @@ export default (params: InitRouterParams) => {
                         iceCandidates: transport.iceCandidates,
                         dtlsParameters: transport.dtlsParameters,
                     },
-                    userReq.lang
-                )
+                    userReq.lang,
+                ),
             );
         } catch (e: any) {
             le(e);
@@ -336,7 +336,7 @@ export default (params: InitRouterParams) => {
                 },
             });
             if (!room) {
-                le(`room not found ${roomId}`);
+                le(`Chat not found ${roomId}`);
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
@@ -370,7 +370,7 @@ export default (params: InitRouterParams) => {
             const transport = await mediasoupHandler.consumerTransportConnect(
                 roomId,
                 peerId,
-                dtlsParameters
+                dtlsParameters,
             );
 
             res.send(successResponse({}, userReq.lang));
@@ -406,7 +406,7 @@ export default (params: InitRouterParams) => {
                 },
             });
             if (!room) {
-                le(`room not found ${roomId}`);
+                le(`Chat not found ${roomId}`);
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
@@ -442,7 +442,7 @@ export default (params: InitRouterParams) => {
                 peerId,
                 producerId,
                 kind,
-                rtpCapabilities
+                rtpCapabilities,
             );
 
             res.send(
@@ -453,8 +453,8 @@ export default (params: InitRouterParams) => {
                         kind: consumer.kind,
                         rtpParameters: consumer.rtpParameters,
                     },
-                    userReq.lang
-                )
+                    userReq.lang,
+                ),
             );
         } catch (e: any) {
             le(e);
@@ -485,7 +485,7 @@ export default (params: InitRouterParams) => {
                 },
             });
             if (!room) {
-                le(`room not found ${roomId}`);
+                le(`Chat not found ${roomId}`);
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
@@ -565,7 +565,7 @@ export default (params: InitRouterParams) => {
                 },
             });
             if (!room) {
-                le(`room not found ${roomId}`);
+                le(`Chat not found ${roomId}`);
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 
@@ -640,7 +640,7 @@ export default (params: InitRouterParams) => {
                 },
             });
             if (!room) {
-                le(`room not found ${roomId}`);
+                le(`Chat not found ${roomId}`);
                 return res.status(404).send(errorResponse("Not found", userReq.lang));
             }
 

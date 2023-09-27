@@ -39,7 +39,12 @@ export default ({}: InitRouterParams): Router => {
                 if (!roomUser) {
                     return res
                         .status(403)
-                        .send(errorResponse("User must be in room", userReq.lang));
+                        .send(
+                            errorResponse(
+                                "You can't create chat note because you are not participant in that chat.",
+                                userReq.lang,
+                            ),
+                        );
                 }
 
                 const note = await prisma.note.create({ data: { roomId, content, title } });
@@ -49,7 +54,7 @@ export default ({}: InitRouterParams): Router => {
                 le(e);
                 res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
             }
-        }
+        },
     );
 
     router.get("/roomId/:roomId", auth, async (req: Request, res: Response) => {
@@ -63,13 +68,20 @@ export default ({}: InitRouterParams): Router => {
             });
 
             if (!roomUser) {
-                return res.status(403).send(errorResponse("User must be in room", userReq.lang));
+                return res
+                    .status(403)
+                    .send(
+                        errorResponse(
+                            "You can't see chat notes because you are not participant in that chat.",
+                            userReq.lang,
+                        ),
+                    );
             }
 
             const notes = await prisma.note.findMany({ where: { roomId } });
 
             res.send(
-                successResponse({ notes: notes.map((n) => sanitize(n).note()) }, userReq.lang)
+                successResponse({ notes: notes.map((n) => sanitize(n).note()) }, userReq.lang),
             );
         } catch (e: any) {
             le(e);
@@ -86,7 +98,7 @@ export default ({}: InitRouterParams): Router => {
             const note = await prisma.note.findUnique({ where: { id } });
 
             if (!note) {
-                return res.status(404).send(errorResponse("Not found", userReq.lang));
+                return res.status(404).send(errorResponse("Note not found", userReq.lang));
             }
 
             const roomUser = await prisma.roomUser.findFirst({
@@ -94,7 +106,14 @@ export default ({}: InitRouterParams): Router => {
             });
 
             if (!roomUser) {
-                return res.status(403).send(errorResponse("User must be in room", userReq.lang));
+                return res
+                    .status(403)
+                    .send(
+                        errorResponse(
+                            "You can't see chat note because you are not participant in that chat.",
+                            userReq.lang,
+                        ),
+                    );
             }
 
             res.send(successResponse({ note: sanitize(note).note() }, userReq.lang));
@@ -122,7 +141,14 @@ export default ({}: InitRouterParams): Router => {
             });
 
             if (!roomUser) {
-                return res.status(403).send(errorResponse("User must be in room", userReq.lang));
+                return res
+                    .status(403)
+                    .send(
+                        errorResponse(
+                            "You can't update chat note because you are not participant in that chat.",
+                            userReq.lang,
+                        ),
+                    );
             }
 
             const updated = await prisma.note.update({
@@ -154,7 +180,14 @@ export default ({}: InitRouterParams): Router => {
             });
 
             if (!roomUser) {
-                return res.status(403).send(errorResponse("User must be in room", userReq.lang));
+                return res
+                    .status(403)
+                    .send(
+                        errorResponse(
+                            "You can't delete chat note because you are not participant in that chat.",
+                            userReq.lang,
+                        ),
+                    );
             }
 
             await prisma.note.delete({ where: { id } });

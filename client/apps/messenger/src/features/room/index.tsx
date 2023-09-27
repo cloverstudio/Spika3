@@ -45,7 +45,7 @@ function RoomContainer({ children }: { children: React.ReactNode }) {
     };
 
     if (error) {
-        return <Box p={2}>Room not found</Box>;
+        return <Box p={2}>Chat not found</Box>;
     }
 
     return (

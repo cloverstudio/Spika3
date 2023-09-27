@@ -59,7 +59,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             });
 
             if (!room) {
-                return res.status(400).send(errorResponse("Room not found", userReq.lang));
+                return res.status(400).send(errorResponse("Chat not found", userReq.lang));
             }
 
             if (room.deleted) {
@@ -107,7 +107,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
 
                 const formattedBody = await formatMessageBody(
                     deviceMessage.body,
-                    referenceMessage.type
+                    referenceMessage.type,
                 );
                 body.referenceMessage = sanitize({
                     ...referenceMessage,
@@ -192,8 +192,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                                         roomUserCreatedAt: roomUser.createdAt,
                                         roomAvatarFileId,
                                     },
-                                })
-                            )
+                                }),
+                            ),
                         );
 
                         rabbitMQChannel.sendToQueue(
@@ -205,10 +205,10 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                                         type: Constants.PUSH_TYPE_NEW_MESSAGE,
                                         message: sanitizedMessage,
                                     },
-                                })
-                            )
+                                }),
+                            ),
                         );
-                    })
+                    }),
                 );
             }
 
@@ -218,8 +218,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     JSON.stringify({
                         messageId: message.id,
                         body,
-                    })
-                )
+                    }),
+                ),
             );
         } catch (e: any) {
             le(e);
