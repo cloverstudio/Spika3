@@ -24,7 +24,7 @@ class GoogleSearchAgent extends AgentBase {
 
         this.model = new ChatOpenAI({
             temperature: 0,
-            openAIApiKey: process.env.OPENAI_API_KEY,
+            openAIApiKey: process.env.OPEN_API_KEY,
             modelName: "gpt-3.5-turbo",
         });
     }
@@ -56,7 +56,7 @@ class GoogleSearchAgent extends AgentBase {
 
         const translatePrompt = ChatPromptTemplate.fromPromptMessages([
             SystemMessagePromptTemplate.fromTemplate(
-                "You are a helpful assistant that translates {input_language} to {output_language}. As also all units should be fit with the {output_language}"
+                "You are a helpful assistant that translates {input_language} to {output_language}. As also all units should be fit with the {output_language}",
             ),
             HumanMessagePromptTemplate.fromTemplate("{text}"),
         ]);
