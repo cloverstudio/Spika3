@@ -211,7 +211,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
 
             sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_NEW_ROOM);
             handleNewRoom({ users: foundUsers, room, rabbitMQChannel });
-        } catch (e: any) {
+        } catch (e: unknown) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
         }
@@ -313,7 +313,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_UPDATE_ROOM);
 
             res.send(successResponse({ room: sanitizedRoom }, userReq.lang));
-        } catch (e: any) {
+        } catch (e: unknown) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
         }
@@ -387,7 +387,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_DELETE_ROOM);
 
             res.send(successResponse({ room: sanitizedRoom }, userReq.lang));
-        } catch (e: any) {
+        } catch (e: unknown) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
         }
@@ -529,7 +529,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_UPDATE_ROOM);
 
                 res.send(successResponse({ room: sanitizedRoom }, userReq.lang));
-            } catch (e: any) {
+            } catch (e: unknown) {
                 le(e);
                 res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
             }
@@ -625,7 +625,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     userReq.lang,
                 ),
             );
-        } catch (e: any) {
+        } catch (e: unknown) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
         }
@@ -694,7 +694,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     userReq.lang,
                 ),
             );
-        } catch (e: any) {
+        } catch (e: unknown) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
         }
@@ -740,7 +740,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     userReq.lang,
                 ),
             );
-        } catch (e: any) {
+        } catch (e: unknown) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
         }
@@ -798,7 +798,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     userReq.lang,
                 ),
             );
-        } catch (e: any) {
+        } catch (e: unknown) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
         }
@@ -894,7 +894,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     userReq.lang,
                 ),
             );
-        } catch (e: any) {
+        } catch (e: unknown) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
         }
@@ -961,7 +961,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_UPDATE_ROOM);
 
             res.send(successResponse({ room: sanitizedRoom }, userReq.lang));
-        } catch (e: any) {
+        } catch (e: unknown) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
         }
@@ -1019,7 +1019,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_UPDATE_ROOM);
 
             res.send(successResponse({ room: sanitizedRoom }, userReq.lang));
-        } catch (e: any) {
+        } catch (e: unknown) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
         }
@@ -1086,7 +1086,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_UPDATE_ROOM);
 
             res.send(successResponse({ room: sanitizedRoom }, userReq.lang));
-        } catch (e: any) {
+        } catch (e: unknown) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
         }
@@ -1144,7 +1144,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_UPDATE_ROOM);
 
             res.send(successResponse({ room: sanitizedRoom }, userReq.lang));
-        } catch (e: any) {
+        } catch (e: unknown) {
             le(e);
             res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
         }
@@ -1281,7 +1281,7 @@ async function updateRoomUsers({
 
     const userIdsToRemove = currentIds.filter((id) => !foundUserIds.includes(id));
     await prisma.roomUser.deleteMany({
-        where: { roomId: room.id, userId: { in: userIdsToRemove }, isAdmin: false },
+        where: { roomId: room.id, userId: { in: userIdsToRemove } },
     });
 
     removedNotifier(userIdsToRemove, room.id);

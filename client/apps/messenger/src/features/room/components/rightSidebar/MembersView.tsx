@@ -11,7 +11,7 @@ import MenuItem from "@mui/material/MenuItem";
 
 import Add from "@mui/icons-material/Add";
 import MoreHoriz from "@mui/icons-material/MoreHoriz";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { RoomUserType } from "../../../../types/Rooms";
 import { selectUserId } from "../../../../store/userSlice";
 import { useCreateRoomMutation, useUpdateRoomMutation } from "../../api/room";
@@ -59,7 +59,7 @@ export function DetailsMemberView(props: DetailsMembersProps) {
         });
     };
 
-    const handleUpdateGroup = async (data: any) => {
+    const handleUpdateGroup = async (data: { userIds?: number[]; adminUserIds?: number[] }) => {
         await update({ roomId, data }).unwrap();
     };
 
@@ -161,7 +161,15 @@ export function DetailsMemberView(props: DetailsMembersProps) {
 
                                 <Box>
                                     {roomUser.isAdmin ? (
-                                        <Typography>{strings.admin}</Typography>
+                                        <Box display="flex" gap={1} alignItems="center">
+                                            <Typography>{strings.admin}</Typography>
+                                            {userIsAdmin && user.id !== userId && (
+                                                <UserMenu
+                                                    onRemove={() => removeMemberWithId(user.id)}
+                                                    onOpenChat={() => handleOpenChat(user.id)}
+                                                />
+                                            )}
+                                        </Box>
                                     ) : user.isBot ? (
                                         <></>
                                     ) : (
@@ -199,7 +207,7 @@ export function DetailsMemberView(props: DetailsMembersProps) {
 
 type UserMenuProps = {
     onRemove: () => void;
-    onPromote: () => void;
+    onPromote?: () => void;
     onOpenChat: () => void;
 };
 
@@ -230,14 +238,17 @@ function UserMenu({ onRemove, onPromote, onOpenChat }: UserMenuProps) {
                 >
                     {strings.remove}
                 </MenuItem>
-                <MenuItem
-                    onClick={() => {
-                        onPromote();
-                        handleClose();
-                    }}
-                >
-                    {strings.makeAdmin}
-                </MenuItem>
+                {onPromote && (
+                    <MenuItem
+                        onClick={() => {
+                            onPromote();
+                            handleClose();
+                        }}
+                    >
+                        {strings.makeAdmin}
+                    </MenuItem>
+                )}
+
                 <MenuItem
                     onClick={() => {
                         onOpenChat();
