@@ -77,6 +77,17 @@ const usersApi = api.injectEndpoints({
                       ]
                     : [],
         }),
+        createBot: build.mutation<SuccessResponse<{ user: UserType }> | ErrorResponse, any>({
+            query: (data) => {
+                return { url: `/management/users/bot`, method: "POST", data };
+            },
+            invalidatesTags: (res) =>
+                res && res.status === "success"
+                    ? [
+                          { type: "Users", id: "LIST" },
+                      ]
+                    : [],
+        }),
         updateUser: build.mutation<
             SuccessResponse<{ user: UserType }> | ErrorResponse,
             { userId: string; data: any }
@@ -109,5 +120,6 @@ export const {
     useDeleteUserMutation,
     useGetUserDevicesQuery,
     useExpireUserDeviceMutation,
+    useCreateBotMutation
 } = usersApi;
 export default usersApi;

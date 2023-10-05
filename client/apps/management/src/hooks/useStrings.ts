@@ -64,6 +64,9 @@ const en = {
     deleteGroupConfirmation: "Are you sure you want to delete this group?",
     addUsersToGroup: "Add users",
     addAdminsToGroup: "Add admins",
+    createBot: "Create bot",
+    botCreated: "Bot created",
+    webhookurl: "Webhook URL"
 };
 
 const strings = {

@@ -1,15 +1,18 @@
 import React, { useState } from "react";
-import { Box, Pagination, Typography } from "@mui/material";
+import { Box, Pagination, Typography, IconButton } from "@mui/material";
 import { useGetUsersQuery } from "@/features/users/api/users";
 import Loader from "@/components/Loader";
 import useStrings from "@/hooks/useStrings";
 import { Outlet } from "react-router-dom";
 import UserList from "@/features/users/UserList";
+import AddIcon from "@mui/icons-material/Add";
 import SearchBox from "@/features/groups/SearchBox";
+import CreateUserModal from "@/components/CreateBotModal";
 
 export default function Users(): React.ReactElement {
     const [page, setPage] = useState(1);
     const [keyword, setKeyword] = useState("");
+    const [showNewUserModal, setShowNewUserModal] = useState(false);
     const { data, isLoading, isError } = useGetUsersQuery({ page, keyword });
     const strings = useStrings();
 
@@ -50,9 +53,18 @@ export default function Users(): React.ReactElement {
                 alignContent="start"
             >
                 <Box>
-                    <Typography textAlign="center" variant="h2" mb={2} fontWeight="bold">
-                        {strings.users}
-                    </Typography>
+                    <Box display="flex" justifyContent="center" alignItems="center" gap={1} mb={2}>
+                        <Typography textAlign="center" variant="h2" mb={2} fontWeight="bold">
+                            {strings.users}
+                        </Typography>
+                        <IconButton
+                            size="large"
+                            onClick={() => setShowNewUserModal(true)}
+                            color="primary"
+                        >
+                            <AddIcon />
+                        </IconButton>
+                    </Box>
                     <Box mx="auto" mb={-2}>
                         <SearchBox
                             onSearch={(val) => {
@@ -74,6 +86,7 @@ export default function Users(): React.ReactElement {
                 <UserList users={data.data.list} />
             </Box>
 
+            {showNewUserModal && <CreateUserModal onClose={() => setShowNewUserModal(false)} />}
             <Outlet />
         </Box>
     );

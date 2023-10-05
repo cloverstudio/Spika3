@@ -11,6 +11,8 @@ import prisma from "../../../components/prisma";
 import validate from "../../../components/validateMiddleware";
 import { InitRouterParams } from "../../types/serviceInterface";
 
+import Utils from "../../../components/utils";
+
 const getContactsSchema = yup.object().shape({
     query: yup.object().shape({
         cursor: yup.number().nullable(),
@@ -542,6 +544,44 @@ export default ({ redisClient }: InitRouterParams) => {
                     avatarFileId: avatarFileId || 0,
                     emailAddress: emailAddress || null,
                     verified: true,
+                },
+            });
+
+            return res.status(200).send(successResponse({ user }, userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    
+    router.post("/bot", adminAuth(redisClient), async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        try {
+            const avatarFileId: number = req.body.avatarFileId;
+            const displayName: string = req.body.displayName;
+            const webhookUrl: string = req.body.webhookUrl;
+            
+            const urlRegex = /^((https?:\/\/)|(www.))(?:([a-zA-Z]+)|(\d+\.\d+.\d+.\d+)):\d{4}$/;
+
+            if (!displayName) {
+                return res.status(400).send(errorResponse("Display name required", userReq.lang));
+            }
+
+            if (webhookUrl && ! urlRegex.test(webhookUrl)) {
+                return res.status(400).send(errorResponse("URL should be correct format", userReq.lang));
+            }
+
+            const apiKey = Utils.randomString(consts.APIKEY_LENGTH);
+
+            const user = await prisma.user.create({
+                data: {
+                    displayName,
+                    avatarFileId: avatarFileId || 0,
+                    verified: true,
+                    isBot: true,
+                    apiKey: apiKey,
+                    webookURL:webhookUrl
                 },
             });
 

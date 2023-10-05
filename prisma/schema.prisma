@@ -20,6 +20,8 @@ model User {
   verificationCode      String?  @map(name: "verification_code")
   verified              Boolean  @default(false) @map(name: "verified")
   isBot                 Boolean  @default(false) @map(name: "is_bot")
+  apiKey                String?  @map(name: "api_key")
+  webookURL             String?  @map(name: "webhook_url") @db.VarChar(256)
   createdAt             DateTime @default(now()) @map(name: "created_at")
   modifiedAt            DateTime @default(now()) @map(name: "modified_at")
   deleted               Boolean  @default(false) @map(name: "deleted")
