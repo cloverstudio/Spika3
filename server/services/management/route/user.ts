@@ -12,6 +12,10 @@ import validate from "../../../components/validateMiddleware";
 import { InitRouterParams } from "../../types/serviceInterface";
 
 import Utils from "../../../components/utils";
+import utils from "../../../components/utils";
+
+const urlRegex = /^((https?:\/\/)|(www.))(?:([a-zA-Z]+)|(\d+\.\d+.\d+.\d+)):\d{4}$/;
+
 
 const getContactsSchema = yup.object().shape({
     query: yup.object().shape({
@@ -186,6 +190,26 @@ export default ({ redisClient }: InitRouterParams) => {
             if (!user) return res.status(404).send(errorResponse(`Wrong user id`, userReq.lang));
 
             return res.send(successResponse({ user: sanitize(user).user() }, userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.get("/bot/:userId", adminAuth(redisClient), async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        try {
+            const userId: number = parseInt(req.params.userId);
+
+            const user = await prisma.user.findFirst({
+                where: {
+                    id: userId,
+                },
+            });
+
+            if (!user) return res.status(404).send(errorResponse(`Wrong user id`, userReq.lang));
+
+            return res.send(successResponse({ user }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
@@ -562,7 +586,6 @@ export default ({ redisClient }: InitRouterParams) => {
             const displayName: string = req.body.displayName;
             const webhookUrl: string = req.body.webhookUrl;
             
-            const urlRegex = /^((https?:\/\/)|(www.))(?:([a-zA-Z]+)|(\d+\.\d+.\d+.\d+)):\d{4}$/;
 
             if (!displayName) {
                 return res.status(400).send(errorResponse("Display name required", userReq.lang));
@@ -581,11 +604,105 @@ export default ({ redisClient }: InitRouterParams) => {
                     verified: true,
                     isBot: true,
                     apiKey: apiKey,
-                    webookURL:webhookUrl
+                    webhookUrl:webhookUrl
                 },
             });
 
             return res.status(200).send(successResponse({ user }, userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    
+    router.put("/bot/:userId", adminAuth(redisClient), async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        try {
+            const userId: number = parseInt(req.params.userId);
+
+            const avatarFileId: number = req.body.avatarFileId;
+            const displayName: string = req.body.displayName;
+            const webhookUrl: string = req.body.webhookUrl;
+
+
+            const user = await prisma.user.findFirst({
+                where: {
+                    id: userId,
+                },
+            });
+
+            if (!user) {
+                return res.status(404).send(errorResponse(`Wrong user id`, userReq.lang));
+            }
+
+            if (!displayName) {
+                return res.status(400).send(errorResponse("Display name required", userReq.lang));
+            }
+
+            if (webhookUrl && ! urlRegex.test(webhookUrl)) {
+                return res.status(400).send(errorResponse("URL should be correct format", userReq.lang));
+            }
+
+
+            const updateValues: any = {};
+            if (displayName) updateValues.displayName = displayName;
+            if (webhookUrl) updateValues.webhookUrl = webhookUrl;
+            if (avatarFileId !== undefined) updateValues.avatarFileId = avatarFileId;
+
+            if (Object.keys(updateValues).length == 0) {
+                return res.status(400).send(errorResponse(`Nothing to update`, userReq.lang));
+            }
+
+            const updateUser = await prisma.user.update({
+                where: { id: userId },
+                data: { ...updateValues, modifiedAt: new Date() },
+            });
+
+            res.send(successResponse({ user: updateUser }, userReq.lang));
+
+            const roomsUser = await prisma.roomUser.findMany({
+                where: { userId },
+            });
+
+            for (const roomUser of roomsUser) {
+                const key = `${consts.ROOM_PREFIX}${roomUser.roomId}`;
+                await redisClient.del(key);
+            }
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+
+    router.put("/bot/renewapikey/:userId", adminAuth(redisClient), async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        try {
+            const userId: number = parseInt(req.params.userId);
+
+            const user = await prisma.user.findFirst({
+                where: {
+                    id: userId,
+                },
+            });
+
+
+            const updateValues: any = {
+                apiKey: utils.randomString(consts.APIKEY_LENGTH)
+            };
+
+            const updateUser = await prisma.user.update({
+                where: { id: userId },
+                data: { ...updateValues, modifiedAt: new Date() },
+            });
+
+            res.send(successResponse({ user: updateUser }, userReq.lang));
+
+            const roomsUser = await prisma.roomUser.findMany({
+                where: { userId },
+            });
+
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));

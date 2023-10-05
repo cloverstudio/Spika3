@@ -66,7 +66,10 @@ const en = {
     addAdminsToGroup: "Add admins",
     createBot: "Create bot",
     botCreated: "Bot created",
-    webhookurl: "Webhook URL"
+    webhookurl: "Webhook URL",
+    apiKey: "API Key",
+    renewApiKey: "Renew",
+    botUpdated: "Bot updated"
 };
 
 const strings = {

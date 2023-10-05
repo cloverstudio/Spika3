@@ -359,6 +359,7 @@ function sanitizeUser({
         createdAt: +new Date(createdAt),
         modifiedAt: +new Date(modifiedAt),
         isBot,
+        
         deleted,
     };
 }

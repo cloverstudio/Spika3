@@ -13,7 +13,7 @@ Table user {
   verified Boolean [not null, default: false]
   isBot Boolean [not null, default: false]
   apiKey String
-  webookURL String
+  webhookUrl String
   createdAt DateTime [default: `now()`, not null]
   modifiedAt DateTime [default: `now()`, not null]
   deleted Boolean [not null, default: false]

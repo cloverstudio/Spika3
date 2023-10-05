@@ -4,6 +4,8 @@ type UserType = {
     id: number;
     displayName: string;
     avatarFileId: number;
+    isBot: boolean;
+    apiKey: string;
 };
 
 type DevicesType = {
@@ -36,6 +38,13 @@ const usersApi = api.injectEndpoints({
         getUserById: build.query<SuccessResponse<{ user: UserType }> | ErrorResponse, string>({
             query: (userId) => {
                 return `/management/users/${userId}`;
+            },
+            providesTags: (res) =>
+                res && res.status === "success" ? [{ type: "Users", id: res.data.user.id }] : [],
+        }),
+        getBotById: build.query<SuccessResponse<{ user: UserType }> | ErrorResponse, string>({
+            query: (userId) => {
+                return `/management/users/bot/${userId}`;
             },
             providesTags: (res) =>
                 res && res.status === "success" ? [{ type: "Users", id: res.data.user.id }] : [],
@@ -103,6 +112,36 @@ const usersApi = api.injectEndpoints({
                       ]
                     : [],
         }),
+        renewApiKey: build.mutation<
+            SuccessResponse<{ user: UserType }> | ErrorResponse,
+            { userId: string }
+        >({
+            query: ({ userId }) => {
+                return { url: `/management/users/bot/renewapikey/${userId}`, method: "PUT" };
+            },
+            invalidatesTags: (res) =>
+                res && res.status === "success"
+                    ? [
+                          { type: "Users", id: "LIST" },
+                          { type: "Users", id: res.data.user.id },
+                      ]
+                    : [],
+        }),
+        updateBot: build.mutation<
+            SuccessResponse<{ user: UserType }> | ErrorResponse,
+            { userId: string; data: any }
+        >({
+            query: ({ userId, data }) => {
+                return { url: `/management/users/bot/${userId}`, method: "PUT", data };
+            },
+            invalidatesTags: (res) =>
+                res && res.status === "success"
+                    ? [
+                          { type: "Users", id: "LIST" },
+                          { type: "Users", id: res.data.user.id },
+                      ]
+                    : [],
+        }),
         deleteUser: build.mutation<any, number>({
             query: (userId) => {
                 return { url: `/management/users/${userId}`, method: "DELETE" };
@@ -120,6 +159,9 @@ export const {
     useDeleteUserMutation,
     useGetUserDevicesQuery,
     useExpireUserDeviceMutation,
-    useCreateBotMutation
+    useGetBotByIdQuery,
+    useCreateBotMutation,
+    useUpdateBotMutation,
+    useRenewApiKeyMutation,
 } = usersApi;
 export default usersApi;
