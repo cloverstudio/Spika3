@@ -1,4 +1,4 @@
-import { Room, User } from "@prisma/client";
+import { RoomUser, Room, User } from "@prisma/client";
 import prisma from "./prisma";
 import amqp from "amqplib";
 import { Configuration, OpenAIApi } from "openai";
@@ -9,7 +9,7 @@ import axios from "axios";
 
 
 type chatbotEventRequest = {
-    event: "load"|"newUser"|"newRoom"|"createContact"
+    event: "load"|"newUser"|"newRoom"|"createContact"|"newMessage"
     data?: any
 }
 
@@ -100,6 +100,53 @@ export async function handleNewMessage({
     rabbitMQChannel: amqp.Channel;
     messageType: string;
 }) {
+
+    const botUsers = await fetchBotUsers();
+
+    // get room members
+    const roomUsers = await prisma.roomUser.findMany({
+        where: {
+            roomId: room.id
+        },
+    });
+
+    const roomMemberUserId = roomUsers.map(u=>{
+        return u.userId
+    })
+
+    await Promise.all(botUsers.map(async (bot)=> {
+
+        if(bot.webhookUrl){
+            await sendEvent(bot.webhookUrl,{
+                event: "load"
+            })
+        }
+
+        const botUsers = await fetchBotUsers();
+
+        await Promise.all(botUsers.map(async (bot)=> {
+    
+            if(!roomMemberUserId.find(userId=> userId == bot.id))
+                return;
+            
+            if(!bot.webhookUrl)
+                return;
+
+            await sendEvent(bot.webhookUrl,{
+                event: "newMessage",
+                data:{
+                    body: body.text,
+                    fromUserId,
+                    users,
+                    room,
+                    messageType,
+                }
+            })
+
+        }));
+
+    }));
+
 /*
     // ignore if messagte is not text
     if (!body.text) return;
