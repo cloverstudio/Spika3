@@ -4,56 +4,63 @@ import amqp from "amqplib";
 import { Configuration, OpenAIApi } from "openai";
 import fs from "fs";
 import path from "path";
-import AgentBase from "./agents/agentBase";
 import { file } from "googleapis/build/src/apis/file";
+import axios from "axios";
 
-const configuration = new Configuration({
-    apiKey: process.env.OPEN_API_KEY,
-    organization: process.env.OPEN_API_ORG_ID,
-});
-const openai = new OpenAIApi(configuration);
 
-const loadedAgents: AgentBase[] = [];
-const loadedAgentFiles: string[] = [];
+type chatbotEventRequest = {
+    event: "load"|"newUser"|"newRoom"|"createContact"
+    data?: any
+}
 
-const dirPath: string = path.resolve(__dirname, "agents");
-const fileNames: string[] = fs.readdirSync(dirPath);
-export const chatGPTUsersCount = fileNames.filter((f) => /js$/.test(f)).length - 1;
+async function fetchBotUsers(): Promise<User[]>{
+
+    const users = await prisma.user.findMany({
+        where: {
+            isBot: true,
+            deleted: false
+        },
+    });
+
+    return users;
+
+}
+
+async function sendEvent(url: string, data: chatbotEventRequest): Promise<any> {
+    try{
+        return await axios.post(url,data);
+    }catch(e){
+        console.error("Bot webhook error",{
+            url:url,
+            event: data.event,
+            data: data.data,
+        },e.message)
+    }
+    
+}
 
 export async function loadAgents() {
-    const dirPath: string = path.resolve(__dirname, "agents");
-    const fileNames: string[] = fs.readdirSync(dirPath);
 
-    for (let key in fileNames) {
-        const filePath: string = fileNames[key];
+    const botUsers = await fetchBotUsers();
 
-        // ignore base class
-        if (/base/i.test(filePath)) continue;
+    await Promise.all(botUsers.map(async (bot)=> {
 
-        // ignore if file doesn't finish with .js
-        if (!/^.*js$/i.test(filePath)) continue;
+        if(bot.webhookUrl){
+            await sendEvent(bot.webhookUrl,{
+                event: "load"
+            })
+        }
 
-        // disable multiple times loading
-        if (loadedAgentFiles.indexOf(filePath) !== -1) continue;
+    }));
 
-        console.log(`Loading agent ${filePath}...`);
-
-        // all files under this path should extend the agentBase class.
-        const agentImporter = await import(`./agents/${filePath.split(".")[0]}`);
-        const agent: AgentBase = agentImporter.default;
-        agent.createOrLoad();
-
-        loadedAgentFiles.push(filePath);
-        loadedAgents.push(agent);
-    }
 }
 
 export async function handleNewUser(userId: number) {
-    await Promise.all(loadedAgents.map((agent) => agent.createContact({ userId })));
+//    await Promise.all(loadedAgents.map((agent) => agent.createContact({ userId })));
 }
 
 export async function checkForAgentContacts(userId: number) {
-    await Promise.all(loadedAgents.map((agent) => agent.createContact({ userId })));
+//    await Promise.all(loadedAgents.map((agent) => agent.createContact({ userId })));
 }
 
 export async function handleNewRoom({
@@ -65,6 +72,7 @@ export async function handleNewRoom({
     room: Room;
     rabbitMQChannel: amqp.Channel;
 }) {
+/*
     await Promise.all(
         loadedAgents.map((agent) =>
             agent.handleNewRoom({
@@ -74,6 +82,7 @@ export async function handleNewRoom({
             })
         )
     );
+*/
 }
 
 export async function handleNewMessage({
@@ -91,6 +100,7 @@ export async function handleNewMessage({
     rabbitMQChannel: amqp.Channel;
     messageType: string;
 }) {
+/*
     // ignore if messagte is not text
     if (!body.text) return;
 
@@ -106,4 +116,5 @@ export async function handleNewMessage({
             })
         )
     );
+*/
 }

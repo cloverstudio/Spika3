@@ -14,7 +14,7 @@ import { InitRouterParams } from "../../types/serviceInterface";
 import Utils from "../../../components/utils";
 import utils from "../../../components/utils";
 
-const urlRegex = /^((https?:\/\/)|(www.))(?:([a-zA-Z]+)|(\d+\.\d+.\d+.\d+)):\d{4}$/;
+const urlRegex = /^(?:([A-Za-z]+):)?(\/{0,3})([0-9.\-A-Za-z]+)(?::(\d+))?(?:\/([^?#]*))?(?:\?([^#]*))?(?:#(.*))?$/;
 
 
 const getContactsSchema = yup.object().shape({
