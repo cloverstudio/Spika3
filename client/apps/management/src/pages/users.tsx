@@ -27,7 +27,7 @@ export default function Users(): React.ReactElement {
             </Box>
         );
     }
-
+    
     const handlePageChange = (_, newPage) => {
         setPage(newPage);
     };

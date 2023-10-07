@@ -8,14 +8,14 @@ import Button from "@mui/material/Button";
 
 import useStrings from "@/hooks/useStrings";
 import { Box, Checkbox, FormLabel, Stack, TextField, Typography } from "@mui/material";
-import { useUpdateBotMutation, useRenewApiKeyMutation } from "@/features/users/api/users";
+import { useUpdateBotMutation, useRenewAccessTokenMutation } from "@/features/users/api/users";
 import { useShowSnackBar } from "@/hooks/useModal";
 import uploadImage from "@assets/upload-image.svg";
 import FileUploader from "@/utils/FileUploader";
 
 type UpdateBotFormType = {
     displayName: string;
-    apiKey: string;
+    accessToken: string;
     webhookUrl: string;
 };
 
@@ -24,7 +24,7 @@ declare const UPLOADS_BASE_URL: string;
 export default function EditUserModal({ onClose, user }: { onClose: () => void; user: any }) {
     const strings = useStrings();
     const [updateBot, { isLoading }] = useUpdateBotMutation();
-    const [renewApiKey, { isLoading:isLoadingApiKey }] = useRenewApiKeyMutation();
+    const [renewAccessToken, { isLoading:isLoadingAccessToken }] = useRenewAccessTokenMutation();
     const showBasicSnackbar = useShowSnackBar();
     const [file, setFile] = useState<File>();
     const [src, setSrc] = useState(
@@ -41,7 +41,7 @@ export default function EditUserModal({ onClose, user }: { onClose: () => void; 
 
     const [form, setForm] = useState<UpdateBotFormType>({
         displayName: user.displayName || "",
-        apiKey: user.apiKey || "",
+        accessToken: user.device[0]?.token || "",
         webhookUrl: user.webhookUrl || "",
     });
 
@@ -81,14 +81,14 @@ export default function EditUserModal({ onClose, user }: { onClose: () => void; 
     };
 
     
-    const handleRenewApiKey = async () => {
+    const handleRenewAccessToken = async () => {
         try {
-            const res = await renewApiKey({
+            const res = await renewAccessToken({
                 userId: user.id
             }).unwrap();
             if (res?.status === "success") {
                 showBasicSnackbar({ text: strings.botUpdated, severity: "success" });
-                handleChange("apiKey", res.data.user.apiKey)
+                handleChange("accessToken", res.data.device.token)
             } else {
                 showBasicSnackbar({ text: res.message, severity: "error" });
             }
@@ -166,20 +166,20 @@ export default function EditUserModal({ onClose, user }: { onClose: () => void; 
 
                         <Box>
                             <FormLabel sx={{ mb: 1, display: "block" }}>
-                                {strings.apiKey}
+                                {strings.accessToken}
                             </FormLabel>
 
                             <Box>
                                 <TextField
                                     required
                                     fullWidth
-                                    id="apiKey"
+                                    id="token"
                                     placeholder={strings.enter}
-                                    name="apiKey"
-                                    autoComplete="apiKey"
-                                    value={form.apiKey}
+                                    name="token"
+                                    autoComplete="token"
+                                    value={form.accessToken}
                                     onChange={({ target }) =>
-                                        handleChange("apiKey", target.value)
+                                        handleChange("accessToken", target.value)
                                     }
                                     disabled
                                     sx={{
@@ -191,12 +191,12 @@ export default function EditUserModal({ onClose, user }: { onClose: () => void; 
                                     variant="contained"
                                     disabled={isLoading}
                                     color="primary"
-                                    onClick={handleRenewApiKey}
+                                    onClick={handleRenewAccessToken}
                                     sx={{
                                         width:"20%"
                                     }}
                                 >
-                                    {strings.renewApiKey}
+                                    {strings.renewAccessToken}
                                 </Button>
                             </Box>
                         </Box>

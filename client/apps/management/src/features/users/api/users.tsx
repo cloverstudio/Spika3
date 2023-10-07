@@ -5,11 +5,11 @@ type UserType = {
     displayName: string;
     avatarFileId: number;
     isBot: boolean;
-    apiKey: string;
 };
 
 type DevicesType = {
     id: number;
+    userId: number;
     type: string;
     osName: string;
     osVersion: string;
@@ -17,6 +17,7 @@ type DevicesType = {
     tokenExpiredAt: number;
     createdAt: number;
     modifiedAt: number;
+    token: string;
 };
 
 type UserListType = {
@@ -112,18 +113,18 @@ const usersApi = api.injectEndpoints({
                       ]
                     : [],
         }),
-        renewApiKey: build.mutation<
-            SuccessResponse<{ user: UserType }> | ErrorResponse,
+        renewAccessToken: build.mutation<
+            SuccessResponse<{ device: DevicesType }> | ErrorResponse,
             { userId: string }
         >({
             query: ({ userId }) => {
-                return { url: `/management/users/bot/renewapikey/${userId}`, method: "PUT" };
+                return { url: `/management/users/bot/renewAccessToken/${userId}`, method: "PUT" };
             },
             invalidatesTags: (res) =>
                 res && res.status === "success"
                     ? [
                           { type: "Users", id: "LIST" },
-                          { type: "Users", id: res.data.user.id },
+                          { type: "Users", id: res.data.device.userId },
                       ]
                     : [],
         }),
@@ -162,6 +163,6 @@ export const {
     useGetBotByIdQuery,
     useCreateBotMutation,
     useUpdateBotMutation,
-    useRenewApiKeyMutation,
+    useRenewAccessTokenMutation,
 } = usersApi;
 export default usersApi;

@@ -133,7 +133,7 @@ export default ({ redisClient }: InitRouterParams) => {
                         : {
                               deleted: false,
                           }),
-                },
+                }
             });
             res.send(
                 successResponse(
@@ -204,6 +204,9 @@ export default ({ redisClient }: InitRouterParams) => {
             const user = await prisma.user.findFirst({
                 where: {
                     id: userId,
+                },
+                include: {
+                    device : true
                 },
             });
 
@@ -603,12 +606,27 @@ export default ({ redisClient }: InitRouterParams) => {
                     avatarFileId: avatarFileId || 0,
                     verified: true,
                     isBot: true,
-                    apiKey: apiKey,
                     webhookUrl:webhookUrl
                 },
             });
 
+
+            const device = await prisma.device.create({
+                data: {
+                    deviceId: "" + user.id,
+                    userId: user.id,
+                    osName: "bot",
+                    osVersion: "bot",
+                    deviceName: "bot",
+                    appVersion: "bot",
+                    type: "bot",
+                    token: apiKey,
+                    tokenExpiredAt: null
+                },
+            });
+
             return res.status(200).send(successResponse({ user }, userReq.lang));
+
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
@@ -629,7 +647,7 @@ export default ({ redisClient }: InitRouterParams) => {
             const user = await prisma.user.findFirst({
                 where: {
                     id: userId,
-                },
+                }
             });
 
             if (!user) {
@@ -676,32 +694,33 @@ export default ({ redisClient }: InitRouterParams) => {
     });
 
 
-    router.put("/bot/renewapikey/:userId", adminAuth(redisClient), async (req: Request, res: Response) => {
+    router.put("/bot/renewAccessToken/:userId", adminAuth(redisClient), async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
             const userId: number = parseInt(req.params.userId);
 
-            const user = await prisma.user.findFirst({
-                where: {
-                    id: userId,
-                },
+            const device = await prisma.device.findFirst({
+                where:{
+                    userId: userId
+                }
             });
 
+            if(!device)
+                return res.status(400).send(errorResponse("Invalid user id", userReq.lang));
 
             const updateValues: any = {
-                apiKey: utils.randomString(consts.APIKEY_LENGTH)
+                token: utils.randomString(consts.APIKEY_LENGTH)
             };
 
-            const updateUser = await prisma.user.update({
-                where: { id: userId },
+            const updateDevice = await prisma.device.update({
+                where: { 
+                    id:device.id
+                 },
                 data: { ...updateValues, modifiedAt: new Date() },
             });
 
-            res.send(successResponse({ user: updateUser }, userReq.lang));
+            res.send(successResponse({ device: updateValues }, userReq.lang));
 
-            const roomsUser = await prisma.roomUser.findMany({
-                where: { userId },
-            });
 
         } catch (e: any) {
             le(e);

@@ -68,7 +68,8 @@ const en = {
     botCreated: "Bot created",
     webhookurl: "Webhook URL",
     apiKey: "API Key",
-    renewApiKey: "Renew",
+    accessToken: "Access token",
+    renewAccessToken: "Renew",
     botUpdated: "Bot updated"
 };
 

@@ -17,13 +17,13 @@ import {
     useGetGroupsByUserIdQuery,
     useRemoveUserFromGroupMutation,
 } from "@/features/groups/api/groups";
-import UserType from "@/types/User";
+import { BotUserType } from "@/types/User";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 
 declare const UPLOADS_BASE_URL: string;
 
-export default function UserDetails({ user }: { user: UserType }) {
+export default function UserDetails({ user }: { user: BotUserType }) {
     const [deleteUser, { isLoading }] = useDeleteUserMutation();
     const navigate = useNavigate();
     const [showEdit, setShowEdit] = useState(false);
@@ -92,10 +92,10 @@ export default function UserDetails({ user }: { user: UserType }) {
                     </Box>
                     <Box display="grid" gridTemplateColumns="2fr 5fr" gap={2}>
                         <Typography color="text.tertiary" fontSize="0.85rem">
-                            {strings.apiKey}
+                            {strings.accessToken}
                         </Typography>
                         <Typography fontWeight="medium" color="text.secondary" fontSize="0.8rem">
-                            {user.apiKey}
+                            {user.device[0]?.token}
                         </Typography>
                     </Box>
                     <Box display="grid" gridTemplateColumns="2fr 5fr" gap={2}>
