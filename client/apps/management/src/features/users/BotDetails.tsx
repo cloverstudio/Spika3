@@ -84,6 +84,14 @@ export default function UserDetails({ user }: { user: BotUserType }) {
                 <Stack my={4} spacing={1}>
                     <Box display="grid" gridTemplateColumns="2fr 5fr" gap={2}>
                         <Typography color="text.tertiary" fontSize="0.85rem">
+                            {strings.userId}
+                        </Typography>
+                        <Typography fontWeight="medium" color="text.secondary" fontSize="0.8rem">
+                            {user.id}
+                        </Typography>
+                    </Box>
+                    <Box display="grid" gridTemplateColumns="2fr 5fr" gap={2}>
+                        <Typography color="text.tertiary" fontSize="0.85rem">
                             {strings.displayName}
                         </Typography>
                         <Typography fontWeight="medium" color="text.secondary" fontSize="0.8rem">

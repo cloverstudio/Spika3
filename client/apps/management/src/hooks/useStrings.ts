@@ -70,7 +70,8 @@ const en = {
     apiKey: "API Key",
     accessToken: "Access token",
     renewAccessToken: "Renew",
-    botUpdated: "Bot updated"
+    botUpdated: "Bot updated",
+    userId: "ID"
 };
 
 const strings = {

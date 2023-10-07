@@ -10,7 +10,8 @@ import axios from "axios";
 
 type chatbotEventRequest = {
     event: "load"|"newUser"|"newRoom"|"createContact"|"newMessage"
-    data?: any
+    data?: any,
+    responsibleBotId: number
 }
 
 async function fetchBotUsers(): Promise<User[]>{
@@ -47,8 +48,9 @@ export async function loadAgents() {
 
         if(bot.webhookUrl){
             await sendEvent(bot.webhookUrl,{
-                event: "load"
-            })
+                event: "load",
+                responsibleBotId: bot.id
+            },)
         }
 
     }));
@@ -115,37 +117,32 @@ export async function handleNewMessage({
     })
 
     await Promise.all(botUsers.map(async (bot)=> {
+  
+        if(fromUserId === bot.id)
+            return;
 
-        if(bot.webhookUrl){
-            await sendEvent(bot.webhookUrl,{
-                event: "load"
-            })
-        }
+        if(!roomMemberUserId.find(userId=> userId == bot.id))
+            return;
+        
+        if(!bot.webhookUrl)
+            return;
 
-        const botUsers = await fetchBotUsers();
+        console.log(`send webhook for bot id ${bot.id}`)
 
-        await Promise.all(botUsers.map(async (bot)=> {
-    
-            if(!roomMemberUserId.find(userId=> userId == bot.id))
-                return;
-            
-            if(!bot.webhookUrl)
-                return;
-
-            await sendEvent(bot.webhookUrl,{
-                event: "newMessage",
-                data:{
-                    body: body.text,
-                    fromUserId,
-                    users,
-                    room,
-                    messageType,
-                }
-            })
-
-        }));
+        await sendEvent(bot.webhookUrl,{
+            event: "newMessage",
+            responsibleBotId: bot.id,
+            data:{
+                body: body.text,
+                fromUserId,
+                users,
+                room,
+                messageType,
+            }
+        })
 
     }));
+
 
 /*
     // ignore if messagte is not text
