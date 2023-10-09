@@ -4,10 +4,12 @@ type UserType = {
     id: number;
     displayName: string;
     avatarFileId: number;
+    isBot: boolean;
 };
 
 type DevicesType = {
     id: number;
+    userId: number;
     type: string;
     osName: string;
     osVersion: string;
@@ -15,6 +17,7 @@ type DevicesType = {
     tokenExpiredAt: number;
     createdAt: number;
     modifiedAt: number;
+    token: string;
 };
 
 type UserListType = {
@@ -36,6 +39,13 @@ const usersApi = api.injectEndpoints({
         getUserById: build.query<SuccessResponse<{ user: UserType }> | ErrorResponse, string>({
             query: (userId) => {
                 return `/management/users/${userId}`;
+            },
+            providesTags: (res) =>
+                res && res.status === "success" ? [{ type: "Users", id: res.data.user.id }] : [],
+        }),
+        getBotById: build.query<SuccessResponse<{ user: UserType }> | ErrorResponse, string>({
+            query: (userId) => {
+                return `/management/users/bot/${userId}`;
             },
             providesTags: (res) =>
                 res && res.status === "success" ? [{ type: "Users", id: res.data.user.id }] : [],
@@ -77,12 +87,53 @@ const usersApi = api.injectEndpoints({
                       ]
                     : [],
         }),
+        createBot: build.mutation<SuccessResponse<{ user: UserType }> | ErrorResponse, any>({
+            query: (data) => {
+                return { url: `/management/users/bot`, method: "POST", data };
+            },
+            invalidatesTags: (res) =>
+                res && res.status === "success"
+                    ? [
+                          { type: "Users", id: "LIST" },
+                      ]
+                    : [],
+        }),
         updateUser: build.mutation<
             SuccessResponse<{ user: UserType }> | ErrorResponse,
             { userId: string; data: any }
         >({
             query: ({ userId, data }) => {
                 return { url: `/management/users/${userId}`, method: "PUT", data };
+            },
+            invalidatesTags: (res) =>
+                res && res.status === "success"
+                    ? [
+                          { type: "Users", id: "LIST" },
+                          { type: "Users", id: res.data.user.id },
+                      ]
+                    : [],
+        }),
+        renewAccessToken: build.mutation<
+            SuccessResponse<{ device: DevicesType }> | ErrorResponse,
+            { userId: string }
+        >({
+            query: ({ userId }) => {
+                return { url: `/management/users/bot/renewAccessToken/${userId}`, method: "PUT" };
+            },
+            invalidatesTags: (res) =>
+                res && res.status === "success"
+                    ? [
+                          { type: "Users", id: "LIST" },
+                          { type: "Users", id: res.data.device.userId },
+                      ]
+                    : [],
+        }),
+        updateBot: build.mutation<
+            SuccessResponse<{ user: UserType }> | ErrorResponse,
+            { userId: string; data: any }
+        >({
+            query: ({ userId, data }) => {
+                return { url: `/management/users/bot/${userId}`, method: "PUT", data };
             },
             invalidatesTags: (res) =>
                 res && res.status === "success"
@@ -109,5 +160,9 @@ export const {
     useDeleteUserMutation,
     useGetUserDevicesQuery,
     useExpireUserDeviceMutation,
+    useGetBotByIdQuery,
+    useCreateBotMutation,
+    useUpdateBotMutation,
+    useRenewAccessTokenMutation,
 } = usersApi;
 export default usersApi;

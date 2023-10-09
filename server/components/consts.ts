@@ -48,3 +48,5 @@ export const ROOM_PREFIX = "room_";
 export const LAST_MESSAGE_PREFIX = "lastMessage_";
 export const UNREAD_PREFIX = "unread_";
 export const DEVICE_TYPE_BROWSER = "browser";
+
+export const APIKEY_LENGTH = 32

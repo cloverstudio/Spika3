@@ -11,6 +11,12 @@ import prisma from "../../../components/prisma";
 import validate from "../../../components/validateMiddleware";
 import { InitRouterParams } from "../../types/serviceInterface";
 
+import Utils from "../../../components/utils";
+import utils from "../../../components/utils";
+
+const urlRegex = /^(?:([A-Za-z]+):)?(\/{0,3})([0-9.\-A-Za-z]+)(?::(\d+))?(?:\/([^?#]*))?(?:\?([^#]*))?(?:#(.*))?$/;
+
+
 const getContactsSchema = yup.object().shape({
     query: yup.object().shape({
         cursor: yup.number().nullable(),
@@ -127,7 +133,7 @@ export default ({ redisClient }: InitRouterParams) => {
                         : {
                               deleted: false,
                           }),
-                },
+                }
             });
             res.send(
                 successResponse(
@@ -184,6 +190,29 @@ export default ({ redisClient }: InitRouterParams) => {
             if (!user) return res.status(404).send(errorResponse(`Wrong user id`, userReq.lang));
 
             return res.send(successResponse({ user: sanitize(user).user() }, userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.get("/bot/:userId", adminAuth(redisClient), async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        try {
+            const userId: number = parseInt(req.params.userId);
+
+            const user = await prisma.user.findFirst({
+                where: {
+                    id: userId,
+                },
+                include: {
+                    device : true
+                },
+            });
+
+            if (!user) return res.status(404).send(errorResponse(`Wrong user id`, userReq.lang));
+
+            return res.send(successResponse({ user }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
@@ -546,6 +575,153 @@ export default ({ redisClient }: InitRouterParams) => {
             });
 
             return res.status(200).send(successResponse({ user }, userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    
+    router.post("/bot", adminAuth(redisClient), async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        try {
+            const avatarFileId: number = req.body.avatarFileId;
+            const displayName: string = req.body.displayName;
+            const webhookUrl: string = req.body.webhookUrl;
+            
+
+            if (!displayName) {
+                return res.status(400).send(errorResponse("Display name required", userReq.lang));
+            }
+
+            if (webhookUrl && ! urlRegex.test(webhookUrl)) {
+                return res.status(400).send(errorResponse("URL should be correct format", userReq.lang));
+            }
+
+            const apiKey = Utils.randomString(consts.APIKEY_LENGTH);
+
+            const user = await prisma.user.create({
+                data: {
+                    displayName,
+                    avatarFileId: avatarFileId || 0,
+                    verified: true,
+                    isBot: true,
+                    webhookUrl:webhookUrl
+                },
+            });
+
+
+            const device = await prisma.device.create({
+                data: {
+                    deviceId: "" + user.id,
+                    userId: user.id,
+                    osName: "bot",
+                    osVersion: "bot",
+                    deviceName: "bot",
+                    appVersion: "bot",
+                    type: "bot",
+                    token: apiKey,
+                    tokenExpiredAt: null
+                },
+            });
+
+            return res.status(200).send(successResponse({ user }, userReq.lang));
+
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    
+    router.put("/bot/:userId", adminAuth(redisClient), async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        try {
+            const userId: number = parseInt(req.params.userId);
+
+            const avatarFileId: number = req.body.avatarFileId;
+            const displayName: string = req.body.displayName;
+            const webhookUrl: string = req.body.webhookUrl;
+
+
+            const user = await prisma.user.findFirst({
+                where: {
+                    id: userId,
+                }
+            });
+
+            if (!user) {
+                return res.status(404).send(errorResponse(`Wrong user id`, userReq.lang));
+            }
+
+            if (!displayName) {
+                return res.status(400).send(errorResponse("Display name required", userReq.lang));
+            }
+
+            if (webhookUrl && ! urlRegex.test(webhookUrl)) {
+                return res.status(400).send(errorResponse("URL should be correct format", userReq.lang));
+            }
+
+
+            const updateValues: any = {};
+            if (displayName) updateValues.displayName = displayName;
+            if (webhookUrl) updateValues.webhookUrl = webhookUrl;
+            if (avatarFileId !== undefined) updateValues.avatarFileId = avatarFileId;
+
+            if (Object.keys(updateValues).length == 0) {
+                return res.status(400).send(errorResponse(`Nothing to update`, userReq.lang));
+            }
+
+            const updateUser = await prisma.user.update({
+                where: { id: userId },
+                data: { ...updateValues, modifiedAt: new Date() },
+            });
+
+            res.send(successResponse({ user: updateUser }, userReq.lang));
+
+            const roomsUser = await prisma.roomUser.findMany({
+                where: { userId },
+            });
+
+            for (const roomUser of roomsUser) {
+                const key = `${consts.ROOM_PREFIX}${roomUser.roomId}`;
+                await redisClient.del(key);
+            }
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+
+    router.put("/bot/renewAccessToken/:userId", adminAuth(redisClient), async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        try {
+            const userId: number = parseInt(req.params.userId);
+
+            const device = await prisma.device.findFirst({
+                where:{
+                    userId: userId
+                }
+            });
+
+            if(!device)
+                return res.status(400).send(errorResponse("Invalid user id", userReq.lang));
+
+            const updateValues: any = {
+                token: utils.randomString(consts.APIKEY_LENGTH)
+            };
+
+            const updateDevice = await prisma.device.update({
+                where: { 
+                    id:device.id
+                 },
+                data: { ...updateValues, modifiedAt: new Date() },
+            });
+
+            res.send(successResponse({ device: updateValues }, userReq.lang));
+
+
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));

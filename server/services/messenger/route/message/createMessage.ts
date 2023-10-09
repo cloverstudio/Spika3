@@ -130,7 +130,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                     return res.status(400).send(errorResponse("Invalid type", userReq.lang));
                 }
 
-                const allReceivers = room.users.filter((u) => !u.user.isBot);
+                const allReceivers = room.users;
 
                 const usersWhoBlockedSender =
                     room.type === "private"
