@@ -57,12 +57,93 @@ export async function loadAgents() {
 
 }
 
+// this function is used when user signed up after bot created
 export async function handleNewUser(userId: number) {
-//    await Promise.all(loadedAgents.map((agent) => agent.createContact({ userId })));
+
+    // add to contact list if not exists
+    const botUsers = await fetchBotUsers();
+
+    await Promise.all(botUsers.map(async (bot)=> {
+
+        const contact = await prisma.contact.findFirst({
+            where: {
+                userId: userId,
+                contactId: bot.id,
+            },
+        });
+
+        if (!contact) {
+            await prisma.contact.create({
+                data: {
+                    userId: userId,
+                    contactId: bot.id,
+                },
+            });
+
+            await prisma.contact.create({
+                data: {
+                    userId: bot.id,
+                    contactId: userId,
+                },
+            });
+
+            await sendEvent(bot.webhookUrl,{
+                event: "newUser",
+                responsibleBotId: bot.id,
+                data:{
+                    userId
+                }
+            }) 
+    
+        }
+
+    }));
+    
 }
 
+// this function supports the bot creation was after user signed up.
 export async function checkForAgentContacts(userId: number) {
-//    await Promise.all(loadedAgents.map((agent) => agent.createContact({ userId })));
+
+    // add to contact list if not exists
+    const botUsers = await fetchBotUsers();
+
+    await Promise.all(botUsers.map(async (bot)=> {
+
+        const contact = await prisma.contact.findFirst({
+            where: {
+                userId: userId,
+                contactId: bot.id,
+            },
+        });
+
+        if (!contact) {
+
+            await prisma.contact.create({
+                data: {
+                    userId: userId,
+                    contactId: bot.id,
+                },
+            });
+
+            await prisma.contact.create({
+                data: {
+                    userId: bot.id,
+                    contactId: userId,
+                },
+            });
+
+            await sendEvent(bot.webhookUrl,{
+                event: "newUser",
+                responsibleBotId: bot.id,
+                data:{
+                    userId
+                }
+            }) 
+
+        }
+
+    }));
+    
 }
 
 export async function handleNewRoom({
@@ -74,17 +155,22 @@ export async function handleNewRoom({
     room: Room;
     rabbitMQChannel: amqp.Channel;
 }) {
-/*
-    await Promise.all(
-        loadedAgents.map((agent) =>
-            agent.handleNewRoom({
+
+    const botUsers = await fetchBotUsers();
+
+    await Promise.all(botUsers.map(async (bot)=> {
+
+        await sendEvent(bot.webhookUrl,{
+            event: "newRoom",
+            responsibleBotId: bot.id,
+            data:{
                 users,
-                room,
-                rabbitMQChannel,
-            })
-        )
-    );
-*/
+                room
+            }
+        })
+
+    }));
+
 }
 
 export async function handleNewMessage({
@@ -142,23 +228,4 @@ export async function handleNewMessage({
         })
 
     }));
-
-
-/*
-    // ignore if messagte is not text
-    if (!body.text) return;
-
-    await Promise.all(
-        loadedAgents.map((agent) =>
-            agent.handleNewMessage({
-                body: body.text,
-                fromUserId,
-                users,
-                room,
-                rabbitMQChannel,
-                messageType,
-            })
-        )
-    );
-*/
 }
