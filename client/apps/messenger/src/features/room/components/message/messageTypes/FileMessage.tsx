@@ -14,6 +14,7 @@ type FileMessageType = {
     isUsersMessage: boolean;
     progress?: number;
     highlighted?: boolean;
+    showBoxShadow?: boolean;
 };
 
 export default function FileMessage({
@@ -21,6 +22,7 @@ export default function FileMessage({
     isUsersMessage,
     progress,
     highlighted,
+    showBoxShadow = true,
 }: FileMessageType) {
     const roomId = parseInt(useParams().id || "");
     const isUploading = progress !== undefined && progress < 100;
@@ -66,7 +68,7 @@ export default function FileMessage({
                         ? "common.myMessageBackground"
                         : "background.paper"
                 }
-                boxShadow="0 2px 5px 0 rgba(0, 0, 0, 0.10)"
+                sx={{ ...(showBoxShadow && { boxShadow: "0 2px 5px 0 rgba(0, 0, 0, 0.10)" }) }}
             >
                 <Icon fontSize="large" />
                 <Box overflow="hidden">

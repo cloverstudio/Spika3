@@ -14,7 +14,10 @@ export default function EditNoteHeader() {
 
     return (
         <>
-            <IconButton onClick={() => dispatch(setActiveTab("details"))}>
+            <IconButton
+                onClick={() => dispatch(setActiveTab("details"))}
+                style={{ borderRadius: "10px" }}
+            >
                 <ArrowBackIos sx={{ color: "primary.main", position: "relative", left: 3 }} />
             </IconButton>
             <Typography variant="h6">{strings.settings}</Typography>

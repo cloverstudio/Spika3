@@ -106,6 +106,7 @@ export default function SidebarChatList({
                                 "&:hover": {
                                     bgcolor: theme.palette.mode === "dark" ? "#000000" : "default",
                                 },
+                                borderRadius: "10px",
                             }}
                         >
                             <NewChatIcon

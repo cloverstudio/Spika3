@@ -17,6 +17,7 @@ type VideoMessageTypes = {
     onClick: () => void;
     progress?: number;
     highlighted?: boolean;
+    showBoxShadow?: boolean;
 };
 
 export default function VideoMessage({
@@ -25,6 +26,7 @@ export default function VideoMessage({
     onClick,
     progress,
     highlighted,
+    showBoxShadow = true,
 }: VideoMessageTypes) {
     const roomId = parseInt(useParams().id || "");
     const [open, setOpen] = useState(false);
@@ -75,7 +77,6 @@ export default function VideoMessage({
                     minHeight="128px"
                     display="block"
                     border={highlighted ? "2px solid #d7aa5a" : "2px solid transparent"}
-                    boxShadow="0 2px 5px 0 rgba(0, 0, 0, 0.10)"
                     src={thumbSrc || src}
                     pb="0.8125"
                     draggable={false}
@@ -88,6 +89,7 @@ export default function VideoMessage({
                                 : "brightness(55%)",
                         userSelect: "none",
                         touchAction: "none",
+                        ...(showBoxShadow && { boxShadow: "0 2px 5px 0 rgba(0, 0, 0, 0.10)" }),
                     }}
                 />
                 {isUploading || isVerifying ? (

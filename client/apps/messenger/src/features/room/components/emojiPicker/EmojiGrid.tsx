@@ -18,7 +18,7 @@ export default function EmojiGrid({
                 gridTemplateColumns: `repeat(auto-fill, minmax(${emojiSize}px, 1fr))`,
                 gap: `${emojiSpacing}px`,
                 flexWrap: "wrap",
-                maxWidth: "64rem",
+                maxWidth: "100%",
                 margin: "0 auto",
             }}
         >

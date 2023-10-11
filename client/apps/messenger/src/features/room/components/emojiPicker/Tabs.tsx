@@ -74,7 +74,7 @@ export const categories: Tab[] = [
 
 export default function Tabs({ value, onChange, showIndicator }: TabsProps): React.ReactElement {
     return (
-        <Box display="flex" justifyContent="center" gap={1} mb={2}>
+        <Box display="flex" justifyContent="left" gap={1} mb={2} mt={"10px"}>
             {categories
                 .filter((category) => {
                     if (category.id === "recent") {
@@ -90,8 +90,8 @@ export default function Tabs({ value, onChange, showIndicator }: TabsProps): Rea
                         flexDirection="column"
                         justifyContent="center"
                         alignItems="center"
-                        width="52px"
-                        height="52px"
+                        width="40px"
+                        height="40px"
                         borderRadius="50%"
                         p={1}
                         bgcolor={value === index && showIndicator ? "action.hover" : "transparent"}
@@ -104,7 +104,7 @@ export default function Tabs({ value, onChange, showIndicator }: TabsProps): Rea
                     >
                         <Box
                             sx={{
-                                width: "25px",
+                                height: "24px",
                                 color:
                                     value === index && showIndicator
                                         ? "primary.main"

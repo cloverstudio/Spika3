@@ -33,7 +33,10 @@ export default function RightSidebarHeader({ type }: RightSidebarHeaderProps): R
         if (activeTab === "details") {
             return (
                 <>
-                    <IconButton onClick={() => dispatch(hideRightSidebar())}>
+                    <IconButton
+                        onClick={() => dispatch(hideRightSidebar())}
+                        style={{ borderRadius: "10px" }}
+                    >
                         <Close />
                     </IconButton>
                     {type === "private" ? (
@@ -48,14 +51,20 @@ export default function RightSidebarHeader({ type }: RightSidebarHeaderProps): R
         if (activeTab === "notes") {
             return (
                 <>
-                    <IconButton onClick={() => dispatch(setActiveTab("details"))}>
+                    <IconButton
+                        onClick={() => dispatch(setActiveTab("details"))}
+                        style={{ borderRadius: "10px" }}
+                    >
                         <ArrowBackIos
                             sx={{ color: "primary.main", position: "relative", left: 3 }}
                         />
                     </IconButton>
                     <Typography variant="h6">{strings.notes}</Typography>
                     <Box ml="auto" flex={1} textAlign="right">
-                        <IconButton onClick={() => dispatch(setActiveTab("createNote"))}>
+                        <IconButton
+                            onClick={() => dispatch(setActiveTab("createNote"))}
+                            style={{ borderRadius: "10px" }}
+                        >
                             <AddCircleOutline />
                         </IconButton>
                     </Box>
@@ -66,7 +75,10 @@ export default function RightSidebarHeader({ type }: RightSidebarHeaderProps): R
         if (activeTab === "createNote") {
             return (
                 <>
-                    <IconButton onClick={() => dispatch(setActiveTab("notes"))}>
+                    <IconButton
+                        onClick={() => dispatch(setActiveTab("notes"))}
+                        style={{ borderRadius: "10px" }}
+                    >
                         <ArrowBackIos
                             sx={{ color: "primary.main", position: "relative", left: 3 }}
                         />

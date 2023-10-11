@@ -54,7 +54,10 @@ export default function NoteDetailHeader() {
     if (!data) {
         return (
             <>
-                <IconButton onClick={() => dispatch(setActiveTab("notes"))}>
+                <IconButton
+                    onClick={() => dispatch(setActiveTab("notes"))}
+                    style={{ borderRadius: "10px" }}
+                >
                     <ArrowBackIos sx={{ color: "primary.main", position: "relative", left: 3 }} />
                 </IconButton>
                 <Typography variant="h6">{strings.noteNotFound}</Typography>
@@ -66,18 +69,24 @@ export default function NoteDetailHeader() {
 
     return (
         <>
-            <IconButton onClick={() => dispatch(setActiveTab("notes"))}>
+            <IconButton
+                onClick={() => dispatch(setActiveTab("notes"))}
+                style={{ borderRadius: "10px" }}
+            >
                 <ArrowBackIos sx={{ color: "primary.main", position: "relative", left: 3 }} />
             </IconButton>
             <Box flex={1} minWidth="7.5rem" textAlign="right">
-                <IconButton onClick={handleCopyNoteLink}>
+                <IconButton onClick={handleCopyNoteLink} style={{ borderRadius: "10px" }}>
                     <Share />
                 </IconButton>
-                <IconButton onClick={() => dispatch(setEditNoteId(note.id))}>
+                <IconButton
+                    onClick={() => dispatch(setEditNoteId(note.id))}
+                    style={{ borderRadius: "10px" }}
+                >
                     <Edit />
                 </IconButton>
                 <IconButton
-                    sx={{ color: "error.main" }}
+                    sx={{ color: "error.main", borderRadius: "10px" }}
                     onClick={() => setDeleteNoteOpenDialog(true)}
                 >
                     <Delete />
