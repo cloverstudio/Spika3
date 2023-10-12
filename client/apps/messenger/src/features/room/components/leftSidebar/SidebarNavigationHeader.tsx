@@ -16,7 +16,7 @@ export default function SidebarNavigationHeader({
             <Box height="80px" px={2.5} display="flex" alignContent="center" alignItems="center">
                 <IconButton
                     aria-label="back"
-                    sx={{ padding: 1, mr: 2.5 }}
+                    sx={{ padding: 1, mr: 2.5, borderRadius: "10px" }}
                     onClick={() => handleBack()}
                 >
                     <ArrowBackIosIcon

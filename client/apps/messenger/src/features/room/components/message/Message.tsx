@@ -173,8 +173,8 @@ function Message({
                             maxWidth: {
                                 xs: "75vw",
                                 md: "50vw",
-                                lg: "30vw",
-                                xl: "30vw",
+                                lg: "40vw",
+                                xl: "40vw",
                             },
                         }}
                     >

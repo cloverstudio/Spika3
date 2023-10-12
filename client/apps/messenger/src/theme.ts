@@ -244,7 +244,7 @@ export const darkTheme = createTheme({
         ...basePalette,
         mode: "dark",
         primary: {
-            main: "#4696F0",
+            main: "#0078FF",
         },
         background: {
             default: "#202020",

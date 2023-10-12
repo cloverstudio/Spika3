@@ -225,7 +225,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
     if (editingBlockedList) {
         return (
             <Box>
-                <Box px={2.5} borderBottom="0.5px solid #C9C9CA">
+                <Box px={2.5} borderBottom="0.5px solid" borderColor="divider">
                     <Box display="flex" height="80px" justifyContent="space-between">
                         <Stack
                             direction="row"
@@ -238,7 +238,10 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                                 width: "100%",
                             }}
                         >
-                            <IconButton onClick={() => setEditingBlockedList(false)}>
+                            <IconButton
+                                onClick={() => setEditingBlockedList(false)}
+                                style={{ borderRadius: "10px" }}
+                            >
                                 <ArrowBackIos
                                     sx={{ color: "primary.main", position: "relative", left: 3 }}
                                 />
@@ -271,6 +274,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                             onClick={(e) => {
                                 closeEditor();
                             }}
+                            style={{ borderRadius: "10px" }}
                         >
                             <ArrowBackIos
                                 sx={{ color: "primary.main", position: "relative", left: 3 }}
@@ -301,13 +305,22 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                         />
                         <IconButton
                             color="primary"
-                            sx={{ position: "absolute", bottom: "0", right: "0" }}
-                            size="large"
+                            sx={{
+                                position: "absolute",
+                                bottom: "0",
+                                right: "0",
+                                backgroundColor: "#E5F4FF",
+                                width: "28px",
+                                height: "28px",
+                                "&:hover": {
+                                    backgroundColor: "#E5F4FF",
+                                },
+                            }}
                             onClick={(e) => {
                                 openEditPicture();
                             }}
                         >
-                            <CameraAlt />
+                            <CameraAlt sx={{ width: "15px" }} />
                         </IconButton>
                         <input
                             ref={imageRef}
@@ -322,8 +335,8 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                 {editProfileName ? (
                     <Box
                         sx={{
-                            width: "90%",
-                            margin: "2em",
+                            width: "100%",
+                            p: "0 16px",
                         }}
                     >
                         <Stack
@@ -341,7 +354,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                                 id="outlined-basic"
                                 label={strings.username}
                                 variant="outlined"
-                                sx={{ width: "70%" }}
+                                sx={{ width: "100%" }}
                                 value={proposedName}
                                 onChange={handleNameChange}
                             />
@@ -624,7 +637,10 @@ function BlockedUsersList() {
                             selected={false}
                             avatarFileId={user.avatarFileId}
                         />
-                        <IconButton onClick={() => remove(user.id)}>
+                        <IconButton
+                            onClick={() => remove(user.id)}
+                            style={{ borderRadius: "10px" }}
+                        >
                             <Close />
                         </IconButton>
                     </Box>

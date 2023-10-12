@@ -218,6 +218,7 @@ function ReplyMessage({
                         isUsersMessage={!isUsersMessage}
                         sender={sender}
                         isReply={true}
+                        showBoxShadow={false}
                     />
                 );
             }
@@ -244,6 +245,7 @@ function ReplyMessage({
                             body={replyMsgBody}
                             isUsersMessage={!isUsersMessage}
                             onClick={() => true}
+                            showBoxShadow={false}
                         />
                     </Box>
                 );
@@ -271,6 +273,7 @@ function ReplyMessage({
                             onClick={() => true}
                             body={replyMsgBody}
                             isUsersMessage={!isUsersMessage}
+                            showBoxShadow={false}
                         />
                     </Box>
                 );
@@ -317,7 +320,11 @@ function ReplyMessage({
                                 {sender.displayName}
                             </Box>
                         )}
-                        <FileMessage body={replyMsgBody} isUsersMessage={!isUsersMessage} />
+                        <FileMessage
+                            body={replyMsgBody}
+                            isUsersMessage={!isUsersMessage}
+                            showBoxShadow={false}
+                        />
                     </Box>
                 );
             }
@@ -404,7 +411,6 @@ function ReplyMessage({
         <Box
             component={"div"}
             sx={{
-                minWidth: "50px",
                 maxWidth: "50rem",
                 backgroundColor: highlighted
                     ? "#d7aa5a"

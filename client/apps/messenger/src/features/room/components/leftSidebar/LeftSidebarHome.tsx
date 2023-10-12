@@ -5,7 +5,7 @@ import { Box } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
 import Settings from "@mui/icons-material/Settings";
 import Add from "@mui/icons-material/AddOutlined";
-import ChatIcon from "@mui/icons-material/Chat";
+import { ReactComponent as ChatIcon } from "../../../../assets/chat-icon.svg";
 import ContactIcon from "@mui/icons-material/AccountCircle";
 import { SvgIconTypeMap } from "@mui/material/SvgIcon";
 import { OverridableComponent } from "@mui/material/OverridableComponent";
@@ -42,11 +42,12 @@ type NavigationType = {
         muiName: string;
     };
     Element: (props) => React.ReactElement;
+    isMuiIcon?: boolean;
 };
 
 const navigation: NavigationType[] = [
     { name: "chat", icon: ChatIcon, Element: SidebarChatList },
-    { name: "contact", icon: ContactIcon, Element: () => <SidebarContactList /> },
+    { name: "contact", icon: ContactIcon, Element: () => <SidebarContactList />, isMuiIcon: true },
 ];
 
 export default function LeftSidebarHome({
@@ -173,6 +174,7 @@ export default function LeftSidebarHome({
                                                 handleClick={() => handleChangeTab(item.name)}
                                                 isActive={activeTab === item.name}
                                                 isChat={item.name === "chat"}
+                                                isMuiIcon={item.isMuiIcon}
                                             />
                                         ))}
                                     </Box>
@@ -225,9 +227,10 @@ type ActionIconProps = {
     handleClick: () => void;
     isActive?: boolean;
     isChat: boolean;
+    isMuiIcon?: boolean;
 };
 
-function ActionIcon({ Icon, isActive, handleClick, isChat }: ActionIconProps) {
+function ActionIcon({ Icon, isActive, handleClick, isChat, isMuiIcon }: ActionIconProps) {
     const { data: unreadCount } = useGetUnreadCountQuery();
 
     const theme = useTheme();
@@ -277,12 +280,20 @@ function ActionIcon({ Icon, isActive, handleClick, isChat }: ActionIconProps) {
             <Icon
                 sx={{
                     width: "25px",
-                    color:
-                        isDarkTheme && isActive
-                            ? "#0078FF"
-                            : isActive
-                            ? "primary.main"
-                            : "text.navigation",
+                    ...(isMuiIcon && {
+                        color:
+                            isDarkTheme && isActive
+                                ? "#0078FF"
+                                : isActive
+                                ? "primary.main"
+                                : "#9BB4CF",
+                    }),
+                }}
+                style={{
+                    ...(!isMuiIcon && {
+                        fill:
+                            isDarkTheme && isActive ? "#0078FF" : isActive ? "#4696F0" : "#9BB4CF",
+                    }),
                 }}
             />
         </Box>

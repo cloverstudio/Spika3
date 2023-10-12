@@ -42,11 +42,10 @@ export default function TextMessage({
         <Box
             component={"div"}
             sx={{
-                minWidth: "50px",
                 maxWidth: "100%",
                 backgroundColor: isEmoji ? "transparent" : backgroundColor,
                 borderRadius: "10px",
-                padding: "6px",
+                padding: "10px",
                 cursor: "pointer",
                 color: deleted ? "text.tertiary" : "common.darkBlue",
                 lineHeight: isEmoji ? "3.5rem" : "22px",

@@ -46,16 +46,16 @@ export default function EmojiPickerContainer({ onSelect }: EmojiPickerProps): Re
     const activeCategory = Object.entries(groupedEmojis)[tabIndex];
 
     return (
-        <Box width="100%" mb={0.5} px={1} sx={{ overflowY: "auto", overflowX: "hidden" }}>
+        <Box width="100%" mb={0.5} padding="0 20px" sx={{ overflowY: "auto", overflowX: "hidden" }}>
             <Box>
                 <Box
                     display="flex"
                     flexDirection="column"
                     justifyContent="center"
                     alignItems="center"
-                    mb={2}
+                    // mb={2}
                 >
-                    <Box maxWidth="32rem" width="100%">
+                    <Box maxWidth="100%" width="100%" padding="16px 0">
                         <Input
                             disableUnderline={true}
                             placeholder={strings.search}

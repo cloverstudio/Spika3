@@ -42,7 +42,7 @@ export default function RightSidebarNotesContent(): React.ReactElement {
                         {n.title}
                     </Typography>
 
-                    <IconButton size="large">
+                    <IconButton size="large" style={{ borderRadius: "10px" }}>
                         <ArrowRightAltOutlined />
                     </IconButton>
                 </Box>
