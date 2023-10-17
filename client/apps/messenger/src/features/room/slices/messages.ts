@@ -405,6 +405,7 @@ type InitialState = {
             };
         };
         showDetails: boolean;
+        showMessageOptions: boolean;
         showDelete: boolean;
         activeMessageId: number | null;
         targetMessageId: number | null;
@@ -572,6 +573,24 @@ export const messagesSlice = createSlice({
             }
         },
 
+        showMessageOptions(state, action: { payload: { roomId: number; messageId: number } }) {
+            const { roomId, messageId } = action.payload;
+            const room = state[roomId];
+
+            if (room) {
+                room.activeMessageId = messageId;
+                room.showMessageOptions = true;
+            }
+        },
+
+        hideMessageOptions(state, action: { payload: number }) {
+            const roomId = action.payload;
+            const room = state[roomId];
+
+            if (room) {
+                room.showMessageOptions = false;
+            }
+        },
         hideMessageDetails(state, action: { payload: number }) {
             const roomId = action.payload;
             const room = state[roomId];
@@ -647,6 +666,7 @@ export const messagesSlice = createSlice({
                     activeMessageId: null,
                     targetMessageId: action.payload.messageId,
                     showDetails: false,
+                    showMessageOptions: false,
                     showDelete: false,
                 };
             } else {
@@ -723,6 +743,7 @@ export const messagesSlice = createSlice({
                     activeMessageId: null,
                     targetMessageId: null,
                     showDetails: false,
+                    showMessageOptions: false,
                     showDelete: false,
                 };
             } else {
@@ -836,6 +857,8 @@ export const {
     addMessage,
     addMessageRecord,
     showMessageDetails,
+    showMessageOptions,
+    hideMessageOptions,
     hideMessageDetails,
     showDeleteModal,
     hideDeleteModal,
@@ -1154,5 +1177,18 @@ export const selectChangeTerm =
 
         return { from, to };
     };
+
+export const selectShowMessageOptions =
+    (roomId: number, id: number) =>
+    (state: RootState): boolean => {
+        const room = state.messages[roomId];
+
+        if (!room) {
+            return false;
+        }
+
+        return room.showMessageOptions && room.activeMessageId === id;
+    };
+
 
 export default messagesSlice.reducer;

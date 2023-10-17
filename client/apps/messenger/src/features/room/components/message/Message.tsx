@@ -17,13 +17,13 @@ import {
     showDeleteModal,
     showMessageDetails,
 } from "../../slices/messages";
-import DatePopover from "./DatePopover";
 import MessageBody from "./MessageBody";
 import MessageContextMenu, { IconConfigs } from "./MessageContextMenu";
 import ReactionOptionsPopover from "./ReactionOptionsPopover";
 import MessageReactions from "./Reactions";
 import StatusIcon from "./StatusIcon";
 import { useAppDispatch } from "../../../../hooks";
+import EditedIndicator from "./EditedIndicator";
 
 function useSender(id: number) {
     const roomId = parseInt(useParams().id || "");
@@ -53,12 +53,14 @@ function Message({
     nextMessageFromUserId,
     animate,
     separateWithMarginTop,
+    openMoreOptionsAtBottom,
 }: {
     id: number;
     previousMessageFromUserId: number | null;
     nextMessageFromUserId: number | null;
     animate: boolean;
     separateWithMarginTop: boolean;
+    openMoreOptionsAtBottom?: boolean;
 }) {
     const roomId = parseInt(useParams().id || "");
     const targetMessageId = useSelector(selectTargetMessage(roomId));
@@ -159,47 +161,45 @@ function Message({
                 {renderAvatar()}
                 <Box display="flex" position="relative">
                     {!deleted && <MessageReactions id={id} />}
-                    {isUsersMessage && (
-                        <DatePopover
-                            mouseOver={mouseOver}
-                            isUsersMessage={isUsersMessage}
-                            createdAt={createdAt}
-                        />
-                    )}
+
                     <Box
                         onMouseEnter={handleMouseEnter}
                         sx={{
                             borderRadius: "0.3rem",
                             maxWidth: {
-                                xs: "75vw",
-                                md: "50vw",
-                                lg: "40vw",
-                                xl: "40vw",
+                                xs: "50vw",
+                                md: "30vw",
+                                lg: "30vw",
+                                xl: "30vw",
                             },
                         }}
                     >
-                        <MessageBodyContainer
-                            id={id}
-                            onImageMessageClick={handleImageMessageClick}
-                            animate={animate}
-                            highlighted={highlighted}
-                            separateWithMarginTop={separateWithMarginTop}
-                        />
+                        <Box position="relative">
+                            <MessageBodyContainer
+                                id={id}
+                                onImageMessageClick={handleImageMessageClick}
+                                animate={animate}
+                                highlighted={highlighted}
+                                separateWithMarginTop={separateWithMarginTop}
+                            />
+                            {!mouseOver &&
+                                message.createdAt !== message.modifiedAt &&
+                                !message.deleted && (
+                                    <EditedIndicator isUsersMessage={isUsersMessage} />
+                                )}
+
+                            <Menu
+                                id={id}
+                                mouseOver={mouseOver}
+                                setMouseOver={setMouseOver}
+                                setShowReactionMenu={setShowReactionMenu}
+                                createdAt={createdAt}
+                                openMoreOptionsAtBottom={openMoreOptionsAtBottom}
+                            />
+                        </Box>
                     </Box>
                     {shouldDisplayStatusIcons && <StatusIcon status={status} id={id} />}
-                    {!isUsersMessage && (
-                        <DatePopover
-                            mouseOver={mouseOver}
-                            isUsersMessage={isUsersMessage}
-                            createdAt={createdAt}
-                        />
-                    )}
-                    <Menu
-                        id={id}
-                        mouseOver={mouseOver}
-                        setMouseOver={setMouseOver}
-                        setShowReactionMenu={setShowReactionMenu}
-                    />
+
                     <ReactionOptionsPopover
                         isUsersMessage={isUsersMessage}
                         show={showReactionMenu}
@@ -222,6 +222,9 @@ type MessageContainerProps = {
 function MessageContainer({ side, children, id, handleMouseLeave }: MessageContainerProps) {
     const roomId = parseInt(useParams().id || "");
     const hasReactions = useSelector(selectHasMessageReactions(roomId, id));
+    const message = useSelector(selectMessageById(roomId, id));
+
+    const dispatch = useAppDispatch();
 
     return (
         <Box
@@ -235,6 +238,11 @@ function MessageContainer({ side, children, id, handleMouseLeave }: MessageConta
                           justifyContent: "end",
                       }
                     : { mr: "auto", justifyContent: "start" }),
+            }}
+            onClick={(e) => {
+                if (e.detail === 2) {
+                    dispatch(setReplyMessage({ roomId, message }));
+                }
             }}
         >
             <Box
@@ -320,9 +328,18 @@ type MenuProps = {
     mouseOver: boolean;
     setMouseOver: (boolean) => void;
     setShowReactionMenu: (boolean) => void;
+    createdAt: number;
+    openMoreOptionsAtBottom?: boolean;
 };
 
-function Menu({ id, mouseOver, setMouseOver, setShowReactionMenu }: MenuProps) {
+function Menu({
+    id,
+    mouseOver,
+    setMouseOver,
+    setShowReactionMenu,
+    createdAt,
+    openMoreOptionsAtBottom,
+}: MenuProps) {
     const roomId = parseInt(useParams().id || "");
     const user = useSelector(selectUser);
     const message = useSelector(selectMessageById(roomId, id));
@@ -362,19 +379,15 @@ function Menu({ id, mouseOver, setMouseOver, setShowReactionMenu }: MenuProps) {
         <MessageContextMenu
             iconConfig={contextMenuIcons}
             mouseOver={mouseOver}
+            id={id}
+            roomId={roomId}
             isUsersMessage={isUsersMessage}
+            createdAt={createdAt}
+            setShowReactionMenu={setShowReactionMenu}
+            openMoreOptionsAtBottom={openMoreOptionsAtBottom}
             handleEmoticon={() => {
                 setShowReactionMenu(true);
                 setMouseOver(false);
-            }}
-            handleInfo={() => {
-                dispatch(showMessageDetails({ roomId, messageId: id }));
-            }}
-            handleDelete={() => {
-                dispatch(showDeleteModal({ roomId, messageId: id }));
-            }}
-            handleEdit={() => {
-                dispatch(setEditMessage({ roomId, message }));
             }}
             handleReply={() => {
                 dispatch(setReplyMessage({ roomId, message }));

@@ -1,11 +1,17 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Box } from "@mui/system";
 import InsertEmoticon from "@mui/icons-material/InsertEmoticon";
-import Edit from "@mui/icons-material/Edit";
-import DeleteOutline from "@mui/icons-material/DeleteOutline";
-import InfoOutlined from "@mui/icons-material/InfoOutlined";
-import Share from "@mui/icons-material/Share";
-import FormatQuote from "@mui/icons-material/FormatQuote";
+import MoreVert from "@mui/icons-material/MoreVert";
+import Reply from "@mui/icons-material/Reply";
+import DatePopover from "./DatePopover";
+import { useSelector } from "react-redux";
+import {
+    hideMessageOptions,
+    selectShowMessageOptions,
+    showMessageOptions,
+} from "../../slices/messages";
+import MessageContextMoreOption from "./MessageContextMoreOption";
+import { useAppDispatch } from "../../../../hooks";
 
 export enum IconConfigs {
     showEmoticon = 1,
@@ -18,86 +24,103 @@ export enum IconConfigs {
 type Props = {
     isUsersMessage: boolean;
     mouseOver: boolean;
+    createdAt: number;
     handleEmoticon?: (e: React.MouseEvent<any>) => void;
-    handleInfo?: (e: React.MouseEvent<any>) => void;
-    handleEdit?: (e: React.MouseEvent<any>) => void;
-    handleDelete?: (e: React.MouseEvent<any>) => void;
     handleShare?: (e: React.MouseEvent<any>) => void;
     handleReply?: (e: React.MouseEvent<any>) => void;
     iconConfig: IconConfigs;
+    id: number;
+    roomId: number;
+    setShowReactionMenu: (boolean) => void;
+    openMoreOptionsAtBottom?: boolean;
 };
 
 export default function MessageContextMenu({
     isUsersMessage,
     mouseOver,
     handleEmoticon,
-    handleInfo,
-    handleEdit,
-    handleDelete,
-    handleShare,
     handleReply,
+    handleShare,
     iconConfig,
+    createdAt,
+    id,
+    roomId,
+    setShowReactionMenu,
+    openMoreOptionsAtBottom,
 }: Props): React.ReactElement {
-    const styleModifier: any = {
-        opacity: 0,
-    };
-    if (!isUsersMessage) styleModifier.left = "0";
-    else styleModifier.right = "18px";
-
-    if (mouseOver) styleModifier.opacity = 1;
     const itemStyle = {
-        fontSize: "1.8em",
-        marginRight: "10px",
-        marginLeft: "10px",
         cursor: "pointer",
-        color: "#222",
         "&:hover": {
             opacity: 0.5,
         },
     };
+    const areOptionsShown = useSelector(selectShowMessageOptions(roomId, id));
+    const optionsRef = useRef(null);
+    const dispatch = useAppDispatch();
 
-    if (!mouseOver) return <></>;
+    useEffect(() => {
+        if (!mouseOver) {
+            dispatch(hideMessageOptions(roomId));
+        }
+    }, [mouseOver]);
 
+    if (!mouseOver) return null;
     return (
         <Box
             sx={{
                 position: "absolute",
-                minWidth: "100px",
-                backgroundColor: "background.paper",
-                border: "2px solid",
-                borderColor: "divider",
                 display: "flex",
-                justifyContent: "space-between",
-                borderRadius: "5px",
-                padding: "10px",
-                bottom: "-51px",
+                flexDirection: isUsersMessage ? "row-reverse" : "row",
+                alignItems: "center",
+                gap: "8px",
+                top: "53%",
+                ...(isUsersMessage ? { right: "100%" } : { left: "100%" }),
+                transform: "translateY(-53%)",
                 zIndex: 1000,
-                ...styleModifier,
             }}
         >
-            {(iconConfig & IconConfigs.showEmoticon) === IconConfigs.showEmoticon && (
-                <InsertEmoticon
-                    sx={{ ...itemStyle, ...{ color: "#7af" } }}
-                    onClick={(e) => handleEmoticon(e)}
+            <DatePopover
+                mouseOver={mouseOver}
+                isUsersMessage={isUsersMessage}
+                createdAt={createdAt}
+            />
+
+            {(iconConfig & IconConfigs.showReply) === IconConfigs.showReply && (
+                <Reply
+                    sx={{ ...itemStyle, ...{ color: "text.tertiary" } }}
+                    onClick={(e) => handleReply(e)}
                 />
             )}
 
-            {(iconConfig & IconConfigs.showInfo) === IconConfigs.showInfo && (
-                <InfoOutlined sx={{ ...itemStyle, ...{} }} onClick={(e) => handleInfo(e)} />
-            )}
-            {(iconConfig & IconConfigs.showEdit) === IconConfigs.showEdit && (
-                <Edit sx={{ ...itemStyle, ...{} }} onClick={(e) => handleEdit(e)} />
-            )}
-            {(iconConfig & IconConfigs.showReply) === IconConfigs.showReply && (
-                <FormatQuote sx={{ ...itemStyle, ...{} }} onClick={(e) => handleReply(e)} />
-            )}
-            {(iconConfig & IconConfigs.showDelete) === IconConfigs.showDelete && (
-                <DeleteOutline
-                    sx={{ ...itemStyle, ...{ color: "#f33" } }}
-                    onClick={(e) => handleDelete(e)}
+            {(iconConfig & IconConfigs.showEmoticon) === IconConfigs.showEmoticon && (
+                <InsertEmoticon
+                    sx={{ ...itemStyle, ...{ color: "text.tertiary" } }}
+                    onClick={(e) => handleEmoticon(e)}
                 />
             )}
-            <Share sx={{ ...itemStyle, ...{} }} onClick={(e) => handleShare(e)} />
+            <Box display="flex">
+                <MoreVert
+                    sx={{ ...itemStyle, ...{ color: "text.tertiary" } }}
+                    onClick={() => {
+                        setShowReactionMenu(false);
+                        if (areOptionsShown) {
+                            dispatch(hideMessageOptions(roomId));
+                        } else {
+                            dispatch(showMessageOptions({ roomId, messageId: id }));
+                        }
+                    }}
+                />
+
+                {areOptionsShown && (
+                    <div ref={optionsRef}>
+                        <MessageContextMoreOption
+                            isUsersMessage={isUsersMessage}
+                            id={id}
+                            openMoreOptionsAtBottom={openMoreOptionsAtBottom}
+                        />
+                    </div>
+                )}
+            </Box>
         </Box>
     );
 }

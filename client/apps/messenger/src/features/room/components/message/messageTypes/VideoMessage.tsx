@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import Modal from "@mui/material/Modal";
 import { useParams } from "react-router-dom";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { useTheme } from "@mui/material/styles";
 
 import CloseOutlined from "@mui/icons-material/CloseOutlined";
 import DownloadIcon from "@mui/icons-material/Download";
@@ -18,6 +20,7 @@ type VideoMessageTypes = {
     progress?: number;
     highlighted?: boolean;
     showBoxShadow?: boolean;
+    isReply?: boolean;
 };
 
 export default function VideoMessage({
@@ -27,6 +30,7 @@ export default function VideoMessage({
     progress,
     highlighted,
     showBoxShadow = true,
+    isReply,
 }: VideoMessageTypes) {
     const roomId = parseInt(useParams().id || "");
     const [open, setOpen] = useState(false);
@@ -35,6 +39,10 @@ export default function VideoMessage({
     const [mimeType, setMimeType] = useState<string>();
     const isUploading = progress !== undefined && progress < 100;
     const isVerifying = progress !== undefined && progress === 100;
+
+    const theme = useTheme();
+
+    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
     useEffect(() => {
         const { uploadingFileName, thumbId, file: fileFromServer } = body || {};
@@ -72,9 +80,7 @@ export default function VideoMessage({
                 <Box
                     component={thumbSrc ? "img" : "video"}
                     borderRadius="0.625rem"
-                    maxWidth="256px"
                     height="10vh"
-                    minHeight="128px"
                     display="block"
                     border={highlighted ? "2px solid #d7aa5a" : "2px solid transparent"}
                     src={thumbSrc || src}
@@ -90,6 +96,12 @@ export default function VideoMessage({
                         userSelect: "none",
                         touchAction: "none",
                         ...(showBoxShadow && { boxShadow: "0 2px 5px 0 rgba(0, 0, 0, 0.10)" }),
+                        ...(isMobile
+                            ? {
+                                  maxWidth: isReply ? "180px" : "200px",
+                                  minHeight: isReply ? "90px" : "100px",
+                              }
+                            : { maxWidth: "256px", minHeight: "128px" }),
                     }}
                 />
                 {isUploading || isVerifying ? (

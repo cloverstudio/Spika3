@@ -8,6 +8,8 @@ import { Box, CircularProgress, Typography } from "@mui/material";
 import TextMessage from "./TextMessage";
 import { DOWNLOAD_URL } from "../../../../../../../../lib/constants";
 import useEscapeKey from "../../../../../hooks/useEscapeKey";
+import { useTheme } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 type ImageMessageTypes = {
     body: any;
@@ -16,6 +18,7 @@ type ImageMessageTypes = {
     progress?: number;
     highlighted?: boolean;
     showBoxShadow?: boolean;
+    isReply?: boolean;
 };
 
 export default function ImageMessage({
@@ -25,11 +28,15 @@ export default function ImageMessage({
     progress,
     highlighted,
     showBoxShadow = true,
+    isReply,
 }: ImageMessageTypes) {
     const roomId = parseInt(useParams().id || "");
     const [open, setOpen] = useState(false);
     const isUploading = progress !== undefined && progress < 100;
     const isVerifying = progress !== undefined && progress === 100;
+
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
     const handleOpen = () => {
         setOpen(true);
@@ -73,9 +80,7 @@ export default function ImageMessage({
                     component="img"
                     border={highlighted ? "2px solid #d7aa5a" : "2px solid transparent"}
                     borderRadius="0.625rem"
-                    maxWidth="256px"
                     height="10vh"
-                    minHeight="128px"
                     src={imageIsGif ? imgSrc : thumbSrc}
                     draggable={false}
                     sx={{
@@ -86,6 +91,12 @@ export default function ImageMessage({
                         userSelect: "none",
                         touchAction: "none",
                         ...(showBoxShadow && { boxShadow: "0 2px 5px 0 rgba(0, 0, 0, 0.10)" }),
+                        ...(isMobile
+                            ? {
+                                  maxWidth: isReply ? "180px" : "200px",
+                                  minHeight: isReply ? "90px" : "100px",
+                              }
+                            : { maxWidth: "256px", minHeight: "128px" }),
                     }}
                 />
                 {(isUploading || isVerifying) && (

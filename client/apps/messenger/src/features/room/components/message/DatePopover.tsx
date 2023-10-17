@@ -25,7 +25,7 @@ export default function DatePopover({
             sx={{
                 ...{
                     transition: "opacity 0.2s ease",
-                    minWidth: "100px",
+                    minWidth: "auto",
                     display: "flex",
                     alignItems: "end",
                     justifyContent: isUsersMessage ? "end" : "start",
@@ -39,6 +39,7 @@ export default function DatePopover({
                     color: "text.tertiary",
                     fontSize: "0.75em",
                     padding: "0 5px",
+                    fontStyle: "italic",
                 }}
             >
                 {dayjs(createdAt).format("HH:mm")}
