@@ -50,6 +50,13 @@ const messageApi = api.injectEndpoints({
                 res &&
                 res.messageRecord && [{ type: "MessageRecords", id: res.messageRecord.messageId }],
         }),
+        removeReaction: build.mutation<any, { messageRecordId: number }>({
+            query: ({ messageRecordId }) => {
+                return { url: `/messenger/message-records/${messageRecordId}`, method: "DELETE" };
+            },
+            invalidatesTags: (res) =>
+                res && [{ type: "MessageRecords", id: res.messageRecord.messageId }],
+        }),
         searchMessages: build.query<any, { roomId: number; keyword: string }>({
             query: ({ roomId, keyword }) => {
                 return `/messenger/messages/search?keyword=${keyword}&roomId=${roomId}`;
@@ -66,6 +73,7 @@ export const {
     useDeleteMessageMutation,
     useEditMessageMutation,
     useCreateReactionMutation,
+    useRemoveReactionMutation,
     useSearchMessagesQuery,
     useLazySearchMessagesQuery,
 } = messageApi;

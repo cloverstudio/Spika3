@@ -20,7 +20,10 @@ export default function MessageReactions({ id }: MessageReactionsProps): React.R
     const roomId = parseInt(useParams().id || "");
 
     const isUsersMessage = useIsUsersMessage(roomId, id);
-    const reactions = useSelector(selectMessageReactions(roomId, id));
+    const reactions = useSelector(selectMessageReactions(roomId, id))?.filter(
+        (reaction) => !reaction.isDeleted,
+    );
+
     const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
 
     const handleMouseEnter = (event: React.MouseEvent<HTMLDivElement>) => {
