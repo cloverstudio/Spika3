@@ -246,6 +246,7 @@ function ReplyMessage({
                             isUsersMessage={!isUsersMessage}
                             onClick={() => true}
                             showBoxShadow={false}
+                            isReply={true}
                         />
                     </Box>
                 );
@@ -274,6 +275,7 @@ function ReplyMessage({
                             body={replyMsgBody}
                             isUsersMessage={!isUsersMessage}
                             showBoxShadow={false}
+                            isReply={true}
                         />
                     </Box>
                 );
