@@ -27,3 +27,8 @@ Loki is a horizontally-scalable, highly-available, multi-tenant log aggregation 
 
 Grafana should be on the same network as the other services. To do this, we will use docker. Please see docker-compose.yml file for more details.
 
+### node exporter
+
+Node exporter is a Prometheus exporter for hardware and OS metrics exposed by *NIX kernels, written in Go with pluggable metric collectors. It runs on Linux, macOS, Windows, and several other operating systems. It tracks CPU, memory, disk and network usage.
+
+Run `install_node_exporter.sh` to install node exporter on all servers you want to track.
