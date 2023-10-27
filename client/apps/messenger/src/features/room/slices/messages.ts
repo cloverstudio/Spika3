@@ -406,6 +406,8 @@ type InitialState = {
         };
         showDetails: boolean;
         showMessageOptions: boolean;
+        showEmojiDetails: boolean;
+        showCustomEmojiModal: boolean;
         showDelete: boolean;
         activeMessageId: number | null;
         targetMessageId: number | null;
@@ -573,6 +575,24 @@ export const messagesSlice = createSlice({
             }
         },
 
+        showEmojiDetails(state, action: { payload: { roomId: number; messageId: number } }) {
+            const { roomId, messageId } = action.payload;
+            const room = state[roomId];
+            if (room) {
+                room.activeMessageId = messageId;
+                room.showEmojiDetails = true;
+            }
+        },
+
+        showCustomEmojiModal(state, action: { payload: { roomId: number; messageId: number } }) {
+            const { roomId, messageId } = action.payload;
+            const room = state[roomId];
+            if (room) {
+                room.activeMessageId = messageId;
+                room.showCustomEmojiModal = true;
+            }
+        },
+
         showMessageOptions(state, action: { payload: { roomId: number; messageId: number } }) {
             const { roomId, messageId } = action.payload;
             const room = state[roomId];
@@ -591,6 +611,25 @@ export const messagesSlice = createSlice({
                 room.showMessageOptions = false;
             }
         },
+
+        hideCustomEmojiModal(state, action: { payload: number }) {
+            const roomId = action.payload;
+            const room = state[roomId];
+
+            if (room) {
+                room.showCustomEmojiModal = false;
+            }
+        },
+        hideEmojiDetails(state, action: { payload: number }) {
+            const roomId = action.payload;
+            const room = state[roomId];
+
+            if (room) {
+                room.activeMessageId = null;
+                room.showEmojiDetails = false;
+            }
+        },
+
         hideMessageDetails(state, action: { payload: number }) {
             const roomId = action.payload;
             const room = state[roomId];
@@ -666,6 +705,8 @@ export const messagesSlice = createSlice({
                     activeMessageId: null,
                     targetMessageId: action.payload.messageId,
                     showDetails: false,
+                    showEmojiDetails: false,
+                    showCustomEmojiModal: false,
                     showMessageOptions: false,
                     showDelete: false,
                 };
@@ -743,6 +784,8 @@ export const messagesSlice = createSlice({
                     activeMessageId: null,
                     targetMessageId: null,
                     showDetails: false,
+                    showEmojiDetails: false,
+                    showCustomEmojiModal: false,
                     showMessageOptions: false,
                     showDelete: false,
                 };
@@ -857,8 +900,12 @@ export const {
     addMessage,
     addMessageRecord,
     showMessageDetails,
+    showEmojiDetails,
     showMessageOptions,
+    showCustomEmojiModal,
+    hideCustomEmojiModal,
     hideMessageOptions,
+    hideEmojiDetails,
     hideMessageDetails,
     showDeleteModal,
     hideDeleteModal,
@@ -983,6 +1030,30 @@ export const selectShowMessageDetails =
         }
 
         return room.showDetails;
+    };
+
+export const selectShowEmojiDetails =
+    (roomId: number) =>
+    (state: RootState): boolean => {
+        const room = state.messages[roomId];
+
+        if (!room) {
+            return false;
+        }
+
+        return room.showEmojiDetails;
+    };
+
+export const selectShowCustomEmojiModal =
+    (roomId: number, id: number) =>
+    (state: RootState): boolean => {
+        const room = state.messages[roomId];
+
+        if (!room) {
+            return false;
+        }
+
+        return room.showCustomEmojiModal && room.activeMessageId === id;
     };
 
 export const selectShowDeleteMessage =
@@ -1189,6 +1260,5 @@ export const selectShowMessageOptions =
 
         return room.showMessageOptions && room.activeMessageId === id;
     };
-
 
 export default messagesSlice.reducer;

@@ -1,21 +1,22 @@
 import React from "react";
 
-import Button from "@mui/material/Button";
-import Stack from "@mui/material/Stack";
-import { Box } from "@mui/material";
+import { Box, Typography, useMediaQuery, useTheme } from "@mui/material";
 
 import { reactionEmojis } from "../../lib/consts";
-import { useCreateReactionMutation, useRemoveReactionMutation } from "../../api/message";
-import { selectMessageReactions } from "../../slices/messages";
+import { selectMessageReactions, showCustomEmojiModal } from "../../slices/messages";
 import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { selectUser } from "../../../../store/userSlice";
+import AddIcon from "@mui/icons-material/Add";
+import { useAppDispatch } from "../../../../hooks";
+import useReactions from "../../../../hooks/useReactions";
 
 type ReactionOptionsPopoverProps = {
     isUsersMessage: boolean;
     messageId: number;
     handleClose: () => void;
     show: boolean;
+    setShowReactionMenu: (show: boolean) => void;
+    setMouseOver: (show: boolean) => void;
 };
 
 export default function ReactionOptionsPopover({
@@ -23,34 +24,35 @@ export default function ReactionOptionsPopover({
     messageId,
     handleClose,
     show,
+    setShowReactionMenu,
+    setMouseOver,
 }: ReactionOptionsPopoverProps): React.ReactElement {
-    const [createReaction] = useCreateReactionMutation();
-    const [removeReaction] = useRemoveReactionMutation();
-
     const roomId = parseInt(useParams().id || "");
-    const user = useSelector(selectUser);
+    const dispatch = useAppDispatch();
+    const { toggleReaction } = useReactions();
 
     const reactions = useSelector(selectMessageReactions(roomId, messageId));
 
-    const usersMessageRecordWithTheSameEmoji = reactions?.find((r) => r.userId === user.id);
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-    const handleSelect = async (reaction: string) => {
-        if (
-            usersMessageRecordWithTheSameEmoji &&
-            usersMessageRecordWithTheSameEmoji.reaction === reaction
-        ) {
-            await removeReaction({ messageRecordId: usersMessageRecordWithTheSameEmoji.id });
-        } else {
-            await createReaction({ reaction, messageId });
-        }
-
+    const handleSelect = (emoji: string) => {
+        toggleReaction(messageId, emoji, reactions);
         handleClose();
     };
 
     const styleModifier: any = {};
 
-    if (!isUsersMessage) styleModifier.left = "35px";
-    else styleModifier.right = "50px";
+    !isUsersMessage && !isMobile
+        ? (styleModifier.left = "-66px")
+        : !isUsersMessage && isMobile
+        ? (styleModifier.left = "0px")
+        : null;
+    isUsersMessage && !isMobile
+        ? (styleModifier.right = "-66px")
+        : isUsersMessage && isMobile
+        ? (styleModifier.right = "0px")
+        : null;
 
     if (!show) return <></>;
 
@@ -64,30 +66,52 @@ export default function ReactionOptionsPopover({
                             border: "2px solid #9995",
                             borderRadius: "5px",
                             position: "absolute",
-                            bottom: "-40px",
+                            bottom: "-44px",
                             zIndex: 1100,
                         },
                         ...styleModifier,
                     }}
                 >
-                    <Stack direction="row">
-                        {reactionEmojis.map((emoji, i) => (
-                            <Button
-                                key={i}
-                                onClick={() => handleSelect(emoji)}
-                                sx={{
-                                    p: 0,
-                                    fontSize: "1.5rem",
-                                    backgroundColor:
-                                        usersMessageRecordWithTheSameEmoji?.reaction === emoji
-                                            ? "text.tertiary"
-                                            : "transparent",
-                                }}
-                            >
-                                {emoji}
-                            </Button>
-                        ))}
-                    </Stack>
+                    <Box display="flex" gap="10px" alignItems="center" padding="2px">
+                        {reactionEmojis.map((emoji, i) => {
+                            return (
+                                <Typography
+                                    key={i}
+                                    onClick={() => handleSelect(emoji)}
+                                    sx={{
+                                        fontSize: "22px",
+                                        width: "36px",
+                                        textAlign: "center",
+                                        "&:hover": {
+                                            cursor: "pointer",
+                                            backgroundColor: "text.tertiary",
+                                            borderRadius: "4px",
+                                        },
+                                    }}
+                                >
+                                    {emoji}
+                                </Typography>
+                            );
+                        })}
+
+                        <AddIcon
+                            sx={{
+                                fill: "blue",
+                                fontSize: "32px",
+                                "&:hover": {
+                                    cursor: "pointer",
+                                    backgroundColor: "text.tertiary",
+                                    borderRadius: "4px",
+                                    height: "100%",
+                                },
+                            }}
+                            onClick={() => {
+                                dispatch(showCustomEmojiModal({ roomId, messageId }));
+                                setShowReactionMenu(false);
+                                setMouseOver(false);
+                            }}
+                        />
+                    </Box>
                 </Box>
             ) : null}
         </>
