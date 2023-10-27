@@ -53,6 +53,7 @@ export default function TextMessage({
                 fontSize: isEmoji ? "3rem" : "0.95rem",
                 border: deleted ? "1px solid #C9C9CA" : "none",
                 ...(showBoxShadow && !isEmoji && { boxShadow: "0 2px 5px 0 rgba(0, 0, 0, 0.10)" }),
+                ...(deleted && { "&:hover": { cursor: "default" } }),
             }}
         >
             {sender && (

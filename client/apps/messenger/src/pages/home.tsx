@@ -37,26 +37,6 @@ export default function Home(): React.ReactElement {
     const rightSidebarOpen = useSelector(selectRightSidebarOpen) && !isCall && !!roomId;
     const activeSidebarNoteId = useSelector(selectRightSidebarActiveNoteId);
 
-    useEffect(() => {
-        const resizeEventListener = (e: UIEvent) => {
-            if ((e.currentTarget as Window).innerWidth > theme.breakpoints.values.lg) {
-                if (!rightSidebarOpen) {
-                    dispatch(showRightSidebar());
-                }
-            } else {
-                if (rightSidebarOpen) {
-                    dispatch(hideRightSidebar());
-                }
-            }
-        };
-
-        window.addEventListener("resize", resizeEventListener);
-
-        return () => {
-            window.removeEventListener("resize", resizeEventListener);
-        };
-    }, [rightSidebarOpen, dispatch, theme.breakpoints.values.lg]);
-
     const loggedInUserId = useSelector(selectUserId);
 
     useEffect(() => {

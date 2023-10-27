@@ -1,16 +1,14 @@
 import React, { useState } from "react";
-
 import { Box } from "@mui/material";
-import Popover from "@mui/material/Popover";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-
 import { MessageRecordType } from "../../../../types/Message";
 import { useGetUserByIdQuery } from "../../api/user";
 import { useSelector } from "react-redux";
-import { selectMessageReactions } from "../../slices/messages";
+import { selectMessageReactions, showEmojiDetails } from "../../slices/messages";
 import { useParams } from "react-router-dom";
 import useIsUsersMessage from "../../hooks/useIsUsersMessage";
+import { useAppDispatch } from "../../../../hooks";
 
 type MessageReactionsProps = {
     id: number;
@@ -18,6 +16,8 @@ type MessageReactionsProps = {
 
 export default function MessageReactions({ id }: MessageReactionsProps): React.ReactElement {
     const roomId = parseInt(useParams().id || "");
+
+    const dispatch = useAppDispatch();
 
     const isUsersMessage = useIsUsersMessage(roomId, id);
     const reactions = useSelector(selectMessageReactions(roomId, id))?.filter(
@@ -56,6 +56,10 @@ export default function MessageReactions({ id }: MessageReactionsProps): React.R
         return null;
     }
 
+    const handleEmojiClick = () => {
+        dispatch(showEmojiDetails({ roomId, messageId: id }));
+    };
+
     return (
         <Box
             display="flex"
@@ -82,36 +86,16 @@ export default function MessageReactions({ id }: MessageReactionsProps): React.R
                     border: "1px solid",
                     borderColor: "divider",
                     cursor: "default",
+                    "&:hover": {
+                        cursor: "pointer",
+                    },
                 }}
+                onClick={handleEmojiClick}
             >
                 {Object.entries(messageRecordsByReaction).map(([emoji, reactions]) => {
                     return <Reaction key={emoji} emoji={emoji} reactions={reactions} />;
                 })}
             </Stack>
-            <Popover
-                id="reaction-users"
-                open={open}
-                anchorEl={anchorEl}
-                onClose={handleMouseLeave}
-                anchorOrigin={{
-                    vertical: 32,
-                    horizontal: isUsersMessage ? "left" : "center",
-                }}
-                sx={{
-                    pointerEvents: "none",
-                }}
-                transformOrigin={{
-                    vertical: "top",
-                    horizontal: "left",
-                }}
-                disableRestoreFocus
-            >
-                <Box p={0.5}>
-                    {reactions.map((r) => (
-                        <ReactionUser key={r.userId} userId={r.userId} reaction={r.reaction} />
-                    ))}
-                </Box>
-            </Popover>
         </Box>
     );
 }

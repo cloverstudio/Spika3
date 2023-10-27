@@ -19,6 +19,16 @@ import { useTheme } from "@mui/material/styles";
 import { useRoomType } from "./Message";
 import { useAppDispatch } from "../../../../hooks";
 
+import { createContext, useContext } from "react";
+export type GlobalContent = {
+    messageContainerRef: React.MutableRefObject<HTMLDivElement | null>;
+};
+
+export const MessagesContainerContext = createContext<GlobalContent>({
+    messageContainerRef: null,
+});
+export const useMessageContainerContext = () => useContext(MessagesContainerContext);
+
 export default function MessagesContainer({
     children,
     bgColor,
@@ -220,75 +230,79 @@ export default function MessagesContainer({
     };
 
     return (
-        <Box
-            flexGrow={1}
-            display="flex"
-            flexDirection="column"
-            justifyContent="end"
-            position="relative"
-            sx={{
-                overflowY: "hidden",
-                backgroundColor: bgColor,
-            }}
-        >
-            {(initialLoading || loading || roomIsLoading) && (
-                <Box
-                    position="absolute"
-                    display="flex"
-                    justifyContent="center"
-                    alignItems="center"
-                    flexDirection="column"
-                    top="0"
-                    left="0"
-                    right="0"
-                    bottom="0"
-                    zIndex={10}
-                    bgcolor={loading && messagesLength > 0 ? "common.disabledBackground" : bgColor}
-                >
-                    <CircularProgress />
-                </Box>
-            )}
-            {newMessages > 0 && (
-                <NewMessageAlert newMessages={newMessages} onScrollDown={onScrollDown} />
-            )}
+        <MessagesContainerContext.Provider value={{ messageContainerRef: ref }}>
             <Box
-                ref={ref}
+                flexGrow={1}
+                display="flex"
+                flexDirection="column"
+                justifyContent="end"
+                position="relative"
                 sx={{
-                    overflowY: "auto",
-                    overflowX: "hidden",
-                    height: "100%",
-                    paddingTop: "50px",
-                    paddingBottom: "50px",
-                    paddingRight: isMobile ? "8px" : "48px",
-                    paddingLeft: isMobile ? "8px" : isGroup ? "32px" : "56px",
+                    overflowY: "hidden",
+                    backgroundColor: bgColor,
                 }}
-                id="room-container"
-                px={1}
-                onScroll={onScroll}
-                onWheel={onWheel}
-                onDragEnter={handleDragEnter}
-                onDrop={handleDrop}
-                onDragLeave={handleDragLeave}
-                onDragOver={handleDragOver}
             >
+                {(initialLoading || loading || roomIsLoading) && (
+                    <Box
+                        position="absolute"
+                        display="flex"
+                        justifyContent="center"
+                        alignItems="center"
+                        flexDirection="column"
+                        top="0"
+                        left="0"
+                        right="0"
+                        bottom="0"
+                        zIndex={10}
+                        bgcolor={
+                            loading && messagesLength > 0 ? "common.disabledBackground" : bgColor
+                        }
+                    >
+                        <CircularProgress />
+                    </Box>
+                )}
+                {newMessages > 0 && (
+                    <NewMessageAlert newMessages={newMessages} onScrollDown={onScrollDown} />
+                )}
                 <Box
-                    position="absolute"
-                    left="0"
-                    right="0"
-                    top="0"
-                    bottom="0"
-                    display={dragCounter > 0 ? "flex" : "none"}
-                    justifyContent="center"
-                    alignItems="center"
-                    bgcolor="action.hover"
-                    zIndex={9999}
+                    ref={ref}
+                    sx={{
+                        overflowY: "auto",
+                        overflowX: "hidden",
+                        height: "100%",
+                        paddingTop: "50px",
+                        paddingBottom: "50px",
+                        paddingRight: isMobile ? "8px" : "48px",
+                        paddingLeft: isMobile ? "8px" : isGroup ? "32px" : "56px",
+                    }}
+                    id="room-container"
+                    px={1}
+                    onScroll={onScroll}
+                    onWheel={onWheel}
+                    onDragEnter={handleDragEnter}
+                    onDrop={handleDrop}
+                    onDragLeave={handleDragLeave}
+                    onDragOver={handleDragOver}
                 >
-                    <i className="fa fa-cloud-upload"></i>
-                    <p> Drop files here!</p>
+                    <Box
+                        position="absolute"
+                        left="0"
+                        right="0"
+                        top="0"
+                        bottom="0"
+                        display={dragCounter > 0 ? "flex" : "none"}
+                        justifyContent="center"
+                        alignItems="center"
+                        bgcolor="action.hover"
+                        zIndex={9999}
+                    >
+                        <i className="fa fa-cloud-upload"></i>
+                        <p> Drop files here!</p>
+                    </Box>
+                    {children}
                 </Box>
-                {children}
             </Box>
-        </Box>
+        </MessagesContainerContext.Provider>
     );
 }
 

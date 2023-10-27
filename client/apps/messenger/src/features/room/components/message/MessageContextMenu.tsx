@@ -12,6 +12,8 @@ import {
 } from "../../slices/messages";
 import MessageContextMoreOption from "./MessageContextMoreOption";
 import { useAppDispatch } from "../../../../hooks";
+import ReactionOptionsPopover from "./ReactionOptionsPopover";
+import { useMediaQuery, useTheme } from "@mui/material";
 
 export enum IconConfigs {
     showEmoticon = 1,
@@ -24,6 +26,7 @@ export enum IconConfigs {
 type Props = {
     isUsersMessage: boolean;
     mouseOver: boolean;
+    setMouseOver: (boolean) => void;
     createdAt: number;
     handleEmoticon?: (e: React.MouseEvent<any>) => void;
     handleShare?: (e: React.MouseEvent<any>) => void;
@@ -32,12 +35,13 @@ type Props = {
     id: number;
     roomId: number;
     setShowReactionMenu: (boolean) => void;
-    openMoreOptionsAtBottom?: boolean;
+    showReactionMenu: boolean;
 };
 
 export default function MessageContextMenu({
     isUsersMessage,
     mouseOver,
+    setMouseOver,
     handleEmoticon,
     handleReply,
     handleShare,
@@ -46,7 +50,7 @@ export default function MessageContextMenu({
     id,
     roomId,
     setShowReactionMenu,
-    openMoreOptionsAtBottom,
+    showReactionMenu,
 }: Props): React.ReactElement {
     const itemStyle = {
         cursor: "pointer",
@@ -57,6 +61,9 @@ export default function MessageContextMenu({
     const areOptionsShown = useSelector(selectShowMessageOptions(roomId, id));
     const optionsRef = useRef(null);
     const dispatch = useAppDispatch();
+
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
     useEffect(() => {
         if (!mouseOver) {
@@ -116,11 +123,24 @@ export default function MessageContextMenu({
                         <MessageContextMoreOption
                             isUsersMessage={isUsersMessage}
                             id={id}
-                            openMoreOptionsAtBottom={openMoreOptionsAtBottom}
+                            setMouseOver={setMouseOver}
                         />
                     </div>
                 )}
             </Box>
+            {!isMobile && (
+                <ReactionOptionsPopover
+                    isUsersMessage={isUsersMessage}
+                    show={showReactionMenu}
+                    messageId={id}
+                    setShowReactionMenu={setShowReactionMenu}
+                    handleClose={() => {
+                        setShowReactionMenu(false);
+                        setMouseOver(false);
+                    }}
+                    setMouseOver={setMouseOver}
+                />
+            )}
         </Box>
     );
 }

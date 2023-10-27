@@ -7,6 +7,8 @@ import DeleteMessageDialog from "./message/DeleteMessageDialog";
 import MessageDetailDialog from "./message/MessageDetailsModal";
 import MessagesList from "./message/MessagesList";
 import { useAppDispatch } from "../../../hooks";
+import EmojiDialog from "./message/EmojiModal";
+import CustomEmojiPickerModal from "./message/CustomEmojiPickerModal";
 
 export default function Messages(): React.ReactElement {
     const roomId = parseInt(useParams().id || "");
@@ -36,6 +38,8 @@ export default function Messages(): React.ReactElement {
             <MessagesList />
             <MessageDetailDialog />
             <DeleteMessageDialog />
+            <EmojiDialog />
+            <CustomEmojiPickerModal />
         </>
     );
 }

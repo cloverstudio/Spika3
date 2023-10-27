@@ -2,20 +2,19 @@ import React, { memo, useState } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import Avatar from "@mui/material/Avatar";
-import { Box, Slide } from "@mui/material";
+import { Box, Slide, useMediaQuery, useTheme } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import { useShowSnackBar } from "../../../../hooks/useModal";
 import { selectUser } from "../../../../store/userSlice";
 import { useGetRoomBlockedQuery, useGetRoomQuery } from "../../api/room";
-import { setEditMessage, setReplyMessage } from "../../slices/input";
+import { setReplyMessage } from "../../slices/input";
 import {
+    hideMessageOptions,
     selectHasMessageReactions,
     selectKeyword,
     selectMessageById,
     selectMessageStatus,
     selectTargetMessage,
-    showDeleteModal,
-    showMessageDetails,
 } from "../../slices/messages";
 import MessageBody from "./MessageBody";
 import MessageContextMenu, { IconConfigs } from "./MessageContextMenu";
@@ -53,14 +52,12 @@ function Message({
     nextMessageFromUserId,
     animate,
     separateWithMarginTop,
-    openMoreOptionsAtBottom,
 }: {
     id: number;
     previousMessageFromUserId: number | null;
     nextMessageFromUserId: number | null;
     animate: boolean;
     separateWithMarginTop: boolean;
-    openMoreOptionsAtBottom?: boolean;
 }) {
     const roomId = parseInt(useParams().id || "");
     const targetMessageId = useSelector(selectTargetMessage(roomId));
@@ -88,6 +85,9 @@ function Message({
     const shouldDisplaySenderLabel = isGroup && !isUsersMessage && isFirstMessage;
     const shouldDisplayAvatar = isGroup && !isUsersMessage && isLastMessage;
     const shouldDisplayStatusIcons = isUsersMessage;
+
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
     const side = isUsersMessage ? "right" : "left";
 
@@ -191,21 +191,25 @@ function Message({
                             <Menu
                                 id={id}
                                 mouseOver={mouseOver}
-                                setMouseOver={setMouseOver}
+                                showReactionMenu={showReactionMenu}
                                 setShowReactionMenu={setShowReactionMenu}
+                                setMouseOver={setMouseOver}
                                 createdAt={createdAt}
-                                openMoreOptionsAtBottom={openMoreOptionsAtBottom}
                             />
                         </Box>
                     </Box>
                     {shouldDisplayStatusIcons && <StatusIcon status={status} id={id} />}
 
-                    <ReactionOptionsPopover
-                        isUsersMessage={isUsersMessage}
-                        show={showReactionMenu}
-                        messageId={id}
-                        handleClose={() => setShowReactionMenu(false)}
-                    />
+                    {isMobile && (
+                        <ReactionOptionsPopover
+                            isUsersMessage={isUsersMessage}
+                            show={showReactionMenu}
+                            messageId={id}
+                            handleClose={() => setShowReactionMenu(false)}
+                            setMouseOver={setMouseOver}
+                            setShowReactionMenu={setShowReactionMenu}
+                        />
+                    )}
                 </Box>
             </Box>
         </MessageContainer>
@@ -240,7 +244,7 @@ function MessageContainer({ side, children, id, handleMouseLeave }: MessageConta
                     : { mr: "auto", justifyContent: "start" }),
             }}
             onClick={(e) => {
-                if (e.detail === 2) {
+                if (e.detail === 2 && !message.deleted) {
                     dispatch(setReplyMessage({ roomId, message }));
                 }
             }}
@@ -327,18 +331,18 @@ type MenuProps = {
     id: number;
     mouseOver: boolean;
     setMouseOver: (boolean) => void;
-    setShowReactionMenu: (boolean) => void;
     createdAt: number;
-    openMoreOptionsAtBottom?: boolean;
+    showReactionMenu: boolean;
+    setShowReactionMenu: (boolean) => void;
 };
 
 function Menu({
     id,
     mouseOver,
     setMouseOver,
-    setShowReactionMenu,
     createdAt,
-    openMoreOptionsAtBottom,
+    showReactionMenu,
+    setShowReactionMenu,
 }: MenuProps) {
     const roomId = parseInt(useParams().id || "");
     const user = useSelector(selectUser);
@@ -379,15 +383,20 @@ function Menu({
         <MessageContextMenu
             iconConfig={contextMenuIcons}
             mouseOver={mouseOver}
+            setMouseOver={setMouseOver}
             id={id}
             roomId={roomId}
             isUsersMessage={isUsersMessage}
             createdAt={createdAt}
             setShowReactionMenu={setShowReactionMenu}
-            openMoreOptionsAtBottom={openMoreOptionsAtBottom}
+            showReactionMenu={showReactionMenu}
             handleEmoticon={() => {
-                setShowReactionMenu(true);
-                setMouseOver(false);
+                if (showReactionMenu) {
+                    setShowReactionMenu(false);
+                } else {
+                    setShowReactionMenu(true);
+                }
+                dispatch(hideMessageOptions(roomId));
             }}
             handleReply={() => {
                 dispatch(setReplyMessage({ roomId, message }));

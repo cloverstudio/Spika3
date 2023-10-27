@@ -114,8 +114,6 @@ export default function ChatInputContainer(): React.ReactElement {
             <canvas ref={canvasRef} style={{ display: "none" }} />
 
             <Stack direction="row" alignItems="center" width="100%" overflow="hidden" py={1}>
-                <AddAttachment />
-
                 <ChatInput
                     handleSetMessageText={handleSetMessageText}
                     handleSend={handleSend}
@@ -257,6 +255,7 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
 
     return (
         <Box display="flex" justifyContent="space-between" alignItems="center">
+            <AddAttachment />
             <Box
                 sx={{
                     color: "text.primary",
@@ -383,7 +382,6 @@ function ReactionIcon(): React.ReactElement {
 function ReplyMessage({ message }: { message: MessageType }): React.ReactElement {
     const dispatch = useAppDispatch();
     const roomId = parseInt(useParams().id || "");
-    const messageInput = useSelector(selectInputText(roomId));
 
     const { data: room } = useGetRoomQuery(roomId);
 
@@ -392,12 +390,23 @@ function ReplyMessage({ message }: { message: MessageType }): React.ReactElement
 
     const needsToTruncate = message.type === "text" && (message.body.text as string).length > 120;
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") dispatch(setReplyMessage({ message: null, roomId }));
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    });
+
     return (
         <Box
             sx={{
-                ...(messageInput.length && {
-                    ml: 2,
-                }),
+                display: "flex",
+                alignItems: "center",
+                ml: "16px",
+                mb: "12px",
             }}
         >
             <Box
@@ -405,12 +414,11 @@ function ReplyMessage({ message }: { message: MessageType }): React.ReactElement
                 position="relative"
                 sx={{
                     backgroundColor: "background.paper",
-                    borderRadius: "0.3rem",
+                    borderRadius: "10px",
                     padding: "0.4rem",
                     color: "common.darkBlue",
                     wordBreak: "break-word",
                 }}
-                mb={1}
             >
                 {sender && (
                     <Box mb={0.75} fontWeight="medium">
@@ -450,14 +458,13 @@ function ReplyMessage({ message }: { message: MessageType }): React.ReactElement
                     />
                 )}
                 {message.type === "file" && <Icon fontSize="large" />}
-                <IconButton
-                    size="small"
-                    onClick={() => dispatch(setReplyMessage({ message: null, roomId }))}
-                    sx={{ position: "absolute", right: "4px", top: "4px" }}
-                >
-                    <Close fontSize="inherit" />
-                </IconButton>
             </Box>
+            <IconButton
+                onClick={() => dispatch(setReplyMessage({ message: null, roomId }))}
+                sx={{ width: "35px", height: "35px", margin: "0 18px" }}
+            >
+                <Close fontSize="inherit" />
+            </IconButton>
         </Box>
     );
 }

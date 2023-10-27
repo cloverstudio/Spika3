@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Box } from "@mui/system";
 import Shortcut from "@mui/icons-material/Shortcut";
 import ContentCopy from "@mui/icons-material/ContentCopy";
@@ -6,6 +6,7 @@ import ModeEditOutlineOutlined from "@mui/icons-material/ModeEditOutlineOutlined
 import InfoOutlined from "@mui/icons-material/InfoOutlined";
 import FavoriteBorderOutlined from "@mui/icons-material/FavoriteBorderOutlined";
 import DeleteOutlineOutlined from "@mui/icons-material/DeleteOutlineOutlined";
+import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
 import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../../../hooks";
 import {
@@ -18,18 +19,16 @@ import { setEditMessage } from "../../slices/input";
 import { useShowSnackBar } from "../../../../hooks/useModal";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
+import { useMessageContainerContext } from "./MessagesContainer";
+import useStrings from "../../../../hooks/useStrings";
 
 interface Props {
     isUsersMessage: boolean;
     id: number;
-    openMoreOptionsAtBottom?: boolean;
+    setMouseOver: (boolean) => void;
 }
 
-export default function MessageContextMoreOption({
-    isUsersMessage,
-    id,
-    openMoreOptionsAtBottom,
-}: Props) {
+export default function MessageContextMoreOption({ isUsersMessage, id, setMouseOver }: Props) {
     const roomId = parseInt(useParams().id || "");
 
     const dispatch = useAppDispatch();
@@ -38,11 +37,34 @@ export default function MessageContextMoreOption({
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+    const isDarkTheme = theme.palette.mode === "dark";
+
+    const menuRef = useRef(null);
+
+    const strings = useStrings();
+
+    const { messageContainerRef } = useMessageContainerContext();
+
+    const [positionBottom, setPositionBottom] = useState(null);
+    const [positionTop, setPositionTop] = useState(null);
+
+    useEffect(() => {
+        if (!messageContainerRef.current || !menuRef.current) return;
+
+        const messageContainerRect = messageContainerRef.current.getBoundingClientRect();
+        const menuRect = menuRef.current.getBoundingClientRect();
+
+        if (menuRect.top + menuRect.height > messageContainerRect.height) {
+            setPositionBottom("34px");
+        } else if (menuRect.top - menuRect.height < 0) {
+            setPositionTop("34px");
+        } else setPositionTop("34px");
+    }, []);
 
     const menuOptions = [
         {
             name: "forward",
-            text: "Forward message",
+            text: strings.forwardMessage,
             icon: <Shortcut style={{ width: "14px", height: "14px" }} />,
             onClick: () => {},
             show: true,
@@ -52,7 +74,7 @@ export default function MessageContextMoreOption({
         },
         {
             name: "copy",
-            text: "Copy",
+            text: strings.copy,
             icon: <ContentCopy style={{ width: "14px", height: "14px" }} />,
             onClick: () => {},
             show: true,
@@ -61,13 +83,33 @@ export default function MessageContextMoreOption({
                 dispatch(hideMessageOptions(roomId));
                 showSnackBar({
                     severity: "info",
-                    text: "Message Copied",
+                    text: strings.messageCopied,
                 });
+                setMouseOver(false);
+            },
+        },
+        {
+            name: "copyPermalink",
+            text: strings.copyPermalink,
+            icon: <ShareOutlinedIcon style={{ width: "14px", height: "14px" }} />,
+            onClick: () => {},
+            show: true,
+            onclick: async () => {
+                const parsedUrl = new URL(window.location.href);
+
+                const url = `${parsedUrl.origin}/messenger/rooms/${roomId}?messageId=${id}`;
+                await navigator.clipboard.writeText(url);
+                dispatch(hideMessageOptions(roomId));
+                showSnackBar({
+                    severity: "info",
+                    text: strings.permalinkCopied,
+                });
+                setMouseOver(false);
             },
         },
         {
             name: "edit",
-            text: "Edit",
+            text: strings.edit,
             icon: <ModeEditOutlineOutlined style={{ width: "14px", height: "14px" }} />,
             onClick: () => {},
             show: isUsersMessage && message.type === "text",
@@ -77,7 +119,7 @@ export default function MessageContextMoreOption({
         },
         {
             name: "details",
-            text: "Details",
+            text: strings.details,
             icon: <InfoOutlined style={{ width: "14px", height: "14px" }} />,
             onClick: () => {},
             show: isUsersMessage,
@@ -87,7 +129,7 @@ export default function MessageContextMoreOption({
         },
         {
             name: "favorite",
-            text: "Add to favorite",
+            text: strings.addToFavorite,
             icon: <FavoriteBorderOutlined style={{ width: "14px", height: "14px" }} />,
             onClick: () => {},
             show: true,
@@ -97,11 +139,11 @@ export default function MessageContextMoreOption({
         },
         {
             name: "delete",
-            text: "Delete",
+            text: strings.delete,
             icon: <DeleteOutlineOutlined style={{ width: "14px", height: "14px" }} />,
             onClick: () => {},
             show: true,
-            style: { color: "red" },
+            style: { color: "error.main" },
             onclick: () => {
                 dispatch(showDeleteModal({ roomId, messageId: id }));
             },
@@ -109,13 +151,12 @@ export default function MessageContextMoreOption({
     ];
 
     const styleModifier = {
+        visibility: !positionBottom && !positionTop ? "hidden" : "visible",
         position: "absolute",
         display: "flex",
         flexDirection: "column",
-        // gap: "15px",
-        backgroundColor: "#fff",
+        backgroundColor: isDarkTheme ? "background.paper" : "#fff",
         boxShadow: "0px 1px 6px 0px rgba(0, 0, 0, 0.15)",
-        padding: "0 8px",
         borderRadius: "10px",
         fontFamily: "Montserrat",
         fontWeight: 500,
@@ -127,12 +168,12 @@ export default function MessageContextMoreOption({
         ...(isUsersMessage
             ? { left: isMobile ? 0 : "-20px" }
             : { right: isMobile ? "-40px" : "-20px" }),
-        ...(openMoreOptionsAtBottom && { top: "30px" }),
-        ...(!openMoreOptionsAtBottom && { bottom: "30px" }),
+        ...(positionTop && { top: positionTop }),
+        ...(positionBottom && { bottom: positionBottom }),
     };
 
     return (
-        <Box sx={{ ...styleModifier }}>
+        <Box sx={{ ...styleModifier }} ref={menuRef}>
             {menuOptions.map((option) => {
                 if (!option.show) return null;
                 return (
@@ -141,7 +182,7 @@ export default function MessageContextMoreOption({
                         sx={{
                             display: "flex",
                             alignItems: "center",
-                            padding: "8px 8px",
+                            padding: "8px 16px",
                             gap: "8px",
 
                             "&:last-child": { marginBottom: "8px" },
@@ -151,7 +192,6 @@ export default function MessageContextMoreOption({
                                 backgroundColor: "text.tertiary",
                                 cursor: "pointer",
                                 width: "100%",
-                                borderRadius: "10px",
                             },
                             ...option.style,
                         }}

@@ -46,6 +46,7 @@ export default function MessagesList(): React.ReactElement {
 
     const dispatch = useAppDispatch();
     const messages = useSelector(selectRoomMessages(roomId));
+
     const cursor = useSelector(selectCursor(roomId));
     const shouldDisplayBlockButton = useSelector(selectShouldDisplayBlockButton(roomId));
     const otherUserId = useSelector(selectOtherUserIdInPrivateRoom(roomId));
@@ -66,7 +67,6 @@ export default function MessagesList(): React.ReactElement {
                 previousMessageFromUserId: sorted[i - 1]?.fromUserId || null,
                 nextMessageFromUserId: sorted[i + 1]?.fromUserId,
                 separateWithMarginTop: sorted[i - 1]?.fromUserId !== curr.fromUserId,
-                ...(i < 3 && { openMoreOptionsAtBottom: true }),
             };
             if (!acc[day]) {
                 acc[day] = [message];
@@ -80,7 +80,6 @@ export default function MessagesList(): React.ReactElement {
                 previousMessageFromUserId: number | null;
                 nextMessageFromUserId: number | null;
                 separateWithMarginTop: boolean;
-                openMoreOptionsAtBottom?: boolean;
             })[];
         };
     }, [messages]);
@@ -142,7 +141,6 @@ export default function MessagesList(): React.ReactElement {
                                         nextMessageFromUserId={m.nextMessageFromUserId}
                                         animate={isLastDay && isLastMessageInDay}
                                         separateWithMarginTop={m.separateWithMarginTop}
-                                        openMoreOptionsAtBottom={m.openMoreOptionsAtBottom}
                                     />
                                 );
                             })}
