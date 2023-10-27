@@ -64,8 +64,8 @@ export default function ReactionOptionsPopover({
                     sx={{
                         ...styleModifier,
                         position: "absolute",
-                        bottom: "-76px",
-                        padding: "24px 12px",
+                        bottom: "-78px",
+                        padding: "6px 16px 30px 16px",
                     }}
                 >
                     <Box
@@ -103,13 +103,14 @@ export default function ReactionOptionsPopover({
 
                             <AddIcon
                                 sx={{
-                                    fill: "blue",
+                                    fill: isDarkTheme ? "#0078FF" : "#9AA0A6",
                                     fontSize: "32px",
                                     "&:hover": {
                                         cursor: "pointer",
                                         backgroundColor: "text.tertiary",
                                         borderRadius: "4px",
                                         height: "100%",
+                                        fill: !isDarkTheme ? "#fff" : "",
                                     },
                                 }}
                                 onClick={() => {

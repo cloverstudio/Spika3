@@ -157,13 +157,15 @@ function Message({
                 display="grid"
                 gap={1}
                 gridTemplateColumns={isUsersMessage || !isGroup ? "1fr" : "26px 1fr"}
+                paddingLeft={isUsersMessage && !isMobile ? "150px" : "0px"}
+                paddingRight={!isUsersMessage && !isMobile ? "150px" : "0px"}
+                onMouseEnter={handleMouseEnter}
             >
                 {renderAvatar()}
                 <Box display="flex" position="relative">
                     {!deleted && <MessageReactions id={id} />}
 
                     <Box
-                        onMouseEnter={handleMouseEnter}
                         sx={{
                             borderRadius: "0.3rem",
                             maxWidth: {
@@ -201,14 +203,16 @@ function Message({
                     {shouldDisplayStatusIcons && <StatusIcon status={status} id={id} />}
 
                     {isMobile && (
-                        <ReactionOptionsPopover
-                            isUsersMessage={isUsersMessage}
-                            show={showReactionMenu}
-                            messageId={id}
-                            handleClose={() => setShowReactionMenu(false)}
-                            setMouseOver={setMouseOver}
-                            setShowReactionMenu={setShowReactionMenu}
-                        />
+                        <Box zIndex={1100}>
+                            <ReactionOptionsPopover
+                                isUsersMessage={isUsersMessage}
+                                show={showReactionMenu}
+                                messageId={id}
+                                handleClose={() => setShowReactionMenu(false)}
+                                setMouseOver={setMouseOver}
+                                setShowReactionMenu={setShowReactionMenu}
+                            />
+                        </Box>
                     )}
                 </Box>
             </Box>
