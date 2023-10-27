@@ -17,12 +17,17 @@ export default ({}: InitRouterParams): RequestHandler[] => {
             const userReq: UserRequest = req as UserRequest;
             const userId = userReq.user.id;
 
+            const { type } = req.query;
+
             try {
                 const id = parseInt(req.params.id as string);
 
+                const messageRecordQuery =
+                    type && type === "reaction" ? { where: { type, isDeleted: false } } : true;
+
                 const message = await prisma.message.findUnique({
                     where: { id },
-                    include: { messageRecords: true },
+                    include: { messageRecords: messageRecordQuery },
                 });
 
                 if (!message) {
@@ -41,11 +46,11 @@ export default ({}: InitRouterParams): RequestHandler[] => {
                     successResponse(
                         {
                             messageRecords: message.messageRecords.map((record) =>
-                                sanitize({ ...record, roomId: message.roomId }).messageRecord()
+                                sanitize({ ...record, roomId: message.roomId }).messageRecord(),
                             ),
                         },
-                        userReq.lang
-                    )
+                        userReq.lang,
+                    ),
                 );
             } catch (e: any) {
                 le(e);

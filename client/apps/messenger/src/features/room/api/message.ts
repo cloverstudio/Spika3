@@ -16,11 +16,16 @@ const messageApi = api.injectEndpoints({
             invalidatesTags: (res) =>
                 res && [{ type: "Rooms", id: "HISTORY" }, { type: "UnreadCount" }],
         }),
-        getMessageRecordsById: build.query<MessageRecordListType, number>({
-            query: (messageId) => {
-                return `/messenger/messages/${messageId}/message-records`;
+        getMessageRecordsById: build.query<
+            MessageRecordListType,
+            { messageId: number; recordType?: string }
+        >({
+            query: ({ messageId, recordType }) => {
+                return `/messenger/messages/${messageId}/message-records${
+                    recordType ? `?type=${recordType}` : ""
+                }`;
             },
-            providesTags: (res, _, messageId) =>
+            providesTags: (res, _, { messageId }) =>
                 res && res.messageRecords?.length && [{ type: "MessageRecords", id: messageId }],
         }),
         deleteMessage: build.mutation<any, { id: number; target: "all" | "user" }>({

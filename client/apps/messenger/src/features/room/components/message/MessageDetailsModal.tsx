@@ -55,7 +55,10 @@ function MessageDetailsDialog({ message, onClose }: { message: MessageType; onCl
     const strings = useStrings();
     const me = useSelector(selectUser);
 
-    const { data } = useGetMessageRecordsByIdQuery(message.id, { refetchOnMountOrArgChange: true });
+    const { data } = useGetMessageRecordsByIdQuery(
+        { messageId: message.id },
+        { refetchOnMountOrArgChange: true },
+    );
 
     const messageRecords = data?.messageRecords || [];
 

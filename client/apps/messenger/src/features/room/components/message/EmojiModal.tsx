@@ -43,7 +43,10 @@ interface EmojiModalProps {
 }
 
 function EmojiModal({ messageId, onClose, showEmojiDetails }: EmojiModalProps) {
-    const { data } = useGetMessageRecordsByIdQuery(messageId, { refetchOnMountOrArgChange: true });
+    const { data } = useGetMessageRecordsByIdQuery(
+        { messageId, recordType: "reaction" },
+        { refetchOnMountOrArgChange: true },
+    );
 
     const [selectedEmoji, setSelectedEmoji] = useState<string>("ALL");
 
