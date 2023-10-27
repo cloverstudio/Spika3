@@ -35,6 +35,7 @@ export default function ReactionOptionsPopover({
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+    const isDarkTheme = theme.palette.mode === "dark";
 
     const handleSelect = (emoji: string) => {
         toggleReaction(messageId, emoji, reactions);
@@ -62,9 +63,9 @@ export default function ReactionOptionsPopover({
                 <Box
                     sx={{
                         ...{
-                            backgroundColor: "#fff",
-                            border: "2px solid #9995",
+                            backgroundColor: isDarkTheme ? "background.paper" : "#fff",
                             borderRadius: "5px",
+                            boxShadow: "0px 0px 5px 0px rgba(0,0,0,0.1)",
                             position: "absolute",
                             bottom: "-44px",
                             zIndex: 1100,

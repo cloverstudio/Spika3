@@ -11,6 +11,7 @@ import { useGetUserByIdQuery } from "../../api/user";
 import { useGetMessageRecordsByIdQuery, useRemoveReactionMutation } from "../../api/message";
 import { selectUser } from "../../../../store/userSlice";
 import { useTheme } from "@mui/material/styles";
+import useStrings from "../../../../hooks/useStrings";
 
 export default function EmojiModalContainer() {
     const roomId = parseInt(useParams().id || "");
@@ -48,7 +49,9 @@ function EmojiModal({ messageId, onClose, showEmojiDetails }: EmojiModalProps) {
         { refetchOnMountOrArgChange: true },
     );
 
-    const [selectedEmoji, setSelectedEmoji] = useState<string>("ALL");
+    const strings = useStrings();
+
+    const [selectedEmoji, setSelectedEmoji] = useState<string>(strings.all);
 
     const theme = useTheme();
     const isDarkTheme = theme.palette.mode === "dark";
@@ -120,7 +123,7 @@ function EmojiModal({ messageId, onClose, showEmojiDetails }: EmojiModalProps) {
                                 backgroundColor: "common.otherMessageBackground",
                             },
                             backgroundColor:
-                                selectedEmoji === "ALL"
+                                selectedEmoji === strings.all
                                     ? "common.otherMessageBackground"
                                     : "transparent",
                             borderRadius: "4px",
@@ -128,9 +131,9 @@ function EmojiModal({ messageId, onClose, showEmojiDetails }: EmojiModalProps) {
                             fontWeight: 500,
                             padding: "4px 6px",
                         }}
-                        onClick={() => setSelectedEmoji("ALL")}
+                        onClick={() => setSelectedEmoji(strings.all)}
                     >
-                        ALL
+                        {strings.all}
                     </Box>
                     {Object.keys(reactionsByPeople).map((r) => {
                         return (
@@ -145,7 +148,7 @@ function EmojiModal({ messageId, onClose, showEmojiDetails }: EmojiModalProps) {
                     })}
                 </Box>
                 <Box>
-                    {selectedEmoji !== "ALL"
+                    {selectedEmoji !== strings.all
                         ? reactionsByPeople[selectedEmoji]?.userIds.map((userId) => {
                               return (
                                   <EmojiModalBody
@@ -187,6 +190,7 @@ function EmojiModalBody({
     messageRecordId: number;
     onReactionRemove: () => void;
 }) {
+    const strings = useStrings();
     const { data, isLoading } = useGetUserByIdQuery(userId);
 
     const user = useAppSelector(selectUser);
@@ -229,7 +233,7 @@ function EmojiModalBody({
                             }}
                             onClick={removeReactionHandler}
                         >
-                            Click to remove
+                            {strings.clickToRemove}
                         </Typography>
                     )}
                 </Box>

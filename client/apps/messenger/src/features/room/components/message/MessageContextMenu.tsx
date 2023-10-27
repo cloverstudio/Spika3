@@ -120,7 +120,11 @@ export default function MessageContextMenu({
 
                 {areOptionsShown && (
                     <div ref={optionsRef}>
-                        <MessageContextMoreOption isUsersMessage={isUsersMessage} id={id} />
+                        <MessageContextMoreOption
+                            isUsersMessage={isUsersMessage}
+                            id={id}
+                            setMouseOver={setMouseOver}
+                        />
                     </div>
                 )}
             </Box>

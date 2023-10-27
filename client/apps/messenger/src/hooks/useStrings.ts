@@ -132,6 +132,15 @@ const en = {
     unblockUser: "Unblock user",
     unblockUserQuestion: "Do you want to unblock user?",
     library: "Library",
+    all: "ALL",
+    clickToRemove: "Click to remove",
+    forwardMessage: "Forward message",
+    copy: "Copy",
+    copyPermalink: "Copy permalink",
+    edit: "Edit",
+    addToFavorite: "Add to favorite",
+    permalinkCopied: "Permalink Copied",
+    messageCopied: "Message Copied",
 };
 
 const strings = {

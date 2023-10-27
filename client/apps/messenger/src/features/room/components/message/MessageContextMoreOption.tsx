@@ -20,13 +20,15 @@ import { useShowSnackBar } from "../../../../hooks/useModal";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { useMessageContainerContext } from "./MessagesContainer";
+import useStrings from "../../../../hooks/useStrings";
 
 interface Props {
     isUsersMessage: boolean;
     id: number;
+    setMouseOver: (boolean) => void;
 }
 
-export default function MessageContextMoreOption({ isUsersMessage, id }: Props) {
+export default function MessageContextMoreOption({ isUsersMessage, id, setMouseOver }: Props) {
     const roomId = parseInt(useParams().id || "");
 
     const dispatch = useAppDispatch();
@@ -38,6 +40,8 @@ export default function MessageContextMoreOption({ isUsersMessage, id }: Props) 
     const isDarkTheme = theme.palette.mode === "dark";
 
     const menuRef = useRef(null);
+
+    const strings = useStrings();
 
     const { messageContainerRef } = useMessageContainerContext();
 
@@ -60,7 +64,7 @@ export default function MessageContextMoreOption({ isUsersMessage, id }: Props) 
     const menuOptions = [
         {
             name: "forward",
-            text: "Forward message",
+            text: strings.forwardMessage,
             icon: <Shortcut style={{ width: "14px", height: "14px" }} />,
             onClick: () => {},
             show: true,
@@ -70,7 +74,7 @@ export default function MessageContextMoreOption({ isUsersMessage, id }: Props) 
         },
         {
             name: "copy",
-            text: "Copy",
+            text: strings.copy,
             icon: <ContentCopy style={{ width: "14px", height: "14px" }} />,
             onClick: () => {},
             show: true,
@@ -79,13 +83,14 @@ export default function MessageContextMoreOption({ isUsersMessage, id }: Props) 
                 dispatch(hideMessageOptions(roomId));
                 showSnackBar({
                     severity: "info",
-                    text: "Message Copied",
+                    text: strings.messageCopied,
                 });
+                setMouseOver(false);
             },
         },
         {
             name: "copyPermalink",
-            text: "Copy permalink",
+            text: strings.copyPermalink,
             icon: <ShareOutlinedIcon style={{ width: "14px", height: "14px" }} />,
             onClick: () => {},
             show: true,
@@ -97,13 +102,14 @@ export default function MessageContextMoreOption({ isUsersMessage, id }: Props) 
                 dispatch(hideMessageOptions(roomId));
                 showSnackBar({
                     severity: "info",
-                    text: "Permalink Copied",
+                    text: strings.permalinkCopied,
                 });
+                setMouseOver(false);
             },
         },
         {
             name: "edit",
-            text: "Edit",
+            text: strings.edit,
             icon: <ModeEditOutlineOutlined style={{ width: "14px", height: "14px" }} />,
             onClick: () => {},
             show: isUsersMessage && message.type === "text",
@@ -113,7 +119,7 @@ export default function MessageContextMoreOption({ isUsersMessage, id }: Props) 
         },
         {
             name: "details",
-            text: "Details",
+            text: strings.details,
             icon: <InfoOutlined style={{ width: "14px", height: "14px" }} />,
             onClick: () => {},
             show: isUsersMessage,
@@ -123,7 +129,7 @@ export default function MessageContextMoreOption({ isUsersMessage, id }: Props) 
         },
         {
             name: "favorite",
-            text: "Add to favorite",
+            text: strings.addToFavorite,
             icon: <FavoriteBorderOutlined style={{ width: "14px", height: "14px" }} />,
             onClick: () => {},
             show: true,
@@ -133,7 +139,7 @@ export default function MessageContextMoreOption({ isUsersMessage, id }: Props) 
         },
         {
             name: "delete",
-            text: "Delete",
+            text: strings.delete,
             icon: <DeleteOutlineOutlined style={{ width: "14px", height: "14px" }} />,
             onClick: () => {},
             show: true,
