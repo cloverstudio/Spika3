@@ -45,12 +45,12 @@ export default function ReactionOptionsPopover({
     const styleModifier: any = {};
 
     !isUsersMessage && !isMobile
-        ? (styleModifier.left = "-66px")
+        ? (styleModifier.left = "-80px")
         : !isUsersMessage && isMobile
         ? (styleModifier.left = "0px")
         : null;
     isUsersMessage && !isMobile
-        ? (styleModifier.right = "-66px")
+        ? (styleModifier.right = "-80px")
         : isUsersMessage && isMobile
         ? (styleModifier.right = "0px")
         : null;
@@ -62,56 +62,63 @@ export default function ReactionOptionsPopover({
             {show ? (
                 <Box
                     sx={{
-                        ...{
-                            backgroundColor: isDarkTheme ? "background.paper" : "#fff",
-                            borderRadius: "5px",
-                            boxShadow: "0px 0px 5px 0px rgba(0,0,0,0.1)",
-                            position: "absolute",
-                            bottom: "-44px",
-                            zIndex: 1100,
-                        },
                         ...styleModifier,
+                        position: "absolute",
+                        bottom: "-76px",
+                        padding: "24px 12px",
                     }}
                 >
-                    <Box display="flex" gap="10px" alignItems="center" padding="2px">
-                        {reactionEmojis.map((emoji, i) => {
-                            return (
-                                <Typography
-                                    key={i}
-                                    onClick={() => handleSelect(emoji)}
-                                    sx={{
-                                        fontSize: "22px",
-                                        width: "36px",
-                                        textAlign: "center",
-                                        "&:hover": {
-                                            cursor: "pointer",
-                                            backgroundColor: "text.tertiary",
-                                            borderRadius: "4px",
-                                        },
-                                    }}
-                                >
-                                    {emoji}
-                                </Typography>
-                            );
-                        })}
+                    <Box
+                        sx={{
+                            ...{
+                                backgroundColor: isDarkTheme ? "background.paper" : "#fff",
+                                borderRadius: "5px",
+                                boxShadow: "0px 0px 5px 0px rgba(0,0,0,0.1)",
 
-                        <AddIcon
-                            sx={{
-                                fill: "blue",
-                                fontSize: "32px",
-                                "&:hover": {
-                                    cursor: "pointer",
-                                    backgroundColor: "text.tertiary",
-                                    borderRadius: "4px",
-                                    height: "100%",
-                                },
-                            }}
-                            onClick={() => {
-                                dispatch(showCustomEmojiModal({ roomId, messageId }));
-                                setShowReactionMenu(false);
-                                setMouseOver(false);
-                            }}
-                        />
+                                zIndex: 1100,
+                            },
+                        }}
+                    >
+                        <Box display="flex" gap="10px" alignItems="center" padding="2px">
+                            {reactionEmojis.map((emoji, i) => {
+                                return (
+                                    <Typography
+                                        key={i}
+                                        onClick={() => handleSelect(emoji)}
+                                        sx={{
+                                            fontSize: "22px",
+                                            width: "36px",
+                                            textAlign: "center",
+                                            "&:hover": {
+                                                cursor: "pointer",
+                                                backgroundColor: "text.tertiary",
+                                                borderRadius: "4px",
+                                            },
+                                        }}
+                                    >
+                                        {emoji}
+                                    </Typography>
+                                );
+                            })}
+
+                            <AddIcon
+                                sx={{
+                                    fill: "blue",
+                                    fontSize: "32px",
+                                    "&:hover": {
+                                        cursor: "pointer",
+                                        backgroundColor: "text.tertiary",
+                                        borderRadius: "4px",
+                                        height: "100%",
+                                    },
+                                }}
+                                onClick={() => {
+                                    dispatch(showCustomEmojiModal({ roomId, messageId }));
+                                    setShowReactionMenu(false);
+                                    setMouseOver(false);
+                                }}
+                            />
+                        </Box>
                     </Box>
                 </Box>
             ) : null}
