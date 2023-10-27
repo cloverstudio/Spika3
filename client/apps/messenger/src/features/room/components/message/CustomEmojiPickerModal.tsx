@@ -1,5 +1,5 @@
 import { Box, Dialog, useMediaQuery, useTheme } from "@mui/material";
-import EmojiPicker, { EmojiClickData, EmojiStyle, SuggestionMode } from "emoji-picker-react";
+import EmojiPicker, { EmojiClickData, EmojiStyle, SuggestionMode, Theme } from "emoji-picker-react";
 import React from "react";
 import { useParams } from "react-router-dom";
 import useReactions from "../../../../hooks/useReactions";
@@ -26,6 +26,7 @@ export default function CustomEmojiPickerModal() {
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+    const isDarkTheme = theme.palette.mode === "dark";
 
     const handleEmojiClick = async (reaction: string) => {
         toggleReaction(activeMessage.id, reaction, reactions);
@@ -58,6 +59,7 @@ export default function CustomEmojiPickerModal() {
                         handleEmojiClick(emojiData.emoji);
                     }}
                     suggestedEmojisMode={SuggestionMode.RECENT}
+                    theme={isDarkTheme ? Theme.DARK : Theme.LIGHT}
                 />
             </Box>
         </Dialog>
