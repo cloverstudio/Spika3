@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { Box, Typography, useMediaQuery, useTheme } from "@mui/material";
 
@@ -9,6 +9,7 @@ import { useSelector } from "react-redux";
 import AddIcon from "@mui/icons-material/Add";
 import { useAppDispatch } from "../../../../hooks";
 import useReactions from "../../../../hooks/useReactions";
+import { useMessageContainerContext } from "./MessagesContainer";
 
 type ReactionOptionsPopoverProps = {
     isUsersMessage: boolean;
@@ -33,9 +34,28 @@ export default function ReactionOptionsPopover({
 
     const reactions = useSelector(selectMessageReactions(roomId, messageId));
 
+    const { messageContainerRef } = useMessageContainerContext();
+    const reactionMenuRef = useRef(null);
+
+    const [positionBottom, setPositionBottom] = useState(null);
+    const [positionTop, setPositionTop] = useState(null);
+
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
     const isDarkTheme = theme.palette.mode === "dark";
+
+    useEffect(() => {
+        if (!messageContainerRef.current || !reactionMenuRef.current) return;
+
+        if (isMobile) return setPositionBottom("-64px");
+
+        const messageContainerRect = messageContainerRef.current.getBoundingClientRect();
+        const reactionMenuRect = reactionMenuRef.current.getBoundingClientRect();
+
+        if (reactionMenuRect.top + reactionMenuRect.height / 2 > messageContainerRect.height) {
+            setPositionTop("-76px");
+        } else setPositionBottom("-76px");
+    }, [show]);
 
     const handleSelect = (emoji: string) => {
         toggleReaction(messageId, emoji, reactions);
@@ -63,10 +83,13 @@ export default function ReactionOptionsPopover({
                 <Box
                     sx={{
                         ...styleModifier,
+                        visibility: positionBottom || positionTop ? "visible" : "hidden",
                         position: "absolute",
-                        bottom: "-78px",
-                        padding: "6px 16px 30px 16px",
+                        bottom: positionBottom,
+                        top: positionTop,
+                        padding: "24px 12px",
                     }}
+                    ref={reactionMenuRef}
                 >
                     <Box
                         sx={{
