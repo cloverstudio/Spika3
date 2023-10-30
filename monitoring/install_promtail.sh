@@ -62,7 +62,7 @@ read -p "Enter server name (generated: ${default_name}): " name
 name="${name:-$default_name}"
 
 # Default loki url
-default_loki_url="http://3.68.71.82:3100/loki/api/v1/push"
+default_loki_url="http://1.2.3.4:3100/loki/api/v1/push"
 
 # Ask the user for the Loki URL or provide a default
 read -p "Enter Loki URL (default: ${default_loki_url}): " loki_url
