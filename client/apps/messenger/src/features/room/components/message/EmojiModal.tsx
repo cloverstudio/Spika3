@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Avatar, Box, Dialog, Typography } from "@mui/material";
+import { Avatar, Box, Dialog, ListItemAvatar, Skeleton, Typography } from "@mui/material";
 import { useAppDispatch, useAppSelector } from "../../../../hooks";
 import {
     hideEmojiDetails,
@@ -215,11 +215,17 @@ function EmojiModalBody({
             }}
         >
             <Box sx={{ display: "flex", gap: "16px" }}>
-                <Avatar
-                    sx={{ width: "42px", height: "42px" }}
-                    alt={data.user.displayName}
-                    src={`${UPLOADS_BASE_URL}/${data.user.avatarFileId}`}
-                />
+                <ListItemAvatar>
+                    {isLoading ? (
+                        <Skeleton variant="circular" width={40} height={40} />
+                    ) : (
+                        <Avatar
+                            sx={{ width: "42px", height: "42px" }}
+                            alt={data.user.displayName}
+                            src={`${UPLOADS_BASE_URL}/${data.user.avatarFileId}`}
+                        />
+                    )}
+                </ListItemAvatar>
                 <Box sx={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
                     <Typography sx={{ fontSize: "14px", fontWeight: 500, color: "text.primary" }}>
                         {isUsersEmoji ? "You" : data.user.displayName}

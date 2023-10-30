@@ -141,6 +141,7 @@ const en = {
     addToFavorite: "Add to favorite",
     permalinkCopied: "Permalink Copied",
     messageCopied: "Message Copied",
+    edited: "edited",
 };
 
 const strings = {

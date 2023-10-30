@@ -67,7 +67,7 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
             text: strings.forwardMessage,
             icon: <Shortcut style={{ width: "14px", height: "14px" }} />,
             onClick: () => {},
-            show: true,
+            show: false, // functionality not implemented
             onclick: () => {
                 console.log("forward clicked");
             },
@@ -122,7 +122,7 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
             text: strings.details,
             icon: <InfoOutlined style={{ width: "14px", height: "14px" }} />,
             onClick: () => {},
-            show: isUsersMessage,
+            show: true,
             onclick: () => {
                 dispatch(showMessageDetails({ roomId, messageId: id }));
             },
@@ -132,7 +132,7 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
             text: strings.addToFavorite,
             icon: <FavoriteBorderOutlined style={{ width: "14px", height: "14px" }} />,
             onClick: () => {},
-            show: true,
+            show: false, // functionality not implemented
             onclick: () => {
                 console.log("favorite clicked");
             },

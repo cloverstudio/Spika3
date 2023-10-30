@@ -126,13 +126,14 @@ export default function ReactionOptionsPopover({
 
                             <AddIcon
                                 sx={{
-                                    fill: "blue",
+                                    fill: isDarkTheme ? "#0078FF" : "#9AA0A6",
                                     fontSize: "32px",
                                     "&:hover": {
                                         cursor: "pointer",
                                         backgroundColor: "text.tertiary",
                                         borderRadius: "4px",
                                         height: "100%",
+                                        fill: !isDarkTheme ? "#fff" : "",
                                     },
                                 }}
                                 onClick={() => {
