@@ -1,5 +1,4 @@
 import { Request, Response, RequestHandler } from "express";
-import dayjs from "dayjs";
 
 import { UserRequest } from "../../lib/types";
 import { error as le } from "../../../../components/logger";
@@ -12,13 +11,13 @@ import { MESSAGE_ACTION_NEW_MESSAGE } from "../../../../components/consts";
 import * as Constants from "../../../../components/consts";
 
 import { InitRouterParams } from "../../../types/serviceInterface";
-import sanitize from "../../../../components/sanitize";
+import sanitize, { SanitizedMessageType } from "../../../../components/sanitize";
 import { formatMessageBody } from "../../../../components/message";
-import createSSEMessageRecordsNotify from "../../lib/sseMessageRecordsNotify";
 import prisma from "../../../../components/prisma";
 import { handleNewMessage } from "../../../../components/agent";
-import { getRoomById, getRoomUnreadCount } from "../room";
+import { getRoomById } from "../room";
 import { isRoomBlocked } from "../block";
+import { Room, RoomUser } from "@prisma/client";
 
 const postMessageSchema = yup.object().shape({
     body: yup.object().shape({
@@ -31,8 +30,6 @@ const postMessageSchema = yup.object().shape({
 });
 
 export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHandler[] => {
-    const sseMessageRecordsNotify = createSSEMessageRecordsNotify(rabbitMQChannel);
-
     return [
         auth,
         validate(postMessageSchema),
@@ -133,27 +130,6 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
 
                 const allReceivers = room.users;
 
-                const usersWhoBlockedSender =
-                    room.type === "private"
-                        ? await prisma.block.findMany({
-                              where: {
-                                  userId: { in: allReceivers.map((u) => u.userId) },
-                                  blockedId: fromUserId,
-                              },
-                              select: { userId: true },
-                          })
-                        : [];
-
-                const receivers = allReceivers.filter(
-                    (u) => !usersWhoBlockedSender.map((u) => u.userId).includes(u.userId),
-                );
-
-                const devices = await prisma.device.findMany({
-                    where: {
-                        userId: { in: receivers.map((u) => u.userId) },
-                    },
-                });
-
                 const message = await prisma.message.create({
                     data: {
                         type,
@@ -168,23 +144,15 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                     },
                 });
 
-                await prisma.deviceMessage.createMany({
-                    data: devices.map((device) => ({
-                        deviceId: device.id,
-                        userId: device.userId,
+                const userDeviceMessage = await prisma.deviceMessage.create({
+                    data: {
+                        userId: fromUserId,
+                        deviceId: fromDeviceId,
                         fromUserId,
                         fromDeviceId,
                         body,
                         action: MESSAGE_ACTION_NEW_MESSAGE,
                         messageId: message.id,
-                    })),
-                });
-
-                const userDeviceMessage = await prisma.deviceMessage.findFirst({
-                    where: {
-                        userId: fromUserId,
-                        messageId: message.id,
-                        deviceId: fromDeviceId,
                     },
                 });
 
@@ -198,119 +166,15 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
 
                 res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
 
-                await Promise.all(
-                    receivers.map(async ({ userId, createdAt }) => {
-                        await getRoomUnreadCount({
-                            roomId,
-                            userId,
-                            redisClient,
-                            roomUserCreatedAt: createdAt,
-                        });
-
-                        const key = `${Constants.UNREAD_PREFIX}${roomId}_${userId}`;
-                        if (userId !== fromUserId) {
-                            await redisClient.incr(key);
-                        }
-                    }),
-                );
-
-                const key = `${Constants.LAST_MESSAGE_PREFIX}${roomId}`;
-                await redisClient.set(key, sanitizedMessage.id.toString());
-
-                function getRoomAvatarFileId(room: any, userId: number) {
-                    if (room.type === "group") {
-                        return room.avatarFileId;
-                    }
-                    const otherUser = room.users.find((u: any) => u.userId !== userId);
-
-                    if (!otherUser) {
-                        return 0;
-                    }
-
-                    return otherUser.user.avatarFileId;
-                }
-
-                while (devices.length) {
-                    await Promise.all(
-                        devices.splice(0, 10).map(async (device) => {
-                            if (!device) {
-                                return;
-                            }
-
-                            if (device.id === fromDeviceId) {
-                                return;
-                            }
-
-                            const checkIfShouldSendPush = () => {
-                                const tokenExpiredAtTS = +dayjs(device.tokenExpiredAt);
-                                const now = +dayjs();
-
-                                if (now > tokenExpiredAtTS) {
-                                    return false;
-                                }
-
-                                if (
-                                    message.fromUserId === device.userId &&
-                                    device.osName === "android"
-                                ) {
-                                    return true;
-                                }
-
-                                if (message.fromUserId === device.userId) {
-                                    return false;
-                                }
-
-                                return true;
-                            };
-
-                            if (checkIfShouldSendPush()) {
-                                const roomAvatarFileId = getRoomAvatarFileId(room, device.userId);
-
-                                rabbitMQChannel.sendToQueue(
-                                    Constants.QUEUE_PUSH,
-                                    Buffer.from(
-                                        JSON.stringify({
-                                            type: Constants.PUSH_TYPE_NEW_MESSAGE,
-                                            token: device.pushToken,
-                                            data: {
-                                                message: { ...sanitizedMessage },
-                                                user: sanitize(userReq.user).user(),
-                                                ...(room.type === "group" && {
-                                                    groupName: room.name,
-                                                }),
-                                                toUserId: device.userId,
-                                                roomUserCreatedAt: roomUser.createdAt,
-                                                roomAvatarFileId,
-                                            },
-                                        }),
-                                    ),
-                                );
-                            }
-
-                            rabbitMQChannel.sendToQueue(
-                                Constants.QUEUE_SSE,
-                                Buffer.from(
-                                    JSON.stringify({
-                                        channelId: device.id,
-                                        data: {
-                                            type: Constants.PUSH_TYPE_NEW_MESSAGE,
-                                            message: sanitizedMessage,
-                                        },
-                                    }),
-                                ),
-                            );
+                rabbitMQChannel.sendToQueue(
+                    Constants.QUEUE_MESSAGES_SSE,
+                    Buffer.from(
+                        JSON.stringify({
+                            room,
+                            message: sanitizedMessage,
                         }),
-                    );
-                }
-
-                const messageRecordsNotifyData = {
-                    types: ["delivered", "seen"],
-                    userId: fromUserId,
-                    messageIds: [message.id],
-                    pushType: Constants.PUSH_TYPE_NEW_MESSAGE_RECORD,
-                };
-
-                sseMessageRecordsNotify(messageRecordsNotifyData);
+                    ),
+                );
 
                 rabbitMQChannel.sendToQueue(
                     Constants.QUEUE_WEBHOOK,

@@ -2,7 +2,7 @@ import { Router } from "express";
 
 import { InitRouterParams } from "../../../types/serviceInterface";
 
-import createMessageRoute from "./createMessage";
+import createMessageRoute from "./createMessageOpt";
 import editMessageRoute from "./editMessage";
 import deleteMessageRote from "./deleteMessage";
 import getMessageRecordsRoute from "./getMessageRecords";
