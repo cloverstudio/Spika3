@@ -48,15 +48,26 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                 const fromUserId = userReq.user.id;
                 const fromDeviceId = userReq.device.id;
 
+                const timeBeforeRoomUserCheck = performance.now();
+
                 const roomUser = await prisma.roomUser.findFirst({
                     where: { roomId, userId: fromUserId },
                 });
+
+                console.log(
+                    "time that room user needed",
+                    performance.now() - timeBeforeRoomUserCheck,
+                );
 
                 if (!roomUser) {
                     return res.status(400).send(errorResponse("Chat user not found", userReq.lang));
                 }
 
+                const timeBeforeRoomCheck = performance.now();
+
                 const room = await getRoomById(roomId, redisClient);
+
+                console.log("time that room needed", performance.now() - timeBeforeRoomCheck);
 
                 if (!room) {
                     return res.status(400).send(errorResponse("Chat not found", userReq.lang));
@@ -66,7 +77,12 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                     return res.status(403).send(errorResponse("Chat is deleted", userReq.lang));
                 }
 
+                const timeBeforeRoomBlockedCheck = performance.now();
                 const blocked = await isRoomBlocked(room.id, fromUserId);
+                console.log(
+                    "time that room blocked check needed",
+                    performance.now() - timeBeforeRoomBlockedCheck,
+                );
 
                 if (blocked) {
                     return res.status(403).send(errorResponse("Chat is blocked", userReq.lang));
@@ -131,7 +147,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                 }
 
                 const allReceivers = room.users;
-
+                const timeBeforeUsersWhoBlockedSender = performance.now();
                 const usersWhoBlockedSender =
                     room.type === "private"
                         ? await prisma.block.findMany({
@@ -143,6 +159,10 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                           })
                         : [];
 
+                console.log(
+                    "time that users who blocked sender needed",
+                    performance.now() - timeBeforeUsersWhoBlockedSender,
+                );
                 const receivers = allReceivers.filter(
                     (u) => !usersWhoBlockedSender.map((u) => u.userId).includes(u.userId),
                 );
@@ -153,6 +173,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                     },
                 });
 
+                const timeBeforeMessageCreate = performance.now();
                 const message = await prisma.message.create({
                     data: {
                         type,
@@ -166,7 +187,12 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                         replyId,
                     },
                 });
+                console.log(
+                    "time that message create needed",
+                    performance.now() - timeBeforeMessageCreate,
+                );
 
+                const timeBeforeMessageCreateMany = performance.now();
                 await prisma.deviceMessage.createMany({
                     data: devices.map((device) => ({
                         deviceId: device.id,
@@ -178,7 +204,12 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                         messageId: message.id,
                     })),
                 });
+                console.log(
+                    "time that message create many needed",
+                    performance.now() - timeBeforeMessageCreateMany,
+                );
 
+                const timeBeforeUserDeviceMessage = performance.now();
                 const userDeviceMessage = await prisma.deviceMessage.findFirst({
                     where: {
                         userId: fromUserId,
@@ -186,7 +217,12 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                         deviceId: fromDeviceId,
                     },
                 });
+                console.log(
+                    "time that get room unread count needed",
+                    performance.now() - timeBeforeUserDeviceMessage,
+                );
 
+                const timeBeforeFormattedBody = performance.now();
                 const formattedBody = await formatMessageBody(body, type);
                 const sanitizedMessage = sanitize({
                     ...message,
@@ -195,6 +231,12 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                     modifiedAt: userDeviceMessage.modifiedAt,
                 }).message();
 
+                console.log(
+                    "time that formatted body needed",
+                    performance.now() - timeBeforeFormattedBody,
+                );
+
+                const timeBeforeUpdateUnredCount = performance.now();
                 await Promise.all(
                     receivers.map(async ({ userId, createdAt }) => {
                         await getRoomUnreadCount({
@@ -210,7 +252,10 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                         }
                     }),
                 );
-
+                console.log(
+                    "time that update unread count needed",
+                    performance.now() - timeBeforeUpdateUnredCount,
+                );
                 const key = `${Constants.LAST_MESSAGE_PREFIX}${roomId}`;
                 await redisClient.set(key, sanitizedMessage.id.toString());
 
@@ -226,7 +271,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
 
                     return otherUser.user.avatarFileId;
                 }
-
+                const timeBeforeNotify = performance.now();
                 while (devices.length) {
                     await Promise.all(
                         devices.splice(0, 10).map(async (device) => {
@@ -300,6 +345,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                     );
                 }
 
+                console.log("time that notify needed", performance.now() - timeBeforeNotify);
                 res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
 
                 const messageRecordsNotifyData = {
