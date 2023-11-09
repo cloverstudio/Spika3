@@ -53,6 +53,8 @@ function EmojiModal({ messageId, onClose, showEmojiDetails }: EmojiModalProps) {
 
     const [selectedEmoji, setSelectedEmoji] = useState<string>(strings.all);
 
+    const user = useAppSelector(selectUser);
+
     const theme = useTheme();
     const isDarkTheme = theme.palette.mode === "dark";
 
@@ -62,7 +64,17 @@ function EmojiModal({ messageId, onClose, showEmojiDetails }: EmojiModalProps) {
 
     if (!data) return null;
 
-    data.messageRecords.forEach((r) => {
+    const messageRecords = [...data.messageRecords];
+
+    const indexOfMyReactionRecord = messageRecords.findIndex((r) => r.userId === user.id);
+
+    if (indexOfMyReactionRecord !== -1) {
+        const myReactionRecord = messageRecords[indexOfMyReactionRecord];
+        messageRecords.splice(indexOfMyReactionRecord, 1);
+        messageRecords.unshift(myReactionRecord);
+    }
+
+    messageRecords.forEach((r) => {
         if (r.type !== "reaction" || r.isDeleted) return;
 
         if (reactionsByPeople[r.reaction]) {
@@ -77,8 +89,7 @@ function EmojiModal({ messageId, onClose, showEmojiDetails }: EmojiModalProps) {
         }
     });
 
-    if (data.messageRecords.filter((r) => r.type === "reaction" && !r.isDeleted).length === 0)
-        onClose();
+    if (messageRecords.filter((r) => r.type === "reaction" && !r.isDeleted).length === 0) onClose();
 
     return (
         <Dialog
@@ -91,21 +102,18 @@ function EmojiModal({ messageId, onClose, showEmojiDetails }: EmojiModalProps) {
             sx={{
                 "& .MuiDialog-paper": {
                     width: "360px",
+                    height: "260px",
                     backgroundColor: isDarkTheme ? "default" : "#fff",
                 },
             }}
         >
             <Box
                 sx={{
-                    minHeight: "260px",
-                    padding: "8px 17px 11px 20px",
-                    overflowY: "auto",
+                    padding: "8px 0px 11px 20px",
                     borderRadius: "10px",
                     boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.2)",
                     overflowX: "hidden",
-                    WebkitScrollbar: {
-                        width: "1px",
-                    },
+                    overflowY: "hidden",
                 }}
             >
                 <Box
@@ -113,7 +121,6 @@ function EmojiModal({ messageId, onClose, showEmojiDetails }: EmojiModalProps) {
                         display: "flex",
                         gap: "14px",
                         padding: "16px 0px 16px 0px",
-                        overflowX: "auto",
                     }}
                 >
                     <Box
@@ -147,32 +154,39 @@ function EmojiModal({ messageId, onClose, showEmojiDetails }: EmojiModalProps) {
                         );
                     })}
                 </Box>
-                <Box>
-                    {selectedEmoji !== strings.all
-                        ? reactionsByPeople[selectedEmoji]?.userIds.map((userId) => {
-                              return (
-                                  <EmojiModalBody
-                                      userId={userId}
-                                      key={userId}
-                                      emoji={selectedEmoji}
-                                      messageRecordId={reactionsByPeople[selectedEmoji].id}
-                                      onReactionRemove={onClose}
-                                  />
-                              );
-                          })
-                        : Object.keys(reactionsByPeople).map((r) =>
-                              reactionsByPeople[r].userIds.map((userId) => {
+                <Box
+                    sx={{
+                        overflowY: "auto",
+                        height: "196px",
+                    }}
+                >
+                    <Box sx={{ pr: "14px", pb: "15px" }}>
+                        {selectedEmoji !== strings.all
+                            ? reactionsByPeople[selectedEmoji]?.userIds.map((userId) => {
                                   return (
                                       <EmojiModalBody
                                           userId={userId}
                                           key={userId}
-                                          emoji={r}
-                                          messageRecordId={reactionsByPeople[r].id}
+                                          emoji={selectedEmoji}
+                                          messageRecordId={reactionsByPeople[selectedEmoji].id}
                                           onReactionRemove={onClose}
                                       />
                                   );
-                              }),
-                          )}
+                              })
+                            : Object.keys(reactionsByPeople).map((r) =>
+                                  reactionsByPeople[r].userIds.map((userId) => {
+                                      return (
+                                          <EmojiModalBody
+                                              userId={userId}
+                                              key={userId}
+                                              emoji={r}
+                                              messageRecordId={reactionsByPeople[r].id}
+                                              onReactionRemove={onClose}
+                                          />
+                                      );
+                                  }),
+                              )}
+                    </Box>
                 </Box>
             </Box>
         </Dialog>

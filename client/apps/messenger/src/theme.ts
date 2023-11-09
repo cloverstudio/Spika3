@@ -171,6 +171,7 @@ export const lightTheme = createTheme({
                     body: {
                         "*::-webkit-scrollbar": {
                             width: "4px",
+                            height: "4px",
                         },
                         "*::-webkit-scrollbar-thumb": {
                             background: "#888",
@@ -226,6 +227,7 @@ export const darkTheme = createTheme({
                     body: {
                         "*::-webkit-scrollbar": {
                             width: "4px",
+                            height: "4px",
                         },
                         "*::-webkit-scrollbar-thumb": {
                             background: "#888",
