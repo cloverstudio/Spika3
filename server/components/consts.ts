@@ -19,6 +19,7 @@ export const QUEUE_SMS = "QUEUE_SMS";
 export const QUEUE_CREATE_CONTACT = "QUEUE_CREATE_CONTACT";
 export const QUEUE_PUSH = "QUEUE_PUSH";
 export const QUEUE_SSE = "QUEUE_SSE";
+export const QUEUE_MESSAGES_SSE = "QUEUE_MESSAGES_SSE";
 export const QUEUE_MESSAGE_RECORDS_SSE = "QUEUE_MESSAGE_RECORDS_SSE";
 export const QUEUE_WEBHOOK = "QUEUE_WEBHOOK";
 
@@ -49,4 +50,4 @@ export const LAST_MESSAGE_PREFIX = "lastMessage_";
 export const UNREAD_PREFIX = "unread_";
 export const DEVICE_TYPE_BROWSER = "browser";
 
-export const APIKEY_LENGTH = 32
+export const APIKEY_LENGTH = 32;

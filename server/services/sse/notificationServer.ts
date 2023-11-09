@@ -42,12 +42,11 @@ class NotificationServer {
 
     setUpSSEQueue(): void {
         this.channel.assertQueue(Constants.QUEUE_SSE, { durable: false });
-
         this.channel.consume(this.SSEQueueName, async (msg: amqp.ConsumeMessage) => {
-            this.channel.ack(msg);
             const payload: SendSSEPayload = JSON.parse(msg.content.toString());
-
             this.send(payload.channelId, payload.data);
+
+            this.channel.ack(msg);
         });
     }
 
@@ -61,14 +60,14 @@ class NotificationServer {
         this.channel.consume(
             hostQueue.queue,
             (msg) => {
-                this.channel.ack(msg);
                 const payload = JSON.parse(msg?.content.toString() as string);
 
                 const channelId = String(payload.channelId);
                 const data = payload.data;
                 this.notify(channelId, data);
+                this.channel.ack(msg);
             },
-            { exclusive: true }
+            { exclusive: true },
         );
     }
 

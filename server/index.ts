@@ -22,6 +22,7 @@ import MessagingService from "./services/messaging";
 import utils from "./components/utils";
 
 import { loadAgents } from "./components/agent";
+import MessagesSSEService from "./services/messagesSSE";
 
 const app: express.Express = express();
 const redisClient = createClient({ url: process.env.REDIS_URL });
@@ -43,7 +44,7 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
         res.header("Access-Control-Allow-Headers", "*");
         res.header(
             "Access-Control-Allow-Headers",
-            "Content-Type, Authorization, access-token, adminAccessToken, accesstoken, accessToken, device-name, os-name, os-version, device-type, app-version"
+            "Content-Type, Authorization, access-token, adminAccessToken, accesstoken, accessToken, device-name, os-name, os-version, device-type, app-version",
         );
 
         const start = process.hrtime();
@@ -53,7 +54,7 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
             l(
                 `${req.method} ${
                     req.originalUrl
-                } [FINISHED] ${durationInMilliseconds.toLocaleString()} ms`
+                } [FINISHED] ${durationInMilliseconds.toLocaleString()} ms`,
             );
         });
 
@@ -91,13 +92,13 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
 
     app.use(
         "/messenger/assets",
-        express.static("public/messenger/assets", { maxAge: 365 * 24 * 60 * 60 * 1000 })
+        express.static("public/messenger/assets", { maxAge: 365 * 24 * 60 * 60 * 1000 }),
     );
     app.use(express.static("public", { maxAge: 5 * 60 * 1000 }));
     app.use("/uploads", express.static(process.env["UPLOAD_FOLDER"]));
 
     const rabbitMQConnection = await amqp.connect(
-        process.env["RABBITMQ_URL"] || "amqp://localhost"
+        process.env["RABBITMQ_URL"] || "amqp://localhost",
     );
     const rabbitMQChannel: amqp.Channel = await rabbitMQConnection.createChannel();
 
@@ -159,6 +160,9 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
             rabbitMQChannel,
         });
     }
+
+    const messagesSSE = new MessagesSSEService();
+    messagesSSE.start({});
 
     if (+process.env["USE_WEBHOOK"]) {
         const webhook: WebhookService = new WebhookService();

@@ -1,6 +1,6 @@
-import express, { Router } from "express";
 import { Channel } from "amqplib";
+import { createClient } from "redis";
 
 export default interface QueueWorker {
-    run(param: any, channel?: Channel): Promise<any>;
+    run(param: any, channel?: Channel, redisClient?: ReturnType<typeof createClient>): Promise<any>;
 }

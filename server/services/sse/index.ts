@@ -10,7 +10,12 @@ export default class SSEService implements Service {
     notificationServer: NotificationServer;
     rabbitMQChannel: amqp.Channel;
 
-    async start({ rabbitMQChannel }: ServiceStartParams): Promise<void> {
+    async start({}: ServiceStartParams): Promise<void> {
+        const rabbitMQConnection = await amqp.connect(
+            process.env["RABBITMQ_URL"] || "amqp://localhost",
+        );
+        const rabbitMQChannel: amqp.Channel = await rabbitMQConnection.createChannel();
+
         this.notificationServer = new NotificationServer(rabbitMQChannel);
         this.rabbitMQChannel = rabbitMQChannel;
     }

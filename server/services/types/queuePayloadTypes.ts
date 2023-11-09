@@ -1,4 +1,6 @@
+import { Room, RoomUser, User } from "@prisma/client";
 import { createClient } from "redis";
+import { SanitizedMessageType } from "../../components/sanitize";
 
 export type SendSMSPayload = {
     telephoneNumber: string;
@@ -36,4 +38,9 @@ export type SendMessageRecordSSEPayload = {
 export type CallWebhookPayload = {
     messageId: number;
     body: any;
+};
+
+export type SendMessageSSEPayload = {
+    room: Room & { users: (RoomUser & { user: User })[] };
+    message: SanitizedMessageType;
 };

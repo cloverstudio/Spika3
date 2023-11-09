@@ -33,7 +33,7 @@ export type SanitizedRoomType = Partial<
         pinned: boolean;
     }
 >;
-type SanitizedMessageType = Partial<
+export type SanitizedMessageType = Partial<
     Omit<Message, "createdAt" | "modifiedAt"> & { createdAt: number; modifiedAt: number; body: any }
 >;
 type SanitizedMessageWithReactionRecordsType = Partial<
@@ -200,7 +200,7 @@ export default function sanitize(data: any): sanitizeTypes {
                             createdAt: +new Date(createdAt),
                             isDeleted,
                             modifiedAt: +new Date(modifiedAt),
-                        })
+                        }),
                     ),
                 replyId,
             };
@@ -359,7 +359,7 @@ function sanitizeUser({
         createdAt: +new Date(createdAt),
         modifiedAt: +new Date(modifiedAt),
         isBot,
-        
+
         deleted,
     };
 }

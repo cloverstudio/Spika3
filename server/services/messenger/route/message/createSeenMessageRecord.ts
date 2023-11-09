@@ -49,7 +49,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                     where: {
                         roomId,
                         createdAt: { gt: roomUser.createdAt },
-                        messageRecords: { none: { userId, type: "seen" } },
+                        messageRecords: { none: { userId, type: "delivered" } },
                     },
                 });
 
@@ -80,8 +80,6 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                 const key = `${Constants.UNREAD_PREFIX}${roomId}_${userId}`;
                 await redisClient.set(key, "0");
 
-                res.send(successResponse({ messageRecords }, userReq.lang));
-
                 const devices = await prisma.device.findMany({
                     where: {
                         userId,
@@ -99,10 +97,12 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                                     type: Constants.PUSH_TYPE_SEEN_ROOM,
                                     roomId,
                                 },
-                            })
-                        )
+                            }),
+                        ),
                     );
                 }
+
+                res.send(successResponse({ messageRecords }, userReq.lang));
             } catch (e: any) {
                 le(e);
                 res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

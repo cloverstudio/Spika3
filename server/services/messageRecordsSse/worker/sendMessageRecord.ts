@@ -126,8 +126,8 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
                                     messageRecord,
                                     ...(message && { deliveredCount, seenCount, totalUserCount }),
                                 },
-                            })
-                        )
+                            }),
+                        ),
                     );
                 }
             }
