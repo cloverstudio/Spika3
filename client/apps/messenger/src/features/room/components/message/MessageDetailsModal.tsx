@@ -74,13 +74,14 @@ function MessageDetailsDialog({ message, onClose }: { message: MessageType; onCl
     );
 
     return (
-        <Dialog
-            onClose={onClose}
-            open={true}
-            maxWidth="xs"
-            sx={{ "& .MuiDialog-paper": { width: "100%" } }}
-        >
-            <Box width={{ md: 428 }} px={2.5} py={2}>
+        <Dialog onClose={onClose} open={true} maxWidth="xs">
+            <Box
+                width={{ md: 428 }}
+                height="384px"
+                px={2.5}
+                py={2}
+                sx={{ overflowY: "auto", position: "relative" }}
+            >
                 <DialogTitle sx={{ textAlign: "center", p: 0, mb: 2 }}>
                     {strings.details}
                 </DialogTitle>

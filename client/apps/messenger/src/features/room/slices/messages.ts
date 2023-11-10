@@ -509,7 +509,7 @@ export const messagesSlice = createSlice({
                     room.reactions[messageId] = room.reactions[messageId].filter(
                         (r) => r.userId !== userId,
                     );
-                    room.reactions[messageId].push(messageRecord);
+                    room.reactions[messageId].unshift(messageRecord);
                 } else {
                     room.reactions[messageId] = [messageRecord];
                 }

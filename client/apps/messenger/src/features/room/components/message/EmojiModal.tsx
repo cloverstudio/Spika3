@@ -102,7 +102,7 @@ function EmojiModal({ messageId, onClose, showEmojiDetails }: EmojiModalProps) {
             sx={{
                 "& .MuiDialog-paper": {
                     width: "360px",
-                    height: "260px",
+                    height: "324px",
                     backgroundColor: isDarkTheme ? "default" : "#fff",
                 },
             }}
@@ -121,6 +121,8 @@ function EmojiModal({ messageId, onClose, showEmojiDetails }: EmojiModalProps) {
                         display: "flex",
                         gap: "14px",
                         padding: "16px 0px 16px 0px",
+                        overflowX: "auto",
+                        marginRight: "20px",
                     }}
                 >
                     <Box
@@ -157,10 +159,10 @@ function EmojiModal({ messageId, onClose, showEmojiDetails }: EmojiModalProps) {
                 <Box
                     sx={{
                         overflowY: "auto",
-                        height: "196px",
+                        height: "260px",
                     }}
                 >
-                    <Box sx={{ pr: "14px", pb: "15px" }}>
+                    <Box sx={{ pr: "14px", pb: "14px" }}>
                         {selectedEmoji !== strings.all
                             ? reactionsByPeople[selectedEmoji]?.userIds.map((userId) => {
                                   return (
