@@ -10,7 +10,7 @@ const axiosBaseQuery =
     async (
         { url, method, data }: { url: string; method: Method; data: any },
         token: string,
-        dispatch?: any
+        dispatch?: any,
     ) => {
         try {
             const additionalHeaders: any = {
@@ -58,7 +58,7 @@ const axiosBaseQuery =
                     showSnackBar({
                         severity: "error",
                         text,
-                    })
+                    }),
                 );
             }
             throw error;
@@ -79,7 +79,7 @@ export const dynamicBaseQuery = async (args: any, options?: { dispatch: any }) =
 export default createApi({
     reducerPath: "api",
     baseQuery: dynamicBaseQuery,
-    tagTypes: ["Auth", "Users", "Groups", "Devices"],
+    tagTypes: ["Auth", "Users", "Groups", "Devices", "Bots"],
 
     endpoints: () => ({}),
 });

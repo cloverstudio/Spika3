@@ -36,6 +36,14 @@ const usersApi = api.injectEndpoints({
                 `/management/users?page=${page}${keyword ? `&keyword=${keyword}` : ""}`,
             providesTags: [{ type: "Users", id: "LIST" }],
         }),
+        getBots: build.query<
+            SuccessResponse<UserListType> | ErrorResponse,
+            { page: number; keyword?: string }
+        >({
+            query: ({ page, keyword }) =>
+                `/management/users?bots=1&page=${page}${keyword ? `&keyword=${keyword}` : ""}`,
+            providesTags: [{ type: "Bots", id: "LIST" }],
+        }),
         getUserById: build.query<SuccessResponse<{ user: UserType }> | ErrorResponse, string>({
             query: (userId) => {
                 return `/management/users/${userId}`;
@@ -92,11 +100,7 @@ const usersApi = api.injectEndpoints({
                 return { url: `/management/users/bot`, method: "POST", data };
             },
             invalidatesTags: (res) =>
-                res && res.status === "success"
-                    ? [
-                          { type: "Users", id: "LIST" },
-                      ]
-                    : [],
+                res && res.status === "success" ? [{ type: "Users", id: "LIST" }] : [],
         }),
         updateUser: build.mutation<
             SuccessResponse<{ user: UserType }> | ErrorResponse,
@@ -164,5 +168,6 @@ export const {
     useCreateBotMutation,
     useUpdateBotMutation,
     useRenewAccessTokenMutation,
+    useGetBotsQuery,
 } = usersApi;
 export default usersApi;

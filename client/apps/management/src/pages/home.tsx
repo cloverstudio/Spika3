@@ -33,12 +33,13 @@ export async function homeLoader() {
 
     const data = res.data.data;
 
-    const { users, groups } = data;
+    const { users, groups, bots } = data;
 
     return {
         count: {
             users,
             groups,
+            bots,
         },
     };
 }

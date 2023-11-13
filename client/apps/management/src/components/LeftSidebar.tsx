@@ -100,6 +100,12 @@ function LeftSidebarContent() {
                 count={count.users}
             />
             <NavigationItem
+                url="bots"
+                title="Bots"
+                subtitle="Manage chat bots"
+                count={count.bots}
+            />
+            <NavigationItem
                 url="groups"
                 title="Groups"
                 subtitle="Manage chat groups"

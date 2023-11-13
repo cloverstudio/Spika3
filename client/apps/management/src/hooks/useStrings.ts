@@ -71,7 +71,8 @@ const en = {
     accessToken: "Access token",
     renewAccessToken: "Renew",
     botUpdated: "Bot updated",
-    userId: "ID"
+    userId: "ID",
+    bots: "Bots",
 };
 
 const strings = {
