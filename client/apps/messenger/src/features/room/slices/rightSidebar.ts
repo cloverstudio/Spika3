@@ -7,11 +7,19 @@ interface InitialState {
     activeTab: ActiveTabType;
     show: boolean;
     activeNoteId: number;
+    editNoteTitle: string;
+    editNoteContent: string;
 }
 
 export const rightSidebarSlice = createSlice({
     name: <string>"rightSidebar",
-    initialState: <InitialState>{ activeTab: "details", show: false, activeNoteId: null },
+    initialState: <InitialState>{
+        activeTab: "details",
+        show: false,
+        activeNoteId: null,
+        editNoteTitle: "",
+        editNoteContent: "",
+    },
     reducers: {
         toggle(state) {
             state.show = !state.show;
@@ -34,6 +42,12 @@ export const rightSidebarSlice = createSlice({
             state.activeTab = "editNote";
             state.activeNoteId = action.payload;
         },
+        setEditNoteTitle(state, action: { payload: string }) {
+            state.editNoteTitle = action.payload;
+        },
+        setEditNoteContent(state, action: { payload: string }) {
+            state.editNoteContent = action.payload;
+        },
     },
     // extraReducers: (builder) => {},
 });
@@ -44,6 +58,7 @@ export const selectRightSidebarActiveTab = (state: RootState): ActiveTabType =>
 
 export const selectRightSidebarActiveNoteId = (state: RootState): number =>
     state.rightSidebar.activeNoteId;
+
 export const {
     toggle: toggleRightSidebar,
     show: showRightSidebar,
@@ -51,6 +66,8 @@ export const {
     setActiveTab,
     setActiveNoteId,
     setEditNoteId,
+    setEditNoteContent,
+    setEditNoteTitle,
 } = rightSidebarSlice.actions;
 
 export default rightSidebarSlice.reducer;

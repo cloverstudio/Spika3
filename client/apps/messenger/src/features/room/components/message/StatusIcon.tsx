@@ -5,7 +5,7 @@ import DeliveredIcon from "../../../../assets/delivered-icon.svg";
 import SeenIcon from "../../../../assets/seen-icon.svg";
 import FailedIcon from "../../../../assets/failed-icon.svg";
 import { Box, Typography } from "@mui/material";
-import { removeMessage, resendMessage } from "../../slices/messages";
+import { removeMessage, resendMessage, showMessageDetails } from "../../slices/messages";
 import { useParams } from "react-router-dom";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
@@ -24,11 +24,17 @@ export default function StatusIcon({ status, id }: StatusIconProps): React.React
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const roomId = parseInt(useParams().id || "");
     const dispatch = useAppDispatch();
+    const isStatusClickable = status !== "sending";
 
     const open = Boolean(anchorEl);
+
     const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
         if (status === "failed") {
             setAnchorEl(event.currentTarget);
+            return;
+        }
+        if (status !== "sending") {
+            dispatch(showMessageDetails({ roomId, messageId: id }));
         }
     };
     const handleClose = () => {
@@ -63,8 +69,6 @@ export default function StatusIcon({ status, id }: StatusIconProps): React.React
         }
     };
 
-    const isFailed = status === "failed";
-
     const Icon = getIcon(status);
 
     const handleResend = () => {
@@ -79,7 +83,15 @@ export default function StatusIcon({ status, id }: StatusIconProps): React.React
 
     return (
         <Box alignSelf="end">
-            <Box onClick={handleClick} width="16px" sx={{ cursor: isFailed ? "pointer" : "auto" }}>
+            <Box
+                onClick={handleClick}
+                width="16px"
+                sx={{
+                    "&:hover": {
+                        cursor: isStatusClickable ? "pointer" : "default",
+                    },
+                }}
+            >
                 <img src={Icon} style={{ marginLeft: "0.375rem" }} />
             </Box>
             <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>

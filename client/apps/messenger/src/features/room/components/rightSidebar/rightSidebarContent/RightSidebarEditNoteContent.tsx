@@ -1,40 +1,35 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useSelector } from "react-redux";
 
 import { Box } from "@mui/material";
-import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 
 import useStrings from "../../../../../hooks/useStrings";
 
-import { useEditNoteMutation, useGetNoteByIdQuery } from "../../../api/note";
-import { selectRightSidebarActiveNoteId, setActiveNoteId } from "../../../slices/rightSidebar";
-import { useAppDispatch } from "../../../../../hooks";
+import { useGetNoteByIdQuery } from "../../../api/note";
+import {
+    selectRightSidebarActiveNoteId,
+    setEditNoteContent,
+    setEditNoteTitle,
+} from "../../../slices/rightSidebar";
+import { useAppDispatch, useAppSelector } from "../../../../../hooks";
 
 export default function RightSidebarEditNoteContent(): React.ReactElement {
     const strings = useStrings();
     const noteId = useSelector(selectRightSidebarActiveNoteId);
+    const dispatch = useAppDispatch();
+
+    const title = useAppSelector((state) => state.rightSidebar.editNoteTitle);
+    const content = useAppSelector((state) => state.rightSidebar.editNoteContent);
 
     const { data } = useGetNoteByIdQuery(noteId);
 
-    const dispatch = useAppDispatch();
-    const [title, setTitle] = useState("");
-    const [content, setContent] = useState("");
-    const [editNote, { isLoading }] = useEditNoteMutation();
-
     useEffect(() => {
         if (data && data.note) {
-            setTitle(data.note.title);
-            setContent(data.note.content);
+            dispatch(setEditNoteTitle(data.note.title));
+            dispatch(setEditNoteContent(data.note.content));
         }
     }, [data]);
-
-    const handleSubmit = async () => {
-        const data = await editNote({ noteId, data: { title, content } }).unwrap();
-        if (data?.note?.id) {
-            dispatch(setActiveNoteId(data.note.id));
-        }
-    };
 
     return (
         <Box>
@@ -47,7 +42,7 @@ export default function RightSidebarEditNoteContent(): React.ReactElement {
                 name="title"
                 autoFocus
                 value={title}
-                onChange={({ target }) => setTitle(target.value)}
+                onChange={({ target }) => dispatch(setEditNoteTitle(target.value))}
             />
             <TextField
                 sx={{ mb: 2 }}
@@ -59,17 +54,8 @@ export default function RightSidebarEditNoteContent(): React.ReactElement {
                 minRows={20}
                 multiline
                 value={content}
-                onChange={({ target }) => setContent(target.value)}
+                onChange={({ target }) => dispatch(setEditNoteContent(target.value))}
             />
-            <Button
-                onClick={handleSubmit}
-                disabled={!title || !content || isLoading}
-                fullWidth
-                variant="contained"
-                sx={{ marginTop: "1em" }}
-            >
-                {strings.save}
-            </Button>
         </Box>
     );
 }

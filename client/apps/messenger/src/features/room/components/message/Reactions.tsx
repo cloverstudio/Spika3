@@ -24,7 +24,11 @@ export default function MessageReactions({ id }: MessageReactionsProps): React.R
 
     const reactionDuplicateExists = useRef(false);
 
-    const reactionToShow: MessageRecordType[] = reactions
+    if (!reactions || !reactions.length) {
+        return null;
+    }
+
+    const reactionsToShow: MessageRecordType[] = reactions
         .reduce((acc, curr) => {
             if (curr.isDeleted) return acc;
             if (acc.some((r) => r.reaction === curr.reaction)) {
@@ -35,10 +39,6 @@ export default function MessageReactions({ id }: MessageReactionsProps): React.R
             }
         }, [])
         .slice(0, 3);
-
-    if (!reactions.length) {
-        return null;
-    }
 
     const handleEmojiClick = () => {
         dispatch(showEmojiDetails({ roomId, messageId: id }));
@@ -85,7 +85,7 @@ export default function MessageReactions({ id }: MessageReactionsProps): React.R
                             {reactions.length}
                         </Typography>
                     )}
-                    {reactionToShow.map((r) => (
+                    {reactionsToShow.map((r) => (
                         <Reaction key={r.reaction} emoji={r.reaction} />
                     ))}
                 </Box>
