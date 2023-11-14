@@ -73,6 +73,9 @@ const en = {
     botUpdated: "Bot updated",
     userId: "ID",
     bots: "Bots",
+    shortDescription: "Short description",
+    longDescription: "Long description",
+    coverPhoto: "Cover photo",
 };
 
 const strings = {
