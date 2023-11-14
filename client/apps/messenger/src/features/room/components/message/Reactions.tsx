@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef } from "react";
 import { Box } from "@mui/material";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -20,41 +20,25 @@ export default function MessageReactions({ id }: MessageReactionsProps): React.R
     const dispatch = useAppDispatch();
 
     const isUsersMessage = useIsUsersMessage(roomId, id);
-    const reactions = useSelector(selectMessageReactions(roomId, id))?.filter(
-        (reaction) => !reaction.isDeleted,
-    );
+    const reactions = useSelector(selectMessageReactions(roomId, id));
 
-    const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
-
-    const handleMouseEnter = (event: React.MouseEvent<HTMLDivElement>) => {
-        setAnchorEl(event.currentTarget);
-    };
-
-    const handleMouseLeave = () => {
-        setAnchorEl(null);
-    };
-
-    const open = Boolean(anchorEl);
+    const reactionDuplicateExists = useRef(false);
 
     if (!reactions || !reactions.length) {
         return null;
     }
 
-    const messageRecordsByReaction: { [key: string]: MessageRecordType[] } = reactions.reduce(
-        (acc, curr) => {
-            if (acc[curr.reaction]) {
-                acc[curr.reaction].push(curr);
+    const reactionsToShow: MessageRecordType[] = reactions
+        .reduce((acc, curr) => {
+            if (curr.isDeleted) return acc;
+            if (acc.some((r) => r.reaction === curr.reaction)) {
+                if (!reactionDuplicateExists.current) reactionDuplicateExists.current = true;
+                return acc;
             } else {
-                acc[curr.reaction] = [curr];
+                return [...acc, curr];
             }
-            return acc;
-        },
-        {},
-    );
-
-    if (!reactions.length) {
-        return null;
-    }
+        }, [])
+        .slice(0, 3);
 
     const handleEmojiClick = () => {
         dispatch(showEmojiDetails({ roomId, messageId: id }));
@@ -75,8 +59,6 @@ export default function MessageReactions({ id }: MessageReactionsProps): React.R
             <Stack
                 flexShrink={0}
                 direction="row"
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
                 bgcolor={isUsersMessage ? "common.myMessageBackground" : "background.paper"}
                 position="relative"
                 top="23px"
@@ -92,9 +74,21 @@ export default function MessageReactions({ id }: MessageReactionsProps): React.R
                 }}
                 onClick={handleEmojiClick}
             >
-                {Object.entries(messageRecordsByReaction).map(([emoji, reactions]) => {
-                    return <Reaction key={emoji} emoji={emoji} reactions={reactions} />;
-                })}
+                <Box
+                    sx={{
+                        display: "flex",
+                        ...(isUsersMessage && { flexDirection: "row-reverse" }),
+                    }}
+                >
+                    {(reactions.length > 3 || reactionDuplicateExists.current) && (
+                        <Typography sx={{ margin: "6px 2px 0 2px" }} fontSize="0.75rem">
+                            {reactions.length}
+                        </Typography>
+                    )}
+                    {reactionsToShow.map((r) => (
+                        <Reaction key={r.reaction} emoji={r.reaction} />
+                    ))}
+                </Box>
             </Stack>
         </Box>
     );
@@ -102,21 +96,13 @@ export default function MessageReactions({ id }: MessageReactionsProps): React.R
 
 type ReactionProps = {
     emoji: string;
-    reactions: MessageRecordType[];
 };
 
-function Reaction({ emoji, reactions }: ReactionProps): React.ReactElement {
+function Reaction({ emoji }: ReactionProps): React.ReactElement {
     return (
         <>
             <Box p={0.25} flexShrink={0}>
-                {emoji}{" "}
-                {reactions.length > 1 ? (
-                    <Typography ml={-0.25} display="inline" fontSize="0.75rem">
-                        {reactions.length}
-                    </Typography>
-                ) : (
-                    ""
-                )}
+                {emoji}
             </Box>
         </>
     );

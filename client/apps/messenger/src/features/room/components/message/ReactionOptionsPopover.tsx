@@ -37,8 +37,8 @@ export default function ReactionOptionsPopover({
     const { messageContainerRef } = useMessageContainerContext();
     const reactionMenuRef = useRef(null);
 
-    const [positionBottom, setPositionBottom] = useState(null);
-    const [positionTop, setPositionTop] = useState(null);
+    const [positionBottom, setPositionBottom] = useState("");
+    const [positionTop, setPositionTop] = useState("");
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -54,7 +54,14 @@ export default function ReactionOptionsPopover({
 
         if (reactionMenuRect.top + reactionMenuRect.height / 2 > messageContainerRect.height) {
             setPositionTop("-76px");
-        } else setPositionBottom("-76px");
+        } else {
+            setPositionBottom("-76px");
+        }
+
+        return () => {
+            setPositionBottom("");
+            setPositionTop("");
+        };
     }, [show]);
 
     const handleSelect = (emoji: string) => {
@@ -87,7 +94,7 @@ export default function ReactionOptionsPopover({
                         position: "absolute",
                         bottom: positionBottom,
                         top: positionTop,
-                        padding: "24px 12px",
+                        padding: "20px 12px",
                     }}
                     ref={reactionMenuRef}
                 >

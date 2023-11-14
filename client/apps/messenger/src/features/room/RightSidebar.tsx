@@ -8,6 +8,7 @@ import RightSidebarContent from "./components/rightSidebar/rightSidebarContent";
 import RightSidebarHeader from "./components/rightSidebar/rightSidebarHeader";
 import { setActiveTab } from "./slices/rightSidebar";
 import { useAppDispatch } from "../../hooks";
+import { SaveNoteEditModal } from "./components/rightSidebar/SaveNoteEditModal";
 
 export default function RightSidebar(): React.ReactElement {
     const roomId = +useParams().id;
@@ -32,6 +33,7 @@ export default function RightSidebar(): React.ReactElement {
         <RightSidebarContainer>
             <RightSidebarHeader type={room.type} />
             <RightSidebarContent room={room} />
+            <SaveNoteEditModal />
         </RightSidebarContainer>
     );
 }

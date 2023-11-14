@@ -84,7 +84,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                         },
                     },
                     include: {
-                        messageRecords: true,
+                        messageRecords: { orderBy: { modifiedAt: "desc" } },
                     },
                     orderBy: {
                         createdAt: "desc",
@@ -116,7 +116,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                             createdAt,
                             modifiedAt,
                         }).messageWithReactionRecords();
-                    })
+                    }),
                 );
 
                 const nextCursor =
@@ -130,16 +130,16 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                             limit: take,
                             nextCursor,
                         },
-                        userReq.lang
-                    )
+                        userReq.lang,
+                    ),
                 );
 
                 const notDeliveredMessagesIds = messages
                     .filter(
                         (m) =>
                             !m.messageRecords.find(
-                                (mr) => mr.type === "delivered" && mr.userId === userId
-                            )
+                                (mr) => mr.type === "delivered" && mr.userId === userId,
+                            ),
                     )
                     .map((m) => m.id);
 

@@ -19,7 +19,7 @@ import Input from "@mui/material/Input";
 import InputAdornment from "@mui/material/InputAdornment";
 
 import { useGetRoomQuery } from "../api/room";
-import { toggleRightSidebar } from "../slices/rightSidebar";
+import { showNoteEditModal, toggleRightSidebar } from "../slices/rightSidebar";
 import { RoomType } from "../../../types/Rooms";
 import useStrings from "../../../hooks/useStrings";
 import { useLazySearchMessagesQuery } from "../api/message";
@@ -29,7 +29,7 @@ import {
     setKeyword,
     setTargetMessage,
 } from "../slices/messages";
-import { useAppDispatch } from "../../../hooks";
+import { useAppDispatch, useAppSelector } from "../../../hooks";
 
 export default function Header() {
     const roomId = parseInt(useParams().id || "");
@@ -52,7 +52,18 @@ function HeaderContent({ room }: { room: RoomType }) {
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
     const [searchOn, setSearchOn] = useState(false);
 
+    const isSomeNoteEditing =
+        useAppSelector((state) => state.rightSidebar.activeTab) === "editNote";
+
     const iconSxProps = { width: "25px", height: "25px", color: "primary.main", cursor: "pointer" };
+
+    const moreOptionsClickHandler = () => {
+        if (isSomeNoteEditing) {
+            dispatch(showNoteEditModal());
+            return;
+        }
+        dispatch(toggleRightSidebar());
+    };
 
     if (searchOn) {
         return (
@@ -74,7 +85,7 @@ function HeaderContent({ room }: { room: RoomType }) {
                     src={`${UPLOADS_BASE_URL}/${room.avatarFileId}`}
                     onClick={() => {
                         if (isMobile) return;
-                        dispatch(toggleRightSidebar());
+                        moreOptionsClickHandler();
                     }}
                     sx={{ cursor: isMobile ? "default" : "pointer" }}
                 />
@@ -83,17 +94,14 @@ function HeaderContent({ room }: { room: RoomType }) {
                     fontWeight="500"
                     ml={1.5}
                     sx={{ cursor: "pointer" }}
-                    onClick={() => dispatch(toggleRightSidebar())}
+                    onClick={moreOptionsClickHandler}
                 >
                     {room.name}
                 </Typography>
             </Box>
             <Box display="flex" gap={3} alignItems="center">
                 <SearchIcon sx={iconSxProps} onClick={() => setSearchOn(true)} />
-                <MoreVertIcon
-                    sx={iconSxProps}
-                    onClick={() => dispatch(toggleRightSidebar())}
-                ></MoreVertIcon>
+                <MoreVertIcon sx={iconSxProps} onClick={moreOptionsClickHandler}></MoreVertIcon>
             </Box>
         </>
     );
