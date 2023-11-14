@@ -1,5 +1,5 @@
 import React, { Dispatch, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import Avatar from "@mui/material/Avatar";
 import Badge from "@mui/material/Badge";
@@ -29,6 +29,8 @@ import { selectUser } from "../../../../store/userSlice";
 import { useTheme } from "@mui/material/styles";
 import { ReactComponent as NewChatIcon } from "../../../../assets/new-chat.svg";
 import { AppDispatch } from "../../../../store/store";
+import { useAppDispatch, useAppSelector } from "../../../../hooks";
+import { showNoteEditModal } from "../../slices/rightSidebar";
 
 dayjs.extend(relativeTime);
 declare const UPLOADS_BASE_URL: string;
@@ -157,6 +159,13 @@ function RoomRow({ id, isActive, lastMessage, unreadCount }: RoomRowProps) {
     );
     const { data, isLoading } = useGetRoomQuery(id);
 
+    const navigate = useNavigate();
+
+    const dispatch = useAppDispatch();
+
+    const isSomeNoteEditing =
+        useAppSelector((state) => state.rightSidebar.activeTab) === "editNote";
+
     useEffect(() => {
         if (lastMessage?.createdAt) {
             setTime(dayjs(lastMessage.createdAt).fromNow());
@@ -220,96 +229,104 @@ function RoomRow({ id, isActive, lastMessage, unreadCount }: RoomRowProps) {
         lastMessageText = `${senderUser?.displayName || strings.removedUser}: ${lastMessageText}`;
     }
 
+    const roomClickHandler = () => {
+        if (isSomeNoteEditing) {
+            dispatch(showNoteEditModal());
+            return;
+        }
+
+        navigate(`/rooms/${id}`);
+    };
+
     return (
-        <Link to={`/rooms/${id}`} style={{ textDecoration: "none" }}>
-            <Box
-                bgcolor={isActive ? "action.hover" : "transparent"}
-                px={2.5}
-                py={1.5}
-                display="flex"
-                id={`room_${id}`}
-            >
-                <Avatar
-                    alt={name}
-                    sx={{ width: 50, height: 50 }}
-                    src={`${UPLOADS_BASE_URL}/${avatarFileId}`}
-                />
-                <Box ml={2} flexGrow={1} overflow="hidden">
+        <Box
+            bgcolor={isActive ? "action.hover" : "transparent"}
+            px={2.5}
+            py={1.5}
+            display="flex"
+            id={`room_${id}`}
+            sx={{
+                "&:hover": {
+                    cursor: "pointer",
+                },
+            }}
+            onClick={roomClickHandler}
+        >
+            <Avatar
+                alt={name}
+                sx={{ width: 50, height: 50 }}
+                src={`${UPLOADS_BASE_URL}/${avatarFileId}`}
+            />
+            <Box ml={2} flexGrow={1} overflow="hidden">
+                <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="baseline"
+                    gap={1}
+                    overflow="hidden"
+                    mb={0.5}
+                >
+                    <Typography
+                        fontWeight="600"
+                        color="text.primary"
+                        sx={{
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                        }}
+                    >
+                        {name}
+                    </Typography>
+
+                    <Typography
+                        fontSize="small"
+                        color="text.tertiary"
+                        fontWeight="500"
+                        lineHeight="1rem"
+                        flexShrink={0}
+                    >
+                        {time === "a few seconds ago" ? strings.now : time}
+                    </Typography>
+                </Box>
+
+                <Box display="flex" justifyContent="space-between" alignItems="baseline" gap={1}>
+                    <Typography
+                        sx={{
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                        }}
+                        color="text.secondary"
+                        lineHeight="1.35rem"
+                    >
+                        {lastMessageText}
+                    </Typography>
+
                     <Box
                         display="flex"
-                        justifyContent="space-between"
-                        alignItems="baseline"
+                        justifyContent="end"
+                        alignItems="center"
                         gap={1}
-                        overflow="hidden"
-                        mb={0.5}
+                        color="text.primary"
                     >
-                        <Typography
-                            fontWeight="600"
-                            color="text.primary"
-                            sx={{
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                                overflow: "hidden",
-                            }}
-                        >
-                            {name}
-                        </Typography>
-
-                        <Typography
-                            fontSize="small"
-                            color="text.tertiary"
-                            fontWeight="500"
-                            lineHeight="1rem"
-                            flexShrink={0}
-                        >
-                            {time === "a few seconds ago" ? strings.now : time}
-                        </Typography>
-                    </Box>
-
-                    <Box
-                        display="flex"
-                        justifyContent="space-between"
-                        alignItems="baseline"
-                        gap={1}
-                    >
-                        <Typography
-                            sx={{
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                                overflow: "hidden",
-                            }}
-                            color="text.secondary"
-                            lineHeight="1.35rem"
-                        >
-                            {lastMessageText}
-                        </Typography>
-
-                        <Box
-                            display="flex"
-                            justifyContent="end"
-                            alignItems="center"
-                            gap={1}
-                            color="text.primary"
-                        >
-                            {muted && <NotificationsOff fontSize="inherit" />}
-                            {pinned && <Pin fontSize="inherit" />}
-                            {unreadCount ? (
-                                <Badge
-                                    sx={{
-                                        "& .MuiBadge-badge": {
-                                            position: "relative",
-                                            transform: "none",
-                                        },
-                                    }}
-                                    color="primary"
-                                    badgeContent={unreadCount}
-                                    max={99}
-                                />
-                            ) : null}
-                        </Box>
+                        {muted && <NotificationsOff fontSize="inherit" />}
+                        {pinned && <Pin fontSize="inherit" />}
+                        {unreadCount ? (
+                            <Badge
+                                sx={{
+                                    "& .MuiBadge-badge": {
+                                        position: "relative",
+                                        transform: "none",
+                                    },
+                                }}
+                                color="primary"
+                                badgeContent={unreadCount}
+                                max={99}
+                            />
+                        ) : null}
                     </Box>
                 </Box>
             </Box>
-        </Link>
+        </Box>
     );
 }

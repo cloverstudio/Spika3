@@ -22,7 +22,8 @@ import useIsInViewport from "../../../../hooks/useIsInViewport";
 
 import SearchBox from "../SearchBox";
 import useStrings from "../../../../hooks/useStrings";
-import { useAppDispatch } from "../../../../hooks";
+import { useAppDispatch, useAppSelector } from "../../../../hooks";
+import { showNoteEditModal } from "../../slices/rightSidebar";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -43,6 +44,9 @@ export default function SidebarContactList({
 
     const { isInViewPort, elementRef } = useIsInViewport();
 
+    const isSomeNoteEditing =
+        useAppSelector((state) => state.rightSidebar.activeTab) === "editNote";
+
     const navigate = useNavigate();
     const [createRoom] = useCreateRoomMutation();
 
@@ -60,6 +64,11 @@ export default function SidebarContactList({
     }, [dispatch]);
 
     const defaultHandleUserClick = async (user: User) => {
+        if (isSomeNoteEditing) {
+            dispatch(showNoteEditModal());
+            return;
+        }
+
         try {
             const res = await dynamicBaseQuery(`/messenger/rooms/users/${user.id}`);
 

@@ -142,6 +142,9 @@ const en = {
     permalinkCopied: "Permalink Copied",
     messageCopied: "Message Copied",
     edited: "edited",
+    saveEditsTitle: "Save edits",
+    saveEditsContent: "Do you want to save edits?",
+    discard: "Discard",
 };
 
 const strings = {

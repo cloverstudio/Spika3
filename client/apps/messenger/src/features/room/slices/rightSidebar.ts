@@ -9,6 +9,7 @@ interface InitialState {
     activeNoteId: number;
     editNoteTitle: string;
     editNoteContent: string;
+    isSaveNoteEditModalOpen: boolean;
 }
 
 export const rightSidebarSlice = createSlice({
@@ -19,6 +20,7 @@ export const rightSidebarSlice = createSlice({
         activeNoteId: null,
         editNoteTitle: "",
         editNoteContent: "",
+        isSaveNoteEditModalOpen: false,
     },
     reducers: {
         toggle(state) {
@@ -29,6 +31,12 @@ export const rightSidebarSlice = createSlice({
         },
         hide(state) {
             state.show = false;
+        },
+        showNoteEditModal(state) {
+            state.isSaveNoteEditModalOpen = true;
+        },
+        hideNoteEditModal(state) {
+            state.isSaveNoteEditModalOpen = false;
         },
         setActiveTab(state, action: { payload: ActiveTabType }) {
             state.activeTab = action.payload;
@@ -68,6 +76,8 @@ export const {
     setEditNoteId,
     setEditNoteContent,
     setEditNoteTitle,
+    showNoteEditModal,
+    hideNoteEditModal,
 } = rightSidebarSlice.actions;
 
 export default rightSidebarSlice.reducer;
