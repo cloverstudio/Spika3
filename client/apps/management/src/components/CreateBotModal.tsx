@@ -7,7 +7,7 @@ import DialogActions from "@mui/material/DialogActions";
 import Button from "@mui/material/Button";
 
 import useStrings from "@/hooks/useStrings";
-import { Box, FormLabel, Stack, TextField, Typography } from "@mui/material";
+import { Box, FormLabel, Stack, TextField } from "@mui/material";
 import { useCreateBotMutation } from "@/features/users/api/users";
 import { useShowSnackBar } from "@/hooks/useModal";
 import uploadImage from "@assets/upload-image.svg";
@@ -27,8 +27,8 @@ export default function CreateUserModal({ onClose }: { onClose: () => void }) {
     const [createBot, { isLoading }] = useCreateBotMutation();
     const showBasicSnackbar = useShowSnackBar();
     const [avatarFile, setAvatarFile] = useState<File>();
-    const [coverFile, setCoverFile] = useState<File>();
     const [avatarSrc, setAvatarSrc] = useState(uploadImage);
+    const [coverFile, setCoverFile] = useState<File>();
     const [coverSrc, setCoverSrc] = useState(uploadImage);
     const uploadAvatarFileRef = useRef(null);
     const uploadCoverFileRef = useRef(null);
@@ -91,14 +91,6 @@ export default function CreateUserModal({ onClose }: { onClose: () => void }) {
         } catch (error) {
             showBasicSnackbar({ text: strings.genericError, severity: "error" });
         }
-    };
-
-    const handleRemoveAvatarImage = () => {
-        setAvatarSrc(uploadImage);
-    };
-
-    const handleRemoveCoverImage = () => {
-        setCoverSrc(uploadImage);
     };
 
     return (

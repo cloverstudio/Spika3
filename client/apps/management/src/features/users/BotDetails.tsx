@@ -36,21 +36,21 @@ export default function UserDetails({ user }: { user: BotUserType }) {
             {
                 allowButtonLabel: strings.yes,
                 denyButtonLabel: strings.no,
-                text: strings.deleteUserConfirmation,
-                title: strings.deleteUser,
+                text: strings.deleteBotConfirmation,
+                title: strings.deleteBot,
             },
             () => {
                 deleteUser(user.id)
                     .unwrap()
                     .then((res) => {
                         if (res?.status === "success") {
-                            showBasicSnackbar({ severity: "success", text: strings.userDeleted });
-                            navigate("/users");
+                            showBasicSnackbar({ severity: "success", text: strings.botDeleted });
+                            navigate("/bots");
                             return;
                         }
                         showBasicSnackbar({ severity: "error", text: res.message });
                     });
-            }
+            },
         );
     };
 
@@ -76,6 +76,19 @@ export default function UserDetails({ user }: { user: BotUserType }) {
                         </IconButton>
                     </Box>
                 </Box>
+                {user.coverFileId && (
+                    <Box
+                        mb={4}
+                        sx={{
+                            width: "100%",
+                            height: "15rem",
+                            borderRadius: "0.5rem",
+                            backgroundImage: `url(${UPLOADS_BASE_URL}/${user.coverFileId})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                        }}
+                    />
+                )}
                 <Avatar
                     sx={{ width: 100, height: 100 }}
                     alt={user.displayName || "U"}
@@ -98,6 +111,23 @@ export default function UserDetails({ user }: { user: BotUserType }) {
                             {user.displayName}
                         </Typography>
                     </Box>
+                    <Box display="grid" gridTemplateColumns="2fr 5fr" gap={2}>
+                        <Typography color="text.tertiary" fontSize="0.85rem">
+                            {strings.shortDescription}
+                        </Typography>
+                        <Typography fontWeight="medium" color="text.secondary" fontSize="0.8rem">
+                            {user.shortDescription}
+                        </Typography>
+                    </Box>
+                    <Box display="grid" gridTemplateColumns="2fr 5fr" gap={2}>
+                        <Typography color="text.tertiary" fontSize="0.85rem">
+                            {strings.longDescription}
+                        </Typography>
+                        <Typography fontWeight="medium" color="text.secondary" fontSize="0.8rem">
+                            {user.longDescription}
+                        </Typography>
+                    </Box>
+
                     <Box display="grid" gridTemplateColumns="2fr 5fr" gap={2}>
                         <Typography color="text.tertiary" fontSize="0.85rem">
                             {strings.accessToken}
@@ -184,7 +214,7 @@ function UsersGroups({ userId }: { userId: number }) {
                             text: strings.userRemovedFromGroup,
                         });
                     });
-            }
+            },
         );
     };
 
@@ -257,7 +287,7 @@ function UsersDevices({ userId }: { userId: number }) {
                 denyButtonLabel: strings.no,
                 text: strings.logoutUserFromDeviceConfirmation.replace(
                     "{deviceName}",
-                    `${osName} (${osVersion})`
+                    `${osName} (${osVersion})`,
                 ),
                 title: strings.logoutUserFromDevice,
             },
@@ -277,7 +307,7 @@ function UsersDevices({ userId }: { userId: number }) {
                             text: strings.userLogoutFromDevice,
                         });
                     });
-            }
+            },
         );
     };
 

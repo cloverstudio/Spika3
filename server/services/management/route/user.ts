@@ -24,6 +24,19 @@ const getContactsSchema = yup.object().shape({
     }),
 });
 
+type UpdateUserType = {
+    displayName?: string;
+    webhookUrl?: string;
+    avatarFileId?: number;
+    coverFileId?: number;
+    shortDescription?: string;
+    longDescription?: string;
+    emailAddress?: string;
+    telephoneNumber?: string;
+    verified?: boolean;
+    verificationCode?: string;
+};
+
 export default ({ redisClient }: InitRouterParams) => {
     const router = Router();
 
@@ -36,7 +49,15 @@ export default ({ redisClient }: InitRouterParams) => {
             const cursor = parseInt(req.query.cursor ? (req.query.cursor as string) : "") || null;
             const take = cursor ? consts.CONTACT_PAGING_LIMIT + 1 : consts.CONTACT_PAGING_LIMIT;
 
-            const condition: any = {
+            type ConditionType = {
+                verified: boolean;
+                deleted: boolean;
+                displayName?: {
+                    startsWith: string;
+                };
+            };
+
+            const condition: ConditionType = {
                 verified: true,
                 deleted: false,
             };
@@ -80,7 +101,7 @@ export default ({ redisClient }: InitRouterParams) => {
                         "en",
                     ),
                 );
-            } catch (e: any) {
+            } catch (e: unknown) {
                 le(e);
                 res.status(500).send(errorResponse(`Server error ${e}`, "en"));
             }
@@ -150,7 +171,7 @@ export default ({ redisClient }: InitRouterParams) => {
                     userReq.lang,
                 ),
             );
-        } catch (e: any) {
+        } catch (e: unknown) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
@@ -174,7 +195,7 @@ export default ({ redisClient }: InitRouterParams) => {
                     return res.status(404).send(errorResponse(`User not found`, userReq.lang));
 
                 return res.send(successResponse({ user: sanitize(user).user() }, userReq.lang));
-            } catch (e: any) {
+            } catch (e: unknown) {
                 le(e);
                 res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
             }
@@ -195,7 +216,7 @@ export default ({ redisClient }: InitRouterParams) => {
             if (!user) return res.status(404).send(errorResponse(`Wrong user id`, userReq.lang));
 
             return res.send(successResponse({ user: sanitize(user).user() }, userReq.lang));
-        } catch (e: any) {
+        } catch (e: unknown) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
@@ -218,7 +239,7 @@ export default ({ redisClient }: InitRouterParams) => {
             if (!user) return res.status(404).send(errorResponse(`Wrong user id`, userReq.lang));
 
             return res.send(successResponse({ user }, userReq.lang));
-        } catch (e: any) {
+        } catch (e: unknown) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
@@ -262,7 +283,7 @@ export default ({ redisClient }: InitRouterParams) => {
             return res.send(
                 successResponse({ rooms: rooms.map((r) => sanitize(r).room()) }, userReq.lang),
             );
-        } catch (e: any) {
+        } catch (e: unknown) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
@@ -295,7 +316,7 @@ export default ({ redisClient }: InitRouterParams) => {
                     userReq.lang,
                 ),
             );
-        } catch (e: any) {
+        } catch (e: unknown) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
@@ -342,7 +363,7 @@ export default ({ redisClient }: InitRouterParams) => {
                 });
 
                 return res.send(successResponse({ expired: true }, userReq.lang));
-            } catch (e: any) {
+            } catch (e: unknown) {
                 le(e);
                 res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
             }
@@ -360,6 +381,9 @@ export default ({ redisClient }: InitRouterParams) => {
             const avatarFileId: number = req.body.avatarFileId;
             const verified: boolean = req.body.verified;
             const verificationCode: string = req.body.verificationCode;
+            const coverFileId: number = req.body.coverFileId;
+            const shortDescription: string = req.body.shortDescription;
+            const longDescription: string = req.body.longDescription;
 
             const user = await prisma.user.findFirst({
                 where: {
@@ -399,13 +423,16 @@ export default ({ redisClient }: InitRouterParams) => {
                 return res.status(400).send(errorResponse(`Email is already in use`, userReq.lang));
             }
 
-            const updateValues: any = {};
+            const updateValues: UpdateUserType = {};
             if (displayName) updateValues.displayName = displayName;
             if (emailAddress) updateValues.emailAddress = emailAddress;
             if (telephoneNumber) updateValues.telephoneNumber = telephoneNumber;
             if (avatarFileId !== undefined) updateValues.avatarFileId = avatarFileId;
             if (verified != null) updateValues.verified = verified;
             if (verificationCode) updateValues.verificationCode = verificationCode;
+            if (coverFileId !== undefined) updateValues.coverFileId = coverFileId;
+            if (shortDescription !== undefined) updateValues.shortDescription = shortDescription;
+            if (longDescription !== undefined) updateValues.longDescription = longDescription;
 
             if (Object.keys(updateValues).length == 0) {
                 return res.status(400).send(errorResponse(`Nothing to update`, userReq.lang));
@@ -426,7 +453,7 @@ export default ({ redisClient }: InitRouterParams) => {
                 const key = `${consts.ROOM_PREFIX}${roomUser.roomId}`;
                 await redisClient.del(key);
             }
-        } catch (e: any) {
+        } catch (e: unknown) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
@@ -522,7 +549,7 @@ export default ({ redisClient }: InitRouterParams) => {
                 const key = `${consts.ROOM_PREFIX}${room.id}`;
                 await redisClient.del(key);
             }
-        } catch (e: any) {
+        } catch (e: unknown) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
@@ -535,6 +562,9 @@ export default ({ redisClient }: InitRouterParams) => {
             const emailAddress: string = req.body.emailAddress;
             const telephoneNumber: string = req.body.telephoneNumber;
             const avatarFileId: number = req.body.avatarFileId;
+            const coverFileId: number = req.body.coverFileId;
+            const shortDescription: string = req.body.shortDescription;
+            const longDescription: string = req.body.longDescription;
 
             if (!displayName) {
                 return res.status(400).send(errorResponse("Display name required", userReq.lang));
@@ -579,11 +609,14 @@ export default ({ redisClient }: InitRouterParams) => {
                     avatarFileId: avatarFileId || 0,
                     emailAddress: emailAddress || null,
                     verified: true,
+                    coverFileId,
+                    shortDescription,
+                    longDescription,
                 },
             });
 
             return res.status(200).send(successResponse({ user }, userReq.lang));
-        } catch (e: any) {
+        } catch (e: unknown) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
@@ -595,6 +628,9 @@ export default ({ redisClient }: InitRouterParams) => {
             const avatarFileId: number = req.body.avatarFileId;
             const displayName: string = req.body.displayName;
             const webhookUrl: string = req.body.webhookUrl;
+            const coverFileId: number = req.body.coverFileId;
+            const shortDescription: string = req.body.shortDescription;
+            const longDescription: string = req.body.longDescription;
 
             if (!displayName) {
                 return res.status(400).send(errorResponse("Display name required", userReq.lang));
@@ -614,11 +650,14 @@ export default ({ redisClient }: InitRouterParams) => {
                     avatarFileId: avatarFileId || 0,
                     verified: true,
                     isBot: true,
-                    webhookUrl: webhookUrl,
+                    webhookUrl,
+                    coverFileId,
+                    shortDescription,
+                    longDescription,
                 },
             });
 
-            const device = await prisma.device.create({
+            await prisma.device.create({
                 data: {
                     deviceId: "" + user.id,
                     userId: user.id,
@@ -633,7 +672,7 @@ export default ({ redisClient }: InitRouterParams) => {
             });
 
             return res.status(200).send(successResponse({ user }, userReq.lang));
-        } catch (e: any) {
+        } catch (e: unknown) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
@@ -647,6 +686,9 @@ export default ({ redisClient }: InitRouterParams) => {
             const avatarFileId: number = req.body.avatarFileId;
             const displayName: string = req.body.displayName;
             const webhookUrl: string = req.body.webhookUrl;
+            const coverFileId: number = req.body.coverFileId;
+            const shortDescription: string = req.body.shortDescription;
+            const longDescription: string = req.body.longDescription;
 
             const user = await prisma.user.findFirst({
                 where: {
@@ -668,10 +710,13 @@ export default ({ redisClient }: InitRouterParams) => {
                     .send(errorResponse("URL should be correct format", userReq.lang));
             }
 
-            const updateValues: any = {};
+            const updateValues: UpdateUserType = {};
             if (displayName) updateValues.displayName = displayName;
             if (webhookUrl) updateValues.webhookUrl = webhookUrl;
             if (avatarFileId !== undefined) updateValues.avatarFileId = avatarFileId;
+            if (coverFileId !== undefined) updateValues.coverFileId = coverFileId;
+            if (shortDescription !== undefined) updateValues.shortDescription = shortDescription;
+            if (longDescription !== undefined) updateValues.longDescription = longDescription;
 
             if (Object.keys(updateValues).length == 0) {
                 return res.status(400).send(errorResponse(`Nothing to update`, userReq.lang));
@@ -692,7 +737,7 @@ export default ({ redisClient }: InitRouterParams) => {
                 const key = `${consts.ROOM_PREFIX}${roomUser.roomId}`;
                 await redisClient.del(key);
             }
-        } catch (e: any) {
+        } catch (e: unknown) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
@@ -715,11 +760,11 @@ export default ({ redisClient }: InitRouterParams) => {
                 if (!device)
                     return res.status(400).send(errorResponse("Invalid user id", userReq.lang));
 
-                const updateValues: any = {
+                const updateValues = {
                     token: utils.randomString(consts.APIKEY_LENGTH),
                 };
 
-                const updateDevice = await prisma.device.update({
+                await prisma.device.update({
                     where: {
                         id: device.id,
                     },
@@ -727,7 +772,7 @@ export default ({ redisClient }: InitRouterParams) => {
                 });
 
                 res.send(successResponse({ device: updateValues }, userReq.lang));
-            } catch (e: any) {
+            } catch (e: unknown) {
                 le(e);
                 res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
             }

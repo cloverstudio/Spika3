@@ -83,7 +83,7 @@ export default function Users(): React.ReactElement {
                         sx={{ mx: "auto" }}
                     />
                 )}
-                <UserList users={data.data.list} />
+                <UserList baseUrl="bots" users={data.data.list} />
             </Box>
 
             {showNewUserModal && <CreateUserModal onClose={() => setShowNewUserModal(false)} />}

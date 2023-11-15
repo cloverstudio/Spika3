@@ -76,6 +76,9 @@ const en = {
     shortDescription: "Short description",
     longDescription: "Long description",
     coverPhoto: "Cover photo",
+    deleteBot: "Delete bot",
+    deleteBotConfirmation: "Are you sure you want to delete this bot?",
+    botDeleted: "Bot deleted",
 };
 
 const strings = {
