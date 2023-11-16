@@ -74,7 +74,7 @@ export default function SidebarContactList({
             }).unwrap();
 
             if (created.room.id) {
-                navigate(`/rooms/${created.room.id}`);
+                navigate(`/rooms/${created.room.id}?showBotInfo=1`);
             }
         }
     };

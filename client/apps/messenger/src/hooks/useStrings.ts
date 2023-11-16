@@ -142,6 +142,8 @@ const en = {
     permalinkCopied: "Permalink Copied",
     messageCopied: "Message Copied",
     edited: "edited",
+    chat: "Chat",
+    startChat: "Start chat",
 };
 
 const strings = {
