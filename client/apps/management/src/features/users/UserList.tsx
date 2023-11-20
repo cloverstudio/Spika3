@@ -6,16 +6,16 @@ import UserType from "@/types/User";
 
 declare const UPLOADS_BASE_URL: string;
 
-export default function UserList({ users }: { users: UserType[] }) {
+export default function UserList({ users, baseUrl }: { users: UserType[]; baseUrl?: string }) {
     return (
         <Box maxWidth="21rem">
             {users.map((user) => (
                 <User
-                    id={user.id}
                     key={user.id}
                     name={user.displayName}
                     avatarFileId={user.avatarFileId}
                     telephoneNumber={user.telephoneNumber}
+                    linkTo={`/${baseUrl || "users"}/${user.id}`}
                 />
             ))}
         </Box>
@@ -24,20 +24,20 @@ export default function UserList({ users }: { users: UserType[] }) {
 
 type UserRowProps = {
     name: string;
-    id: number;
     avatarFileId?: number;
     telephoneNumber?: string;
     SelectedIcon?: () => React.ReactElement;
+    linkTo: string;
 };
 
 export function User({
     name,
-    id,
     avatarFileId,
     telephoneNumber,
+    linkTo,
 }: UserRowProps): React.ReactElement {
     return (
-        <Link to={`/users/${id}`} style={{ textDecoration: "none" }}>
+        <Link to={linkTo} style={{ textDecoration: "none" }}>
             <Box
                 display="flex"
                 color="text.primary"

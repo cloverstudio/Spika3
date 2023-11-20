@@ -24,6 +24,9 @@ model User {
   createdAt             DateTime @default(now()) @map(name: "created_at")
   modifiedAt            DateTime @default(now()) @map(name: "modified_at")
   deleted               Boolean  @default(false) @map(name: "deleted")
+  coverFileId           Int?     @map(name: "cover_file_id")
+  shortDescription      String?  @map(name: "short_description")
+  longDescription       String?  @map(name: "long_description") @db.Text
 
   rooms           RoomUser[]
   device          Device[]

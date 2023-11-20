@@ -18,6 +18,14 @@ export default ({ redisClient }: InitRouterParams) => {
                     deleted: false,
                 },
             });
+
+            const bots = await prisma.user.count({
+                where: {
+                    isBot: true,
+                    deleted: false,
+                },
+            });
+
             const groups = await prisma.room.count({
                 where: {
                     type: "group",
@@ -25,7 +33,7 @@ export default ({ redisClient }: InitRouterParams) => {
                 },
             });
 
-            res.send(successResponse({ users, groups }, userReq.lang));
+            res.send(successResponse({ users, groups, bots }, userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));

@@ -5,7 +5,9 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import LoginPage from "@/pages/login";
 import HomePage, { homeLoader } from "@/pages/home";
 import UsersPage from "@/pages/users";
+import BotsPage from "@/pages/bots";
 import UserDetailPage from "@/pages/user";
+import BotDetailPage from "@/pages/bot";
 import GroupsPage from "@/pages/groups";
 import GroupPage from "@/pages/group";
 
@@ -34,6 +36,16 @@ const router = createBrowserRouter(
                     ],
                 },
                 {
+                    path: "bots",
+                    element: <BotsPage />,
+                    children: [
+                        {
+                            path: ":id",
+                            element: <BotDetailPage />,
+                        },
+                    ],
+                },
+                {
                     path: "groups",
                     element: <GroupsPage />,
                     children: [
@@ -46,7 +58,7 @@ const router = createBrowserRouter(
             ],
         },
     ],
-    { basename: BASE_URL }
+    { basename: BASE_URL },
 );
 
 export default function App(): React.ReactElement {

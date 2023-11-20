@@ -191,7 +191,6 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                     room,
                     users: room.users.map((u) => u.user),
                     messageType: type,
-                    rabbitMQChannel,
                 });
             } catch (e: unknown) {
                 le(e);

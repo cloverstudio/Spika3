@@ -8,8 +8,11 @@ import useTheme from "@mui/material/styles/useTheme";
 import Messages from "./components/Messages";
 import ChatInput from "./components/ChatInput";
 import ConfCall from "../confcall";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { useGetRoomQuery } from "./api/room";
+import BotInfo from "./components/BotInfo";
+import { selectUserId } from "../../store/userSlice";
+import { useSelector } from "react-redux";
 
 export default function Room(): React.ReactElement {
     const isCall = /^.+\/call.*$/.test(window.location.pathname);
@@ -29,7 +32,9 @@ function RoomContainer({ children }: { children: React.ReactNode }) {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
     const roomId = parseInt(useParams().id || "");
-    const { error } = useGetRoomQuery(roomId);
+    const { data, error } = useGetRoomQuery(roomId);
+    const userId = useSelector(selectUserId);
+    const [searchParams] = useSearchParams();
 
     const mobileProps = {
         position: "absolute" as const,
@@ -48,6 +53,16 @@ function RoomContainer({ children }: { children: React.ReactNode }) {
         return <Box p={2}>Chat not found</Box>;
     }
 
+    if (!data) {
+        return null;
+    }
+
+    const otherUser = data.type === "private" && data.users.find((u) => u.userId !== userId)?.user;
+    const otherUserIsBot = otherUser?.isBot;
+
+    if (otherUserIsBot && searchParams.get("showBotInfo")) {
+        return <BotInfo bot={otherUser} />;
+    }
     return (
         <Box display="flex" flexDirection="column" sx={isMobile ? mobileProps : desktopProps}>
             {children}

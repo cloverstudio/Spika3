@@ -71,7 +71,14 @@ const en = {
     accessToken: "Access token",
     renewAccessToken: "Renew",
     botUpdated: "Bot updated",
-    userId: "ID"
+    userId: "ID",
+    bots: "Bots",
+    shortDescription: "Short description",
+    longDescription: "Long description",
+    coverPhoto: "Cover photo",
+    deleteBot: "Delete bot",
+    deleteBotConfirmation: "Are you sure you want to delete this bot?",
+    botDeleted: "Bot deleted",
 };
 
 const strings = {

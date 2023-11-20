@@ -145,6 +145,8 @@ const en = {
     saveEditsTitle: "Save edits",
     saveEditsContent: "Do you want to save edits?",
     discard: "Discard",
+    chat: "Chat",
+    startChat: "Start chat",
 };
 
 const strings = {

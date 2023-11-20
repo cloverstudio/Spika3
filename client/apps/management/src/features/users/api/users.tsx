@@ -36,6 +36,14 @@ const usersApi = api.injectEndpoints({
                 `/management/users?page=${page}${keyword ? `&keyword=${keyword}` : ""}`,
             providesTags: [{ type: "Users", id: "LIST" }],
         }),
+        getBots: build.query<
+            SuccessResponse<UserListType> | ErrorResponse,
+            { page: number; keyword?: string }
+        >({
+            query: ({ page, keyword }) =>
+                `/management/users?bots=1&page=${page}${keyword ? `&keyword=${keyword}` : ""}`,
+            providesTags: [{ type: "Bots", id: "LIST" }],
+        }),
         getUserById: build.query<SuccessResponse<{ user: UserType }> | ErrorResponse, string>({
             query: (userId) => {
                 return `/management/users/${userId}`;
@@ -48,7 +56,7 @@ const usersApi = api.injectEndpoints({
                 return `/management/users/bot/${userId}`;
             },
             providesTags: (res) =>
-                res && res.status === "success" ? [{ type: "Users", id: res.data.user.id }] : [],
+                res && res.status === "success" ? [{ type: "Bots", id: res.data.user.id }] : [],
         }),
         getUserDevices: build.query<
             SuccessResponse<{ devices: DevicesType[] }> | ErrorResponse,
@@ -91,12 +99,7 @@ const usersApi = api.injectEndpoints({
             query: (data) => {
                 return { url: `/management/users/bot`, method: "POST", data };
             },
-            invalidatesTags: (res) =>
-                res && res.status === "success"
-                    ? [
-                          { type: "Users", id: "LIST" },
-                      ]
-                    : [],
+            invalidatesTags: () => [{ type: "Bots", id: "LIST" }],
         }),
         updateUser: build.mutation<
             SuccessResponse<{ user: UserType }> | ErrorResponse,
@@ -123,8 +126,8 @@ const usersApi = api.injectEndpoints({
             invalidatesTags: (res) =>
                 res && res.status === "success"
                     ? [
-                          { type: "Users", id: "LIST" },
-                          { type: "Users", id: res.data.device.userId },
+                          { type: "Bots", id: "LIST" },
+                          { type: "Bots", id: res.data.device.userId },
                       ]
                     : [],
         }),
@@ -138,8 +141,8 @@ const usersApi = api.injectEndpoints({
             invalidatesTags: (res) =>
                 res && res.status === "success"
                     ? [
-                          { type: "Users", id: "LIST" },
-                          { type: "Users", id: res.data.user.id },
+                          { type: "Bots", id: "LIST" },
+                          { type: "Bots", id: res.data.user.id },
                       ]
                     : [],
         }),
@@ -147,7 +150,13 @@ const usersApi = api.injectEndpoints({
             query: (userId) => {
                 return { url: `/management/users/${userId}`, method: "DELETE" };
             },
-            invalidatesTags: (res) => (res ? [{ type: "Users", id: "LIST" }] : []),
+            invalidatesTags: (res) =>
+                res
+                    ? [
+                          { type: "Users", id: "LIST" },
+                          { type: "Bots", id: "LIST" },
+                      ]
+                    : [],
         }),
     }),
     overrideExisting: true,
@@ -164,5 +173,6 @@ export const {
     useCreateBotMutation,
     useUpdateBotMutation,
     useRenewAccessTokenMutation,
+    useGetBotsQuery,
 } = usersApi;
 export default usersApi;

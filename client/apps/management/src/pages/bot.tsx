@@ -1,21 +1,21 @@
 import React from "react";
 import { Box } from "@mui/material";
-import { useGetUserByIdQuery } from "@/features/users/api/users";
+import { useGetBotByIdQuery } from "@/features/users/api/users";
 import Loader from "@/components/Loader";
 import useStrings from "@/hooks/useStrings";
 import { useParams } from "react-router-dom";
-import UserDetails from "@/features/users/UserDetails";
+import BotDetails from "@/features/users/BotDetails";
 
 export default function Users(): React.ReactElement {
     const id = useParams().id;
-    const userRequest = useGetUserByIdQuery(id);
+    const botRequest = useGetBotByIdQuery(id);
     const strings = useStrings();
 
-    if (userRequest.isLoading) {
+    if (botRequest.isLoading) {
         return <Loader />;
     }
 
-    if (userRequest.isError || userRequest.data.status === "error") {
+    if (botRequest.isError || botRequest.data.status === "error") {
         return (
             <Box display="flex" justifyContent="center" alignItems="center" minHeight="95vh">
                 {strings.errorWhileFetchingUser}
@@ -33,7 +33,7 @@ export default function Users(): React.ReactElement {
             sx={{ borderColor: "divider" }}
         >
             <Box p={{ base: 2, md: 3, lg: 6 }}>
-                <UserDetails user={userRequest.data.data.user} />
+                <BotDetails user={botRequest.data.data.user} />
             </Box>
         </Box>
     );

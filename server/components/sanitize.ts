@@ -347,6 +347,9 @@ function sanitizeUser({
     modifiedAt,
     isBot,
     deleted,
+    shortDescription,
+    longDescription,
+    coverFileId,
 }: Partial<User>): SanitizedUserType {
     return {
         id,
@@ -359,8 +362,10 @@ function sanitizeUser({
         createdAt: +new Date(createdAt),
         modifiedAt: +new Date(modifiedAt),
         isBot,
-
         deleted,
+        shortDescription,
+        longDescription,
+        coverFileId,
     };
 }
 
