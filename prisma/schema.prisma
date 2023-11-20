@@ -26,7 +26,7 @@ model User {
   deleted               Boolean  @default(false) @map(name: "deleted")
   coverFileId           Int?     @map(name: "cover_file_id")
   shortDescription      String?  @map(name: "short_description")
-  longDescription       String?  @map(name: "long_description")
+  longDescription       String?  @map(name: "long_description") @db.Text
 
   rooms           RoomUser[]
   device          Device[]

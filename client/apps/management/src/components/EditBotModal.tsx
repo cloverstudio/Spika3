@@ -59,6 +59,8 @@ export default function EditUserModal({ onClose, user }: { onClose: () => void; 
         displayName: user.displayName || "",
         accessToken: user.device[0]?.token || "",
         webhookUrl: user.webhookUrl || "",
+        shortDescription: user.shortDescription || "",
+        longDescription: user.longDescription || "",
     });
 
     const handleChange = (key: string, value: string | boolean) => {

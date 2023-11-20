@@ -99,8 +99,7 @@ const usersApi = api.injectEndpoints({
             query: (data) => {
                 return { url: `/management/users/bot`, method: "POST", data };
             },
-            invalidatesTags: (res) =>
-                res && res.status === "success" ? [{ type: "Bots", id: "LIST" }] : [],
+            invalidatesTags: () => [{ type: "Bots", id: "LIST" }],
         }),
         updateUser: build.mutation<
             SuccessResponse<{ user: UserType }> | ErrorResponse,

@@ -37,7 +37,7 @@ export default function BotInfo({ bot }: { bot: UserType }) {
                     >
                         <CameraAlt />
                     </Avatar>
-                    <Box display="grid" gap={1}>
+                    <Box display="grid" gap={3}>
                         <Typography variant="h3" fontWeight="bold">
                             {bot.displayName}
                         </Typography>
@@ -45,7 +45,15 @@ export default function BotInfo({ bot }: { bot: UserType }) {
                             {bot.shortDescription}
                         </Typography>
 
-                        <Typography variant="body1">{bot.longDescription}</Typography>
+                        <Typography
+                            variant="body1"
+                            sx={{
+                                whiteSpace: "pre-wrap",
+                                wordBreak: "break-word",
+                            }}
+                        >
+                            {bot.longDescription}
+                        </Typography>
                     </Box>
                     <Box>
                         <Button onClick={handleStart} variant="contained">
