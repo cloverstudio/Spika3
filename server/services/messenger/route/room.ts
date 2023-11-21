@@ -1281,7 +1281,7 @@ async function updateRoomUsers({
 
     const userIdsToRemove = currentIds.filter((id) => !foundUserIds.includes(id));
     await prisma.roomUser.deleteMany({
-        where: { roomId: room.id, userId: { in: userIdsToRemove } },
+        where: { roomId: room.id, userId: { in: userIdsToRemove }, isAdmin: false },
     });
 
     removedNotifier(userIdsToRemove, room.id);
