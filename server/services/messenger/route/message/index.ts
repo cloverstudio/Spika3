@@ -12,6 +12,7 @@ import createSeenMessageRecordRoute from "./createSeenMessageRecord";
 import getMessagesSyncRoute from "./getMessagesSync";
 import getModifiedMessagesSyncRoute from "./getModifiedMessagesSync";
 import searchMessagesRoute from "./searchMessages";
+import forwardMessageRoute from "./forwardMessage";
 
 export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
     const router = Router();
@@ -21,6 +22,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
     router.delete("/:id", deleteMessageRote({ rabbitMQChannel }));
 
     router.get("/:id/message-records", getMessageRecordsRoute({}));
+    router.post("/:id/forward", forwardMessageRoute({ rabbitMQChannel, redisClient }));
 
     // only web should call this route
     router.get("/search", searchMessagesRoute({ redisClient }));
