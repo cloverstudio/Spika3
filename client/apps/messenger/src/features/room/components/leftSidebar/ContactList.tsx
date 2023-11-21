@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Avatar from "@mui/material/Avatar";
-import { Box, CircularProgress } from "@mui/material";
+import { Box, Button, CircularProgress } from "@mui/material";
 import Typography from "@mui/material/Typography";
 
 import CheckIcon from "@mui/icons-material/Check";
@@ -38,9 +38,13 @@ export default function SidebarContactList({
 }): React.ReactElement {
     const strings = useStrings();
     const dispatch = useAppDispatch();
-    const { sortedByDisplayName } = useSelector(selectContacts(hideBots));
     const loading = useSelector(selectContactLoading());
     const isFetching = loading === "pending";
+    const [displayBots, setDisplayBots] = React.useState(false);
+
+    const { sortedByDisplayName } = useSelector(selectContacts(displayBots));
+
+    const allowToggle = !hideBots;
 
     const { isInViewPort, elementRef } = useIsInViewport();
 
@@ -98,6 +102,29 @@ export default function SidebarContactList({
                     dispatch(fetchContacts());
                 }}
             />
+
+            {allowToggle && (
+                <Box display="flex" gap={1} px={3} mb={2}>
+                    <Button
+                        size="small"
+                        color="inherit"
+                        variant={displayBots ? "text" : "outlined"}
+                        onClick={() => setDisplayBots(false)}
+                        sx={{ width: "100%" }}
+                    >
+                        {strings.contacts}
+                    </Button>
+                    <Button
+                        size="small"
+                        variant={displayBots ? "outlined" : "text"}
+                        color="inherit"
+                        onClick={() => setDisplayBots(true)}
+                        sx={{ width: "100%" }}
+                    >
+                        {strings.bots}
+                    </Button>
+                </Box>
+            )}
 
             {!sortedByDisplayName.length && !isFetching && (
                 <Typography align="center">{strings.noContacts}</Typography>

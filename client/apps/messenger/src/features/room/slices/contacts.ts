@@ -21,7 +21,7 @@ export const fetchContacts = createAsyncThunk("user/fetchContact", async (_, thu
     }
 
     const response = await dynamicBaseQuery(
-        `/messenger/contacts?keyword=${keyword}&${cursor ? `cursor=${cursor}` : ""}`
+        `/messenger/contacts?keyword=${keyword}&${cursor ? `cursor=${cursor}` : ""}`,
     );
     return {
         data: response.data,
@@ -72,25 +72,25 @@ export const contactsSlice = createSlice({
 export const {} = contactsSlice.actions;
 
 export const selectContacts =
-    (hideBots: boolean) =>
+    (displayBots: boolean) =>
     (state: RootState): ContactsState & { sortedByDisplayName: [string, User[]][] } => {
-        const sortedByDisplayNameObj = state.contacts.list.reduce((acc: any, user) => {
-            if (hideBots && user.isBot) return acc;
-
-            if (user.displayName) {
-                const firstLetter = user.displayName[0].toLocaleUpperCase();
-                if (acc[firstLetter]) {
-                    acc[firstLetter].push(user);
-                } else {
-                    acc[firstLetter] = [user];
+        const sortedByDisplayNameObj = state.contacts.list
+            .filter((u) => u.isBot === displayBots)
+            .reduce((acc: any, user) => {
+                if (user.displayName) {
+                    const firstLetter = user.displayName[0].toLocaleUpperCase();
+                    if (acc[firstLetter]) {
+                        acc[firstLetter].push(user);
+                    } else {
+                        acc[firstLetter] = [user];
+                    }
                 }
-            }
 
-            return acc;
-        }, {});
+                return acc;
+            }, {});
 
         const sortedByDisplayName = Object.entries<User[]>(sortedByDisplayNameObj).sort((a, b) =>
-            a[0] < b[0] ? -1 : 1
+            a[0] < b[0] ? -1 : 1,
         );
 
         return { ...state.contacts, sortedByDisplayName };

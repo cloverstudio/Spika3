@@ -147,6 +147,8 @@ const en = {
     discard: "Discard",
     chat: "Chat",
     startChat: "Start chat",
+    contacts: "Contacts",
+    bots: "Bots",
 };
 
 const strings = {
