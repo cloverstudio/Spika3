@@ -113,6 +113,81 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
 
                 console.log({ roomsFromRoomsIds, userIsNotInSomeRoom });
                 console.log({ privateRooms });
+                const body = deviceMessage.body;
+                const type = message.type;
+
+                for (const room of [...roomsFromRoomsIds, ...privateRooms]) {
+                    const blocked = await isRoomBlocked(room.id, fromUserId);
+
+                    if (blocked) {
+                        continue;
+                    }
+
+                    const roomId = room.id;
+                    const allReceivers = room.users;
+
+                    const message = await prisma.message.create({
+                        data: {
+                            type,
+                            roomId,
+                            fromUserId: userReq.user.id,
+                            fromDeviceId: userReq.device.id,
+                            totalUserCount: allReceivers.length,
+                            deliveredCount: 0,
+                            seenCount: 0,
+                        },
+                    });
+
+                    const userDeviceMessage = await prisma.deviceMessage.create({
+                        data: {
+                            userId: fromUserId,
+                            deviceId: fromDeviceId,
+                            fromUserId,
+                            fromDeviceId,
+                            body,
+                            action: MESSAGE_ACTION_NEW_MESSAGE,
+                            messageId: message.id,
+                        },
+                    });
+
+                    const formattedBody = await formatMessageBody(body, type);
+                    const sanitizedMessage = sanitize({
+                        ...message,
+                        body: formattedBody,
+                        createdAt: userDeviceMessage.createdAt,
+                        modifiedAt: userDeviceMessage.modifiedAt,
+                    }).message();
+
+                    res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
+
+                    rabbitMQChannel.sendToQueue(
+                        Constants.QUEUE_MESSAGES_SSE,
+                        Buffer.from(
+                            JSON.stringify({
+                                room,
+                                message: sanitizedMessage,
+                            }),
+                        ),
+                    );
+
+                    rabbitMQChannel.sendToQueue(
+                        Constants.QUEUE_WEBHOOK,
+                        Buffer.from(
+                            JSON.stringify({
+                                messageId: message.id,
+                                body,
+                            }),
+                        ),
+                    );
+
+                    handleNewMessage({
+                        body,
+                        fromUserId,
+                        room,
+                        users: room.users.map((u) => u.user),
+                        messageType: type,
+                    });
+                }
 
                 return res.status(200).send(successResponse("Message forwarded", userReq.lang));
             } catch (e: unknown) {
