@@ -59,6 +59,11 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
         } else if (menuRect.top - menuRect.height < 0) {
             setPositionTop("34px");
         } else setPositionTop("34px");
+
+        return () => {
+            setPositionBottom(null);
+            setPositionTop(null);
+        };
     }, []);
 
     const menuOptions = [
@@ -189,7 +194,7 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
                             "&:first-of-type": { marginTop: "8px" },
 
                             "&:hover": {
-                                backgroundColor: "text.tertiary",
+                                backgroundColor: "rgba(201, 201, 202, 0.5);",
                                 cursor: "pointer",
                                 width: "100%",
                             },

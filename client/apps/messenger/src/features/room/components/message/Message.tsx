@@ -148,6 +148,7 @@ function Message({
                     pl="34px"
                     mt={2}
                     fontSize="13px"
+                    marginBottom="-4px"
                 >
                     {senderLabel}
                 </Typography>
@@ -170,9 +171,9 @@ function Message({
                             borderRadius: "0.3rem",
                             maxWidth: {
                                 xs: "50vw",
-                                md: "30vw",
-                                lg: "30vw",
-                                xl: "30vw",
+                                md: "40vw",
+                                lg: "40vw",
+                                xl: "40vw",
                             },
                         }}
                     >
@@ -185,7 +186,7 @@ function Message({
                                 separateWithMarginTop={separateWithMarginTop}
                             />
                             {!mouseOver &&
-                                message.createdAt !== message.modifiedAt &&
+                                Math.abs(message.modifiedAt - message.createdAt) > 100 &&
                                 !message.deleted && (
                                     <EditedIndicator isUsersMessage={isUsersMessage} />
                                 )}
@@ -236,7 +237,7 @@ function MessageContainer({ side, children, id, handleMouseLeave }: MessageConta
 
     return (
         <Box
-            maxWidth="80%"
+            maxWidth="100%"
             id={`message_${id}`}
             sx={{
                 display: "flex",
@@ -285,6 +286,9 @@ function MessageBodyContainer({
 
     const message = useSelector(selectMessageById(roomId, id));
     const { fromUserId, body, type, replyId, deleted, progress } = message;
+    const roomType = useRoomType();
+
+    const isGroup = roomType === "group";
 
     const isUsersMessage = fromUserId === user.id;
     const side = isUsersMessage ? "right" : "left";
@@ -297,7 +301,7 @@ function MessageBodyContainer({
                 mountOnEnter
                 unmountOnExit
             >
-                <Box marginTop={separateWithMarginTop ? "8px" : "4px"}>
+                <Box marginTop={separateWithMarginTop && !isGroup ? "8px" : "4px"}>
                     <MessageBody
                         body={body}
                         type={type}
@@ -315,7 +319,7 @@ function MessageBodyContainer({
     }
 
     return (
-        <Box marginTop={separateWithMarginTop ? "8px" : "4px"}>
+        <Box marginTop={separateWithMarginTop && !isGroup ? "8px" : "4px"}>
             <MessageBody
                 body={body}
                 type={type}

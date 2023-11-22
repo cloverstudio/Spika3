@@ -82,6 +82,7 @@ export default function MessageBody({
                         onClick={onImageMessageClick}
                         progress={progress}
                         highlighted={highlighted}
+                        id={id}
                     />
                 </>
             );
@@ -247,6 +248,7 @@ function ReplyMessage({
                             onClick={() => true}
                             showBoxShadow={false}
                             isReply={true}
+                            id={id}
                         />
                     </Box>
                 );
@@ -357,6 +359,7 @@ function ReplyMessage({
                             onClick={onImageMessageClick}
                             progress={progress}
                             highlighted={highlighted}
+                            id={id}
                         />
                     </>
                 );

@@ -415,11 +415,12 @@ type InitialState = {
         cursor?: number;
         keyword?: string;
     };
+    previewedImageMessageId: number | null;
 };
 
 export const messagesSlice = createSlice({
     name: <string>"messages",
-    initialState: <InitialState>{ list: {} },
+    initialState: <InitialState>{ list: {}, previewedImageMessageId: null },
     reducers: {
         setSending(
             state,
@@ -735,6 +736,9 @@ export const messagesSlice = createSlice({
                 room.keyword = keyword;
             }
         },
+        setPreviewedImageMessageId(state, action: { payload: number | null }) {
+            state.previewedImageMessageId = action.payload;
+        },
     },
     extraReducers: (builder) => {
         builder.addCase(
@@ -915,6 +919,7 @@ export const {
     removeMessage,
     setKeyword,
     removeMessageRecord,
+    setPreviewedImageMessageId,
 } = messagesSlice.actions;
 
 export const selectRoomMessages =

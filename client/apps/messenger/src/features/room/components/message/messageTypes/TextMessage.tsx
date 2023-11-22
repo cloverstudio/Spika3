@@ -54,6 +54,7 @@ export default function TextMessage({
                 border: deleted ? "1px solid #C9C9CA" : "none",
                 ...(showBoxShadow && !isEmoji && { boxShadow: "0 2px 5px 0 rgba(0, 0, 0, 0.10)" }),
                 ...(deleted && { "&:hover": { cursor: "default" } }),
+                wordBreak: "break-word",
             }}
         >
             {sender && (

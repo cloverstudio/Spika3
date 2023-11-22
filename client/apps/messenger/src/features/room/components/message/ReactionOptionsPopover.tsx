@@ -121,7 +121,7 @@ export default function ReactionOptionsPopover({
                                             textAlign: "center",
                                             "&:hover": {
                                                 cursor: "pointer",
-                                                backgroundColor: "text.tertiary",
+                                                backgroundColor: "rgba(201, 201, 202, 0.5);",
                                                 borderRadius: "4px",
                                             },
                                         }}
@@ -134,13 +134,12 @@ export default function ReactionOptionsPopover({
                             <AddIcon
                                 sx={{
                                     fill: isDarkTheme ? "#0078FF" : "#9AA0A6",
-                                    fontSize: "32px",
+                                    fontSize: "34px",
                                     "&:hover": {
                                         cursor: "pointer",
-                                        backgroundColor: "text.tertiary",
+                                        backgroundColor: "rgba(201, 201, 202, 0.5);",
                                         borderRadius: "4px",
                                         height: "100%",
-                                        fill: !isDarkTheme ? "#fff" : "",
                                     },
                                 }}
                                 onClick={() => {
