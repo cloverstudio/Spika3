@@ -186,7 +186,7 @@ function Message({
                                 separateWithMarginTop={separateWithMarginTop}
                             />
                             {!mouseOver &&
-                                message.createdAt !== message.modifiedAt &&
+                                Math.abs(message.modifiedAt - message.createdAt) > 100 &&
                                 !message.deleted && (
                                     <EditedIndicator isUsersMessage={isUsersMessage} />
                                 )}

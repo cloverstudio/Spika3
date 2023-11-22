@@ -1,15 +1,14 @@
-import React, { useState } from "react";
+import React from "react";
 import { useParams } from "react-router-dom";
 import AttachmentManager from "../../../lib/AttachmentManager";
-import CloseOutlined from "@mui/icons-material/CloseOutlined";
-import DownloadIcon from "@mui/icons-material/Download";
-import Modal from "@mui/material/Modal";
+
 import { Box, CircularProgress, Typography } from "@mui/material";
 import TextMessage from "./TextMessage";
 import { DOWNLOAD_URL } from "../../../../../../../../lib/constants";
-import useEscapeKey from "../../../../../hooks/useEscapeKey";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import { useAppDispatch } from "../../../../../hooks";
+import { setPreviewedImageMessageId } from "../../../slices/messages";
 
 type ImageMessageTypes = {
     body: any;
@@ -19,6 +18,7 @@ type ImageMessageTypes = {
     highlighted?: boolean;
     showBoxShadow?: boolean;
     isReply?: boolean;
+    id: number;
 };
 
 export default function ImageMessage({
@@ -29,22 +29,21 @@ export default function ImageMessage({
     highlighted,
     showBoxShadow = true,
     isReply,
+    id,
 }: ImageMessageTypes) {
     const roomId = parseInt(useParams().id || "");
-    const [open, setOpen] = useState(false);
     const isUploading = progress !== undefined && progress < 100;
     const isVerifying = progress !== undefined && progress === 100;
+
+    const dispatch = useAppDispatch();
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
     const handleOpen = () => {
-        setOpen(true);
+        dispatch(setPreviewedImageMessageId(id));
         onClick();
     };
-    const handleClose = () => setOpen(false);
-
-    useEscapeKey(handleClose);
 
     if (!body.file && !body.uploadingFileName) {
         return null;
@@ -133,54 +132,6 @@ export default function ImageMessage({
                     </Box>
                 )}
             </Box>
-
-            <Modal open={open} onClose={handleClose}>
-                <>
-                    <Box display="flex" gap={2} justifyContent="end" mr={2} mt={2}>
-                        <Box
-                            component="a"
-                            href={imgSrc}
-                            target="_blank"
-                            sx={{ display: "block", color: "white" }}
-                        >
-                            <DownloadIcon fontSize="large" />
-                        </Box>
-
-                        <CloseOutlined
-                            onClick={handleClose}
-                            sx={{ color: "white", cursor: "pointer" }}
-                            fontSize="large"
-                        />
-                    </Box>
-
-                    <Box
-                        position="absolute"
-                        top="50%"
-                        left="50%"
-                        bgcolor="transparent"
-                        lineHeight="1"
-                        sx={{
-                            transform: "translate(-50%, -50%)",
-                            outline: "none",
-                        }}
-                    >
-                        <Box
-                            onClick={handleOpen}
-                            component="img"
-                            maxWidth="92vw"
-                            maxHeight="92vh"
-                            height="auto"
-                            src={imgSrc}
-                            draggable={false}
-                            sx={{
-                                userSelect: "none",
-                                touchAction: "none",
-                                pointerEvents: "none",
-                            }}
-                        />
-                    </Box>
-                </>
-            </Modal>
         </>
     );
 }
