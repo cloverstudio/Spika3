@@ -91,8 +91,8 @@ function LeftSidebarNewGroup({
     };
 
     const handleUserClick = (user: User): void => {
-        const selectedUsersIds = selectedUsers.map((u) => u.id);
-        const userIsSelected = selectedUsersIds.includes(user.id);
+        const selectedUserIds = selectedUsers.map((u) => u.id);
+        const userIsSelected = selectedUserIds.includes(user.id);
 
         const ids = userIsSelected
             ? selectedUsers.filter(({ id }) => id !== user.id)
@@ -156,7 +156,7 @@ function LeftSidebarNewGroup({
                     <SelectedMembers selectedUsers={selectedUsers} onRemove={handleUserClick} />
                     <SidebarContactList
                         hideBots
-                        selectedUsersIds={selectedUsers.map((u) => u.id)}
+                        selectedUserIds={selectedUsers.map((u) => u.id)}
                         handleUserClick={handleUserClick}
                     />
                 </>

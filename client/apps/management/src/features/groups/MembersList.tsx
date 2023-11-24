@@ -24,11 +24,11 @@ declare const UPLOADS_BASE_URL: string;
 
 export default function MembersList({
     handleUserClick,
-    selectedUsersIds,
+    selectedUserIds,
     hideBots,
 }: {
     handleUserClick?: (user: User) => void;
-    selectedUsersIds?: number[];
+    selectedUserIds?: number[];
     hideBots?: boolean;
 }): React.ReactElement {
     const strings = useStrings();
@@ -86,7 +86,7 @@ export default function MembersList({
                                 name={u.displayName}
                                 avatarFileId={u.avatarFileId}
                                 onClick={() => onUserClick(u)}
-                                selected={selectedUsersIds && selectedUsersIds.includes(u.id)}
+                                selected={selectedUserIds && selectedUserIds.includes(u.id)}
                             />
                         ))}
                     </Box>

@@ -468,10 +468,10 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                             .send(errorResponse(`New admin(s) must be defined`, userReq.lang));
                     }
 
-                    const foundUsersIds = foundUsers.map((u) => u.id);
+                    const foundUserIds = foundUsers.map((u) => u.id);
 
                     const roomUsersToPromote = room.users.filter((u) =>
-                        foundUsersIds.includes(u.userId),
+                        foundUserIds.includes(u.userId),
                     );
 
                     updated = await prisma.room.update({
@@ -483,7 +483,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                                     ...roomUsersToPromote.map((u) => ({ id: u.id })),
                                 ],
                                 createMany: {
-                                    data: foundUsersIds.map((userId) => ({
+                                    data: foundUserIds.map((userId) => ({
                                         userId,
                                         isAdmin: true,
                                     })),
@@ -1263,7 +1263,7 @@ function canLeaveRoomCheck(userId: number, roomUsers: RoomUser[]) {
 type UpdateRoomUsersParams = {
     room: Room & { users: RoomUser[] };
     newIds: number[];
-    removedNotifier: (usersIds: number[], roomId: number) => void;
+    removedNotifier: (userIds: number[], roomId: number) => void;
 };
 
 async function updateRoomUsers({
@@ -1295,7 +1295,7 @@ async function updateRoomUsers({
 type UpdateRoomAdminUsersParams = {
     room: Room & { users: RoomUser[] };
     newAdminIds: number[];
-    removedNotifier: (usersIds: number[], roomId: number) => void;
+    removedNotifier: (userIds: number[], roomId: number) => void;
 };
 
 async function updateRoomAdminUsers({

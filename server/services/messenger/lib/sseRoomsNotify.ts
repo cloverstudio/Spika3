@@ -8,10 +8,10 @@ import { isRoomMuted, isRoomPinned, getRoomUnreadCount } from "../route/room";
 
 export default function createSSERoomsNotify(
     rabbitMQChannel: amqp.Channel | undefined | null,
-    redisClient: ReturnType<typeof createClient>
+    redisClient: ReturnType<typeof createClient>,
 ) {
     return async (room: SanitizedRoomType, type: string): Promise<void> => {
-        const devices = await getDeviceIdsFromUsersIds(room.users.map((u) => u.userId));
+        const devices = await getDeviceIdsFromUserIds(room.users.map((u) => u.userId));
 
         for (const device of devices) {
             const { id: deviceId, userId } = device;
@@ -46,16 +46,16 @@ export default function createSSERoomsNotify(
                             type,
                             room: { ...room, muted, pinned, unreadCount },
                         },
-                    })
-                )
+                    }),
+                ),
             );
         }
     };
 }
 
 export function createSSERoomsRemovedNotify(rabbitMQChannel: amqp.Channel | undefined | null) {
-    return async (usersIds: number[], roomId: number): Promise<void> => {
-        const devices = await getDeviceIdsFromUsersIds(usersIds);
+    return async (userIds: number[], roomId: number): Promise<void> => {
+        const devices = await getDeviceIdsFromUserIds(userIds);
 
         for (const device of devices) {
             const { id: deviceId } = device;
@@ -69,16 +69,16 @@ export function createSSERoomsRemovedNotify(rabbitMQChannel: amqp.Channel | unde
                             type: Constants.PUSH_TYPE_REMOVED_FROM_ROOM,
                             roomId,
                         },
-                    })
-                )
+                    }),
+                ),
             );
         }
     };
 }
 
-async function getDeviceIdsFromUsersIds(usersIds: number[]) {
+async function getDeviceIdsFromUserIds(userIds: number[]) {
     const devices = await prisma.device.findMany({
-        where: { userId: { in: usersIds } },
+        where: { userId: { in: userIds } },
         select: {
             id: true,
             userId: true,

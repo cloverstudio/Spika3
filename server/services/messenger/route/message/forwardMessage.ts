@@ -21,9 +21,9 @@ import { Room } from "@prisma/client";
 
 const forwardMessageBody = yup.object().shape({
     body: yup.object().shape({
-        roomsIds: yup.array().default([]).of(yup.number().strict().min(1)),
-        usersIds: yup.array().default([]).of(yup.number().strict().min(1)),
-        messagesIds: yup.array().default([]).of(yup.number().strict().min(1)).required(),
+        roomIds: yup.array().default([]).of(yup.number().strict().min(1)),
+        userIds: yup.array().default([]).of(yup.number().strict().min(1)),
+        messageIds: yup.array().default([]).of(yup.number().strict().min(1)).required(),
     }),
 });
 
@@ -35,16 +35,16 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
             const userReq: UserRequest = req as UserRequest;
 
             try {
-                const roomsIds: number[] = req.body.roomsIds;
-                const usersIds: number[] = req.body.usersIds;
-                const messagesIds: number[] = req.body.messagesIds;
+                const roomIds: number[] = req.body.roomIds;
+                const userIds: number[] = req.body.userIds;
+                const messageIds: number[] = req.body.messageIds;
 
                 const fromUserId = userReq.user.id;
                 const fromDeviceId = userReq.device.id;
 
                 const messagesAndDeviceMessages = [];
 
-                for (const messageId of messagesIds) {
+                for (const messageId of messageIds) {
                     const message = await prisma.message.findUnique({
                         where: {
                             id: messageId,
@@ -89,12 +89,12 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                     });
                 }
 
-                const roomsFromRoomsIds = await Promise.all(
-                    roomsIds.map((id) => getRoomById(id, redisClient)),
+                const roomsFromRoomIds = await Promise.all(
+                    roomIds.map((id) => getRoomById(id, redisClient)),
                 );
 
-                const nonExistingRooms = roomsIds.filter(
-                    (roomId) => !roomsFromRoomsIds.map((r) => r?.id).includes(roomId),
+                const nonExistingRooms = roomIds.filter(
+                    (roomId) => !roomsFromRoomIds.map((r) => r?.id).includes(roomId),
                 );
 
                 if (nonExistingRooms.length) {
@@ -108,7 +108,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                         );
                 }
 
-                const userIsNotInSomeRoom = roomsFromRoomsIds.some(
+                const userIsNotInSomeRoom = roomsFromRoomIds.some(
                     ({ users }) => !users.map((u) => u.userId).includes(fromUserId),
                 );
 
@@ -117,15 +117,15 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                         .status(400)
                         .send(
                             errorResponse(
-                                "User is not in one or more rooms sent in roomsIds",
+                                "User is not in one or more rooms sent in roomIds",
                                 userReq.lang,
                             ),
                         );
                 }
 
-                const privateRooms = await findPrivateRooms(fromUserId, usersIds);
+                const privateRooms = await findPrivateRooms(fromUserId, userIds);
 
-                const allRooms = [...roomsFromRoomsIds, ...privateRooms];
+                const allRooms = [...roomsFromRoomIds, ...privateRooms];
 
                 const sanitizedMessages = [];
                 const newRooms = privateRooms.filter((r) => r.isNew).map((r) => sanitize(r).room());
@@ -220,10 +220,10 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
     ];
 };
 
-async function findPrivateRooms(userId: number, otherUsersIds: number[]) {
+async function findPrivateRooms(userId: number, otherUserIds: number[]) {
     const rooms = [];
 
-    for (const id of otherUsersIds) {
+    for (const id of otherUserIds) {
         const query = `
         select * from room 
             where type = 'private' 

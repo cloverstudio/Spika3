@@ -86,7 +86,7 @@ export default function AddMembersModal(props: AddMembersModalProps) {
                     <MembersList
                         hideBots
                         handleUserClick={handleUserClick}
-                        selectedUsersIds={[
+                        selectedUserIds={[
                             ...selectedUsers.map(({ id }) => id),
                             ...existingMembers.map((u) => u.userId),
                         ]}

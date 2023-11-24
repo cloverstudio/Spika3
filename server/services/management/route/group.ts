@@ -17,7 +17,7 @@ export default ({ redisClient }: InitRouterParams) => {
     router.put("/:roomId/add", adminAuth(redisClient), async (req: Request, res: Response) => {
         try {
             const roomId = parseInt(req.params.roomId ? (req.params.roomId as string) : "");
-            const usersIds = req.body.usersIds;
+            const userIds = req.body.userIds;
             const isAdmin = !!req.body.admin;
 
             if (!roomId) {
@@ -38,8 +38,8 @@ export default ({ redisClient }: InitRouterParams) => {
                 return res.status(400).send(errorResponse("Room is not a group", "en"));
             }
 
-            if (!usersIds || !usersIds.length) {
-                return res.status(400).send(errorResponse("valid usersIds is required", "en"));
+            if (!userIds || !userIds.length) {
+                return res.status(400).send(errorResponse("valid userIds is required", "en"));
             }
 
             const currentRoomUsers = await prisma.roomUser.findMany({
@@ -49,8 +49,8 @@ export default ({ redisClient }: InitRouterParams) => {
                 },
             });
 
-            const toAdd = usersIds.filter(
-                (id) => !currentRoomUsers.find((roomUser) => roomUser.userId === id)
+            const toAdd = userIds.filter(
+                (id) => !currentRoomUsers.find((roomUser) => roomUser.userId === id),
             );
 
             const roomUsers = toAdd.map((userId) => ({ userId, roomId, isAdmin }));
@@ -118,8 +118,8 @@ export default ({ redisClient }: InitRouterParams) => {
                             .send(
                                 errorResponse(
                                     "Can't remove user because he is last admin in that group",
-                                    userReq.lang
-                                )
+                                    userReq.lang,
+                                ),
                             );
                     }
                 }
@@ -139,7 +139,7 @@ export default ({ redisClient }: InitRouterParams) => {
                 le(e);
                 res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
             }
-        }
+        },
     );
 
     router.post("/", adminAuth(redisClient), async (req: Request, res: Response) => {
@@ -228,8 +228,8 @@ export default ({ redisClient }: InitRouterParams) => {
                         count: count,
                         limit: consts.PAGING_LIMIT,
                     },
-                    userReq.lang
-                )
+                    userReq.lang,
+                ),
             );
         } catch (e: any) {
             le(e);

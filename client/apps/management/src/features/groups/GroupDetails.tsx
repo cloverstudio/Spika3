@@ -51,7 +51,7 @@ export default function GroupDetails({ group }: { group: RoomType }) {
                         }
                         showBasicSnackbar({ severity: "error", text: res.message });
                     });
-            }
+            },
         );
     };
 
@@ -91,12 +91,12 @@ export default function GroupDetails({ group }: { group: RoomType }) {
                             text: strings.userRemovedFromGroup,
                         });
                     });
-            }
+            },
         );
     };
 
-    const handleAddUsersToGroup = (usersIds: number[]) => {
-        addUsersToGroup({ usersIds, groupId: group.id })
+    const handleAddUsersToGroup = (userIds: number[]) => {
+        addUsersToGroup({ userIds, groupId: group.id })
             .unwrap()
             .then((res) => {
                 if (res.status === "error") {
@@ -116,8 +116,8 @@ export default function GroupDetails({ group }: { group: RoomType }) {
             });
     };
 
-    const handleAddAdminsToGroup = (usersIds: number[]) => {
-        addUsersToGroup({ usersIds, groupId: group.id, admin: true })
+    const handleAddAdminsToGroup = (userIds: number[]) => {
+        addUsersToGroup({ userIds, groupId: group.id, admin: true })
             .unwrap()
             .then((res) => {
                 if (res.status === "error") {

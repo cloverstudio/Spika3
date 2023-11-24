@@ -66,13 +66,13 @@ const groupsApi = api.injectEndpoints({
         }),
         addUsersToGroup: build.mutation<
             SuccessResponse<{ added: number[]; groupId: number }> | ErrorResponse,
-            { usersIds: number[]; groupId: number; admin?: boolean }
+            { userIds: number[]; groupId: number; admin?: boolean }
         >({
-            query: ({ usersIds, groupId, admin }) => {
+            query: ({ userIds, groupId, admin }) => {
                 return {
                     url: `/management/groups/${groupId}/add`,
                     method: "PUT",
-                    data: { usersIds, admin },
+                    data: { userIds, admin },
                 };
             },
             invalidatesTags: (res, _, args) =>

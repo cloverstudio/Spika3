@@ -6,7 +6,7 @@ import { SanitizedRoomType } from "../../../components/sanitize";
 
 export default function createSSERoomsNotify(rabbitMQChannel: amqp.Channel | undefined | null) {
     return async (room: SanitizedRoomType, type: string): Promise<void> => {
-        const deviceIds = await getDeviceIdsFromUsersIds(room.users.map((u) => u.userId));
+        const deviceIds = await getDeviceIdsFromUserIds(room.users.map((u) => u.userId));
 
         for (const deviceId of deviceIds) {
             rabbitMQChannel.sendToQueue(
@@ -18,16 +18,16 @@ export default function createSSERoomsNotify(rabbitMQChannel: amqp.Channel | und
                             type,
                             room,
                         },
-                    })
-                )
+                    }),
+                ),
             );
         }
     };
 }
 
-async function getDeviceIdsFromUsersIds(usersIds: number[]): Promise<number[]> {
+async function getDeviceIdsFromUserIds(userIds: number[]): Promise<number[]> {
     const devices = await prisma.device.findMany({
-        where: { userId: { in: usersIds } },
+        where: { userId: { in: userIds } },
         select: {
             id: true,
         },

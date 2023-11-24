@@ -29,11 +29,11 @@ declare const UPLOADS_BASE_URL: string;
 
 export default function SidebarContactList({
     handleUserClick,
-    selectedUsersIds,
+    selectedUserIds,
     hideBots,
 }: {
     handleUserClick?: (user: User) => void;
-    selectedUsersIds?: number[];
+    selectedUserIds?: number[];
     hideBots?: boolean;
 }): React.ReactElement {
     const strings = useStrings();
@@ -143,7 +143,7 @@ export default function SidebarContactList({
                                 name={u.displayName}
                                 avatarFileId={u.avatarFileId}
                                 onClick={() => onUserClick(u)}
-                                selected={selectedUsersIds && selectedUsersIds.includes(u.id)}
+                                selected={selectedUserIds && selectedUserIds.includes(u.id)}
                             />
                         ))}
                     </Box>
