@@ -36,6 +36,7 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
     });
 
     await redisClient.connect();
+    // await redisClient.flushAll();
 
     // cors
     app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {

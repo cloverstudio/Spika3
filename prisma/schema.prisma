@@ -155,10 +155,11 @@ model Message {
   deliveredCount Int    @default(0) @map(name: "delivered_count")
   totalUserCount Int    @map(name: "total_user_count")
 
-  createdAt  DateTime @default(now()) @map(name: "created_at")
-  modifiedAt DateTime @default(now()) @map(name: "modified_at")
-  deleted    Boolean  @default(false) @map(name: "deleted")
-  replyId    Int?     @map(name: "reply_id")
+  createdAt   DateTime @default(now()) @map(name: "created_at")
+  modifiedAt  DateTime @default(now()) @map(name: "modified_at")
+  deleted     Boolean  @default(false) @map(name: "deleted")
+  isForwarded Boolean  @default(false) @map(name: "isForwarded")
+  replyId     Int?     @map(name: "reply_id")
 
   deviceMessages DeviceMessage[]
   messageRecords MessageRecord[]
