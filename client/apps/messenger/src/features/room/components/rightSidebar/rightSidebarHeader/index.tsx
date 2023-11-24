@@ -30,24 +30,6 @@ export default function RightSidebarHeader({ type }: RightSidebarHeaderProps): R
     const dispatch = useAppDispatch();
 
     const getSidebarContent = () => {
-        if (activeTab === "details") {
-            return (
-                <>
-                    <IconButton
-                        onClick={() => dispatch(hideRightSidebar())}
-                        style={{ borderRadius: "10px" }}
-                    >
-                        <Close />
-                    </IconButton>
-                    {type === "private" ? (
-                        <Typography variant="h6">{strings.chatDetails}</Typography>
-                    ) : (
-                        <Typography variant="h6">{strings.groupDetails}</Typography>
-                    )}
-                </>
-            );
-        }
-
         if (activeTab === "notes") {
             return (
                 <>
@@ -111,6 +93,10 @@ type RightSidebarHeaderContainerProps = {
 function RightSidebarHeaderContainer({
     children,
 }: RightSidebarHeaderContainerProps): React.ReactElement {
+    const activeTab = useSelector(selectRightSidebarActiveTab);
+
+    if (activeTab === "details") return null;
+
     return (
         <Box height="80.5px" px={2} borderBottom="0.5px solid" sx={{ borderColor: "divider" }}>
             <Stack

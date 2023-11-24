@@ -10,6 +10,7 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import CameraAlt from "@mui/icons-material/CameraAlt";
+import Close from "@mui/icons-material/Close";
 import { useSelector } from "react-redux";
 
 import * as Constants from "../../../../../../../lib/constants";
@@ -22,7 +23,9 @@ import { selectOtherUserIdInPrivateRoom } from "../../slices/messages";
 import { EditPhotoDialog } from "../EditProfile";
 import getFileType from "../../lib/getFileType";
 import FileUploader from "../../../../utils/FileUploader";
-
+import { useAppDispatch } from "../../../../hooks";
+import { toggleRightSidebar } from "../../slices/rightSidebar";
+import NoGroupPhoto from "../../../../assets/noGroupPhoto.jpg";
 declare const UPLOADS_BASE_URL: string;
 
 export interface DetailsBasicInfoProps {
@@ -44,6 +47,7 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
     const [update] = useUpdateRoomMutation();
     const me = useSelector(selectUser);
     let amIAdmin = false;
+    const dispatch = useAppDispatch();
 
     const otherUser = roomData.users.find((u) => u.userId === otherUserId)?.user;
 
@@ -107,7 +111,7 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
             selectedFileUrl,
             1,
             Constants.LSKEY_CROPSIZE,
-            Constants.LSKEY_CROPSIZE
+            Constants.LSKEY_CROPSIZE,
         );
         const file = new File([croppedImage], "image.png");
         setFile(file);
@@ -177,7 +181,8 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
         <Box>
             <Stack
                 direction="column"
-                alignItems="center"
+                // alignItems="center"
+                textAlign="center"
                 spacing={3}
                 sx={{
                     display: "flex",
@@ -186,23 +191,82 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
                 }}
             >
                 {isItPrivateGroup ? (
-                    <Avatar
-                        alt={otherUser.displayName}
-                        src={`${UPLOADS_BASE_URL}/${otherUser.avatarFileId}`}
-                        sx={{ width: 100, height: 100 }}
-                    />
+                    <Box position="relative">
+                        <Avatar
+                            src={
+                                roomData.avatarFileId
+                                    ? `${UPLOADS_BASE_URL}/${roomData.avatarFileId}`
+                                    : NoGroupPhoto
+                            }
+                            sx={{
+                                width: "100%",
+                                height: "400px",
+                                borderRadius: "0px 0px 0px 80px",
+                            }}
+                        />
+                        <IconButton
+                            sx={{
+                                position: "absolute",
+                                top: "16px",
+                                left: "16px",
+                                "&:hover": {
+                                    backgroundColor: "rgba(61, 61, 61, 0.5);",
+                                },
+                                backgroundColor: "rgba(61, 61, 61, 0.4);",
+                                color: "#fff",
+                            }}
+                            size="large"
+                            onClick={() => {
+                                dispatch(toggleRightSidebar());
+                            }}
+                        >
+                            <Close />
+                        </IconButton>
+                    </Box>
                 ) : (
                     <Box sx={{ position: "relative" }}>
                         <Avatar
-                            src={`${UPLOADS_BASE_URL}/${roomData.avatarFileId}`}
-                            sx={{ width: 100, height: 100 }}
+                            src={
+                                roomData.avatarFileId
+                                    ? `${UPLOADS_BASE_URL}/${roomData.avatarFileId}`
+                                    : NoGroupPhoto
+                            }
+                            sx={{
+                                width: "100%",
+                                height: "400px",
+                                borderRadius: "0px 0px 0px 80px",
+                            }}
                         />
+
+                        <IconButton
+                            sx={{
+                                position: "absolute",
+                                top: "16px",
+                                left: "16px",
+                                "&:hover": {
+                                    backgroundColor: "rgba(61, 61, 61, 0.5);",
+                                },
+                                backgroundColor: "rgba(61, 61, 61, 0.4);",
+                                color: "#fff",
+                            }}
+                            size="large"
+                            onClick={() => {
+                                dispatch(toggleRightSidebar());
+                            }}
+                        >
+                            <Close />
+                        </IconButton>
                         <>
                             {amIAdmin ? (
                                 <Box>
                                     <IconButton
                                         color="primary"
-                                        sx={{ position: "absolute", bottom: "0", right: "0" }}
+                                        sx={{
+                                            position: "absolute",
+                                            bottom: "10px",
+                                            right: "10px",
+                                            backgroundColor: "#E5F4FF",
+                                        }}
                                         size="large"
                                         onClick={(e) => {
                                             openEditPicture();
@@ -232,6 +296,8 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
                                     width: "90%",
                                     margin: "2em",
                                 }}
+                                pt={3}
+                                px={2.5}
                             >
                                 <Stack
                                     direction="row"

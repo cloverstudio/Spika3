@@ -132,7 +132,7 @@ export default function MessagesContainer({
         }
         const resize = new ResizeObserver(function () {
             if (!locked) {
-                onScrollDown();
+                onScrollDown(newMessages ? "smooth" : undefined);
             }
         });
 

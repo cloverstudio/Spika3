@@ -22,8 +22,17 @@ type RightSidebarContentProps = {
 export default function RightSidebarContentContainer({
     room,
 }: RightSidebarContentProps): React.ReactElement {
+    const activeTab = useSelector(selectRightSidebarActiveTab);
+    const addPadding = activeTab !== "details";
+
     return (
-        <Box pt={3} px={2.5} height="calc(100vh - 80.5px)" pb={1} sx={{ overflowY: "auto" }}>
+        <Box
+            pt={addPadding ? 3 : 0}
+            px={addPadding ? 2.5 : 0}
+            height="calc(100vh - 80.5px)"
+            pb={1}
+            sx={{ overflowY: "auto" }}
+        >
             <RightSidebarContent room={room} />
         </Box>
     );
@@ -36,11 +45,13 @@ function RightSidebarContent({ room }: RightSidebarContentProps): React.ReactEle
         return (
             <>
                 <DetailsBasicInfoView roomData={room} />
-                <DetailsAdditionalInfoView roomData={room} />
-                {room.type === "group" && (
-                    <DetailsMemberView members={room.users} roomId={room.id} />
-                )}
-                <DetailsDestructiveActionsView room={room} />
+                <Box pt={3} px={2.5}>
+                    <DetailsAdditionalInfoView roomData={room} />
+                    {room.type === "group" && (
+                        <DetailsMemberView members={room.users} roomId={room.id} />
+                    )}
+                    <DetailsDestructiveActionsView room={room} />
+                </Box>
             </>
         );
     }

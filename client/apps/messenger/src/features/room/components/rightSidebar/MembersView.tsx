@@ -71,6 +71,14 @@ export function DetailsMemberView(props: DetailsMembersProps) {
         setOpenAddDialog(false);
     };
 
+    const removeAdminStatus = (memberId: number) => {
+        handleUpdateGroup({
+            adminUserIds: members
+                .filter((m) => m.isAdmin && m.userId !== memberId)
+                .map((u) => u.userId),
+        });
+    };
+
     const handleOpenChat = async (memberId: number) => {
         try {
             const res = await dynamicBaseQuery(`/messenger/rooms/users/${memberId}`);
@@ -167,6 +175,9 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                                                 <UserMenu
                                                     onRemove={() => removeMemberWithId(user.id)}
                                                     onOpenChat={() => handleOpenChat(user.id)}
+                                                    onDismissAsAdmin={() =>
+                                                        removeAdminStatus(user.id)
+                                                    }
                                                 />
                                             )}
                                         </Box>
@@ -209,9 +220,10 @@ type UserMenuProps = {
     onRemove: () => void;
     onPromote?: () => void;
     onOpenChat: () => void;
+    onDismissAsAdmin?: () => void;
 };
 
-function UserMenu({ onRemove, onPromote, onOpenChat }: UserMenuProps) {
+function UserMenu({ onRemove, onPromote, onOpenChat, onDismissAsAdmin }: UserMenuProps) {
     const strings = useStrings();
 
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -219,6 +231,13 @@ function UserMenu({ onRemove, onPromote, onOpenChat }: UserMenuProps) {
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         setAnchorEl(event.currentTarget);
     };
+
+    const handleDismissAsAdmin = () => {
+        if (onDismissAsAdmin) {
+            onDismissAsAdmin();
+        }
+    };
+
     const handleClose = () => {
         setAnchorEl(null);
     };
@@ -230,6 +249,16 @@ function UserMenu({ onRemove, onPromote, onOpenChat }: UserMenuProps) {
             </IconButton>
 
             <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
+                {onDismissAsAdmin && (
+                    <MenuItem
+                        onClick={() => {
+                            handleDismissAsAdmin();
+                            handleClose();
+                        }}
+                    >
+                        {strings.dismissAsAdmin}
+                    </MenuItem>
+                )}
                 <MenuItem
                     onClick={() => {
                         onRemove();
