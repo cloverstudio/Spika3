@@ -29,10 +29,12 @@ declare const UPLOADS_BASE_URL: string;
 
 export default function SidebarContactList({
     handleUserClick,
+    hideSearchBox,
     selectedUserIds,
     hideBots,
 }: {
     handleUserClick?: (user: User) => void;
+    hideSearchBox?: boolean;
     selectedUserIds?: number[];
     hideBots?: boolean;
 }): React.ReactElement {
@@ -96,12 +98,14 @@ export default function SidebarContactList({
 
     return (
         <Box sx={{ overflowY: "auto", maxHeight: "100%" }}>
-            <SearchBox
-                onSearch={(keyword: string) => {
-                    dispatch(setKeyword(keyword));
-                    dispatch(fetchContacts());
-                }}
-            />
+            {!hideSearchBox && (
+                <SearchBox
+                    onSearch={(keyword: string) => {
+                        dispatch(setKeyword(keyword));
+                        dispatch(fetchContacts());
+                    }}
+                />
+            )}
 
             {allowToggle && (
                 <Box display="flex" gap={1} px={3} mb={2}>
