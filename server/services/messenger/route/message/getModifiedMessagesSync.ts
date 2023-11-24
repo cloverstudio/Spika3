@@ -36,21 +36,21 @@ export default ({}: InitRouterParams): RequestHandler[] => {
                 }
 
                 const roomsUser = await prisma.roomUser.findMany({ where: { userId } });
-                const roomsIds = roomsUser.map((ru) => ru.roomId);
+                const roomIds = roomsUser.map((ru) => ru.roomId);
 
                 const modifiedDeviceMessages = await prisma.$queryRaw<
                     { id: number }[]
                 >`SELECT \`id\` FROM \`message_device\` WHERE \`user_id\` = ${userId} AND \`device_id\` = ${deviceId} AND \`modified_at\` > ${new Date(
-                    lastUpdate
+                    lastUpdate,
                 ).toISOString()} AND  \`created_at\` < \`modified_at\`;`;
 
-                const modifiedDeviceMessagesIds = modifiedDeviceMessages.map((m) => m.id);
+                const modifiedDeviceMessageIds = modifiedDeviceMessages.map((m) => m.id);
 
                 const deviceMessages = await prisma.deviceMessage.findMany({
                     where: {
-                        id: { in: modifiedDeviceMessagesIds },
+                        id: { in: modifiedDeviceMessageIds },
                         message: {
-                            roomId: { in: roomsIds },
+                            roomId: { in: roomIds },
                         },
                     },
                     include: {
@@ -65,9 +65,9 @@ export default ({}: InitRouterParams): RequestHandler[] => {
 
                 const count = await prisma.deviceMessage.count({
                     where: {
-                        id: { in: modifiedDeviceMessagesIds },
+                        id: { in: modifiedDeviceMessageIds },
                         message: {
-                            roomId: { in: roomsIds },
+                            roomId: { in: roomIds },
                         },
                     },
                 });
@@ -85,7 +85,7 @@ export default ({}: InitRouterParams): RequestHandler[] => {
                             createdAt: deviceMessage.createdAt,
                             modifiedAt: deviceMessage.modifiedAt,
                         }).message();
-                    })
+                    }),
                 );
 
                 const hasNext = count > page * Constants.SYNC_LIMIT;
@@ -99,8 +99,8 @@ export default ({}: InitRouterParams): RequestHandler[] => {
                             hasNext,
                             messages: sanitizedMessages,
                         },
-                        userReq.lang
-                    )
+                        userReq.lang,
+                    ),
                 );
             } catch (e: any) {
                 le(e);

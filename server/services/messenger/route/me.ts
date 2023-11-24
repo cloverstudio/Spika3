@@ -96,8 +96,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                                     type: Constants.PUSH_TYPE_USER_UPDATE,
                                     user: sanitize(user).user(),
                                 },
-                            })
-                        )
+                            }),
+                        ),
                     );
                 }
             }
@@ -250,12 +250,12 @@ async function getUserContacts(userId: number): Promise<(User & { device: Device
         },
     });
 
-    const userRoomsIds = usersRooms.map((ur) => ur.roomId);
+    const userRoomIds = usersRooms.map((ur) => ur.roomId);
 
     const allUsersInRooms = await prisma.roomUser.findMany({
         where: {
             roomId: {
-                in: userRoomsIds,
+                in: userRoomIds,
             },
             user: {
                 id: {

@@ -66,10 +66,10 @@ export default ({}: InitRouterParams): RequestHandler[] => {
                 const [lowerKeyword] = [keyword.toLowerCase(), keyword.toUpperCase()];
 
                 const keywords = Array.from(
-                    new Set([keyword, keywordWithOppositeFirstChar, lowerKeyword])
+                    new Set([keyword, keywordWithOppositeFirstChar, lowerKeyword]),
                 );
 
-                const deviceMessagesIds = await prisma.deviceMessage.findMany({
+                const deviceMessageIds = await prisma.deviceMessage.findMany({
                     where: {
                         OR: [
                             ...keywords.map((key) => ({
@@ -97,13 +97,11 @@ export default ({}: InitRouterParams): RequestHandler[] => {
 
                 le(`Search time: ${+new Date() - time}ms`);
 
-                const messagesIds = Array.from(
-                    new Set(deviceMessagesIds.map((dm) => dm.messageId))
-                );
+                const messageIds = Array.from(new Set(deviceMessageIds.map((dm) => dm.messageId)));
 
-                le(`Found ${messagesIds.length} messages`);
+                le(`Found ${messageIds.length} messages`);
 
-                return res.send(successResponse({ messagesIds }, userReq.lang));
+                return res.send(successResponse({ messageIds }, userReq.lang));
             } catch (e: any) {
                 le(e);
                 res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

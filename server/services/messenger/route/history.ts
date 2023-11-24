@@ -77,24 +77,24 @@ export default ({ redisClient }: InitRouterParams): Router => {
                 roomUsers = [...roomUsers, ...matchedRoomUsers];
             }
 
-            const allRoomsIds = roomUsers.map((r) => r.roomId);
+            const allRoomIds = roomUsers.map((r) => r.roomId);
 
             const allRooms = await prisma.room.findMany({
                 where: {
-                    id: { in: allRoomsIds },
+                    id: { in: allRoomIds },
                 },
                 include: {
                     users: true,
                 },
             });
 
-            const roomsIds = allRooms
+            const roomIds = allRooms
                 .filter((r) => r.type === "group" || r.users.length === 2)
                 .map((r) => r.id);
 
             const count = await prisma.room.count({
                 where: {
-                    id: { in: roomsIds },
+                    id: { in: roomIds },
                     messages: {
                         some: {},
                     },
@@ -106,8 +106,8 @@ export default ({ redisClient }: InitRouterParams): Router => {
                 },
             });
 
-            const messagesIds = await Promise.all(
-                roomsIds.map(async (roomId) => {
+            const messageIds = await Promise.all(
+                roomIds.map(async (roomId) => {
                     const key = `${Constants.LAST_MESSAGE_PREFIX}${roomId}`;
                     const lastMessageId = await redisClient.get(key);
 
@@ -146,7 +146,7 @@ export default ({ redisClient }: InitRouterParams): Router => {
 
             const messages = await prisma.message.findMany({
                 where: {
-                    id: { in: messagesIds.filter(Boolean) },
+                    id: { in: messageIds.filter(Boolean) },
                 },
                 orderBy: {
                     createdAt: "desc",

@@ -164,10 +164,10 @@ function Search({ onClose }: { onClose: () => void }) {
     };
 
     useEffect(() => {
-        if (data && data.messagesIds?.length > 0) {
-            setResults(data.messagesIds);
+        if (data && data.messageIds?.length > 0) {
+            setResults(data.messageIds);
             if (currentTargetMessageIndex === -1 && keyword.length > 2) {
-                dispatch(setTargetMessage({ roomId, messageId: data.messagesIds[0] }));
+                dispatch(setTargetMessage({ roomId, messageId: data.messageIds[0] }));
             }
         } else {
             setResults([]);

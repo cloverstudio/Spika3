@@ -134,7 +134,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                     ),
                 );
 
-                const notDeliveredMessagesIds = messages
+                const notDeliveredMessageIds = messages
                     .filter(
                         (m) =>
                             !m.messageRecords.find(
@@ -143,11 +143,11 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                     )
                     .map((m) => m.id);
 
-                if (notDeliveredMessagesIds.length) {
+                if (notDeliveredMessageIds.length) {
                     const messageRecordsNotifyData = {
                         types: ["delivered"],
                         userId,
-                        messageIds: notDeliveredMessagesIds,
+                        messageIds: notDeliveredMessageIds,
                         pushType: Constants.PUSH_TYPE_NEW_MESSAGE_RECORD,
                     };
 

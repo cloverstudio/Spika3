@@ -63,7 +63,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                 await dynamicBaseQuery({
                     url: "/messenger/messages/delivered",
                     method: "POST",
-                    data: { messagesIds: [message.id] },
+                    data: { messageIds: [message.id] },
                 });
             } else {
                 await dynamicBaseQuery({
@@ -197,7 +197,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                     ([key, val]) =>
                         key.startsWith("getRoom(") &&
                         val?.data &&
-                        (val.data as RoomType).users.find((u) => u.userId === user.id)
+                        (val.data as RoomType).users.find((u) => u.userId === user.id),
                 )
                 .map(([_, val]) => val);
 
@@ -207,7 +207,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
 
             for (const query of getRoomQueries) {
                 store.dispatch(
-                    api.util.invalidateTags([{ type: "Rooms", id: query.originalArgs as number }])
+                    api.util.invalidateTags([{ type: "Rooms", id: query.originalArgs as number }]),
                 );
             }
 

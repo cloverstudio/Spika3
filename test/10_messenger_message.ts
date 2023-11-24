@@ -143,7 +143,7 @@ describe("API", () => {
             });
 
             expect(JSON.stringify(messageFromResponse)).to.eqls(
-                JSON.stringify(sanitize(messageFromDb).message())
+                JSON.stringify(sanitize(messageFromDb).message()),
             );
         });
 
@@ -236,8 +236,8 @@ describe("API", () => {
 
             expect(
                 deviceMessages.every(
-                    (dm) => dm.fromUserId === globals.userId && dm.fromDeviceId === fromDevice.id
-                )
+                    (dm) => dm.fromUserId === globals.userId && dm.fromDeviceId === fromDevice.id,
+                ),
             ).to.eqls(true);
         });
 
@@ -270,8 +270,9 @@ describe("API", () => {
             expect(
                 messageBodies.every(
                     (m: any) =>
-                        m.text === validParams.body.text && m.mediaUrl === validParams.body.mediaUrl
-                )
+                        m.text === validParams.body.text &&
+                        m.mediaUrl === validParams.body.mediaUrl,
+                ),
             ).to.eqls(true);
         });
 
@@ -302,7 +303,7 @@ describe("API", () => {
             const actions = deviceMessages.map((dm) => dm.action);
 
             expect(
-                actions.every((a: string) => a === Constants.MESSAGE_ACTION_NEW_MESSAGE)
+                actions.every((a: string) => a === Constants.MESSAGE_ACTION_NEW_MESSAGE),
             ).to.eqls(true);
         });
 
@@ -512,7 +513,7 @@ describe("API", () => {
             const response = await supertest(app)
                 .post(`/api/messenger/messages/delivered`)
                 .set({ accesstoken: globals.userToken })
-                .send({ messagesIds: [messageOne.id, messageTwo.id] });
+                .send({ messageIds: [messageOne.id, messageTwo.id] });
 
             expect(response.status).to.eqls(200);
 
@@ -584,21 +585,21 @@ describe("API", () => {
                         fromUserId: globals.userId,
                         room,
                         fromDeviceId: globals.deviceId,
-                    })
-                )
+                    }),
+                ),
             );
         });
 
-        it("messagesIds param must be array", async () => {
+        it("messageIds param must be array", async () => {
             const responseInvalid = await supertest(app)
                 .post("/api/messenger/messages/delivered")
                 .set({ accesstoken: globals.userToken })
-                .send({ messagesIds: undefined });
+                .send({ messageIds: undefined });
 
             const response = await supertest(app)
                 .post("/api/messenger/messages/delivered")
                 .set({ accesstoken: globals.userToken })
-                .send({ messagesIds: messages.map((m) => m.id) });
+                .send({ messageIds: messages.map((m) => m.id) });
 
             expect(responseInvalid.status).to.eqls(400);
             expect(response.status).to.eqls(200);
@@ -608,12 +609,12 @@ describe("API", () => {
             const responseInvalid = await supertest(app)
                 .post("/api/messenger/messages/delivered")
                 .set({ accesstoken: globals.userToken })
-                .send({ messagesIds: [256874] });
+                .send({ messageIds: [256874] });
 
             const response = await supertest(app)
                 .post("/api/messenger/messages/delivered")
                 .set({ accesstoken: globals.userToken })
-                .send({ messagesIds: messages.map((m) => m.id) });
+                .send({ messageIds: messages.map((m) => m.id) });
 
             expect(responseInvalid.status).to.eqls(400);
             expect(response.status).to.eqls(200);
@@ -630,12 +631,12 @@ describe("API", () => {
             const responseInvalid = await supertest(app)
                 .post(`/api/messenger/messages/delivered`)
                 .set({ accesstoken: globals.userToken })
-                .send({ messagesIds: [messageTwo.id] });
+                .send({ messageIds: [messageTwo.id] });
 
             const response = await supertest(app)
                 .post("/api/messenger/messages/delivered")
                 .set({ accesstoken: globals.userToken })
-                .send({ messagesIds: messages.map((m) => m.id) });
+                .send({ messageIds: messages.map((m) => m.id) });
 
             expect(responseInvalid.status).to.eqls(400);
             expect(response.status).to.eqls(200);
@@ -645,7 +646,7 @@ describe("API", () => {
             const response = await supertest(app)
                 .post("/api/messenger/messages/delivered")
                 .set({ accesstoken: globals.userToken })
-                .send({ messagesIds: messages.map((m) => m.id) });
+                .send({ messageIds: messages.map((m) => m.id) });
 
             expect(response.status).to.eqls(200);
 
@@ -666,7 +667,7 @@ describe("API", () => {
             const response = await supertest(app)
                 .post("/api/messenger/messages/delivered")
                 .set({ accesstoken: globals.userToken })
-                .send({ messagesIds: messages.map((m) => m.id) });
+                .send({ messageIds: messages.map((m) => m.id) });
 
             expect(response.status).to.eqls(200);
 
@@ -689,8 +690,8 @@ describe("API", () => {
                         fromUserId: globals.userId,
                         room,
                         fromDeviceId: globals.deviceId,
-                    })
-                )
+                    }),
+                ),
             );
         });
 
@@ -744,7 +745,7 @@ describe("API", () => {
             expect(response.body.data).to.has.property("messageRecords");
             expect(response.body.data.messageRecords).to.be.an("array");
             expect(
-                response.body.data.messageRecords.filter((r: MessageRecord) => r.id === record.id)
+                response.body.data.messageRecords.filter((r: MessageRecord) => r.id === record.id),
             ).to.have.lengthOf(1);
         });
     });
@@ -773,8 +774,8 @@ describe("API", () => {
                         fromUserId: user.id,
                         room,
                         fromDeviceId: device.id,
-                    })
-                )
+                    }),
+                ),
             );
 
             const olderMessages = await Promise.all(
@@ -784,8 +785,8 @@ describe("API", () => {
                         room,
                         fromDeviceId: device.id,
                         modifiedAt: new Date(+new Date() - 10000),
-                    })
-                )
+                    }),
+                ),
             );
 
             const response = await supertest(app)
@@ -796,12 +797,14 @@ describe("API", () => {
             expect(response.body).to.has.property("data");
             expect(response.body.data).to.has.property("messages");
             expect(
-                messages.every((m) => response.body.data.messages.find((bm: any) => bm.id === m.id))
+                messages.every((m) =>
+                    response.body.data.messages.find((bm: any) => bm.id === m.id),
+                ),
             ).to.be.true;
             expect(
                 olderMessages.every(
-                    (m) => !response.body.data.messages.find((bm: any) => bm.id === m.id)
-                )
+                    (m) => !response.body.data.messages.find((bm: any) => bm.id === m.id),
+                ),
             ).to.be.true;
         });
     });
@@ -830,8 +833,8 @@ describe("API", () => {
                         fromUserId: user.id,
                         room,
                         fromDeviceId: device.id,
-                    })
-                )
+                    }),
+                ),
             );
 
             const modifiedMessages = await Promise.all(
@@ -841,8 +844,8 @@ describe("API", () => {
                         room,
                         fromDeviceId: device.id,
                         modifiedAt: new Date(lastUpdate + 10000),
-                    })
-                )
+                    }),
+                ),
             );
 
             const response = await supertest(app)
@@ -854,13 +857,13 @@ describe("API", () => {
             expect(response.body.data).to.has.property("messages");
             expect(
                 modifiedMessages.every((m) =>
-                    response.body.data.messages.find((bm: any) => bm.id === m.id)
-                )
+                    response.body.data.messages.find((bm: any) => bm.id === m.id),
+                ),
             ).to.be.true;
             expect(
                 notModifiedMessages.every(
-                    (m) => !response.body.data.messages.find((bm: any) => bm.id === m.id)
-                )
+                    (m) => !response.body.data.messages.find((bm: any) => bm.id === m.id),
+                ),
             ).to.be.true;
         });
     });
@@ -880,8 +883,8 @@ describe("API", () => {
                         fromUserId: user.id,
                         room,
                         fromDeviceId: device.id,
-                    })
-                )
+                    }),
+                ),
             );
 
             await Promise.all(
@@ -892,8 +895,8 @@ describe("API", () => {
                             userId: globals.userId,
                             type: "delivered",
                         },
-                    })
-                )
+                    }),
+                ),
             );
 
             const messages = await Promise.all(
@@ -902,8 +905,8 @@ describe("API", () => {
                         fromUserId: user.id,
                         room,
                         fromDeviceId: device.id,
-                    })
-                )
+                    }),
+                ),
             );
 
             const response = await supertest(app)
@@ -914,12 +917,14 @@ describe("API", () => {
             expect(response.body).to.has.property("data");
             expect(response.body.data).to.has.property("messages");
             expect(
-                messages.every((m) => response.body.data.messages.find((bm: any) => bm.id === m.id))
+                messages.every((m) =>
+                    response.body.data.messages.find((bm: any) => bm.id === m.id),
+                ),
             ).to.be.true;
             expect(
                 deliveredMessages.every(
-                    (m) => !response.body.data.messages.find((bm: any) => bm.id === m.id)
-                )
+                    (m) => !response.body.data.messages.find((bm: any) => bm.id === m.id),
+                ),
             ).to.be.true;
         });
     });
@@ -1016,8 +1021,8 @@ describe("API", () => {
             });
             expect(
                 deviceMessagesFromDb.every(
-                    (dm) => (dm.body as { text: string }).text === "Deleted message"
-                )
+                    (dm) => (dm.body as { text: string }).text === "Deleted message",
+                ),
             ).to.eqls(true);
         });
 
@@ -1039,8 +1044,8 @@ describe("API", () => {
             });
             expect(
                 deviceMessagesFromDb.every(
-                    (dm) => (dm.body as { text: string }).text === "Deleted message"
-                )
+                    (dm) => (dm.body as { text: string }).text === "Deleted message",
+                ),
             ).to.eqls(true);
         });
 
@@ -1166,8 +1171,8 @@ describe("API", () => {
             });
             expect(
                 deviceMessagesFromDb.every(
-                    (dm) => (dm.body as { text: string }).text === "la la la"
-                )
+                    (dm) => (dm.body as { text: string }).text === "la la la",
+                ),
             ).to.eqls(true);
         });
 

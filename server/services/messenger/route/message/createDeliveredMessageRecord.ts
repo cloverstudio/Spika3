@@ -16,7 +16,7 @@ import prisma from "../../../../components/prisma";
 
 const deliveredMessagesSchema = yup.object().shape({
     body: yup.object().shape({
-        messagesIds: yup.array().default([]).of(yup.number().strict().moreThan(0)).required(),
+        messageIds: yup.array().default([]).of(yup.number().strict().moreThan(0)).required(),
     }),
 });
 
@@ -29,11 +29,11 @@ export default ({ rabbitMQChannel }: InitRouterParams): RequestHandler[] => {
         async (req: Request, res: Response) => {
             const userReq: UserRequest = req as UserRequest;
             const userId = userReq.user.id;
-            const messagesIds = req.body.messagesIds as number[];
+            const messageIds = req.body.messageIds as number[];
 
             try {
                 const messages = await prisma.message.findMany({
-                    where: { id: { in: messagesIds } },
+                    where: { id: { in: messageIds } },
                     include: { messageRecords: true },
                 });
 
@@ -43,31 +43,31 @@ export default ({ rabbitMQChannel }: InitRouterParams): RequestHandler[] => {
                         .send(errorResponse("No messages with given ids found", userReq.lang));
                 }
 
-                const notFoundMessagesIds = messagesIds.filter(
-                    (id) => !messages.find((m) => m.id === id)
+                const notFoundMessageIds = messageIds.filter(
+                    (id) => !messages.find((m) => m.id === id),
                 );
 
-                if (notFoundMessagesIds.length) {
+                if (notFoundMessageIds.length) {
                     return res
                         .status(400)
                         .send(
                             errorResponse(
-                                `Messages with ids: ${notFoundMessagesIds.join(",")} not found`,
-                                userReq.lang
-                            )
+                                `Messages with ids: ${notFoundMessageIds.join(",")} not found`,
+                                userReq.lang,
+                            ),
                         );
                 }
 
-                const roomsIds = messages
+                const roomIds = messages
                     .map((m) => m.roomId)
                     .filter((item, index, self) => self.indexOf(item) === index);
 
                 const roomsUser = await prisma.roomUser.findMany({
-                    where: { roomId: { in: roomsIds }, userId },
+                    where: { roomId: { in: roomIds }, userId },
                 });
 
-                const notFoundRomsUser = roomsIds.filter(
-                    (roomId) => !roomsUser.find((m) => m.roomId === roomId)
+                const notFoundRomsUser = roomIds.filter(
+                    (roomId) => !roomsUser.find((m) => m.roomId === roomId),
                 );
 
                 if (notFoundRomsUser.length) {
@@ -76,8 +76,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): RequestHandler[] => {
                         .send(
                             errorResponse(
                                 "One or more message is from room that user is not part of",
-                                userReq.lang
-                            )
+                                userReq.lang,
+                            ),
                         );
                 }
 

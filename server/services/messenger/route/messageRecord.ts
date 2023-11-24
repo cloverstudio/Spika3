@@ -107,7 +107,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 le(e);
                 res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
             }
-        }
+        },
     );
 
     router.delete("/:id", auth, async (req: Request, res: Response) => {
@@ -187,13 +187,13 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
             }
 
             const roomsUser = await prisma.roomUser.findMany({ where: { userId } });
-            const roomsIds = roomsUser.map((ru) => ru.roomId);
+            const roomIds = roomsUser.map((ru) => ru.roomId);
 
             const messageRecords = await prisma.messageRecord.findMany({
                 where: {
                     modifiedAt: { gt: new Date(lastUpdate) },
                     message: {
-                        roomId: { in: roomsIds },
+                        roomId: { in: roomIds },
                         modifiedAt: { gte: userReq.device.createdAt },
                     },
                 },
@@ -207,7 +207,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 where: {
                     modifiedAt: { gt: new Date(lastUpdate) },
                     message: {
-                        roomId: { in: roomsIds },
+                        roomId: { in: roomIds },
                         modifiedAt: { gte: userReq.device.createdAt },
                     },
                 },
@@ -238,8 +238,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         hasNext,
                         messageRecords: messageRecordsSanitized,
                     },
-                    userReq.lang
-                )
+                    userReq.lang,
+                ),
             );
         } catch (e: any) {
             le(e);

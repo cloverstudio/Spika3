@@ -282,7 +282,7 @@ describe("API", () => {
             expect(roomFromRes).to.has.property("users");
             expect(roomFromRes.users).to.be.an("array");
             expect(
-                roomFromRes.users.filter((u: RoomUser) => u.isAdmin).map((u: RoomUser) => u.userId)
+                roomFromRes.users.filter((u: RoomUser) => u.isAdmin).map((u: RoomUser) => u.userId),
             )
                 .to.be.an("array")
                 .that.does.include(globals.userId);
@@ -352,8 +352,8 @@ describe("API", () => {
 
             expect(JSON.stringify(response.body.data.room)).to.eqls(
                 JSON.stringify(
-                    sanitize({ ...room, muted: false, pinned: false, unreadCount: 0 }).room()
-                )
+                    sanitize({ ...room, muted: false, pinned: false, unreadCount: 0 }).room(),
+                ),
             );
         });
 
@@ -365,7 +365,7 @@ describe("API", () => {
                     { userId: globals.userId, isAdmin: true },
                     { userId: user.id, isAdmin: false },
                 ],
-                { type: "private" }
+                { type: "private" },
             );
 
             const response = await supertest(app)
@@ -416,7 +416,9 @@ describe("API", () => {
             const roomFromRes = response.body.data.room;
             expect(roomFromRes.users).to.be.an("array");
             expect(
-                roomFromRes.users.filter((u: RoomUser) => !u.isAdmin).map((u: RoomUser) => u.userId)
+                roomFromRes.users
+                    .filter((u: RoomUser) => !u.isAdmin)
+                    .map((u: RoomUser) => u.userId),
             ).to.include.members(userIds);
         });
 
@@ -440,7 +442,9 @@ describe("API", () => {
             const roomFromRes = response.body.data.room;
             expect(roomFromRes.users).to.be.an("array");
             expect(
-                roomFromRes.users.filter((u: RoomUser) => !u.isAdmin).map((u: RoomUser) => u.userId)
+                roomFromRes.users
+                    .filter((u: RoomUser) => !u.isAdmin)
+                    .map((u: RoomUser) => u.userId),
             ).to.have.length(0);
         });
 
@@ -464,7 +468,7 @@ describe("API", () => {
             const roomFromRes = response.body.data.room;
             expect(roomFromRes.users).to.be.an("array");
             expect(
-                roomFromRes.users.filter((u: RoomUser) => u.isAdmin).map((u: RoomUser) => u.userId)
+                roomFromRes.users.filter((u: RoomUser) => u.isAdmin).map((u: RoomUser) => u.userId),
             ).to.include.members([globals.userId, ...adminUserIds]);
         });
 
@@ -560,10 +564,10 @@ describe("API", () => {
             expect(roomFromDb).to.has.property("users");
             expect(roomFromDb.users).to.be.an("array");
             expect(
-                roomFromDb.users.filter((u: RoomUser) => !u.isAdmin).map((u: RoomUser) => u.userId)
+                roomFromDb.users.filter((u: RoomUser) => !u.isAdmin).map((u: RoomUser) => u.userId),
             ).to.include.members(users.map((u) => u.id));
             expect(
-                roomFromDb.users.filter((u: RoomUser) => u.isAdmin).map((u: RoomUser) => u.userId)
+                roomFromDb.users.filter((u: RoomUser) => u.isAdmin).map((u: RoomUser) => u.userId),
             ).to.include.members([globals.userId, ...adminUserIds]);
         });
     });
@@ -581,7 +585,7 @@ describe("API", () => {
             const roomsFromRes = response.body.data.list as (Room & { users: RoomUser[] })[];
             expect(roomsFromRes).to.be.an("array");
             expect(
-                roomsFromRes.every((r) => r.users.map((u) => u.userId).includes(globals.userId))
+                roomsFromRes.every((r) => r.users.map((u) => u.userId).includes(globals.userId)),
             ).to.eqls(true);
         });
 
@@ -958,7 +962,7 @@ describe("API", () => {
     });
 
     describe("/api/messenger/rooms/unread-count GET", () => {
-        it("Returns roomsIds and their unread count", async () => {
+        it("Returns roomIds and their unread count", async () => {
             const user = await createFakeUser();
             const device = await createFakeDevice(user.id);
             const room = await createFakeRoom([
@@ -981,7 +985,7 @@ describe("API", () => {
             expect(response.body.data.unreadCounts.some((m: any) => m.roomId === room.id)).to.be
                 .true;
             expect(
-                response.body.data.unreadCounts.find((m: any) => m.roomId === room.id)?.unreadCount
+                response.body.data.unreadCounts.find((m: any) => m.roomId === room.id)?.unreadCount,
             ).to.be.eqls(1);
         });
     });
@@ -1012,7 +1016,7 @@ describe("API", () => {
                     { userId: globals.userId, isAdmin: true },
                     { userId: user.id, isAdmin: false },
                 ],
-                { type: "private" }
+                { type: "private" },
             );
 
             const response = await supertest(app)

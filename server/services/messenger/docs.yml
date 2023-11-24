@@ -883,7 +883,7 @@ paths:
             produces:
                 - "application/json"
             parameters:
-                - name: "messagesIds"
+                - name: "messageIds"
                   in: body
                   required: true
                   schema:

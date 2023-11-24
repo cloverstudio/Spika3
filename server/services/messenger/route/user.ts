@@ -20,7 +20,7 @@ export default (): Router => {
             const id = parseInt((req.params.id as string) || "");
             if (id === userReq.user.id) {
                 return res.send(
-                    successResponse({ user: sanitize(userReq.user).user() }, userReq.lang)
+                    successResponse({ user: sanitize(userReq.user).user() }, userReq.lang),
                 );
             }
             let user: User;
@@ -112,8 +112,8 @@ export default (): Router => {
                         hasNext,
                         users: users.map((user) => sanitize(user).user()),
                     },
-                    userReq.lang
-                )
+                    userReq.lang,
+                ),
             );
         } catch (e: any) {
             le(e);
@@ -146,7 +146,7 @@ export async function getUsers(userId: number, timestamp: number, skip: number):
         },
     });
 
-    const userRoomsIds = usersRooms.map((ur) => ur.roomId);
+    const userRoomIds = usersRooms.map((ur) => ur.roomId);
 
     const allUsers = await prisma.user.findMany({
         where: {
@@ -158,7 +158,7 @@ export async function getUsers(userId: number, timestamp: number, skip: number):
                     rooms: {
                         some: {
                             id: {
-                                in: userRoomsIds,
+                                in: userRoomIds,
                             },
                         },
                     },
@@ -206,7 +206,7 @@ export async function getUsersCount(userId: number, timestamp: number): Promise<
         },
     });
 
-    const userRoomsIds = usersRooms.map((ur) => ur.roomId);
+    const userRoomIds = usersRooms.map((ur) => ur.roomId);
 
     const allUsersCount = await prisma.user.count({
         where: {
@@ -218,7 +218,7 @@ export async function getUsersCount(userId: number, timestamp: number): Promise<
                     rooms: {
                         some: {
                             id: {
-                                in: userRoomsIds,
+                                in: userRoomIds,
                             },
                         },
                     },
