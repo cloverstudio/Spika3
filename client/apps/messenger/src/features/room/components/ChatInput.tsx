@@ -226,13 +226,13 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
                 alignItems="center"
                 flexWrap="wrap"
                 mr={2}
+                ml={2}
             >
                 <Box
                     sx={{
                         color: "text.primary",
                         backgroundColor: "background.paper",
                         borderRadius: "10px",
-                        ml: message || inputType === "emoji" ? 2 : 0,
                         position: "relative",
                         flexGrow: 1,
                     }}
@@ -284,7 +284,7 @@ function TextArea({ onSend }: { onSend: () => void }): React.ReactElement {
     const dispatch = useAppDispatch();
     const inputRef = useRef<HTMLTextAreaElement>();
 
-    useAutoSizeTextArea(inputRef.current, message);
+    useAutoSizeTextArea(inputRef, message);
 
     useEffect(() => {
         inputRef.current.focus();

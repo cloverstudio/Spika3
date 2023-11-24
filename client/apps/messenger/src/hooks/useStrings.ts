@@ -149,6 +149,7 @@ const en = {
     startChat: "Start chat",
     contacts: "Contacts",
     bots: "Bots",
+    dismissAsAdmin: "Dismiss as admin",
 };
 
 const strings = {

@@ -16,6 +16,9 @@ import useStrings from "../../../../hooks/useStrings";
 import SidebarContactList from "../leftSidebar/ContactList";
 import SelectedMembers from "../SelectedMembers";
 import { ThemeContext } from "../../../../theme";
+import SearchBox from "../SearchBox";
+import { useAppDispatch } from "../../../../hooks";
+import { fetchContacts, setKeyword } from "../../slices/contacts";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -30,6 +33,8 @@ export default function AddMembersModal(props: AddMembersModalProps) {
     const strings = useStrings();
     const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
     const { theme } = useContext(ThemeContext);
+
+    const dispatch = useAppDispatch();
 
     const { onClose, open, onSave, existingMembers } = props;
 
@@ -84,8 +89,18 @@ export default function AddMembersModal(props: AddMembersModalProps) {
 
                 <SelectedMembers selectedUsers={selectedUsers} onRemove={handleUserClick} />
 
+                <Box mx={-2.5}>
+                    <SearchBox
+                        onSearch={(keyword: string) => {
+                            dispatch(setKeyword(keyword));
+                            dispatch(fetchContacts());
+                        }}
+                    />
+                </Box>
+
                 <Box mb={2} mx={-2.5} maxHeight="50vh" sx={{ overflowY: "auto" }}>
                     <SidebarContactList
+                        hideSearchBox
                         hideBots
                         handleUserClick={handleUserClick}
                         selectedUserIds={[
