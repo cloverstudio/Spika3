@@ -23,8 +23,13 @@ const forwardMessageBody = yup.object().shape({
     body: yup.object().shape({
         roomsIds: yup.array().default([]).of(yup.number().strict().min(1)),
         usersIds: yup.array().default([]).of(yup.number().strict().min(1)),
+        messagesIds: yup.array().default([]).of(yup.number().strict().min(1)).required(),
     }),
 });
+
+// make is to it can receive multiple messages
+// it returns all created messages (sanitized)
+// returns rooms that were created (if private room was created)
 
 export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHandler[] => {
     return [
@@ -36,43 +41,56 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
             try {
                 const roomsIds: number[] = req.body.roomsIds;
                 const usersIds: number[] = req.body.usersIds;
-                const messageId: number = +req.params.id;
+                const messagesIds: number[] = req.body.messagesIds;
 
                 const fromUserId = userReq.user.id;
                 const fromDeviceId = userReq.device.id;
 
-                const message = await prisma.message.findUnique({
-                    where: {
-                        id: messageId,
-                    },
-                });
+                const messagesAndDeviceMessages = [];
 
-                if (!message) {
-                    return res.status(404).send(errorResponse("Message not found", userReq.lang));
-                }
+                for (const messageId of messagesIds) {
+                    const message = await prisma.message.findUnique({
+                        where: {
+                            id: messageId,
+                        },
+                    });
 
-                const roomUser = await prisma.roomUser.findFirst({
-                    where: {
-                        userId: fromUserId,
-                        roomId: message.roomId,
-                    },
-                });
+                    if (!message) {
+                        return res
+                            .status(404)
+                            .send(errorResponse("Message not found", userReq.lang));
+                    }
 
-                if (!roomUser) {
-                    return res.status(403).send(errorResponse("User is not in room", userReq.lang));
-                }
+                    const roomUser = await prisma.roomUser.findFirst({
+                        where: {
+                            userId: fromUserId,
+                            roomId: message.roomId,
+                        },
+                    });
 
-                const deviceMessage = await prisma.deviceMessage.findFirst({
-                    where: {
-                        messageId,
-                        userId: fromUserId,
-                    },
-                });
+                    if (!roomUser) {
+                        return res
+                            .status(403)
+                            .send(errorResponse("User is not in room", userReq.lang));
+                    }
 
-                if (!deviceMessage) {
-                    return res
-                        .status(403)
-                        .send(errorResponse("No device message found", userReq.lang));
+                    const deviceMessage = await prisma.deviceMessage.findFirst({
+                        where: {
+                            messageId,
+                            userId: fromUserId,
+                        },
+                    });
+
+                    if (!deviceMessage) {
+                        return res
+                            .status(403)
+                            .send(errorResponse("No device message found", userReq.lang));
+                    }
+
+                    messagesAndDeviceMessages.push({
+                        message,
+                        deviceMessage,
+                    });
                 }
 
                 const roomsFromRoomsIds = await Promise.all(
@@ -111,85 +129,93 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
 
                 const privateRooms = await findPrivateRooms(fromUserId, usersIds);
 
-                console.log({ roomsFromRoomsIds, userIsNotInSomeRoom });
-                console.log({ privateRooms });
-                const body = deviceMessage.body;
-                const type = message.type;
+                const allRooms = [...roomsFromRoomsIds, ...privateRooms];
 
-                for (const room of [...roomsFromRoomsIds, ...privateRooms]) {
-                    const blocked = await isRoomBlocked(room.id, fromUserId);
+                const sanitizedMessages = [];
+                const newRooms = privateRooms.filter((r) => r.isNew).map((r) => sanitize(r).room());
 
-                    if (blocked) {
-                        continue;
-                    }
+                for (const { message, deviceMessage } of messagesAndDeviceMessages) {
+                    const body = deviceMessage.body;
+                    const type = message.type;
 
-                    const roomId = room.id;
-                    const allReceivers = room.users;
+                    for (const room of allRooms) {
+                        const blocked = await isRoomBlocked(room.id, fromUserId);
 
-                    const message = await prisma.message.create({
-                        data: {
-                            type,
-                            roomId,
-                            fromUserId: userReq.user.id,
-                            fromDeviceId: userReq.device.id,
-                            totalUserCount: allReceivers.length,
-                            deliveredCount: 0,
-                            seenCount: 0,
-                        },
-                    });
+                        if (blocked) {
+                            continue;
+                        }
 
-                    const userDeviceMessage = await prisma.deviceMessage.create({
-                        data: {
-                            userId: fromUserId,
-                            deviceId: fromDeviceId,
-                            fromUserId,
-                            fromDeviceId,
-                            body,
-                            action: MESSAGE_ACTION_NEW_MESSAGE,
-                            messageId: message.id,
-                        },
-                    });
+                        const roomId = room.id;
+                        const allReceivers = room.users;
 
-                    const formattedBody = await formatMessageBody(body, type);
-                    const sanitizedMessage = sanitize({
-                        ...message,
-                        body: formattedBody,
-                        createdAt: userDeviceMessage.createdAt,
-                        modifiedAt: userDeviceMessage.modifiedAt,
-                    }).message();
+                        const message = await prisma.message.create({
+                            data: {
+                                type,
+                                roomId,
+                                fromUserId: userReq.user.id,
+                                fromDeviceId: userReq.device.id,
+                                totalUserCount: allReceivers.length,
+                                deliveredCount: 0,
+                                seenCount: 0,
+                                isForwarded: true,
+                            },
+                        });
 
-                    res.send(successResponse({ message: sanitizedMessage }, userReq.lang));
-
-                    rabbitMQChannel.sendToQueue(
-                        Constants.QUEUE_MESSAGES_SSE,
-                        Buffer.from(
-                            JSON.stringify({
-                                room,
-                                message: sanitizedMessage,
-                            }),
-                        ),
-                    );
-
-                    rabbitMQChannel.sendToQueue(
-                        Constants.QUEUE_WEBHOOK,
-                        Buffer.from(
-                            JSON.stringify({
-                                messageId: message.id,
+                        const userDeviceMessage = await prisma.deviceMessage.create({
+                            data: {
+                                userId: fromUserId,
+                                deviceId: fromDeviceId,
+                                fromUserId,
+                                fromDeviceId,
                                 body,
-                            }),
-                        ),
-                    );
+                                action: MESSAGE_ACTION_NEW_MESSAGE,
+                                messageId: message.id,
+                            },
+                        });
 
-                    handleNewMessage({
-                        body,
-                        fromUserId,
-                        room,
-                        users: room.users.map((u) => u.user),
-                        messageType: type,
-                    });
+                        const formattedBody = await formatMessageBody(body, type);
+                        const sanitizedMessage = sanitize({
+                            ...message,
+                            body: formattedBody,
+                            createdAt: userDeviceMessage.createdAt,
+                            modifiedAt: userDeviceMessage.modifiedAt,
+                        }).message();
+
+                        sanitizedMessages.push(sanitizedMessage);
+
+                        rabbitMQChannel.sendToQueue(
+                            Constants.QUEUE_MESSAGES_SSE,
+                            Buffer.from(
+                                JSON.stringify({
+                                    room,
+                                    message: sanitizedMessage,
+                                }),
+                            ),
+                        );
+
+                        rabbitMQChannel.sendToQueue(
+                            Constants.QUEUE_WEBHOOK,
+                            Buffer.from(
+                                JSON.stringify({
+                                    messageId: message.id,
+                                    body,
+                                }),
+                            ),
+                        );
+
+                        handleNewMessage({
+                            body,
+                            fromUserId,
+                            room,
+                            users: room.users.map((u) => u.user),
+                            messageType: type,
+                        });
+                    }
                 }
 
-                return res.status(200).send(successResponse("Message forwarded", userReq.lang));
+                return res
+                    .status(200)
+                    .send(successResponse({ messages: sanitizedMessages, newRooms }, userReq.lang));
             } catch (e: unknown) {
                 le(e);
                 res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
@@ -217,8 +243,22 @@ async function findPrivateRooms(userId: number, otherUsersIds: number[]) {
         const roomsResult: Room[] = await prisma.$queryRawUnsafe<Room[]>(query);
 
         if (roomsResult.length) {
-            console.log("room exists");
-            rooms.push(...roomsResult);
+            const results = await prisma.room.findMany({
+                where: {
+                    id: {
+                        in: roomsResult.map((r) => r.id),
+                    },
+                },
+                include: {
+                    users: {
+                        include: {
+                            user: true,
+                        },
+                    },
+                },
+            });
+
+            rooms.push(...results);
         } else {
             // create private room
             const room = await prisma.room.create({
@@ -236,10 +276,15 @@ async function findPrivateRooms(userId: number, otherUsersIds: number[]) {
                         },
                     },
                 },
+                include: {
+                    users: {
+                        include: {
+                            user: true,
+                        },
+                    },
+                },
             });
-            console.log("room created");
-
-            rooms.push(room);
+            rooms.push({ ...room, isNew: true });
         }
     }
 

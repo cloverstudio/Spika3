@@ -22,7 +22,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
     router.delete("/:id", deleteMessageRote({ rabbitMQChannel }));
 
     router.get("/:id/message-records", getMessageRecordsRoute({}));
-    router.post("/:id/forward", forwardMessageRoute({ rabbitMQChannel, redisClient }));
+    router.post("/forward", forwardMessageRoute({ rabbitMQChannel, redisClient }));
 
     // only web should call this route
     router.get("/search", searchMessagesRoute({ redisClient }));
