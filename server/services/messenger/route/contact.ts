@@ -22,7 +22,7 @@ const postContactsSchema = yup.object().shape({
                       value
                           .split(",")
                           .map((v: string) => v.trim())
-                          .filter((v: string) => v)
+                          .filter((v: string) => v),
                   )
                 : yup
                       .array(yup.string())
@@ -32,8 +32,8 @@ const postContactsSchema = yup.object().shape({
                       .required()
                       .typeError(
                           ({ path, originalValue }: errorParams): string =>
-                              `${path} must be array or string, currently: ${originalValue}`
-                      )
+                              `${path} must be array or string, currently: ${originalValue}`,
+                      ),
         ),
         isLastPage: yup.boolean().default(false),
     }),
@@ -72,7 +72,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                           id: {
                               not: userReq.user.id,
                           },
-                          deleted:false
+                          deleted: false,
                       },
                   }
                 : {
@@ -80,7 +80,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                       id: {
                           not: userReq.user.id,
                       },
-                      deleted:false
+                      deleted: false,
                   }),
         };
 
@@ -116,11 +116,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                             limit: Constants.CONTACT_PAGING_LIMIT,
                             nextCursor,
                         },
-                        userReq.lang
-                    )
+                        userReq.lang,
+                    ),
                 );
             } else {
-
                 const contacts = await prisma.contact.findMany({
                     where: {
                         userId: userReq.user.id,
@@ -148,7 +147,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     where: {
                         userId: userReq.user.id,
                         contact: condition,
-                    }
+                    },
                 });
 
                 const nextCursor =
@@ -164,8 +163,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                             limit: Constants.CONTACT_PAGING_LIMIT,
                             nextCursor,
                         },
-                        userReq.lang
-                    )
+                        userReq.lang,
+                    ),
                 );
             }
         } catch (e: any) {
@@ -196,7 +195,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
                 rabbitMQChannel.sendToQueue(
                     Constants.QUEUE_CREATE_CONTACT,
-                    Buffer.from(JSON.stringify(payload))
+                    Buffer.from(JSON.stringify(payload)),
                 );
             });
 
@@ -211,8 +210,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         count: verifiedUsers.length,
                         limit: Constants.CONTACT_SYNC_LIMIT,
                     },
-                    userReq.lang
-                )
+                    userReq.lang,
+                ),
             );
         } catch (e: any) {
             le(e);

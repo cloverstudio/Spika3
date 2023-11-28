@@ -150,6 +150,10 @@ const en = {
     contacts: "Contacts",
     bots: "Bots",
     dismissAsAdmin: "Dismiss as admin",
+    groups: "Groups",
+    noGroups: "No groups found",
+    forward: "Forward",
+    forwarded: "forwarded",
 };
 
 const strings = {

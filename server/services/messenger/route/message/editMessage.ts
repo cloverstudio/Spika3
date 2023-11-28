@@ -43,8 +43,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): RequestHandler[] => {
                         .send(
                             errorResponse(
                                 "User can't edit messages that he is not owner",
-                                userReq.lang
-                            )
+                                userReq.lang,
+                            ),
                         );
                 }
 
@@ -54,9 +54,15 @@ export default ({ rabbitMQChannel }: InitRouterParams): RequestHandler[] => {
                         .send(
                             errorResponse(
                                 "Only messages with type text can be edited",
-                                userReq.lang
-                            )
+                                userReq.lang,
+                            ),
                         );
+                }
+
+                if (message.isForwarded) {
+                    return res
+                        .status(400)
+                        .send(errorResponse("Forwarded messages can't be edited", userReq.lang));
                 }
 
                 const blocked = await isRoomBlocked(message.roomId, userReq.user.id);
@@ -82,7 +88,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): RequestHandler[] => {
                 });
 
                 const userDeviceMessage = message.deviceMessages.find(
-                    (dm) => dm.deviceId === deviceId && dm.userId === userId
+                    (dm) => dm.deviceId === deviceId && dm.userId === userId,
                 );
 
                 const sanitizedMessage = sanitize({
@@ -105,8 +111,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): RequestHandler[] => {
                                         type: Constants.PUSH_TYPE_UPDATE_MESSAGE,
                                         message: sanitizedMessage,
                                     },
-                                })
-                            )
+                                }),
+                            ),
                         );
                     });
                 }

@@ -17,6 +17,7 @@ import noteRouter from "./route/note";
 import webhookRouter from "./route/webhook";
 import apiKeyRouter from "./route/apiKey";
 import blockRouter from "./route/block";
+import groupMessageRouter from "./route/groupMessageRoom";
 
 import * as Constants from "../../components/consts";
 import Service, { ServiceStartParams } from "../types/serviceInterface";
@@ -42,7 +43,7 @@ export default class Messenger implements Service {
                 const payload: CreateContactPayload = JSON.parse(msg.content.toString());
                 await saveContactWorker.run(payload);
                 rabbitMQChannel.ack(msg);
-            }
+            },
         );
     }
 
@@ -52,16 +53,20 @@ export default class Messenger implements Service {
         messengerRouter.use("/auth", signupRouter({ rabbitMQChannel: this.rabbitMQChannel }));
         messengerRouter.use("/contacts", contactRouter({ rabbitMQChannel: this.rabbitMQChannel }));
         messengerRouter.use(
+            "/groupMessageRooms",
+            groupMessageRouter({ rabbitMQChannel: this.rabbitMQChannel }),
+        );
+        messengerRouter.use(
             "/rooms",
-            roomRouter({ rabbitMQChannel: this.rabbitMQChannel, redisClient: this.redisClient })
+            roomRouter({ rabbitMQChannel: this.rabbitMQChannel, redisClient: this.redisClient }),
         );
         messengerRouter.use(
             "/messages",
-            messageRouter({ rabbitMQChannel: this.rabbitMQChannel, redisClient: this.redisClient })
+            messageRouter({ rabbitMQChannel: this.rabbitMQChannel, redisClient: this.redisClient }),
         );
         messengerRouter.use(
             "/me",
-            meRouter({ rabbitMQChannel: this.rabbitMQChannel, redisClient: this.redisClient })
+            meRouter({ rabbitMQChannel: this.rabbitMQChannel, redisClient: this.redisClient }),
         );
         messengerRouter.use("/device", deviceRouter());
         messengerRouter.use("/history", historyRouter({ redisClient: this.redisClient }));
@@ -73,7 +78,7 @@ export default class Messenger implements Service {
             messageRecordRouter({
                 rabbitMQChannel: this.rabbitMQChannel,
                 redisClient: this.redisClient,
-            })
+            }),
         );
         messengerRouter.use("/webhooks", webhookRouter({}));
         messengerRouter.use("/api-keys", apiKeyRouter({ redisClient: this.redisClient }));
