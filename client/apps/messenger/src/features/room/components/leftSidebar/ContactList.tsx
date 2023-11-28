@@ -44,7 +44,11 @@ export default function SidebarContactList({
     const isFetching = loading === "pending";
     const [displayBots, setDisplayBots] = React.useState(false);
 
-    const { sortedByDisplayName } = useSelector(selectContacts(displayBots));
+    const { sortedByDisplayName } = useSelector(selectContacts({ displayBots }));
+
+    const cursor = useAppSelector((state) => state.contacts.cursor);
+    const count = useAppSelector((state) => state.contacts.count);
+    const users = useAppSelector((state) => state.contacts.list);
 
     const allowToggle = !hideBots;
 

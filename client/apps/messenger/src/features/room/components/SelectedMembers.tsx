@@ -6,14 +6,22 @@ import Avatar from "@mui/material/Avatar";
 import Typography from "@mui/material/Typography";
 import Badge from "@mui/material/Badge";
 import User from "../../../types/User";
+import { Room } from "@prisma/client";
 
 type SelectedMembersProps = {
     selectedUsers: User[];
+    selectedGroups?: Room[];
     onRemove: (user: User) => void;
+    onGroupRemove?: (group: Room) => void;
 };
 
-export default function SelectedMembers({ selectedUsers, onRemove }: SelectedMembersProps) {
-    if (!selectedUsers.length) {
+export default function SelectedMembers({
+    selectedUsers,
+    selectedGroups,
+    onRemove,
+    onGroupRemove,
+}: SelectedMembersProps) {
+    if (!selectedUsers.length && !selectedGroups?.length) {
         return <Box mb={3} />;
     }
 
@@ -63,6 +71,53 @@ export default function SelectedMembers({ selectedUsers, onRemove }: SelectedMem
                         }}
                     >
                         {user.displayName}
+                    </Typography>
+                </Box>
+            ))}
+            {selectedGroups?.map((group) => (
+                <Box key={group.id} textAlign="center" width={80}>
+                    <Badge
+                        overlap="circular"
+                        color="primary"
+                        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+                        badgeContent={
+                            <Clear
+                                sx={{
+                                    color: "white",
+                                    cursor: "pointer",
+                                }}
+                                onClick={() => onGroupRemove(group)}
+                            />
+                        }
+                        sx={{
+                            "& .MuiBadge-badge": {
+                                padding: "0",
+                                height: "24px",
+                                width: "24px",
+                                borderRadius: "50%",
+                            },
+                            mt: 1,
+                        }}
+                    >
+                        <Avatar
+                            alt={group.name}
+                            src={`${UPLOADS_BASE_URL}/${group.avatarFileId}`}
+                            sx={{ width: 48, height: 48 }}
+                        />
+                    </Badge>
+                    <Typography
+                        textAlign="center"
+                        fontWeight="medium"
+                        color="text.tertiary"
+                        lineHeight="1.25rem"
+                        fontSize={14}
+                        sx={{
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                        }}
+                    >
+                        {group.name}
                     </Typography>
                 </Box>
             ))}

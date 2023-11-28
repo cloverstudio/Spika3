@@ -13,6 +13,7 @@ import {
     hideMessageOptions,
     selectMessageById,
     showDeleteModal,
+    showForwardMessageModal,
     showMessageDetails,
 } from "../../slices/messages";
 import { setEditMessage } from "../../slices/input";
@@ -72,9 +73,9 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
             text: strings.forwardMessage,
             icon: <Shortcut style={{ width: "14px", height: "14px" }} />,
             onClick: () => {},
-            show: false, // functionality not implemented
+            show: true,
             onclick: () => {
-                console.log("forward clicked");
+                dispatch(showForwardMessageModal({ roomId, messageId: id }));
             },
         },
         {
@@ -117,7 +118,7 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
             text: strings.edit,
             icon: <ModeEditOutlineOutlined style={{ width: "14px", height: "14px" }} />,
             onClick: () => {},
-            show: isUsersMessage && message.type === "text",
+            show: isUsersMessage && message.type === "text" && !message.isForwarded,
             onclick: () => {
                 dispatch(setEditMessage({ roomId, message }));
             },

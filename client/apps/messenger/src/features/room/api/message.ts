@@ -9,6 +9,14 @@ const messageApi = api.injectEndpoints({
                 return { url: "/messenger/messages", data, method: "POST" };
             },
         }),
+        forwardMessage: build.mutation<
+            any,
+            { messageIds: number[]; userIds: number[]; roomIds: number[] }
+        >({
+            query: (data) => {
+                return { url: "/messenger/messages/forward", data, method: "POST" };
+            },
+        }),
         markRoomMessagesAsSeen: build.mutation<any, number>({
             query: (roomId) => {
                 return { url: `/messenger/messages/${roomId}/seen`, method: "POST" };
@@ -81,5 +89,6 @@ export const {
     useRemoveReactionMutation,
     useSearchMessagesQuery,
     useLazySearchMessagesQuery,
+    useForwardMessageMutation,
 } = messageApi;
 export default messageApi;

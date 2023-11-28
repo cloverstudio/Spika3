@@ -3,6 +3,8 @@ import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import Avatar from "@mui/material/Avatar";
 import { Box, Slide, useMediaQuery, useTheme } from "@mui/material";
+import Shortcut from "@mui/icons-material/Shortcut";
+import ModeEditOutlineOutlined from "@mui/icons-material/ModeEditOutlineOutlined";
 import Typography from "@mui/material/Typography";
 import { useShowSnackBar } from "../../../../hooks/useModal";
 import { selectUser } from "../../../../store/userSlice";
@@ -22,7 +24,9 @@ import ReactionOptionsPopover from "./ReactionOptionsPopover";
 import MessageReactions from "./Reactions";
 import StatusIcon from "./StatusIcon";
 import { useAppDispatch } from "../../../../hooks";
-import EditedIndicator from "./EditedIndicator";
+import EditedIndicator from "./MessageActionIndicator";
+import MessageActionIndicator from "./MessageActionIndicator";
+import useStrings from "../../../../hooks/useStrings";
 
 function useSender(id: number) {
     const roomId = parseInt(useParams().id || "");
@@ -88,6 +92,7 @@ function Message({
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+    const strings = useStrings();
 
     const side = isUsersMessage ? "right" : "left";
 
@@ -188,8 +193,36 @@ function Message({
                             {!mouseOver &&
                                 Math.abs(message.modifiedAt - message.createdAt) > 100 &&
                                 !message.deleted && (
-                                    <EditedIndicator isUsersMessage={isUsersMessage} />
+                                    <MessageActionIndicator
+                                        isUsersMessage={isUsersMessage}
+                                        actionTitle={strings.edited}
+                                        icon={
+                                            <ModeEditOutlineOutlined
+                                                style={{
+                                                    width: "16px",
+                                                    height: "16px",
+                                                    color: "#9AA0A6",
+                                                }}
+                                            />
+                                        }
+                                    />
                                 )}
+                            {!mouseOver && message.isForwarded && (
+                                <MessageActionIndicator
+                                    isUsersMessage={isUsersMessage}
+                                    actionTitle={strings.forwarded}
+                                    icon={
+                                        <Shortcut
+                                            style={{
+                                                width: "14px",
+                                                height: "14px",
+                                                color: "#9AA0A6",
+                                                marginRight: "2px",
+                                            }}
+                                        />
+                                    }
+                                />
+                            )}
 
                             <Menu
                                 id={id}

@@ -1,13 +1,20 @@
 import React from "react";
-import ModeEditOutlineOutlined from "@mui/icons-material/ModeEditOutlineOutlined";
 import { Box } from "@mui/material";
 import useStrings from "../../../../hooks/useStrings";
 
 interface Props {
     isUsersMessage: boolean;
+    actionTitle: string;
+    icon?: React.ReactNode;
+    styles?: React.CSSProperties;
 }
 
-export default function EditedIndicator({ isUsersMessage }: Props) {
+export default function MessageActionIndicator({
+    isUsersMessage,
+    actionTitle,
+    icon,
+    styles,
+}: Props) {
     const strings = useStrings();
     return (
         <Box
@@ -19,9 +26,10 @@ export default function EditedIndicator({ isUsersMessage }: Props) {
                 top: "53%",
                 transform: "translateY(-53%)",
                 display: "flex",
+                ...(styles ? styles : {}),
             }}
         >
-            <ModeEditOutlineOutlined style={{ width: "16px", height: "16px", color: "#9AA0A6" }} />
+            {icon && icon}
             <span
                 style={{
                     color: "#9AA0A6",
@@ -31,7 +39,7 @@ export default function EditedIndicator({ isUsersMessage }: Props) {
                     fontWeight: 500,
                 }}
             >
-                {strings.edited}
+                {actionTitle}
             </span>
         </Box>
     );

@@ -21,7 +21,7 @@ export const fetchContacts = createAsyncThunk("user/fetchContact", async (_, thu
     }
 
     const response = await dynamicBaseQuery(
-        `/management/users/members?keyword=${keyword}&${cursor ? `cursor=${cursor}` : ""}`
+        `/management/users/members?keyword=${keyword}&${cursor ? `cursor=${cursor}` : ""}`,
     );
     return {
         data: response.data,
@@ -90,7 +90,7 @@ export const selectContacts =
         }, {});
 
         const sortedByDisplayName = Object.entries<User[]>(sortedByDisplayNameObj).sort((a, b) =>
-            a[0] < b[0] ? -1 : 1
+            a[0] < b[0] ? -1 : 1,
         );
 
         return { ...state.users, sortedByDisplayName };

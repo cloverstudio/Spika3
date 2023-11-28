@@ -408,6 +408,7 @@ type InitialState = {
         showMessageOptions: boolean;
         showEmojiDetails: boolean;
         showCustomEmojiModal: boolean;
+        showForwardMessageModal: boolean;
         showDelete: boolean;
         activeMessageId: number | null;
         targetMessageId: number | null;
@@ -435,6 +436,7 @@ export const messagesSlice = createSlice({
                     replyId?: number;
                     createdAt?: number;
                     progress?: number;
+                    isForwarded?: boolean;
                 };
             },
         ) {
@@ -448,6 +450,7 @@ export const messagesSlice = createSlice({
                 replyId,
                 createdAt = +Date.now(),
                 progress,
+                isForwarded,
             } = action.payload;
             const room = state[roomId];
 
@@ -469,6 +472,7 @@ export const messagesSlice = createSlice({
                 totalUserCount: 100,
                 messageRecords: [],
                 progress,
+                isForwarded,
             };
         },
 
@@ -593,6 +597,14 @@ export const messagesSlice = createSlice({
                 room.showCustomEmojiModal = true;
             }
         },
+        showForwardMessageModal(state, action: { payload: { roomId: number; messageId: number } }) {
+            const { roomId, messageId } = action.payload;
+            const room = state[roomId];
+            if (room) {
+                room.activeMessageId = messageId;
+                room.showForwardMessageModal = true;
+            }
+        },
 
         showMessageOptions(state, action: { payload: { roomId: number; messageId: number } }) {
             const { roomId, messageId } = action.payload;
@@ -621,6 +633,16 @@ export const messagesSlice = createSlice({
                 room.showCustomEmojiModal = false;
             }
         },
+
+        hideForwardMessageModal(state, action: { payload: number }) {
+            const roomId = action.payload;
+            const room = state[roomId];
+
+            if (room) {
+                room.showForwardMessageModal = false;
+            }
+        },
+
         hideEmojiDetails(state, action: { payload: number }) {
             const roomId = action.payload;
             const room = state[roomId];
@@ -708,6 +730,7 @@ export const messagesSlice = createSlice({
                     showDetails: false,
                     showEmojiDetails: false,
                     showCustomEmojiModal: false,
+                    showForwardMessageModal: false,
                     showMessageOptions: false,
                     showDelete: false,
                 };
@@ -789,6 +812,7 @@ export const messagesSlice = createSlice({
                     targetMessageId: null,
                     showDetails: false,
                     showEmojiDetails: false,
+                    showForwardMessageModal: false,
                     showCustomEmojiModal: false,
                     showMessageOptions: false,
                     showDelete: false,
@@ -907,6 +931,8 @@ export const {
     showEmojiDetails,
     showMessageOptions,
     showCustomEmojiModal,
+    showForwardMessageModal,
+    hideForwardMessageModal,
     hideCustomEmojiModal,
     hideMessageOptions,
     hideEmojiDetails,
