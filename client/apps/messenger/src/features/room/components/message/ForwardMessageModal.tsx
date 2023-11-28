@@ -3,17 +3,15 @@ import React, { useContext, useState, useEffect } from "react";
 import { Box } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
-import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 
 import Close from "@mui/icons-material/Close";
-import Check from "@mui/icons-material/Check";
-import { RoomUserType } from "../../../../types/Rooms";
+
 import User from "../../../../types/User";
 import useStrings from "../../../../hooks/useStrings";
-import SidebarContactList, { ContactRow } from "../leftSidebar/ContactList";
+import { ContactRow } from "../leftSidebar/ContactList";
 import SelectedMembers from "../SelectedMembers";
 import { ThemeContext } from "../../../../theme";
 import SearchBox from "../SearchBox";
@@ -26,13 +24,9 @@ import { Room } from "@prisma/client";
 import { useSelector } from "react-redux";
 import { CircularProgress } from "@mui/material";
 
-import CheckIcon from "@mui/icons-material/Check";
-
 import { selectContacts, selectContactLoading } from "../../slices/contacts";
 
 import useIsInViewport from "../../../../hooks/useIsInViewport";
-
-declare const UPLOADS_BASE_URL: string;
 
 export default function ForwardMessageModal() {
     const strings = useStrings();
