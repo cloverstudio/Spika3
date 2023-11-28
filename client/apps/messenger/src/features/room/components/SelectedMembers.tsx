@@ -26,9 +26,16 @@ export default function SelectedMembers({
     }
 
     return (
-        <Box display="flex" flexWrap="wrap" gap={1.5} px={2.5} mb={2}>
+        <Box
+            display="flex"
+            gap={3}
+            px={2.5}
+            mb={2}
+            pb={1}
+            sx={{ overflowX: "scroll", overflowY: "hidden" }}
+        >
             {selectedUsers.map((user) => (
-                <Box key={user.id} textAlign="center" width={80}>
+                <Box key={user.id} textAlign="center" maxWidth={80} width={80}>
                     <Badge
                         overlap="circular"
                         color="primary"
@@ -63,6 +70,7 @@ export default function SelectedMembers({
                         fontWeight="medium"
                         color="text.tertiary"
                         lineHeight="1.25rem"
+                        width={70}
                         fontSize={14}
                         sx={{
                             textOverflow: "ellipsis",
@@ -110,6 +118,7 @@ export default function SelectedMembers({
                         fontWeight="medium"
                         color="text.tertiary"
                         lineHeight="1.25rem"
+                        width={70}
                         fontSize={14}
                         sx={{
                             textOverflow: "ellipsis",

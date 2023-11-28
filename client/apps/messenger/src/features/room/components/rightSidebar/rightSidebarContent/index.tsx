@@ -29,7 +29,7 @@ export default function RightSidebarContentContainer({
         <Box
             pt={addPadding ? 3 : 0}
             px={addPadding ? 2.5 : 0}
-            height="calc(100vh - 80.5px)"
+            height="100vh"
             pb={1}
             sx={{ overflowY: "auto" }}
         >

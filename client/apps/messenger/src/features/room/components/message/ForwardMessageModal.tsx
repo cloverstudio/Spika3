@@ -87,6 +87,7 @@ export default function ForwardMessageModal() {
             sx={{
                 ".MuiDialog-paper": {
                     backgroundColor: "background.default",
+                    height: "auto",
                 },
                 "& .MuiDialog-paper": { width: "100%" },
             }}
@@ -128,7 +129,7 @@ export default function ForwardMessageModal() {
                     />
                 </Box>
 
-                <Box mb={2} mx={-2.5} maxHeight="50vh" sx={{ overflowY: "auto" }}>
+                <Box mb={2} mx={-2.5} height="48vh">
                     <ForwardToList
                         showGroups
                         hideSearchBox
@@ -197,7 +198,7 @@ function ForwardToList({
     }, [dispatch]);
 
     return (
-        <Box sx={{ overflowY: "auto", maxHeight: "100%" }}>
+        <Box sx={{ overflowY: "auto", overflowX: "hidden", maxHeight: "100%" }}>
             {!hideSearchBox && (
                 <SearchBox
                     onSearch={(keyword: string) => {
