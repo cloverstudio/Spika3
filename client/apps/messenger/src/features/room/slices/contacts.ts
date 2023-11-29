@@ -7,6 +7,8 @@ import { Room } from "@prisma/client";
 
 interface ContactsState {
     list: User[];
+    recentUserMessages: User[];
+    recentGroupChats: Room[];
     loading: "idle" | "pending" | "succeeded" | "failed";
     keyword: string;
     count?: number;
@@ -45,7 +47,7 @@ export const fetchGroupMessageRooms = createAsyncThunk(
         }
 
         const response = await dynamicBaseQuery(
-            `/messenger/groupMessageRooms?keyword=${keyword}&${
+            `/messenger/group-message-rooms?keyword=${keyword}&${
                 groupsCursor ? `cursor=${groupsCursor}` : ""
             }`,
         );
@@ -59,6 +61,8 @@ export const contactsSlice = createSlice({
     name: <string>"contacts",
     initialState: <ContactsState>{
         list: [],
+        recentUserMessages: [],
+        recentGroupChats: [],
         count: null,
         keyword: "",
         loading: "idle",
@@ -88,6 +92,8 @@ export const contactsSlice = createSlice({
                 state.list = [...state.list, ...notAdded];
             }
 
+            state.recentUserMessages = payload.data.recentUserMessages;
+
             state.cursor = payload.data.nextCursor;
             state.count = payload.data.count;
             state.loading = "idle";
@@ -109,6 +115,8 @@ export const contactsSlice = createSlice({
             } else {
                 state.groupMessageRooms = [...state.groupMessageRooms, ...notAdded];
             }
+
+            state.recentGroupChats = payload.data.recentGroupChats;
 
             state.groupsCursor = payload.data.nextCursor;
             state.groupsCount = payload.data.count;

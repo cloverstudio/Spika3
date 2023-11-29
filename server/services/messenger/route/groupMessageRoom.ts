@@ -93,10 +93,47 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 const nextCursor =
                     rooms.length && rooms.length >= take ? rooms[rooms.length - 1].id : null;
 
+                //fetch last 3 group chats
+                const roomUser = await prisma.roomUser.findMany({
+                    where: {
+                        userId: userReq.user.id,
+                        room: { type: "group" },
+                    },
+                });
+
+                const roomIds = roomUser.map((ru) => ru.roomId);
+
+                const messages = await prisma.message.findMany({
+                    where: {
+                        deleted: false,
+                        roomId: { in: roomIds },
+                    },
+                    distinct: ["roomId"],
+                    orderBy: {
+                        createdAt: "desc",
+                    },
+                    take: 3,
+                });
+
+                const recentGroups = [];
+
+                for (const message of messages) {
+                    const rooms = await prisma.room.findUnique({
+                        where: {
+                            id: message.roomId,
+                        },
+                    });
+
+                    if (roomUser) {
+                        recentGroups.push(rooms);
+                    }
+                }
+
                 res.send(
                     successResponse(
                         {
                             groupMessageRoomList: rooms.map((g) => sanitize(g).room()),
+                            recentGroupChats: recentGroups,
                             count,
                             limit: Constants.CONTACT_PAGING_LIMIT,
                             nextCursor,

@@ -178,6 +178,10 @@ function ForwardToList({
         selectContacts({ displayBots: false }),
     );
 
+    const searchKeyword = useAppSelector((state) => state.contacts.keyword);
+    const recentUsers = useAppSelector((state) => state.contacts.recentUserMessages);
+    const recentGroups = useAppSelector((state) => state.contacts.recentGroupChats);
+
     const allowToggle = showGroups;
 
     const { isInViewPort, elementRef } = useIsInViewport();
@@ -245,15 +249,63 @@ function ForwardToList({
                 <Typography align="center">{strings.noGroups}</Typography>
             )}
 
+            {!displayGroups && !searchKeyword.length && recentUsers.length > 0 && (
+                <Box>
+                    <Typography ml={4.75} py={1.5} fontWeight="bold">
+                        Recent chats
+                    </Typography>
+                    {recentUsers.map((u) => (
+                        <Box key={u.id}>
+                            <ContactRow
+                                key={u.id}
+                                name={u.displayName}
+                                avatarFileId={u.avatarFileId}
+                                onClick={() => handleUserClick(u)}
+                                selected={selectedUserIds.includes(u.id)}
+                            />
+                        </Box>
+                    ))}
+                </Box>
+            )}
+
+            {displayGroups && !searchKeyword.length && recentGroups.length > 0 && (
+                <Box>
+                    <Typography ml={4.75} py={1.5} fontWeight="bold">
+                        Recent chats
+                    </Typography>
+                    {recentGroups.map((g) => (
+                        <Box key={g.id}>
+                            <ContactRow
+                                key={g.id}
+                                name={g.name}
+                                avatarFileId={g.avatarFileId}
+                                onClick={() => handleGroupClick(g)}
+                                selected={selectedGroupsIds.includes(g.id)}
+                            />
+                        </Box>
+                    ))}
+                </Box>
+            )}
+
             {!displayGroups
                 ? sortedByDisplayName.map(([letter, contactList]) => {
+                      const contactListWihFilteredRecentUsers = (contactList as User[]).filter(
+                          (u) => {
+                              if (searchKeyword.length > 0) return true;
+                              else if (!recentUsers.some((recentUser) => recentUser.id === u.id))
+                                  return true;
+                          },
+                      );
+
+                      if (!contactListWihFilteredRecentUsers.length) return null;
+
                       return (
                           <Box key={letter} mb={2}>
                               <Typography ml={4.75} py={1.5} fontWeight="bold">
                                   {letter}
                               </Typography>
 
-                              {(contactList as User[]).map((u) => (
+                              {contactListWihFilteredRecentUsers.map((u) => (
                                   <ContactRow
                                       key={u.id}
                                       name={u.displayName}
@@ -266,12 +318,20 @@ function ForwardToList({
                       );
                   })
                 : groupsSortedByDisplayName.map(([letter, groupList]) => {
+                      const groupListWihFilteredRecentGroups = (groupList as Room[]).filter((g) => {
+                          if (searchKeyword.length > 0) return true;
+                          else if (!recentGroups.some((recentGroup) => recentGroup.id === g.id))
+                              return true;
+                      });
+
+                      if (!groupListWihFilteredRecentGroups.length) return null;
+
                       return (
                           <Box key={letter} mb={2}>
                               <Typography ml={4.75} py={1.5} fontWeight="bold">
                                   {letter}
                               </Typography>
-                              {(groupList as Room[]).map((g) => (
+                              {groupListWihFilteredRecentGroups.map((g) => (
                                   <ContactRow
                                       key={g.id}
                                       name={g.name}
