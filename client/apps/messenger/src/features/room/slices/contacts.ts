@@ -7,7 +7,7 @@ import { Room } from "@prisma/client";
 
 interface ContactsState {
     list: User[];
-    recentUserMessages: User[];
+    recentUserChats: User[];
     recentGroupChats: Room[];
     loading: "idle" | "pending" | "succeeded" | "failed";
     keyword: string;
@@ -57,11 +57,19 @@ export const fetchGroupMessageRooms = createAsyncThunk(
     },
 );
 
+export const fetchRecentChats = createAsyncThunk("user/fetchRecentChats", async () => {
+    const response = await dynamicBaseQuery("/messenger/recent-chats");
+
+    return {
+        data: response.data,
+    };
+});
+
 export const contactsSlice = createSlice({
     name: <string>"contacts",
     initialState: <ContactsState>{
         list: [],
-        recentUserMessages: [],
+        recentUserChats: [],
         recentGroupChats: [],
         count: null,
         keyword: "",
@@ -92,8 +100,6 @@ export const contactsSlice = createSlice({
                 state.list = [...state.list, ...notAdded];
             }
 
-            state.recentUserMessages = payload.data.recentUserMessages;
-
             state.cursor = payload.data.nextCursor;
             state.count = payload.data.count;
             state.loading = "idle";
@@ -116,8 +122,6 @@ export const contactsSlice = createSlice({
                 state.groupMessageRooms = [...state.groupMessageRooms, ...notAdded];
             }
 
-            state.recentGroupChats = payload.data.recentGroupChats;
-
             state.groupsCursor = payload.data.nextCursor;
             state.groupsCount = payload.data.count;
             state.loading = "idle";
@@ -126,6 +130,16 @@ export const contactsSlice = createSlice({
             state.loading = "pending";
         });
         builder.addCase(fetchGroupMessageRooms.rejected, (state) => {
+            state.loading = "failed";
+        });
+        builder.addCase(fetchRecentChats.fulfilled, (state, { payload }) => {
+            state.recentUserChats = payload.data.recentUserChats;
+            state.recentGroupChats = payload.data.recentGroupChats;
+        });
+        builder.addCase(fetchRecentChats.pending, (state) => {
+            state.loading = "pending";
+        });
+        builder.addCase(fetchRecentChats.rejected, (state) => {
             state.loading = "failed";
         });
     },

@@ -108,55 +108,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 const nextCursor =
                     users.length && users.length >= take ? users[users.length - 1].id : null;
 
-                //fetch last 3 private chat users
-                const roomUser = await prisma.roomUser.findMany({
-                    where: {
-                        userId: userReq.user.id,
-                        room: { type: "private" },
-                    },
-                });
-
-                const roomIds = roomUser.map((ru) => ru.roomId);
-
-                const messages = await prisma.message.findMany({
-                    where: {
-                        deleted: false,
-                        roomId: { in: roomIds },
-                        room: { users: { every: { user: { isBot: false } } } },
-                    },
-                    distinct: ["roomId"],
-                    orderBy: {
-                        createdAt: "desc",
-                    },
-                    take: 3,
-                });
-
-                const userIds = [];
-
-                for (const message of messages) {
-                    const roomUser = await prisma.roomUser.findFirst({
-                        where: {
-                            roomId: message.roomId,
-                            userId: { not: userReq.user.id },
-                        },
-                    });
-
-                    if (roomUser) {
-                        userIds.push(roomUser.userId);
-                    }
-                }
-
-                const recentUserMessages = await prisma.user.findMany({
-                    where: {
-                        id: { in: userIds },
-                    },
-                });
-
                 res.send(
                     successResponse(
                         {
                             list: users.map((c) => sanitize(c).user()),
-                            recentUserMessages: recentUserMessages.map((c) => sanitize(c).user()),
                             count,
                             limit: Constants.CONTACT_PAGING_LIMIT,
                             nextCursor,
@@ -200,66 +155,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         ? contacts[contacts.length - 1].contactId
                         : null;
 
-                // fetch last 3 private chat users
-
-                const roomUser = await prisma.roomUser.findMany({
-                    where: {
-                        userId: userReq.user.id,
-                        room: { type: "private" },
-                    },
-                });
-
-                const roomIds = roomUser.map((ru) => ru.roomId);
-
-                const contactsInTheRoom = await prisma.roomUser.findMany({
-                    where: {
-                        roomId: { in: roomIds },
-                        userId: { in: contacts.map((c) => c.contactId) },
-                        user: { isBot: false },
-                    },
-                });
-
-                const roomIdsWithMyContacts = contactsInTheRoom.map((ru) => ru.roomId);
-
-                const messages = await prisma.message.findMany({
-                    where: {
-                        deleted: false,
-                        roomId: { in: roomIdsWithMyContacts },
-                    },
-                    distinct: ["roomId"],
-                    orderBy: {
-                        createdAt: "desc",
-                    },
-                    take: 3,
-                });
-
-                const recentContactIds = [];
-
-                for (const message of messages) {
-                    const roomUser = await prisma.roomUser.findFirst({
-                        where: {
-                            roomId: message.roomId,
-                            userId: { not: userReq.user.id },
-                        },
-                    });
-
-                    if (roomUser) {
-                        recentContactIds.push(roomUser.userId);
-                    }
-                }
-
-                const recentContacts = await prisma.user.findMany({
-                    where: {
-                        id: { in: recentContactIds },
-                    },
-                });
-
-                console.log("teeeeam modeeeeeeeeeeeeee");
                 res.send(
                     successResponse(
                         {
                             list: contacts.map((c) => sanitize(c.contact).user()),
-                            recentUserMessages: recentContacts.map((c) => sanitize(c).user()),
                             count,
                             limit: Constants.CONTACT_PAGING_LIMIT,
                             nextCursor,

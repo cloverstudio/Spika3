@@ -16,7 +16,12 @@ import SelectedMembers from "../SelectedMembers";
 import { ThemeContext } from "../../../../theme";
 import SearchBox from "../SearchBox";
 import { useAppDispatch, useAppSelector } from "../../../../hooks";
-import { fetchContacts, fetchGroupMessageRooms, setKeyword } from "../../slices/contacts";
+import {
+    fetchContacts,
+    fetchGroupMessageRooms,
+    fetchRecentChats,
+    setKeyword,
+} from "../../slices/contacts";
 import { useParams } from "react-router-dom";
 import { hideForwardMessageModal, selectActiveMessage } from "../../slices/messages";
 import { useForwardMessageMutation } from "../../api/message";
@@ -179,7 +184,7 @@ function ForwardToList({
     );
 
     const searchKeyword = useAppSelector((state) => state.contacts.keyword);
-    const recentUsers = useAppSelector((state) => state.contacts.recentUserMessages);
+    const recentUsers = useAppSelector((state) => state.contacts.recentUserChats);
     const recentGroups = useAppSelector((state) => state.contacts.recentGroupChats);
 
     const allowToggle = showGroups;
@@ -192,6 +197,10 @@ function ForwardToList({
             dispatch(fetchContacts());
         }
     }, [isInViewPort, dispatch]);
+
+    useEffect(() => {
+        dispatch(fetchRecentChats());
+    }, []);
 
     useEffect(() => {
         return () => {
@@ -249,7 +258,7 @@ function ForwardToList({
                 <Typography align="center">{strings.noGroups}</Typography>
             )}
 
-            {!displayGroups && !searchKeyword.length && recentUsers.length > 0 && (
+            {!displayGroups && !searchKeyword.length && recentUsers?.length > 0 && (
                 <Box>
                     <Typography ml={4.75} py={1.5} fontWeight="bold">
                         Recent chats
@@ -268,7 +277,7 @@ function ForwardToList({
                 </Box>
             )}
 
-            {displayGroups && !searchKeyword.length && recentGroups.length > 0 && (
+            {displayGroups && !searchKeyword.length && recentGroups?.length > 0 && (
                 <Box>
                     <Typography ml={4.75} py={1.5} fontWeight="bold">
                         Recent chats
@@ -292,7 +301,7 @@ function ForwardToList({
                       const contactListWihFilteredRecentUsers = (contactList as User[]).filter(
                           (u) => {
                               if (searchKeyword.length > 0) return true;
-                              else if (!recentUsers.some((recentUser) => recentUser.id === u.id))
+                              else if (!recentUsers?.some((recentUser) => recentUser.id === u.id))
                                   return true;
                           },
                       );
@@ -320,7 +329,7 @@ function ForwardToList({
                 : groupsSortedByDisplayName.map(([letter, groupList]) => {
                       const groupListWihFilteredRecentGroups = (groupList as Room[]).filter((g) => {
                           if (searchKeyword.length > 0) return true;
-                          else if (!recentGroups.some((recentGroup) => recentGroup.id === g.id))
+                          else if (!recentGroups?.some((recentGroup) => recentGroup.id === g.id))
                               return true;
                       });
 
