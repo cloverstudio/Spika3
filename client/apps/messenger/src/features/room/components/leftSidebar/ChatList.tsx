@@ -87,7 +87,7 @@ export default function SidebarChatList({
         : {};
 
     return (
-        <Box sx={{ overflowY: "auto", maxHeight: "100%" }}>
+        <Box height="100%">
             <Box sx={{ ...searchBoxProps }}>
                 <ControlledSearchBox
                     keyword={currentKeyword}
@@ -121,24 +121,26 @@ export default function SidebarChatList({
                 )}
             </Box>
 
-            {list.length === 0 && !isFetching && (
-                <Typography align="center">{strings.noRooms}</Typography>
-            )}
+            <Box sx={{ overflowY: "auto", height: "95%" }}>
+                {list.length === 0 && !isFetching && (
+                    <Typography align="center">{strings.noRooms}</Typography>
+                )}
 
-            {sortRooms().map(({ roomId, unreadCount, lastMessage }) => {
-                return (
-                    <RoomRow
-                        key={roomId}
-                        id={roomId}
-                        lastMessage={lastMessage}
-                        unreadCount={unreadCount}
-                        isActive={roomId === activeRoomId}
-                    />
-                );
-            })}
+                {sortRooms().map(({ roomId, unreadCount, lastMessage }) => {
+                    return (
+                        <RoomRow
+                            key={roomId}
+                            id={roomId}
+                            lastMessage={lastMessage}
+                            unreadCount={unreadCount}
+                            isActive={roomId === activeRoomId}
+                        />
+                    );
+                })}
 
-            <Box textAlign="center" height="50px" ref={elementRef}>
-                {isFetching && <CircularProgress />}
+                <Box textAlign="center" height="50px" ref={elementRef}>
+                    {isFetching && <CircularProgress />}
+                </Box>
             </Box>
         </Box>
     );

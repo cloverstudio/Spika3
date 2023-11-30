@@ -101,7 +101,7 @@ export default function SidebarContactList({
     const onUserClick = handleUserClick || defaultHandleUserClick;
 
     return (
-        <Box sx={{ overflowY: "auto", maxHeight: "100%" }}>
+        <Box height="100%">
             {!hideSearchBox && (
                 <SearchBox
                     onSearch={(keyword: string) => {
@@ -111,54 +111,54 @@ export default function SidebarContactList({
                 />
             )}
 
-            {allowToggle && (
-                <Box display="flex" gap={1} px={3} mb={2}>
-                    <Button
-                        size="small"
-                        color="inherit"
-                        variant={displayBots ? "text" : "outlined"}
-                        onClick={() => setDisplayBots(false)}
-                        sx={{ width: "100%" }}
-                    >
-                        {strings.contacts}
-                    </Button>
-                    <Button
-                        size="small"
-                        variant={displayBots ? "outlined" : "text"}
-                        color="inherit"
-                        onClick={() => setDisplayBots(true)}
-                        sx={{ width: "100%" }}
-                    >
-                        {strings.bots}
-                    </Button>
-                </Box>
-            )}
-
-            {!sortedByDisplayName.length && !isFetching && (
-                <Typography align="center">{strings.noContacts}</Typography>
-            )}
-
-            {sortedByDisplayName.map(([letter, contactList]) => {
-                return (
-                    <Box key={letter} mb={2}>
-                        <Typography ml={4.75} py={1.5} fontWeight="bold">
-                            {letter}
-                        </Typography>
-
-                        {(contactList as User[]).map((u) => (
-                            <ContactRow
-                                key={u.id}
-                                name={u.displayName}
-                                avatarFileId={u.avatarFileId}
-                                onClick={() => onUserClick(u)}
-                                selected={selectedUserIds && selectedUserIds.includes(u.id)}
-                            />
-                        ))}
+            <Box sx={{ overflowY: "auto", height: "95%" }}>
+                {allowToggle && (
+                    <Box display="flex" gap={1} px={3} mb={2}>
+                        <Button
+                            size="small"
+                            color="inherit"
+                            variant={displayBots ? "text" : "outlined"}
+                            onClick={() => setDisplayBots(false)}
+                            sx={{ width: "100%" }}
+                        >
+                            {strings.contacts}
+                        </Button>
+                        <Button
+                            size="small"
+                            variant={displayBots ? "outlined" : "text"}
+                            color="inherit"
+                            onClick={() => setDisplayBots(true)}
+                            sx={{ width: "100%" }}
+                        >
+                            {strings.bots}
+                        </Button>
                     </Box>
-                );
-            })}
-            <Box textAlign="center" height="50px" ref={elementRef}>
-                {isFetching && <CircularProgress />}
+                )}
+                {!sortedByDisplayName.length && !isFetching && (
+                    <Typography align="center">{strings.noContacts}</Typography>
+                )}
+                {sortedByDisplayName.map(([letter, contactList]) => {
+                    return (
+                        <Box key={letter} mb={2}>
+                            <Typography ml={4.75} py={1.5} fontWeight="bold">
+                                {letter}
+                            </Typography>
+
+                            {(contactList as User[]).map((u) => (
+                                <ContactRow
+                                    key={u.id}
+                                    name={u.displayName}
+                                    avatarFileId={u.avatarFileId}
+                                    onClick={() => onUserClick(u)}
+                                    selected={selectedUserIds && selectedUserIds.includes(u.id)}
+                                />
+                            ))}
+                        </Box>
+                    );
+                })}
+                <Box textAlign="center" height="50px" ref={elementRef}>
+                    {isFetching && <CircularProgress />}
+                </Box>
             </Box>
         </Box>
     );

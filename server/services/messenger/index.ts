@@ -18,6 +18,7 @@ import webhookRouter from "./route/webhook";
 import apiKeyRouter from "./route/apiKey";
 import blockRouter from "./route/block";
 import groupMessageRouter from "./route/groupMessageRoom";
+import recentChatRouter from "./route/recentChat";
 
 import * as Constants from "../../components/consts";
 import Service, { ServiceStartParams } from "../types/serviceInterface";
@@ -53,8 +54,12 @@ export default class Messenger implements Service {
         messengerRouter.use("/auth", signupRouter({ rabbitMQChannel: this.rabbitMQChannel }));
         messengerRouter.use("/contacts", contactRouter({ rabbitMQChannel: this.rabbitMQChannel }));
         messengerRouter.use(
-            "/groupMessageRooms",
+            "/group-message-rooms",
             groupMessageRouter({ rabbitMQChannel: this.rabbitMQChannel }),
+        );
+        messengerRouter.use(
+            "/recent-chats",
+            recentChatRouter({ rabbitMQChannel: this.rabbitMQChannel }),
         );
         messengerRouter.use(
             "/rooms",

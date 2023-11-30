@@ -7,6 +7,8 @@ import { Room } from "@prisma/client";
 
 interface ContactsState {
     list: User[];
+    recentUserChats: User[];
+    recentGroupChats: Room[];
     loading: "idle" | "pending" | "succeeded" | "failed";
     keyword: string;
     count?: number;
@@ -45,7 +47,7 @@ export const fetchGroupMessageRooms = createAsyncThunk(
         }
 
         const response = await dynamicBaseQuery(
-            `/messenger/groupMessageRooms?keyword=${keyword}&${
+            `/messenger/group-message-rooms?keyword=${keyword}&${
                 groupsCursor ? `cursor=${groupsCursor}` : ""
             }`,
         );
@@ -55,10 +57,20 @@ export const fetchGroupMessageRooms = createAsyncThunk(
     },
 );
 
+export const fetchRecentChats = createAsyncThunk("user/fetchRecentChats", async () => {
+    const response = await dynamicBaseQuery("/messenger/recent-chats");
+
+    return {
+        data: response.data,
+    };
+});
+
 export const contactsSlice = createSlice({
     name: <string>"contacts",
     initialState: <ContactsState>{
         list: [],
+        recentUserChats: [],
+        recentGroupChats: [],
         count: null,
         keyword: "",
         loading: "idle",
@@ -118,6 +130,16 @@ export const contactsSlice = createSlice({
             state.loading = "pending";
         });
         builder.addCase(fetchGroupMessageRooms.rejected, (state) => {
+            state.loading = "failed";
+        });
+        builder.addCase(fetchRecentChats.fulfilled, (state, { payload }) => {
+            state.recentUserChats = payload.data.recentUserChats;
+            state.recentGroupChats = payload.data.recentGroupChats;
+        });
+        builder.addCase(fetchRecentChats.pending, (state) => {
+            state.loading = "pending";
+        });
+        builder.addCase(fetchRecentChats.rejected, (state) => {
             state.loading = "failed";
         });
     },

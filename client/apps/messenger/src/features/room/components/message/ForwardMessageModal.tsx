@@ -16,7 +16,12 @@ import SelectedMembers from "../SelectedMembers";
 import { ThemeContext } from "../../../../theme";
 import SearchBox from "../SearchBox";
 import { useAppDispatch, useAppSelector } from "../../../../hooks";
-import { fetchContacts, fetchGroupMessageRooms, setKeyword } from "../../slices/contacts";
+import {
+    fetchContacts,
+    fetchGroupMessageRooms,
+    fetchRecentChats,
+    setKeyword,
+} from "../../slices/contacts";
 import { useParams } from "react-router-dom";
 import { hideForwardMessageModal, selectActiveMessage } from "../../slices/messages";
 import { useForwardMessageMutation } from "../../api/message";
@@ -87,6 +92,7 @@ export default function ForwardMessageModal() {
             sx={{
                 ".MuiDialog-paper": {
                     backgroundColor: "background.default",
+                    height: "auto",
                 },
                 "& .MuiDialog-paper": { width: "100%" },
             }}
@@ -128,7 +134,7 @@ export default function ForwardMessageModal() {
                     />
                 </Box>
 
-                <Box mb={2} mx={-2.5} maxHeight="50vh" sx={{ overflowY: "auto" }}>
+                <Box mb={2} mx={-2.5} height="48vh">
                     <ForwardToList
                         showGroups
                         hideSearchBox
@@ -177,6 +183,10 @@ function ForwardToList({
         selectContacts({ displayBots: false }),
     );
 
+    const searchKeyword = useAppSelector((state) => state.contacts.keyword);
+    const recentUsers = useAppSelector((state) => state.contacts.recentUserChats);
+    const recentGroups = useAppSelector((state) => state.contacts.recentGroupChats);
+
     const allowToggle = showGroups;
 
     const { isInViewPort, elementRef } = useIsInViewport();
@@ -189,6 +199,10 @@ function ForwardToList({
     }, [isInViewPort, dispatch]);
 
     useEffect(() => {
+        dispatch(fetchRecentChats());
+    }, []);
+
+    useEffect(() => {
         return () => {
             dispatch(setKeyword(""));
             dispatch(fetchContacts());
@@ -197,7 +211,7 @@ function ForwardToList({
     }, [dispatch]);
 
     return (
-        <Box sx={{ overflowY: "auto", maxHeight: "100%" }}>
+        <Box sx={{ overflowY: "auto", overflowX: "hidden", maxHeight: "100%" }}>
             {!hideSearchBox && (
                 <SearchBox
                     onSearch={(keyword: string) => {
@@ -244,15 +258,63 @@ function ForwardToList({
                 <Typography align="center">{strings.noGroups}</Typography>
             )}
 
+            {!displayGroups && !searchKeyword.length && recentUsers?.length > 0 && (
+                <Box>
+                    <Typography ml={4.75} py={1.5} fontWeight="bold">
+                        Recent chats
+                    </Typography>
+                    {recentUsers.map((u) => (
+                        <Box key={u.id}>
+                            <ContactRow
+                                key={u.id}
+                                name={u.displayName}
+                                avatarFileId={u.avatarFileId}
+                                onClick={() => handleUserClick(u)}
+                                selected={selectedUserIds.includes(u.id)}
+                            />
+                        </Box>
+                    ))}
+                </Box>
+            )}
+
+            {displayGroups && !searchKeyword.length && recentGroups?.length > 0 && (
+                <Box>
+                    <Typography ml={4.75} py={1.5} fontWeight="bold">
+                        Recent chats
+                    </Typography>
+                    {recentGroups.map((g) => (
+                        <Box key={g.id}>
+                            <ContactRow
+                                key={g.id}
+                                name={g.name}
+                                avatarFileId={g.avatarFileId}
+                                onClick={() => handleGroupClick(g)}
+                                selected={selectedGroupsIds.includes(g.id)}
+                            />
+                        </Box>
+                    ))}
+                </Box>
+            )}
+
             {!displayGroups
                 ? sortedByDisplayName.map(([letter, contactList]) => {
+                      const contactListWihFilteredRecentUsers = (contactList as User[]).filter(
+                          (u) => {
+                              if (searchKeyword.length > 0) return true;
+                              else if (!recentUsers?.some((recentUser) => recentUser.id === u.id))
+                                  return true;
+                          },
+                      );
+
+                      if (!contactListWihFilteredRecentUsers.length) return null;
+
                       return (
                           <Box key={letter} mb={2}>
                               <Typography ml={4.75} py={1.5} fontWeight="bold">
                                   {letter}
                               </Typography>
 
-                              {(contactList as User[]).map((u) => (
+                              {contactListWihFilteredRecentUsers.map((u) => (
                                   <ContactRow
                                       key={u.id}
                                       name={u.displayName}
@@ -265,12 +327,20 @@ function ForwardToList({
                       );
                   })
                 : groupsSortedByDisplayName.map(([letter, groupList]) => {
+                      const groupListWihFilteredRecentGroups = (groupList as Room[]).filter((g) => {
+                          if (searchKeyword.length > 0) return true;
+                          else if (!recentGroups?.some((recentGroup) => recentGroup.id === g.id))
+                              return true;
+                      });
+
+                      if (!groupListWihFilteredRecentGroups.length) return null;
+
                       return (
                           <Box key={letter} mb={2}>
                               <Typography ml={4.75} py={1.5} fontWeight="bold">
                                   {letter}
                               </Typography>
-                              {(groupList as Room[]).map((g) => (
+                              {groupListWihFilteredRecentGroups.map((g) => (
                                   <ContactRow
                                       key={g.id}
                                       name={g.name}
