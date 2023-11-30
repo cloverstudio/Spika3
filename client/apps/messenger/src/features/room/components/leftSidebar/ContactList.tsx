@@ -101,7 +101,7 @@ export default function SidebarContactList({
     const onUserClick = handleUserClick || defaultHandleUserClick;
 
     return (
-        <Box height="100%">
+        <>
             {!hideSearchBox && (
                 <SearchBox
                     onSearch={(keyword: string) => {
@@ -111,29 +111,30 @@ export default function SidebarContactList({
                 />
             )}
 
-            <Box sx={{ overflowY: "auto", height: "95%" }}>
-                {allowToggle && (
-                    <Box display="flex" gap={1} px={3} mb={2}>
-                        <Button
-                            size="small"
-                            color="inherit"
-                            variant={displayBots ? "text" : "outlined"}
-                            onClick={() => setDisplayBots(false)}
-                            sx={{ width: "100%" }}
-                        >
-                            {strings.contacts}
-                        </Button>
-                        <Button
-                            size="small"
-                            variant={displayBots ? "outlined" : "text"}
-                            color="inherit"
-                            onClick={() => setDisplayBots(true)}
-                            sx={{ width: "100%" }}
-                        >
-                            {strings.bots}
-                        </Button>
-                    </Box>
-                )}
+            {allowToggle && (
+                <Box display="flex" gap={1} px={3} mb={2}>
+                    <Button
+                        size="small"
+                        color="inherit"
+                        variant={displayBots ? "text" : "outlined"}
+                        onClick={() => setDisplayBots(false)}
+                        sx={{ width: "100%" }}
+                    >
+                        {strings.contacts}
+                    </Button>
+                    <Button
+                        size="small"
+                        variant={displayBots ? "outlined" : "text"}
+                        color="inherit"
+                        onClick={() => setDisplayBots(true)}
+                        sx={{ width: "100%" }}
+                    >
+                        {strings.bots}
+                    </Button>
+                </Box>
+            )}
+
+            <Box sx={{ height: "100%", overflowY: "scroll" }}>
                 {!sortedByDisplayName.length && !isFetching && (
                     <Typography align="center">{strings.noContacts}</Typography>
                 )}
@@ -160,7 +161,7 @@ export default function SidebarContactList({
                     {isFetching && <CircularProgress />}
                 </Box>
             </Box>
-        </Box>
+        </>
     );
 }
 

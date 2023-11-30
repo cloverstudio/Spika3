@@ -153,7 +153,9 @@ function LeftSidebarNewGroup({
             <SidebarNavigationHeader handleBack={handleBack} title={title} />
             {step === "select_members" ? (
                 <>
-                    <SelectedMembers selectedUsers={selectedUsers} onRemove={handleUserClick} />
+                    <Box>
+                        <SelectedMembers selectedUsers={selectedUsers} onRemove={handleUserClick} />
+                    </Box>
                     <SidebarContactList
                         hideBots
                         selectedUserIds={selectedUsers.map((u) => u.id)}
