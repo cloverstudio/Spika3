@@ -47,7 +47,16 @@ type NavigationType = {
 
 const navigation: NavigationType[] = [
     { name: "chat", icon: ChatIcon, Element: SidebarChatList },
-    { name: "contact", icon: ContactIcon, Element: () => <SidebarContactList />, isMuiIcon: true },
+    {
+        name: "contact",
+        icon: ContactIcon,
+        Element: () => (
+            <Box height="calc(100% - 110px)">
+                <SidebarContactList />
+            </Box>
+        ),
+        isMuiIcon: true,
+    },
 ];
 
 export default function LeftSidebarHome({
