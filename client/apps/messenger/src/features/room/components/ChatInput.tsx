@@ -36,7 +36,6 @@ import { useRemoveBlockByIdMutation } from "../api/user";
 import DoDisturb from "@mui/icons-material/DoDisturb";
 import useAutoSizeTextArea from "../hooks/useAutoSizeTextArea";
 import { useAppDispatch, useAppSelector } from "../../../hooks";
-import axios from "axios";
 
 export default function ChatInputContainer(): React.ReactElement {
     const dispatch = useAppDispatch();
