@@ -1,7 +1,24 @@
 import prisma from "./prisma";
+import ogs from "open-graph-scraper";
 
 export async function formatMessageBody(body: any, messageType: string): Promise<any> {
     if (messageType === "text") {
+        const includesLinks = body?.text.includes("http://") || body?.text.includes("https://");
+        if (includesLinks) {
+            const extractedLinks = body.text.match(/(https?:\/\/[^\s]+)/g);
+            const link = extractedLinks[0];
+
+            if (typeof link !== "string") {
+                return body;
+            }
+
+            const thumbnailData = await getLinkThumbnailData(link);
+
+            if (thumbnailData) {
+                body.thumbnailData = thumbnailData;
+            }
+        }
+
         return body;
     }
 
@@ -42,4 +59,37 @@ export async function formatMessageBody(body: any, messageType: string): Promise
     }
 
     return formatted;
+}
+
+export async function getLinkThumbnailData(url: string) {
+    if (typeof url !== "string" || !isValidURL(url)) {
+        return null;
+    }
+
+    try {
+        const { result } = await ogs({ url });
+
+        if (!result || !result.success || !result.ogTitle) {
+            return null;
+        }
+
+        return {
+            title: result.ogTitle,
+            description: result?.ogDescription || null,
+            image: result.ogImage?.length > 0 ? result.ogImage[0].url : null,
+            icon: result.favicon || null,
+            url,
+        };
+    } catch (error) {
+        return null;
+    }
+}
+
+function isValidURL(url: string) {
+    try {
+        new URL(url);
+        return true;
+    } catch (error) {
+        return false;
+    }
 }

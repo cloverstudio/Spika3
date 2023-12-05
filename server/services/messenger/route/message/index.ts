@@ -13,6 +13,7 @@ import getMessagesSyncRoute from "./getMessagesSync";
 import getModifiedMessagesSyncRoute from "./getModifiedMessagesSync";
 import searchMessagesRoute from "./searchMessages";
 import forwardMessageRoute from "./forwardMessage";
+import getLinkThumbnail from "./getLinkThumbnail";
 
 export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
     const router = Router();
@@ -23,6 +24,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
 
     router.get("/:id/message-records", getMessageRecordsRoute({}));
     router.post("/forward", forwardMessageRoute({ rabbitMQChannel, redisClient }));
+
+    router.get("/get-thumbnail", getLinkThumbnail());
 
     // only web should call this route
     router.get("/search", searchMessagesRoute({ redisClient }));

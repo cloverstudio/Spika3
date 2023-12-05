@@ -1,7 +1,8 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { RootState } from "../../../store/store";
 import MessageType from "../../../types/Message";
 import { setSending } from "./messages";
+import { dynamicBaseQuery } from "../../../api/api";
 
 interface InitialState {
     list: {
@@ -11,9 +12,30 @@ interface InitialState {
             type: string;
             replyMessage?: MessageType;
             editMessage?: MessageType;
+            thumbnailData?: {
+                title?: string;
+                image?: string;
+                icon?: string;
+                description?: string;
+                url: string;
+            };
         };
     };
 }
+
+export const fetchThumbnailData = createAsyncThunk(
+    "input/fetchThumbnailData",
+    async (args: { url: string; roomId: number }) => {
+        const response = await dynamicBaseQuery(
+            `/messenger/messages/get-thumbnail?url=${args.url}`,
+        );
+
+        return {
+            data: response.data,
+            roomId: args.roomId,
+        };
+    },
+);
 
 export const inputSlice = createSlice({
     name: <string>"input",
@@ -49,7 +71,7 @@ export const inputSlice = createSlice({
         },
         setReplyMessage: (
             state,
-            action: { payload: { roomId: number; message?: MessageType } }
+            action: { payload: { roomId: number; message?: MessageType } },
         ) => {
             const { message, roomId } = action.payload;
 
@@ -65,6 +87,12 @@ export const inputSlice = createSlice({
 
             state.list[roomId].text += emoji;
         },
+        removeThumbnailData: (state, { payload }: { payload: { roomId: number } }) => {
+            const { roomId } = payload;
+
+            if (!state.list[roomId]) return;
+            state.list[roomId].thumbnailData = null;
+        },
     },
     extraReducers: (builder) => {
         builder.addCase(setSending, (state, { payload }) => {
@@ -75,9 +103,20 @@ export const inputSlice = createSlice({
                 state.list[roomId].type = "text";
                 state.list[roomId].editMessage = null;
                 state.list[roomId].replyMessage = null;
+                state.list[roomId].thumbnailData = null;
             } else {
                 console.error("input slice error, send message can't find room input state");
             }
+        });
+        builder.addCase(fetchThumbnailData.fulfilled, (state, { payload }) => {
+            const { data, roomId } = payload;
+
+            state.list[roomId].thumbnailData = data;
+        });
+        builder.addCase(fetchThumbnailData.rejected, (state, action) => {
+            const roomId = action.meta.arg.roomId;
+
+            state.list[roomId].thumbnailData = null;
         });
     },
 });
@@ -122,4 +161,5 @@ export const {
     setInputType,
     addEmoji,
     setReplyMessage,
+    removeThumbnailData,
 } = inputSlice.actions;
