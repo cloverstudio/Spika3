@@ -7,7 +7,6 @@ import getMessageStatus from "../lib/getMessageStatus";
 import { refreshHistory } from "./leftSidebar";
 import { RoomType } from "../../../types/Rooms";
 import FileUploader from "../../../utils/FileUploader";
-import filterText from "../lib/filterText";
 
 export const fetchMessages = createAsyncThunk(
     "messages/fetchMessages",

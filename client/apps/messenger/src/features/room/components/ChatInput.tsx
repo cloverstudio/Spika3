@@ -20,6 +20,8 @@ import {
     setInputType,
     addEmoji,
     setReplyMessage,
+    fetchThumbnailData,
+    removeThumbnailData,
 } from "../slices/input";
 import AddAttachment from "./AddAttachment";
 import Attachments from "./Attachments";
@@ -33,7 +35,7 @@ import useStrings from "../../../hooks/useStrings";
 import { useRemoveBlockByIdMutation } from "../api/user";
 import DoDisturb from "@mui/icons-material/DoDisturb";
 import useAutoSizeTextArea from "../hooks/useAutoSizeTextArea";
-import { useAppDispatch } from "../../../hooks";
+import { useAppDispatch, useAppSelector } from "../../../hooks";
 
 export default function ChatInputContainer(): React.ReactElement {
     const dispatch = useAppDispatch();
@@ -137,6 +139,7 @@ function ChatInput({ handleSend, files }: ChatInputProps) {
     const editMessage = useSelector(selectEditMessage(roomId));
     const replyMessage = useSelector(selectReplyMessage(roomId));
     const inputType = useSelector(selectInputType(roomId));
+    const thumbnailData = useAppSelector((state) => state.input.list[roomId]?.thumbnailData);
 
     const onSend = async () => {
         if (!editMessage && !replyMessage) {
@@ -169,6 +172,8 @@ function ChatInput({ handleSend, files }: ChatInputProps) {
                 )}
 
                 {replyMessage && <ReplyMessage message={replyMessage} />}
+                {thumbnailData?.title && <MessageURLThumbnail />}
+
                 <TextInput onSend={onSend} />
             </Box>
         </>
@@ -210,7 +215,44 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
     const dispatch = useAppDispatch();
     const inputType = useSelector(selectInputType(roomId));
 
+    const [url, setUrl] = useState("");
+
     const handleSetMessageText = (text: string) => dispatch(setInputText({ text, roomId }));
+
+    function isValidURL(url: string) {
+        try {
+            new URL(url);
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    useEffect(() => {
+        if (!message) dispatch(removeThumbnailData({ roomId }));
+
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        const urls = message?.match(urlRegex);
+
+        if (urls?.length > 0 && isValidURL(urls[0])) setUrl(urls[0]);
+        else setUrl("");
+    }, [message, dispatch]);
+
+    useEffect(() => {
+        if (!url) return;
+
+        let timer: NodeJS.Timeout;
+
+        timer = setTimeout(() => {
+            if (url) {
+                dispatch(fetchThumbnailData({ url: url, roomId }));
+            } else {
+                dispatch(removeThumbnailData({ roomId }));
+            }
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, [url, dispatch]);
 
     const handleCloseEdit = () => {
         dispatch(setEditMessage({ message: null, roomId }));
@@ -464,6 +506,96 @@ function ReplyMessage({ message }: { message: MessageType }): React.ReactElement
                 sx={{ width: "35px", height: "35px", margin: "0 18px" }}
             >
                 <Close fontSize="inherit" />
+            </IconButton>
+        </Box>
+    );
+}
+
+export function MessageURLThumbnail() {
+    const roomId = parseInt(useParams().id || "");
+
+    const dispatch = useAppDispatch();
+    const thumbnailData = useAppSelector((state) => state.input.list[roomId]?.thumbnailData);
+    const [imageError, setImageError] = useState(false);
+
+    return (
+        <Box
+            sx={{
+                pl: 2,
+                width: "100%",
+                height: "72x",
+
+                borderBottom: "0.5px solid",
+                borderColor: "divider",
+                marginBottom: "12px",
+                display: "flex",
+                alignItems: "center",
+            }}
+        >
+            <Box
+                sx={{
+                    display: "flex",
+                    height: "56px",
+                    alignItems: "center",
+                    width: "100%",
+                    gap: "10px",
+                    bgcolor: "background.paper",
+                    marginBottom: "8px",
+                    overflow: "hidden",
+                    borderRadius: "10px",
+                    "&:hover": {
+                        cursor: "pointer",
+                    },
+                }}
+                onClick={() => {
+                    window.open(thumbnailData?.url, "_blank");
+                }}
+            >
+                {(thumbnailData?.image || thumbnailData.icon) && !imageError && (
+                    <img
+                        style={{
+                            width: "auto",
+                            height: "100%",
+                            objectFit: "fill",
+                            borderRadius: "10px 0 0 10px",
+                        }}
+                        alt="image"
+                        src={thumbnailData?.image || thumbnailData.icon}
+                        onError={() => setImageError(true)}
+                    />
+                )}
+                <Box
+                    sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "6px",
+                        marginLeft:
+                            imageError || (!thumbnailData.image && !thumbnailData.icon)
+                                ? "10px"
+                                : 0,
+                    }}
+                >
+                    <Typography sx={{ fontSize: "14px", fontWeight: 500, lineHeight: "16px" }}>
+                        {thumbnailData.title}
+                    </Typography>
+                    <Typography
+                        fontWeight={400}
+                        fontSize="11px"
+                        fontFamily="inherit"
+                        maxWidth="150ch"
+                        overflow="hidden"
+                        textOverflow="ellipsis"
+                        whiteSpace="nowrap"
+                    >
+                        {thumbnailData.description}
+                    </Typography>
+                </Box>
+            </Box>
+            <IconButton
+                onClick={() => dispatch(removeThumbnailData({ roomId }))}
+                sx={{ width: "35px", height: "35px", margin: "0 18px" }}
+            >
+                <Close fontSize="inherit" color="primary" />
             </IconButton>
         </Box>
     );

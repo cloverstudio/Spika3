@@ -1,10 +1,18 @@
-import React from "react";
-import { Box } from "@mui/material";
+import React, { useState } from "react";
+import { Box, Typography } from "@mui/material";
 import UserType from "../../../../../types/User";
 import filterText from "../../../lib/filterText";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { selectChangeTerm } from "../../../slices/messages";
+
+interface ThumbnailData {
+    title: string;
+    image?: string;
+    icon?: string;
+    description?: string;
+    url: string;
+}
 
 export default function TextMessage({
     isUsersMessage,
@@ -27,6 +35,7 @@ export default function TextMessage({
 }) {
     const roomId = parseInt(useParams().id || "");
     const changeTerm = useSelector(selectChangeTerm({ text: filterText(body.text), roomId, id }));
+
     const backgroundColor = highlighted
         ? "#d7aa5a"
         : deleted
@@ -38,14 +47,16 @@ export default function TextMessage({
     const filteredText = changeTerm ? changeTerm.to : filterText(body.text);
     const isEmoji = !isReply && isSingleEmoji(filteredText);
 
+    const thumbnail: ThumbnailData | undefined = body.thumbnailData;
+
     return (
         <Box
             component={"div"}
             sx={{
-                maxWidth: "100%",
+                maxWidth: thumbnail ? "273px" : "100%",
                 backgroundColor: isEmoji ? "transparent" : backgroundColor,
                 borderRadius: "10px",
-                padding: "10px",
+                padding: thumbnail ? 0 : "10px",
                 cursor: "pointer",
                 color: deleted ? "text.tertiary" : "common.darkBlue",
                 lineHeight: isEmoji ? "3.5rem" : "22px",
@@ -62,21 +73,84 @@ export default function TextMessage({
                     {sender.displayName}
                 </Box>
             )}
-            <Box
-                sx={{
-                    overflowWrap: "break-word",
-                    fontWeight: "500",
-                    fontSize: isEmoji ? "48px" : "14px",
-                    margin: "2px 0",
-                    "a:visited": {
-                        color: "inherit",
-                    },
-                    "a:link": {
-                        color: "inherit",
-                    },
-                }}
-                dangerouslySetInnerHTML={{ __html: filteredText }}
-            />
+
+            <Box>
+                <Box
+                    sx={{
+                        padding: thumbnail ? "10px" : 0,
+                        overflowWrap: "break-word",
+                        fontWeight: "500",
+                        fontSize: isEmoji ? "48px" : "14px",
+                        margin: "2px 0",
+                        "a:visited": {
+                            color: "inherit",
+                        },
+                        "a:link": {
+                            color: "inherit",
+                        },
+                    }}
+                    dangerouslySetInnerHTML={{ __html: filteredText }}
+                />
+                {thumbnail && <Thumbnail thumbnailData={thumbnail} />}
+            </Box>
+        </Box>
+    );
+}
+
+interface Props {
+    thumbnailData: ThumbnailData;
+}
+
+function Thumbnail({ thumbnailData }: Props) {
+    const [imageError, setImageError] = useState(false);
+
+    return (
+        <Box
+            sx={{
+                p: 0,
+                margin: "0",
+                width: "100%",
+                height: "auto",
+                "&:hover": {
+                    cursor: "pointer",
+                },
+            }}
+            onClick={() => {
+                window.open(thumbnailData?.url, "_blank");
+            }}
+        >
+            {(thumbnailData?.image || thumbnailData.icon) && !imageError && (
+                <img
+                    style={{ width: "100%", maxHeight: "176px", objectFit: "cover" }}
+                    alt="image"
+                    src={thumbnailData?.image || thumbnailData.icon}
+                    onError={() => setImageError(true)}
+                />
+            )}
+            {thumbnailData?.title && (
+                <Typography
+                    p="0 10px 6px 10px"
+                    fontWeight={500}
+                    fontSize="14px"
+                    fontFamily="inherit"
+                >
+                    {thumbnailData.title}
+                </Typography>
+            )}
+            {thumbnailData?.description && (
+                <Typography
+                    p="0 10px 6px 10px"
+                    fontWeight={400}
+                    fontSize="12px"
+                    fontFamily="inherit"
+                    maxWidth="50ch"
+                    overflow="hidden"
+                    textOverflow="ellipsis"
+                    whiteSpace="nowrap"
+                >
+                    {thumbnailData.description}
+                </Typography>
+            )}
         </Box>
     );
 }
