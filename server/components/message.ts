@@ -1,13 +1,16 @@
+import linkifyHtml from "linkify-html";
 import prisma from "./prisma";
 import ogs from "open-graph-scraper";
 
 export async function formatMessageBody(body: any, messageType: string): Promise<any> {
     if (messageType === "text") {
-        const includesLinks = body?.text.includes("http://") || body?.text.includes("https://");
-        if (includesLinks) {
-            const extractedLinks = body.text.match(/(https?:\/\/[^\s]+)/g);
-            const link = extractedLinks[0];
+        if (!body?.text) {
+            return body;
+        }
 
+        const link = linkifyHtml(body.text)?.split("<a href=")[1]?.split(">")[0]?.replace(/"/g, "");
+
+        if (link) {
             if (typeof link !== "string") {
                 return body;
             }
