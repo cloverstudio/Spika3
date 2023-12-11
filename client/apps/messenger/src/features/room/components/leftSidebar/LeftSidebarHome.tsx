@@ -74,6 +74,7 @@ export default function LeftSidebarHome({
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
     const handleChangeTab = (value: "call" | "chat" | "contact"): void => {
+        if (profileEditingOpen) dispatch(setOpenEditProfile(false));
         dispatch(setActiveTab(value));
         if (value === "chat") {
             dispatch(setKeyword(""));
@@ -103,10 +104,8 @@ export default function LeftSidebarHome({
 
     return (
         <LeftSidebarLayout>
-            {profileEditingOpen ? (
-                <EditProfileView user={userData?.user} onClose={closeEditor} />
-            ) : (
-                <Box sx={{ ...generalLayout }}>
+            <Box sx={{ ...generalLayout }}>
+                {(!isMobile || !profileEditingOpen) && (
                     <Box
                         px={isMobile ? 2.5 : 0}
                         mb={isMobile ? 2 : 0}
@@ -203,28 +202,32 @@ export default function LeftSidebarHome({
                             )}
                         </Box>
                     </Box>
+                )}
 
-                    {isMobile && (
-                        <Box order={1} px={5} pt={2} pb={3}>
-                            <Box display="flex" justifyContent="space-between">
-                                {navigation.map((item) => (
-                                    <ActionIcon
-                                        key={item.name}
-                                        Icon={item.icon}
-                                        handleClick={() => handleChangeTab(item.name)}
-                                        isActive={activeTab === item.name}
-                                        isChat={item.name === "chat"}
-                                    />
-                                ))}
-                            </Box>
+                {isMobile && !profileEditingOpen && (
+                    <Box order={1} px={5} pt={2} pb={3}>
+                        <Box display="flex" justifyContent="space-between">
+                            {navigation.map((item) => (
+                                <ActionIcon
+                                    key={item.name}
+                                    Icon={item.icon}
+                                    handleClick={() => handleChangeTab(item.name)}
+                                    isActive={activeTab === item.name}
+                                    isChat={item.name === "chat"}
+                                />
+                            ))}
                         </Box>
-                    )}
-
-                    <Box flex={1} overflow="hidden" pt={!isMobile && "16px"} pb="16px">
-                        <ActiveElement isMobile={isMobile} setSidebar={setSidebar} />
                     </Box>
+                )}
+
+                <Box flex={1} overflow="hidden" pt={!isMobile && "16px"} pb="16px">
+                    {profileEditingOpen ? (
+                        <EditProfileView user={userData?.user} onClose={closeEditor} />
+                    ) : (
+                        <ActiveElement isMobile={isMobile} setSidebar={setSidebar} />
+                    )}
                 </Box>
-            )}
+            </Box>
         </LeftSidebarLayout>
     );
 }

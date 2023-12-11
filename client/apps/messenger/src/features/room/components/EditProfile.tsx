@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
 import Avatar from "@mui/material/Avatar";
-import { Box } from "@mui/material";
+import { Box, useMediaQuery } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
@@ -18,6 +18,8 @@ import ArrowBackIos from "@mui/icons-material/ArrowBackIos";
 import CameraAlt from "@mui/icons-material/CameraAlt";
 import ChevronRight from "@mui/icons-material/ChevronRight";
 import Close from "@mui/icons-material/Close";
+import NoUsersPhoto from "../../../../src/assets/no-photo.jpg";
+import { useTheme } from "@mui/material/styles";
 
 import { useLogoutMutation, useRemoveMutation, useUpdateMutation } from "../../auth/api/auth";
 
@@ -63,6 +65,9 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
     const [updateDevice] = useUpdateDeviceMutation();
     const [remove] = useRemoveMutation();
     const showBasicDialog = useShowBasicDialog();
+    const themeObject = useTheme();
+
+    const isMobile = useMediaQuery(themeObject.breakpoints.down("md"));
 
     useEffect(() => {
         if (window.Notification && Notification.permission !== "granted") {
@@ -226,7 +231,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
         return (
             <Box>
                 <Box px={2.5} borderBottom="0.5px solid" borderColor="divider">
-                    <Box display="flex" height="80px" justifyContent="space-between">
+                    <Box display="flex" height="72px" justifyContent="space-between">
                         <Stack
                             direction="row"
                             alignItems="center"
@@ -256,20 +261,17 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
     }
 
     return (
-        <Box>
+        <Box height="100vh">
             <Box px={2.5} borderBottom="0.5px solid" sx={{ borderColor: "divider" }}>
-                <Box display="flex" height="80px" justifyContent="space-between">
-                    <Stack
-                        direction="row"
-                        alignItems="center"
-                        spacing={1}
-                        sx={{
-                            display: "flex",
-                            flexDirection: "row",
-                            justifyContent: "flex-start",
-                            width: "100%",
-                        }}
-                    >
+                <Box
+                    height="72px"
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        ...(!isMobile && { mt: "-16px" }),
+                    }}
+                >
+                    <Box sx={{ display: "flex", alignItems: "center", gap: "12px" }}>
                         <IconButton
                             onClick={(e) => {
                                 closeEditor();
@@ -281,179 +283,151 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                             />
                         </IconButton>
                         <Typography variant="h6">{strings.settings}</Typography>
-                    </Stack>
+                    </Box>
                 </Box>
             </Box>
-            <Stack
-                spacing={2}
-                alignItems="center"
-                sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    width: "100%",
-                    marginTop: "2em",
-                }}
-            >
-                {loading ? (
-                    <CircularProgress />
-                ) : (
-                    <Box sx={{ position: "relative" }}>
-                        <Avatar
-                            alt={user.displayName}
-                            src={`${UPLOADS_BASE_URL}/${user.avatarFileId}`}
-                            sx={{ width: 100, height: 100 }}
-                        />
-                        <IconButton
-                            color="primary"
-                            sx={{
-                                position: "absolute",
-                                bottom: "0",
-                                right: "0",
-                                backgroundColor: "#E5F4FF",
-                                width: "28px",
-                                height: "28px",
-                                "&:hover": {
-                                    backgroundColor: "#E5F4FF",
-                                },
-                            }}
-                            onClick={(e) => {
-                                openEditPicture();
-                            }}
-                        >
-                            <CameraAlt sx={{ width: "15px" }} />
-                        </IconButton>
-                        <input
-                            ref={imageRef}
-                            type="file"
-                            style={{ display: "none" }}
-                            accept="image/*"
-                            onChange={handleFileUpload}
-                        />
-                    </Box>
-                )}
-
-                {editProfileName ? (
-                    <Box
-                        sx={{
-                            width: "100%",
-                            p: "0 16px",
-                        }}
-                    >
-                        <Stack
-                            direction="row"
-                            alignItems="center"
-                            spacing={1}
-                            sx={{
-                                display: "flex",
-                                flexDirection: "row",
-                                justifyContent: "flex-start",
-                                width: "100%",
-                            }}
-                        >
-                            <TextField
-                                id="outlined-basic"
-                                label={strings.username}
-                                variant="outlined"
-                                sx={{ width: "100%" }}
-                                value={proposedName}
-                                onChange={handleNameChange}
+            <Box sx={{ height: "calc(100vh - 75px)", overflowY: "auto" }}>
+                <Box
+                    sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "12px",
+                        marginBottom: "33px",
+                    }}
+                >
+                    {loading ? (
+                        <CircularProgress />
+                    ) : (
+                        <Box sx={{ position: "relative" }}>
+                            <Avatar
+                                src={
+                                    user.avatarFileId
+                                        ? `${UPLOADS_BASE_URL}/${user.avatarFileId}`
+                                        : NoUsersPhoto
+                                }
+                                sx={{
+                                    width: "100%",
+                                    height: "400px",
+                                    borderRadius: "0px 0px 0px 80px",
+                                }}
                             />
-                            {loading ? (
-                                <CircularProgress />
-                            ) : (
-                                <Button
-                                    variant="contained"
-                                    disabled={proposedName.trim().length === 0}
-                                    size="small"
-                                    onClick={() => {
-                                        if (name.length > 0) {
-                                            handleUpdateUser();
-                                        }
+
+                            <Box>
+                                <IconButton
+                                    color="primary"
+                                    sx={{
+                                        position: "absolute",
+                                        bottom: "10px",
+                                        right: "10px",
+                                        backgroundColor: "#E5F4FF",
+                                    }}
+                                    size="large"
+                                    onClick={(e) => {
+                                        openEditPicture();
                                     }}
                                 >
-                                    {strings.save}
-                                </Button>
-                            )}
-                        </Stack>
-                    </Box>
-                ) : (
-                    <Link
-                        component="button"
-                        variant="h6"
-                        underline="none"
-                        onClick={() => {
-                            openEditName();
-                        }}
+                                    <CameraAlt />
+                                </IconButton>
+                                <input
+                                    ref={imageRef}
+                                    type="file"
+                                    style={{ display: "none" }}
+                                    accept="image/*"
+                                    onChange={handleFileUpload}
+                                />
+                            </Box>
+
+                            <input
+                                ref={imageRef}
+                                type="file"
+                                style={{ display: "none" }}
+                                accept="image/*"
+                                onChange={handleFileUpload}
+                            />
+                        </Box>
+                    )}
+
+                    {editProfileName ? (
+                        <Box
+                            sx={{
+                                width: "100%",
+                                p: "0 16px",
+                            }}
+                        >
+                            <Stack
+                                direction="row"
+                                alignItems="center"
+                                spacing={1}
+                                sx={{
+                                    display: "flex",
+                                    flexDirection: "row",
+                                    justifyContent: "flex-start",
+                                    width: "100%",
+                                }}
+                            >
+                                <TextField
+                                    id="outlined-basic"
+                                    label={strings.username}
+                                    variant="outlined"
+                                    sx={{ width: "100%" }}
+                                    value={proposedName}
+                                    onChange={handleNameChange}
+                                />
+                                {loading ? (
+                                    <CircularProgress />
+                                ) : (
+                                    <Button
+                                        variant="contained"
+                                        disabled={proposedName.trim().length === 0}
+                                        size="small"
+                                        onClick={() => {
+                                            if (name.length > 0) {
+                                                handleUpdateUser();
+                                            }
+                                        }}
+                                    >
+                                        {strings.save}
+                                    </Button>
+                                )}
+                            </Stack>
+                        </Box>
+                    ) : (
+                        <Link
+                            component="button"
+                            variant="h6"
+                            underline="none"
+                            onClick={() => {
+                                openEditName();
+                            }}
+                        >
+                            {name}
+                        </Link>
+                    )}
+                </Box>
+
+                <Box display="grid" gap={1} p={2} mt={2}>
+                    <Stack
+                        direction="row"
+                        spacing={1}
+                        alignItems="center"
+                        justifyContent="space-between"
                     >
-                        {name}
-                    </Link>
-                )}
-            </Stack>
+                        {strings.colorSchema}
+                        <ThemeSwitch
+                            checked={theme === "dark"}
+                            onChange={(e) => {
+                                const mode: ThemeType = e.target.checked ? "dark" : "light";
+                                setTheme(mode);
+                                window.localStorage.setItem(Constants.LSKEY_THEME, mode);
+                            }}
+                        />
+                    </Stack>
 
-            <Box display="grid" gap={1} p={2} mt={2}>
-                <Stack
-                    direction="row"
-                    spacing={1}
-                    alignItems="center"
-                    justifyContent="space-between"
-                >
-                    {strings.colorSchema}
-                    <ThemeSwitch
-                        checked={theme === "dark"}
-                        onChange={(e) => {
-                            const mode: ThemeType = e.target.checked ? "dark" : "light";
-                            setTheme(mode);
-                            window.localStorage.setItem(Constants.LSKEY_THEME, mode);
-                        }}
-                    />
-                </Stack>
-
-                <Stack
-                    direction="row"
-                    alignItems="center"
-                    spacing={1}
-                    onClick={() => setEditingBlockedList(true)}
-                    sx={{
-                        height: "40px",
-                        display: "flex",
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        width: "100%",
-                        cursor: "pointer",
-                    }}
-                >
-                    <Box component="span">{strings.blockedUsers}</Box>
-                    <ChevronRight />
-                </Stack>
-
-                <Stack
-                    direction="row"
-                    alignItems="center"
-                    spacing={1}
-                    component="a"
-                    href={Constants.TERMS_AND_CONDITIONS_URL}
-                    target="_blank"
-                    sx={{
-                        height: "40px",
-                        display: "flex",
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        width: "100%",
-                        cursor: "pointer",
-                        textDecoration: "none",
-                        color: "inherit",
-                    }}
-                >
-                    <Box component="span">{strings.termsAndConditions}</Box>
-                    <ChevronRight />
-                </Stack>
-
-                {!pushNotificationsAllowed && (
                     <Stack
                         direction="row"
                         alignItems="center"
                         spacing={1}
-                        onClick={handleAllowNotifications}
+                        onClick={() => setEditingBlockedList(true)}
                         sx={{
                             height: "40px",
                             display: "flex",
@@ -463,55 +437,97 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                             cursor: "pointer",
                         }}
                     >
-                        <Box component="span">{strings.enableDesktopNotifications}</Box>
+                        <Box component="span">{strings.blockedUsers}</Box>
                         <ChevronRight />
                     </Stack>
-                )}
 
-                <Stack
-                    direction="row"
-                    alignItems="center"
-                    spacing={1}
-                    onClick={handleDelete}
-                    color="error.main"
-                    sx={{
-                        height: "40px",
-                        display: "flex",
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        width: "100%",
-                        cursor: "pointer",
-                    }}
-                >
-                    <Box component="span">{strings.deleteMyAccount}</Box>
-                </Stack>
+                    <Stack
+                        direction="row"
+                        alignItems="center"
+                        spacing={1}
+                        component="a"
+                        href={Constants.TERMS_AND_CONDITIONS_URL}
+                        target="_blank"
+                        sx={{
+                            height: "40px",
+                            display: "flex",
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            width: "100%",
+                            cursor: "pointer",
+                            textDecoration: "none",
+                            color: "inherit",
+                        }}
+                    >
+                        <Box component="span">{strings.termsAndConditions}</Box>
+                        <ChevronRight />
+                    </Stack>
 
-                <Stack
-                    direction="row"
-                    alignItems="center"
-                    spacing={1}
-                    onClick={handleLogout}
-                    sx={{
-                        height: "40px",
-                        display: "flex",
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        width: "100%",
-                        cursor: "pointer",
-                    }}
-                >
-                    <Box component="span">{strings.logout}</Box>
-                    <LogoutIcon />
-                </Stack>
+                    {!pushNotificationsAllowed && (
+                        <Stack
+                            direction="row"
+                            alignItems="center"
+                            spacing={1}
+                            onClick={handleAllowNotifications}
+                            sx={{
+                                height: "40px",
+                                display: "flex",
+                                flexDirection: "row",
+                                justifyContent: "space-between",
+                                width: "100%",
+                                cursor: "pointer",
+                            }}
+                        >
+                            <Box component="span">{strings.enableDesktopNotifications}</Box>
+                            <ChevronRight />
+                        </Stack>
+                    )}
+
+                    <Stack
+                        direction="row"
+                        alignItems="center"
+                        spacing={1}
+                        onClick={handleDelete}
+                        color="error.main"
+                        sx={{
+                            height: "40px",
+                            display: "flex",
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            width: "100%",
+                            cursor: "pointer",
+                        }}
+                    >
+                        <Box component="span">{strings.deleteMyAccount}</Box>
+                    </Stack>
+
+                    <Stack
+                        direction="row"
+                        alignItems="center"
+                        spacing={1}
+                        onClick={handleLogout}
+                        sx={{
+                            height: "40px",
+                            display: "flex",
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            width: "100%",
+                            cursor: "pointer",
+                        }}
+                    >
+                        <Box component="span">{strings.logout}</Box>
+                        <LogoutIcon />
+                    </Stack>
+                </Box>
+                {editProfilePicture ? (
+                    <EditPhotoDialog
+                        open={editProfilePicture}
+                        onClose={closeEditPicture}
+                        onConfirm={selectedEditAction}
+                        havePhoto={user.avatarFileId > 0}
+                    />
+                ) : null}
             </Box>
-            {editProfilePicture ? (
-                <EditPhotoDialog
-                    open={editProfilePicture}
-                    onClose={closeEditPicture}
-                    onConfirm={selectedEditAction}
-                    havePhoto={user.avatarFileId > 0}
-                />
-            ) : null}
         </Box>
     );
 }
