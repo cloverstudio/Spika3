@@ -25,7 +25,9 @@ import getFileType from "../../lib/getFileType";
 import FileUploader from "../../../../utils/FileUploader";
 import { useAppDispatch } from "../../../../hooks";
 import { toggleRightSidebar } from "../../slices/rightSidebar";
-import NoGroupPhoto from "../../../../assets/noGroupPhoto.jpg";
+import NoGroupPhoto from "../../../../assets/no-group-photo.jpg";
+import NoUserPhoto from "../../../../assets/no-photo.jpg";
+
 declare const UPLOADS_BASE_URL: string;
 
 export interface DetailsBasicInfoProps {
@@ -181,7 +183,6 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
         <Box>
             <Stack
                 direction="column"
-                // alignItems="center"
                 textAlign="center"
                 spacing={3}
                 sx={{
@@ -196,7 +197,7 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
                             src={
                                 roomData.avatarFileId
                                     ? `${UPLOADS_BASE_URL}/${roomData.avatarFileId}`
-                                    : NoGroupPhoto
+                                    : NoUserPhoto
                             }
                             sx={{
                                 width: "100%",
