@@ -36,6 +36,7 @@ import { useRemoveBlockByIdMutation } from "../api/user";
 import DoDisturb from "@mui/icons-material/DoDisturb";
 import useAutoSizeTextArea from "../hooks/useAutoSizeTextArea";
 import { useAppDispatch, useAppSelector } from "../../../hooks";
+import linkifyHtml from "linkify-html";
 
 export default function ChatInputContainer(): React.ReactElement {
     const dispatch = useAppDispatch();
@@ -231,25 +232,23 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
     useEffect(() => {
         if (!message) dispatch(removeThumbnailData({ roomId }));
 
-        const urlRegex = /(https?:\/\/[^\s]+)/g;
-        const urls = message?.match(urlRegex);
+        const url = linkifyHtml(message)?.split("<a href=")[1]?.split(">")[0]?.replace(/"/g, "");
 
-        if (urls?.length > 0 && isValidURL(urls[0])) setUrl(urls[0]);
+        if (url && isValidURL(url)) setUrl(url);
         else setUrl("");
     }, [message, dispatch]);
 
     useEffect(() => {
-        if (!url) return;
+        if (!url) {
+            dispatch(removeThumbnailData({ roomId }));
+            return;
+        }
 
         let timer: NodeJS.Timeout;
 
         timer = setTimeout(() => {
-            if (url) {
-                dispatch(fetchThumbnailData({ url: url, roomId }));
-            } else {
-                dispatch(removeThumbnailData({ roomId }));
-            }
-        }, 1000);
+            dispatch(fetchThumbnailData({ url: url, roomId }));
+        }, 600);
 
         return () => clearTimeout(timer);
     }, [url, dispatch]);
@@ -514,9 +513,17 @@ function ReplyMessage({ message }: { message: MessageType }): React.ReactElement
 export function MessageURLThumbnail() {
     const roomId = parseInt(useParams().id || "");
 
+    const messageInput = useSelector(selectInputText(roomId));
+
     const dispatch = useAppDispatch();
     const thumbnailData = useAppSelector((state) => state.input.list[roomId]?.thumbnailData);
     const [imageError, setImageError] = useState(false);
+
+    useEffect(() => {
+        if (thumbnailData && !messageInput) {
+            dispatch(removeThumbnailData({ roomId }));
+        }
+    }, [thumbnailData]);
 
     return (
         <Box
