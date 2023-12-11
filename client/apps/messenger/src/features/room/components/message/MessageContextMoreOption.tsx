@@ -6,6 +6,7 @@ import ModeEditOutlineOutlined from "@mui/icons-material/ModeEditOutlineOutlined
 import InfoOutlined from "@mui/icons-material/InfoOutlined";
 import FavoriteBorderOutlined from "@mui/icons-material/FavoriteBorderOutlined";
 import DeleteOutlineOutlined from "@mui/icons-material/DeleteOutlineOutlined";
+import Download from "@mui/icons-material/DownloadOutlined";
 import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
 import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../../../hooks";
@@ -22,6 +23,7 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { useMessageContainerContext } from "./MessagesContainer";
 import useStrings from "../../../../hooks/useStrings";
+import { DOWNLOAD_URL } from "../../../../../../../lib/constants";
 
 interface Props {
     isUsersMessage: boolean;
@@ -69,12 +71,23 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
 
     const menuOptions = [
         {
+            name: "download",
+            text: strings.download,
+            icon: <Download style={{ width: "14px", height: "14px" }} />,
+            show: message.type === "image",
+            onClick: () => {
+                const fileId = message.body.fileId;
+                if (!fileId) return;
+                const url = `${DOWNLOAD_URL}/${fileId}`;
+                window.open(url, "_blank");
+            },
+        },
+        {
             name: "forward",
             text: strings.forwardMessage,
             icon: <Shortcut style={{ width: "14px", height: "14px" }} />,
-            onClick: () => {},
             show: true,
-            onclick: () => {
+            onClick: () => {
                 dispatch(showForwardMessageModal({ roomId, messageId: id }));
             },
         },
@@ -82,9 +95,8 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
             name: "copy",
             text: strings.copy,
             icon: <ContentCopy style={{ width: "14px", height: "14px" }} />,
-            onClick: () => {},
             show: true,
-            onclick: async () => {
+            onClick: async () => {
                 await navigator.clipboard.writeText(message.body.text);
                 dispatch(hideMessageOptions(roomId));
                 showSnackBar({
@@ -98,9 +110,8 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
             name: "copyPermalink",
             text: strings.copyPermalink,
             icon: <ShareOutlinedIcon style={{ width: "14px", height: "14px" }} />,
-            onClick: () => {},
             show: true,
-            onclick: async () => {
+            onClick: async () => {
                 const parsedUrl = new URL(window.location.href);
 
                 const url = `${parsedUrl.origin}/messenger/rooms/${roomId}?messageId=${id}`;
@@ -117,9 +128,8 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
             name: "edit",
             text: strings.edit,
             icon: <ModeEditOutlineOutlined style={{ width: "14px", height: "14px" }} />,
-            onClick: () => {},
             show: isUsersMessage && message.type === "text" && !message.isForwarded,
-            onclick: () => {
+            onClick: () => {
                 dispatch(setEditMessage({ roomId, message }));
             },
         },
@@ -127,9 +137,8 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
             name: "details",
             text: strings.details,
             icon: <InfoOutlined style={{ width: "14px", height: "14px" }} />,
-            onClick: () => {},
             show: true,
-            onclick: () => {
+            onClick: () => {
                 dispatch(showMessageDetails({ roomId, messageId: id }));
             },
         },
@@ -137,9 +146,8 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
             name: "favorite",
             text: strings.addToFavorite,
             icon: <FavoriteBorderOutlined style={{ width: "14px", height: "14px" }} />,
-            onClick: () => {},
             show: false, // functionality not implemented
-            onclick: () => {
+            onClick: () => {
                 console.log("favorite clicked");
             },
         },
@@ -147,10 +155,9 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
             name: "delete",
             text: strings.delete,
             icon: <DeleteOutlineOutlined style={{ width: "14px", height: "14px" }} />,
-            onClick: () => {},
             show: true,
             style: { color: "error.main" },
-            onclick: () => {
+            onClick: () => {
                 dispatch(showDeleteModal({ roomId, messageId: id }));
             },
         },
@@ -201,7 +208,7 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
                             },
                             ...option.style,
                         }}
-                        onClick={option.onclick}
+                        onClick={option.onClick}
                     >
                         {option.icon}
                         <Box marginRight="8px">{option.text}</Box>

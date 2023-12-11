@@ -154,6 +154,7 @@ const en = {
     noGroups: "No groups found",
     forward: "Forward",
     forwarded: "forwarded",
+    download: "Download",
 };
 
 const strings = {
