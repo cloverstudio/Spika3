@@ -20,6 +20,7 @@ export default function EmojiGrid({
                 flexWrap: "wrap",
                 maxWidth: "100%",
                 margin: "0 auto",
+                paddingRight: "6px",
             }}
         >
             {children}

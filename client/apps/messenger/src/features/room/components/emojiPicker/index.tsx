@@ -46,14 +46,13 @@ export default function EmojiPickerContainer({ onSelect }: EmojiPickerProps): Re
     const activeCategory = Object.entries(groupedEmojis)[tabIndex];
 
     return (
-        <Box width="100%" mb={0.5} padding="0 20px" sx={{ overflowY: "auto", overflowX: "hidden" }}>
+        <Box width="100%" mb={0.5} padding="0 20px" height="100%">
             <Box>
                 <Box
                     display="flex"
                     flexDirection="column"
                     justifyContent="center"
                     alignItems="center"
-                    // mb={2}
                 >
                     <Box maxWidth="100%" width="100%" padding="16px 0">
                         <Input
@@ -76,7 +75,7 @@ export default function EmojiPickerContainer({ onSelect }: EmojiPickerProps): Re
                 <Tabs value={tabIndex} onChange={handleTabChange} showIndicator={!results} />
             </Box>
 
-            <Box maxHeight="7rem">
+            <Box maxHeight="7rem" height="7rem" sx={{ overflowY: "auto", overflowX: "hidden" }}>
                 {results ? (
                     <EmojiGrid emojiSize={emojiSize} emojiSpacing={emojiSpacing}>
                         {results.map((data) => (
