@@ -57,7 +57,13 @@ export default function VideoMessage({
         const file = localFile || fileFromServer;
         if (file) {
             setSrc(localFile ? URL.createObjectURL(file) : `${DOWNLOAD_URL}/${body.fileId}`);
-            setMimeType(localFile ? file.type : file.mimeType);
+            setMimeType(
+                localFile
+                    ? file.type
+                    : file.mimeType === "video/quicktime"
+                    ? "video/mp4"
+                    : file.mimeType,
+            );
         }
     }, [body, roomId]);
 
