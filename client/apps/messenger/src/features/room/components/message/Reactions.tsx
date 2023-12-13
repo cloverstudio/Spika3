@@ -44,6 +44,10 @@ export default function MessageReactions({ id }: MessageReactionsProps): React.R
         dispatch(showEmojiDetails({ roomId, messageId: id }));
     };
 
+    if (!reactionsToShow.length) {
+        return null;
+    }
+
     return (
         <Box
             display="flex"
