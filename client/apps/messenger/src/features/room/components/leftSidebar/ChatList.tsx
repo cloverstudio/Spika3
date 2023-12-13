@@ -4,6 +4,9 @@ import { useDispatch, useSelector } from "react-redux";
 import Avatar from "@mui/material/Avatar";
 import Badge from "@mui/material/Badge";
 import { Box, CircularProgress, IconButton, Skeleton, useMediaQuery } from "@mui/material";
+import CameraIcon from "@mui/icons-material/CameraAltRounded";
+import VideocamIcon from "@mui/icons-material/VideocamRounded";
+import DocumentIcon from "@mui/icons-material/Description";
 import Typography from "@mui/material/Typography";
 import {
     fetchHistory,
@@ -219,16 +222,42 @@ function RoomRow({ id, isActive, lastMessage, unreadCount }: RoomRowProps) {
     const { name, users, avatarFileId, type, muted, pinned } = room;
     const lastMessageType = lastMessage?.type;
 
-    let lastMessageText = lastMessage?.body?.text;
+    let lastMessageText = <LastMessageText lastMessage="" />;
+
+    const senderUser = users.find((u) => u.userId === lastMessage?.fromUserId)?.user;
+    const sender =
+        type === "group" ? `${senderUser?.displayName || strings.removedUser}` : undefined;
 
     if (lastMessage && lastMessageType !== "text") {
-        lastMessageText = (lastMessageType || "") + " " + strings.shared;
-        lastMessageText = lastMessageText.charAt(0).toUpperCase() + lastMessageText.slice(1);
-    }
-
-    if (lastMessageText && type === "group") {
-        const senderUser = users.find((u) => u.userId === lastMessage.fromUserId)?.user;
-        lastMessageText = `${senderUser?.displayName || strings.removedUser}: ${lastMessageText}`;
+        if (lastMessageType === "image") {
+            lastMessageText = (
+                <LastMessageText
+                    sender={sender}
+                    lastMessage={strings.photo}
+                    icon={<CameraIcon sx={{ width: "20px", color: "text.tertiary" }} />}
+                />
+            );
+        }
+        if (lastMessageType === "video") {
+            lastMessageText = (
+                <LastMessageText
+                    sender={sender}
+                    lastMessage={strings.video}
+                    icon={<VideocamIcon sx={{ width: "20px", color: "text.tertiary" }} />}
+                />
+            );
+        }
+        if (lastMessageType === "file") {
+            lastMessageText = (
+                <LastMessageText
+                    sender={sender}
+                    lastMessage={strings.document}
+                    icon={<DocumentIcon sx={{ width: "20px", color: "text.tertiary" }} />}
+                />
+            );
+        }
+    } else if (lastMessageType === "text") {
+        lastMessageText = <LastMessageText sender={sender} lastMessage={lastMessage?.body?.text} />;
     }
 
     const roomClickHandler = () => {
@@ -292,7 +321,7 @@ function RoomRow({ id, isActive, lastMessage, unreadCount }: RoomRowProps) {
                 </Box>
 
                 <Box display="flex" justifyContent="space-between" alignItems="baseline" gap={1}>
-                    <Typography
+                    <Box
                         sx={{
                             textOverflow: "ellipsis",
                             whiteSpace: "nowrap",
@@ -302,7 +331,7 @@ function RoomRow({ id, isActive, lastMessage, unreadCount }: RoomRowProps) {
                         lineHeight="1.35rem"
                     >
                         {lastMessageText}
-                    </Typography>
+                    </Box>
 
                     <Box
                         display="flex"
@@ -329,6 +358,22 @@ function RoomRow({ id, isActive, lastMessage, unreadCount }: RoomRowProps) {
                     </Box>
                 </Box>
             </Box>
+        </Box>
+    );
+}
+
+interface LastMessageTextProps {
+    lastMessage: string;
+    icon?: React.ReactElement;
+    sender?: string;
+}
+
+function LastMessageText({ lastMessage, icon, sender }: LastMessageTextProps) {
+    return (
+        <Box sx={{ display: "flex", alignItems: "center", gap: " 4px" }}>
+            {sender && <Typography fontSize="14px">{sender}: </Typography>}
+            {icon && icon}
+            <Typography fontSize="14px">{lastMessage}</Typography>
         </Box>
     );
 }
