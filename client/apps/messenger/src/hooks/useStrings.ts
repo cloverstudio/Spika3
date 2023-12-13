@@ -155,6 +155,8 @@ const en = {
     forward: "Forward",
     forwarded: "forwarded",
     download: "Download",
+    video: "Video",
+    document: "Document",
 };
 
 const strings = {
