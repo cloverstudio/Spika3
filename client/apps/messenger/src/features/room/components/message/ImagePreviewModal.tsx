@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 
 import CloseOutlined from "@mui/icons-material/CloseOutlined";
 import DownloadIcon from "@mui/icons-material/Download";
-import { Box, Modal } from "@mui/material";
+import { Box, CircularProgress, Modal } from "@mui/material";
 import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../../../hooks";
 import { selectMessageById, setPreviewedImageMessageId } from "../../slices/messages";
@@ -19,7 +19,14 @@ export const ImagePreviewModal = () => {
     const message = useAppSelector(selectMessageById(roomId, selectedMessageId));
 
     const handleClose = () => {
+        setImageLoaded(false);
         dispatch(setPreviewedImageMessageId(null));
+    };
+
+    const [imageLoaded, setImageLoaded] = useState(false);
+
+    const handleImageLoaded = () => {
+        setImageLoaded(true);
     };
 
     useEscapeKey(handleClose);
@@ -34,7 +41,7 @@ export const ImagePreviewModal = () => {
         return null;
     }
 
-    const { file: fileFromServer, uploadingFileName, fileId } = body;
+    const { file: fileFromServer, uploadingFileName, fileId, thumbId } = body;
 
     const localFile =
         uploadingFileName && AttachmentManager.getFile({ roomId, fileName: uploadingFileName });
@@ -44,6 +51,7 @@ export const ImagePreviewModal = () => {
         return null;
     }
     const imgSrc = localFile ? URL.createObjectURL(file) : `${DOWNLOAD_URL}/${fileId}`;
+    const thumbSrc = localFile ? URL.createObjectURL(file) : `${DOWNLOAD_URL}/${thumbId}`;
 
     return (
         <Modal open={!!file} onClose={handleClose}>
@@ -76,18 +84,51 @@ export const ImagePreviewModal = () => {
                         outline: "none",
                     }}
                 >
+                    {!imageLoaded && (
+                        <Box>
+                            {thumbSrc && (
+                                <Box
+                                    component="img"
+                                    maxHeight="92vh"
+                                    maxWidth="92vw"
+                                    height="auto"
+                                    width="auto"
+                                    src={thumbSrc}
+                                    draggable={false}
+                                    sx={{
+                                        userSelect: "none",
+                                        touchAction: "none",
+                                        pointerEvents: "none",
+                                    }}
+                                />
+                            )}
+                            <Box
+                                sx={{
+                                    position: "absolute",
+                                    top: "50%",
+                                    left: "50%",
+                                    transform: "translate(-50%, -50%)",
+                                }}
+                            >
+                                <CircularProgress />
+                            </Box>
+                        </Box>
+                    )}
                     <Box
                         component="img"
                         maxWidth="92vw"
                         maxHeight="92vh"
-                        height="auto"
+                        height={imageLoaded ? "auto" : "0px"}
+                        width={imageLoaded ? "auto" : "0px"}
                         src={imgSrc}
                         draggable={false}
                         sx={{
                             userSelect: "none",
                             touchAction: "none",
                             pointerEvents: "none",
+                            visibility: imageLoaded ? "visible" : "hidden",
                         }}
+                        onLoad={handleImageLoaded}
                     />
                 </Box>
             </>
