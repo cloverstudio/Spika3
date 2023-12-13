@@ -32,11 +32,13 @@ export default function SidebarContactList({
     hideSearchBox,
     selectedUserIds,
     hideBots,
+    hideDescription,
 }: {
     handleUserClick?: (user: User) => void;
     hideSearchBox?: boolean;
     selectedUserIds?: number[];
     hideBots?: boolean;
+    hideDescription?: boolean;
 }): React.ReactElement {
     const strings = useStrings();
     const dispatch = useAppDispatch();
@@ -152,6 +154,10 @@ export default function SidebarContactList({
                                     avatarFileId={u.avatarFileId}
                                     onClick={() => onUserClick(u)}
                                     selected={selectedUserIds && selectedUserIds.includes(u.id)}
+                                    description={
+                                        !hideDescription &&
+                                        (displayBots ? "Bot" : u.telephoneNumber)
+                                    }
                                 />
                             ))}
                         </Box>
@@ -171,6 +177,7 @@ type ContactRowProps = {
     selected: boolean;
     avatarFileId?: number;
     SelectedIcon?: () => React.ReactElement;
+    description?: string;
 };
 
 export function ContactRow({
@@ -179,6 +186,7 @@ export function ContactRow({
     selected,
     avatarFileId,
     SelectedIcon = () => <CheckIcon />,
+    description,
 }: ContactRowProps): React.ReactElement {
     return (
         <Box px={2.5} display="flex" py={1.5} sx={{ cursor: "pointer" }} onClick={onClick || null}>
@@ -187,15 +195,22 @@ export function ContactRow({
                 alt={name}
                 src={`${UPLOADS_BASE_URL}/${avatarFileId}`}
             />
-            <Box
-                ml={2}
-                display="flex"
-                flexGrow={1}
-                justifyContent="space-between"
-                alignItems="center"
-            >
-                <Typography fontWeight="500">{name}</Typography>
-                {selected && <SelectedIcon />}
+            <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
+                <Box
+                    ml={2}
+                    display="flex"
+                    flexGrow={1}
+                    justifyContent="space-between"
+                    alignItems="center"
+                >
+                    <Typography fontWeight="500">{name}</Typography>
+                    {selected && <SelectedIcon />}
+                </Box>
+                {description && (
+                    <Typography ml={2} color="text.secondary">
+                        {description}
+                    </Typography>
+                )}
             </Box>
         </Box>
     );

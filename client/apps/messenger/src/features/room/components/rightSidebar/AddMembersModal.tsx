@@ -107,6 +107,7 @@ export default function AddMembersModal(props: AddMembersModalProps) {
                             ...selectedUsers.map(({ id }) => id),
                             ...existingMembers.map((u) => u.userId),
                         ]}
+                        hideDescription
                     />
                 </Box>
 
