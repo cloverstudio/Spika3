@@ -1,0 +1,16 @@
+{
+    "name": "spika-load-test",
+    "version": "1.0.0",
+    "description": "",
+    "main": "test.js",
+    "scripts": {
+        "start": "node --env-file .env test.js"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "type": "module",
+    "dependencies": {
+        "eventsource": "^2.0.2"
+    }
+}
