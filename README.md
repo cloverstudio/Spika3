@@ -5,7 +5,7 @@
 <div>&nbsp;</div>
 
 <H2 align="center">
-Spika3 is the ultimate messenger solution for teams, boasting unmatched customizability. We designed it to be easily modified, deployed, and used to meet your team's specific communication needs.
+Spika3 is the ultimate messenger solution for teams, boasting unmatched customization options. We designed it to be easily modified, deployed, and used to meet your team's specific communication needs.
 </H2>
 
 <div>&nbsp;</div>
@@ -19,7 +19,7 @@ Spika3 is the ultimate messenger solution for teams, boasting unmatched customiz
 
 Spika is a communication platform that is fully customizable and open-source. Backend is developed in Typescript, specifically for organizations that prioritize data protection. Our application is based on Typescript / MySQL / RabbitMQ / ExpressJS / ReactJS, allowing for real-time conversations between colleagues, other companies, or customers, regardless of their mode of connection. Using our platform results in increased productivity and higher customer satisfaction rates.
 
-We also have iOS ( Swift ) and Android ( Kotlin ) client in another repository. They are still on heavy development phase, but they will be opensourced soon.
+We also have [iOS (Swift)](https://github.com/cloverstudio/SpikaiOS) and [Android (Kotlin)](https://github.com/cloverstudio/SpikaAndroid) client in another repository.
 
 
 <div>&nbsp;</div>
@@ -27,11 +27,7 @@ We also have iOS ( Swift ) and Android ( Kotlin ) client in another repository. 
 
 # Try Demo
 
-Here you can try demo with predefined characteristic chatGPT bot.
-
-https://demo.clover.studio
-
-![Alt text](/documents/screenshot2.png?raw=true "Optional Title")
+https://messenger.spika.chat
 
 
 <div>&nbsp;</div>
@@ -60,7 +56,7 @@ You can find detailed document here.<br />
 https://doc.spika.chat/
 
 Our official landing page is here.<br />
-https://www.spika.chat/
+https://clover.studio/projects/spika/
 
 <div>&nbsp;</div>
 <div>&nbsp;</div>
