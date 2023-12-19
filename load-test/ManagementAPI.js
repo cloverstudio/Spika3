@@ -31,7 +31,7 @@ export default class ManagementAPI {
         const [createUserData, createUserError] = await this.#callAPI(
             `${this.baseUrl}/users`,
             "POST",
-            data
+            data,
         );
         if (createUserError && createUserError !== "Phone number is already in use") {
             throw Error("Error creating user", { createUserError });
@@ -43,7 +43,7 @@ export default class ManagementAPI {
 
         const [userData, userError] = await this.#callAPI(
             `${this.baseUrl}/users/telephoneNumber/${data.telephoneNumber}`,
-            "GET"
+            "GET",
         );
 
         if (userData.user) {
@@ -69,9 +69,9 @@ export default class ManagementAPI {
         return roomId;
     }
 
-    async addUsersToRoom(usersIds, roomId) {
+    async addUsersToRoom(userIds, roomId) {
         const [data, error] = await this.#callAPI(`${this.baseUrl}/groups/${roomId}/add`, "PUT", {
-            usersIds,
+            userIds,
         });
 
         if (error) {
@@ -107,7 +107,7 @@ export default class ManagementAPI {
         const [data, error] = await this.#callAPI(
             `${this.baseUrl}/users/${userId}/devices`,
             "POST",
-            { deviceId }
+            { deviceId },
         );
 
         if (error) {

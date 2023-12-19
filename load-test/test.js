@@ -8,7 +8,7 @@ class Test {
         this.users = [];
         this.devices = [];
         this.roomId = null;
-        this.monitorUserId = 26;
+        this.monitorUserId = null;
         this.roomName = "Test room " + new Date().toISOString();
         this.SSEUrl = `${API_BASE_URL}/sse`;
         this.newMessagesCount = 0;
@@ -172,17 +172,21 @@ class Test {
     }
 
     async addUsersToRoom() {
-        const usersIds = [...this.users.map((user) => user.id), this.monitorUserId];
+        const userIds = [...this.users.map((user) => user.id)];
 
-        await this.managementAPI.addUsersToRoom(usersIds, this.roomId);
+        if (this.monitorUserId) {
+            userIds.push(this.monitorUserId);
+        }
+
+        await this.managementAPI.addUsersToRoom(userIds, this.roomId);
     }
 
     async ensureDevices() {
-        const usersIds = [...this.users.map((user) => user.id)];
+        const userIds = [...this.users.map((user) => user.id)];
 
         const devices = [];
 
-        for (const userId of usersIds) {
+        for (const userId of userIds) {
             const activeDevice = await this.managementAPI.getActiveUserDevice(userId);
 
             if (activeDevice) {

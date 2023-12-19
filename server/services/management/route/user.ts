@@ -322,6 +322,55 @@ export default ({ redisClient }: InitRouterParams) => {
         }
     });
 
+    router.post("/:userId/devices", adminAuth(redisClient), async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        try {
+            const userId: number = parseInt(req.params.userId);
+            const deviceId: string = req.body.deviceId;
+
+            const user = await prisma.user.findFirst({
+                where: {
+                    id: userId,
+                },
+            });
+
+            if (!user) {
+                return res.status(404).send(errorResponse(`User not found`, userReq.lang));
+            }
+
+            const device = await prisma.device.findFirst({
+                where: {
+                    deviceId,
+                },
+            });
+
+            if (device) {
+                return res.status(400).send(errorResponse(`Device already exists`, userReq.lang));
+            }
+
+            const createdDevice = await prisma.device.create({
+                data: {
+                    deviceId,
+                    userId,
+                    osName: "test",
+                    osVersion: "test",
+                    deviceName: "test",
+                    appVersion: "test",
+                    type: "test",
+                    token: utils.randomString(consts.APIKEY_LENGTH),
+                    tokenExpiredAt: new Date(+new Date() + 1000 * 60 * 60 * 24 * 365 * 10),
+                },
+            });
+
+            return res.send(
+                successResponse({ device: sanitize(createdDevice).device() }, userReq.lang),
+            );
+        } catch (e: unknown) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
     router.put(
         "/:userId/devices/:deviceId/expire",
         adminAuth(redisClient),
