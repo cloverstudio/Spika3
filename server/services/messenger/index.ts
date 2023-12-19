@@ -19,6 +19,7 @@ import apiKeyRouter from "./route/apiKey";
 import blockRouter from "./route/block";
 import groupMessageRouter from "./route/groupMessageRoom";
 import recentChatRouter from "./route/recentChat";
+import galleryRouter from "./route/galleryImages";
 
 import * as Constants from "../../components/consts";
 import Service, { ServiceStartParams } from "../types/serviceInterface";
@@ -88,6 +89,7 @@ export default class Messenger implements Service {
         messengerRouter.use("/webhooks", webhookRouter({}));
         messengerRouter.use("/api-keys", apiKeyRouter({ redisClient: this.redisClient }));
         messengerRouter.use("/blocks", blockRouter());
+        messengerRouter.use("/gallery", galleryRouter());
 
         return messengerRouter;
     }
