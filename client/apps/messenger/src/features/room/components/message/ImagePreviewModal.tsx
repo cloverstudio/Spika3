@@ -17,7 +17,7 @@ import {
 import AttachmentManager from "../../lib/AttachmentManager";
 import { DOWNLOAD_URL } from "../../../../../../../lib/constants";
 import useEscapeKey from "../../../../hooks/useEscapeKey";
-import { galleryFormattedDate } from "../../lib/formatDate";
+import { getGalleryFormattedDate } from "../../lib/formatDate";
 import { galleryImageBatchLimitMobile, galleryImageBatchLimitNonMobile } from "../../lib/consts";
 
 export const ImagePreviewModal = () => {
@@ -71,27 +71,27 @@ export const ImagePreviewModal = () => {
     }, [selectedMessageId]);
 
     useEffect(() => {
-        if (galleryImages && olderImagesBatchLoaded) {
+        if (galleryImages?.length && olderImagesBatchLoaded) {
             dispatch(
                 setPreviewedImageMessageId(galleryImages[galleryImages.length - 1]?.messageId),
             );
             setOlderImagesBatchLoaded(false);
-        } else if (galleryImages && newerImagesBatchLoaded) {
+        } else if (galleryImages?.length && newerImagesBatchLoaded) {
             dispatch(setPreviewedImageMessageId(galleryImages[0]?.messageId));
             setNewerImagesBatchLoaded(false);
         }
     }, [galleryImages]);
 
     useEffect(() => {
-        if (!galleryImages) return;
-        if (selectedMessageId === galleryImages[0]?.messageId && !hasMoreOlderImages) {
+        if (!galleryImages?.length) return;
+        if (selectedMessageId === galleryImages[0].messageId && !hasMoreOlderImages) {
             setIsLeftArrowDisabled(true);
         } else {
             setIsLeftArrowDisabled(false);
         }
 
         if (
-            selectedMessageId === galleryImages[galleryImages.length - 1]?.messageId &&
+            selectedMessageId === galleryImages[galleryImages.length - 1].messageId &&
             !hasMoreNewerImages
         ) {
             setIsRightArrowDisabled(true);
@@ -229,7 +229,6 @@ export const ImagePreviewModal = () => {
                     top="50%"
                     left="50%"
                     bgcolor="transparent"
-                    // lineHeight="1"
                     sx={{
                         transform: "translate(-50%, -50%)",
                         outline: "none",
@@ -251,7 +250,7 @@ export const ImagePreviewModal = () => {
                             {message.username}
                         </Typography>
                         <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
-                            {galleryFormattedDate(message.date)}
+                            {getGalleryFormattedDate(message.date)}
                         </Typography>
                     </Box>
                     <Box width="70vw" height="70vh">
@@ -442,7 +441,7 @@ function GalleryImageItem({ galleryImage, isActive, onGalleryImageClick }: Galle
         return null;
     }
 
-    const formattedDate = galleryFormattedDate(galleryImage.date);
+    const formattedDate = getGalleryFormattedDate(galleryImage.date);
 
     return (
         <Box

@@ -1,6 +1,6 @@
 import useStrings from "../../../hooks/useStrings";
 
-export function galleryFormattedDate(date: Date) {
+export function getGalleryFormattedDate(date: Date) {
     if (!date) return "";
 
     const strings = useStrings();
