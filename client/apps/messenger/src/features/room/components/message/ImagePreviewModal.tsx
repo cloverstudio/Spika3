@@ -1,26 +1,110 @@
-import React, { useState } from "react";
-
+import React, { useEffect, useState } from "react";
 import CloseOutlined from "@mui/icons-material/CloseOutlined";
+import LeftArrow from "@mui/icons-material/KeyboardArrowLeft";
+import RightArrow from "@mui/icons-material/ChevronRight";
 import DownloadIcon from "@mui/icons-material/Download";
-import { Box, CircularProgress, Modal } from "@mui/material";
+import { Box, CircularProgress, IconButton, Modal, Typography } from "@mui/material";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { useTheme } from "@mui/material/styles";
 import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../../../hooks";
-import { selectMessageById, setPreviewedImageMessageId } from "../../slices/messages";
+import {
+    getGalleryImages,
+    resetGalleryImages,
+    selectMessageById,
+    setPreviewedImageMessageId,
+} from "../../slices/messages";
 import AttachmentManager from "../../lib/AttachmentManager";
 import { DOWNLOAD_URL } from "../../../../../../../lib/constants";
 import useEscapeKey from "../../../../hooks/useEscapeKey";
+import { getGalleryFormattedDate } from "../../lib/formatDate";
+import { galleryImageBatchLimitMobile, galleryImageBatchLimitNonMobile } from "../../lib/consts";
 
 export const ImagePreviewModal = () => {
     const roomId = parseInt(useParams().id || "");
     const dispatch = useAppDispatch();
 
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [olderImagesBatchLoaded, setOlderImagesBatchLoaded] = useState(false);
+    const [newerImagesBatchLoaded, setNewerImagesBatchLoaded] = useState(false);
+
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+    const itemsPerBatch = isMobile ? galleryImageBatchLimitMobile : galleryImageBatchLimitNonMobile;
+
+    const hasMoreNewerImages = useAppSelector(
+        (state) => state.messages[roomId]?.galleryImagesHasMoreNewer,
+    );
+    const hasMoreOlderImages = useAppSelector(
+        (state) => state.messages[roomId]?.galleryImagesHasMoreOlder,
+    );
+
+    const [isLeftArrowDisabled, setIsLeftArrowDisabled] = useState(false);
+    const [isRightArrowDisabled, setIsRightArrowDisabled] = useState(false);
+
     const selectedMessageId = useAppSelector((state) => state.messages.previewedImageMessageId);
 
-    const message = useAppSelector(selectMessageById(roomId, selectedMessageId));
+    const galleryImages = useAppSelector((state) => state.messages[roomId]?.galleryImages);
+
+    const message = galleryImages?.find(
+        (galleryImage) => galleryImage.messageId === selectedMessageId,
+    );
+
+    if (!selectMessageById) return null;
+
+    useEffect(() => {
+        if (selectedMessageId && !isModalOpen) {
+            setIsModalOpen(true);
+            dispatch(
+                getGalleryImages({
+                    roomId,
+                    cursor: selectedMessageId,
+                    itemsPerBatch,
+                }),
+            );
+        }
+
+        if (!selectedMessageId && isModalOpen) {
+            setIsModalOpen(false);
+        }
+    }, [selectedMessageId]);
+
+    useEffect(() => {
+        if (galleryImages?.length && olderImagesBatchLoaded) {
+            dispatch(
+                setPreviewedImageMessageId(galleryImages[galleryImages.length - 1]?.messageId),
+            );
+            setOlderImagesBatchLoaded(false);
+        } else if (galleryImages?.length && newerImagesBatchLoaded) {
+            dispatch(setPreviewedImageMessageId(galleryImages[0]?.messageId));
+            setNewerImagesBatchLoaded(false);
+        }
+    }, [galleryImages]);
+
+    useEffect(() => {
+        if (!galleryImages?.length) return;
+        if (selectedMessageId === galleryImages[0].messageId && !hasMoreOlderImages) {
+            setIsLeftArrowDisabled(true);
+        } else {
+            setIsLeftArrowDisabled(false);
+        }
+
+        if (
+            selectedMessageId === galleryImages[galleryImages.length - 1].messageId &&
+            !hasMoreNewerImages
+        ) {
+            setIsRightArrowDisabled(true);
+        } else {
+            setIsRightArrowDisabled(false);
+        }
+    }, [galleryImages, selectedMessageId]);
 
     const handleClose = () => {
         setImageLoaded(false);
         dispatch(setPreviewedImageMessageId(null));
+        setIsModalOpen(false);
+        dispatch(resetGalleryImages(roomId));
     };
 
     const [imageLoaded, setImageLoaded] = useState(false);
@@ -53,6 +137,73 @@ export const ImagePreviewModal = () => {
     const imgSrc = localFile ? URL.createObjectURL(file) : `${DOWNLOAD_URL}/${fileId}`;
     const thumbSrc = localFile ? URL.createObjectURL(file) : `${DOWNLOAD_URL}/${thumbId}`;
 
+    const galleryImageClickHandler = (messageId: number) => {
+        dispatch(setPreviewedImageMessageId(messageId));
+    };
+    const leftArrowClickHandler = () => {
+        const currentMessageIndex = galleryImages.findIndex(
+            (galleryImage) => galleryImage.messageId === selectedMessageId,
+        );
+        const previousMessage = galleryImages[currentMessageIndex - 1];
+        if (previousMessage) {
+            dispatch(setPreviewedImageMessageId(previousMessage.messageId));
+        } else if (currentMessageIndex === 0) {
+            dispatch(
+                getGalleryImages({
+                    roomId,
+                    cursor: selectedMessageId,
+                    fetchOlder: true,
+                    itemsPerBatch,
+                }),
+            );
+            setOlderImagesBatchLoaded(true);
+        }
+    };
+
+    const rightArrowClickHandler = () => {
+        const currentMessageIndex = galleryImages.findIndex(
+            (galleryImage) => galleryImage.messageId === selectedMessageId,
+        );
+        const nextMessage = galleryImages[currentMessageIndex + 1];
+        if (nextMessage) {
+            dispatch(setPreviewedImageMessageId(nextMessage.messageId));
+        } else if (currentMessageIndex === galleryImages.length - 1) {
+            dispatch(
+                getGalleryImages({
+                    roomId,
+                    cursor: selectedMessageId,
+                    fetchNewer: true,
+                    itemsPerBatch,
+                }),
+            );
+            setNewerImagesBatchLoaded(true);
+        }
+    };
+
+    const leftArrowBackClickHandler = () => {
+        dispatch(
+            getGalleryImages({
+                roomId,
+                cursor: galleryImages[0].messageId,
+                fetchOlder: true,
+                itemsPerBatch,
+            }),
+        );
+        setOlderImagesBatchLoaded(true);
+    };
+
+    const rightArrowBackClickHandler = () => {
+        dispatch(
+            getGalleryImages({
+                roomId,
+                cursor: galleryImages[galleryImages.length - 1].messageId,
+                fetchNewer: true,
+                itemsPerBatch,
+            }),
+        );
+        setNewerImagesBatchLoaded(true);
+    };
+
     return (
         <Modal open={!!file} onClose={handleClose}>
             <>
@@ -78,60 +229,261 @@ export const ImagePreviewModal = () => {
                     top="50%"
                     left="50%"
                     bgcolor="transparent"
-                    lineHeight="1"
                     sx={{
                         transform: "translate(-50%, -50%)",
                         outline: "none",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
                     }}
                 >
-                    {!imageLoaded && (
-                        <Box>
-                            {thumbSrc && (
+                    <Box
+                        sx={{
+                            display: "flex",
+                            gap: "12px",
+                            alignItems: "center",
+                            marginBottom: "50px",
+                            color: "#fff",
+                        }}
+                    >
+                        <Typography sx={{ fontSize: "16px", fontWeight: 600 }}>
+                            {message.username}
+                        </Typography>
+                        <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
+                            {getGalleryFormattedDate(message.date)}
+                        </Typography>
+                    </Box>
+                    <Box width="70vw" height="70vh">
+                        {!imageLoaded && (
+                            <Box>
+                                {thumbSrc && (
+                                    <Box
+                                        component="img"
+                                        maxHeight="65vh"
+                                        maxWidth="65vw"
+                                        height="auto"
+                                        width="auto"
+                                        src={thumbSrc}
+                                        draggable={false}
+                                        sx={{
+                                            userSelect: "none",
+                                            touchAction: "none",
+                                            pointerEvents: "none",
+                                            position: "absolute",
+                                            top: "40%",
+                                            left: "50%",
+                                            transform: "translate(-50%, -45%)",
+                                        }}
+                                    />
+                                )}
                                 <Box
-                                    component="img"
-                                    maxHeight="92vh"
-                                    maxWidth="92vw"
-                                    height="auto"
-                                    width="auto"
-                                    src={thumbSrc}
-                                    draggable={false}
                                     sx={{
-                                        userSelect: "none",
-                                        touchAction: "none",
-                                        pointerEvents: "none",
+                                        position: "absolute",
+                                        top: "50%",
+                                        left: "50%",
+                                        transform: "translate(-50%, -50%)",
                                     }}
-                                />
-                            )}
-                            <Box
+                                >
+                                    <CircularProgress />
+                                </Box>
+                            </Box>
+                        )}
+
+                        <Box
+                            component="img"
+                            maxWidth="65vw"
+                            maxHeight="70vh"
+                            height={imageLoaded ? "auto" : "0px"}
+                            width={imageLoaded ? "auto" : "0px"}
+                            src={imgSrc}
+                            draggable={false}
+                            sx={{
+                                userSelect: "none",
+                                touchAction: "none",
+                                pointerEvents: "none",
+                                visibility: imageLoaded ? "visible" : "hidden",
+                                position: "absolute",
+                                top: "40%",
+                                left: "50%",
+                                transform: "translate(-50%, -45%)",
+                            }}
+                            onLoad={handleImageLoaded}
+                        />
+                        <IconButton
+                            disabled={isLeftArrowDisabled}
+                            sx={{
+                                position: "absolute",
+                                top: "40%",
+                                left: "0",
+                                transform: "translate(-50%, -40%)",
+                                width: "80px",
+                                height: "80px",
+                            }}
+                            onClick={leftArrowClickHandler}
+                        >
+                            <LeftArrow
                                 sx={{
-                                    position: "absolute",
-                                    top: "50%",
-                                    left: "50%",
-                                    transform: "translate(-50%, -50%)",
+                                    width: "82px",
+                                    height: "82px",
+                                    color: isLeftArrowDisabled ? "#282828" : "#fff",
                                 }}
-                            >
-                                <CircularProgress />
+                            />
+                        </IconButton>
+
+                        <IconButton
+                            disabled={isRightArrowDisabled}
+                            sx={{
+                                position: "absolute",
+                                top: "40%",
+                                left: "100%",
+                                transform: "translate(-50%, -40%)",
+                                width: "80px",
+                                height: "80px",
+                            }}
+                            onClick={rightArrowClickHandler}
+                        >
+                            <RightArrow
+                                sx={{
+                                    width: "82px",
+                                    height: "82px",
+                                    color: isRightArrowDisabled ? "#282828" : "#fff",
+                                }}
+                            />
+                        </IconButton>
+                    </Box>
+                    {galleryImages?.length > 0 && (
+                        <Box textAlign="center">
+                            <Box sx={{ position: "relative" }}>
+                                <IconButton
+                                    disabled={!hasMoreOlderImages}
+                                    sx={{
+                                        position: "absolute",
+                                        top: "40%",
+                                        left: "-30px",
+                                        transform: "translate(-50%, -40%)",
+                                        width: "50px",
+                                        height: "50px",
+                                    }}
+                                    onClick={leftArrowBackClickHandler}
+                                >
+                                    <LeftArrow
+                                        sx={{
+                                            width: "40px",
+                                            height: "40px",
+                                            color: hasMoreOlderImages ? "#fff" : "#282828",
+                                        }}
+                                    />
+                                </IconButton>
+
+                                <IconButton
+                                    disabled={!hasMoreNewerImages}
+                                    sx={{
+                                        position: "absolute",
+                                        top: "40%",
+                                        left: "calc(100% + 30px)",
+                                        transform: "translate(-50%, -40%)",
+                                        width: "50px",
+                                        height: "50px",
+                                    }}
+                                    onClick={rightArrowBackClickHandler}
+                                >
+                                    <RightArrow
+                                        sx={{
+                                            width: "40px",
+                                            height: "40px",
+                                            color: hasMoreNewerImages ? "#fff" : "#282828",
+                                        }}
+                                    />
+                                </IconButton>
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        gap: "16px",
+                                        marginTop: "12px",
+                                        maxWidth: "70vw",
+                                        justifyContent: "center",
+                                    }}
+                                >
+                                    {galleryImages.map((galleryImage) => (
+                                        <GalleryImageItem
+                                            key={galleryImage.messageId}
+                                            galleryImage={galleryImage}
+                                            isActive={galleryImage.messageId === selectedMessageId}
+                                            onGalleryImageClick={galleryImageClickHandler}
+                                        />
+                                    ))}
+                                </Box>
                             </Box>
                         </Box>
                     )}
-                    <Box
-                        component="img"
-                        maxWidth="92vw"
-                        maxHeight="92vh"
-                        height={imageLoaded ? "auto" : "0px"}
-                        width={imageLoaded ? "auto" : "0px"}
-                        src={imgSrc}
-                        draggable={false}
-                        sx={{
-                            userSelect: "none",
-                            touchAction: "none",
-                            pointerEvents: "none",
-                            visibility: imageLoaded ? "visible" : "hidden",
-                        }}
-                        onLoad={handleImageLoaded}
-                    />
                 </Box>
             </>
         </Modal>
     );
 };
+
+interface GalleryImageItemProps {
+    galleryImage: {
+        messageId: number;
+        body: any;
+        date: Date;
+        userId: number;
+        username: string;
+    };
+    isActive?: boolean;
+    onGalleryImageClick: (messageId: number) => void;
+}
+
+function GalleryImageItem({ galleryImage, isActive, onGalleryImageClick }: GalleryImageItemProps) {
+    const [isHovered, setIsHovered] = useState(false);
+
+    if (!galleryImage.body.thumbId || !galleryImage.body.fileId) {
+        return null;
+    }
+
+    const formattedDate = getGalleryFormattedDate(galleryImage.date);
+
+    return (
+        <Box
+            onClick={() => onGalleryImageClick(galleryImage.messageId)}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+        >
+            {isHovered && (
+                <Box
+                    sx={{
+                        position: "absolute",
+                        backgroundColor: "#282828",
+                        color: "#fff",
+                        whiteSpace: "nowrap",
+                        width: "auto",
+                        padding: "8px",
+                        borderRadius: "10px",
+                        display: "flex",
+                        top: "-35px",
+                        marginLeft: "20px",
+                    }}
+                >
+                    <Typography sx={{ fontSize: "12px" }}>
+                        {galleryImage.username} {formattedDate}
+                    </Typography>
+                </Box>
+            )}
+            <Box
+                component="img"
+                height="85px"
+                width="85px"
+                draggable={false}
+                sx={{
+                    userSelect: "none",
+                    touchAction: "none",
+                    pointerEvents: "none",
+                    objectFit: "cover",
+                    border: isActive ? "4px solid" : "none",
+                    borderColor: "primary.main",
+                }}
+                src={`${DOWNLOAD_URL}/${galleryImage.body.thumbId}`}
+            />
+        </Box>
+    );
+}

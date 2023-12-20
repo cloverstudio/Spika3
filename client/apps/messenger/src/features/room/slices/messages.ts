@@ -390,12 +390,54 @@ export const replyMessageThunk = createAsyncThunk(
     },
 );
 
+export const getGalleryImages = createAsyncThunk(
+    "messages/getGalleryImages",
+    async (data: {
+        roomId: number;
+        cursor: number;
+        itemsPerBatch: number;
+        fetchNewer?: boolean;
+        fetchOlder?: boolean;
+    }): Promise<{
+        list: {
+            messageId: number;
+            body: any;
+            date: Date;
+            userId: number;
+            username: string;
+        }[];
+        hasMoreOlderImages: boolean;
+        hasMoreNewerImages: boolean;
+    }> => {
+        let url = `/messenger/gallery?roomId=${data.roomId}&cursor=${data.cursor}&itemsPerBatch=${data.itemsPerBatch}`;
+
+        if (data.fetchNewer) {
+            url += `&fetchNewer=${data.fetchNewer}`;
+        }
+
+        if (data.fetchOlder) {
+            url += `&fetchOlder=${data.fetchOlder}`;
+        }
+
+        const response = await dynamicBaseQuery(url);
+
+        return response.data;
+    },
+);
+
 type InitialState = {
     [roomId: number]: {
         roomId: number;
         loading: boolean;
         messages: { [id: string]: MessageType & { progress?: number } };
         reactions: { [messageId: string]: MessageRecordType[] };
+        galleryImages: {
+            messageId: number;
+            body: any;
+            date: Date;
+            userId: number;
+            username: string;
+        }[];
         statusCounts: {
             [messageId: string]: {
                 seenCount: number;
@@ -414,6 +456,10 @@ type InitialState = {
         count?: number;
         cursor?: number;
         keyword?: string;
+        galleryImagesCount?: number;
+        galleryImagesCursor?: number;
+        galleryImagesHasMoreOlder?: boolean;
+        galleryImagesHasMoreNewer?: boolean;
     };
     previewedImageMessageId: number | null;
 };
@@ -721,6 +767,7 @@ export const messagesSlice = createSlice({
                 state[roomId] = {
                     roomId,
                     messages: {},
+                    galleryImages: [],
                     reactions: {},
                     statusCounts: {},
                     loading: true,
@@ -760,6 +807,14 @@ export const messagesSlice = createSlice({
         },
         setPreviewedImageMessageId(state, action: { payload: number | null }) {
             state.previewedImageMessageId = action.payload;
+        },
+        resetGalleryImages(state, action: { payload: number }) {
+            const roomId = action.payload;
+            const room = state[roomId];
+
+            if (room) {
+                room.galleryImages = [];
+            }
         },
     },
     extraReducers: (builder) => {
@@ -804,6 +859,7 @@ export const messagesSlice = createSlice({
                 state[roomId] = {
                     roomId,
                     messages: {},
+                    galleryImages: [],
                     reactions: {},
                     statusCounts: {},
                     loading: true,
@@ -919,6 +975,44 @@ export const messagesSlice = createSlice({
             room.reactions[id] = messageRecords || [];
             room.statusCounts[id] = { totalUserCount, deliveredCount, seenCount };
         });
+        builder.addCase(getGalleryImages.pending, (state, { meta }) => {
+            const roomId = meta.arg.roomId;
+            const room = state[roomId];
+
+            if (!room) {
+                state[roomId] = {
+                    roomId,
+                    messages: {},
+                    galleryImages: [],
+                    reactions: {},
+                    statusCounts: {},
+                    loading: true,
+                    activeMessageId: null,
+                    targetMessageId: null,
+                    showDetails: false,
+                    showEmojiDetails: false,
+                    showForwardMessageModal: false,
+                    showCustomEmojiModal: false,
+                    showMessageOptions: false,
+                    showDelete: false,
+                };
+            } else {
+                room.loading = true;
+            }
+        });
+        builder.addCase(getGalleryImages.fulfilled, (state, { payload, meta }) => {
+            const roomId = meta.arg.roomId;
+            const room = state[roomId];
+
+            if (!room) {
+                return;
+            }
+
+            room.loading = false;
+            room.galleryImages = payload.list;
+            room.galleryImagesHasMoreNewer = payload.hasMoreNewerImages;
+            room.galleryImagesHasMoreOlder = payload.hasMoreOlderImages;
+        });
     },
 });
 
@@ -945,6 +1039,7 @@ export const {
     setKeyword,
     removeMessageRecord,
     setPreviewedImageMessageId,
+    resetGalleryImages,
 } = messagesSlice.actions;
 
 export const selectRoomMessages =

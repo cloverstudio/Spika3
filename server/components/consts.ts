@@ -8,6 +8,7 @@ export const ADMIN_USERS_PAGING_LIMIT = 10;
 export const CONTACT_PAGING_LIMIT = 20;
 export const HISTORY_PAGING_LIMIT = 20;
 export const MESSAGE_PAGING_LIMIT = 50;
+export const GALLERY_IMAGE_PAGING_LIMIT = 6;
 
 export const TOKEN_VALID_DAY = 30;
 export const CONTACT_SYNC_LIMIT = 100;

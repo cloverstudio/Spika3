@@ -157,6 +157,8 @@ const en = {
     download: "Download",
     video: "Video",
     document: "Document",
+    today: "Today",
+    yesterday: "Yesterday",
 };
 
 const strings = {
