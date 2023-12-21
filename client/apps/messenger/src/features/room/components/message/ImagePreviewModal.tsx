@@ -11,7 +11,6 @@ import { useAppDispatch, useAppSelector } from "../../../../hooks";
 import {
     getGalleryImages,
     resetGalleryImages,
-    selectMessageById,
     setPreviewedImageMessageId,
 } from "../../slices/messages";
 import AttachmentManager from "../../lib/AttachmentManager";
@@ -24,7 +23,6 @@ export const ImagePreviewModal = () => {
     const roomId = parseInt(useParams().id || "");
     const dispatch = useAppDispatch();
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const [olderImagesBatchLoaded, setOlderImagesBatchLoaded] = useState(false);
     const [newerImagesBatchLoaded, setNewerImagesBatchLoaded] = useState(false);
 
@@ -40,22 +38,26 @@ export const ImagePreviewModal = () => {
         (state) => state.messages[roomId]?.galleryImagesHasMoreOlder,
     );
 
-    const [isLeftArrowDisabled, setIsLeftArrowDisabled] = useState(false);
-    const [isRightArrowDisabled, setIsRightArrowDisabled] = useState(false);
-
     const selectedMessageId = useAppSelector((state) => state.messages.previewedImageMessageId);
 
     const galleryImages = useAppSelector((state) => state.messages[roomId]?.galleryImages);
+
+    const isLeftArrowDisabled =
+        galleryImages?.length &&
+        selectedMessageId === galleryImages[0].messageId &&
+        !hasMoreOlderImages;
+
+    const isRightArrowDisabled =
+        galleryImages?.length &&
+        selectedMessageId === galleryImages[galleryImages.length - 1]?.messageId &&
+        !hasMoreNewerImages;
 
     const message = galleryImages?.find(
         (galleryImage) => galleryImage.messageId === selectedMessageId,
     );
 
-    if (!selectMessageById) return null;
-
     useEffect(() => {
-        if (selectedMessageId && !isModalOpen) {
-            setIsModalOpen(true);
+        if (selectedMessageId && !galleryImages?.length) {
             dispatch(
                 getGalleryImages({
                     roomId,
@@ -63,10 +65,6 @@ export const ImagePreviewModal = () => {
                     itemsPerBatch,
                 }),
             );
-        }
-
-        if (!selectedMessageId && isModalOpen) {
-            setIsModalOpen(false);
         }
     }, [selectedMessageId]);
 
@@ -82,28 +80,24 @@ export const ImagePreviewModal = () => {
         }
     }, [galleryImages]);
 
-    useEffect(() => {
-        if (!galleryImages?.length) return;
-        if (selectedMessageId === galleryImages[0].messageId && !hasMoreOlderImages) {
-            setIsLeftArrowDisabled(true);
-        } else {
-            setIsLeftArrowDisabled(false);
-        }
+    const isLoading = useAppSelector((state) => state.messages[roomId]?.loading);
 
-        if (
-            selectedMessageId === galleryImages[galleryImages.length - 1].messageId &&
-            !hasMoreNewerImages
-        ) {
-            setIsRightArrowDisabled(true);
-        } else {
-            setIsRightArrowDisabled(false);
-        }
-    }, [galleryImages, selectedMessageId]);
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "ArrowLeft" && !isLoading && !isLeftArrowDisabled)
+                leftArrowClickHandler();
+            else if (e.key === "ArrowRight" && !isLoading && !isRightArrowDisabled)
+                rightArrowClickHandler();
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    });
 
     const handleClose = () => {
         setImageLoaded(false);
         dispatch(setPreviewedImageMessageId(null));
-        setIsModalOpen(false);
         dispatch(resetGalleryImages(roomId));
     };
 
