@@ -8,11 +8,11 @@ export function getGalleryFormattedDate(date: Date) {
     const now = new Date();
     const imageDate = new Date(date);
 
-    const diff = now.getTime() - imageDate.getTime();
-    const diffDays = diff / (1000 * 3600 * 24);
-    const diffYears = diffDays / 365;
+    const nowMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterdayMidnight = new Date(nowMidnight);
+    yesterdayMidnight.setDate(nowMidnight.getDate() - 1);
 
-    if (diffDays < 1) {
+    if (imageDate >= nowMidnight) {
         return `${strings.today} ${imageDate.toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",
@@ -20,16 +20,18 @@ export function getGalleryFormattedDate(date: Date) {
         })}`;
     }
 
-    if (diffDays < 2) {
+    if (imageDate >= yesterdayMidnight) {
         return `${strings.yesterday} ${imageDate.toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",
             hour12: false,
         })}`;
     } else {
-        return `${imageDate.getDate()}.${imageDate.getMonth() + 1}.${
-            diffYears >= 1 ? imageDate.getFullYear() + "." : ""
-        } ${imageDate.toLocaleTimeString([], {
+        const yearString =
+            imageDate.getFullYear() === now.getFullYear() ? "" : `.${imageDate.getFullYear()}`;
+        return `${imageDate.getDate()}.${
+            imageDate.getMonth() + 1
+        }${yearString} ${imageDate.toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",
             hour12: false,

@@ -401,6 +401,7 @@ export const getGalleryImages = createAsyncThunk(
     }): Promise<{
         list: {
             messageId: number;
+            type: string;
             body: any;
             date: Date;
             userId: number;
@@ -433,6 +434,7 @@ type InitialState = {
         reactions: { [messageId: string]: MessageRecordType[] };
         galleryImages: {
             messageId: number;
+            type: string;
             body: any;
             date: Date;
             userId: number;

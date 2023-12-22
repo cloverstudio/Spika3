@@ -1,17 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { Box, CircularProgress, Typography } from "@mui/material";
-import Modal from "@mui/material/Modal";
 import { useParams } from "react-router-dom";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
-
-import CloseOutlined from "@mui/icons-material/CloseOutlined";
-import DownloadIcon from "@mui/icons-material/Download";
 import AttachmentManager from "../../../lib/AttachmentManager";
 import PlayCircleFilled from "@mui/icons-material/PlayCircleFilled";
 import TextMessage from "./TextMessage";
 import { DOWNLOAD_URL } from "../../../../../../../../lib/constants";
 import useEscapeKey from "../../../../../hooks/useEscapeKey";
+import { useAppDispatch } from "../../../../../hooks";
+import { setPreviewedImageMessageId } from "../../../slices/messages";
 
 type VideoMessageTypes = {
     body: any;
@@ -21,6 +19,7 @@ type VideoMessageTypes = {
     highlighted?: boolean;
     showBoxShadow?: boolean;
     isReply?: boolean;
+    id: number;
 };
 
 export default function VideoMessage({
@@ -31,14 +30,15 @@ export default function VideoMessage({
     highlighted,
     showBoxShadow = true,
     isReply,
+    id,
 }: VideoMessageTypes) {
     const roomId = parseInt(useParams().id || "");
-    const [open, setOpen] = useState(false);
     const [thumbSrc, setThumbSrc] = useState<string>();
     const [src, setSrc] = useState<string>();
-    const [mimeType, setMimeType] = useState<string>();
     const isUploading = progress !== undefined && progress < 100;
     const isVerifying = progress !== undefined && progress === 100;
+
+    const dispatch = useAppDispatch();
 
     const theme = useTheme();
 
@@ -57,21 +57,14 @@ export default function VideoMessage({
         const file = localFile || fileFromServer;
         if (file) {
             setSrc(localFile ? URL.createObjectURL(file) : `${DOWNLOAD_URL}/${body.fileId}`);
-            setMimeType(
-                localFile
-                    ? file.type
-                    : file.mimeType === "video/quicktime"
-                    ? "video/mp4"
-                    : file.mimeType,
-            );
         }
     }, [body, roomId]);
 
     const handleOpen = () => {
-        setOpen(true);
+        dispatch(setPreviewedImageMessageId(id));
         onClick();
     };
-    const handleClose = () => setOpen(false);
+    const handleClose = () => dispatch(setPreviewedImageMessageId(null));
 
     useEscapeKey(handleClose);
 
@@ -155,54 +148,6 @@ export default function VideoMessage({
                     />
                 )}
             </Box>
-            <Modal open={open} onClose={handleClose}>
-                <>
-                    <Box display="flex" gap={2} justifyContent="end" mr={2} mt={2}>
-                        <Box
-                            component="a"
-                            href={src}
-                            target="_blank"
-                            sx={{ display: "block", color: "white" }}
-                        >
-                            <DownloadIcon fontSize="large" />
-                        </Box>
-
-                        <CloseOutlined
-                            onClick={handleClose}
-                            sx={{ color: "white", cursor: "pointer" }}
-                            fontSize="large"
-                        />
-                    </Box>
-
-                    <Box
-                        position="absolute"
-                        top="50%"
-                        left="50%"
-                        bgcolor="transparent"
-                        lineHeight="1"
-                        sx={{
-                            transform: "translate(-50%, -50%)",
-                            outline: "none",
-                        }}
-                    >
-                        <Box
-                            component="video"
-                            maxWidth="92vw"
-                            maxHeight="92vh"
-                            height="auto"
-                            controls
-                            autoPlay
-                            draggable={false}
-                            sx={{
-                                userSelect: "none",
-                            }}
-                        >
-                            <source type={mimeType} src={src} />
-                            Your browser does not support the video tag.
-                        </Box>
-                    </Box>
-                </>
-            </Modal>
         </>
     );
 }

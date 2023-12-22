@@ -1,9 +1,7 @@
 import { Router, Request, Response } from "express";
-
 import { UserRequest } from "../lib/types";
 import { error as le } from "../../../components/logger";
 import * as Constants from "../../../components/consts";
-
 import auth from "../lib/auth";
 import { successResponse, errorResponse } from "../../../components/response";
 import prisma from "../../../components/prisma";
@@ -24,6 +22,8 @@ export default (): Router => {
         const fetchNewer = req.query.fetchNewer === "true";
         const fetchOlder = req.query.fetchOlder === "true";
 
+        const types = ["image", "video"];
+
         if (!roomId) {
             return res.status(400).send(errorResponse("Invalid room id", userReq.lang));
         }
@@ -33,7 +33,7 @@ export default (): Router => {
                 id: cursor,
                 roomId,
                 deleted: false,
-                type: "image",
+                type: { in: types },
             },
             select: { createdAt: true },
         });
@@ -43,7 +43,7 @@ export default (): Router => {
                 where: {
                     roomId,
                     deleted: false,
-                    type: "image",
+                    type: { in: types },
                     ...(fetchNewer &&
                         cursorMessage && { createdAt: { gt: cursorMessage.createdAt } }),
                     ...(fetchOlder &&
@@ -71,7 +71,7 @@ export default (): Router => {
                     where: {
                         roomId,
                         deleted: false,
-                        type: "image",
+                        type: { in: types },
                         createdAt: { lt: minCreatedAt },
                     },
                 })) > 0;
@@ -87,7 +87,7 @@ export default (): Router => {
                     where: {
                         roomId,
                         deleted: false,
-                        type: "image",
+                        type: { in: types },
                         createdAt: {
                             gt: maxCreatedAt,
                         },
@@ -114,6 +114,7 @@ export default (): Router => {
 
                     return {
                         messageId: imageMessage.id,
+                        type: imageMessage.type,
                         body: formattedBody,
                         userId: imageMessage.fromUser.id,
                         username: imageMessage.fromUser.displayName,

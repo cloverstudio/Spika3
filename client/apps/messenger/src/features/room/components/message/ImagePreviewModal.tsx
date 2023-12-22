@@ -4,6 +4,7 @@ import LeftArrow from "@mui/icons-material/KeyboardArrowLeft";
 import RightArrow from "@mui/icons-material/ChevronRight";
 import DownloadIcon from "@mui/icons-material/Download";
 import { Box, CircularProgress, IconButton, Modal, Typography } from "@mui/material";
+import PlayCircleFilled from "@mui/icons-material/PlayCircleFilled";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { useParams } from "react-router-dom";
@@ -11,7 +12,6 @@ import { useAppDispatch, useAppSelector } from "../../../../hooks";
 import {
     getGalleryImages,
     resetGalleryImages,
-    selectMessageById,
     setPreviewedImageMessageId,
 } from "../../slices/messages";
 import AttachmentManager from "../../lib/AttachmentManager";
@@ -24,7 +24,8 @@ export const ImagePreviewModal = () => {
     const roomId = parseInt(useParams().id || "");
     const dispatch = useAppDispatch();
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [fileLoaded, setFileLoaded] = useState(false);
+
     const [olderImagesBatchLoaded, setOlderImagesBatchLoaded] = useState(false);
     const [newerImagesBatchLoaded, setNewerImagesBatchLoaded] = useState(false);
 
@@ -40,22 +41,26 @@ export const ImagePreviewModal = () => {
         (state) => state.messages[roomId]?.galleryImagesHasMoreOlder,
     );
 
-    const [isLeftArrowDisabled, setIsLeftArrowDisabled] = useState(false);
-    const [isRightArrowDisabled, setIsRightArrowDisabled] = useState(false);
-
     const selectedMessageId = useAppSelector((state) => state.messages.previewedImageMessageId);
 
     const galleryImages = useAppSelector((state) => state.messages[roomId]?.galleryImages);
+
+    const isLeftArrowDisabled =
+        galleryImages?.length &&
+        selectedMessageId === galleryImages[0].messageId &&
+        !hasMoreOlderImages;
+
+    const isRightArrowDisabled =
+        galleryImages?.length &&
+        selectedMessageId === galleryImages[galleryImages.length - 1]?.messageId &&
+        !hasMoreNewerImages;
 
     const message = galleryImages?.find(
         (galleryImage) => galleryImage.messageId === selectedMessageId,
     );
 
-    if (!selectMessageById) return null;
-
     useEffect(() => {
-        if (selectedMessageId && !isModalOpen) {
-            setIsModalOpen(true);
+        if (selectedMessageId && !galleryImages?.length) {
             dispatch(
                 getGalleryImages({
                     roomId,
@@ -64,10 +69,7 @@ export const ImagePreviewModal = () => {
                 }),
             );
         }
-
-        if (!selectedMessageId && isModalOpen) {
-            setIsModalOpen(false);
-        }
+        setFileLoaded(false);
     }, [selectedMessageId]);
 
     useEffect(() => {
@@ -82,35 +84,29 @@ export const ImagePreviewModal = () => {
         }
     }, [galleryImages]);
 
-    useEffect(() => {
-        if (!galleryImages?.length) return;
-        if (selectedMessageId === galleryImages[0].messageId && !hasMoreOlderImages) {
-            setIsLeftArrowDisabled(true);
-        } else {
-            setIsLeftArrowDisabled(false);
-        }
+    const isLoading = useAppSelector((state) => state.messages[roomId]?.loading);
 
-        if (
-            selectedMessageId === galleryImages[galleryImages.length - 1].messageId &&
-            !hasMoreNewerImages
-        ) {
-            setIsRightArrowDisabled(true);
-        } else {
-            setIsRightArrowDisabled(false);
-        }
-    }, [galleryImages, selectedMessageId]);
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "ArrowLeft" && !isLoading && !isLeftArrowDisabled)
+                leftArrowClickHandler();
+            else if (e.key === "ArrowRight" && !isLoading && !isRightArrowDisabled)
+                rightArrowClickHandler();
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    });
 
     const handleClose = () => {
-        setImageLoaded(false);
+        setFileLoaded(false);
         dispatch(setPreviewedImageMessageId(null));
-        setIsModalOpen(false);
         dispatch(resetGalleryImages(roomId));
     };
 
-    const [imageLoaded, setImageLoaded] = useState(false);
-
-    const handleImageLoaded = () => {
-        setImageLoaded(true);
+    const handleFileLoaded = () => {
+        setFileLoaded(true);
     };
 
     useEscapeKey(handleClose);
@@ -134,8 +130,9 @@ export const ImagePreviewModal = () => {
     if (!file) {
         return null;
     }
-    const imgSrc = localFile ? URL.createObjectURL(file) : `${DOWNLOAD_URL}/${fileId}`;
+    const src = localFile ? URL.createObjectURL(file) : `${DOWNLOAD_URL}/${fileId}`;
     const thumbSrc = localFile ? URL.createObjectURL(file) : `${DOWNLOAD_URL}/${thumbId}`;
+    const mimeType = localFile ? file.type : file.mimeType;
 
     const galleryImageClickHandler = (messageId: number) => {
         dispatch(setPreviewedImageMessageId(messageId));
@@ -210,7 +207,7 @@ export const ImagePreviewModal = () => {
                 <Box display="flex" gap={2} justifyContent="end" mr={2} mt={2}>
                     <Box
                         component="a"
-                        href={imgSrc}
+                        href={src}
                         target="_blank"
                         sx={{ display: "block", color: "white" }}
                     >
@@ -254,11 +251,11 @@ export const ImagePreviewModal = () => {
                         </Typography>
                     </Box>
                     <Box width="70vw" height="70vh">
-                        {!imageLoaded && (
+                        {!fileLoaded && message.type === "image" && (
                             <Box>
                                 {thumbSrc && (
                                     <Box
-                                        component="img"
+                                        component={"img"}
                                         maxHeight="65vh"
                                         maxWidth="65vw"
                                         height="auto"
@@ -279,9 +276,9 @@ export const ImagePreviewModal = () => {
                                 <Box
                                     sx={{
                                         position: "absolute",
-                                        top: "50%",
+                                        top: "40%",
                                         left: "50%",
-                                        transform: "translate(-50%, -50%)",
+                                        transform: "translate(-50%, -45%)",
                                     }}
                                 >
                                     <CircularProgress />
@@ -289,26 +286,52 @@ export const ImagePreviewModal = () => {
                             </Box>
                         )}
 
-                        <Box
-                            component="img"
-                            maxWidth="65vw"
-                            maxHeight="70vh"
-                            height={imageLoaded ? "auto" : "0px"}
-                            width={imageLoaded ? "auto" : "0px"}
-                            src={imgSrc}
-                            draggable={false}
-                            sx={{
-                                userSelect: "none",
-                                touchAction: "none",
-                                pointerEvents: "none",
-                                visibility: imageLoaded ? "visible" : "hidden",
-                                position: "absolute",
-                                top: "40%",
-                                left: "50%",
-                                transform: "translate(-50%, -45%)",
-                            }}
-                            onLoad={handleImageLoaded}
-                        />
+                        {message.type === "image" && (
+                            <Box
+                                component="img"
+                                maxWidth="65vw"
+                                maxHeight="70vh"
+                                height={fileLoaded ? "auto" : "0px"}
+                                width={fileLoaded ? "auto" : "0px"}
+                                src={src}
+                                key={selectedMessageId}
+                                draggable={false}
+                                sx={{
+                                    userSelect: "none",
+                                    touchAction: "none",
+                                    pointerEvents: "none",
+                                    visibility: fileLoaded ? "visible" : "hidden",
+                                    position: "absolute",
+                                    top: "40%",
+                                    left: "50%",
+                                    transform: "translate(-50%, -45%)",
+                                }}
+                                onLoad={handleFileLoaded}
+                            />
+                        )}
+                        {message.type === "video" && (
+                            <Box
+                                component="video"
+                                maxWidth="65vw"
+                                maxHeight="70vh"
+                                height={"auto"}
+                                width={"auto"}
+                                controls
+                                autoPlay
+                                key={selectedMessageId}
+                                draggable={false}
+                                sx={{
+                                    userSelect: "none",
+                                    position: "absolute",
+                                    top: "40%",
+                                    left: "50%",
+                                    transform: "translate(-50%, -45%)",
+                                }}
+                            >
+                                <source type={mimeType} src={src} />
+                                Your browser does not support the video tag.
+                            </Box>
+                        )}
                         <IconButton
                             disabled={isLeftArrowDisabled}
                             sx={{
@@ -425,6 +448,7 @@ export const ImagePreviewModal = () => {
 interface GalleryImageItemProps {
     galleryImage: {
         messageId: number;
+        type: string;
         body: any;
         date: Date;
         userId: number;
@@ -469,21 +493,35 @@ function GalleryImageItem({ galleryImage, isActive, onGalleryImageClick }: Galle
                     </Typography>
                 </Box>
             )}
-            <Box
-                component="img"
-                height="85px"
-                width="85px"
-                draggable={false}
-                sx={{
-                    userSelect: "none",
-                    touchAction: "none",
-                    pointerEvents: "none",
-                    objectFit: "cover",
-                    border: isActive ? "4px solid" : "none",
-                    borderColor: "primary.main",
-                }}
-                src={`${DOWNLOAD_URL}/${galleryImage.body.thumbId}`}
-            />
+            <Box position="relative">
+                <Box
+                    component="img"
+                    height="85px"
+                    width="85px"
+                    draggable={false}
+                    sx={{
+                        userSelect: "none",
+                        touchAction: "none",
+                        pointerEvents: "none",
+                        objectFit: "cover",
+                        border: isActive ? "4px solid" : "none",
+                        borderColor: "primary.main",
+                    }}
+                    src={`${DOWNLOAD_URL}/${galleryImage.body.thumbId}`}
+                />
+                {galleryImage.type === "video" && (
+                    <PlayCircleFilled
+                        fontSize="large"
+                        sx={{
+                            position: "absolute",
+                            inset: 0,
+                            margin: "auto",
+                            backgroundColor: "background.default",
+                            borderRadius: "50%",
+                        }}
+                    />
+                )}
+            </Box>
         </Box>
     );
 }
