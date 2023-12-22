@@ -97,6 +97,7 @@ export default function MessageBody({
                         isUsersMessage={side === "right"}
                         progress={progress}
                         highlighted={highlighted}
+                        id={id}
                     />
                 </>
             );
@@ -278,6 +279,7 @@ function ReplyMessage({
                             isUsersMessage={!isUsersMessage}
                             showBoxShadow={false}
                             isReply={true}
+                            id={id}
                         />
                     </Box>
                 );
@@ -374,6 +376,7 @@ function ReplyMessage({
                             isUsersMessage={isUsersMessage}
                             progress={progress}
                             highlighted={highlighted}
+                            id={id}
                         />
                     </>
                 );
