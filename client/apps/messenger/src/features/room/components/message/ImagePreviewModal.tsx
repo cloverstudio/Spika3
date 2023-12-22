@@ -467,8 +467,6 @@ function GalleryImageItem({ galleryImage, isActive, onGalleryImageClick }: Galle
 
     const formattedDate = getGalleryFormattedDate(galleryImage.date);
 
-    console.log(formattedDate);
-
     return (
         <Box
             onClick={() => onGalleryImageClick(galleryImage.messageId)}
