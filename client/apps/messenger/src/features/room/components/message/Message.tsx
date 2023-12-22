@@ -24,7 +24,6 @@ import ReactionOptionsPopover from "./ReactionOptionsPopover";
 import MessageReactions from "./Reactions";
 import StatusIcon from "./StatusIcon";
 import { useAppDispatch } from "../../../../hooks";
-import EditedIndicator from "./MessageActionIndicator";
 import MessageActionIndicator from "./MessageActionIndicator";
 import useStrings from "../../../../hooks/useStrings";
 

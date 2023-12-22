@@ -30,12 +30,14 @@ class sendMessageWorker implements QueueWorkerInterface {
             const { room, message } = payload;
 
             const allReceivers = room.users;
-            const senderRoomUser = allReceivers.find((u) => u.userId === message.fromUserId);
-            const sender = senderRoomUser.user;
+            const senderRoomUser =
+                message.type !== "system_text" &&
+                allReceivers.find((u) => u.userId === message.fromUserId);
+            const sender = senderRoomUser?.user;
             const { fromUserId, fromDeviceId, body, roomId } = message;
 
             const usersWhoBlockedSender =
-                room.type === "private"
+                room.type === "private" && message.type !== "system_text"
                     ? await prisma.block.findMany({
                           where: {
                               userId: { in: allReceivers.map((u) => u.userId) },
@@ -108,7 +110,7 @@ class sendMessageWorker implements QueueWorkerInterface {
                             return;
                         }
 
-                        if (device.id === fromDeviceId) {
+                        if (device.id === fromDeviceId && message.type !== "system_text") {
                             return;
                         }
 
@@ -127,7 +129,10 @@ class sendMessageWorker implements QueueWorkerInterface {
                                 return true;
                             }
 
-                            if (message.fromUserId === device.userId) {
+                            if (
+                                message.fromUserId === device.userId &&
+                                message.type !== "system_text"
+                            ) {
                                 return false;
                             }
 

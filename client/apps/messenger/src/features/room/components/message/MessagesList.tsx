@@ -131,6 +131,14 @@ export default function MessagesList(): React.ReactElement {
 
                             {messages.map((m, i) => {
                                 const isLastMessageInDay = i === messages.length - 1;
+
+                                if (m.type === "system_text") {
+                                    return (
+                                        <Box key={i} color="GrayText" textAlign="center">
+                                            {m.body.text}
+                                        </Box>
+                                    );
+                                }
                                 return (
                                     <Message
                                         key={m.id}
