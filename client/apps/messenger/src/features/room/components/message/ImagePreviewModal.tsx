@@ -132,6 +132,7 @@ export const ImagePreviewModal = () => {
     }
     const src = localFile ? URL.createObjectURL(file) : `${DOWNLOAD_URL}/${fileId}`;
     const thumbSrc = localFile ? URL.createObjectURL(file) : `${DOWNLOAD_URL}/${thumbId}`;
+    const mimeType = localFile ? file.type : file.mimeType;
 
     const galleryImageClickHandler = (messageId: number) => {
         dispatch(setPreviewedImageMessageId(messageId));
@@ -327,7 +328,7 @@ export const ImagePreviewModal = () => {
                                     transform: "translate(-50%, -45%)",
                                 }}
                             >
-                                <source src={src} />
+                                <source type={mimeType} src={src} />
                                 Your browser does not support the video tag.
                             </Box>
                         )}
@@ -465,6 +466,8 @@ function GalleryImageItem({ galleryImage, isActive, onGalleryImageClick }: Galle
     }
 
     const formattedDate = getGalleryFormattedDate(galleryImage.date);
+
+    console.log(formattedDate);
 
     return (
         <Box
