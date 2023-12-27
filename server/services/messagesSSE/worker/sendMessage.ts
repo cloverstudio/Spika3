@@ -30,10 +30,10 @@ class sendMessageWorker implements QueueWorkerInterface {
             const { room, message } = payload;
 
             const allReceivers = room.users;
-            const senderRoomUser =
-                message.type !== "system_text" &&
-                allReceivers.find((u) => u.userId === message.fromUserId);
-            const sender = senderRoomUser?.user;
+            const senderRoomUser = allReceivers.find((u) => u.userId === message.fromUserId);
+            const sender = await prisma.user.findUnique({
+                where: { id: message.fromUserId },
+            });
             const { fromUserId, fromDeviceId, body, roomId } = message;
 
             const usersWhoBlockedSender =
@@ -155,7 +155,7 @@ class sendMessageWorker implements QueueWorkerInterface {
                                                 groupName: room.name,
                                             }),
                                             toUserId: device.userId,
-                                            roomUserCreatedAt: senderRoomUser.createdAt,
+                                            roomUserCreatedAt: senderRoomUser?.createdAt || 0,
                                             roomAvatarFileId,
                                         },
                                     }),
@@ -188,6 +188,7 @@ class sendMessageWorker implements QueueWorkerInterface {
 
             sseMessageRecordsNotify(messageRecordsNotifyData);
         } catch (error) {
+            console.error({ error });
             lw("sendMessage failed");
         }
     }

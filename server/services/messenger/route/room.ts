@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { RoomUser, Room, User } from "@prisma/client";
+import amqp from "amqplib";
 
 import { UserRequest } from "../lib/types";
 import { error as le } from "../../../components/logger";
@@ -202,6 +203,9 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     ...message,
                     body: {
                         text: `Welcome to ${room.name}`,
+                        subject: userReq.user.displayName,
+                        type: "create_room",
+                        object: room.name,
                     },
                 }).message();
 
@@ -270,8 +274,10 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const shouldUpdateUsers = typeof userIds !== "undefined";
             const shouldUpdateAdminUsers = typeof adminUserIds !== "undefined";
 
+            let updatedUsersObject, updatedAdminUsersObject;
+
             if (shouldUpdateUsers) {
-                await updateRoomUsers({
+                updatedUsersObject = await updateRoomUsers({
                     newIds: userIds,
                     room,
                     removedNotifier: sseRoomsRemovedNotify,
@@ -283,7 +289,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     adminUserIds.push(userReq.user.id);
                 }
 
-                await updateRoomAdminUsers({
+                updatedAdminUsersObject = await updateRoomAdminUsers({
                     room,
                     newAdminIds: adminUserIds,
                     removedNotifier: sseRoomsRemovedNotify,
@@ -327,6 +333,14 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
 
             const sanitizedRoom = sanitize({ ...updated, muted, pinned, unreadCount }).room();
             sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_UPDATE_ROOM);
+            sendUpdateRoomSystemMessages({
+                update,
+                room: updated,
+                user: userReq.user,
+                rabbitMQChannel,
+                updatedUsersObject,
+                updatedAdminUsersObject,
+            });
 
             res.send(successResponse({ room: sanitizedRoom }, userReq.lang));
         } catch (e: unknown) {
@@ -518,6 +532,39 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 }
 
                 sseRoomsRemovedNotify([userId], id);
+
+                const body = {
+                    text: `${userReq.user.displayName} left the room`,
+                    subject: userReq.user.displayName,
+                    type: "leave_room",
+                    object: room.name,
+                };
+
+                const message = await prisma.message.create({
+                    data: {
+                        type: "system_text",
+                        roomId: id,
+                        fromUserId: userReq.user.id,
+                        totalUserCount: updated.users.length,
+                        deliveredCount: 0,
+                        seenCount: 0,
+                    },
+                });
+
+                const sanitizedMessage = sanitize({
+                    ...message,
+                    body,
+                }).message();
+
+                rabbitMQChannel.sendToQueue(
+                    Constants.QUEUE_MESSAGES_SSE,
+                    Buffer.from(
+                        JSON.stringify({
+                            room: updated,
+                            message: sanitizedMessage,
+                        }),
+                    ),
+                );
 
                 const key = `${Constants.ROOM_PREFIX}${id}`;
                 await redisClient.set(key, JSON.stringify(updated));
@@ -1286,7 +1333,7 @@ async function updateRoomUsers({
     newIds,
     room,
     removedNotifier,
-}: UpdateRoomUsersParams): Promise<void> {
+}: UpdateRoomUsersParams): Promise<{ removedIds: number[]; addedIds: number[] }> {
     const currentIds = room.users.map((u) => u.userId);
 
     const foundUsers = await prisma.user.findMany({
@@ -1306,6 +1353,11 @@ async function updateRoomUsers({
     await prisma.roomUser.createMany({
         data: userIdsToAdd.map((userId) => ({ userId, roomId: room.id, isAdmin: false })),
     });
+
+    return {
+        removedIds: userIdsToRemove,
+        addedIds: userIdsToAdd,
+    };
 }
 
 type UpdateRoomAdminUsersParams = {
@@ -1318,7 +1370,7 @@ async function updateRoomAdminUsers({
     newAdminIds,
     room,
     removedNotifier,
-}: UpdateRoomAdminUsersParams): Promise<void> {
+}: UpdateRoomAdminUsersParams): Promise<{ removedIds: number[]; addedIds: number[] }> {
     const currentAdminIds = room.users.filter((u) => u.isAdmin).map((u) => u.userId);
 
     const newAdmins = await prisma.user.findMany({
@@ -1334,10 +1386,17 @@ async function updateRoomAdminUsers({
     });
     removedNotifier(userAdminIdsToRemove, room.id);
 
+    const adminUserIdsToAdd = newAdminUserIds.filter((id) => !currentAdminIds.includes(id));
+
     await prisma.roomUser.updateMany({
         where: { roomId: room.id, userId: { in: newAdminUserIds }, isAdmin: false },
         data: { isAdmin: true },
     });
+
+    return {
+        removedIds: userAdminIdsToRemove,
+        addedIds: adminUserIdsToAdd,
+    };
 }
 
 export async function isRoomMuted({
@@ -1391,3 +1450,351 @@ export async function isRoomPinned({
 
     return Boolean(Number(pinnedString));
 }
+
+async function sendUpdateRoomSystemMessages({
+    update,
+    room,
+    user,
+    rabbitMQChannel,
+    updatedUsersObject,
+    updatedAdminUsersObject,
+}: {
+    update: Partial<Room>;
+    room: Room & { users: (RoomUser & { user: User })[] };
+    user: User;
+    rabbitMQChannel: amqp.Channel;
+    updatedUsersObject?: { removedIds: number[]; addedIds: number[] };
+    updatedAdminUsersObject?: { removedIds: number[]; addedIds: number[] };
+}) {
+    if (update.name || update.avatarFileId) {
+        await sendUpdateRoomInfoSystemMessage({
+            update,
+            room,
+            user,
+            rabbitMQChannel,
+        });
+    }
+
+    if (updatedUsersObject) {
+        const { removedIds, addedIds } = updatedUsersObject;
+        await sendUpdateRoomSystemMessage({
+            room,
+            user,
+            rabbitMQChannel,
+            removedIds,
+            addedIds,
+            isUpdatingAdmins: false,
+        });
+    }
+
+    if (updatedAdminUsersObject) {
+        const { removedIds, addedIds } = updatedAdminUsersObject;
+        await sendUpdateRoomSystemMessage({
+            room,
+            user,
+            rabbitMQChannel,
+            removedIds,
+            addedIds,
+            isUpdatingAdmins: true,
+        });
+    }
+}
+
+async function sendUpdateRoomInfoSystemMessage({
+    update,
+    room,
+    user,
+    rabbitMQChannel,
+}: {
+    update: Partial<Room>;
+    room: Room & { users: RoomUser[] };
+    user: User;
+    rabbitMQChannel: amqp.Channel;
+}) {
+    const message = await prisma.message.create({
+        data: {
+            type: "system_text",
+            roomId: room.id,
+            fromUserId: user.id,
+            totalUserCount: room.users.length,
+            deliveredCount: 0,
+            seenCount: 0,
+        },
+    });
+
+    const body = {
+        subject: user.displayName,
+        type: "update_room",
+        object: room.name,
+    };
+
+    if (update.name && update.avatarFileId) {
+        body["text"] = `Updated room name and avatar`;
+    } else if (update.name) {
+        body["text"] = `Updated room name`;
+        body.type = "update_room_name";
+    } else if (update.avatarFileId) {
+        body["text"] = `Updated room avatar`;
+        body.type = "update_room_avatar";
+    }
+
+    const sanitizedMessage = sanitize({
+        ...message,
+        body,
+    }).message();
+
+    rabbitMQChannel.sendToQueue(
+        Constants.QUEUE_MESSAGES_SSE,
+        Buffer.from(
+            JSON.stringify({
+                room,
+                message: sanitizedMessage,
+            }),
+        ),
+    );
+}
+
+async function sendUpdateRoomSystemMessage({
+    room,
+    user,
+    rabbitMQChannel,
+    removedIds,
+    addedIds,
+    isUpdatingAdmins,
+}: {
+    room: Room & { users: (RoomUser & { user: User })[] };
+    user: User;
+    rabbitMQChannel: amqp.Channel;
+    removedIds: number[];
+    addedIds: number[];
+    isUpdatingAdmins: boolean;
+}) {
+    const message = await prisma.message.create({
+        data: {
+            type: "system_text",
+            roomId: room.id,
+            fromUserId: user.id,
+            totalUserCount: room.users.length,
+            deliveredCount: 0,
+            seenCount: 0,
+        },
+    });
+
+    const body = {
+        text: "",
+        subject: user.displayName,
+        type: isUpdatingAdmins ? "update_room_admin_users" : "update_room_users",
+        object: [],
+    };
+
+    const removedUsers = await prisma.user.findMany({
+        where: {
+            id: {
+                in: removedIds,
+            },
+        },
+        select: {
+            displayName: true,
+        },
+    });
+
+    if (removedIds.length && addedIds.length) {
+        const displayNamesOfRemovedUsers = removedUsers.map((u) => u.displayName);
+
+        const displayNamesOfAddedUsers = room.users
+            .filter((u) => addedIds.includes(u.userId))
+            .map((u) => u.user.displayName);
+        body.text = `Removed ${displayNamesOfRemovedUsers.join(
+            ", ",
+        )} and added ${displayNamesOfAddedUsers.join(", ")} ${
+            isUpdatingAdmins ? "as admin(s)" : "to the group"
+        }`;
+    } else if (removedIds.length) {
+        const displayNamesOfRemovedUsers = removedUsers.map((u) => u.displayName);
+
+        body.text = `${user.displayName} removed ${displayNamesOfRemovedUsers.join(", ")} ${
+            isUpdatingAdmins ? "from admin(s)" : "from the group"
+        }`;
+        body.type = isUpdatingAdmins ? "remove_room_admin_users" : "remove_room_users";
+        body.object = displayNamesOfRemovedUsers;
+    } else if (addedIds.length) {
+        const displayNamesOfAddedUsers = room.users
+            .filter((u) => addedIds.includes(u.userId))
+            .map((u) => u.user.displayName);
+        body.text = `${user.displayName} added ${displayNamesOfAddedUsers.join(", ")} ${
+            isUpdatingAdmins ? "as admin(s)" : "to the group"
+        }`;
+        body.type = isUpdatingAdmins ? "add_room_admin_users" : "add_room_users";
+        body.object = displayNamesOfAddedUsers;
+    }
+
+    const sanitizedMessage = sanitize({
+        ...message,
+        body,
+    }).message();
+
+    rabbitMQChannel.sendToQueue(
+        Constants.QUEUE_MESSAGES_SSE,
+        Buffer.from(
+            JSON.stringify({
+                room,
+                message: sanitizedMessage,
+            }),
+        ),
+    );
+}
+
+/* async function sendUpdateRoomAdminUsersSystemMessage({
+    room,
+    user,
+    rabbitMQChannel,
+    removedIds,
+    addedIds,
+}: {
+    room: Room & { users: (RoomUser & { user: User })[] };
+    user: User;
+    rabbitMQChannel: amqp.Channel;
+    removedIds: number[];
+    addedIds: number[];
+}) {
+    const message = await prisma.message.create({
+        data: {
+            type: "system_text",
+            roomId: room.id,
+            fromUserId: user.id,
+            totalUserCount: room.users.length,
+            deliveredCount: 0,
+            seenCount: 0,
+        },
+    });
+
+    const body = {
+        text: "",
+        subject: user.displayName,
+        type: "update_room_admin_users",
+        object: [],
+    };
+
+    if (removedIds.length && addedIds.length) {
+        const displayNamesOfRemovedUsers = room.users
+            .filter((u) => removedIds.includes(u.userId))
+            .map((u) => u.user.displayName);
+
+        const displayNamesOfAddedUsers = room.users
+            .filter((u) => addedIds.includes(u.userId))
+            .map((u) => u.user.displayName);
+        body.text = `Removed ${displayNamesOfRemovedUsers.join(
+            ", ",
+        )} and added ${displayNamesOfAddedUsers.join(", ")} as admin(s)`;
+    } else if (removedIds.length) {
+        const displayNamesOfRemovedUsers = room.users
+            .filter((u) => removedIds.includes(u.userId))
+            .map((u) => u.user.displayName);
+
+        body.text = `${user.displayName} removed ${displayNamesOfRemovedUsers.join(
+            ", ",
+        )} from admin(s)`;
+        body.type = "remove_room_admin_users";
+        body.object = displayNamesOfRemovedUsers;
+    } else if (addedIds.length) {
+        const displayNamesOfAddedUsers = room.users
+            .filter((u) => addedIds.includes(u.userId))
+            .map((u) => u.user.displayName);
+        body.text = `${user.displayName} added ${displayNamesOfAddedUsers.join(", ")} as admin(s)`;
+        body.type = "add_room_admin_users";
+        body.object = displayNamesOfAddedUsers;
+    }
+
+    const sanitizedMessage = sanitize({
+        ...message,
+        body,
+    }).message();
+
+    rabbitMQChannel.sendToQueue(
+        Constants.QUEUE_MESSAGES_SSE,
+        Buffer.from(
+            JSON.stringify({
+                room,
+                message: sanitizedMessage,
+            }),
+        ),
+    );
+}
+
+async function sendUpdateRoomUsersSystemMessage({
+    room,
+    user,
+    rabbitMQChannel,
+    removedIds,
+    addedIds,
+}: {
+    room: Room & { users: (RoomUser & { user: User })[] };
+    user: User;
+    rabbitMQChannel: amqp.Channel;
+    removedIds: number[];
+    addedIds: number[];
+}) {
+    const message = await prisma.message.create({
+        data: {
+            type: "system_text",
+            roomId: room.id,
+            fromUserId: user.id,
+            totalUserCount: room.users.length,
+            deliveredCount: 0,
+            seenCount: 0,
+        },
+    });
+
+    const body = {
+        text: "",
+        subject: user.displayName,
+        type: "update_room_users",
+        object: [],
+    };
+
+    if (removedIds.length && addedIds.length) {
+        const displayNamesOfRemovedUsers = room.users
+            .filter((u) => removedIds.includes(u.userId))
+            .map((u) => u.user.displayName);
+
+        const displayNamesOfAddedUsers = room.users
+            .filter((u) => addedIds.includes(u.userId))
+            .map((u) => u.user.displayName);
+        body.text = `Removed ${displayNamesOfRemovedUsers.join(
+            ", ",
+        )} and added ${displayNamesOfAddedUsers.join(", ")} to the group`;
+    } else if (removedIds.length) {
+        const displayNamesOfRemovedUsers = room.users
+            .filter((u) => removedIds.includes(u.userId))
+            .map((u) => u.user.displayName);
+
+        body.text = `${user.displayName} removed ${displayNamesOfRemovedUsers.join(
+            ", ",
+        )} from the group`;
+        body.type = "remove_room_users";
+        body.object = displayNamesOfRemovedUsers;
+    } else if (addedIds.length) {
+        const displayNamesOfAddedUsers = room.users
+            .filter((u) => addedIds.includes(u.userId))
+            .map((u) => u.user.displayName);
+        body.text = `${user.displayName} added ${displayNamesOfAddedUsers.join(", ")} to the group`;
+        body.type = "add_room_users";
+        body.object = displayNamesOfAddedUsers;
+    }
+
+    const sanitizedMessage = sanitize({
+        ...message,
+        body,
+    }).message();
+
+    rabbitMQChannel.sendToQueue(
+        Constants.QUEUE_MESSAGES_SSE,
+        Buffer.from(
+            JSON.stringify({
+                room,
+                message: sanitizedMessage,
+            }),
+        ),
+    );
+}
+ */
