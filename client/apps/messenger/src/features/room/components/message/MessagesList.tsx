@@ -24,6 +24,7 @@ import MessagesContainer from "./MessagesContainer";
 import MessageType from "../../../../types/Message";
 import { ThemeContext } from "../../../../theme";
 import { useAppDispatch } from "../../../../hooks";
+import SystemMessage from "./messageTypes/system/SystemMessage";
 
 const Date = memo(function Date({ day }: { day: string }) {
     return (
@@ -131,6 +132,10 @@ export default function MessagesList(): React.ReactElement {
 
                             {messages.map((m, i) => {
                                 const isLastMessageInDay = i === messages.length - 1;
+
+                                if (m.type === "system") {
+                                    return <SystemMessage key={m.id} body={m.body} />;
+                                }
                                 return (
                                     <Message
                                         key={m.id}

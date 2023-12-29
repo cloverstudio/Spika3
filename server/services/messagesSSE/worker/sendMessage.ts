@@ -31,11 +31,13 @@ class sendMessageWorker implements QueueWorkerInterface {
 
             const allReceivers = room.users;
             const senderRoomUser = allReceivers.find((u) => u.userId === message.fromUserId);
-            const sender = senderRoomUser.user;
+            const sender = await prisma.user.findUnique({
+                where: { id: message.fromUserId },
+            });
             const { fromUserId, fromDeviceId, body, roomId } = message;
 
             const usersWhoBlockedSender =
-                room.type === "private"
+                room.type === "private" && message.type !== "system_text"
                     ? await prisma.block.findMany({
                           where: {
                               userId: { in: allReceivers.map((u) => u.userId) },
@@ -108,7 +110,7 @@ class sendMessageWorker implements QueueWorkerInterface {
                             return;
                         }
 
-                        if (device.id === fromDeviceId) {
+                        if (device.id === fromDeviceId && message.type !== "system_text") {
                             return;
                         }
 
@@ -127,7 +129,10 @@ class sendMessageWorker implements QueueWorkerInterface {
                                 return true;
                             }
 
-                            if (message.fromUserId === device.userId) {
+                            if (
+                                message.fromUserId === device.userId &&
+                                message.type !== "system_text"
+                            ) {
                                 return false;
                             }
 
@@ -150,7 +155,7 @@ class sendMessageWorker implements QueueWorkerInterface {
                                                 groupName: room.name,
                                             }),
                                             toUserId: device.userId,
-                                            roomUserCreatedAt: senderRoomUser.createdAt,
+                                            roomUserCreatedAt: senderRoomUser?.createdAt || 0,
                                             roomAvatarFileId,
                                         },
                                     }),
@@ -183,6 +188,7 @@ class sendMessageWorker implements QueueWorkerInterface {
 
             sseMessageRecordsNotify(messageRecordsNotifyData);
         } catch (error) {
+            console.error({ error });
             lw("sendMessage failed");
         }
     }
