@@ -77,7 +77,7 @@ export default class Messenger implements Service {
         messengerRouter.use("/device", deviceRouter());
         messengerRouter.use("/history", historyRouter({ redisClient: this.redisClient }));
         messengerRouter.use("/users", userRouter());
-        messengerRouter.use("/notes", noteRouter({}));
+        messengerRouter.use("/notes", noteRouter({ rabbitMQChannel: this.rabbitMQChannel }));
         messengerRouter.use("/settings", settingsRouter());
         messengerRouter.use(
             "/message-records",

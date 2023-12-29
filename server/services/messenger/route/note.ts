@@ -5,6 +5,8 @@ import * as yup from "yup";
 import validate from "../../../components/validateMiddleware";
 
 import { error as le } from "../../../components/logger";
+import * as Constants from "../../../components/consts";
+
 import auth from "../lib/auth";
 import { InitRouterParams } from "../../types/serviceInterface";
 import { successResponse, errorResponse } from "../../../components/response";
@@ -18,7 +20,7 @@ const createNoteSchema = yup.object().shape({
     }),
 });
 
-export default ({}: InitRouterParams): Router => {
+export default ({ rabbitMQChannel }: InitRouterParams): Router => {
     const router = Router();
 
     router.post(
@@ -34,6 +36,13 @@ export default ({}: InitRouterParams): Router => {
 
                 const roomUser = await prisma.roomUser.findFirst({
                     where: { userId: userReq.user.id, roomId },
+                    include: {
+                        room: {
+                            include: {
+                                users: true,
+                            },
+                        },
+                    },
                 });
 
                 if (!roomUser) {
@@ -49,8 +58,39 @@ export default ({}: InitRouterParams): Router => {
 
                 const note = await prisma.note.create({ data: { roomId, content, title } });
 
+                const message = await prisma.message.create({
+                    data: {
+                        type: Constants.SYSTEM_MESSAGE_TYPE,
+                        roomId,
+                        fromUserId: userReq.user.id,
+                        totalUserCount: 0,
+                        deliveredCount: 0,
+                        seenCount: 0,
+                    },
+                });
+
+                const sanitizedMessage = sanitize({
+                    ...message,
+                    body: {
+                        text: `${userReq.user.displayName} created note ${title}`,
+                        subject: userReq.user.displayName,
+                        type: Constants.SYSTEM_MESSAGE_TYPE_CREATE_NOTE,
+                        object: title,
+                    },
+                }).message();
+
+                rabbitMQChannel.sendToQueue(
+                    Constants.QUEUE_MESSAGES_SSE,
+                    Buffer.from(
+                        JSON.stringify({
+                            room: roomUser.room,
+                            message: sanitizedMessage,
+                        }),
+                    ),
+                );
+
                 res.send(successResponse({ note: sanitize(note).note() }, userReq.lang));
-            } catch (e: any) {
+            } catch (e: unknown) {
                 le(e);
                 res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
             }
@@ -83,7 +123,7 @@ export default ({}: InitRouterParams): Router => {
             res.send(
                 successResponse({ notes: notes.map((n) => sanitize(n).note()) }, userReq.lang),
             );
-        } catch (e: any) {
+        } catch (e: unknown) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
@@ -117,7 +157,7 @@ export default ({}: InitRouterParams): Router => {
             }
 
             res.send(successResponse({ note: sanitize(note).note() }, userReq.lang));
-        } catch (e: any) {
+        } catch (e: unknown) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
@@ -138,6 +178,13 @@ export default ({}: InitRouterParams): Router => {
 
             const roomUser = await prisma.roomUser.findFirst({
                 where: { userId: userReq.user.id, roomId: note.roomId },
+                include: {
+                    room: {
+                        include: {
+                            users: true,
+                        },
+                    },
+                },
             });
 
             if (!roomUser) {
@@ -156,8 +203,39 @@ export default ({}: InitRouterParams): Router => {
                 data: { title: title, content: content, modifiedAt: new Date() },
             });
 
+            const message = await prisma.message.create({
+                data: {
+                    type: Constants.SYSTEM_MESSAGE_TYPE,
+                    roomId: note.roomId,
+                    fromUserId: userReq.user.id,
+                    totalUserCount: 0,
+                    deliveredCount: 0,
+                    seenCount: 0,
+                },
+            });
+
+            const sanitizedMessage = sanitize({
+                ...message,
+                body: {
+                    text: `${userReq.user.displayName} updated note ${title}`,
+                    subject: userReq.user.displayName,
+                    type: Constants.SYSTEM_MESSAGE_TYPE_UPDATE_NOTE,
+                    object: title,
+                },
+            }).message();
+
+            rabbitMQChannel.sendToQueue(
+                Constants.QUEUE_MESSAGES_SSE,
+                Buffer.from(
+                    JSON.stringify({
+                        room: roomUser.room,
+                        message: sanitizedMessage,
+                    }),
+                ),
+            );
+
             res.send(successResponse({ note: sanitize(updated).note() }, userReq.lang));
-        } catch (e: any) {
+        } catch (e: unknown) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }
@@ -177,6 +255,13 @@ export default ({}: InitRouterParams): Router => {
 
             const roomUser = await prisma.roomUser.findFirst({
                 where: { userId: userReq.user.id, roomId: note.roomId },
+                include: {
+                    room: {
+                        include: {
+                            users: true,
+                        },
+                    },
+                },
             });
 
             if (!roomUser) {
@@ -192,8 +277,39 @@ export default ({}: InitRouterParams): Router => {
 
             await prisma.note.delete({ where: { id } });
 
+            const message = await prisma.message.create({
+                data: {
+                    type: Constants.SYSTEM_MESSAGE_TYPE,
+                    roomId: note.roomId,
+                    fromUserId: userReq.user.id,
+                    totalUserCount: 0,
+                    deliveredCount: 0,
+                    seenCount: 0,
+                },
+            });
+
+            const sanitizedMessage = sanitize({
+                ...message,
+                body: {
+                    text: `${userReq.user.displayName} deleted note ${note.title}`,
+                    subject: userReq.user.displayName,
+                    type: Constants.SYSTEM_MESSAGE_TYPE_DELETE_NOTE,
+                    object: note.title,
+                },
+            }).message();
+
+            rabbitMQChannel.sendToQueue(
+                Constants.QUEUE_MESSAGES_SSE,
+                Buffer.from(
+                    JSON.stringify({
+                        room: roomUser.room,
+                        message: sanitizedMessage,
+                    }),
+                ),
+            );
+
             res.send(successResponse({ deleted: true }, userReq.lang));
-        } catch (e: any) {
+        } catch (e: unknown) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
         }

@@ -1,0 +1,28 @@
+import React from "react";
+import { Box, Typography } from "@mui/material";
+
+export default function AddedAdminsSystemMessage({
+    body,
+}: {
+    body: {
+        text: string;
+        type: string;
+        subject: string;
+        object: string[];
+    };
+}): React.ReactElement {
+    return (
+        <Box textAlign="center" py={0.5}>
+            <Typography variant="body1" color="textSecondary">
+                <Box component="span" fontWeight="bold">
+                    {body.subject}
+                </Box>{" "}
+                added{" "}
+                <Box component="span" fontWeight="bold">
+                    {body.object.join(", ")}
+                </Box>{" "}
+                as group admin
+            </Typography>
+        </Box>
+    );
+}
