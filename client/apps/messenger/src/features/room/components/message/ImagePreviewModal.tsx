@@ -19,6 +19,8 @@ import { DOWNLOAD_URL } from "../../../../../../../lib/constants";
 import useEscapeKey from "../../../../hooks/useEscapeKey";
 import { getGalleryFormattedDate } from "../../lib/formatDate";
 import { galleryImageBatchLimitMobile, galleryImageBatchLimitNonMobile } from "../../lib/consts";
+import ErrorImageLight from "../../../../../../messenger/src/assets/CantLoadImageLight.jpg";
+import ErrorImageDark from "../../../../../../messenger/src/assets/CantLoadImageDark.jpg";
 
 export const ImagePreviewModal = () => {
     const roomId = parseInt(useParams().id || "");
@@ -29,8 +31,12 @@ export const ImagePreviewModal = () => {
     const [olderImagesBatchLoaded, setOlderImagesBatchLoaded] = useState(false);
     const [newerImagesBatchLoaded, setNewerImagesBatchLoaded] = useState(false);
 
+    const [loadingImageError, setLoadingImageError] = useState(false);
+
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+    const isDarkMode = theme.palette.mode === "dark";
 
     const itemsPerBatch = isMobile ? galleryImageBatchLimitMobile : galleryImageBatchLimitNonMobile;
 
@@ -70,6 +76,7 @@ export const ImagePreviewModal = () => {
             );
         }
         setFileLoaded(false);
+        setLoadingImageError(false);
     }, [selectedMessageId]);
 
     useEffect(() => {
@@ -201,6 +208,8 @@ export const ImagePreviewModal = () => {
         setNewerImagesBatchLoaded(true);
     };
 
+    const isImageSmallerThanThumbnail = body?.file?.metaData?.width < body?.thumb?.metaData?.width;
+
     return (
         <Modal open={!!file} onClose={handleClose}>
             <>
@@ -239,8 +248,9 @@ export const ImagePreviewModal = () => {
                             display: "flex",
                             gap: "12px",
                             alignItems: "center",
-                            marginBottom: "50px",
+                            marginBottom: isMobile ? "0" : "50px",
                             color: "#fff",
+                            ...(isMobile && { flexDirection: "column" }),
                         }}
                     >
                         <Typography sx={{ fontSize: "16px", fontWeight: 600 }}>
@@ -251,15 +261,40 @@ export const ImagePreviewModal = () => {
                         </Typography>
                     </Box>
                     <Box width="70vw" height="70vh">
-                        {!fileLoaded && message.type === "image" && (
+                        {loadingImageError && (
+                            <Box
+                                component={"img"}
+                                maxHeight="70vh"
+                                maxWidth="65vw"
+                                height="auto"
+                                width="auto"
+                                src={isDarkMode ? ErrorImageDark : ErrorImageLight}
+                                draggable={false}
+                                sx={{
+                                    userSelect: "none",
+                                    touchAction: "none",
+                                    pointerEvents: "none",
+                                    position: "absolute",
+                                    top: "40%",
+                                    left: "50%",
+                                    transform: "translate(-50%, -45%)",
+                                }}
+                            />
+                        )}
+
+                        {!fileLoaded && message.type === "image" && !loadingImageError && (
                             <Box>
                                 {thumbSrc && (
                                     <Box
                                         component={"img"}
-                                        maxHeight="65vh"
+                                        maxHeight="70vh"
                                         maxWidth="65vw"
                                         height="auto"
-                                        width="auto"
+                                        width={
+                                            isImageSmallerThanThumbnail
+                                                ? body?.file?.metaData?.width
+                                                : "auto"
+                                        }
                                         src={thumbSrc}
                                         draggable={false}
                                         sx={{
@@ -271,6 +306,7 @@ export const ImagePreviewModal = () => {
                                             left: "50%",
                                             transform: "translate(-50%, -45%)",
                                         }}
+                                        onError={() => setLoadingImageError(true)}
                                     />
                                 )}
                                 <Box
@@ -286,7 +322,7 @@ export const ImagePreviewModal = () => {
                             </Box>
                         )}
 
-                        {message.type === "image" && (
+                        {message.type === "image" && !loadingImageError && (
                             <Box
                                 component="img"
                                 maxWidth="65vw"
@@ -307,6 +343,7 @@ export const ImagePreviewModal = () => {
                                     transform: "translate(-50%, -45%)",
                                 }}
                                 onLoad={handleFileLoaded}
+                                onError={() => setLoadingImageError(true)}
                             />
                         )}
                         {message.type === "video" && (
@@ -337,7 +374,7 @@ export const ImagePreviewModal = () => {
                             sx={{
                                 position: "absolute",
                                 top: "40%",
-                                left: "0",
+                                left: isMobile ? "-10%" : "0",
                                 transform: "translate(-50%, -40%)",
                                 width: "80px",
                                 height: "80px",
@@ -358,7 +395,7 @@ export const ImagePreviewModal = () => {
                             sx={{
                                 position: "absolute",
                                 top: "40%",
-                                left: "100%",
+                                left: isMobile ? "110%" : "100%",
                                 transform: "translate(-50%, -40%)",
                                 width: "80px",
                                 height: "80px",
@@ -433,6 +470,10 @@ export const ImagePreviewModal = () => {
                                             galleryImage={galleryImage}
                                             isActive={galleryImage.messageId === selectedMessageId}
                                             onGalleryImageClick={galleryImageClickHandler}
+                                            isNewest={
+                                                galleryImages[galleryImages.length - 1]
+                                                    .messageId === galleryImage.messageId
+                                            }
                                         />
                                     ))}
                                 </Box>
@@ -456,16 +497,32 @@ interface GalleryImageItemProps {
     };
     isActive?: boolean;
     onGalleryImageClick: (messageId: number) => void;
+    isNewest?: boolean;
 }
 
-function GalleryImageItem({ galleryImage, isActive, onGalleryImageClick }: GalleryImageItemProps) {
+function GalleryImageItem({
+    galleryImage,
+    isActive,
+    onGalleryImageClick,
+    isNewest,
+}: GalleryImageItemProps) {
     const [isHovered, setIsHovered] = useState(false);
+    const [loadingImageError, setLoadingImageError] = useState(false);
+
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+    const isDarkMode = theme.palette.mode === "dark";
 
     if (!galleryImage.body.thumbId || !galleryImage.body.fileId) {
         return null;
     }
 
     const formattedDate = getGalleryFormattedDate(galleryImage.date);
+    const src = loadingImageError
+        ? isDarkMode
+            ? ErrorImageDark
+            : ErrorImageLight
+        : `${DOWNLOAD_URL}/${galleryImage.body.thumbId}`;
 
     return (
         <Box
@@ -485,7 +542,8 @@ function GalleryImageItem({ galleryImage, isActive, onGalleryImageClick }: Galle
                         borderRadius: "10px",
                         display: "flex",
                         top: "-35px",
-                        marginLeft: "20px",
+                        marginLeft: isMobile ? "0" : "20px",
+                        ...(isNewest && isMobile && { left: "40%" }),
                     }}
                 >
                     <Typography sx={{ fontSize: "12px" }}>
@@ -507,7 +565,8 @@ function GalleryImageItem({ galleryImage, isActive, onGalleryImageClick }: Galle
                         border: isActive ? "4px solid" : "none",
                         borderColor: "primary.main",
                     }}
-                    src={`${DOWNLOAD_URL}/${galleryImage.body.thumbId}`}
+                    src={src}
+                    onError={() => setLoadingImageError(true)}
                 />
                 {galleryImage.type === "video" && (
                     <PlayCircleFilled
