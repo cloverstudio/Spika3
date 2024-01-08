@@ -58,6 +58,7 @@ export const sendMessage = createAsyncThunk(
         const { roomId, type, body } = data;
         const text = (thunkAPI.getState() as RootState).input.list[roomId]?.text.trim() || "";
         const fromUserId = (thunkAPI.getState() as RootState).user.id;
+        const thumbnailData = (thunkAPI.getState() as RootState).input.list[roomId]?.thumbnailData;
 
         if (!text && (type === "text" || type === "emoji")) {
             throw new Error("no text");
@@ -67,6 +68,9 @@ export const sendMessage = createAsyncThunk(
 
         if (type === "text" || type === "emoji") {
             body.text = text;
+            if (thumbnailData && thumbnailData?.title) {
+                body.thumbnailData = thumbnailData;
+            }
         }
 
         body.localId = localId;
@@ -275,13 +279,17 @@ export const editMessageThunk = createAsyncThunk(
         const { editMessage: message, text } = (thunkAPI.getState() as RootState).input.list[
             roomId
         ];
+        const thumbnailData = (thunkAPI.getState() as RootState).input.list[roomId]?.thumbnailData;
 
         if (!text.trim()) {
             return;
         }
 
         const { type, body: currentBody, fromUserId, id, replyId, createdAt } = message;
-        const body = { ...currentBody, text: text.trim() };
+        const body = {
+            ...currentBody,
+            text: text.trim(),
+        };
 
         thunkAPI.dispatch(
             messagesSlice.actions.setSending({
@@ -299,7 +307,10 @@ export const editMessageThunk = createAsyncThunk(
         try {
             const response = await dynamicBaseQuery({
                 url: `/messenger/messages/${message.id}`,
-                data: { text: text.trim() },
+                data: {
+                    text: text.trim(),
+                    thumbnailData: thumbnailData?.title ? thumbnailData : null,
+                },
                 method: "PUT",
             });
 
@@ -335,13 +346,18 @@ export const replyMessageThunk = createAsyncThunk(
         const { replyMessage: referenceMessage, text } = (thunkAPI.getState() as RootState).input
             .list[roomId];
         const fromUserId = (thunkAPI.getState() as RootState).user.id;
+        const thumbnailData = (thunkAPI.getState() as RootState).input.list[roomId]?.thumbnailData;
 
         if (!text.trim()) {
             return;
         }
 
         const localId = Math.round(Math.random() * 1000000000000000000000).toString();
-        const body = { text: text.trim(), referenceMessage };
+        const body = {
+            text: text.trim(),
+            referenceMessage,
+            ...(thumbnailData && thumbnailData?.title && { thumbnailData }),
+        };
 
         thunkAPI.dispatch(
             messagesSlice.actions.setSending({

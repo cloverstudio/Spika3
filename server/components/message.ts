@@ -4,24 +4,6 @@ import ogs from "open-graph-scraper";
 
 export async function formatMessageBody(body: any, messageType: string): Promise<any> {
     if (messageType === "text") {
-        if (!body?.text) {
-            return body;
-        }
-
-        const link = linkifyHtml(body.text)?.split("<a href=")[1]?.split(">")[0]?.replace(/"/g, "");
-
-        if (link) {
-            if (typeof link !== "string") {
-                return body;
-            }
-
-            const thumbnailData = await getLinkThumbnailData(link);
-
-            if (thumbnailData) {
-                body.thumbnailData = thumbnailData;
-            }
-        }
-
         return body;
     }
 

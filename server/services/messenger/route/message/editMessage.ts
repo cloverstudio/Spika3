@@ -23,6 +23,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): RequestHandler[] => {
             try {
                 const id = parseInt((req.params.id as string) || "");
                 const text = req.body.text as string;
+                const thumbnailData = req.body.thumbnailData;
 
                 if (!text) {
                     return res.status(400).send(errorResponse("Text is required", userReq.lang));
@@ -76,7 +77,11 @@ export default ({ rabbitMQChannel }: InitRouterParams): RequestHandler[] => {
                         where: { id: deviceMessage.id },
                         data: {
                             modifiedAt: new Date(),
-                            body: { ...(deviceMessage.body as Record<string, unknown>), text },
+                            body: {
+                                ...(deviceMessage.body as Record<string, unknown>),
+                                text,
+                                thumbnailData: thumbnailData || null,
+                            },
                         },
                     });
                 }
@@ -93,7 +98,11 @@ export default ({ rabbitMQChannel }: InitRouterParams): RequestHandler[] => {
 
                 const sanitizedMessage = sanitize({
                     ...message,
-                    body: { ...(userDeviceMessage.body as Record<string, unknown>), text },
+                    body: {
+                        ...(userDeviceMessage.body as Record<string, unknown>),
+                        text,
+                        thumbnailData: thumbnailData || null,
+                    },
                     createdAt: userDeviceMessage.createdAt,
                     modifiedAt: userDeviceMessage.modifiedAt,
                 }).message();
