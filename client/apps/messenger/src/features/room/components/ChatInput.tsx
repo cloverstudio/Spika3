@@ -558,7 +558,7 @@ export function MessageURLThumbnail() {
                     window.open(thumbnailData?.url, "_blank");
                 }}
             >
-                {(thumbnailData?.image || thumbnailData.icon) && !imageError && (
+                {(thumbnailData?.image || thumbnailData?.icon) && !imageError && (
                     <img
                         style={{
                             width: "auto",
@@ -567,7 +567,7 @@ export function MessageURLThumbnail() {
                             borderRadius: "10px 0 0 10px",
                         }}
                         alt="image"
-                        src={thumbnailData?.image || thumbnailData.icon}
+                        src={thumbnailData?.image || thumbnailData?.icon}
                         onError={() => setImageError(true)}
                     />
                 )}
@@ -594,7 +594,7 @@ export function MessageURLThumbnail() {
                         textOverflow="ellipsis"
                         whiteSpace="nowrap"
                     >
-                        {thumbnailData.description}
+                        {thumbnailData?.description}
                     </Typography>
                 </Box>
             </Box>

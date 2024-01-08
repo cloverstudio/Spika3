@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, useMediaQuery } from "@mui/material";
 import UserType from "../../../../../types/User";
 import filterText from "../../../lib/filterText";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { selectChangeTerm } from "../../../slices/messages";
+import { useTheme } from "@mui/material/styles";
 
 interface ThumbnailData {
     title: string;
@@ -53,7 +54,7 @@ export default function TextMessage({
         <Box
             component={"div"}
             sx={{
-                maxWidth: thumbnail ? "273px" : "100%",
+                maxWidth: thumbnail && !isReply ? "273px" : "100%",
                 backgroundColor: isEmoji ? "transparent" : backgroundColor,
                 borderRadius: "10px",
                 padding: thumbnail ? 0 : "10px",
@@ -69,7 +70,7 @@ export default function TextMessage({
             }}
         >
             {sender && (
-                <Box mb={1} fontWeight="600">
+                <Box mb={1} fontWeight="600" sx={{ padding: thumbnail ? "10px 0 0 10px" : 0 }}>
                     {sender.displayName}
                 </Box>
             )}
@@ -91,7 +92,7 @@ export default function TextMessage({
                     }}
                     dangerouslySetInnerHTML={{ __html: filteredText }}
                 />
-                {thumbnail && <Thumbnail thumbnailData={thumbnail} />}
+                {thumbnail && <Thumbnail thumbnailData={thumbnail} isReply={isReply} />}
             </Box>
         </Box>
     );
@@ -99,10 +100,13 @@ export default function TextMessage({
 
 interface Props {
     thumbnailData: ThumbnailData;
+    isReply?: boolean;
 }
 
-function Thumbnail({ thumbnailData }: Props) {
+function Thumbnail({ thumbnailData, isReply }: Props) {
     const [imageError, setImageError] = useState(false);
+    const themeObject = useTheme();
+    const isMobile = useMediaQuery(themeObject.breakpoints.down("md"));
 
     return (
         <Box
@@ -119,11 +123,16 @@ function Thumbnail({ thumbnailData }: Props) {
                 window.open(thumbnailData?.url, "_blank");
             }}
         >
-            {(thumbnailData?.image || thumbnailData.icon) && !imageError && (
+            {(thumbnailData?.image || thumbnailData?.icon) && !imageError && (
                 <img
-                    style={{ width: "100%", maxHeight: "176px", objectFit: "cover" }}
+                    style={{
+                        width: isReply && !isMobile ? "auto" : "100%",
+                        maxHeight: "176px",
+                        objectFit: "cover",
+                        marginLeft: isReply && !isMobile ? "10px" : 0,
+                    }}
                     alt="image"
-                    src={thumbnailData?.image || thumbnailData.icon}
+                    src={thumbnailData?.image || thumbnailData?.icon}
                     onError={() => setImageError(true)}
                 />
             )}
