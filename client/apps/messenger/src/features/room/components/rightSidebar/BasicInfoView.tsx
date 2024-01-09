@@ -330,6 +330,7 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
                                                     handleUpdateGroup();
                                                 }
                                             }}
+                                            disabled={proposedName === roomData.name}
                                         >
                                             {strings.save}
                                         </Button>

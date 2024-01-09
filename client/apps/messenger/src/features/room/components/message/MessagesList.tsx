@@ -68,6 +68,8 @@ export default function MessagesList(): React.ReactElement {
                 previousMessageFromUserId: sorted[i - 1]?.fromUserId || null,
                 nextMessageFromUserId: sorted[i + 1]?.fromUserId,
                 separateWithMarginTop: sorted[i - 1]?.fromUserId !== curr.fromUserId,
+                isNextMessageSystems: sorted[i + 1]?.type === "system",
+                wasPreviousMessageSystems: sorted[i - 1]?.type === "system",
             };
             if (!acc[day]) {
                 acc[day] = [message];
@@ -81,6 +83,8 @@ export default function MessagesList(): React.ReactElement {
                 previousMessageFromUserId: number | null;
                 nextMessageFromUserId: number | null;
                 separateWithMarginTop: boolean;
+                isNextMessageSystems: boolean;
+                wasPreviousMessageSystems: boolean;
             })[];
         };
     }, [messages]);
@@ -146,6 +150,8 @@ export default function MessagesList(): React.ReactElement {
                                         nextMessageFromUserId={m.nextMessageFromUserId}
                                         animate={isLastDay && isLastMessageInDay}
                                         separateWithMarginTop={m.separateWithMarginTop}
+                                        isNextMessageSystems={m.isNextMessageSystems}
+                                        wasPreviousMessageSystems={m.wasPreviousMessageSystems}
                                     />
                                 );
                             })}
