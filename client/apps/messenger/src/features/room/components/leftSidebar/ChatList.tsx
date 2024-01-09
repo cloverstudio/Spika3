@@ -256,6 +256,9 @@ function RoomRow({ id, isActive, lastMessage, unreadCount }: RoomRowProps) {
                 />
             );
         }
+        if (lastMessageType === "system") {
+            lastMessageText = <LastMessageText lastMessage={lastMessage?.body?.text} />;
+        }
     } else if (lastMessageType === "text") {
         lastMessageText = <LastMessageText sender={sender} lastMessage={lastMessage?.body?.text} />;
     }

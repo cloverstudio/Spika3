@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 
 import IconButton from "@mui/material/IconButton";
@@ -20,6 +20,23 @@ export default function EditNoteHeader() {
     const [editNote] = useEditNoteMutation();
     const title = useAppSelector((state) => state.rightSidebar.editNoteTitle);
     const content = useAppSelector((state) => state.rightSidebar.editNoteContent);
+
+    const [initialTitle, setInitialTitle] = useState({ title: "", isLoaded: false });
+    const [initialContent, setInitialContent] = useState({ content: "", isLoaded: false });
+
+    const isSaveDisabled = initialTitle.title === title && initialContent.content === content;
+
+    console.log(initialTitle, "initialTitle");
+    console.log(initialContent, "initialContent");
+
+    useEffect(() => {
+        if (title && !initialTitle.isLoaded) {
+            setInitialTitle({ title, isLoaded: true });
+        }
+        if (content && !initialContent.isLoaded) {
+            setInitialContent({ content, isLoaded: true });
+        }
+    }, [title, content]);
 
     const handleSubmit = async () => {
         if (!title || !content) {
@@ -52,10 +69,17 @@ export default function EditNoteHeader() {
                     right: "26px",
                     borderRadius: "10px",
                 }}
-                disabled={!title || !content}
+                disabled={!title || !content || isSaveDisabled}
                 onClick={handleSubmit}
             >
-                <Typography sx={{ color: "primary.main", fontWeight: "700", fontSize: "18px" }}>
+                <Typography
+                    sx={{
+                        color: "primary.main",
+                        fontWeight: "700",
+                        fontSize: "18px",
+                        ...(isSaveDisabled && { opacity: "0.5" }),
+                    }}
+                >
                     {strings.save}
                 </Typography>
             </IconButton>

@@ -55,12 +55,16 @@ function Message({
     nextMessageFromUserId,
     animate,
     separateWithMarginTop,
+    isNextMessageSystems,
+    wasPreviousMessageSystems,
 }: {
     id: number;
     previousMessageFromUserId: number | null;
     nextMessageFromUserId: number | null;
     animate: boolean;
     separateWithMarginTop: boolean;
+    isNextMessageSystems: boolean;
+    wasPreviousMessageSystems: boolean;
 }) {
     const roomId = parseInt(useParams().id || "");
     const targetMessageId = useSelector(selectTargetMessage(roomId));
@@ -85,8 +89,10 @@ function Message({
     const senderLabel = `${sender?.displayName || "Removed group user"} ${
         sender?.isBot ? " (bot)" : ""
     }`;
-    const shouldDisplaySenderLabel = isGroup && !isUsersMessage && isFirstMessage;
-    const shouldDisplayAvatar = isGroup && !isUsersMessage && isLastMessage;
+    const shouldDisplaySenderLabel =
+        isGroup && !isUsersMessage && (isFirstMessage || wasPreviousMessageSystems);
+    const shouldDisplayAvatar =
+        isGroup && !isUsersMessage && (isLastMessage || isNextMessageSystems);
     const shouldDisplayStatusIcons = isUsersMessage;
 
     const theme = useTheme();
@@ -206,7 +212,7 @@ function Message({
                                         }
                                     />
                                 )}
-                            {!mouseOver && message.isForwarded && (
+                            {!mouseOver && message.isForwarded && !message.deleted && (
                                 <MessageActionIndicator
                                     isUsersMessage={isUsersMessage}
                                     actionTitle={strings.forwarded}
