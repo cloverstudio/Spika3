@@ -12,6 +12,7 @@ interface InitialState {
             type: string;
             replyMessage?: MessageType;
             editMessage?: MessageType;
+            thumbnailUrl?: string;
             thumbnailData?: {
                 title?: string;
                 image?: string;
@@ -19,6 +20,8 @@ interface InitialState {
                 description?: string;
                 url: string;
             };
+            isThumbnailDataLoading?: boolean;
+            isThumbnailDataFetchingAborted?: boolean;
         };
     };
 }
@@ -87,11 +90,37 @@ export const inputSlice = createSlice({
 
             state.list[roomId].text += emoji;
         },
+        setThumbnailUrl: (state, { payload }: { payload: { roomId: number; url: string } }) => {
+            const { url, roomId } = payload;
+
+            if (!state.list[roomId]) return;
+
+            state.list[roomId].thumbnailUrl = url;
+        },
         removeThumbnailData: (state, { payload }: { payload: { roomId: number } }) => {
             const { roomId } = payload;
 
             if (!state.list[roomId]) return;
+            state.list[roomId].isThumbnailDataLoading = false;
             state.list[roomId].thumbnailData = null;
+        },
+        setIsThumbnailDataLoading: (
+            state,
+            { payload }: { payload: { roomId: number; isLoading } },
+        ) => {
+            const { roomId, isLoading } = payload;
+
+            if (!state.list[roomId]) return;
+            state.list[roomId].isThumbnailDataLoading = isLoading;
+        },
+        setIsThumbnailDataFetchingAborted: (
+            state,
+            { payload }: { payload: { roomId: number; isAborted: boolean } },
+        ) => {
+            const { roomId, isAborted } = payload;
+
+            if (!state.list[roomId]) return;
+            state.list[roomId].isThumbnailDataFetchingAborted = isAborted;
         },
     },
     extraReducers: (builder) => {
@@ -108,15 +137,27 @@ export const inputSlice = createSlice({
                 console.error("input slice error, send message can't find room input state");
             }
         });
+
         builder.addCase(fetchThumbnailData.fulfilled, (state, { payload }) => {
             const { data, roomId } = payload;
 
+            const isFetchingAborted = state.list[roomId].isThumbnailDataFetchingAborted;
+
+            if (isFetchingAborted) {
+                state.list[roomId].thumbnailData = null;
+                state.list[roomId].isThumbnailDataLoading = false;
+                state.list[roomId].isThumbnailDataFetchingAborted = false;
+                return;
+            }
             state.list[roomId].thumbnailData = data;
+            state.list[roomId].isThumbnailDataLoading = false;
         });
         builder.addCase(fetchThumbnailData.rejected, (state, action) => {
             const roomId = action.meta.arg.roomId;
 
             state.list[roomId].thumbnailData = null;
+            state.list[roomId].isThumbnailDataLoading = false;
+            state.list[roomId].isThumbnailDataFetchingAborted = false;
         });
     },
 });
@@ -161,5 +202,8 @@ export const {
     setInputType,
     addEmoji,
     setReplyMessage,
+    setThumbnailUrl,
     removeThumbnailData,
+    setIsThumbnailDataLoading,
+    setIsThumbnailDataFetchingAborted,
 } = inputSlice.actions;

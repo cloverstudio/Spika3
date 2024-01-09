@@ -10,6 +10,10 @@ import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import { useParams } from "react-router-dom";
 import AttachmentManager from "../lib/AttachmentManager";
 import SendIcon from "@mui/icons-material/SendRounded";
+import LinkIcon from "@mui/icons-material/LinkOutlined";
+import { keyframes } from "@mui/system";
+import { useTheme } from "@mui/material/styles";
+
 import {
     selectEditMessage,
     selectReplyMessage,
@@ -22,6 +26,9 @@ import {
     setReplyMessage,
     fetchThumbnailData,
     removeThumbnailData,
+    setIsThumbnailDataLoading,
+    setIsThumbnailDataFetchingAborted,
+    setThumbnailUrl,
 } from "../slices/input";
 import AddAttachment from "./AddAttachment";
 import Attachments from "./Attachments";
@@ -140,6 +147,9 @@ function ChatInput({ handleSend, files }: ChatInputProps) {
     const editMessage = useSelector(selectEditMessage(roomId));
     const replyMessage = useSelector(selectReplyMessage(roomId));
     const inputType = useSelector(selectInputType(roomId));
+    const isThumbnailDataLoading = useAppSelector(
+        (state) => state.input.list[roomId]?.isThumbnailDataLoading,
+    );
     const thumbnailData = useAppSelector((state) => state.input.list[roomId]?.thumbnailData);
 
     const onSend = async () => {
@@ -173,7 +183,8 @@ function ChatInput({ handleSend, files }: ChatInputProps) {
                 )}
 
                 {replyMessage && <ReplyMessage message={replyMessage} />}
-                {thumbnailData?.title && <MessageURLThumbnail />}
+                {!isThumbnailDataLoading && thumbnailData?.title && <MessageURLThumbnail />}
+                {isThumbnailDataLoading && <MessageURLThumbnailLoading />}
 
                 <TextInput onSend={onSend} />
             </Box>
@@ -216,7 +227,7 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
     const dispatch = useAppDispatch();
     const inputType = useSelector(selectInputType(roomId));
 
-    const [url, setUrl] = useState("");
+    const url = useAppSelector((state) => state.input.list[roomId]?.thumbnailUrl);
 
     const handleSetMessageText = (text: string) => dispatch(setInputText({ text, roomId }));
 
@@ -232,10 +243,20 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
     useEffect(() => {
         if (!message) dispatch(removeThumbnailData({ roomId }));
 
-        const url = linkifyHtml(message)?.split("<a href=")[1]?.split(">")[0]?.replace(/"/g, "");
+        const urlInMessage = linkifyHtml(message)
+            ?.split("<a href=")[1]
+            ?.split(">")[0]
+            ?.replace(/"/g, "");
 
-        if (url && isValidURL(url)) setUrl(url);
-        else setUrl("");
+        if (urlInMessage === url) return;
+
+        if (urlInMessage && isValidURL(urlInMessage)) {
+            dispatch(setThumbnailUrl({ roomId, url: urlInMessage }));
+            dispatch(setIsThumbnailDataLoading({ roomId, isLoading: true }));
+        } else {
+            dispatch(setThumbnailUrl({ roomId, url: "" }));
+            dispatch(setIsThumbnailDataLoading({ roomId, isLoading: false }));
+        }
     }, [message, dispatch]);
 
     useEffect(() => {
@@ -516,6 +537,7 @@ export function MessageURLThumbnail() {
     const messageInput = useSelector(selectInputText(roomId));
 
     const dispatch = useAppDispatch();
+
     const thumbnailData = useAppSelector((state) => state.input.list[roomId]?.thumbnailData);
     const [imageError, setImageError] = useState(false);
 
@@ -600,6 +622,83 @@ export function MessageURLThumbnail() {
             </Box>
             <IconButton
                 onClick={() => dispatch(removeThumbnailData({ roomId }))}
+                sx={{ width: "35px", height: "35px", margin: "0 18px" }}
+            >
+                <Close fontSize="inherit" color="primary" />
+            </IconButton>
+        </Box>
+    );
+}
+
+export function MessageURLThumbnailLoading() {
+    const roomId = parseInt(useParams().id || "");
+    const thumbnailUrl = useAppSelector((state) => state.input.list[roomId]?.thumbnailUrl);
+
+    const dispatch = useAppDispatch();
+
+    const theme = useTheme();
+
+    const isDarkMode = theme.palette.mode === "dark";
+
+    const spin = keyframes`
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(200%);
+    }
+  `;
+
+    return (
+        <Box
+            sx={{
+                pl: 2,
+                width: "100%",
+                height: "72x",
+                borderBottom: "0.5px solid",
+                borderColor: "divider",
+                marginBottom: "12px",
+                display: "flex",
+                alignItems: "center",
+            }}
+        >
+            <Box
+                sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    height: "56px",
+                    width: "100%",
+                    gap: "10px",
+                    bgcolor: "background.paper",
+                    marginBottom: "8px",
+                    overflow: "hidden",
+                    borderRadius: "10px",
+                    position: "relative",
+                }}
+            >
+                <Box
+                    sx={{
+                        position: "absolute",
+                        background: `linear-gradient(to right, transparent, ${
+                            isDarkMode ? "#444444" : "#E6E6E6"
+                        }, transparent)`,
+                        width: "100%",
+                        height: "100%",
+                        opacity: 0.7,
+                        animation: `${spin} 0.9s infinite linear`,
+                    }}
+                />
+                <LinkIcon sx={{ color: "text.tertiary", marginLeft: "12px", fontSize: "32px" }} />
+                <Typography sx={{ fontWeight: 500, fontSize: "14px", color: "primary" }}>
+                    {thumbnailUrl}
+                </Typography>
+            </Box>
+            <IconButton
+                onClick={() => {
+                    dispatch(setIsThumbnailDataFetchingAborted({ roomId, isAborted: true }));
+                    dispatch(setIsThumbnailDataLoading({ roomId, isLoading: false }));
+                    dispatch(removeThumbnailData({ roomId }));
+                }}
                 sx={{ width: "35px", height: "35px", margin: "0 18px" }}
             >
                 <Close fontSize="inherit" color="primary" />
