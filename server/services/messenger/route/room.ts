@@ -204,8 +204,10 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     body: {
                         text: `${userReq.user.displayName} created the group ${room.name}`,
                         subject: userReq.user.displayName,
+                        subjectId: userReq.user.id,
                         type: Constants.SYSTEM_MESSAGE_TYPE_CREATE_GROUP,
                         object: room.name,
+                        objectIds: [ room.id ]
                     },
                 }).message();
 
@@ -536,8 +538,10 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 const body = {
                     text: `${userReq.user.displayName} left the room`,
                     subject: userReq.user.displayName,
+                    subjectId: userReq.user.id,
                     type: Constants.SYSTEM_MESSAGE_TYPE_USER_LEAVE_GROUP,
                     object: room.name,
+                    objectIds: [ room.id ]
                 };
 
                 const message = await prisma.message.create({
@@ -1524,8 +1528,10 @@ async function sendUpdateRoomInfoSystemMessage({
 
     const body = {
         subject: user.displayName,
+        subjectId: user.id,
         type: Constants.SYSTEM_MESSAGE_TYPE_UPDATE_GROUP,
         object: room.name,
+        objectIds: [ room.id ]
     };
 
     if (update.name && update.avatarFileId) {
@@ -1583,10 +1589,12 @@ async function sendUpdateRoomSystemMessage({
     const body = {
         text: "",
         subject: user.displayName,
+        subjectId: user.id,
         type: isUpdatingAdmins
             ? Constants.SYSTEM_MESSAGE_TYPE_UPDATE_GROUP_ADMINS
             : Constants.SYSTEM_MESSAGE_TYPE_UPDATE_GROUP_MEMBERS,
         object: [],
+        objectIds: []
     };
 
     const removedUsers = await prisma.user.findMany({
@@ -1597,6 +1605,7 @@ async function sendUpdateRoomSystemMessage({
         },
         select: {
             displayName: true,
+            id: true
         },
     });
 
@@ -1621,6 +1630,8 @@ async function sendUpdateRoomSystemMessage({
             ? Constants.SYSTEM_MESSAGE_TYPE_REMOVE_GROUP_ADMINS
             : Constants.SYSTEM_MESSAGE_TYPE_REMOVE_GROUP_MEMBERS;
         body.object = displayNamesOfRemovedUsers;
+        body.objectIds = removedUsers.map(u=>u.id);
+
     } else if (addedIds.length) {
         const displayNamesOfAddedUsers = room.users
             .filter((u) => addedIds.includes(u.userId))
@@ -1632,7 +1643,11 @@ async function sendUpdateRoomSystemMessage({
             ? Constants.SYSTEM_MESSAGE_TYPE_ADD_GROUP_ADMINS
             : Constants.SYSTEM_MESSAGE_TYPE_ADD_GROUP_MEMBERS;
         body.object = displayNamesOfAddedUsers;
+        body.objectIds =  room.users
+            .filter((u) => addedIds.includes(u.userId))
+            .map((u) => u.user.id);
     }
+
 
     const sanitizedMessage = sanitize({
         ...message,
