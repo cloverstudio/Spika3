@@ -76,7 +76,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         subject: userReq.user.displayName,
                         subjectId: userReq.user.id,
                         type: Constants.SYSTEM_MESSAGE_TYPE_CREATE_NOTE,
-                        object: title,
+                        objects: [title],
                         objectIds: [ note.id ]
                     },
                 }).message();
@@ -223,7 +223,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     subject: userReq.user.displayName,
                     subjectId: userReq.user.id,
                     type: Constants.SYSTEM_MESSAGE_TYPE_UPDATE_NOTE,
-                    object: title,
+                    objects: [title],
                     objectIds: [ updated.id ]
                 },
             }).message();
@@ -299,7 +299,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     subject: userReq.user.displayName,
                     subjectId: userReq.user.id,
                     type: Constants.SYSTEM_MESSAGE_TYPE_DELETE_NOTE,
-                    object: note.title,
+                    objects: [note.title],
                     objectId: [ id ]
                 },
             }).message();

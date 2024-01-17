@@ -12,7 +12,7 @@ import MenuItem from "@mui/material/MenuItem";
 import Add from "@mui/icons-material/Add";
 import MoreHoriz from "@mui/icons-material/MoreHoriz";
 import { useSelector } from "react-redux";
-import { RoomUserType } from "../../../../types/Rooms";
+import { RoomUserType, UpdateGroupAction } from "../../../../types/Rooms";
 import { selectUserId } from "../../../../store/userSlice";
 import { useCreateRoomMutation, useUpdateRoomMutation } from "../../api/room";
 import useStrings from "../../../../hooks/useStrings";
@@ -46,6 +46,7 @@ export function DetailsMemberView(props: DetailsMembersProps) {
 
     const handlePromoteToAdmin = (memberId: number) => {
         handleUpdateGroup({
+            action: UpdateGroupAction.ADD_ADMINS,
             adminUserIds: members
                 .filter((m) => m.isAdmin)
                 .map((u) => u.userId)
@@ -55,17 +56,21 @@ export function DetailsMemberView(props: DetailsMembersProps) {
 
     const removeMemberWithId = (memberId: number) => {
         handleUpdateGroup({
+            action: UpdateGroupAction.REMOVE_USERS,
             userIds: members.filter((m) => m.userId !== memberId).map((u) => u.userId),
         });
     };
 
-    const handleUpdateGroup = async (data: { userIds?: number[]; adminUserIds?: number[] }) => {
+    const handleUpdateGroup = async (data: { userIds?: number[]; adminUserIds?: number[] ; action: UpdateGroupAction}) => {
         await update({ roomId, data }).unwrap();
     };
 
     const handleAddMembers = (addIds: number[]) => {
         if (addIds.length > 0) {
-            handleUpdateGroup({ userIds: [...addIds, ...members.map((m) => m.userId)] });
+            handleUpdateGroup({ 
+                action: UpdateGroupAction.ADD_USERS,
+                userIds: [...addIds, ...members.map((m) => m.userId)] 
+            });
         }
 
         setOpenAddDialog(false);
@@ -73,6 +78,7 @@ export function DetailsMemberView(props: DetailsMembersProps) {
 
     const removeAdminStatus = (memberId: number) => {
         handleUpdateGroup({
+            action: UpdateGroupAction.REMOVE_ADMINS,
             adminUserIds: members
                 .filter((m) => m.isAdmin && m.userId !== memberId)
                 .map((u) => u.userId),

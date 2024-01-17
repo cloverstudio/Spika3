@@ -8,7 +8,7 @@ export default function AddedAdminsSystemMessage({
         text: string;
         type: string;
         subject: string;
-        object: string[];
+        objects: string[];
     };
 }): React.ReactElement {
     return (
@@ -19,7 +19,7 @@ export default function AddedAdminsSystemMessage({
                 </Box>{" "}
                 added{" "}
                 <Box component="span" fontWeight="bold">
-                    {body.object.join(", ")}
+                    {body.objects?.join(", ")}
                 </Box>{" "}
                 as group admin
             </Typography>

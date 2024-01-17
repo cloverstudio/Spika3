@@ -8,7 +8,7 @@ export default function AddedMembersSystemMessage({
         text: string;
         type: string;
         subject: string;
-        object: string[];
+        objects: string[];
     };
 }): React.ReactElement {
     return (
@@ -19,7 +19,7 @@ export default function AddedMembersSystemMessage({
                 </Box>{" "}
                 added{" "}
                 <Box component="span" fontWeight="bold">
-                    {body.object.join(", ")}
+                    {body.objects?.join(", ")}
                 </Box>{" "}
                 to the group
             </Typography>

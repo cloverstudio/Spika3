@@ -22,6 +22,15 @@ export type HistoryType = {
     limit: number;
 };
 
+export enum UpdateGroupAction {
+    ADD_USERS = "addGroupUsers",
+    REMOVE_USERS = "removeGroupUsers",
+    ADD_ADMINS = "addGroupAdmins",
+    REMOVE_ADMINS = "removeGroupAdmins",
+    CHANGE_NAME = "changeGroupName",
+    CHANGE_AVATAR = "changeGroupAvatar",
+}
+
 type RoomsListType = {
     list: RoomType[];
     count: number;

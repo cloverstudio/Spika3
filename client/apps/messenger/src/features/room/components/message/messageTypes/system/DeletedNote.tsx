@@ -8,7 +8,7 @@ export default function DeletedNoteSystemMessage({
         text: string;
         type: string;
         subject: string;
-        object: string;
+        objects: string[];
     };
 }): React.ReactElement {
     return (
@@ -19,7 +19,7 @@ export default function DeletedNoteSystemMessage({
                 </Box>{" "}
                 deleted note{" "}
                 <Box component="span" fontWeight="bold">
-                    {body.object}
+                    {body.objects?.join(", ")}
                 </Box>
             </Typography>
         </Box>
