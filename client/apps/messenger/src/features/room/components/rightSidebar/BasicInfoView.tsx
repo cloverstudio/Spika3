@@ -16,7 +16,7 @@ import { useSelector } from "react-redux";
 import * as Constants from "../../../../../../../lib/constants";
 import useStrings from "../../../../hooks/useStrings";
 import { selectUser } from "../../../../store/userSlice";
-import { RoomType } from "../../../../types/Rooms";
+import { RoomType, UpdateGroupAction } from "../../../../types/Rooms";
 import { crop } from "../../../../utils/crop";
 import { useUpdateRoomMutation } from "../../api/room";
 import { selectOtherUserIdInPrivateRoom } from "../../slices/messages";
@@ -124,7 +124,7 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
             setLoading(true);
             await update({
                 roomId: roomData.id,
-                data: { name: proposedName, avatarFileId: 0 },
+                data: { action: UpdateGroupAction.CHANGE_AVATAR, name: proposedName, avatarFileId: 0 },
             }).unwrap();
 
             setLoading(false);
@@ -136,7 +136,7 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
         }
     };
 
-    const handleUpdateGroup = async () => {
+    const handleUpdateAvatar = async () => {
         try {
             setLoading(true);
 
@@ -152,17 +152,25 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
                 await update({
                     roomId: roomData.id,
                     data: {
-                        name: proposedName,
+                        action: UpdateGroupAction.CHANGE_AVATAR,
                         avatarFileId: uploadedFile.id,
                     },
                 }).unwrap();
-            } else {
+            }
+            setLoading(false);
+        } catch (error) {
+            setLoading(false);
+            console.error("Update failed ", error);
+        }
+    };
+
+    const handleUpdateName = async () => {
+        try {
+            setLoading(true);
                 await update({
                     roomId: roomData.id,
-                    data: { name: proposedName },
+                    data: { action: UpdateGroupAction.CHANGE_NAME, name: proposedName },
                 }).unwrap();
-            }
-
             setName(proposedName);
             setLoading(false);
             closeEditName();
@@ -175,7 +183,7 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
 
     useEffect(() => {
         if (file) {
-            handleUpdateGroup();
+            handleUpdateAvatar();
         }
     }, [file]);
 
@@ -327,7 +335,7 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
                                             size="small"
                                             onClick={() => {
                                                 if (name.length > 0) {
-                                                    handleUpdateGroup();
+                                                    handleUpdateName();
                                                 }
                                             }}
                                             disabled={proposedName === roomData.name}

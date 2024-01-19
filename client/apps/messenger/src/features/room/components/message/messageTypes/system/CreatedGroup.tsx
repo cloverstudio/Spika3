@@ -8,7 +8,7 @@ export default function CreatedGroupSystemMessage({
         text: string;
         type: string;
         subject: string;
-        object: string;
+        objects: string[];
     };
 }): React.ReactElement {
     return (
@@ -19,7 +19,7 @@ export default function CreatedGroupSystemMessage({
                 </Box>{" "}
                 created group{" "}
                 <Box component="span" fontWeight="bold">
-                    {body.object}
+                    {body.objects?.join(", ")}
                 </Box>
             </Typography>
         </Box>

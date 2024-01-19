@@ -8,7 +8,7 @@ export default function UpdateGroupNameSystemMessage({
         text: string;
         type: string;
         subject: string;
-        object: string;
+        objects: string[];
     };
 }): React.ReactElement {
     return (
