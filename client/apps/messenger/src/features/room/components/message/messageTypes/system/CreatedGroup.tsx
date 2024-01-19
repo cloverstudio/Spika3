@@ -3,6 +3,7 @@ import { Box, Typography } from "@mui/material";
 
 export default function CreatedGroupSystemMessage({
     body,
+    createdAt,
 }: {
     body: {
         text: string;
@@ -10,6 +11,7 @@ export default function CreatedGroupSystemMessage({
         subject: string;
         object: string;
     };
+    createdAt: number;
 }): React.ReactElement {
     return (
         <Box textAlign="center" py={0.5}>

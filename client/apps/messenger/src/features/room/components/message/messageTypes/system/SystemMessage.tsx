@@ -30,36 +30,42 @@ import {
     SYSTEM_MESSAGE_TYPE_DELETE_NOTE,
 } from "../../../../lib/consts";
 
-export default function SystemMessage({ body }: { body: any }): React.ReactElement {
+export default function SystemMessage({
+    body,
+    createdAt,
+}: {
+    body: any;
+    createdAt: number;
+}): React.ReactElement {
     switch (body.type) {
         case SYSTEM_MESSAGE_TYPE_CREATE_GROUP:
-            return <CreatedGroupSystemMessage body={body} />;
+            return <CreatedGroupSystemMessage body={body} createdAt={createdAt} />;
         case SYSTEM_MESSAGE_TYPE_UPDATE_GROUP:
-            return <UpdateGroupSystemMessage body={body} />;
+            return <UpdateGroupSystemMessage body={body} createdAt={createdAt} />;
         case SYSTEM_MESSAGE_TYPE_UPDATE_GROUP_NAME:
-            return <UpdateGroupNameSystemMessage body={body} />;
+            return <UpdateGroupNameSystemMessage body={body} createdAt={createdAt} />;
         case SYSTEM_MESSAGE_TYPE_UPDATE_GROUP_AVATAR:
-            return <UpdateGroupAvatarSystemMessage body={body} />;
+            return <UpdateGroupAvatarSystemMessage body={body} createdAt={createdAt} />;
         case SYSTEM_MESSAGE_TYPE_UPDATE_GROUP_ADMINS:
-            return <AddedAdminsSystemMessage body={body} />;
+            return <AddedAdminsSystemMessage body={body} createdAt={createdAt} />;
         case SYSTEM_MESSAGE_TYPE_UPDATE_GROUP_MEMBERS:
-            return <RemovedMembersSystemMessage body={body} />;
+            return <RemovedMembersSystemMessage body={body} createdAt={createdAt} />;
         case SYSTEM_MESSAGE_TYPE_ADD_GROUP_MEMBERS:
-            return <AddedMembersSystemMessage body={body} />;
+            return <AddedMembersSystemMessage body={body} createdAt={createdAt} />;
         case SYSTEM_MESSAGE_TYPE_REMOVE_GROUP_MEMBERS:
-            return <RemovedMembersSystemMessage body={body} />;
+            return <RemovedMembersSystemMessage body={body} createdAt={createdAt} />;
         case SYSTEM_MESSAGE_TYPE_ADD_GROUP_ADMINS:
-            return <AddedAdminsSystemMessage body={body} />;
+            return <AddedAdminsSystemMessage body={body} createdAt={createdAt} />;
         case SYSTEM_MESSAGE_TYPE_REMOVE_GROUP_ADMINS:
-            return <RemovedAdminsSystemMessage body={body} />;
+            return <RemovedAdminsSystemMessage body={body} createdAt={createdAt} />;
         case SYSTEM_MESSAGE_TYPE_CREATE_NOTE:
-            return <CreatedNoteSystemMessage body={body} />;
+            return <CreatedNoteSystemMessage body={body} createdAt={createdAt} />;
         case SYSTEM_MESSAGE_TYPE_UPDATE_NOTE:
-            return <UpdateNoteSystemMessage body={body} />;
+            return <UpdateNoteSystemMessage body={body} createdAt={createdAt} />;
         case SYSTEM_MESSAGE_TYPE_DELETE_NOTE:
-            return <DeletedNoteSystemMessage body={body} />;
+            return <DeletedNoteSystemMessage body={body} createdAt={createdAt} />;
         case SYSTEM_MESSAGE_TYPE_USER_LEAVE_GROUP:
-            return <LeaveRoomSystemMessage body={body} />;
+            return <LeaveRoomSystemMessage body={body} createdAt={createdAt} />;
         default:
             return <div>{body.text}</div>;
     }
