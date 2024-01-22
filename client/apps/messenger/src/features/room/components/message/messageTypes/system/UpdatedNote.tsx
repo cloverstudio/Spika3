@@ -9,7 +9,7 @@ export default function UpdateNoteSystemMessage({
         text: string;
         type: string;
         subject: string;
-        object: string;
+        objects: string[];
     };
     createdAt: number;
 }): React.ReactElement {
@@ -30,7 +30,7 @@ export default function UpdateNoteSystemMessage({
                 </Box>{" "}
                 updated note{" "}
                 <Box component="span" fontWeight="bold">
-                    {body.object}
+                    {body.objects?.join(", ")}
                 </Box>
             </Typography>
         </Box>

@@ -37,6 +37,15 @@ const patchRoomSchema = yup.object().shape({
     }),
 });
 
+enum UpdateGroupAction {
+    ADD_USERS = "addGroupUsers",
+    REMOVE_USERS = "removeGroupUsers",
+    ADD_ADMINS = "addGroupAdmins",
+    REMOVE_ADMINS = "removeGroupAdmins",
+    CHANGE_NAME = "changeGroupName",
+    CHANGE_AVATAR = "changeGroupAvatar",
+}
+
 const leaveRoomSchema = yup.object().shape({
     body: yup.object().shape({
         adminUserIds: yup.array().of(yup.number().moreThan(0)).strict(),
@@ -73,7 +82,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             });
 
             const notAddedUsers = userIds.filter(
-                (id: number) => !foundUsers.map((fu) => fu.id).includes(id),
+                (id: number) => !foundUsers.map((fu) => fu.id).includes(id)
             );
 
             if (notAddedUsers.length) {
@@ -82,13 +91,13 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     .send(
                         errorResponse(
                             `Users doesn't exist, ids: ${notAddedUsers.join(",")}`,
-                            userReq.lang,
-                        ),
+                            userReq.lang
+                        )
                     );
             }
 
             const notAddedAdminUsers = adminUserIds.filter(
-                (id: number) => !foundUsers.map((fu) => fu.id).includes(id),
+                (id: number) => !foundUsers.map((fu) => fu.id).includes(id)
             );
 
             if (notAddedAdminUsers.length) {
@@ -97,8 +106,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     .send(
                         errorResponse(
                             `Admin users doesn't exist, ids: ${notAddedAdminUsers.join(",")}`,
-                            userReq.lang,
-                        ),
+                            userReq.lang
+                        )
                     );
             }
 
@@ -204,8 +213,10 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     body: {
                         text: `${userReq.user.displayName} created the group ${room.name}`,
                         subject: userReq.user.displayName,
+                        subjectId: userReq.user.id,
                         type: Constants.SYSTEM_MESSAGE_TYPE_CREATE_GROUP,
-                        object: room.name,
+                        objects: [room.name],
+                        objectIds: [room.id],
                     },
                 }).message();
 
@@ -215,8 +226,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                         JSON.stringify({
                             room,
                             message: sanitizedMessage,
-                        }),
-                    ),
+                        })
+                    )
                 );
             }
 
@@ -225,8 +236,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     {
                         room: sanitizedRoom,
                     },
-                    userReq.lang,
-                ),
+                    userReq.lang
+                )
             );
 
             sseRoomsNotify(sanitizedRoom, Constants.PUSH_TYPE_NEW_ROOM);
@@ -243,7 +254,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
 
         try {
             const id = parseInt((req.params.id as string) || "");
-            const { userIds, adminUserIds, name, avatarFileId } = req.body;
+            const { userIds, adminUserIds, name, avatarFileId, action } = req.body;
 
             const room = await prisma.room.findFirst({
                 where: { id, deleted: false },
@@ -271,41 +282,58 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 return res.status(403).send(errorResponse("Forbidden", userReq.lang));
             }
 
-            const shouldUpdateUsers = typeof userIds !== "undefined";
-            const shouldUpdateAdminUsers = typeof adminUserIds !== "undefined";
-
             let updatedUsersObject, updatedAdminUsersObject;
-
-            if (shouldUpdateUsers) {
-                updatedUsersObject = await updateRoomUsers({
-                    newIds: userIds,
-                    room,
-                    removedNotifier: sseRoomsRemovedNotify,
-                });
-            }
-
-            if (shouldUpdateAdminUsers) {
-                if (!adminUserIds.includes(userReq.user.id)) {
-                    adminUserIds.push(userReq.user.id);
-                }
-
-                updatedAdminUsersObject = await updateRoomAdminUsers({
-                    room,
-                    newAdminIds: adminUserIds,
-                    removedNotifier: sseRoomsRemovedNotify,
-                });
-            }
-
+            let update: Partial<Room>;
             const userCount = await prisma.roomUser.count({ where: { roomId: id } });
-
-            const update: Partial<Room> = {
+            update = {
                 modifiedAt: new Date(),
-                ...(name && { name }),
-                ...((avatarFileId || avatarFileId === 0) && {
-                    avatarFileId: parseInt(avatarFileId),
-                }),
                 ...(userCount > 2 && { type: "group" }),
             };
+
+            switch (action) {
+                case UpdateGroupAction.ADD_USERS:
+                case UpdateGroupAction.REMOVE_USERS:
+                    const shouldUpdateUsers = typeof userIds !== "undefined";
+                    if (shouldUpdateUsers) {
+                        updatedUsersObject = await updateRoomUsers({
+                            newIds: userIds,
+                            room,
+                            removedNotifier: sseRoomsRemovedNotify,
+                        });
+                    }
+                    break;
+                case UpdateGroupAction.ADD_ADMINS:
+                case UpdateGroupAction.REMOVE_ADMINS:
+                    const shouldUpdateAdminUsers = typeof adminUserIds !== "undefined";
+                    if (shouldUpdateAdminUsers) {
+                        if (!adminUserIds.includes(userReq.user.id)) {
+                            adminUserIds.push(userReq.user.id);
+                        }
+
+                        updatedAdminUsersObject = await updateRoomAdminUsers({
+                            room,
+                            newAdminIds: adminUserIds,
+                            removedNotifier: sseRoomsRemovedNotify,
+                        });
+                    }
+                    break;
+                case UpdateGroupAction.CHANGE_NAME:
+                    update = {
+                        modifiedAt: new Date(),
+                        ...(name && { name }),
+                        ...(userCount > 2 && { type: "group" }),
+                    };
+                    break;
+                case UpdateGroupAction.CHANGE_AVATAR:
+                    update = {
+                        modifiedAt: new Date(),
+                        ...((avatarFileId || avatarFileId === 0) && {
+                            avatarFileId: parseInt(avatarFileId),
+                        }),
+                        ...(userCount > 2 && { type: "group" }),
+                    };
+                    break;
+            }
 
             const updated = await prisma.room.update({
                 where: { id },
@@ -501,7 +529,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     const foundUserIds = foundUsers.map((u) => u.id);
 
                     const roomUsersToPromote = room.users.filter((u) =>
-                        foundUserIds.includes(u.userId),
+                        foundUserIds.includes(u.userId)
                     );
 
                     updated = await prisma.room.update({
@@ -536,8 +564,10 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 const body = {
                     text: `${userReq.user.displayName} left the room`,
                     subject: userReq.user.displayName,
+                    subjectId: userReq.user.id,
                     type: Constants.SYSTEM_MESSAGE_TYPE_USER_LEAVE_GROUP,
-                    object: room.name,
+                    objects: [room.name],
+                    objectIds: [room.id],
                 };
 
                 const message = await prisma.message.create({
@@ -562,8 +592,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                         JSON.stringify({
                             room: updated,
                             message: sanitizedMessage,
-                        }),
-                    ),
+                        })
+                    )
                 );
 
                 const key = `${Constants.ROOM_PREFIX}${id}`;
@@ -596,7 +626,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 le(e);
                 res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
             }
-        },
+        }
     );
 
     router.get("/", auth, async (req: Request, res: Response) => {
@@ -675,7 +705,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     await redisClient.set(key, JSON.stringify(room));
 
                     return sanitize({ ...room, muted, pinned, unreadCount }).room();
-                }),
+                })
             );
 
             res.send(
@@ -685,8 +715,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                         count,
                         limit: Constants.PAGING_LIMIT,
                     },
-                    userReq.lang,
-                ),
+                    userReq.lang
+                )
             );
         } catch (e: unknown) {
             le(e);
@@ -754,8 +784,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             res.send(
                 successResponse(
                     { room: sanitize({ ...room, muted, pinned, unreadCount }).room() },
-                    userReq.lang,
-                ),
+                    userReq.lang
+                )
             );
         } catch (e: unknown) {
             le(e);
@@ -794,14 +824,11 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                             roomId,
                             unreadCount,
                         };
-                    }),
+                    })
             );
 
             res.send(
-                successResponse(
-                    { unreadCounts: list.filter((uc) => uc.unreadCount) },
-                    userReq.lang,
-                ),
+                successResponse({ unreadCounts: list.filter((uc) => uc.unreadCount) }, userReq.lang)
             );
         } catch (e: unknown) {
             le(e);
@@ -858,8 +885,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             res.send(
                 successResponse(
                     { room: sanitize({ ...room, muted, pinned, unreadCount }).room() },
-                    userReq.lang,
-                ),
+                    userReq.lang
+                )
             );
         } catch (e: unknown) {
             le(e);
@@ -940,7 +967,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     });
 
                     return sanitize({ ...room, muted, pinned, unreadCount }).room();
-                }),
+                })
             );
 
             const hasNext = count > page * Constants.SYNC_LIMIT;
@@ -954,8 +981,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                         hasNext,
                         rooms: roomsSanitized,
                     },
-                    userReq.lang,
-                ),
+                    userReq.lang
+                )
             );
         } catch (e: unknown) {
             le(e);
@@ -1485,9 +1512,7 @@ async function sendUpdateRoomSystemMessages({
             addedIds,
             isUpdatingAdmins: false,
         });
-    }
-
-    if (updatedAdminUsersObject) {
+    } else if (updatedAdminUsersObject) {
         const { removedIds, addedIds } = updatedAdminUsersObject;
         await sendUpdateRoomSystemMessage({
             room,
@@ -1524,13 +1549,13 @@ async function sendUpdateRoomInfoSystemMessage({
 
     const body = {
         subject: user.displayName,
-        type: Constants.SYSTEM_MESSAGE_TYPE_UPDATE_GROUP,
-        object: room.name,
+        subjectId: user.id,
+        type: "",
+        objects: [room.name],
+        objectIds: [room.id],
     };
 
-    if (update.name && update.avatarFileId) {
-        body["text"] = `Updated room name and avatar`;
-    } else if (update.name) {
+    if (update.name) {
         body["text"] = `Updated room name`;
         body.type = Constants.SYSTEM_MESSAGE_TYPE_UPDATE_GROUP_NAME;
     } else if (update.avatarFileId) {
@@ -1549,8 +1574,8 @@ async function sendUpdateRoomInfoSystemMessage({
             JSON.stringify({
                 room,
                 message: sanitizedMessage,
-            }),
-        ),
+            })
+        )
     );
 }
 
@@ -1569,6 +1594,12 @@ async function sendUpdateRoomSystemMessage({
     addedIds: number[];
     isUpdatingAdmins: boolean;
 }) {
+
+    if (!removedIds.length && !addedIds.length) {
+        console.log("No users to update, skipping.");
+        return;
+    }
+
     const message = await prisma.message.create({
         data: {
             type: Constants.SYSTEM_MESSAGE_TYPE,
@@ -1583,10 +1614,10 @@ async function sendUpdateRoomSystemMessage({
     const body = {
         text: "",
         subject: user.displayName,
-        type: isUpdatingAdmins
-            ? Constants.SYSTEM_MESSAGE_TYPE_UPDATE_GROUP_ADMINS
-            : Constants.SYSTEM_MESSAGE_TYPE_UPDATE_GROUP_MEMBERS,
-        object: [],
+        subjectId: user.id,
+        type: "",
+        objects: [],
+        objectIds: [],
     };
 
     const removedUsers = await prisma.user.findMany({
@@ -1597,21 +1628,11 @@ async function sendUpdateRoomSystemMessage({
         },
         select: {
             displayName: true,
+            id: true,
         },
     });
 
-    if (removedIds.length && addedIds.length) {
-        const displayNamesOfRemovedUsers = removedUsers.map((u) => u.displayName);
-
-        const displayNamesOfAddedUsers = room.users
-            .filter((u) => addedIds.includes(u.userId))
-            .map((u) => u.user.displayName);
-        body.text = `Removed ${displayNamesOfRemovedUsers.join(
-            ", ",
-        )} and added ${displayNamesOfAddedUsers.join(", ")} ${
-            isUpdatingAdmins ? "as admin(s)" : "to the group"
-        }`;
-    } else if (removedIds.length) {
+    if (removedIds.length) {
         const displayNamesOfRemovedUsers = removedUsers.map((u) => u.displayName);
 
         body.text = `${user.displayName} removed ${displayNamesOfRemovedUsers.join(", ")} ${
@@ -1620,7 +1641,8 @@ async function sendUpdateRoomSystemMessage({
         body.type = isUpdatingAdmins
             ? Constants.SYSTEM_MESSAGE_TYPE_REMOVE_GROUP_ADMINS
             : Constants.SYSTEM_MESSAGE_TYPE_REMOVE_GROUP_MEMBERS;
-        body.object = displayNamesOfRemovedUsers;
+        body.objects = displayNamesOfRemovedUsers;
+        body.objectIds = removedUsers.map((u) => u.id);
     } else if (addedIds.length) {
         const displayNamesOfAddedUsers = room.users
             .filter((u) => addedIds.includes(u.userId))
@@ -1631,7 +1653,10 @@ async function sendUpdateRoomSystemMessage({
         body.type = isUpdatingAdmins
             ? Constants.SYSTEM_MESSAGE_TYPE_ADD_GROUP_ADMINS
             : Constants.SYSTEM_MESSAGE_TYPE_ADD_GROUP_MEMBERS;
-        body.object = displayNamesOfAddedUsers;
+        body.objects = displayNamesOfAddedUsers;
+        body.objectIds = room.users
+            .filter((u) => addedIds.includes(u.userId))
+            .map((u) => u.user.id);
     }
 
     const sanitizedMessage = sanitize({
@@ -1645,7 +1670,7 @@ async function sendUpdateRoomSystemMessage({
             JSON.stringify({
                 room,
                 message: sanitizedMessage,
-            }),
-        ),
+            })
+        )
     );
 }

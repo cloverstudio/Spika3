@@ -9,7 +9,7 @@ export default function CreatedNoteSystemMessage({
         text: string;
         type: string;
         subject: string;
-        object: string;
+        objects: string[];
     };
     createdAt: number;
 }): React.ReactElement {
@@ -29,7 +29,7 @@ export default function CreatedNoteSystemMessage({
                 </Box>{" "}
                 created note{" "}
                 <Box component="span" fontWeight="bold">
-                    {body.object}
+                    {body.objects?.join(", ")}
                 </Box>
             </Typography>
         </Box>

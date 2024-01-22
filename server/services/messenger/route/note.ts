@@ -74,8 +74,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     body: {
                         text: `${userReq.user.displayName} created note ${title}`,
                         subject: userReq.user.displayName,
+                        subjectId: userReq.user.id,
                         type: Constants.SYSTEM_MESSAGE_TYPE_CREATE_NOTE,
-                        object: title,
+                        objects: [title],
+                        objectIds: [ note.id ]
                     },
                 }).message();
 
@@ -219,8 +221,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 body: {
                     text: `${userReq.user.displayName} updated note ${title}`,
                     subject: userReq.user.displayName,
+                    subjectId: userReq.user.id,
                     type: Constants.SYSTEM_MESSAGE_TYPE_UPDATE_NOTE,
-                    object: title,
+                    objects: [title],
+                    objectIds: [ updated.id ]
                 },
             }).message();
 
@@ -293,8 +297,10 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 body: {
                     text: `${userReq.user.displayName} deleted note ${note.title}`,
                     subject: userReq.user.displayName,
+                    subjectId: userReq.user.id,
                     type: Constants.SYSTEM_MESSAGE_TYPE_DELETE_NOTE,
-                    object: note.title,
+                    objects: [note.title],
+                    objectId: [ id ]
                 },
             }).message();
 

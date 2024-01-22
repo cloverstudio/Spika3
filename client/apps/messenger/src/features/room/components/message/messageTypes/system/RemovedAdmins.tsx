@@ -9,7 +9,7 @@ export default function RemovedAdminsSystemMessage({
         text: string;
         type: string;
         subject: string;
-        object: string[];
+        objects: string[];
     };
     createdAt: number;
 }): React.ReactElement {
@@ -29,7 +29,7 @@ export default function RemovedAdminsSystemMessage({
                 </Box>{" "}
                 removed{" "}
                 <Box component="span" fontWeight="bold">
-                    {body.object.join(", ")}
+                    {body.objects?.join(", ")}   
                 </Box>{" "}
                 from group admins
             </Typography>

@@ -9,7 +9,7 @@ export default function UpdateGroupAvatarSystemMessage({
         text: string;
         type: string;
         subject: string;
-        object: string;
+        objects: string[];
     };
     createdAt: number;
 }): React.ReactElement {
