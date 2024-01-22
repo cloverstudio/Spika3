@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Box, Typography, useMediaQuery } from "@mui/material";
 import UserType from "../../../../../types/User";
 import filterText from "../../../lib/filterText";
@@ -36,6 +36,13 @@ export default function TextMessage({
 }) {
     const roomId = parseInt(useParams().id || "");
     const changeTerm = useSelector(selectChangeTerm({ text: filterText(body.text), roomId, id }));
+    const themeObject = useTheme();
+    const isMobile = useMediaQuery(themeObject.breakpoints.down("md"));
+
+    const [isLinkThumbnailExpanded, setIsLinkThumbnailExpanded] = useState(false);
+    const maxRows = 6;
+
+    const textMessageContainerRef = useRef(null);
 
     const backgroundColor = highlighted
         ? "#d7aa5a"
@@ -50,11 +57,31 @@ export default function TextMessage({
 
     const thumbnail: ThumbnailData | undefined = body.thumbnailData;
 
+    useEffect(() => {
+        if (!thumbnail || isMobile) {
+            setIsLinkThumbnailExpanded(false);
+            return;
+        }
+
+        const container = textMessageContainerRef.current;
+
+        if (container) {
+            const lineHeight = parseInt(getComputedStyle(container).lineHeight, 10);
+            const maxHeight = lineHeight * maxRows;
+
+            if (container.clientHeight > maxHeight || isReply) {
+                setIsLinkThumbnailExpanded(true);
+            } else {
+                setIsLinkThumbnailExpanded(false);
+            }
+        }
+    }, [filteredText, isMobile]);
+
     return (
         <Box
             component={"div"}
             sx={{
-                maxWidth: thumbnail && !isReply ? "273px" : "100%",
+                maxWidth: thumbnail && !isLinkThumbnailExpanded ? "273px" : "100%",
                 backgroundColor: isEmoji ? "transparent" : backgroundColor,
                 borderRadius: "10px",
                 padding: thumbnail ? 0 : "10px",
@@ -76,7 +103,17 @@ export default function TextMessage({
             )}
 
             <Box>
+                {thumbnail && isLinkThumbnailExpanded && (
+                    <Box sx={{ m: "8px", pt: "8px" }}>
+                        <Thumbnail
+                            thumbnailData={thumbnail}
+                            isExpanded={isLinkThumbnailExpanded}
+                            isUsersMessage={isUsersMessage}
+                        />
+                    </Box>
+                )}
                 <Box
+                    ref={textMessageContainerRef}
                     sx={{
                         padding: thumbnail ? "10px" : 0,
                         overflowWrap: "break-word",
@@ -92,7 +129,7 @@ export default function TextMessage({
                     }}
                     dangerouslySetInnerHTML={{ __html: filteredText }}
                 />
-                {thumbnail && <Thumbnail thumbnailData={thumbnail} isReply={isReply} />}
+                {thumbnail && !isLinkThumbnailExpanded && <Thumbnail thumbnailData={thumbnail} />}
             </Box>
         </Box>
     );
@@ -100,10 +137,12 @@ export default function TextMessage({
 
 interface Props {
     thumbnailData: ThumbnailData;
+    isExpanded?: boolean;
     isReply?: boolean;
+    isUsersMessage?: boolean;
 }
 
-function Thumbnail({ thumbnailData, isReply }: Props) {
+function Thumbnail({ thumbnailData, isReply, isExpanded, isUsersMessage }: Props) {
     const [imageError, setImageError] = useState(false);
     const themeObject = useTheme();
     const isMobile = useMediaQuery(themeObject.breakpoints.down("md"));
@@ -118,6 +157,14 @@ function Thumbnail({ thumbnailData, isReply }: Props) {
                 "&:hover": {
                     cursor: "pointer",
                 },
+                ...(isExpanded && {
+                    display: "flex",
+                    backgroundColor: isUsersMessage
+                        ? "common.linkThumbnail.sent"
+                        : "common.linkThumbnail.received",
+                    borderRadius: "10px",
+                    alignItems: "center",
+                }),
             }}
             onClick={() => {
                 window.open(thumbnailData?.url, "_blank");
@@ -126,40 +173,44 @@ function Thumbnail({ thumbnailData, isReply }: Props) {
             {(thumbnailData?.image || thumbnailData?.icon) && !imageError && (
                 <img
                     style={{
-                        width: isReply && !isMobile ? "auto" : "100%",
+                        width: isExpanded ? "200px" : "100%",
                         maxHeight: "176px",
                         objectFit: "cover",
-                        marginLeft: isReply && !isMobile ? "10px" : 0,
+                        ...(isExpanded && { borderRadius: "10px 0 0 10px" }),
                     }}
                     alt="image"
                     src={thumbnailData?.image || thumbnailData?.icon}
                     onError={() => setImageError(true)}
                 />
             )}
-            {thumbnailData?.title && (
-                <Typography
-                    p="0 10px 6px 10px"
-                    fontWeight={500}
-                    fontSize="14px"
-                    fontFamily="inherit"
-                >
-                    {thumbnailData.title}
-                </Typography>
-            )}
-            {thumbnailData?.description && (
-                <Typography
-                    p="0 10px 6px 10px"
-                    fontWeight={400}
-                    fontSize="12px"
-                    fontFamily="inherit"
-                    maxWidth="50ch"
-                    overflow="hidden"
-                    textOverflow="ellipsis"
-                    whiteSpace="nowrap"
-                >
-                    {thumbnailData.description}
-                </Typography>
-            )}
+            <Box sx={{ ...(isExpanded && { width: "calc(100% - 200px)" }) }}>
+                {thumbnailData?.title && (
+                    <Typography
+                        p="0 10px 6px 10px"
+                        fontWeight={500}
+                        fontSize="14px"
+                        fontFamily="inherit"
+                        sx={{ wordBreak: "break-word" }}
+                        textOverflow="ellipsis"
+                    >
+                        {thumbnailData.title}
+                    </Typography>
+                )}
+                {thumbnailData?.description && (
+                    <Typography
+                        p="0 10px 6px 10px"
+                        fontWeight={400}
+                        fontSize="12px"
+                        fontFamily="inherit"
+                        maxWidth="50ch"
+                        overflow="hidden"
+                        textOverflow="ellipsis"
+                        whiteSpace="nowrap"
+                    >
+                        {thumbnailData.description}
+                    </Typography>
+                )}
+            </Box>
         </Box>
     );
 }
