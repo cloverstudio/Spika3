@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, Typography } from "@mui/material";
 
-export default function AddedAdminsSystemMessage({
+export default function UpdateGroupSystemMessage({
     body,
     createdAt,
 }: {
@@ -9,7 +9,7 @@ export default function AddedAdminsSystemMessage({
         text: string;
         type: string;
         subject: string;
-        objects: string[];
+        object: string;
     };
     createdAt: number;
 }): React.ReactElement {
@@ -18,6 +18,7 @@ export default function AddedAdminsSystemMessage({
         minute: "numeric",
         hour12: false,
     });
+
     return (
         <Box textAlign="center" py={0.5}>
             <Typography variant="body1" color="textSecondary">
@@ -27,11 +28,7 @@ export default function AddedAdminsSystemMessage({
                 <Box component="span" fontWeight="bold">
                     {body.subject}
                 </Box>{" "}
-                added{" "}
-                <Box component="span" fontWeight="bold">
-                    {body.objects?.join(", ")}
-                </Box>{" "}
-                as group admin
+                updated group details
             </Typography>
         </Box>
     );

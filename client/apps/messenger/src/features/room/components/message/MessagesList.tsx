@@ -138,7 +138,13 @@ export default function MessagesList(): React.ReactElement {
                                 const isLastMessageInDay = i === messages.length - 1;
 
                                 if (m.type === "system") {
-                                    return <SystemMessage key={m.id} body={m.body} />;
+                                    return (
+                                        <SystemMessage
+                                            key={m.id}
+                                            body={m.body}
+                                            createdAt={m.createdAt}
+                                        />
+                                    );
                                 }
                                 return (
                                     <Message
