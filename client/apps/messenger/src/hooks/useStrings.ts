@@ -159,6 +159,8 @@ const en = {
     document: "Document",
     today: "Today",
     yesterday: "Yesterday",
+    seeMore: "See more",
+    seeLess: "See less",
 };
 
 const strings = {
