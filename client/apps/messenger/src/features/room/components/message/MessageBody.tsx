@@ -200,6 +200,8 @@ function ReplyMessage({
     const dispatch = useAppDispatch();
 
     const renderReplyMessage = () => {
+        if (!body.referenceMessage) return <Box>Cannot reply with file</Box>; // to be determined (this is just testing for determining bug on production -  message destructure bug)
+
         const { type: replyMsgType, body: replyMsgBody } = body.referenceMessage;
         const sender = room?.users?.find((u) => u.userId === body.referenceMessage.fromUserId)
             ?.user;
