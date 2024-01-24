@@ -72,6 +72,9 @@ function Message({
     const user = useSelector(selectUser);
     const status = useSelector(selectMessageStatus(roomId, id));
     const message = useSelector(selectMessageById(roomId, id));
+
+    if (!message) return <Box>Error loading undefined message</Box>; // to be determined (this is just testing for determining bug on production -  message destructure bug)
+
     const keyword = useSelector(selectKeyword(roomId));
 
     const [mouseOver, setMouseOver] = useState(false);
@@ -323,6 +326,9 @@ function MessageBodyContainer({
     const user = useSelector(selectUser);
 
     const message = useSelector(selectMessageById(roomId, id));
+
+    if (!message) return <Box>Error loading undefined message</Box>; // to be determined (this is just testing for determining bug on production -  message destructure bug)
+
     const { fromUserId, body, type, replyId, deleted, progress } = message;
     const roomType = useRoomType();
 
