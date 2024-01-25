@@ -256,6 +256,18 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const id = parseInt((req.params.id as string) || "");
             const { userIds, name, avatarFileId, action } = req.body;
 
+            if (!id) {
+                return res
+                    .status(404)
+                    .send(errorResponse("Room id parameter is required.", userReq.lang));
+            }
+
+            if (!action) {
+                return res
+                    .status(404)
+                    .send(errorResponse("Action field is required.", userReq.lang));
+            }
+
             const room = await prisma.room.findFirst({
                 where: { id, deleted: false },
                 include: { users: true },
@@ -311,10 +323,6 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     break;
                 case UpdateGroupAction.ADD_ADMINS:
                     if (shouldUpdateUsers) {
-                        if (!userIds.includes(userReq.user.id)) {
-                            userIds.push(userReq.user.id);
-                        }
-
                         resultUserIds = await addRoomAdminUsers({
                             room,
                             addedAdminUserIds: userIds,
@@ -323,10 +331,6 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     break;
                 case UpdateGroupAction.REMOVE_ADMINS:
                     if (shouldUpdateUsers) {
-                        if (!userIds.includes(userReq.user.id)) {
-                            userIds.push(userReq.user.id);
-                        }
-
                         resultUserIds = await removeRoomAdminUsers({
                             room,
                             removedAdminUserIds: userIds,
@@ -1519,6 +1523,7 @@ async function sendUpdateRoomSystemMessages({
 }) {
     switch (action) {
         case UpdateGroupAction.ADD_USERS:
+        case UpdateGroupAction.REMOVE_USERS:
             await sendUpdateRoomUsersSystemMessage({
                 action,
                 room,
@@ -1528,11 +1533,16 @@ async function sendUpdateRoomSystemMessages({
                 userIds,
             });
             break;
-        case UpdateGroupAction.REMOVE_USERS:
-            break;
         case UpdateGroupAction.ADD_ADMINS:
-            break;
         case UpdateGroupAction.REMOVE_ADMINS:
+            await sendUpdateRoomUsersSystemMessage({
+                action,
+                room,
+                user,
+                rabbitMQChannel,
+                isUpdatingAdmins: true,
+                userIds,
+            });
             break;
         case UpdateGroupAction.CHANGE_NAME:
         case UpdateGroupAction.CHANGE_AVATAR:
