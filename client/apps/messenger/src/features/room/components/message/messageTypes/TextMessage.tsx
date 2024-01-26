@@ -7,6 +7,7 @@ import { useParams } from "react-router-dom";
 import { selectChangeTerm } from "../../../slices/messages";
 import { useTheme } from "@mui/material/styles";
 import useStrings from "../../../../../hooks/useStrings";
+import { selectRightSidebarOpen } from "../../../slices/rightSidebar";
 
 interface ThumbnailData {
     title: string;
@@ -39,14 +40,16 @@ export default function TextMessage({
     const changeTerm = useSelector(selectChangeTerm({ text: filterText(body.text), roomId, id }));
     const themeObject = useTheme();
     const isMobile = useMediaQuery(themeObject.breakpoints.down("md"));
+    const isScreenSizeDecreased = useMediaQuery(themeObject.breakpoints.down("lg"));
+
     const strings = useStrings();
     const [isSeeMoreClicked, setIsSeeMoreClicked] = useState(false);
     const isDark = themeObject.palette.mode === "dark";
 
     const maxTextCharsToShow = isMobile ? 300 : 2000;
     const maxTextLinesToShow = isMobile ? 10 : 25;
-    const maxTextCharsForSmallLinkThumbnail = 400;
-    const maxTextLinesForSmallLinkThumbnail = 5;
+    const maxTextCharsForSmallLinkThumbnail = 150;
+    const maxTextLinesForSmallLinkThumbnail = 2;
 
     const textMessageContainerRef = useRef(null);
 
@@ -70,8 +73,10 @@ export default function TextMessage({
     const isLinkThumbnailExpanded =
         thumbnail &&
         !isMobile &&
+        !isScreenSizeDecreased &&
         (filteredText.length > maxTextCharsForSmallLinkThumbnail ||
-            filteredText.split("\n").length > maxTextLinesForSmallLinkThumbnail);
+            filteredText.split("\n").length > maxTextLinesForSmallLinkThumbnail ||
+            (filteredText.split("\n").length > 1 && filteredText.length > 80));
 
     const textToShow = getTextToShow(
         filteredText,
@@ -184,6 +189,8 @@ interface Props {
 
 function Thumbnail({ thumbnailData, isExpanded, isUsersMessage }: Props) {
     const [imageError, setImageError] = useState(false);
+    const description = thumbnailData?.description || thumbnailData.url.split("/")[2];
+    const isRightSidebarOpen = useSelector(selectRightSidebarOpen);
 
     return (
         <Box
@@ -234,18 +241,19 @@ function Thumbnail({ thumbnailData, isExpanded, isUsersMessage }: Props) {
                         {thumbnailData.title}
                     </Typography>
                 )}
-                {thumbnailData?.description && (
+                {description && (
                     <Typography
                         p="0 10px 6px 10px"
                         fontWeight={400}
                         fontSize="12px"
                         fontFamily="inherit"
-                        maxWidth="50ch"
-                        overflow="hidden"
-                        textOverflow="ellipsis"
-                        whiteSpace="nowrap"
+                        sx={{
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: !isExpanded || isRightSidebarOpen ? "nowrap" : "normal",
+                        }}
                     >
-                        {thumbnailData.description}
+                        {description}
                     </Typography>
                 )}
             </Box>
