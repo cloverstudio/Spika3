@@ -48,6 +48,10 @@ export default function ForwardMessageModal() {
     const isOpen = useAppSelector((state) => state.messages[roomId]?.showForwardMessageModal);
 
     useEffect(() => {
+        if (isOpen) {
+            dispatch(fetchContacts());
+            dispatch(fetchGroupMessageRooms());
+        }
         return () => {
             setSelectedGroups([]);
             setSelectedUsers([]);
@@ -180,7 +184,7 @@ function ForwardToList({
     const isFetching = loading === "pending";
     const [displayGroups, setDisplayGroups] = useState(false);
     const { sortedByDisplayName, groupsSortedByDisplayName } = useSelector(
-        selectContacts({ displayBots: false }),
+        selectContacts({ displayBots: false, excludeBlocked: true }),
     );
 
     const searchKeyword = useAppSelector((state) => state.contacts.keyword);
@@ -200,13 +204,8 @@ function ForwardToList({
 
     useEffect(() => {
         dispatch(fetchRecentChats());
-    }, []);
-
-    useEffect(() => {
         return () => {
             dispatch(setKeyword(""));
-            dispatch(fetchContacts());
-            dispatch(fetchGroupMessageRooms());
         };
     }, [dispatch]);
 

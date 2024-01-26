@@ -13,7 +13,11 @@ import {
 } from ".prisma/client";
 
 type SanitizedUserType = Partial<
-    Omit<User, "createdAt" | "modifiedAt"> & { createdAt: number; modifiedAt: number }
+    Omit<User, "createdAt" | "modifiedAt"> & {
+        createdAt: number;
+        modifiedAt: number;
+        blockedBy?: { userId: number }[];
+    }
 >;
 type SanitizedDeviceType = Partial<Omit<Device, "tokenExpiredAt"> & { tokenExpiredAt?: number }>;
 type SanitizedRoomUserType = {
@@ -354,7 +358,8 @@ function sanitizeUser({
     shortDescription,
     longDescription,
     coverFileId,
-}: Partial<User>): SanitizedUserType {
+    blockedBy,
+}: Partial<User & { blockedBy?: { userId: number }[] }>): SanitizedUserType {
     return {
         id,
         displayName,
@@ -370,6 +375,7 @@ function sanitizeUser({
         shortDescription,
         longDescription,
         coverFileId,
+        blockedBy,
     };
 }
 

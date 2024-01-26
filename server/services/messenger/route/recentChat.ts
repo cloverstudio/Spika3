@@ -68,7 +68,17 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     where: {
                         deleted: false,
                         roomId: { in: roomIds },
-                        room: { users: { every: { user: { isBot: false } } } },
+                        room: {
+                            users: {
+                                every: {
+                                    user: {
+                                        isNot: {
+                                            blockedBy: { some: { user: { id: userReq.user.id } } },
+                                        },
+                                    },
+                                },
+                            },
+                        },
                     },
                     distinct: ["roomId"],
                     orderBy: {
