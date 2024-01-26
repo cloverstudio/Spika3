@@ -148,7 +148,7 @@ export const contactsSlice = createSlice({
 export const {} = contactsSlice.actions;
 
 export const selectContacts =
-    (options: { displayBots: boolean; showRecentChats?: boolean }) =>
+    (options: { displayBots: boolean; excludeBlocked?: boolean }) =>
     (
         state: RootState,
     ): ContactsState & {
@@ -156,7 +156,12 @@ export const selectContacts =
         groupsSortedByDisplayName: [string, Room[]][];
     } => {
         const sortedByDisplayNameObj = state.contacts.list
-            .filter((u) => u.isBot === options.displayBots)
+            .filter(
+                (u) =>
+                    u.isBot === options.displayBots &&
+                    (!options.excludeBlocked ||
+                        !u.blockedBy?.some((bb) => bb.userId === state.user.id)),
+            )
             .reduce((acc: any, user) => {
                 if (user.displayName) {
                     const firstLetter = user.displayName[0].toLocaleUpperCase();

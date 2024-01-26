@@ -98,6 +98,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                             id: cursor,
                         },
                     }),
+                    include: { blockedBy: { select: { userId: true } } },
                     take,
                 });
 
