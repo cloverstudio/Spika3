@@ -4,6 +4,7 @@ import { dynamicBaseQuery } from "../../../api/api";
 
 import type { RootState } from "../../../store/store";
 import { Room } from "@prisma/client";
+import { RoomUserType } from "../../../types/Rooms";
 
 interface ContactsState {
     list: User[];
@@ -148,7 +149,12 @@ export const contactsSlice = createSlice({
 export const {} = contactsSlice.actions;
 
 export const selectContacts =
-    (options: { displayBots: boolean; excludeBlocked?: boolean }) =>
+    (options: {
+        displayBots: boolean;
+        excludeBlocked?: boolean;
+        hideExistingMembers?: boolean;
+        existingMembers?: RoomUserType[];
+    }) =>
     (
         state: RootState,
     ): ContactsState & {
@@ -160,7 +166,9 @@ export const selectContacts =
                 (u) =>
                     u.isBot === options.displayBots &&
                     (!options.excludeBlocked ||
-                        !u.blockedBy?.some((bb) => bb.userId === state.user.id)),
+                        !u.blockedBy?.some((bb) => bb.userId === state.user.id)) &&
+                    (!options.hideExistingMembers ||
+                        !options.existingMembers?.some((em) => em.userId === u.id)),
             )
             .reduce((acc: any, user) => {
                 if (user.displayName) {

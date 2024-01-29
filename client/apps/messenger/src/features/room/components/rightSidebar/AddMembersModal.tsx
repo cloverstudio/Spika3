@@ -43,10 +43,7 @@ export default function AddMembersModal(props: AddMembersModalProps) {
     };
 
     const handleUserClick = (user: User): void => {
-        const userIsSelected = [
-            ...selectedUsers.map(({ id }) => id),
-            ...existingMembers.map((u) => u.userId),
-        ].includes(user.id);
+        const userIsSelected = [...selectedUsers.map(({ id }) => id)].includes(user.id);
 
         const users = userIsSelected
             ? selectedUsers.filter(({ id }) => id !== user.id)
@@ -103,11 +100,10 @@ export default function AddMembersModal(props: AddMembersModalProps) {
                         hideSearchBox
                         hideBots
                         handleUserClick={handleUserClick}
-                        selectedUserIds={[
-                            ...selectedUsers.map(({ id }) => id),
-                            ...existingMembers.map((u) => u.userId),
-                        ]}
+                        selectedUserIds={[...selectedUsers.map(({ id }) => id)]}
                         hideDescription
+                        existingMembers={existingMembers}
+                        hideExistingMembers
                     />
                 </Box>
 
