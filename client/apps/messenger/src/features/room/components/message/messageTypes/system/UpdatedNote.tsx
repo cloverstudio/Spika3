@@ -1,5 +1,7 @@
 import React from "react";
 import { Box, Typography } from "@mui/material";
+import { useAppDispatch } from "../../../../../../hooks";
+import { setActiveNoteId, showRightSidebar } from "../../../../slices/rightSidebar";
 
 export default function UpdateNoteSystemMessage({
     body,
@@ -10,6 +12,7 @@ export default function UpdateNoteSystemMessage({
         type: string;
         subject: string;
         objects: string[];
+        objectIds: number[];
     };
     createdAt: number;
 }): React.ReactElement {
@@ -18,6 +21,8 @@ export default function UpdateNoteSystemMessage({
         minute: "numeric",
         hour12: false,
     });
+
+    const dispatch = useAppDispatch();
 
     return (
         <Box textAlign="center" py={0.5}>
@@ -30,7 +35,22 @@ export default function UpdateNoteSystemMessage({
                 </Box>{" "}
                 updated note{" "}
                 <Box component="span" fontWeight="bold">
-                    {body.objects?.join(", ")}
+                    {body.objects?.map((o, i) => {
+                        const objectId = body.objectIds[i];
+                        return (
+                            <span
+                                key={objectId || i}
+                                onClick={() => {
+                                    if (!objectId) return;
+                                    dispatch(showRightSidebar());
+                                    dispatch(setActiveNoteId(objectId));
+                                }}
+                                style={{ cursor: "pointer" }}
+                            >
+                                {o}
+                            </span>
+                        );
+                    })}{" "}
                 </Box>
             </Typography>
         </Box>
