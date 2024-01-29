@@ -47,29 +47,26 @@ export function DetailsMemberView(props: DetailsMembersProps) {
     const handlePromoteToAdmin = (memberId: number) => {
         handleUpdateGroup({
             action: UpdateGroupAction.ADD_ADMINS,
-            adminUserIds: members
-                .filter((m) => m.isAdmin)
-                .map((u) => u.userId)
-                .concat(memberId),
+            userIds: [memberId],
         });
     };
 
     const removeMemberWithId = (memberId: number) => {
         handleUpdateGroup({
             action: UpdateGroupAction.REMOVE_USERS,
-            userIds: members.filter((m) => m.userId !== memberId).map((u) => u.userId),
+            userIds: [memberId],
         });
     };
 
-    const handleUpdateGroup = async (data: { userIds?: number[]; adminUserIds?: number[] ; action: UpdateGroupAction}) => {
+    const handleUpdateGroup = async (data: { userIds?: number[]; action: UpdateGroupAction }) => {
         await update({ roomId, data }).unwrap();
     };
 
     const handleAddMembers = (addIds: number[]) => {
         if (addIds.length > 0) {
-            handleUpdateGroup({ 
+            handleUpdateGroup({
                 action: UpdateGroupAction.ADD_USERS,
-                userIds: [...addIds, ...members.map((m) => m.userId)] 
+                userIds: [...addIds],
             });
         }
 
@@ -79,9 +76,7 @@ export function DetailsMemberView(props: DetailsMembersProps) {
     const removeAdminStatus = (memberId: number) => {
         handleUpdateGroup({
             action: UpdateGroupAction.REMOVE_ADMINS,
-            adminUserIds: members
-                .filter((m) => m.isAdmin && m.userId !== memberId)
-                .map((u) => u.userId),
+            userIds: [memberId],
         });
     };
 
@@ -184,6 +179,7 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                                                     onDismissAsAdmin={() =>
                                                         removeAdminStatus(user.id)
                                                     }
+                                                    hideRemove={roomUser.isAdmin}
                                                 />
                                             )}
                                         </Box>
@@ -227,9 +223,16 @@ type UserMenuProps = {
     onPromote?: () => void;
     onOpenChat: () => void;
     onDismissAsAdmin?: () => void;
+    hideRemove?: boolean;
 };
 
-function UserMenu({ onRemove, onPromote, onOpenChat, onDismissAsAdmin }: UserMenuProps) {
+function UserMenu({
+    onRemove,
+    onPromote,
+    onOpenChat,
+    onDismissAsAdmin,
+    hideRemove,
+}: UserMenuProps) {
     const strings = useStrings();
 
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -265,14 +268,16 @@ function UserMenu({ onRemove, onPromote, onOpenChat, onDismissAsAdmin }: UserMen
                         {strings.dismissAsAdmin}
                     </MenuItem>
                 )}
-                <MenuItem
-                    onClick={() => {
-                        onRemove();
-                        handleClose();
-                    }}
-                >
-                    {strings.remove}
-                </MenuItem>
+                {!hideRemove && (
+                    <MenuItem
+                        onClick={() => {
+                            onRemove();
+                            handleClose();
+                        }}
+                    >
+                        {strings.remove}
+                    </MenuItem>
+                )}
                 {onPromote && (
                     <MenuItem
                         onClick={() => {
