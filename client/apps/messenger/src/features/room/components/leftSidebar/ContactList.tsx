@@ -24,6 +24,7 @@ import SearchBox from "../SearchBox";
 import useStrings from "../../../../hooks/useStrings";
 import { useAppDispatch, useAppSelector } from "../../../../hooks";
 import { showNoteEditModal } from "../../slices/rightSidebar";
+import { RoomUserType } from "../../../../types/Rooms";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -33,12 +34,16 @@ export default function SidebarContactList({
     selectedUserIds,
     hideBots,
     hideDescription,
+    existingMembers = [],
+    hideExistingMembers,
 }: {
     handleUserClick?: (user: User) => void;
     hideSearchBox?: boolean;
     selectedUserIds?: number[];
     hideBots?: boolean;
     hideDescription?: boolean;
+    existingMembers?: RoomUserType[];
+    hideExistingMembers?: boolean;
 }): React.ReactElement {
     const strings = useStrings();
     const dispatch = useAppDispatch();
@@ -46,11 +51,9 @@ export default function SidebarContactList({
     const isFetching = loading === "pending";
     const [displayBots, setDisplayBots] = React.useState(false);
 
-    const { sortedByDisplayName } = useSelector(selectContacts({ displayBots }));
-
-    const cursor = useAppSelector((state) => state.contacts.cursor);
-    const count = useAppSelector((state) => state.contacts.count);
-    const users = useAppSelector((state) => state.contacts.list);
+    const { sortedByDisplayName } = useSelector(
+        selectContacts({ displayBots, hideExistingMembers, existingMembers }),
+    );
 
     const allowToggle = !hideBots;
 
