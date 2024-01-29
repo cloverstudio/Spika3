@@ -54,9 +54,10 @@ export default function MessageReactions({ id }: MessageReactionsProps): React.R
             alignItems="end"
             justifyContent={isUsersMessage ? "flex-end" : "flex-start"}
             position="absolute"
-            bottom={0}
+            bottom="-23px"
             zIndex={1}
             sx={{
+                userSelect: "none",
                 ...(isUsersMessage ? { right: 18 } : { left: 0 }),
             }}
         >
@@ -65,7 +66,6 @@ export default function MessageReactions({ id }: MessageReactionsProps): React.R
                 direction="row"
                 bgcolor={isUsersMessage ? "common.myMessageBackground" : "background.paper"}
                 position="relative"
-                top="23px"
                 px={0.75}
                 sx={{
                     borderRadius: "1rem",
