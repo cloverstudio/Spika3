@@ -74,7 +74,7 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
             name: "download",
             text: strings.download,
             icon: <Download style={{ width: "14px", height: "14px" }} />,
-            show: message.type === "image",
+            show: message.type === "image" || message.type === "video",
             onClick: () => {
                 const fileId = message.body.fileId;
                 if (!fileId) return;

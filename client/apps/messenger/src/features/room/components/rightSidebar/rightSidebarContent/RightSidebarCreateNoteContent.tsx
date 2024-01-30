@@ -48,7 +48,6 @@ export default function RightSidebarCreateNoteContent(): React.ReactElement {
                 name="name"
                 minRows={20}
                 multiline
-                autoFocus
                 value={content}
                 onChange={({ target }) => setContent(target.value)}
             />

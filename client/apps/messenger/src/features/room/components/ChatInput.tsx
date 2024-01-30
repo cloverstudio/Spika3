@@ -349,8 +349,12 @@ function TextArea({ onSend }: { onSend: () => void }): React.ReactElement {
     useAutoSizeTextArea(inputRef, message);
 
     useEffect(() => {
-        inputRef.current.focus();
-    });
+        if (inputRef.current) {
+            inputRef.current.focus();
+            const messageLength = message.length;
+            inputRef.current.setSelectionRange(messageLength, messageLength);
+        }
+    }, [message]);
     const handleSetMessageText = (text: string) => dispatch(setInputText({ text, roomId }));
 
     return (
