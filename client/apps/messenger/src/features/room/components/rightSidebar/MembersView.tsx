@@ -43,6 +43,7 @@ export function DetailsMemberView(props: DetailsMembersProps) {
     const navigate = useNavigate();
 
     const userIsAdmin = members.find((u) => u.userId === userId).isAdmin;
+    const userIsLastAdmin = members.filter((m) => m.isAdmin).every((m) => m.userId === userId);
 
     const handlePromoteToAdmin = (memberId: number) => {
         handleUpdateGroup({
@@ -172,7 +173,7 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                                     {roomUser.isAdmin ? (
                                         <Box display="flex" gap={1} alignItems="center">
                                             <Typography>{strings.admin}</Typography>
-                                            {userIsAdmin && user.id !== userId && (
+                                            {userIsAdmin && user.id !== userId ? (
                                                 <UserMenu
                                                     onRemove={() => removeMemberWithId(user.id)}
                                                     onOpenChat={() => handleOpenChat(user.id)}
@@ -181,6 +182,20 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                                                     }
                                                     hideRemove={roomUser.isAdmin}
                                                 />
+                                            ) : userIsAdmin &&
+                                              user.id === userId &&
+                                              !userIsLastAdmin ? (
+                                                <UserMenu
+                                                    onRemove={() => removeMemberWithId(user.id)}
+                                                    onOpenChat={() => handleOpenChat(user.id)}
+                                                    onDismissAsAdmin={() =>
+                                                        removeAdminStatus(user.id)
+                                                    }
+                                                    hideRemove={roomUser.isAdmin}
+                                                    hideGoToChat={true}
+                                                />
+                                            ) : (
+                                                <></>
                                             )}
                                         </Box>
                                     ) : user.isBot ? (
@@ -224,6 +239,7 @@ type UserMenuProps = {
     onOpenChat: () => void;
     onDismissAsAdmin?: () => void;
     hideRemove?: boolean;
+    hideGoToChat?: boolean;
 };
 
 function UserMenu({
@@ -232,6 +248,7 @@ function UserMenu({
     onOpenChat,
     onDismissAsAdmin,
     hideRemove,
+    hideGoToChat,
 }: UserMenuProps) {
     const strings = useStrings();
 
@@ -289,14 +306,16 @@ function UserMenu({
                     </MenuItem>
                 )}
 
-                <MenuItem
-                    onClick={() => {
-                        onOpenChat();
-                        handleClose();
-                    }}
-                >
-                    {strings.goToChat}
-                </MenuItem>
+                {!hideGoToChat && (
+                    <MenuItem
+                        onClick={() => {
+                            onOpenChat();
+                            handleClose();
+                        }}
+                    >
+                        {strings.goToChat}
+                    </MenuItem>
+                )}
             </Menu>
         </div>
     );
