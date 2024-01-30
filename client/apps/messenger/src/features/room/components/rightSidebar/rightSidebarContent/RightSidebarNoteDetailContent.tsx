@@ -29,40 +29,42 @@ export default function RightSidebarNoteDetailContent() {
             <Typography variant="h6" mb={3}>
                 {data.note.title}
             </Typography>
-            <MuiMarkdown
-                overrides={{
-                    h1: {
-                        props: {
-                            fontSize: "1.25rem",
-                        },
-                    },
-                    h2: {
-                        props: {
-                            fontSize: "1.15rem",
-                        },
-                    },
-                    h3: {
-                        props: {
-                            fontSize: "1.05rem",
-                        },
-                    },
-                    h4: {
-                        props: {
-                            fontSize: "1.00rem",
-                        },
-                    },
-                    a: {
-                        props: {
-                            target: "_blank",
-                            style: {
-                                color: "inherit",
+            <Box sx={{ pb: 10 }}>
+                <MuiMarkdown
+                    overrides={{
+                        h1: {
+                            props: {
+                                fontSize: "1.25rem",
                             },
                         },
-                    },
-                }}
-            >
-                {data.note.content}
-            </MuiMarkdown>
+                        h2: {
+                            props: {
+                                fontSize: "1.15rem",
+                            },
+                        },
+                        h3: {
+                            props: {
+                                fontSize: "1.05rem",
+                            },
+                        },
+                        h4: {
+                            props: {
+                                fontSize: "1.00rem",
+                            },
+                        },
+                        a: {
+                            props: {
+                                target: "_blank",
+                                style: {
+                                    color: "inherit",
+                                },
+                            },
+                        },
+                    }}
+                >
+                    {data.note.content}
+                </MuiMarkdown>
+            </Box>
         </Box>
     );
 }
