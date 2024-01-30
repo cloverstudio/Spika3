@@ -38,7 +38,15 @@ export default function RightSidebarNotesContent(): React.ReactElement {
                     key={n.id}
                     onClick={() => dispatch(setActiveNoteId(n.id))}
                 >
-                    <Typography variant="body1" fontWeight="medium">
+                    <Typography
+                        variant="body1"
+                        fontWeight="medium"
+                        sx={{
+                            whiteSpace: "nowrap",
+                            textOverflow: "ellipsis",
+                            overflow: "hidden",
+                        }}
+                    >
                         {n.title}
                     </Typography>
 
