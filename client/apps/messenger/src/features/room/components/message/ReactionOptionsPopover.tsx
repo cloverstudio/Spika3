@@ -3,13 +3,18 @@ import React, { useEffect, useRef, useState } from "react";
 import { Box, Typography, useMediaQuery, useTheme } from "@mui/material";
 
 import { reactionEmojis } from "../../lib/consts";
-import { selectMessageReactions, showCustomEmojiModal } from "../../slices/messages";
+import {
+    selectMessageById,
+    selectMessageReactions,
+    showCustomEmojiModal,
+} from "../../slices/messages";
 import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import AddIcon from "@mui/icons-material/Add";
-import { useAppDispatch } from "../../../../hooks";
+import { useAppDispatch, useAppSelector } from "../../../../hooks";
 import useReactions from "../../../../hooks/useReactions";
 import { useMessageContainerContext } from "./MessagesContainer";
+import { selectRightSidebarOpen } from "../../slices/rightSidebar";
 
 type ReactionOptionsPopoverProps = {
     isUsersMessage: boolean;
@@ -31,9 +36,16 @@ export default function ReactionOptionsPopover({
     const roomId = parseInt(useParams().id || "");
     const dispatch = useAppDispatch();
     const { toggleReaction } = useReactions();
+    const message = useAppSelector(selectMessageById(roomId, messageId));
+    const replyMessage = useAppSelector(selectMessageById(roomId, message?.replyId));
+
+    const isRightSidebarOpen = useSelector(selectRightSidebarOpen);
+
+    const indentReactionPopover =
+        isRightSidebarOpen &&
+        (message.body.text?.length > 70 || replyMessage?.body.text?.length > 70);
 
     const reactions = useSelector(selectMessageReactions(roomId, messageId));
-
     const { messageContainerRef } = useMessageContainerContext();
     const reactionMenuRef = useRef(null);
 
@@ -71,13 +83,17 @@ export default function ReactionOptionsPopover({
 
     const styleModifier: any = {};
 
-    !isUsersMessage && !isMobile
+    !isUsersMessage && !isMobile && !indentReactionPopover
         ? (styleModifier.left = "-80px")
+        : !isUsersMessage && !isMobile && indentReactionPopover
+        ? (styleModifier.left = "-180px")
         : !isUsersMessage && isMobile
         ? (styleModifier.left = "0px")
         : null;
-    isUsersMessage && !isMobile
+    isUsersMessage && !isMobile && !indentReactionPopover
         ? (styleModifier.right = "-80px")
+        : isUsersMessage && !isMobile && indentReactionPopover
+        ? (styleModifier.right = "-180px")
         : isUsersMessage && isMobile
         ? (styleModifier.right = "0px")
         : null;
@@ -89,24 +105,21 @@ export default function ReactionOptionsPopover({
             {show ? (
                 <Box
                     sx={{
-                        ...styleModifier,
                         visibility: positionBottom || positionTop ? "visible" : "hidden",
                         position: "absolute",
                         bottom: positionBottom,
                         top: positionTop,
                         padding: "20px 12px",
+                        ...styleModifier,
                     }}
                     ref={reactionMenuRef}
                 >
                     <Box
                         sx={{
-                            ...{
-                                backgroundColor: isDarkTheme ? "background.paper" : "#fff",
-                                borderRadius: "5px",
-                                boxShadow: "0px 0px 5px 0px rgba(0,0,0,0.1)",
-
-                                zIndex: 1100,
-                            },
+                            backgroundColor: isDarkTheme ? "background.paper" : "#fff",
+                            borderRadius: "5px",
+                            boxShadow: "0px 0px 5px 0px rgba(0,0,0,0.1)",
+                            zIndex: 1100,
                         }}
                     >
                         <Box display="flex" gap="10px" alignItems="center" padding="2px">
