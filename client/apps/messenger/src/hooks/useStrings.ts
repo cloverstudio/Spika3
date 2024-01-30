@@ -161,6 +161,7 @@ const en = {
     yesterday: "Yesterday",
     seeMore: "See more",
     seeLess: "See less",
+    roomNotFound: "Room not found",
 };
 
 const strings = {

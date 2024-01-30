@@ -22,7 +22,7 @@ import {
     fetchRecentChats,
     setKeyword,
 } from "../../slices/contacts";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { hideForwardMessageModal, selectActiveMessage } from "../../slices/messages";
 import { useForwardMessageMutation } from "../../api/message";
 import { Room } from "@prisma/client";
@@ -32,11 +32,16 @@ import { CircularProgress } from "@mui/material";
 import { selectContacts, selectContactLoading } from "../../slices/contacts";
 
 import useIsInViewport from "../../../../hooks/useIsInViewport";
+import { dynamicBaseQuery } from "../../../../api/api";
+import { useCreateRoomMutation } from "../../api/room";
+import { showSnackBar } from "../../../../store/modalSlice";
 
 export default function ForwardMessageModal() {
     const strings = useStrings();
     const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
     const [selectedGroups, setSelectedGroups] = useState<Room[]>([]);
+
+    const navigate = useNavigate();
 
     const { theme } = useContext(ThemeContext);
     const [forwardMessage] = useForwardMessageMutation();
@@ -62,12 +67,31 @@ export default function ForwardMessageModal() {
         dispatch(hideForwardMessageModal(roomId));
     };
 
-    const handleSave = () => {
-        forwardMessage({
+    const handleSave = async () => {
+        const result = await forwardMessage({
             roomIds: selectedGroups.map((g) => g.id),
             messageIds: [activeMessage.id],
             userIds: selectedUsers.map((u) => u.id),
         });
+
+        if ("data" in result && selectedUsers.length === 1 && selectedGroups.length === 0) {
+            const userId = selectedUsers[0].id;
+            if (!userId) return;
+            try {
+                const res = await dynamicBaseQuery(`/messenger/rooms/users/${userId}`);
+                const room = res.data.room;
+                if (room.id) {
+                    navigate(`/rooms/${room.id}`);
+                }
+            } catch (error) {
+                dispatch(
+                    showSnackBar({
+                        severity: "error",
+                        text: strings.roomNotFound,
+                    }),
+                );
+            }
+        }
 
         closeModalHandler();
     };
