@@ -26,9 +26,6 @@ export default function EditNoteHeader() {
 
     const isSaveDisabled = initialTitle.title === title && initialContent.content === content;
 
-    console.log(initialTitle, "initialTitle");
-    console.log(initialContent, "initialContent");
-
     useEffect(() => {
         if (title && !initialTitle.isLoaded) {
             setInitialTitle({ title, isLoaded: true });
