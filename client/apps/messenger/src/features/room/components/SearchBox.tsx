@@ -30,6 +30,7 @@ export default function SearchBox({
                     </InputAdornment>
                 }
                 fullWidth
+                autoFocus
                 id="search"
                 placeholder={strings.search}
                 sx={{
