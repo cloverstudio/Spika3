@@ -46,6 +46,10 @@ enum UpdateGroupAction {
     CHANGE_AVATAR = "changeGroupAvatar",
 }
 
+enum UpdateGroupError {
+    REMOVED_LAST_ADMIN = "removedLastAdmin",
+}
+
 const leaveRoomSchema = yup.object().shape({
     body: yup.object().shape({
         adminUserIds: yup.array().of(yup.number().moreThan(0)).strict(),
@@ -331,11 +335,23 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     break;
                 case UpdateGroupAction.REMOVE_ADMINS:
                     if (shouldUpdateUsers) {
-                        resultUserIds = await removeRoomAdminUsers({
+                        const { removedAdminIds, updateError } = await removeRoomAdminUsers({
                             room,
                             removedAdminUserIds: userIds,
                             removedNotifier: sseRoomsRemovedNotify,
                         });
+
+                        if (updateError === UpdateGroupError.REMOVED_LAST_ADMIN) {
+                            return res
+                                .status(400)
+                                .send(
+                                    errorResponse(
+                                        "At least one admin should be in the group",
+                                        userReq.lang,
+                                    ),
+                                );
+                        }
+                        resultUserIds = removedAdminIds;
                     }
                     break;
                 case UpdateGroupAction.CHANGE_NAME:
@@ -1400,7 +1416,7 @@ async function removeRoomUsers({
     removedUserIds,
     removedNotifier,
 }: RemoveRoomUsersParams): Promise<number[]> {
-    const currentIds = room.users.map((u) => u.userId);
+    const currentIds = room.users.filter((u) => !u.isAdmin).map((u) => u.userId);
     const userIdsToRemove = removedUserIds.filter((id) => currentIds.includes(id));
     await prisma.roomUser.deleteMany({
         where: { roomId: room.id, userId: { in: userIdsToRemove }, isAdmin: false },
@@ -1441,17 +1457,25 @@ async function removeRoomAdminUsers({
     room,
     removedAdminUserIds,
     removedNotifier,
-}: RemoveRoomAdminUsersParams): Promise<number[]> {
+}: RemoveRoomAdminUsersParams): Promise<{
+    removedAdminIds: number[];
+    updateError?: UpdateGroupError;
+}> {
     const currentAdminIds = room.users.filter((u) => u.isAdmin).map((u) => u.userId);
-
     const userAdminIdsToRemove = currentAdminIds.filter((id) => removedAdminUserIds.includes(id));
+
+    // If action would remove all admins, return empty list with error.
+    if (currentAdminIds.length === userAdminIdsToRemove.length) {
+        return { removedAdminIds: [], updateError: UpdateGroupError.REMOVED_LAST_ADMIN };
+    }
+
     await prisma.roomUser.updateMany({
         where: { roomId: room.id, userId: { in: userAdminIdsToRemove }, isAdmin: true },
         data: { isAdmin: false },
     });
     removedNotifier(userAdminIdsToRemove, room.id);
 
-    return userAdminIdsToRemove;
+    return { removedAdminIds: userAdminIdsToRemove };
 }
 
 export async function isRoomMuted({
