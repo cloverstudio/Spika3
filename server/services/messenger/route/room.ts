@@ -1019,7 +1019,6 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                         limit: Constants.SYNC_LIMIT,
                         count,
                         hasNext,
-                        rooms: roomsSanitized,
                     },
                     userReq.lang,
                 ),

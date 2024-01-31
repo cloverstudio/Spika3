@@ -110,7 +110,6 @@ export default (): Router => {
                         count,
                         limit: Constants.SYNC_LIMIT,
                         hasNext,
-                        users: users.map((user) => sanitize(user).user()),
                     },
                     userReq.lang,
                 ),

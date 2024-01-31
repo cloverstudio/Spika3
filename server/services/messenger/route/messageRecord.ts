@@ -236,7 +236,6 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         limit: Constants.MESSAGE_RECORD_SYNC_LIMIT,
                         count,
                         hasNext,
-                        messageRecords: messageRecordsSanitized,
                     },
                     userReq.lang,
                 ),

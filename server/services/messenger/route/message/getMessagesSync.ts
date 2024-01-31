@@ -95,7 +95,6 @@ export default ({}: InitRouterParams): RequestHandler[] => {
                             limit: Constants.SYNC_LIMIT,
                             count,
                             hasNext,
-                            messages: sanitizedMessages,
                         },
                         userReq.lang,
                     ),
