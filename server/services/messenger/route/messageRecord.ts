@@ -197,8 +197,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         modifiedAt: { gte: userReq.device.createdAt },
                     },
                 },
-                take: Constants.SYNC_LIMIT,
-                skip: (page - 1) * Constants.SYNC_LIMIT,
+                take: Constants.MESSAGE_RECORD_SYNC_LIMIT,
+                skip: (page - 1) * Constants.MESSAGE_RECORD_SYNC_LIMIT,
                 include: { message: true },
                 orderBy: { modifiedAt: "asc" },
             });
@@ -227,13 +227,13 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 },
             }));
 
-            const hasNext = count > page * Constants.SYNC_LIMIT;
+            const hasNext = count > page * Constants.MESSAGE_RECORD_SYNC_LIMIT;
 
             res.send(
                 successResponse(
                     {
                         list: messageRecordsSanitized,
-                        limit: Constants.SYNC_LIMIT,
+                        limit: Constants.MESSAGE_RECORD_SYNC_LIMIT,
                         count,
                         hasNext,
                         messageRecords: messageRecordsSanitized,

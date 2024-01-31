@@ -12,6 +12,7 @@ export const GALLERY_IMAGE_PAGING_LIMIT = 6;
 
 export const TOKEN_VALID_DAY = 30;
 export const CONTACT_SYNC_LIMIT = 100;
+export const MESSAGE_RECORD_SYNC_LIMIT = 500;
 export const SYNC_LIMIT = 100;
 
 export const BACKDOOR_VERIFICATION_CODE = "000000";
