@@ -354,7 +354,7 @@ function TextArea({ onSend }: { onSend: () => void }): React.ReactElement {
             const messageLength = message.length;
             inputRef.current.setSelectionRange(messageLength, messageLength);
         }
-    }, [message]);
+    }, []);
     const handleSetMessageText = (text: string) => dispatch(setInputText({ text, roomId }));
 
     return (
