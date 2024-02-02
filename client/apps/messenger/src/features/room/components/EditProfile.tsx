@@ -50,8 +50,8 @@ export interface EditProfileProps {
 export function EditProfileView({ onClose, user }: EditProfileProps) {
     const strings = useStrings();
     const imageRef = useRef(null);
-    const [name, setName] = useState(user.displayName);
-    const [proposedName, setProposedName] = useState(user.displayName || "");
+    const [name, setName] = useState("");
+    const [proposedName, setProposedName] = useState("");
     const [file, setFile] = useState<File>();
     const [editProfileName, setEditProfileName] = useState(false);
     const [editProfilePicture, setEditProfilePicture] = useState(false);
@@ -74,6 +74,13 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
             setPushNotificationsAllowed(false);
         }
     }, []);
+
+    useEffect(() => {
+        if (user?.displayName) {
+            setName(user.displayName);
+            setProposedName(user.displayName);
+        }
+    }, [user?.displayName]);
 
     const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setProposedName(event.target.value);
