@@ -29,6 +29,7 @@ import {
     setIsThumbnailDataLoading,
     setIsThumbnailDataFetchingAborted,
     setThumbnailUrl,
+    setMessageCursorPosition,
 } from "../slices/input";
 import AddAttachment from "./AddAttachment";
 import Attachments from "./Attachments";
@@ -343,8 +344,36 @@ function TextArea({ onSend }: { onSend: () => void }): React.ReactElement {
 
     const strings = useStrings();
     const message = useSelector(selectInputText(roomId));
+    const replyMessage = useSelector(selectReplyMessage(roomId));
     const dispatch = useAppDispatch();
     const inputRef = useRef<HTMLTextAreaElement>();
+
+    const cursorPosition = useAppSelector(
+        (state) => state.input.list[roomId]?.messageCursorPosition,
+    );
+
+    const selection = window.getSelection().toString();
+
+    const getCursorPosition = () => {
+        if (inputRef.current) {
+            const startPosition = inputRef.current.selectionStart;
+            dispatch(setMessageCursorPosition({ roomId, position: startPosition }));
+        }
+    };
+
+    useEffect(() => {
+        if (replyMessage && inputRef.current) {
+            inputRef.current.focus();
+            inputRef.current.setSelectionRange(cursorPosition, cursorPosition);
+        }
+    }, [replyMessage]);
+
+    useEffect(() => {
+        if (inputRef.current && !selection) {
+            inputRef.current.focus();
+            inputRef.current.setSelectionRange(cursorPosition, cursorPosition);
+        }
+    }, [cursorPosition]);
 
     useAutoSizeTextArea(inputRef, message);
 
@@ -355,6 +384,7 @@ function TextArea({ onSend }: { onSend: () => void }): React.ReactElement {
             inputRef.current.setSelectionRange(messageLength, messageLength);
         }
     }, []);
+
     const handleSetMessageText = (text: string) => dispatch(setInputText({ text, roomId }));
 
     return (
@@ -377,7 +407,9 @@ function TextArea({ onSend }: { onSend: () => void }): React.ReactElement {
             }}
             onChange={({ target }) => {
                 handleSetMessageText(target.value);
+                getCursorPosition();
             }}
+            onClick={getCursorPosition}
             onKeyDown={(e) => {
                 if (e.key === "Enter" && e.shiftKey === true) {
                     handleSetMessageText(e.currentTarget.value);
@@ -385,6 +417,11 @@ function TextArea({ onSend }: { onSend: () => void }): React.ReactElement {
                     e.preventDefault();
                     onSend();
                 } else {
+                }
+            }}
+            onKeyUp={(e) => {
+                if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+                    getCursorPosition();
                 }
             }}
             placeholder={strings.typeHere}
