@@ -74,22 +74,30 @@ export default function ForwardMessageModal() {
             userIds: selectedUsers.map((u) => u.id),
         });
 
-        if ("data" in result && selectedUsers.length === 1 && selectedGroups.length === 0) {
-            const userId = selectedUsers[0].id;
-            if (!userId) return;
-            try {
-                const res = await dynamicBaseQuery(`/messenger/rooms/users/${userId}`);
-                const room = res.data.room;
-                if (room.id) {
-                    navigate(`/rooms/${room.id}`);
+        if (
+            "data" in result &&
+            ((selectedUsers.length === 1 && selectedGroups.length === 0) ||
+                (selectedUsers.length === 0 && selectedGroups.length === 1))
+        ) {
+            if (selectedGroups.length === 1) {
+                navigate(`/rooms/${selectedGroups[0].id}`);
+            } else {
+                const userId = selectedUsers[0].id;
+                if (!userId) return;
+                try {
+                    const res = await dynamicBaseQuery(`/messenger/rooms/users/${userId}`);
+                    const room = res.data.room;
+                    if (room.id) {
+                        navigate(`/rooms/${room.id}`);
+                    }
+                } catch (error) {
+                    dispatch(
+                        showSnackBar({
+                            severity: "error",
+                            text: strings.roomNotFound,
+                        }),
+                    );
                 }
-            } catch (error) {
-                dispatch(
-                    showSnackBar({
-                        severity: "error",
-                        text: strings.roomNotFound,
-                    }),
-                );
             }
         }
 
