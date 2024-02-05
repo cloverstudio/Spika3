@@ -29,6 +29,7 @@ import {
     editMessage,
     removeMessageRecord,
 } from "../features/room/slices/messages";
+import UserType from "../types/User";
 
 export default async function handleSSE(event: MessageEvent): Promise<void> {
     const data = event.data ? JSON.parse(event.data) : {};
@@ -82,9 +83,11 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                     .filter(([key]) => key.startsWith("getRoom("))
                     .map(([_, val]) => val);
 
-                const getRoomQuery = getRoomQueries.find((q) => q.originalArgs === message.roomId);
+                const getRoomQueryData = getRoomQueries.find(
+                    (q) => q.originalArgs === message.roomId,
+                ).data as RoomType;
 
-                isMuted = getRoomQuery?.data?.muted;
+                isMuted = getRoomQueryData.muted;
             }
 
             // play sound logic
@@ -186,7 +189,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
             }
 
             store.dispatch(fetchContacts());
-            const queries = store.getState().api.queries;
+            const queries = (store.getState() as RootState).api.queries;
 
             if (!queries) {
                 return;
@@ -201,14 +204,30 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                 )
                 .map(([_, val]) => val);
 
-            if (!getRoomQueries.length) {
-                return;
+            if (getRoomQueries.length) {
+                for (const query of getRoomQueries) {
+                    store.dispatch(
+                        api.util.invalidateTags([
+                            { type: "Rooms", id: query.originalArgs as number },
+                        ]),
+                    );
+                }
             }
 
-            for (const query of getRoomQueries) {
-                store.dispatch(
-                    api.util.invalidateTags([{ type: "Rooms", id: query.originalArgs as number }]),
-                );
+            const getUserQueries = Object.entries(queries)
+                .filter(
+                    ([key, val]) =>
+                        key.startsWith("getUser(") &&
+                        typeof val.data === "object" &&
+                        "user" in val?.data &&
+                        (val.data.user as UserType).id === user.id,
+                )
+                .map(([_, val]) => val);
+
+            if (getUserQueries.length) {
+                for (const query of getUserQueries) {
+                    store.dispatch(api.util.invalidateTags([{ type: "Auth", id: "me" }]));
+                }
             }
 
             return;
