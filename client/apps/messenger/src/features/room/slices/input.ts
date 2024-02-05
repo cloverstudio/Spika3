@@ -12,6 +12,7 @@ interface InitialState {
             type: string;
             replyMessage?: MessageType;
             editMessage?: MessageType;
+            messageCursorPosition?: number;
             thumbnailUrl?: string;
             thumbnailData?: {
                 title?: string;
@@ -88,7 +89,15 @@ export const inputSlice = createSlice({
         addEmoji: (state, { payload }: { payload: { roomId: number; emoji: string } }) => {
             const { emoji, roomId } = payload;
 
-            state.list[roomId].text += emoji;
+            if (!state.list[roomId]) return;
+
+            const text = state.list[roomId].text;
+            const cursorPosition = state.list[roomId].messageCursorPosition;
+            if (cursorPosition === undefined) return;
+            const updatedText = text.slice(0, cursorPosition) + emoji + text.slice(cursorPosition);
+
+            state.list[roomId].text = updatedText;
+            state.list[roomId].messageCursorPosition = cursorPosition + emoji.length;
         },
         setThumbnailUrl: (state, { payload }: { payload: { roomId: number; url: string } }) => {
             const { url, roomId } = payload;
@@ -121,6 +130,15 @@ export const inputSlice = createSlice({
 
             if (!state.list[roomId]) return;
             state.list[roomId].isThumbnailDataFetchingAborted = isAborted;
+        },
+        setMessageCursorPosition: (
+            state,
+            { payload }: { payload: { roomId: number; position: number } },
+        ) => {
+            const { roomId, position } = payload;
+
+            if (!state.list[roomId]) return;
+            state.list[roomId].messageCursorPosition = position;
         },
     },
     extraReducers: (builder) => {
@@ -206,4 +224,5 @@ export const {
     removeThumbnailData,
     setIsThumbnailDataLoading,
     setIsThumbnailDataFetchingAborted,
+    setMessageCursorPosition,
 } = inputSlice.actions;

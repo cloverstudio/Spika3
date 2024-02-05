@@ -95,6 +95,7 @@ export const ImagePreviewModal = () => {
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
+            if (!selectedMessageId) return;
             if (e.key === "ArrowLeft" && !isLoading && !isLeftArrowDisabled)
                 leftArrowClickHandler();
             else if (e.key === "ArrowRight" && !isLoading && !isRightArrowDisabled)
