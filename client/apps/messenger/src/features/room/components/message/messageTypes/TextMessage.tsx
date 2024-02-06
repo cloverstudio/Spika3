@@ -192,6 +192,9 @@ function Thumbnail({ thumbnailData, isExpanded, isUsersMessage }: Props) {
     const description = thumbnailData?.description || thumbnailData.url.split("/")[2];
     const isRightSidebarOpen = useSelector(selectRightSidebarOpen);
 
+    const screenSmallerThan1800px = useMediaQuery("(max-width: 1800px)");
+    const screenSmallerThan1400px = useMediaQuery("(max-width: 1400px)");
+
     return (
         <Box
             sx={{
@@ -250,7 +253,18 @@ function Thumbnail({ thumbnailData, isExpanded, isUsersMessage }: Props) {
                         sx={{
                             overflow: "hidden",
                             textOverflow: "ellipsis",
-                            whiteSpace: !isExpanded || isRightSidebarOpen ? "nowrap" : "normal",
+                            whiteSpace:
+                                !isExpanded ||
+                                (isRightSidebarOpen &&
+                                    (screenSmallerThan1800px || screenSmallerThan1400px))
+                                    ? "nowrap"
+                                    : "normal",
+                            maxWidth:
+                                isRightSidebarOpen && screenSmallerThan1400px
+                                    ? "10ch"
+                                    : isRightSidebarOpen && screenSmallerThan1800px
+                                    ? "15ch"
+                                    : "100%",
                         }}
                     >
                         {description}
