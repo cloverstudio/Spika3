@@ -67,7 +67,7 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
             setPositionBottom(null);
             setPositionTop(null);
         };
-    }, []);
+    }, [menuRef.current]);
 
     const menuOptions = [
         {
@@ -164,9 +164,8 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
     ];
 
     const styleModifier = {
-        visibility: !positionBottom && !positionTop ? "hidden" : "visible",
         position: "absolute",
-        display: "flex",
+        display: !positionBottom && !positionTop ? "none" : "flex",
         flexDirection: "column",
         backgroundColor: isDarkTheme ? "background.paper" : "#fff",
         boxShadow: "0px 1px 6px 0px rgba(0, 0, 0, 0.15)",
