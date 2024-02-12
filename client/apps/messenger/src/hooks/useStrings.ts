@@ -162,6 +162,11 @@ const en = {
     seeMore: "See more",
     seeLess: "See less",
     roomNotFound: "Room not found",
+    emojis: "Emojis",
+    gifs: "gifs",
+    noData: "No data to show",
+    anErrorHasOccurred: "An error has occurred",
+    searchGifs: "Search GIFs via GIPHY",
 };
 
 const strings = {

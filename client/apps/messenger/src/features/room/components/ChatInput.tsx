@@ -45,6 +45,7 @@ import DoDisturb from "@mui/icons-material/DoDisturb";
 import useAutoSizeTextArea from "../hooks/useAutoSizeTextArea";
 import { useAppDispatch, useAppSelector } from "../../../hooks";
 import linkifyHtml from "linkify-html";
+import useEscapeKey from "../../../hooks/useEscapeKey";
 
 export default function ChatInputContainer(): React.ReactElement {
     const dispatch = useAppDispatch();
@@ -153,6 +154,14 @@ function ChatInput({ handleSend, files }: ChatInputProps) {
     );
     const thumbnailData = useAppSelector((state) => state.input.list[roomId]?.thumbnailData);
 
+    const [hideTextInput, setHideTextInput] = useState(false);
+
+    const closeEmojiPicker = () => {
+        dispatch(setInputType({ roomId, type: "text" }));
+    };
+
+    useEscapeKey(closeEmojiPicker);
+
     const onSend = async () => {
         if (!editMessage && !replyMessage) {
             return handleSend();
@@ -180,14 +189,17 @@ function ChatInput({ handleSend, files }: ChatInputProps) {
         <>
             <Box width="100%" position="relative">
                 {inputType === "emoji" && (
-                    <EmojiPicker onSelect={(emoji) => dispatch(addEmoji({ roomId, emoji }))} />
+                    <EmojiPicker
+                        onSelect={(emoji) => dispatch(addEmoji({ roomId, emoji }))}
+                        setHideTextInput={setHideTextInput}
+                    />
                 )}
 
                 {replyMessage && <ReplyMessage message={replyMessage} />}
                 {!isThumbnailDataLoading && thumbnailData?.title && <MessageURLThumbnail />}
                 {isThumbnailDataLoading && <MessageURLThumbnailLoading />}
 
-                <TextInput onSend={onSend} />
+                {!hideTextInput && <TextInput onSend={onSend} />}
             </Box>
         </>
     );

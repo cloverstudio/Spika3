@@ -48,6 +48,8 @@ export default defineConfig(({ command, mode }) => {
             FCM_APP_ID: JSON.stringify(env.FCM_APP_ID),
             FCM_VAPID_KEY: JSON.stringify(env.FCM_VAPID_KEY),
             TEAM_MODE: JSON.stringify(env.TEAM_MODE),
+            GIPHY_API_KEY: JSON.stringify(env.GIPHY_API_KEY),
+            GIPHY_API_BASE_URL: JSON.stringify(env.GIPHY_API_BASE_URL),
         },
         server: {
             port: 3001,
