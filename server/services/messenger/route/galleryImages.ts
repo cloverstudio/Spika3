@@ -108,6 +108,7 @@ export default (): Router => {
                         },
                     });
 
+                    if (!deviceMessage) return null;
                     const body = deviceMessage.body;
 
                     const formattedBody = await formatMessageBody(body, imageMessage.type);
@@ -123,10 +124,14 @@ export default (): Router => {
                 }),
             );
 
+            const filteredImageMessagesList = imageMessagesList.filter((item) => item?.messageId);
+
             res.send(
                 successResponse(
                     {
-                        list: fetchNewer ? imageMessagesList : imageMessagesList.reverse(),
+                        list: fetchNewer
+                            ? filteredImageMessagesList
+                            : filteredImageMessagesList.reverse(),
                         hasMoreOlderImages,
                         hasMoreNewerImages,
                     },
