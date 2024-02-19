@@ -92,8 +92,10 @@ export const inputSlice = createSlice({
             if (!state.list[roomId]) return;
 
             const text = state.list[roomId].text;
-            const cursorPosition = state.list[roomId].messageCursorPosition;
-            if (cursorPosition === undefined) return;
+            const messageCursorPosition = state.list[roomId].messageCursorPosition;
+
+            const cursorPosition = messageCursorPosition ?? text.length;
+
             const updatedText = text.slice(0, cursorPosition) + emoji + text.slice(cursorPosition);
 
             state.list[roomId].text = updatedText;

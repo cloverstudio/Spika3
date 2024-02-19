@@ -356,7 +356,6 @@ function TextArea({ onSend }: { onSend: () => void }): React.ReactElement {
 
     const strings = useStrings();
     const message = useSelector(selectInputText(roomId));
-    const replyMessage = useSelector(selectReplyMessage(roomId));
     const dispatch = useAppDispatch();
     const inputRef = useRef<HTMLTextAreaElement>();
 
@@ -364,7 +363,7 @@ function TextArea({ onSend }: { onSend: () => void }): React.ReactElement {
         (state) => state.input.list[roomId]?.messageCursorPosition,
     );
 
-    const selection = window.getSelection().toString();
+    const isInputFocused = inputRef.current === document.activeElement;
 
     const getCursorPosition = () => {
         if (inputRef.current) {
@@ -373,29 +372,14 @@ function TextArea({ onSend }: { onSend: () => void }): React.ReactElement {
         }
     };
 
-    useEffect(() => {
-        if (replyMessage && inputRef.current) {
-            inputRef.current.focus();
-            inputRef.current.setSelectionRange(cursorPosition, cursorPosition);
-        }
-    }, [replyMessage]);
-
-    useEffect(() => {
-        if (inputRef.current && !selection) {
-            inputRef.current.focus();
-            inputRef.current.setSelectionRange(cursorPosition, cursorPosition);
-        }
-    }, [cursorPosition]);
-
     useAutoSizeTextArea(inputRef, message);
 
     useEffect(() => {
-        if (inputRef.current) {
+        if (!isInputFocused) {
             inputRef.current.focus();
-            const messageLength = message.length;
-            inputRef.current.setSelectionRange(messageLength, messageLength);
+            inputRef.current.setSelectionRange(cursorPosition, cursorPosition);
         }
-    }, []);
+    }, [message]);
 
     const handleSetMessageText = (text: string) => dispatch(setInputText({ text, roomId }));
 
