@@ -12,7 +12,7 @@ import AttachmentManager from "../../lib/AttachmentManager";
 import { useParams } from "react-router-dom";
 import CloseIcon from "@mui/icons-material/Close";
 import { useAppDispatch } from "../../../../hooks";
-import { setInputType } from "../../slices/input";
+import { setInputType, setReplyMessage } from "../../slices/input";
 
 declare const GIPHY_API_KEY: string;
 declare const GIPHY_API_BASE_URL: string;
@@ -212,6 +212,8 @@ function GifPicker() {
 
     const roomId = parseInt(useParams().id || "");
 
+    const dispatch = useAppDispatch();
+
     const limit = 50;
 
     const [dataToShow, setDataToShow] = useState<
@@ -273,7 +275,7 @@ function GifPicker() {
     };
     useEffect(() => {
         fetchGifs();
-
+        dispatch(setReplyMessage({ message: null, roomId }));
         return () => {
             setSearch("");
             setOffset(0);

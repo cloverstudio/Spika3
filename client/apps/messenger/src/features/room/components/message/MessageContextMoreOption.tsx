@@ -17,7 +17,7 @@ import {
     showForwardMessageModal,
     showMessageDetails,
 } from "../../slices/messages";
-import { setEditMessage } from "../../slices/input";
+import { setEditMessage, setMessageCursorPosition } from "../../slices/input";
 import { useShowSnackBar } from "../../../../hooks/useModal";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
@@ -131,6 +131,7 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
             show: isUsersMessage && message.type === "text" && !message.isForwarded,
             onClick: () => {
                 dispatch(setEditMessage({ roomId, message }));
+                dispatch(setMessageCursorPosition({ roomId, position: message.body.text.length }));
             },
         },
         {
