@@ -7,6 +7,8 @@ import getMessageStatus from "../lib/getMessageStatus";
 import { refreshHistory } from "./leftSidebar";
 import { RoomType } from "../../../types/Rooms";
 import FileUploader from "../../../utils/FileUploader";
+import linkifyHtml from "linkify-html";
+import validURL from "../../../utils/isValidURL";
 
 export const fetchMessages = createAsyncThunk(
     "messages/fetchMessages",
@@ -73,6 +75,19 @@ export const sendMessage = createAsyncThunk(
             }
         }
 
+        let hasLink = false;
+
+        if (type === "text") {
+            const urlInMessage = linkifyHtml(body.text)
+                ?.split("<a href=")[1]
+                ?.split(">")[0]
+                ?.replace(/"/g, "");
+
+            if (urlInMessage && validURL(urlInMessage)) {
+                hasLink = true;
+            }
+        }
+
         body.localId = localId;
 
         thunkAPI.dispatch(
@@ -83,6 +98,7 @@ export const sendMessage = createAsyncThunk(
                 status: "sending",
                 localId,
                 fromUserId,
+                hasLink,
             }),
         );
 
@@ -94,6 +110,7 @@ export const sendMessage = createAsyncThunk(
                     type,
                     body,
                     localId,
+                    hasLink,
                 },
                 method: "POST",
             });
@@ -441,14 +458,14 @@ export const getGalleryImages = createAsyncThunk(
         return response.data;
     },
 );
-
-type InitialState = {
-    [roomId: number]: {
+export const getRightSidebarMedia = createAsyncThunk(
+    "messages/getRightSidebarMedia",
+    async (data: {
         roomId: number;
-        loading: boolean;
-        messages: { [id: string]: MessageType & { progress?: number } };
-        reactions: { [messageId: string]: MessageRecordType[] };
-        galleryImages: {
+        itemsPerBatch: number;
+        cursor?: number;
+    }): Promise<{
+        list: {
             messageId: number;
             type: string;
             body: any;
@@ -456,6 +473,101 @@ type InitialState = {
             userId: number;
             username: string;
         }[];
+        count: number;
+    }> => {
+        let url = `/messenger/media?type=media&roomId=${data.roomId}&itemsPerBatch=${data.itemsPerBatch}`;
+
+        if (data.cursor) {
+            url += `&cursor=${data.cursor}`;
+        }
+
+        const response = await dynamicBaseQuery(url);
+
+        return response.data;
+    },
+);
+
+export const getRightSidebarFiles = createAsyncThunk(
+    "messages/getRightSidebarFiles",
+    async (data: {
+        roomId: number;
+        itemsPerBatch: number;
+        cursor?: number;
+    }): Promise<{
+        list: {
+            messageId: number;
+            type: string;
+            body: any;
+            date: Date;
+            userId: number;
+            username: string;
+        }[];
+        count: number;
+    }> => {
+        let url = `/messenger/media?type=file&roomId=${data.roomId}&itemsPerBatch=${data.itemsPerBatch}`;
+
+        if (data.cursor) {
+            url += `&cursor=${data.cursor}`;
+        }
+
+        const response = await dynamicBaseQuery(url);
+
+        return response.data;
+    },
+);
+
+export const getRightSidebarLinks = createAsyncThunk(
+    "messages/getRightSidebarLinks",
+    async (data: {
+        roomId: number;
+        itemsPerBatch: number;
+        cursor?: number;
+    }): Promise<{
+        list: {
+            messageId: number;
+            type: string;
+            body: any;
+            date: Date;
+            userId: number;
+            username: string;
+        }[];
+        count: number;
+    }> => {
+        let url = `/messenger/media?type=link&roomId=${data.roomId}&itemsPerBatch=${data.itemsPerBatch}`;
+
+        if (data.cursor) {
+            url += `&cursor=${data.cursor}`;
+        }
+
+        const response = await dynamicBaseQuery(url);
+
+        return response.data;
+    },
+);
+
+interface FileType {
+    messageId: number;
+    type: string;
+    body: any;
+    date: Date;
+    userId: number;
+    username: string;
+}
+
+type InitialState = {
+    [roomId: number]: {
+        roomId: number;
+        loading: boolean;
+        messages: { [id: string]: MessageType & { progress?: number } };
+        reactions: { [messageId: string]: MessageRecordType[] };
+        galleryImages: FileType[];
+        rightSidebarMedia: FileType[];
+        rightSidebarMediaCount: number;
+        rightSidebarFiles: FileType[];
+        rightSidebarFilesCount: number;
+        rightSidebarLinks: FileType[];
+        rightSidebarLinksCount: number;
+        loadingRightSidebarMedia: boolean;
         statusCounts: {
             [messageId: string]: {
                 seenCount: number;
@@ -500,6 +612,7 @@ export const messagesSlice = createSlice({
                     createdAt?: number;
                     progress?: number;
                     isForwarded?: boolean;
+                    hasLink?: boolean;
                 };
             },
         ) {
@@ -514,6 +627,7 @@ export const messagesSlice = createSlice({
                 createdAt = +Date.now(),
                 progress,
                 isForwarded,
+                hasLink,
             } = action.payload;
             const room = state[roomId];
 
@@ -536,6 +650,7 @@ export const messagesSlice = createSlice({
                 messageRecords: [],
                 progress,
                 isForwarded,
+                hasLink,
             };
         },
 
@@ -786,6 +901,13 @@ export const messagesSlice = createSlice({
                     roomId,
                     messages: {},
                     galleryImages: [],
+                    rightSidebarMedia: [],
+                    rightSidebarMediaCount: 0,
+                    rightSidebarFiles: [],
+                    rightSidebarFilesCount: 0,
+                    rightSidebarLinks: [],
+                    rightSidebarLinksCount: 0,
+                    loadingRightSidebarMedia: false,
                     reactions: {},
                     statusCounts: {},
                     loading: true,
@@ -834,6 +956,30 @@ export const messagesSlice = createSlice({
                 room.galleryImages = [];
             }
         },
+        resetRightSidebarMedia(state, action: { payload: number }) {
+            const roomId = action.payload;
+            const room = state[roomId];
+
+            if (room) {
+                room.rightSidebarMedia = [];
+            }
+        },
+        resetRightSidebarFiles(state, action: { payload: number }) {
+            const roomId = action.payload;
+            const room = state[roomId];
+
+            if (room) {
+                room.rightSidebarFiles = [];
+            }
+        },
+        resetRightSidebarLinks(state, action: { payload: number }) {
+            const roomId = action.payload;
+            const room = state[roomId];
+
+            if (room) {
+                room.rightSidebarLinks = [];
+            }
+        },
     },
     extraReducers: (builder) => {
         builder.addCase(
@@ -878,6 +1024,13 @@ export const messagesSlice = createSlice({
                     roomId,
                     messages: {},
                     galleryImages: [],
+                    rightSidebarMedia: [],
+                    rightSidebarMediaCount: 0,
+                    rightSidebarFiles: [],
+                    rightSidebarFilesCount: 0,
+                    rightSidebarLinks: [],
+                    rightSidebarLinksCount: 0,
+                    loadingRightSidebarMedia: false,
                     reactions: {},
                     statusCounts: {},
                     loading: true,
@@ -1002,6 +1155,13 @@ export const messagesSlice = createSlice({
                     roomId,
                     messages: {},
                     galleryImages: [],
+                    rightSidebarMedia: [],
+                    rightSidebarMediaCount: 0,
+                    rightSidebarFiles: [],
+                    rightSidebarFilesCount: 0,
+                    rightSidebarLinks: [],
+                    rightSidebarLinksCount: 0,
+                    loadingRightSidebarMedia: false,
                     reactions: {},
                     statusCounts: {},
                     loading: true,
@@ -1031,6 +1191,176 @@ export const messagesSlice = createSlice({
             room.galleryImagesHasMoreNewer = payload.hasMoreNewerImages;
             room.galleryImagesHasMoreOlder = payload.hasMoreOlderImages;
         });
+        builder.addCase(getGalleryImages.rejected, (state, { meta }) => {
+            const roomId = meta.arg.roomId;
+            const room = state[roomId];
+
+            if (room) {
+                room.loading = false;
+            }
+        });
+        builder.addCase(getRightSidebarMedia.pending, (state, { meta }) => {
+            const roomId = meta.arg.roomId;
+            const room = state[roomId];
+
+            if (!room) {
+                state[roomId] = {
+                    roomId,
+                    messages: {},
+                    galleryImages: [],
+                    rightSidebarMedia: [],
+                    rightSidebarMediaCount: 0,
+                    rightSidebarFiles: [],
+                    rightSidebarFilesCount: 0,
+                    rightSidebarLinks: [],
+                    rightSidebarLinksCount: 0,
+                    loadingRightSidebarMedia: false,
+                    reactions: {},
+                    statusCounts: {},
+                    loading: true,
+                    activeMessageId: null,
+                    targetMessageId: null,
+                    showDetails: false,
+                    showEmojiDetails: false,
+                    showForwardMessageModal: false,
+                    showCustomEmojiModal: false,
+                    showMessageOptions: false,
+                    showDelete: false,
+                };
+            } else {
+                room.loadingRightSidebarMedia = true;
+            }
+        });
+        builder.addCase(getRightSidebarMedia.fulfilled, (state, { payload, meta }) => {
+            const roomId = meta.arg.roomId;
+            const room = state[roomId];
+
+            if (!room) {
+                return;
+            }
+
+            room.loadingRightSidebarMedia = false;
+            room.rightSidebarMedia = room.rightSidebarMedia.length
+                ? [...room.rightSidebarMedia, ...payload.list]
+                : payload.list;
+            room.rightSidebarMediaCount = payload.count;
+        });
+        builder.addCase(getRightSidebarMedia.rejected, (state, { meta }) => {
+            const roomId = meta.arg.roomId;
+            const room = state[roomId];
+
+            if (room) {
+                room.loadingRightSidebarMedia = false;
+            }
+        });
+        builder.addCase(getRightSidebarFiles.pending, (state, { meta }) => {
+            const roomId = meta.arg.roomId;
+            const room = state[roomId];
+
+            if (!room) {
+                state[roomId] = {
+                    roomId,
+                    messages: {},
+                    galleryImages: [],
+                    rightSidebarMedia: [],
+                    rightSidebarMediaCount: 0,
+                    rightSidebarFiles: [],
+                    rightSidebarFilesCount: 0,
+                    rightSidebarLinks: [],
+                    rightSidebarLinksCount: 0,
+                    loadingRightSidebarMedia: false,
+                    reactions: {},
+                    statusCounts: {},
+                    loading: true,
+                    activeMessageId: null,
+                    targetMessageId: null,
+                    showDetails: false,
+                    showEmojiDetails: false,
+                    showForwardMessageModal: false,
+                    showCustomEmojiModal: false,
+                    showMessageOptions: false,
+                    showDelete: false,
+                };
+            } else {
+                room.loadingRightSidebarMedia = true;
+            }
+        });
+        builder.addCase(getRightSidebarFiles.fulfilled, (state, { payload, meta }) => {
+            const roomId = meta.arg.roomId;
+            const room = state[roomId];
+
+            if (!room) {
+                return;
+            }
+
+            room.loadingRightSidebarMedia = false;
+            room.rightSidebarFiles = room.rightSidebarFiles.length
+                ? [...room.rightSidebarFiles, ...payload.list]
+                : payload.list;
+            room.rightSidebarFilesCount = payload.count;
+        });
+        builder.addCase(getRightSidebarFiles.rejected, (state, { meta }) => {
+            const roomId = meta.arg.roomId;
+            const room = state[roomId];
+
+            if (room) {
+                room.loadingRightSidebarMedia = false;
+            }
+        });
+        builder.addCase(getRightSidebarLinks.pending, (state, { meta }) => {
+            const roomId = meta.arg.roomId;
+            const room = state[roomId];
+
+            if (!room) {
+                state[roomId] = {
+                    roomId,
+                    messages: {},
+                    galleryImages: [],
+                    rightSidebarMedia: [],
+                    rightSidebarMediaCount: 0,
+                    rightSidebarFiles: [],
+                    rightSidebarFilesCount: 0,
+                    rightSidebarLinks: [],
+                    rightSidebarLinksCount: 0,
+                    loadingRightSidebarMedia: false,
+                    reactions: {},
+                    statusCounts: {},
+                    loading: true,
+                    activeMessageId: null,
+                    targetMessageId: null,
+                    showDetails: false,
+                    showEmojiDetails: false,
+                    showForwardMessageModal: false,
+                    showCustomEmojiModal: false,
+                    showMessageOptions: false,
+                    showDelete: false,
+                };
+            } else {
+                room.loadingRightSidebarMedia = true;
+            }
+        });
+        builder.addCase(getRightSidebarLinks.fulfilled, (state, { payload, meta }) => {
+            const roomId = meta.arg.roomId;
+            const room = state[roomId];
+
+            if (!room) {
+                return;
+            }
+
+            room.loadingRightSidebarMedia = false;
+            room.rightSidebarLinks = room.rightSidebarLinks.length
+                ? [...room.rightSidebarLinks, ...payload.list]
+                : payload.list;
+            room.rightSidebarLinksCount = payload.count;
+        });
+        builder.addCase(getRightSidebarLinks.rejected, (state, { meta }) => {
+            const roomId = meta.arg.roomId;
+            const room = state[roomId];
+
+            if (room) {
+                room.loadingRightSidebarMedia = false;
+            }
+        });
     },
 });
 
@@ -1058,6 +1388,9 @@ export const {
     removeMessageRecord,
     setPreviewedImageMessageId,
     resetGalleryImages,
+    resetRightSidebarMedia,
+    resetRightSidebarFiles,
+    resetRightSidebarLinks,
 } = messagesSlice.actions;
 
 export const selectRoomMessages =

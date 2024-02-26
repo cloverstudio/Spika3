@@ -124,7 +124,11 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
             setLoading(true);
             await update({
                 roomId: roomData.id,
-                data: { action: UpdateGroupAction.CHANGE_AVATAR, name: proposedName, avatarFileId: 0 },
+                data: {
+                    action: UpdateGroupAction.CHANGE_AVATAR,
+                    name: proposedName,
+                    avatarFileId: 0,
+                },
             }).unwrap();
 
             setLoading(false);
@@ -167,10 +171,10 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
     const handleUpdateName = async () => {
         try {
             setLoading(true);
-                await update({
-                    roomId: roomData.id,
-                    data: { action: UpdateGroupAction.CHANGE_NAME, name: proposedName },
-                }).unwrap();
+            await update({
+                roomId: roomData.id,
+                data: { action: UpdateGroupAction.CHANGE_NAME, name: proposedName },
+            }).unwrap();
             setName(proposedName);
             setLoading(false);
             closeEditName();

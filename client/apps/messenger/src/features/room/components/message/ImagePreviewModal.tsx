@@ -66,7 +66,10 @@ export const ImagePreviewModal = () => {
     );
 
     useEffect(() => {
-        if (selectedMessageId && !galleryImages?.length) {
+        if (
+            (selectedMessageId && !galleryImages?.length) ||
+            galleryImages?.length > itemsPerBatch
+        ) {
             dispatch(
                 getGalleryImages({
                     roomId,
@@ -212,7 +215,7 @@ export const ImagePreviewModal = () => {
     const isImageSmallerThanThumbnail = body?.file?.metaData?.width < body?.thumb?.metaData?.width;
 
     return (
-        <Modal open={!!file} onClose={handleClose}>
+        <Modal open={!!file} onClose={handleClose} sx={{ backdropFilter: "blur(8px)" }}>
             <>
                 <Box display="flex" gap={2} justifyContent="end" mr={2} mt={2}>
                     <Box
@@ -508,22 +511,15 @@ function GalleryImageItem({
     isNewest,
 }: GalleryImageItemProps) {
     const [isHovered, setIsHovered] = useState(false);
-    const [loadingImageError, setLoadingImageError] = useState(false);
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-    const isDarkMode = theme.palette.mode === "dark";
 
     if (!galleryImage.body.thumbId || !galleryImage.body.fileId) {
         return null;
     }
 
     const formattedDate = getGalleryFormattedDate(galleryImage.date);
-    const src = loadingImageError
-        ? isDarkMode
-            ? ErrorImageDark
-            : ErrorImageLight
-        : `${DOWNLOAD_URL}/${galleryImage.body.thumbId}`;
 
     return (
         <Box
@@ -553,35 +549,109 @@ function GalleryImageItem({
                 </Box>
             )}
             <Box position="relative">
-                <Box
-                    component="img"
-                    height="85px"
-                    width="85px"
-                    draggable={false}
-                    sx={{
-                        userSelect: "none",
-                        touchAction: "none",
-                        pointerEvents: "none",
-                        objectFit: "cover",
-                        border: isActive ? "4px solid" : "none",
-                        borderColor: "primary.main",
-                    }}
-                    src={src}
-                    onError={() => setLoadingImageError(true)}
-                />
-                {galleryImage.type === "video" && (
-                    <PlayCircleFilled
-                        fontSize="large"
-                        sx={{
-                            position: "absolute",
-                            inset: 0,
-                            margin: "auto",
-                            backgroundColor: "background.default",
-                            borderRadius: "50%",
-                        }}
-                    />
-                )}
+                <ImageItem galleryImage={galleryImage} isActive={isActive} />
             </Box>
+        </Box>
+    );
+}
+
+interface ImageItemProp {
+    galleryImage: {
+        messageId: number;
+        type: string;
+        body: any;
+        date: Date;
+        userId: number;
+        username: string;
+    };
+    showHoveredOverlay?: boolean;
+    isActive?: boolean;
+    imgWidth?: string;
+    imgHeight?: string;
+}
+
+export function ImageItem({
+    galleryImage,
+    isActive,
+    imgWidth,
+    imgHeight,
+    showHoveredOverlay = false,
+}: ImageItemProp) {
+    const [loadingImageError, setLoadingImageError] = useState(false);
+
+    const [isHovered, setIsHovered] = useState(false);
+
+    const theme = useTheme();
+    const isDarkMode = theme.palette.mode === "dark";
+
+    const src = loadingImageError
+        ? isDarkMode
+            ? ErrorImageDark
+            : ErrorImageLight
+        : `${DOWNLOAD_URL}/${galleryImage.body.thumbId}`;
+
+    return (
+        <Box
+            position="relative"
+            onMouseEnter={() => showHoveredOverlay && setIsHovered(true)}
+            onMouseLeave={() => showHoveredOverlay && setIsHovered(false)}
+        >
+            <Box
+                component="img"
+                height={imgHeight || "85px"}
+                width={imgWidth || "85px"}
+                draggable={false}
+                sx={{
+                    display: "block",
+                    userSelect: "none",
+                    touchAction: "none",
+                    pointerEvents: "none",
+                    objectFit: "cover",
+                    border: isActive ? "4px solid" : "none",
+                    borderColor: "primary.main",
+                }}
+                src={src}
+                onError={() => setLoadingImageError(true)}
+            />
+            {galleryImage.type === "video" && (
+                <PlayCircleFilled
+                    fontSize="large"
+                    sx={{
+                        position: "absolute",
+                        inset: 0,
+                        margin: "auto",
+                        backgroundColor: "background.default",
+                        borderRadius: "50%",
+                    }}
+                />
+            )}
+            {isHovered && showHoveredOverlay && (
+                <Box
+                    sx={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        height: "100%",
+                        width: "100%",
+                        backgroundColor: "rgba(0, 0, 0, 0.65)",
+                        backdropFilter: "blur(2px)",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        color: "white",
+                        transition: "opacity 0.3s ease",
+                        opacity: 0,
+                        "&:hover": {
+                            opacity: 1,
+                        },
+                    }}
+                >
+                    <Box sx={{ fontSize: "12px", fontWeight: 600 }}>{galleryImage.username}</Box>
+                    <Box sx={{ fontSize: "12px", fontWeight: 400 }}>
+                        {getGalleryFormattedDate(galleryImage.date)}
+                    </Box>
+                </Box>
+            )}
         </Box>
     );
 }

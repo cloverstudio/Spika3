@@ -161,6 +161,8 @@ model Message {
   isForwarded Boolean  @default(false) @map(name: "isForwarded")
   replyId     Int?     @map(name: "reply_id")
 
+  hasLink Boolean @default(false) @map(name: "has_link")
+
   deviceMessages DeviceMessage[]
   messageRecords MessageRecord[]
 

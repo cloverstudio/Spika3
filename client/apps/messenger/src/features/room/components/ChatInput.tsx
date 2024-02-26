@@ -46,6 +46,7 @@ import useAutoSizeTextArea from "../hooks/useAutoSizeTextArea";
 import { useAppDispatch, useAppSelector } from "../../../hooks";
 import linkifyHtml from "linkify-html";
 import useEscapeKey from "../../../hooks/useEscapeKey";
+import validURL from "../../../utils/isValidURL";
 
 export default function ChatInputContainer(): React.ReactElement {
     const dispatch = useAppDispatch();
@@ -244,15 +245,6 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
 
     const handleSetMessageText = (text: string) => dispatch(setInputText({ text, roomId }));
 
-    function isValidURL(url: string) {
-        try {
-            new URL(url);
-            return true;
-        } catch (error) {
-            return false;
-        }
-    }
-
     useEffect(() => {
         if (!message) dispatch(removeThumbnailData({ roomId }));
 
@@ -263,7 +255,7 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
 
         if (urlInMessage === url) return;
 
-        if (urlInMessage && isValidURL(urlInMessage)) {
+        if (urlInMessage && validURL(urlInMessage)) {
             dispatch(setThumbnailUrl({ roomId, url: urlInMessage }));
             dispatch(setIsThumbnailDataLoading({ roomId, isLoading: true }));
         } else {

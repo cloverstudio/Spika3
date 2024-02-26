@@ -5,22 +5,26 @@ import Typography from "@mui/material/Typography";
 import ArrowBackIos from "@mui/icons-material/ArrowBackIos";
 import useStrings from "../../../../../hooks/useStrings";
 
-import { setActiveTab } from "../../../slices/rightSidebar";
+import { ActiveTabType, setActiveTab } from "../../../slices/rightSidebar";
 import { useAppDispatch } from "../../../../../hooks";
 
-export default function EditNoteHeader() {
-    const strings = useStrings();
+interface Props {
+    headerTitle: string;
+    activeTab?: ActiveTabType;
+}
+
+export default function NavigateBackHeader({ headerTitle, activeTab }: Props) {
     const dispatch = useAppDispatch();
 
     return (
         <>
             <IconButton
-                onClick={() => dispatch(setActiveTab("details"))}
+                onClick={() => dispatch(setActiveTab(activeTab || "details"))}
                 style={{ borderRadius: "10px" }}
             >
                 <ArrowBackIos sx={{ color: "primary.main", position: "relative", left: 3 }} />
             </IconButton>
-            <Typography variant="h6">{strings.settings}</Typography>
+            <Typography variant="h6">{headerTitle}</Typography>
         </>
     );
 }

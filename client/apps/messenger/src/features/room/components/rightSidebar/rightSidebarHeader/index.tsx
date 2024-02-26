@@ -15,7 +15,7 @@ import {
     setActiveTab,
 } from "../../../slices/rightSidebar";
 import EditNoteHeader from "./EditNoteHeader";
-import SettingsHeader from "./SettingsHeader";
+import NavigateBackHeader from "./NavigateBackHeader";
 import NoteDetailHeader from "./NoteDetailHeader";
 import useStrings from "../../../../../hooks/useStrings";
 import { useAppDispatch } from "../../../../../hooks";
@@ -79,7 +79,11 @@ export default function RightSidebarHeader({ type }: RightSidebarHeaderProps): R
         }
 
         if (activeTab === "settings") {
-            return <SettingsHeader />;
+            return <NavigateBackHeader headerTitle={strings.settings} />;
+        }
+
+        if (activeTab === "media") {
+            return <NavigateBackHeader headerTitle={strings.sharedMediaLinksAndDocs} />;
         }
     };
 

@@ -126,6 +126,7 @@ Table message {
   deleted Boolean [not null, default: false]
   isForwarded Boolean [not null, default: false]
   replyId Int
+  hasLink Boolean [not null, default: false]
   deviceMessages message_device [not null]
   messageRecords message_record [not null]
   localId String

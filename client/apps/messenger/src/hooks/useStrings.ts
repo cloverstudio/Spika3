@@ -167,6 +167,23 @@ const en = {
     noData: "No data to show",
     anErrorHasOccurred: "An error has occurred",
     searchGifs: "Search GIFs via GIPHY",
+    sharedMediaLinksAndDocs: "Shared Media, Links and Docs",
+    media: "Media",
+    links: "Links",
+    docs: "Docs",
+    thisMonth: "This month",
+    january: "January",
+    february: "February",
+    march: "March",
+    april: "April",
+    may: "May",
+    june: "June",
+    july: "July",
+    august: "August",
+    september: "September",
+    october: "October",
+    november: "November",
+    december: "December",
 };
 
 const strings = {
