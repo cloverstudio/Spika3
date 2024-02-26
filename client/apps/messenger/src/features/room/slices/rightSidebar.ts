@@ -1,7 +1,14 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { RootState } from "../../../store/store";
 
-type ActiveTabType = "details" | "notes" | "createNote" | "noteDetail" | "editNote" | "settings";
+export type ActiveTabType =
+    | "details"
+    | "notes"
+    | "createNote"
+    | "noteDetail"
+    | "editNote"
+    | "settings"
+    | "media";
 
 interface InitialState {
     activeTab: ActiveTabType;

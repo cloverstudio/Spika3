@@ -40,6 +40,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                 const type = req.body.type;
                 const body = req.body.body;
                 const localId = req.body.localId;
+                const hasLink = req.body.hasLink;
                 const replyId = parseInt(req.body.replyId as string) || undefined;
                 const fromUserId = userReq.user.id;
                 const fromDeviceId = userReq.device.id;
@@ -140,6 +141,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                         seenCount: 0,
                         localId,
                         replyId,
+                        hasLink,
                     },
                 });
 

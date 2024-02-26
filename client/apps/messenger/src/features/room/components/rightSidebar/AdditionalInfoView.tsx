@@ -86,6 +86,22 @@ export function DetailsAdditionalInfoView(props: Props) {
                     direction="row"
                     alignItems="center"
                     spacing={1}
+                    onClick={() => dispatch(setActiveTab("media"))}
+                    sx={{
+                        display: "flex",
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        width: "100%",
+                        cursor: "pointer",
+                    }}
+                >
+                    <Box component="span">{strings.sharedMediaLinksAndDocs}</Box>
+                    <ChevronRight />
+                </Stack>
+                <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
                     onClick={() => dispatch(setActiveTab("notes"))}
                     sx={{
                         display: "flex",

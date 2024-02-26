@@ -24,6 +24,7 @@ export default function RightSidebarNoteDetailContent() {
             sx={{
                 whiteSpace: "pre-wrap",
                 overflowY: "auto",
+                overflowX: "hidden",
             }}
         >
             <Typography variant="h6" mb={3}>

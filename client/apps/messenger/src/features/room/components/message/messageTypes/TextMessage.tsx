@@ -26,6 +26,8 @@ export default function TextMessage({
     isReply,
     id,
     showBoxShadow = true,
+    collapseLinkThumbnail,
+    customStyle,
 }: {
     body: any;
     isUsersMessage: boolean;
@@ -35,6 +37,8 @@ export default function TextMessage({
     isReply?: boolean;
     id?: number;
     showBoxShadow?: boolean;
+    collapseLinkThumbnail?: boolean;
+    customStyle?: { [key: string]: string | number };
 }) {
     const roomId = parseInt(useParams().id || "");
     const changeTerm = useSelector(selectChangeTerm({ text: filterText(body.text), roomId, id }));
@@ -71,6 +75,7 @@ export default function TextMessage({
         filteredText.split("\n").length > maxTextLinesToShow;
 
     const isLinkThumbnailExpanded =
+        !collapseLinkThumbnail &&
         thumbnail &&
         !isMobile &&
         !isScreenSizeDecreased &&
@@ -90,7 +95,10 @@ export default function TextMessage({
         <Box
             component={"div"}
             sx={{
-                maxWidth: thumbnail && !isLinkThumbnailExpanded ? "273px" : "100%",
+                maxWidth:
+                    thumbnail && !isLinkThumbnailExpanded && !collapseLinkThumbnail
+                        ? "273px"
+                        : "100%",
                 backgroundColor: isEmoji ? "transparent" : backgroundColor,
                 borderRadius: "10px",
                 padding: thumbnail ? 0 : "10px",
@@ -103,6 +111,7 @@ export default function TextMessage({
                 ...(showBoxShadow && !isEmoji && { boxShadow: "0 2px 5px 0 rgba(0, 0, 0, 0.10)" }),
                 ...(deleted && { "&:hover": { cursor: "default" } }),
                 wordBreak: "break-word",
+                ...customStyle,
             }}
         >
             {sender && (
@@ -150,7 +159,8 @@ export default function TextMessage({
                             },
                             ...(thumbnail && { ml: "10px", mt: "-10px", pb: "10px" }),
                         }}
-                        onClick={() => {
+                        onClick={(e) => {
+                            e.stopPropagation();
                             if (isSeeMoreClicked) {
                                 setIsSeeMoreClicked(false);
                             } else {
@@ -214,7 +224,7 @@ function Thumbnail({ thumbnailData, isExpanded, isUsersMessage }: Props) {
                     alignItems: "center",
                 }),
             }}
-            onClick={() => {
+            onClick={(e) => {
                 window.open(thumbnailData?.url, "_blank");
             }}
         >

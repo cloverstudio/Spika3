@@ -134,6 +134,7 @@ export default function sanitize(data: any): sanitizeTypes {
                 deleted,
                 replyId,
                 isForwarded,
+                hasLink,
             } = data as Message & { body: any };
 
             return {
@@ -151,6 +152,7 @@ export default function sanitize(data: any): sanitizeTypes {
                 replyId,
                 deleted,
                 isForwarded,
+                hasLink,
             };
         },
         messageWithReactionRecords: () => {
@@ -170,6 +172,7 @@ export default function sanitize(data: any): sanitizeTypes {
                 replyId,
                 messageRecords,
                 isForwarded,
+                hasLink,
             } = data as Message & { body: any; messageRecords: MessageRecord[] };
 
             return {
@@ -186,6 +189,7 @@ export default function sanitize(data: any): sanitizeTypes {
                 localId,
                 deleted,
                 isForwarded,
+                hasLink,
                 messageRecords: messageRecords
                     .filter((m) => m.type === "reaction")
                     .map(

@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { Box } from "@mui/material";
 
 import { RoomType } from "../../../../../types/Rooms";
-import { selectRightSidebarActiveTab } from "../../../slices/rightSidebar";
+import { ActiveTabType, selectRightSidebarActiveTab } from "../../../slices/rightSidebar";
 import { DetailsAdditionalInfoView } from "../AdditionalInfoView";
 import { DetailsBasicInfoView } from "../BasicInfoView";
 import { DetailsDestructiveActionsView } from "../DestructiveActionsView";
@@ -14,6 +14,7 @@ import RightSidebarEditNoteContent from "./RightSidebarEditNoteContent";
 import RightSidebarSettingsContent from "./RightSidebarSettingsContent";
 import RightSidebarNoteDetailContent from "./RightSidebarNoteDetailContent";
 import RightSidebarNotesContent from "./RightSidebarNotesContent";
+import RightSidebarMediaContent from "./RightSidebarMediaContent";
 
 type RightSidebarContentProps = {
     room: RoomType;
@@ -23,15 +24,17 @@ export default function RightSidebarContentContainer({
     room,
 }: RightSidebarContentProps): React.ReactElement {
     const activeTab = useSelector(selectRightSidebarActiveTab);
-    const addPadding = activeTab !== "details";
+    const addPadding = activeTab !== "details" && activeTab !== "media";
+
+    const height = getRightSidebarContentHeight(activeTab);
 
     return (
         <Box
             pt={addPadding ? 3 : 0}
             px={addPadding ? 2.5 : 0}
-            height="100vh"
+            height={height}
             pb={1}
-            sx={{ overflowY: "auto" }}
+            sx={{ ...(activeTab !== "media" && { overflowY: "auto" }) }}
         >
             <RightSidebarContent room={room} />
         </Box>
@@ -75,4 +78,14 @@ function RightSidebarContent({ room }: RightSidebarContentProps): React.ReactEle
     if (activeTab === "settings") {
         return <RightSidebarSettingsContent showApiKeySettings={room.type === "group"} />;
     }
+
+    if (activeTab === "media") {
+        return <RightSidebarMediaContent />;
+    }
 }
+
+const getRightSidebarContentHeight = (activeTab: ActiveTabType) => {
+    if (activeTab === "media") return "75vh";
+    if (activeTab === "details" || activeTab === "settings") return "100vh";
+    return "calc(100vh - 81px)";
+};
