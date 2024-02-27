@@ -36,7 +36,10 @@ export default function RightSidebarMediaContent() {
     const buttonStyle = {
         borderRadius: "10px",
         backgroundColor: "transparent",
-        width: "130px",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        width: "100%",
         height: "45px",
         padding: "10px",
         textAlign: "center",
@@ -53,11 +56,11 @@ export default function RightSidebarMediaContent() {
             <Box
                 sx={{
                     display: "flex",
-                    justifyContent: "center",
                     bgcolor: "background.paper",
                     borderRadius: "10px",
-                    mx: 2.5,
+                    maxWidth: "390px",
                     mt: 2,
+                    mx: "auto",
                 }}
             >
                 <Box

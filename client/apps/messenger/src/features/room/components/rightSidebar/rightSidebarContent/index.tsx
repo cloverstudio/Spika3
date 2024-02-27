@@ -85,7 +85,7 @@ function RightSidebarContent({ room }: RightSidebarContentProps): React.ReactEle
 }
 
 const getRightSidebarContentHeight = (activeTab: ActiveTabType) => {
-    if (activeTab === "media") return "75vh";
-    if (activeTab === "details" || activeTab === "settings") return "100vh";
+    if (activeTab === "details" || activeTab === "settings" || activeTab === "media")
+        return "100vh";
     return "calc(100vh - 81px)";
 };
