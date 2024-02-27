@@ -87,7 +87,11 @@ export default function MessagesContainer({
                     const ele = document.getElementById(`message_${targetMessageId}`);
 
                     if (ele && !scrolledToTargetMessage) {
-                        ele.scrollIntoView();
+                        ele.scrollIntoView({
+                            behavior: "smooth",
+                            block: "nearest",
+                            inline: "nearest",
+                        });
                         setScrolledToTargetMessage(true);
                         setLoading(false);
                     }
@@ -98,7 +102,7 @@ export default function MessagesContainer({
                 const ele = document.getElementById(`message_${targetMessageId}`);
 
                 if (ele && !scrolledToTargetMessage) {
-                    ele.scrollIntoView();
+                    ele.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
                     setScrolledToTargetMessage(true);
                     setLoading(false);
                 }
