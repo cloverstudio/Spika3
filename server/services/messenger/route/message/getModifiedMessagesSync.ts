@@ -90,6 +90,7 @@ export default ({}: InitRouterParams): RequestHandler[] => {
 
                 const hasNext = count > page * Constants.SYNC_LIMIT;
 
+                console.log(`debug ${count} ${page}  ${Constants.SYNC_LIMIT}`)
                 res.send(
                     successResponse(
                         {
