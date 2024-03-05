@@ -12,17 +12,16 @@ import LeftSidebar from "../features/room/LeftSidebar";
 import RightSidebar from "../features/room/RightSidebar";
 
 import {
-    hideRightSidebar,
     selectRightSidebarActiveNoteId,
+    selectRightSidebarActiveTab,
     selectRightSidebarOpen,
-    showRightSidebar,
 } from "../features/room/slices/rightSidebar";
 
 import { selectUserId, fetchMe, fetchSettings } from "../../src/store/userSlice";
 import * as constants from "../../../../lib/constants";
 import TitleUpdater from "../features/room/components/TitleUpdater";
 import homeImg from "../assets/home.svg";
-import { useAppDispatch } from "../hooks";
+import { useAppDispatch, useAppSelector } from "../hooks";
 
 export default function Home(): React.ReactElement {
     const theme = useTheme();
@@ -38,6 +37,8 @@ export default function Home(): React.ReactElement {
     const activeSidebarNoteId = useSelector(selectRightSidebarActiveNoteId);
 
     const loggedInUserId = useSelector(selectUserId);
+
+    const activeTab = useAppSelector(selectRightSidebarActiveTab);
 
     useEffect(() => {
         if (!loggedInUserId && window.localStorage.getItem(constants.LSKEY_ACCESSTOKEN)) {
@@ -67,7 +68,9 @@ export default function Home(): React.ReactElement {
                             ? `500px 3fr ${activeSidebarNoteId ? "640px" : "420px"}`
                             : "500px 4fr 0px",
                     },
-                    transition: "grid-template-columns 0.2s ease-in",
+                    ...(activeTab !== "search" && {
+                        transition: "grid-template-columns 0.2s ease-in",
+                    }),
                 }}
             >
                 {!isMobile && <LeftSidebar />}

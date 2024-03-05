@@ -85,6 +85,10 @@ export default function RightSidebarHeader({ type }: RightSidebarHeaderProps): R
         if (activeTab === "media") {
             return <NavigateBackHeader headerTitle={strings.sharedMediaLinksAndDocs} />;
         }
+
+        if (activeTab === "search") {
+            return <NavigateBackHeader headerTitle={strings.searchMessages} />;
+        }
     };
 
     return <RightSidebarHeaderContainer>{getSidebarContent()}</RightSidebarHeaderContainer>;

@@ -24,6 +24,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): RequestHandler[] => {
                 const id = parseInt((req.params.id as string) || "");
                 const text = req.body.text as string;
                 const thumbnailData = req.body.thumbnailData;
+                const hasLink = req.body.hasLink;
 
                 if (!text) {
                     return res.status(400).send(errorResponse("Text is required", userReq.lang));
@@ -88,7 +89,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): RequestHandler[] => {
 
                 message = await prisma.message.update({
                     where: { id },
-                    data: { modifiedAt: new Date() },
+                    data: { modifiedAt: new Date(), hasLink },
                     include: { deviceMessages: true },
                 });
 

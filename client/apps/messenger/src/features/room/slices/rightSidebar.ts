@@ -8,6 +8,7 @@ export type ActiveTabType =
     | "noteDetail"
     | "editNote"
     | "settings"
+    | "search"
     | "media";
 
 interface InitialState {

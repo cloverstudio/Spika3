@@ -8,6 +8,7 @@ export const galleryImageBatchLimitMobile = 3;
 export const rightSidebarMediaBatchLimit = 30;
 export const rightSidebarFilesBatchLimit = 10;
 export const rightSidebarLinkMessagesBatchLimit = 20;
+export const rightSidebarSearchMessagesBatchLimit = 20;
 
 export const SYSTEM_MESSAGE_TYPE = "system";
 export const SYSTEM_MESSAGE_TYPE_CREATE_GROUP = "created_group";
