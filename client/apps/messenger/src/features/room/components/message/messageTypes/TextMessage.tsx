@@ -8,6 +8,7 @@ import { selectChangeTerm } from "../../../slices/messages";
 import { useTheme } from "@mui/material/styles";
 import useStrings from "../../../../../hooks/useStrings";
 import { selectRightSidebarOpen } from "../../../slices/rightSidebar";
+import { useAppSelector } from "../../../../../hooks";
 
 interface ThumbnailData {
     title: string;
@@ -28,6 +29,7 @@ export default function TextMessage({
     showBoxShadow = true,
     collapseLinkThumbnail,
     customStyle,
+    highlightSearchedText,
 }: {
     body: any;
     isUsersMessage: boolean;
@@ -39,12 +41,15 @@ export default function TextMessage({
     showBoxShadow?: boolean;
     collapseLinkThumbnail?: boolean;
     customStyle?: { [key: string]: string | number };
+    highlightSearchedText?: boolean;
 }) {
     const roomId = parseInt(useParams().id || "");
     const changeTerm = useSelector(selectChangeTerm({ text: filterText(body.text), roomId, id }));
     const themeObject = useTheme();
     const isMobile = useMediaQuery(themeObject.breakpoints.down("md"));
     const isScreenSizeDecreased = useMediaQuery(themeObject.breakpoints.down("lg"));
+
+    const keyword = useAppSelector((state) => state.messages[roomId]?.keyword);
 
     const strings = useStrings();
     const [isSeeMoreClicked, setIsSeeMoreClicked] = useState(false);
@@ -65,7 +70,11 @@ export default function TextMessage({
         ? "common.myMessageBackground"
         : "background.paper";
 
-    const filteredText = changeTerm ? changeTerm.to : filterText(body.text);
+    const filteredText = changeTerm
+        ? changeTerm.to
+        : highlightSearchedText
+        ? getHighlightedSearchText(body.text, keyword)
+        : filterText(body.text);
     const isEmoji = !isReply && isSingleEmoji(filteredText);
 
     const thumbnail: ThumbnailData | undefined = body.thumbnailData;
@@ -199,7 +208,7 @@ interface Props {
 
 function Thumbnail({ thumbnailData, isExpanded, isUsersMessage }: Props) {
     const [imageError, setImageError] = useState(false);
-    const description = thumbnailData?.description || thumbnailData.url.split("/")[2];
+    const description = thumbnailData?.description || thumbnailData.url?.split("/")[2];
     const isRightSidebarOpen = useSelector(selectRightSidebarOpen);
 
     const screenSmallerThan1800px = useMediaQuery("(max-width: 1800px)");
@@ -309,4 +318,11 @@ function getTextToShow(
     }
 
     return text;
+}
+
+function getHighlightedSearchText(text: string, keyword: string | undefined) {
+    if (!keyword) return text;
+    return text.replace(new RegExp(keyword, "gi"), (match) => {
+        return `<mark style='background-color: #d7aa5a; color: #000000'>${match}</mark>`;
+    });
 }

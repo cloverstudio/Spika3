@@ -11,19 +11,23 @@ import useStrings from "../../../../hooks/useStrings";
 import { useBlockUserMutation } from "../../api/user";
 import {
     fetchMessages,
+    fetchTargetMessageBatch,
+    resetTargetMessageBatchProperties,
     selectCursor,
     selectOtherUserIdInPrivateRoom,
     selectRoomMessages,
     selectShouldDisplayBlockButton,
     selectTargetMessage,
     selectTargetMessageIsInList,
+    setFetchingTargetMessageBatchEnabled,
+    setIsInitialTargetMessageBatch,
     setTargetMessage,
 } from "../../slices/messages";
 import Message from "./Message";
 import MessagesContainer from "./MessagesContainer";
 import MessageType from "../../../../types/Message";
 import { ThemeContext } from "../../../../theme";
-import { useAppDispatch } from "../../../../hooks";
+import { useAppDispatch, useAppSelector } from "../../../../hooks";
 import SystemMessage from "./messageTypes/system/SystemMessage";
 
 const Date = memo(function Date({ day }: { day: string }) {
@@ -49,8 +53,12 @@ export default function MessagesList(): React.ReactElement {
     const messages = useSelector(selectRoomMessages(roomId));
 
     const cursor = useSelector(selectCursor(roomId));
+
     const shouldDisplayBlockButton = useSelector(selectShouldDisplayBlockButton(roomId));
     const otherUserId = useSelector(selectOtherUserIdInPrivateRoom(roomId));
+    const fetchingTargetMessageBatchEnabled = useAppSelector(
+        (state) => state.messages[roomId]?.fetchingTargetMessageBatchEnabled,
+    );
 
     const { theme } = useContext(ThemeContext);
 
@@ -100,10 +108,27 @@ export default function MessagesList(): React.ReactElement {
     }, [dispatch, messageId, roomId]);
 
     useEffect(() => {
-        if (typeof cursor === "undefined" && !targetMessageId) {
+        if (
+            typeof cursor === "undefined" &&
+            !targetMessageId &&
+            !fetchingTargetMessageBatchEnabled
+        ) {
             dispatch(fetchMessages({ roomId }));
         } else if (targetMessageId && !targetMessageIsInMessageList) {
-            dispatch(fetchMessages({ roomId, targetMessageId }));
+            dispatch(resetTargetMessageBatchProperties(roomId));
+            dispatch(
+                setFetchingTargetMessageBatchEnabled({
+                    roomId,
+                    fetchingTargetMessageBatchEnabled: true,
+                }),
+            );
+            dispatch(setIsInitialTargetMessageBatch({ roomId, isInitialTargetMessageBatch: true }));
+            dispatch(
+                fetchTargetMessageBatch({
+                    roomId,
+                    targetMessageId,
+                }),
+            );
         }
     }, [dispatch, roomId, targetMessageId, cursor, targetMessageIsInMessageList]);
 

@@ -14,6 +14,7 @@ import getModifiedMessagesSyncRoute from "./getModifiedMessagesSync";
 import searchMessagesRoute from "./searchMessages";
 import forwardMessageRoute from "./forwardMessage";
 import getLinkThumbnail from "./getLinkThumbnail";
+import getTargetMessagesBatchByRoom from "./getTargetMessageBatchByRoom";
 
 export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
     const router = Router();
@@ -30,6 +31,10 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
     // only web should call this route
     router.get("/search", searchMessagesRoute({ redisClient }));
     router.get("/roomId/:roomId", getMessagesByRoomRoute({ rabbitMQChannel, redisClient }));
+    router.get(
+        "/roomId/:roomId/target-message-batch",
+        getTargetMessagesBatchByRoom({ redisClient }),
+    );
 
     router.post("/delivered", createDeliveredMessageRecordRoute({ rabbitMQChannel }));
     router.post("/:roomId/seen", createSeenMessageRecordRoute({ rabbitMQChannel, redisClient }));

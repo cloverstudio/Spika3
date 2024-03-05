@@ -400,9 +400,9 @@ function LinksContent() {
                             >
                                 {linksSortedByMonth[month].map((item) => {
                                     return (
-                                        <LinkMessageItem
+                                        <MessageItem
                                             key={item.messageId}
-                                            linkMessage={item}
+                                            message={item}
                                             onClick={linkMessageClickHandler}
                                         />
                                     );
@@ -679,8 +679,9 @@ function FileItem({ file }: FileItemProps) {
     );
 }
 
-interface LinkMessageProps {
-    linkMessage: {
+interface MessageProps {
+    message: {
+        id?: number;
         messageId: number;
         type: string;
         body: any;
@@ -689,9 +690,10 @@ interface LinkMessageProps {
         username: string;
     };
     onClick: (messageId: number) => void;
+    highlightSearchedText?: boolean;
 }
 
-function LinkMessageItem({ linkMessage, onClick }: LinkMessageProps) {
+export function MessageItem({ message, onClick, highlightSearchedText = false }: MessageProps) {
     return (
         <Box
             sx={{
@@ -700,7 +702,7 @@ function LinkMessageItem({ linkMessage, onClick }: LinkMessageProps) {
                 borderRadius: "10px",
                 cursor: "pointer",
             }}
-            onClick={() => onClick(linkMessage.messageId)}
+            onClick={() => onClick(message.messageId)}
         >
             <Box
                 sx={{
@@ -725,7 +727,7 @@ function LinkMessageItem({ linkMessage, onClick }: LinkMessageProps) {
                             fontWeight: 600,
                         }}
                     >
-                        {linkMessage.username}
+                        {message.username}
                     </Typography>
                     <Typography
                         sx={{
@@ -733,14 +735,15 @@ function LinkMessageItem({ linkMessage, onClick }: LinkMessageProps) {
                             fontWeight: 400,
                         }}
                     >
-                        {getGalleryFormattedDate(linkMessage.date)}
+                        {getGalleryFormattedDate(message.date)}
                     </Typography>
                 </Box>
                 <TextMessage
-                    body={linkMessage.body}
+                    body={message.body}
                     isUsersMessage={false}
                     collapseLinkThumbnail={true}
                     customStyle={{ border: "none", boxShadow: "none" }}
+                    highlightSearchedText={highlightSearchedText}
                 />
             </Box>
         </Box>

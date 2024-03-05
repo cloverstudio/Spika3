@@ -19,6 +19,8 @@ export default ({}: InitRouterParams): RequestHandler[] => {
             try {
                 const roomId = parseInt(req.query.roomId as string);
                 const keywordRaw = req.query.keyword as string;
+                const itemsPerBatch = parseInt(req.query.itemsPerBatch as string) || 20;
+                const cursor = req.query.cursor ? parseInt(req.query.cursor as string) : undefined;
 
                 if (!roomId) {
                     return res.status(400).send(errorResponse("roomId required", userReq.lang));
@@ -52,9 +54,6 @@ export default ({}: InitRouterParams): RequestHandler[] => {
                         .send(errorResponse("Keyword must be at least 3 characters", userReq.lang));
                 }
 
-                const time = +new Date();
-                console.log("searching...", keyword);
-
                 const firstChar = keyword[0];
 
                 const isUpperCased = firstChar === firstChar.toUpperCase();
@@ -69,7 +68,30 @@ export default ({}: InitRouterParams): RequestHandler[] => {
                     new Set([keyword, keywordWithOppositeFirstChar, lowerKeyword]),
                 );
 
-                const deviceMessageIds = await prisma.deviceMessage.findMany({
+                const count = (
+                    await prisma.deviceMessage.findMany({
+                        where: {
+                            OR: [
+                                ...keywords.map((key) => ({
+                                    body: {
+                                        path: "$.text",
+                                        string_contains: key,
+                                    },
+                                })),
+                            ],
+                            AND: {
+                                deleted: false,
+                                message: {
+                                    roomId,
+                                    type: "text",
+                                },
+                            },
+                        },
+                        distinct: ["messageId"],
+                    })
+                ).length;
+
+                const deviceMessages = await prisma.deviceMessage.findMany({
                     where: {
                         OR: [
                             ...keywords.map((key) => ({
@@ -81,27 +103,50 @@ export default ({}: InitRouterParams): RequestHandler[] => {
                         ],
                         AND: {
                             deleted: false,
-                            userId,
                             message: {
                                 roomId,
+                                type: "text",
                             },
                         },
                     },
+                    distinct: ["messageId"],
                     orderBy: {
                         createdAt: "desc",
                     },
                     select: {
+                        id: true,
                         messageId: true,
+                        body: true,
+                        createdAt: true,
+                        message: {
+                            select: {
+                                fromUser: {
+                                    select: {
+                                        id: true,
+                                        displayName: true,
+                                    },
+                                },
+                                type: true,
+                            },
+                        },
                     },
+                    ...(cursor && { cursor: { id: cursor }, skip: 1 }),
+                    take: itemsPerBatch,
                 });
 
-                le(`Search time: ${+new Date() - time}ms`);
+                const transformedDeviceMessages = deviceMessages.map((deviceMessage) => ({
+                    id: deviceMessage.id,
+                    messageId: deviceMessage.messageId,
+                    type: deviceMessage.message.type,
+                    body: deviceMessage.body,
+                    userId: deviceMessage.message.fromUser.id,
+                    username: deviceMessage.message.fromUser.displayName,
+                    date: deviceMessage.createdAt,
+                }));
 
-                const messageIds = Array.from(new Set(deviceMessageIds.map((dm) => dm.messageId)));
-
-                le(`Found ${messageIds.length} messages`);
-
-                return res.send(successResponse({ messageIds }, userReq.lang));
+                return res.send(
+                    successResponse({ list: transformedDeviceMessages, count }, userReq.lang),
+                );
             } catch (e: any) {
                 le(e);
                 res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));

@@ -1,4 +1,4 @@
-import { Box, CircularProgress, useMediaQuery } from "@mui/material";
+import { Box, CircularProgress, IconButton, useMediaQuery } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
@@ -7,17 +7,22 @@ import AttachmentManager from "../../lib/AttachmentManager";
 import {
     canLoadMoreMessages,
     fetchMessages,
+    fetchTargetMessageBatch,
+    resetTargetMessageBatchProperties,
     selectCursor,
     selectIsLastMessageFromUser,
     selectKeyword,
     selectRoomMessagesIsLoading,
     selectRoomMessagesLength,
     selectTargetMessage,
+    setIsInitialTargetMessageBatch,
+    setTargetMessage,
 } from "../../slices/messages";
 import NewMessageAlert from "./NewMessageAlert";
 import { useTheme } from "@mui/material/styles";
 import { useRoomType } from "./Message";
-import { useAppDispatch } from "../../../../hooks";
+import { useAppDispatch, useAppSelector } from "../../../../hooks";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 
 import { createContext, useContext } from "react";
 export type GlobalContent = {
@@ -63,9 +68,37 @@ export default function MessagesContainer({
     const roomType = useRoomType();
     const isGroup = roomType === "group";
 
+    const isInitialTargetMessageBatchFetching = useAppSelector(
+        (state) => state.messages[roomId]?.isInitialTargetMessageBatch,
+    );
+    const targetMessageBatchCursorUp = useAppSelector(
+        (state) => state.messages[roomId]?.targetMessageBatchCursorUp,
+    );
+    const targetMessageBatchCursorDown = useAppSelector(
+        (state) => state.messages[roomId]?.targetMessageBatchCursorDown,
+    );
+    const hasMoreNewerTargetMessageBatch = useAppSelector(
+        (state) => state.messages[roomId]?.hasMoreNewerTargetMessageBatch,
+    );
+    const hasMoreOlderTargetMessageBatch = useAppSelector(
+        (state) => state.messages[roomId]?.hasMoreOlderTargetMessageBatch,
+    );
+    const fetchingTargetMessageBatchEnabled = useAppSelector(
+        (state) => state.messages[roomId]?.fetchingTargetMessageBatchEnabled,
+    );
+
+    const [isScrollingToBottomDisabled, setScrollingToBottomDisabled] = useState(false);
+    const [isScrolledToBottom, setScrolledToBottom] = useState(false);
+
     useEffect(() => {
         if (targetMessageId) {
             setScrolledToTargetMessage(false);
+
+            setTimeout(() => {
+                dispatch(
+                    setIsInitialTargetMessageBatch({ roomId, isInitialTargetMessageBatch: false }),
+                );
+            }, 1000);
         }
     }, [targetMessageId]);
 
@@ -73,7 +106,8 @@ export default function MessagesContainer({
         if (locked || searchKeyword) {
             if (
                 ref.current.scrollHeight > lastScrollHeight &&
-                messagesLength - messagesLengthRef.current > 1
+                messagesLength - messagesLengthRef.current > 1 &&
+                !isScrolledToBottom
             ) {
                 ref.current.scrollTop = ref.current.scrollHeight - lastScrollHeight;
             }
@@ -153,8 +187,15 @@ export default function MessagesContainer({
         if (!ref.current) {
             return;
         }
-        scrollElemBottom(ref.current, () => setLoading(false), behavior || "instant");
+        scrollElemBottom(
+            ref.current,
+            () => setLoading(false),
+            behavior || "instant",
+            isScrollingToBottomDisabled,
+        );
         setLockedForScroll(false);
+        setScrollingToBottomDisabled(false);
+        setScrolledToBottom(false);
     };
 
     const onScroll = (e: React.UIEvent<HTMLElement, UIEvent>) => {
@@ -164,8 +205,40 @@ export default function MessagesContainer({
 
         const target = e.target as HTMLDivElement;
 
+        const isScrolledToTheBottom =
+            Math.abs(target.scrollTop - (ref.current.scrollHeight - ref.current.clientHeight)) < 5;
+
+        if (
+            isScrolledToTheBottom &&
+            fetchingTargetMessageBatchEnabled &&
+            hasMoreNewerTargetMessageBatch &&
+            !isInitialTargetMessageBatchFetching
+        ) {
+            setLockedForScroll(true);
+            setScrollingToBottomDisabled(true);
+            setScrolledToBottom(true);
+
+            dispatch(
+                fetchTargetMessageBatch({
+                    roomId,
+                    targetMessageId,
+                    cursorDown: targetMessageBatchCursorDown,
+                }),
+            );
+        }
+
         if (target.scrollTop === 0 && messagesLength) {
-            if (canLoadMore) {
+            if (fetchingTargetMessageBatchEnabled && hasMoreOlderTargetMessageBatch) {
+                setLockedForScroll(true);
+
+                dispatch(
+                    fetchTargetMessageBatch({
+                        roomId,
+                        targetMessageId,
+                        cursorUp: targetMessageBatchCursorUp,
+                    }),
+                );
+            } else if (canLoadMore && !fetchingTargetMessageBatchEnabled) {
                 setLockedForScroll(true);
                 dispatch(fetchMessages({ roomId, cursor }));
             }
@@ -231,6 +304,16 @@ export default function MessagesContainer({
 
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
+    };
+
+    const loadNewestMessagesHandler = () => {
+        if (fetchingTargetMessageBatchEnabled && hasMoreNewerTargetMessageBatch) {
+            dispatch(setTargetMessage({ roomId, messageId: null }));
+            dispatch(resetTargetMessageBatchProperties(roomId));
+            setScrolledToBottom(false);
+            setScrollingToBottomDisabled(false);
+            dispatch(fetchMessages({ roomId }));
+        }
     };
 
     return (
@@ -305,6 +388,31 @@ export default function MessagesContainer({
                     </Box>
                     {children}
                 </Box>
+                {fetchingTargetMessageBatchEnabled &&
+                    !loading &&
+                    hasMoreNewerTargetMessageBatch && (
+                        <Box
+                            sx={{
+                                position: "absolute",
+                                bottom: "18px",
+                                right: "5px",
+                            }}
+                        >
+                            <IconButton
+                                onClick={loadNewestMessagesHandler}
+                                sx={{
+                                    bgcolor: "background.paper",
+                                    color: "text.primary",
+                                    "&:hover": {
+                                        bgcolor: "common.hoverBackground",
+                                    },
+                                    padding: "4px",
+                                }}
+                            >
+                                <KeyboardArrowDownIcon sx={{ width: "30px", height: "30px" }} />
+                            </IconButton>
+                        </Box>
+                    )}
             </Box>
         </MessagesContainerContext.Provider>
     );
@@ -314,9 +422,11 @@ function scrollElemBottom(
     element: HTMLElement,
     onScroll?: () => void,
     behavior?: ScrollBehavior,
+    isScrollingToBottom?: boolean,
 ): void {
     if (element.scrollHeight > element.clientHeight) {
-        element.scrollTo({ top: element.scrollHeight - element.clientHeight, behavior });
+        if (!isScrollingToBottom)
+            element.scrollTo({ top: element.scrollHeight - element.clientHeight, behavior });
     }
 
     if (onScroll) {

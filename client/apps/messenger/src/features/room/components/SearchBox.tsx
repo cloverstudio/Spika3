@@ -5,9 +5,11 @@ import InputAdornment from "@mui/material/InputAdornment";
 import Search from "@mui/icons-material/Search";
 import useStrings from "../../../hooks/useStrings";
 import CancelIcon from "@mui/icons-material/Cancel";
+import { CSSProperties } from "@mui/material/styles/createMixins";
 
 type SearchBoxProps = {
     onSearch?: (keyword: string) => void;
+    customStyles?: CSSProperties;
     marginBottom?: number | null;
 };
 
@@ -15,13 +17,14 @@ let timer: NodeJS.Timeout;
 
 export default function SearchBox({
     onSearch,
+    customStyles,
     marginBottom = 2,
 }: SearchBoxProps): React.ReactElement {
     const strings = useStrings();
     const [keyword, setKeyword] = useState("");
 
     return (
-        <Box mb={marginBottom} px={2.5}>
+        <Box mb={marginBottom} px={2.5} sx={customStyles}>
             <Input
                 disableUnderline={true}
                 startAdornment={

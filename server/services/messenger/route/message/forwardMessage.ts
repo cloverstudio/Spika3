@@ -18,6 +18,8 @@ import { handleNewMessage } from "../../../../components/agent";
 import { getRoomById } from "../room";
 import { isRoomBlocked } from "../block";
 import { Room } from "@prisma/client";
+import linkifyHtml from "linkify-html";
+import isURLvalid from "../../lib/utils";
 
 const forwardMessageBody = yup.object().shape({
     body: yup.object().shape({
@@ -134,6 +136,19 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                     const body = deviceMessage.body;
                     const type = message.type;
 
+                    let hasLink = false;
+
+                    if (type === "text") {
+                        const urlInMessage = linkifyHtml(body.text)
+                            ?.split("<a href=")[1]
+                            ?.split(">")[0]
+                            ?.replace(/"/g, "");
+
+                        if (urlInMessage && isURLvalid(urlInMessage)) {
+                            hasLink = true;
+                        }
+                    }
+
                     for (const room of allRooms) {
                         const blocked = await isRoomBlocked(room.id, fromUserId);
 
@@ -154,6 +169,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                                 deliveredCount: 0,
                                 seenCount: 0,
                                 isForwarded: true,
+                                ...(type === "text" && { hasLink }),
                             },
                         });
 

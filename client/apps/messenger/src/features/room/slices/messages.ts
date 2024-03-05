@@ -47,6 +47,39 @@ export const fetchMessages = createAsyncThunk(
     },
 );
 
+export const fetchTargetMessageBatch = createAsyncThunk(
+    "messages/fetchTargetMessageBatch",
+    async (
+        {
+            roomId,
+            targetMessageId,
+            cursorUp,
+            cursorDown,
+        }: {
+            roomId: number;
+            targetMessageId: number;
+            cursorUp?: number;
+            cursorDown?: number;
+        },
+        thunkAPI,
+    ) => {
+        const room = (thunkAPI.getState() as RootState).messages[roomId];
+
+        let url = `/messenger/messages/roomId/${roomId}/target-message-batch?targetMessageId=${targetMessageId}`;
+
+        if (cursorUp) {
+            url += `&cursorUp=${cursorUp}`;
+        }
+
+        if (cursorDown) {
+            url += `&cursorDown=${cursorDown}`;
+        }
+
+        const response = await dynamicBaseQuery(url);
+        return response.data;
+    },
+);
+
 export const sendMessage = createAsyncThunk(
     "messages/sendMessage",
     async (
@@ -308,6 +341,19 @@ export const editMessageThunk = createAsyncThunk(
             text: text.trim(),
         };
 
+        let hasLink = false;
+
+        if (type === "text") {
+            const urlInMessage = linkifyHtml(body.text)
+                ?.split("<a href=")[1]
+                ?.split(">")[0]
+                ?.replace(/"/g, "");
+
+            if (urlInMessage && validURL(urlInMessage)) {
+                hasLink = true;
+            }
+        }
+
         thunkAPI.dispatch(
             messagesSlice.actions.setSending({
                 roomId,
@@ -318,6 +364,7 @@ export const editMessageThunk = createAsyncThunk(
                 status: "sending",
                 replyId,
                 createdAt,
+                hasLink,
             }),
         );
 
@@ -327,6 +374,7 @@ export const editMessageThunk = createAsyncThunk(
                 data: {
                     text: text.trim(),
                     thumbnailData: thumbnailData?.title ? thumbnailData : null,
+                    hasLink,
                 },
                 method: "PUT",
             });
@@ -545,7 +593,38 @@ export const getRightSidebarLinks = createAsyncThunk(
     },
 );
 
-interface FileType {
+export const getSearchedMessages = createAsyncThunk(
+    "messages/getSearchedMessages",
+    async (data: {
+        roomId: number;
+        keyword: string;
+        itemsPerBatch: number;
+        cursor?: number;
+    }): Promise<{
+        list: {
+            id: number;
+            messageId: number;
+            type: string;
+            body: any;
+            date: Date;
+            userId: number;
+            username: string;
+        }[];
+        count: number;
+    }> => {
+        let url = `/messenger/messages/search?roomId=${data.roomId}&keyword=${data.keyword}&itemsPerBatch=${data.itemsPerBatch}`;
+
+        if (data.cursor) {
+            url += `&cursor=${data.cursor}`;
+        }
+
+        const response = await dynamicBaseQuery(url);
+
+        return response.data;
+    },
+);
+
+interface DeviceMessage {
     messageId: number;
     type: string;
     body: any;
@@ -560,12 +639,12 @@ type InitialState = {
         loading: boolean;
         messages: { [id: string]: MessageType & { progress?: number } };
         reactions: { [messageId: string]: MessageRecordType[] };
-        galleryImages: FileType[];
-        rightSidebarMedia: FileType[];
+        galleryImages: DeviceMessage[];
+        rightSidebarMedia: DeviceMessage[];
         rightSidebarMediaCount: number;
-        rightSidebarFiles: FileType[];
+        rightSidebarFiles: DeviceMessage[];
         rightSidebarFilesCount: number;
-        rightSidebarLinks: FileType[];
+        rightSidebarLinks: DeviceMessage[];
         rightSidebarLinksCount: number;
         loadingRightSidebarMedia: boolean;
         statusCounts: {
@@ -590,6 +669,22 @@ type InitialState = {
         galleryImagesCursor?: number;
         galleryImagesHasMoreOlder?: boolean;
         galleryImagesHasMoreNewer?: boolean;
+        targetMessageBatchCursorUp?: number;
+        targetMessageBatchCursorDown?: number;
+        hasMoreOlderTargetMessageBatch?: boolean;
+        hasMoreNewerTargetMessageBatch?: boolean;
+        isInitialTargetMessageBatch?: boolean;
+        fetchingTargetMessageBatchEnabled?: boolean;
+        searchedMessagesCount?: number;
+        searchedMessages?: {
+            id: number;
+            messageId: number;
+            type: string;
+            body: any;
+            date: Date;
+            userId: number;
+            username: string;
+        }[];
     };
     previewedImageMessageId: number | null;
 };
@@ -630,6 +725,8 @@ export const messagesSlice = createSlice({
                 hasLink,
             } = action.payload;
             const room = state[roomId];
+            if (room.fetchingTargetMessageBatchEnabled && room.hasMoreNewerTargetMessageBatch)
+                return;
 
             room.messages[localId] = {
                 status,
@@ -663,6 +760,8 @@ export const messagesSlice = createSlice({
                 if (!room.keyword) {
                     room.targetMessageId = null;
                 }
+                if (room.fetchingTargetMessageBatchEnabled && room.hasMoreNewerTargetMessageBatch)
+                    return;
                 room.messages[message.id] = message;
                 room.reactions[message.id] = [];
                 room.statusCounts[message.id] = { totalUserCount, deliveredCount, seenCount };
@@ -980,6 +1079,54 @@ export const messagesSlice = createSlice({
                 room.rightSidebarLinks = [];
             }
         },
+        setIsInitialTargetMessageBatch(
+            state,
+            action: { payload: { roomId: number; isInitialTargetMessageBatch: boolean } },
+        ) {
+            const { roomId, isInitialTargetMessageBatch } = action.payload;
+            const room = state[roomId];
+
+            if (room) {
+                room.isInitialTargetMessageBatch = isInitialTargetMessageBatch;
+            }
+        },
+        setFetchingTargetMessageBatchEnabled(
+            state,
+            action: { payload: { roomId: number; fetchingTargetMessageBatchEnabled: boolean } },
+        ) {
+            const { roomId, fetchingTargetMessageBatchEnabled } = action.payload;
+            const room = state[roomId];
+
+            if (room) {
+                room.fetchingTargetMessageBatchEnabled = fetchingTargetMessageBatchEnabled;
+            }
+        },
+        resetTargetMessageBatchProperties(state, action: { payload: number }) {
+            const roomId = action.payload;
+            const room = state[roomId];
+
+            if (room) {
+                room.targetMessageBatchCursorUp = undefined;
+                room.targetMessageBatchCursorDown = undefined;
+                room.hasMoreOlderTargetMessageBatch = undefined;
+                room.hasMoreNewerTargetMessageBatch = undefined;
+                room.messages = {};
+                room.fetchingTargetMessageBatchEnabled = undefined;
+                room.isInitialTargetMessageBatch = undefined;
+                room.cursor = undefined;
+                room.count = undefined;
+            }
+        },
+        resetSearchedMessages(state, action: { payload: number }) {
+            const roomId = action.payload;
+            const room = state[roomId];
+
+            if (room) {
+                room.searchedMessages = [];
+                room.searchedMessagesCount = 0;
+                room.targetMessageId = null;
+            }
+        },
     },
     extraReducers: (builder) => {
         builder.addCase(
@@ -1073,6 +1220,8 @@ export const messagesSlice = createSlice({
             if (!room.keyword) {
                 room.targetMessageId = null;
             }
+            if (room.fetchingTargetMessageBatchEnabled && room.hasMoreNewerTargetMessageBatch)
+                return;
             room.messages[id] = message;
             room.reactions[id] = messageRecords || [];
             room.statusCounts[id] = { totalUserCount, deliveredCount, seenCount };
@@ -1361,6 +1510,152 @@ export const messagesSlice = createSlice({
                 room.loadingRightSidebarMedia = false;
             }
         });
+        builder.addCase(fetchTargetMessageBatch.fulfilled, (state, { payload, meta }) => {
+            const roomId = meta.arg.roomId;
+            const cursorUp = meta.arg.cursorUp;
+            const cursorDown = meta.arg.cursorDown;
+
+            state[roomId].loading = false;
+
+            const messages = payload.list.reduce((acc, m) => {
+                acc[m.id] = m;
+                return acc;
+            }, {});
+
+            const reactions = payload.list.reduce((acc, m) => {
+                acc[m.id] = m.messageRecords || [];
+                return acc;
+            }, {});
+
+            const statusCounts = payload.list.reduce((acc, m) => {
+                acc[m.id] = {
+                    totalUserCount: m.totalUserCount,
+                    deliveredCount: m.deliveredCount,
+                    seenCount: m.seenCount,
+                };
+                return acc;
+            }, {});
+
+            if (!cursorUp && !cursorDown) {
+                state[roomId].messages = { ...messages };
+                state[roomId].reactions = { ...reactions };
+                state[roomId].statusCounts = { ...statusCounts };
+                state[roomId].hasMoreOlderTargetMessageBatch = payload.hasMoreOlderMessages;
+                state[roomId].hasMoreNewerTargetMessageBatch = payload.hasMoreNewerMessages;
+            } else if (cursorUp) {
+                state[roomId].messages = { ...messages, ...state[roomId].messages };
+                state[roomId].reactions = { ...reactions, ...state[roomId].reactions };
+                state[roomId].statusCounts = { ...statusCounts, ...state[roomId].statusCounts };
+                state[roomId].hasMoreOlderTargetMessageBatch = payload.hasMoreOlderMessages;
+            } else if (cursorDown) {
+                state[roomId].messages = { ...state[roomId].messages, ...messages };
+                state[roomId].reactions = { ...state[roomId].reactions, ...reactions };
+                state[roomId].statusCounts = { ...state[roomId].statusCounts, ...statusCounts };
+                state[roomId].hasMoreNewerTargetMessageBatch = payload.hasMoreNewerMessages;
+            }
+
+            if (payload.nextCursorUp) {
+                state[roomId].targetMessageBatchCursorUp = payload.nextCursorUp;
+            }
+            if (payload.nextCursorDown) {
+                state[roomId].targetMessageBatchCursorDown = payload.nextCursorDown;
+            }
+        });
+        builder.addCase(fetchTargetMessageBatch.rejected, (state, { meta }) => {
+            const roomId = meta.arg.roomId;
+            const room = state[roomId];
+
+            if (room) {
+                room.loading = false;
+            }
+        });
+        builder.addCase(fetchTargetMessageBatch.pending, (state, { meta }) => {
+            const roomId = meta.arg.roomId;
+            const room = state[roomId];
+
+            if (!room) {
+                state[roomId] = {
+                    roomId,
+                    messages: {},
+                    galleryImages: [],
+                    rightSidebarMedia: [],
+                    rightSidebarMediaCount: 0,
+                    rightSidebarFiles: [],
+                    rightSidebarFilesCount: 0,
+                    rightSidebarLinks: [],
+                    rightSidebarLinksCount: 0,
+                    loadingRightSidebarMedia: false,
+                    reactions: {},
+                    statusCounts: {},
+                    loading: true,
+                    activeMessageId: null,
+                    targetMessageId: null,
+                    showDetails: false,
+                    showEmojiDetails: false,
+                    showForwardMessageModal: false,
+                    showCustomEmojiModal: false,
+                    showMessageOptions: false,
+                    showDelete: false,
+                };
+            } else {
+                room.loading = true;
+            }
+        });
+        builder.addCase(getSearchedMessages.pending, (state, { meta }) => {
+            const roomId = meta.arg.roomId;
+            const room = state[roomId];
+
+            if (!room) {
+                state[roomId] = {
+                    roomId,
+                    messages: {},
+                    galleryImages: [],
+                    rightSidebarMedia: [],
+                    rightSidebarMediaCount: 0,
+                    rightSidebarFiles: [],
+                    rightSidebarFilesCount: 0,
+                    rightSidebarLinks: [],
+                    rightSidebarLinksCount: 0,
+                    loadingRightSidebarMedia: false,
+                    reactions: {},
+                    statusCounts: {},
+                    loading: true,
+                    activeMessageId: null,
+                    targetMessageId: null,
+                    showDetails: false,
+                    showEmojiDetails: false,
+                    showForwardMessageModal: false,
+                    showCustomEmojiModal: false,
+                    showMessageOptions: false,
+                    showDelete: false,
+                };
+            } else {
+                room.loading = true;
+            }
+        });
+        builder.addCase(getSearchedMessages.fulfilled, (state, { payload, meta }) => {
+            const roomId = meta.arg.roomId;
+            const room = state[roomId];
+
+            if (!room) {
+                return;
+            }
+
+            room.loading = false;
+
+            room.searchedMessages = room.searchedMessages?.length
+                ? [...room.searchedMessages, ...payload.list]
+                : payload.list;
+            room.searchedMessagesCount = payload.count;
+        });
+        builder.addCase(getSearchedMessages.rejected, (state, { meta }) => {
+            const roomId = meta.arg.roomId;
+            const room = state[roomId];
+
+            if (room) {
+                room.loading = false;
+            }
+        });
     },
 });
 
@@ -1391,6 +1686,10 @@ export const {
     resetRightSidebarMedia,
     resetRightSidebarFiles,
     resetRightSidebarLinks,
+    setIsInitialTargetMessageBatch,
+    setFetchingTargetMessageBatchEnabled,
+    resetTargetMessageBatchProperties,
+    resetSearchedMessages,
 } = messagesSlice.actions;
 
 export const selectRoomMessages =

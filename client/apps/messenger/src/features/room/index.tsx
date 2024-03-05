@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import { Box } from "@mui/material";
 import useMediaQuery from "@mui/material/useMediaQuery";
@@ -13,6 +13,8 @@ import { useGetRoomQuery } from "./api/room";
 import BotInfo from "./components/BotInfo";
 import { selectUserId } from "../../store/userSlice";
 import { useSelector } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../../hooks";
+import { resetTargetMessageBatchProperties, setTargetMessage } from "./slices/messages";
 
 export default function Room(): React.ReactElement {
     const isCall = /^.+\/call.*$/.test(window.location.pathname);
@@ -35,6 +37,19 @@ function RoomContainer({ children }: { children: React.ReactNode }) {
     const { data, error } = useGetRoomQuery(roomId);
     const userId = useSelector(selectUserId);
     const [searchParams] = useSearchParams();
+
+    const dispatch = useAppDispatch();
+
+    const allMessagesByRoom = useAppSelector((state) => state.messages);
+
+    useEffect(() => {
+        Object.keys(allMessagesByRoom).forEach((id) => {
+            if (allMessagesByRoom[id]?.fetchingTargetMessageBatchEnabled && +id !== roomId) {
+                dispatch(resetTargetMessageBatchProperties(+id));
+                dispatch(setTargetMessage({ roomId: +id, messageId: null }));
+            }
+        });
+    }, [roomId]);
 
     const mobileProps = {
         position: "absolute" as const,

@@ -184,6 +184,9 @@ const en = {
     october: "October",
     november: "November",
     december: "December",
+    searchMessages: "Search messages",
+    noMessagesFound: "No messages found",
+    searchForMessages: "Search for messages",
 };
 
 const strings = {

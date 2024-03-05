@@ -15,6 +15,7 @@ import RightSidebarSettingsContent from "./RightSidebarSettingsContent";
 import RightSidebarNoteDetailContent from "./RightSidebarNoteDetailContent";
 import RightSidebarNotesContent from "./RightSidebarNotesContent";
 import RightSidebarMediaContent from "./RightSidebarMediaContent";
+import RightSidebarSearchContent from "./RightSidebarSearchContent";
 
 type RightSidebarContentProps = {
     room: RoomType;
@@ -24,7 +25,7 @@ export default function RightSidebarContentContainer({
     room,
 }: RightSidebarContentProps): React.ReactElement {
     const activeTab = useSelector(selectRightSidebarActiveTab);
-    const addPadding = activeTab !== "details" && activeTab !== "media";
+    const addPadding = activeTab !== "details" && activeTab !== "media" && activeTab !== "search";
 
     const height = getRightSidebarContentHeight(activeTab);
 
@@ -81,6 +82,10 @@ function RightSidebarContent({ room }: RightSidebarContentProps): React.ReactEle
 
     if (activeTab === "media") {
         return <RightSidebarMediaContent />;
+    }
+
+    if (activeTab === "search") {
+        return <RightSidebarSearchContent />;
     }
 }
 
