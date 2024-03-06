@@ -93,12 +93,6 @@ export default function MessagesContainer({
     useEffect(() => {
         if (targetMessageId) {
             setScrolledToTargetMessage(false);
-
-            setTimeout(() => {
-                dispatch(
-                    setIsInitialTargetMessageBatch({ roomId, isInitialTargetMessageBatch: false }),
-                );
-            }, 1000);
         }
     }, [targetMessageId]);
 
@@ -122,12 +116,20 @@ export default function MessagesContainer({
 
                     if (ele && !scrolledToTargetMessage) {
                         ele.scrollIntoView({
-                            behavior: "smooth",
+                            behavior: fetchingTargetMessageBatchEnabled ? "instant" : "smooth",
                             block: "nearest",
                             inline: "nearest",
                         });
                         setScrolledToTargetMessage(true);
                         setLoading(false);
+                        if (fetchingTargetMessageBatchEnabled) {
+                            dispatch(
+                                setIsInitialTargetMessageBatch({
+                                    roomId,
+                                    isInitialTargetMessageBatch: false,
+                                }),
+                            );
+                        }
                     }
                 }, 10);
             }
@@ -136,9 +138,21 @@ export default function MessagesContainer({
                 const ele = document.getElementById(`message_${targetMessageId}`);
 
                 if (ele && !scrolledToTargetMessage) {
-                    ele.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+                    ele.scrollIntoView({
+                        behavior: fetchingTargetMessageBatchEnabled ? "instant" : "smooth",
+                        block: "nearest",
+                        inline: "nearest",
+                    });
                     setScrolledToTargetMessage(true);
                     setLoading(false);
+                    if (fetchingTargetMessageBatchEnabled) {
+                        dispatch(
+                            setIsInitialTargetMessageBatch({
+                                roomId,
+                                isInitialTargetMessageBatch: false,
+                            }),
+                        );
+                    }
                 }
             }, 10);
         } else if (ref.current.scrollHeight !== lastScrollHeight && messagesLength) {
