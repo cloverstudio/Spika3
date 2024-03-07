@@ -39,6 +39,9 @@ function RoomContainer({ children }: { children: React.ReactNode }) {
     const [searchParams] = useSearchParams();
 
     const dispatch = useAppDispatch();
+    const fetchingTargetMessageBatchEnabled = useAppSelector(
+        (state) => state.messages[roomId]?.fetchingTargetMessageBatchEnabled,
+    );
 
     const allMessagesByRoom = useAppSelector((state) => state.messages);
 
@@ -49,6 +52,13 @@ function RoomContainer({ children }: { children: React.ReactNode }) {
                 dispatch(setTargetMessage({ roomId: +id, messageId: null }));
             }
         });
+
+        return () => {
+            if (isMobile) {
+                dispatch(resetTargetMessageBatchProperties(roomId));
+                dispatch(setTargetMessage({ roomId, messageId: null }));
+            }
+        };
     }, [roomId]);
 
     const mobileProps = {

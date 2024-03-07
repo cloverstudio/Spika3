@@ -11,6 +11,7 @@ type SearchBoxProps = {
     onSearch?: (keyword: string) => void;
     customStyles?: CSSProperties;
     marginBottom?: number | null;
+    onFocus?: () => void;
 };
 
 let timer: NodeJS.Timeout;
@@ -19,6 +20,7 @@ export default function SearchBox({
     onSearch,
     customStyles,
     marginBottom = 2,
+    onFocus,
 }: SearchBoxProps): React.ReactElement {
     const strings = useStrings();
     const [keyword, setKeyword] = useState("");
@@ -55,6 +57,7 @@ export default function SearchBox({
                         }, 500);
                     }
                 }}
+                onFocus={onFocus}
                 endAdornment={
                     <InputAdornment sx={{ pl: 2 }} position="end">
                         {keyword?.length > 0 && (
