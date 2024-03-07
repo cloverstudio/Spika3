@@ -15,6 +15,8 @@ import searchMessagesRoute from "./searchMessages";
 import forwardMessageRoute from "./forwardMessage";
 import getLinkThumbnail from "./getLinkThumbnail";
 import getTargetMessagesBatchByRoom from "./getTargetMessageBatchByRoom";
+import getTargetMessageIdByDate from "./getTargetMessageIdByDate";
+import getOldestMessageDate from "./getOldestMessageDate";
 
 export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
     const router = Router();
@@ -35,6 +37,12 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
         "/roomId/:roomId/target-message-batch",
         getTargetMessagesBatchByRoom({ redisClient }),
     );
+    router.get(
+        "/roomId/:roomId/target-message-id-by-date",
+        getTargetMessageIdByDate({ redisClient }),
+    );
+
+    router.get("/roomId/:roomId/oldest-message-date", getOldestMessageDate({ redisClient }));
 
     router.post("/delivered", createDeliveredMessageRecordRoute({ rabbitMQChannel }));
     router.post("/:roomId/seen", createSeenMessageRecordRoute({ rabbitMQChannel, redisClient }));
