@@ -167,6 +167,9 @@ export default function RightSidebarSearchContent() {
                         customStyles={{
                             px: 1,
                         }}
+                        onFocus={() => {
+                            if (isCalendarOpen) setIsCalendarOpen(false);
+                        }}
                     />
                 </Box>
                 {isCalendarOpen && (
