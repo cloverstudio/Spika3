@@ -624,6 +624,37 @@ export const getSearchedMessages = createAsyncThunk(
     },
 );
 
+export const getTargetMessageIdByDate = createAsyncThunk(
+    "messages/getTargetMessageIdByDate",
+    async (data: {
+        roomId: number;
+        date: String;
+    }): Promise<{
+        targetMessageId: number;
+    }> => {
+        const url = `/messenger/messages/roomId/${data.roomId}/target-message-id-by-date?date=${data.date}`;
+
+        const response = await dynamicBaseQuery(url);
+
+        return response.data;
+    },
+);
+
+export const getOldestMessageDate = createAsyncThunk(
+    "messages/getOldestMessageDate",
+    async (data: {
+        roomId: number;
+    }): Promise<{
+        messageDate: Date | null;
+    }> => {
+        const url = `/messenger/messages/roomId/${data.roomId}/oldest-message-date`;
+
+        const response = await dynamicBaseQuery(url);
+
+        return response.data;
+    },
+);
+
 interface DeviceMessage {
     messageId: number;
     type: string;
@@ -685,6 +716,7 @@ type InitialState = {
             userId: number;
             username: string;
         }[];
+        oldestMessageDate?: Date | null;
     };
     previewedImageMessageId: number | null;
 };
@@ -1124,7 +1156,6 @@ export const messagesSlice = createSlice({
             if (room) {
                 room.searchedMessages = [];
                 room.searchedMessagesCount = 0;
-                room.targetMessageId = null;
             }
         },
     },
@@ -1655,6 +1686,28 @@ export const messagesSlice = createSlice({
             if (room) {
                 room.loading = false;
             }
+        });
+        builder.addCase(getTargetMessageIdByDate.fulfilled, (state, { payload, meta }) => {
+            const roomId = meta.arg.roomId;
+            const room = state[roomId];
+
+            if (!room) {
+                return;
+            }
+
+            if (payload.targetMessageId) {
+                room.targetMessageId = payload.targetMessageId;
+            }
+        });
+        builder.addCase(getOldestMessageDate.fulfilled, (state, { payload, meta }) => {
+            const roomId = meta.arg.roomId;
+            const room = state[roomId];
+
+            if (!room || !payload.messageDate) {
+                return;
+            }
+
+            room.oldestMessageDate = payload.messageDate;
         });
     },
 });

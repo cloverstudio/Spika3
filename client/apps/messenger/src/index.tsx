@@ -4,6 +4,7 @@ import { Provider } from "react-redux";
 
 import App from "./app";
 import "./style/app.scss";
+import "./style/datePicker.scss";
 
 import { store } from "./store/store";
 
@@ -12,5 +13,5 @@ const root = createRoot(container); // createRoot(container!) if you use TypeScr
 root.render(
     <Provider store={store}>
         <App />
-    </Provider>
+    </Provider>,
 );

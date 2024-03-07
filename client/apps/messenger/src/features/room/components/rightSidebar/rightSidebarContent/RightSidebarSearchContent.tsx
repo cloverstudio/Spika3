@@ -1,8 +1,10 @@
-import React, { useEffect, useRef } from "react";
-import { Box } from "@mui/material";
+import React, { useEffect, useRef, useState } from "react";
+import { Box, IconButton, useMediaQuery, useTheme } from "@mui/material";
 import { useAppDispatch, useAppSelector } from "../../../../../hooks";
 import {
+    getOldestMessageDate,
     getSearchedMessages,
+    getTargetMessageIdByDate,
     resetSearchedMessages,
     setKeyword,
     setTargetMessage,
@@ -12,23 +14,38 @@ import SearchBox from "../../SearchBox";
 import { MessageItem } from "./RightSidebarMediaContent";
 import useStrings from "../../../../../hooks/useStrings";
 import { rightSidebarSearchMessagesBatchLimit } from "../../../lib/consts";
+import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
+import { DatePicker } from "../../../../../components/DatePicker";
+import useEscapeKey from "../../../../../hooks/useEscapeKey";
+import { toggleRightSidebar } from "../../../slices/rightSidebar";
 
 export default function RightSidebarSearchContent() {
     const roomId = parseInt(useParams().id || "");
 
     const dispatch = useAppDispatch();
     const messages = useAppSelector((state) => state.messages[roomId]?.searchedMessages);
-    const [isScrolledToBottom, setIsScrolledToBottom] = React.useState(false);
+    const [isScrolledToBottom, setIsScrolledToBottom] = useState(false);
     const count = useAppSelector((state) => state.messages[roomId]?.searchedMessagesCount);
     const isLoading = useAppSelector((state) => state.messages[roomId]?.loading);
     const keyword = useAppSelector((state) => state.messages[roomId]?.keyword);
     const strings = useStrings();
+    const themeObject = useTheme();
+    const isMobile = useMediaQuery(themeObject.breakpoints.down("md"));
+    const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
     const itemsPerBatch = rightSidebarSearchMessagesBatchLimit;
 
     const ref = useRef<HTMLDivElement>(null);
 
+    const oldestMessageDate = useAppSelector((state) => state.messages[roomId]?.oldestMessageDate);
+
+    useEscapeKey(() => {
+        setIsCalendarOpen(false);
+    });
+
     useEffect(() => {
+        dispatch(getOldestMessageDate({ roomId }));
+
         if (ref.current) {
             ref.current.addEventListener("scroll", () => {
                 const { scrollTop, scrollHeight, clientHeight } = ref.current!;
@@ -41,9 +58,12 @@ export default function RightSidebarSearchContent() {
             if (ref.current) {
                 ref.current.removeEventListener("scroll", () => {});
             }
+
             dispatch(resetSearchedMessages(roomId));
-            dispatch(setKeyword({ roomId, keyword: "" }));
-            dispatch(setTargetMessage({ roomId, messageId: null }));
+            if (!isMobile) {
+                dispatch(setKeyword({ roomId, keyword: "" }));
+                dispatch(setTargetMessage({ roomId, messageId: null }));
+            }
         };
     }, []);
 
@@ -64,6 +84,7 @@ export default function RightSidebarSearchContent() {
     const handleSearch = (keyword: string) => {
         dispatch(setKeyword({ roomId, keyword }));
         dispatch(resetSearchedMessages(roomId));
+        dispatch(setTargetMessage({ roomId, messageId: null }));
 
         if (keyword.length < 3) return;
 
@@ -77,7 +98,28 @@ export default function RightSidebarSearchContent() {
     };
 
     const messageClickHandler = (messageId: number) => {
+        if (isMobile) {
+            dispatch(setKeyword({ roomId, keyword: "" }));
+            dispatch(toggleRightSidebar());
+        }
         dispatch(setTargetMessage({ roomId, messageId }));
+    };
+
+    const dayClickHandler = (day: Date) => {
+        dispatch(setKeyword({ roomId, keyword: "" }));
+
+        const inputDate = new Date(day);
+
+        const formattedDate = `${inputDate.getFullYear()}-${(inputDate.getMonth() + 1)
+            .toString()
+            .padStart(2, "0")}-${inputDate.getDate().toString().padStart(2, "0")}`;
+
+        const formattedDateToIso = new Date(formattedDate).toISOString();
+
+        dispatch(getTargetMessageIdByDate({ roomId, date: formattedDateToIso }));
+        if (isMobile) {
+            dispatch(toggleRightSidebar());
+        }
     };
 
     return (
@@ -87,13 +129,61 @@ export default function RightSidebarSearchContent() {
                 overflowY: "hidden",
             }}
         >
-            <Box width="100%" mt="15px">
-                <SearchBox
-                    onSearch={handleSearch}
-                    customStyles={{
+            <Box
+                mt="15px"
+                sx={{
+                    position: "relative",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "41px",
+                }}
+            >
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        height: "100%",
                         px: 1,
+                        ml: 1,
+                        "&:hover": {
+                            backgroundColor: "background.paper",
+                            borderRadius: "8px",
+                            cursor: "pointer",
+                        },
+                        ...(isCalendarOpen && {
+                            backgroundColor: "background.paper",
+                            borderRadius: "8px",
+                        }),
                     }}
-                />
+                    onClick={() => setIsCalendarOpen(!isCalendarOpen)}
+                >
+                    <CalendarTodayOutlinedIcon />
+                </Box>
+                <Box height="100%" width="100%">
+                    <SearchBox
+                        onSearch={handleSearch}
+                        customStyles={{
+                            px: 1,
+                        }}
+                    />
+                </Box>
+                {isCalendarOpen && (
+                    <Box
+                        sx={{
+                            position: "absolute",
+                            top: "45px",
+                            left: "4px",
+                        }}
+                    >
+                        <DatePicker
+                            onClickDay={dayClickHandler}
+                            maxDate={new Date()}
+                            minDate={new Date(oldestMessageDate)}
+                        />
+                    </Box>
+                )}
             </Box>
 
             <Box
