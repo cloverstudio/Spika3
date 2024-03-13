@@ -34,6 +34,24 @@ export default ({ redisClient }: InitRouterParams): RequestHandler[] => {
                     return res.status(404).send(errorResponse("No room found", userReq.lang));
                 }
 
+                const messageCount = await prisma.message.count({
+                    where: {
+                        roomId,
+                        type: { not: "system" },
+                    },
+                });
+
+                if (messageCount === 0) {
+                    return res.send(
+                        successResponse(
+                            {
+                                targetMessageId: null,
+                            },
+                            userReq.lang,
+                        ),
+                    );
+                }
+
                 let targetMessageId: number | null = null;
 
                 const message = await prisma.message.findFirst({
@@ -42,6 +60,7 @@ export default ({ redisClient }: InitRouterParams): RequestHandler[] => {
                         createdAt: {
                             gte: date,
                         },
+                        type: { not: "system" },
                     },
                     orderBy: {
                         createdAt: "asc",
@@ -53,10 +72,11 @@ export default ({ redisClient }: InitRouterParams): RequestHandler[] => {
 
                 targetMessageId = message?.id;
 
-                if (!message && isToday(new Date(date))) {
+                if (!message && messageCount > 0) {
                     const latestMessage = await prisma.message.findFirst({
                         where: {
                             roomId,
+                            type: { not: "system" },
                         },
                         orderBy: {
                             createdAt: "desc",
@@ -84,12 +104,3 @@ export default ({ redisClient }: InitRouterParams): RequestHandler[] => {
         },
     ];
 };
-
-function isToday(inputDate: Date) {
-    const today = new Date();
-    return (
-        inputDate.getFullYear() === today.getFullYear() &&
-        inputDate.getMonth() === today.getMonth() &&
-        inputDate.getDate() === today.getDate()
-    );
-}

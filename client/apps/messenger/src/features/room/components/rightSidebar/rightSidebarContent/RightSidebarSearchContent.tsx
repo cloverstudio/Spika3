@@ -137,6 +137,7 @@ export default function RightSidebarSearchContent() {
                     justifyContent: "center",
                     alignItems: "center",
                     height: "41px",
+                    mb: 2,
                 }}
             >
                 <Box

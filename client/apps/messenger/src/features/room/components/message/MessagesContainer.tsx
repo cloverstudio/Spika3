@@ -90,6 +90,17 @@ export default function MessagesContainer({
     const [isScrollingToBottomDisabled, setScrollingToBottomDisabled] = useState(false);
     const [isScrolledToBottom, setScrolledToBottom] = useState(false);
 
+    const resetIsInitialTargetMessageBatch = () => {
+        setTimeout(() => {
+            dispatch(
+                setIsInitialTargetMessageBatch({
+                    roomId,
+                    isInitialTargetMessageBatch: false,
+                }),
+            );
+        }, 1000);
+    };
+
     useEffect(() => {
         if (targetMessageId) {
             setScrolledToTargetMessage(false);
@@ -122,14 +133,10 @@ export default function MessagesContainer({
                         });
                         setScrolledToTargetMessage(true);
                         setLoading(false);
-                        if (fetchingTargetMessageBatchEnabled) {
-                            dispatch(
-                                setIsInitialTargetMessageBatch({
-                                    roomId,
-                                    isInitialTargetMessageBatch: false,
-                                }),
-                            );
-                        }
+                    }
+
+                    if (isInitialTargetMessageBatchFetching) {
+                        resetIsInitialTargetMessageBatch();
                     }
                 }, 10);
             }
@@ -145,14 +152,10 @@ export default function MessagesContainer({
                     });
                     setScrolledToTargetMessage(true);
                     setLoading(false);
-                    if (fetchingTargetMessageBatchEnabled) {
-                        dispatch(
-                            setIsInitialTargetMessageBatch({
-                                roomId,
-                                isInitialTargetMessageBatch: false,
-                            }),
-                        );
-                    }
+                }
+
+                if (isInitialTargetMessageBatchFetching) {
+                    resetIsInitialTargetMessageBatch();
                 }
             }, 10);
         } else if (ref.current.scrollHeight !== lastScrollHeight && messagesLength) {
@@ -328,6 +331,7 @@ export default function MessagesContainer({
             setScrollingToBottomDisabled(false);
             dispatch(fetchMessages({ roomId }));
         }
+        scrollElemBottom(ref.current, () => setLoading(false), "instant");
     };
 
     return (
