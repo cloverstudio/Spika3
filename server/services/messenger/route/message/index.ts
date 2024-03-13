@@ -17,6 +17,7 @@ import getLinkThumbnail from "./getLinkThumbnail";
 import getTargetMessagesBatchByRoom from "./getTargetMessageBatchByRoom";
 import getTargetMessageIdByDate from "./getTargetMessageIdByDate";
 import getOldestMessageDate from "./getOldestMessageDate";
+import shareMessage from "./shareMessage";
 
 export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
     const router = Router();
@@ -27,6 +28,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
 
     router.get("/:id/message-records", getMessageRecordsRoute({}));
     router.post("/forward", forwardMessageRoute({ rabbitMQChannel, redisClient }));
+    router.post("/share", shareMessage({ rabbitMQChannel, redisClient }));
 
     router.get("/get-thumbnail", getLinkThumbnail());
 
