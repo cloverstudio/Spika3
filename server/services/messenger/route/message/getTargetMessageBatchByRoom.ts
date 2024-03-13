@@ -194,7 +194,7 @@ export default ({ redisClient }: InitRouterParams): RequestHandler[] => {
 
                         const { body, deleted, createdAt, modifiedAt } = deviceMessage || {};
 
-                        const formattedBody = await formatMessageBody(body, m.type);
+                        const formattedBody = body ? await formatMessageBody(body, m.type) : body;
                         return sanitize({
                             ...m,
                             body: formattedBody,

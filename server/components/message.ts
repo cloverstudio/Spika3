@@ -1,4 +1,3 @@
-import linkifyHtml from "linkify-html";
 import prisma from "./prisma";
 import ogs from "open-graph-scraper";
 
