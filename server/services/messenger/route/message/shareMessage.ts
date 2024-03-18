@@ -199,6 +199,16 @@ async function findPrivateRooms(userId: number, otherUserIds: number[]) {
     const rooms = [];
 
     for (const id of otherUserIds) {
+        const user = await prisma.user.findUnique({
+            where: {
+                id,
+            },
+        });
+
+        if (!user || user.deleted || id === userId) {
+            continue;
+        }
+
         const query = `
         select * from room 
             where type = 'private' 
