@@ -9,26 +9,36 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Radio from "@mui/material/Radio";
 import Button from "@mui/material/Button";
 import Close from "@mui/icons-material/Close";
-import { useDeleteMessageMutation } from "../../api/message";
+import { useDeleteManyMessagesMutation } from "../../api/message";
 import MessageType from "../../../../types/Message";
 import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
     hideDeleteModal,
-    selectActiveMessage,
+    resetActiveMessageIds,
+    selectActiveMessageIds,
     selectShowDeleteMessage,
+    setIsSelectingMessagesActive,
 } from "../../slices/messages";
 import { selectUser } from "../../../../store/userSlice";
 import useStrings from "../../../../hooks/useStrings";
-import { useAppDispatch } from "../../../../hooks";
+import { useAppDispatch, useAppSelector } from "../../../../hooks";
 
 export default function DeleteMessageDialogContainer() {
     const roomId = parseInt(useParams().id || "");
     const dispatch = useAppDispatch();
-    const activeMessage = useSelector(selectActiveMessage(roomId));
+    const activeMessageIds = useAppSelector((state) => selectActiveMessageIds(state, roomId)) || [];
     const showDeleteMessage = useSelector(selectShowDeleteMessage(roomId));
 
-    if (!activeMessage || !showDeleteMessage) {
+    const messages = useAppSelector((state) => state.messages[roomId]?.messages);
+
+    const activeMessages = activeMessageIds.map((id) => messages[id]);
+
+    if (
+        !activeMessages.length ||
+        activeMessages.some((message) => !message) ||
+        !showDeleteMessage
+    ) {
         return null;
     }
 
@@ -36,18 +46,33 @@ export default function DeleteMessageDialogContainer() {
         dispatch(hideDeleteModal(roomId));
     };
 
-    return <DeleteMessageDialog message={activeMessage} onClose={handleClose} />;
+    return <DeleteMessageDialog messages={activeMessages} onClose={handleClose} />;
 }
 
-function DeleteMessageDialog({ message, onClose }: { message: MessageType; onClose: () => void }) {
+function DeleteMessageDialog({
+    messages,
+    onClose,
+}: {
+    messages: MessageType[];
+    onClose: () => void;
+}) {
     const strings = useStrings();
+    const roomId = parseInt(useParams().id || "");
+    const dispatch = useAppDispatch();
 
     const me = useSelector(selectUser);
-    const [deleteMessage, { isLoading }] = useDeleteMessageMutation();
+    const [deleteMessages, { isLoading }] = useDeleteManyMessagesMutation();
     const [target, setTarget] = useState<"all" | "user">("user");
+    const isSelectingMessagesActive = useAppSelector(
+        (state) => state.messages[roomId]?.isSelectingMessagesActive,
+    );
 
     const handleSubmit = async () => {
-        await deleteMessage({ id: message.id, target }).unwrap();
+        await deleteMessages({ messageIds: messages.map((m) => m.id), target }).unwrap();
+        dispatch(resetActiveMessageIds({ roomId }));
+        if (isSelectingMessagesActive) {
+            dispatch(setIsSelectingMessagesActive({ roomId, isSelectingMessagesActive: false }));
+        }
         onClose();
     };
 
@@ -91,7 +116,7 @@ function DeleteMessageDialog({ message, onClose }: { message: MessageType; onClo
                             value="all"
                             control={<Radio />}
                             label={strings.deleteForEveryone}
-                            disabled={me.id !== message.fromUserId}
+                            disabled={messages.some((m) => m.fromUserId !== me.id)}
                         />
                         <FormControlLabel
                             value="user"

@@ -2,7 +2,7 @@ import React, { memo, useState } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import Avatar from "@mui/material/Avatar";
-import { Box, Slide, useMediaQuery, useTheme } from "@mui/material";
+import { Box, Checkbox, Slide, useMediaQuery, useTheme } from "@mui/material";
 import Shortcut from "@mui/icons-material/Shortcut";
 import ModeEditOutlineOutlined from "@mui/icons-material/ModeEditOutlineOutlined";
 import Typography from "@mui/material/Typography";
@@ -13,10 +13,13 @@ import { setReplyMessage } from "../../slices/input";
 import {
     hideMessageOptions,
     selectHasMessageReactions,
+    selectIsMessageSelected,
+    selectIsSelectingMessagesActive,
     selectKeyword,
     selectMessageById,
     selectMessageStatus,
     selectTargetMessage,
+    setActiveMessageIds,
 } from "../../slices/messages";
 import MessageBody from "./MessageBody";
 import MessageContextMenu, { IconConfigs } from "./MessageContextMenu";
@@ -97,6 +100,7 @@ function Message({
     const shouldDisplayAvatar =
         isGroup && !isUsersMessage && (isLastMessage || isNextMessageSystems);
     const shouldDisplayStatusIcons = isUsersMessage;
+    const isSelectingMessagesActive = useSelector(selectIsSelectingMessagesActive(roomId));
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -232,14 +236,16 @@ function Message({
                                 />
                             )}
 
-                            <Menu
-                                id={id}
-                                mouseOver={mouseOver}
-                                showReactionMenu={showReactionMenu}
-                                setShowReactionMenu={setShowReactionMenu}
-                                setMouseOver={setMouseOver}
-                                createdAt={createdAt}
-                            />
+                            {!isSelectingMessagesActive && (
+                                <Menu
+                                    id={id}
+                                    mouseOver={mouseOver}
+                                    showReactionMenu={showReactionMenu}
+                                    setShowReactionMenu={setShowReactionMenu}
+                                    setMouseOver={setMouseOver}
+                                    createdAt={createdAt}
+                                />
+                            )}
                         </Box>
                     </Box>
                     {shouldDisplayStatusIcons && <StatusIcon status={status} id={id} />}
@@ -273,6 +279,9 @@ function MessageContainer({ side, children, id, handleMouseLeave }: MessageConta
     const roomId = parseInt(useParams().id || "");
     const hasReactions = useSelector(selectHasMessageReactions(roomId, id));
     const message = useSelector(selectMessageById(roomId, id));
+    const isSelectingMessagesActive = useSelector(selectIsSelectingMessagesActive(roomId));
+
+    const isMessageSelected = useSelector(selectIsMessageSelected(roomId, id));
 
     const dispatch = useAppDispatch();
 
@@ -282,6 +291,16 @@ function MessageContainer({ side, children, id, handleMouseLeave }: MessageConta
             id={`message_${id}`}
             sx={{
                 display: "flex",
+                alignItems: "center",
+                bgcolor: isMessageSelected ? "background.paper" : "transparent",
+                cursor: isSelectingMessagesActive && !message.deleted ? "pointer" : "default",
+                "&:hover": {
+                    bgcolor:
+                        isSelectingMessagesActive && !message.deleted
+                            ? "background.paper"
+                            : "transparent",
+                },
+                transition: "background-color 0.5s",
                 ...(side === "right"
                     ? {
                           ml: "auto",
@@ -293,8 +312,25 @@ function MessageContainer({ side, children, id, handleMouseLeave }: MessageConta
                 if (e.detail === 2 && !message.deleted) {
                     dispatch(setReplyMessage({ roomId, message }));
                 }
+                if (isSelectingMessagesActive) {
+                    if (message.deleted) return;
+                    dispatch(setActiveMessageIds({ roomId, messageId: id }));
+                }
             }}
         >
+            {isSelectingMessagesActive && !message.deleted && (
+                <Slide direction={"right"} in={true} mountOnEnter unmountOnExit>
+                    <Checkbox
+                        sx={{ height: "0" }}
+                        size="small"
+                        checked={isMessageSelected}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            dispatch(setActiveMessageIds({ roomId, messageId: id }));
+                        }}
+                    />
+                </Slide>
+            )}
             <Box
                 display="grid"
                 gap={1}

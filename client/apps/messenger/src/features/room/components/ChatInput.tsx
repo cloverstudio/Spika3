@@ -1,16 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
-import { Box } from "@mui/material";
+import { Box, useMediaQuery } from "@mui/material";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-
+import Shortcut from "@mui/icons-material/Shortcut";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import { useParams } from "react-router-dom";
 import AttachmentManager from "../lib/AttachmentManager";
 import SendIcon from "@mui/icons-material/SendRounded";
 import LinkIcon from "@mui/icons-material/LinkOutlined";
+import DeleteOutlineOutlined from "@mui/icons-material/DeleteOutlineOutlined";
+import ContentCopy from "@mui/icons-material/ContentCopy";
 import { keyframes } from "@mui/system";
 import { useTheme } from "@mui/material/styles";
 
@@ -38,7 +40,18 @@ import Close from "@mui/icons-material/Close";
 import { useGetRoomQuery, useGetRoomBlockedQuery } from "../api/room";
 import MessageType from "../../../types/Message";
 import getFileIcon from "../lib/getFileIcon";
-import { editMessageThunk, replyMessageThunk, sendMessage } from "../slices/messages";
+import {
+    editMessageThunk,
+    replyMessageThunk,
+    resetActiveMessageIds,
+    selectActiveMessageIds,
+    selectActiveMessages,
+    selectIsSelectingMessagesActive,
+    sendMessage,
+    setIsSelectingMessagesActive,
+    showDeleteModal,
+    showForwardMessageModal,
+} from "../slices/messages";
 import useStrings from "../../../hooks/useStrings";
 import { useRemoveBlockByIdMutation } from "../api/user";
 import DoDisturb from "@mui/icons-material/DoDisturb";
@@ -47,6 +60,8 @@ import { useAppDispatch, useAppSelector } from "../../../hooks";
 import linkifyHtml from "linkify-html";
 import useEscapeKey from "../../../hooks/useEscapeKey";
 import validURL from "../../../utils/isValidURL";
+import { selectUserId } from "../../../store/userSlice";
+import { useShowSnackBar } from "../../../hooks/useModal";
 
 export default function ChatInputContainer(): React.ReactElement {
     const dispatch = useAppDispatch();
@@ -157,6 +172,8 @@ function ChatInput({ handleSend, files }: ChatInputProps) {
 
     const [hideTextInput, setHideTextInput] = useState(false);
 
+    const isSelectingMessagesActive = useAppSelector(selectIsSelectingMessagesActive(roomId));
+
     const closeEmojiPicker = () => {
         dispatch(setInputType({ roomId, type: "text" }));
     };
@@ -200,7 +217,8 @@ function ChatInput({ handleSend, files }: ChatInputProps) {
                 {!isThumbnailDataLoading && thumbnailData?.title && <MessageURLThumbnail />}
                 {isThumbnailDataLoading && <MessageURLThumbnailLoading />}
 
-                {!hideTextInput && <TextInput onSend={onSend} />}
+                {!hideTextInput && !isSelectingMessagesActive && <TextInput onSend={onSend} />}
+                {isSelectingMessagesActive && <SelectMessagesActionBar />}
             </Box>
         </>
     );
@@ -232,6 +250,156 @@ function SendButton({ onClick }: { onClick: () => void }): React.ReactElement {
     );
 }
 
+function SelectMessagesActionBar() {
+    const roomId = parseInt(useParams().id || "");
+    const dispatch = useAppDispatch();
+    const activeMessageIds = useAppSelector((state) => selectActiveMessageIds(state, roomId)) || [];
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+    const userId = useAppSelector(selectUserId);
+
+    const activeMessages = useAppSelector((state) => selectActiveMessages(state, roomId));
+    const { data: room } = useGetRoomQuery(roomId);
+
+    const strings = useStrings();
+    const showSnackBar = useShowSnackBar();
+
+    const copySelectedMessages = () => {
+        const sortedActiveMessages = [...activeMessages].sort((a, b) => a.id - b.id);
+        const selectedTextMessages = sortedActiveMessages.filter((m) => m?.type === "text");
+        if (!selectedTextMessages.length) return "";
+        let text = "";
+
+        for (const m of selectedTextMessages) {
+            if (selectedTextMessages.some((m) => m.fromUserId !== userId)) {
+                const userName = room.users.find((u) => u.userId === m.fromUserId)?.user
+                    .displayName;
+                const date = new Date(m.createdAt);
+                const formattedDate = `${date.getDate()}.${
+                    date.getMonth() + 1
+                }.${date.getFullYear()}. ${date.getHours().toString().padStart(2, "0")}:${date
+                    .getMinutes()
+                    .toString()
+                    .padStart(2, "0")}`;
+                text += `[${userName}, ${formattedDate}]: ${m.body.text}\n\n`;
+            } else {
+                text += m.body.text + "\n\n";
+            }
+        }
+
+        navigator.clipboard.writeText(text);
+        showSnackBar({
+            severity: "info",
+            text:
+                selectedTextMessages.length === 1 ? strings.messageCopied : strings.messagesCopied,
+        });
+    };
+
+    return (
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+            <IconButton
+                sx={{ mx: "15px" }}
+                onClick={() => {
+                    dispatch(
+                        setIsSelectingMessagesActive({
+                            roomId,
+                            isSelectingMessagesActive: false,
+                        }),
+                    );
+                    dispatch(resetActiveMessageIds({ roomId }));
+                }}
+            >
+                <Close color="primary" />
+            </IconButton>
+
+            <Box
+                sx={{
+                    color: "text.primary",
+                    backgroundColor: "background.paper",
+                    borderRadius: "10px",
+                    width: "100%",
+                    height: "43px",
+                    mr: "24px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                }}
+            >
+                <Box
+                    sx={{
+                        pointerEvents: "none",
+                        userSelect: "none",
+                        color: "text.primary",
+                        fontSize: isMobile ? "11px" : "16px",
+                        fontWeight: 500,
+                        ml: "16px",
+                    }}
+                >
+                    {activeMessageIds.length}{" "}
+                    {activeMessageIds.length === 1
+                        ? strings.messageSelected
+                        : strings.messagesSelected}
+                </Box>
+
+                <Box
+                    sx={{
+                        display: "flex",
+                        gap: "16px",
+                        mr: "16px",
+                    }}
+                >
+                    <IconButton
+                        sx={{ height: "36px", width: "36px" }}
+                        onClick={() => {
+                            copySelectedMessages();
+                        }}
+                        disabled={activeMessageIds.length === 0}
+                    >
+                        <ContentCopy
+                            color="primary"
+                            sx={{
+                                height: "23px",
+                                opacity: activeMessageIds.length === 0 ? "0.5" : 1,
+                            }}
+                        />
+                    </IconButton>
+                    <IconButton
+                        sx={{ height: "36px", width: "36px" }}
+                        onClick={() => {
+                            dispatch(showDeleteModal({ roomId, messageIds: activeMessageIds }));
+                        }}
+                        disabled={activeMessageIds.length === 0}
+                    >
+                        <DeleteOutlineOutlined
+                            color="primary"
+                            sx={{
+                                height: "23px",
+                                opacity: activeMessageIds.length === 0 ? "0.5" : 1,
+                            }}
+                        />
+                    </IconButton>
+                    <IconButton
+                        sx={{ height: "36px", width: "36px" }}
+                        onClick={() => {
+                            dispatch(showForwardMessageModal({ roomId }));
+                        }}
+                        disabled={activeMessageIds.length === 0}
+                    >
+                        <Shortcut
+                            color="primary"
+                            sx={{
+                                height: "23px",
+                                opacity: activeMessageIds.length === 0 ? "0.5" : 1,
+                            }}
+                        />
+                    </IconButton>
+                </Box>
+            </Box>
+        </Box>
+    );
+}
+
 function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
     const roomId = parseInt(useParams().id || "");
     const editMessage = useSelector(selectEditMessage(roomId));
@@ -242,6 +410,7 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
     const inputType = useSelector(selectInputType(roomId));
 
     const url = useAppSelector((state) => state.input.list[roomId]?.thumbnailUrl);
+    const isSelectingMessagesActive = useAppSelector(selectIsSelectingMessagesActive(roomId));
 
     const handleSetMessageText = (text: string) => dispatch(setInputText({ text, roomId }));
 
@@ -322,7 +491,24 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
 
     return (
         <Box display="flex" justifyContent="space-between" alignItems="center">
-            <AddAttachment />
+            {isSelectingMessagesActive ? (
+                <IconButton
+                    sx={{ mx: "15px" }}
+                    onClick={() => {
+                        dispatch(
+                            setIsSelectingMessagesActive({
+                                roomId,
+                                isSelectingMessagesActive: false,
+                            }),
+                        );
+                        dispatch(resetActiveMessageIds({ roomId }));
+                    }}
+                >
+                    <Close color="primary" />
+                </IconButton>
+            ) : (
+                <AddAttachment />
+            )}
             <Box
                 sx={{
                     color: "text.primary",
@@ -337,7 +523,18 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
                 <ReactionIcon />
             </Box>
             <Box minWidth="70px" display="flex" justifyContent="center">
-                <SendButton onClick={onSend} />
+                {isSelectingMessagesActive ? (
+                    <IconButton
+                        sx={{ mx: "15px" }}
+                        onClick={() => {
+                            dispatch(showForwardMessageModal({ roomId }));
+                        }}
+                    >
+                        <Shortcut color="primary" />
+                    </IconButton>
+                ) : (
+                    <SendButton onClick={onSend} />
+                )}
             </Box>
         </Box>
     );

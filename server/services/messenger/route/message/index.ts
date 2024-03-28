@@ -5,6 +5,7 @@ import { InitRouterParams } from "../../../types/serviceInterface";
 import createMessageRoute from "./createMessage";
 import editMessageRoute from "./editMessage";
 import deleteMessageRote from "./deleteMessage";
+import deleteManyMessagesRoute from "./deleteManyMessages";
 import getMessageRecordsRoute from "./getMessageRecords";
 import getMessagesByRoomRoute from "./getMessagesByRoom";
 import createDeliveredMessageRecordRoute from "./createDeliveredMessageRecord";
@@ -25,6 +26,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
     router.post("/", createMessageRoute({ rabbitMQChannel, redisClient }));
     router.put("/:id", editMessageRoute({ rabbitMQChannel }));
     router.delete("/:id", deleteMessageRote({ rabbitMQChannel }));
+    router.post("/delete-many", deleteManyMessagesRoute({ rabbitMQChannel }));
 
     router.get("/:id/message-records", getMessageRecordsRoute({}));
     router.post("/forward", forwardMessageRoute({ rabbitMQChannel, redisClient }));

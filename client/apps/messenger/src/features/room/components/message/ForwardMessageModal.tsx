@@ -23,17 +23,19 @@ import {
     setKeyword,
 } from "../../slices/contacts";
 import { useNavigate, useParams } from "react-router-dom";
-import { hideForwardMessageModal, selectActiveMessage } from "../../slices/messages";
+import {
+    hideForwardMessageModal,
+    resetActiveMessageIds,
+    selectActiveMessageIds,
+    setIsSelectingMessagesActive,
+} from "../../slices/messages";
 import { useForwardMessageMutation } from "../../api/message";
 import { Room } from "@prisma/client";
 import { useSelector } from "react-redux";
 import { CircularProgress } from "@mui/material";
-
 import { selectContacts, selectContactLoading } from "../../slices/contacts";
-
 import useIsInViewport from "../../../../hooks/useIsInViewport";
 import { dynamicBaseQuery } from "../../../../api/api";
-import { useCreateRoomMutation } from "../../api/room";
 import { showSnackBar } from "../../../../store/modalSlice";
 
 export default function ForwardMessageModal() {
@@ -48,7 +50,7 @@ export default function ForwardMessageModal() {
 
     const dispatch = useAppDispatch();
     const roomId = parseInt(useParams().id || "");
-    const activeMessage = useAppSelector(selectActiveMessage(roomId));
+    const activeMessageIds = useAppSelector((state) => selectActiveMessageIds(state, roomId));
 
     const isOpen = useAppSelector((state) => state.messages[roomId]?.showForwardMessageModal);
 
@@ -70,9 +72,12 @@ export default function ForwardMessageModal() {
     const handleSave = async () => {
         const result = await forwardMessage({
             roomIds: selectedGroups.map((g) => g.id),
-            messageIds: [activeMessage.id],
+            messageIds: activeMessageIds,
             userIds: selectedUsers.map((u) => u.id),
         });
+
+        dispatch(resetActiveMessageIds({ roomId }));
+        dispatch(setIsSelectingMessagesActive({ roomId, isSelectingMessagesActive: false }));
 
         if (
             "data" in result &&
