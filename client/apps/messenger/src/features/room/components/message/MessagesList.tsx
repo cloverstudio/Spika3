@@ -14,6 +14,7 @@ import {
     fetchTargetMessageBatch,
     resetTargetMessageBatchProperties,
     selectCursor,
+    selectIsSelectingMessagesActive,
     selectOtherUserIdInPrivateRoom,
     selectRoomMessages,
     selectShouldDisplayBlockButton,
@@ -59,6 +60,8 @@ export default function MessagesList(): React.ReactElement {
     const fetchingTargetMessageBatchEnabled = useAppSelector(
         (state) => state.messages[roomId]?.fetchingTargetMessageBatchEnabled,
     );
+
+    const isSelectingMessagesActive = useSelector(selectIsSelectingMessagesActive(roomId));
 
     const { theme } = useContext(ThemeContext);
 
@@ -183,6 +186,7 @@ export default function MessagesList(): React.ReactElement {
                                         separateWithMarginTop={m.separateWithMarginTop}
                                         isNextMessageSystems={m.isNextMessageSystems}
                                         wasPreviousMessageSystems={m.wasPreviousMessageSystems}
+                                        isSelectingMessagesActive={isSelectingMessagesActive}
                                     />
                                 );
                             })}

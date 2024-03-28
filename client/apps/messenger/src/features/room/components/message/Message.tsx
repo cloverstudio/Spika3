@@ -60,6 +60,7 @@ function Message({
     separateWithMarginTop,
     isNextMessageSystems,
     wasPreviousMessageSystems,
+    isSelectingMessagesActive,
 }: {
     id: number;
     previousMessageFromUserId: number | null;
@@ -68,6 +69,7 @@ function Message({
     separateWithMarginTop: boolean;
     isNextMessageSystems: boolean;
     wasPreviousMessageSystems: boolean;
+    isSelectingMessagesActive: boolean;
 }) {
     const roomId = parseInt(useParams().id || "");
     const targetMessageId = useSelector(selectTargetMessage(roomId));
@@ -100,7 +102,6 @@ function Message({
     const shouldDisplayAvatar =
         isGroup && !isUsersMessage && (isLastMessage || isNextMessageSystems);
     const shouldDisplayStatusIcons = isUsersMessage;
-    const isSelectingMessagesActive = useSelector(selectIsSelectingMessagesActive(roomId));
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -156,7 +157,12 @@ function Message({
     }
 
     return (
-        <MessageContainer id={id} side={side} handleMouseLeave={handleMouseLeave}>
+        <MessageContainer
+            id={id}
+            side={side}
+            handleMouseLeave={handleMouseLeave}
+            isSelectingMessagesActive={isSelectingMessagesActive}
+        >
             {shouldDisplaySenderLabel && (
                 <Typography
                     lineHeight={1}
@@ -271,15 +277,21 @@ function Message({
 type MessageContainerProps = {
     id: number;
     side: "left" | "right";
+    isSelectingMessagesActive: boolean;
     children: React.ReactNode;
     handleMouseLeave: () => void;
 };
 
-function MessageContainer({ side, children, id, handleMouseLeave }: MessageContainerProps) {
+function MessageContainer({
+    side,
+    children,
+    id,
+    handleMouseLeave,
+    isSelectingMessagesActive,
+}: MessageContainerProps) {
     const roomId = parseInt(useParams().id || "");
     const hasReactions = useSelector(selectHasMessageReactions(roomId, id));
     const message = useSelector(selectMessageById(roomId, id));
-    const isSelectingMessagesActive = useSelector(selectIsSelectingMessagesActive(roomId));
 
     const isMessageSelected = useSelector(selectIsMessageSelected(roomId, id));
 
