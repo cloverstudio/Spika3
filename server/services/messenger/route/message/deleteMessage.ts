@@ -41,7 +41,7 @@ export default ({ rabbitMQChannel }: InitRouterParams): RequestHandler[] => {
                     return res
                         .status(403)
                         .send(
-                            errorResponse("User can't delete another users message", userReq.lang)
+                            errorResponse("User can't delete another users message", userReq.lang),
                         );
                 }
 
@@ -55,8 +55,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): RequestHandler[] => {
                         .send(
                             errorResponse(
                                 "User can't delete messages from room that he is not in",
-                                userReq.lang
-                            )
+                                userReq.lang,
+                            ),
                         );
                 }
 
@@ -111,8 +111,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): RequestHandler[] => {
                                         type: Constants.PUSH_TYPE_DELETE_MESSAGE,
                                         message: sanitizedMessage,
                                     },
-                                })
-                            )
+                                }),
+                            ),
                         );
                     });
                 }

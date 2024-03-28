@@ -42,6 +42,16 @@ const messageApi = api.injectEndpoints({
             },
             invalidatesTags: (res) => res && [{ type: "Rooms", id: "HISTORY" }],
         }),
+        deleteManyMessages: build.mutation<any, { messageIds: number[]; target: "all" | "user" }>({
+            query: ({ messageIds, target }) => {
+                return {
+                    url: `/messenger/messages/delete-many?target=${target}`,
+                    method: "POST",
+                    data: { messageIds, target },
+                };
+            },
+            invalidatesTags: (res) => res && [{ type: "Rooms", id: "HISTORY" }],
+        }),
         editMessage: build.mutation<any, { id: number; text: string }>({
             query: ({ id, text }) => {
                 return { url: `/messenger/messages/${id}`, method: "PUT", data: { text } };
@@ -83,5 +93,6 @@ export const {
     useCreateReactionMutation,
     useRemoveReactionMutation,
     useForwardMessageMutation,
+    useDeleteManyMessagesMutation,
 } = messageApi;
 export default messageApi;

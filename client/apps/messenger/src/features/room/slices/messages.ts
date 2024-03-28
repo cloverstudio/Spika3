@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSelector, createSlice } from "@reduxjs/toolkit";
 import { dynamicBaseQuery } from "../../../api/api";
 import type { RootState } from "../../../store/store";
 import MessageType, { MessageListType, MessageRecordType } from "../../../types/Message";
@@ -692,6 +692,9 @@ type InitialState = {
         showForwardMessageModal: boolean;
         showDelete: boolean;
         activeMessageId: number | null;
+        activeMessageIds: number[] | null;
+        activeMessages: MessageType[];
+        isSelectingMessagesActive?: boolean;
         targetMessageId: number | null;
         count?: number;
         cursor?: number;
@@ -906,11 +909,10 @@ export const messagesSlice = createSlice({
                 room.showCustomEmojiModal = true;
             }
         },
-        showForwardMessageModal(state, action: { payload: { roomId: number; messageId: number } }) {
-            const { roomId, messageId } = action.payload;
+        showForwardMessageModal(state, action: { payload: { roomId: number } }) {
+            const { roomId } = action.payload;
             const room = state[roomId];
             if (room) {
-                room.activeMessageId = messageId;
                 room.showForwardMessageModal = true;
             }
         },
@@ -972,12 +974,14 @@ export const messagesSlice = createSlice({
             }
         },
 
-        showDeleteModal(state, action: { payload: { roomId: number; messageId: number } }) {
-            const { roomId, messageId } = action.payload;
+        showDeleteModal(state, action: { payload: { roomId: number; messageIds: number[] } }) {
+            const { roomId, messageIds } = action.payload;
             const room = state[roomId];
 
             if (room) {
-                room.activeMessageId = messageId;
+                if (!room.activeMessageIds) {
+                    room.activeMessageIds = messageIds;
+                }
                 room.showDetails = false;
                 room.showDelete = true;
             }
@@ -1043,6 +1047,8 @@ export const messagesSlice = createSlice({
                     statusCounts: {},
                     loading: true,
                     activeMessageId: null,
+                    activeMessageIds: null,
+                    activeMessages: [],
                     targetMessageId: action.payload.messageId,
                     showDetails: false,
                     showEmojiDetails: false,
@@ -1158,6 +1164,42 @@ export const messagesSlice = createSlice({
                 room.searchedMessagesCount = 0;
             }
         },
+        setActiveMessageIds(state, action: { payload: { roomId: number; messageId: number } }) {
+            const { roomId, messageId } = action.payload;
+            const room = state[roomId];
+
+            const message = room.messages[messageId];
+
+            if (room) {
+                if (room.activeMessageIds && room.activeMessageIds.includes(messageId)) {
+                    room.activeMessageIds = room.activeMessageIds.filter((id) => id !== messageId);
+                    room.activeMessages = room.activeMessages.filter((m) => m.id !== messageId);
+                } else {
+                    room.activeMessageIds = [...(room.activeMessageIds || []), messageId];
+                    room.activeMessages = [...room.activeMessages, message];
+                }
+            }
+        },
+        resetActiveMessageIds(state, action: { payload: { roomId: number } }) {
+            const roomId = action.payload.roomId;
+            const room = state[roomId];
+
+            if (room) {
+                room.activeMessageIds = null;
+                room.activeMessages = [];
+            }
+        },
+        setIsSelectingMessagesActive(
+            state,
+            action: { payload: { roomId: number; isSelectingMessagesActive: boolean } },
+        ) {
+            const { roomId, isSelectingMessagesActive } = action.payload;
+            const room = state[roomId];
+
+            if (room) {
+                room.isSelectingMessagesActive = isSelectingMessagesActive;
+            }
+        },
     },
     extraReducers: (builder) => {
         builder.addCase(
@@ -1213,6 +1255,8 @@ export const messagesSlice = createSlice({
                     statusCounts: {},
                     loading: true,
                     activeMessageId: null,
+                    activeMessageIds: null,
+                    activeMessages: [],
                     targetMessageId: null,
                     showDetails: false,
                     showEmojiDetails: false,
@@ -1346,6 +1390,8 @@ export const messagesSlice = createSlice({
                     statusCounts: {},
                     loading: true,
                     activeMessageId: null,
+                    activeMessageIds: null,
+                    activeMessages: [],
                     targetMessageId: null,
                     showDetails: false,
                     showEmojiDetails: false,
@@ -1399,6 +1445,8 @@ export const messagesSlice = createSlice({
                     statusCounts: {},
                     loading: true,
                     activeMessageId: null,
+                    activeMessageIds: null,
+                    activeMessages: [],
                     targetMessageId: null,
                     showDetails: false,
                     showEmojiDetails: false,
@@ -1453,6 +1501,8 @@ export const messagesSlice = createSlice({
                     statusCounts: {},
                     loading: true,
                     activeMessageId: null,
+                    activeMessageIds: null,
+                    activeMessages: [],
                     targetMessageId: null,
                     showDetails: false,
                     showEmojiDetails: false,
@@ -1507,6 +1557,8 @@ export const messagesSlice = createSlice({
                     statusCounts: {},
                     loading: true,
                     activeMessageId: null,
+                    activeMessageIds: null,
+                    activeMessages: [],
                     targetMessageId: null,
                     showDetails: false,
                     showEmojiDetails: false,
@@ -1620,6 +1672,8 @@ export const messagesSlice = createSlice({
                     statusCounts: {},
                     loading: true,
                     activeMessageId: null,
+                    activeMessageIds: null,
+                    activeMessages: [],
                     targetMessageId: null,
                     showDetails: false,
                     showEmojiDetails: false,
@@ -1652,6 +1706,8 @@ export const messagesSlice = createSlice({
                     statusCounts: {},
                     loading: true,
                     activeMessageId: null,
+                    activeMessageIds: null,
+                    activeMessages: [],
                     targetMessageId: null,
                     showDetails: false,
                     showEmojiDetails: false,
@@ -1743,6 +1799,9 @@ export const {
     setFetchingTargetMessageBatchEnabled,
     resetTargetMessageBatchProperties,
     resetSearchedMessages,
+    setActiveMessageIds,
+    setIsSelectingMessagesActive,
+    resetActiveMessageIds,
 } = messagesSlice.actions;
 
 export const selectRoomMessages =
@@ -2089,4 +2148,35 @@ export const selectShowMessageOptions =
         return room.showMessageOptions && room.activeMessageId === id;
     };
 
+export const selectActiveMessageIds = createSelector(
+    (state: RootState, roomId: number) => state.messages[roomId],
+    (room) => (room ? room.activeMessageIds || [] : []),
+);
+export const selectIsSelectingMessagesActive =
+    (roomId: number) =>
+    (state: RootState): boolean => {
+        const room = state.messages[roomId];
+
+        if (!room) {
+            return false;
+        }
+
+        return room.isSelectingMessagesActive;
+    };
+
+export const selectIsMessageSelected = (roomId: number, id: number) => (state: RootState) => {
+    const room = state.messages[roomId];
+    const isSelectingMessagesActive = room?.isSelectingMessagesActive;
+
+    if (!room) {
+        return false;
+    }
+
+    return room.activeMessageIds?.includes(id) && isSelectingMessagesActive;
+};
+
+export const selectActiveMessages = createSelector(
+    (state: RootState, roomId: number) => state.messages[roomId],
+    (room) => (room ? room.activeMessages : []),
+);
 export default messagesSlice.reducer;

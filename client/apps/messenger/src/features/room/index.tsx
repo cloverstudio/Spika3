@@ -14,7 +14,12 @@ import BotInfo from "./components/BotInfo";
 import { selectUserId } from "../../store/userSlice";
 import { useSelector } from "react-redux";
 import { useAppDispatch, useAppSelector } from "../../hooks";
-import { resetTargetMessageBatchProperties, setTargetMessage } from "./slices/messages";
+import {
+    resetActiveMessageIds,
+    resetTargetMessageBatchProperties,
+    setIsSelectingMessagesActive,
+    setTargetMessage,
+} from "./slices/messages";
 
 export default function Room(): React.ReactElement {
     const isCall = /^.+\/call.*$/.test(window.location.pathname);
@@ -39,9 +44,6 @@ function RoomContainer({ children }: { children: React.ReactNode }) {
     const [searchParams] = useSearchParams();
 
     const dispatch = useAppDispatch();
-    const fetchingTargetMessageBatchEnabled = useAppSelector(
-        (state) => state.messages[roomId]?.fetchingTargetMessageBatchEnabled,
-    );
 
     const allMessagesByRoom = useAppSelector((state) => state.messages);
 
@@ -58,6 +60,8 @@ function RoomContainer({ children }: { children: React.ReactNode }) {
                 dispatch(resetTargetMessageBatchProperties(roomId));
                 dispatch(setTargetMessage({ roomId, messageId: null }));
             }
+            dispatch(resetActiveMessageIds({ roomId }));
+            dispatch(setIsSelectingMessagesActive({ roomId, isSelectingMessagesActive: false }));
         };
     }, [roomId]);
 

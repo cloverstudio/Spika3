@@ -8,11 +8,14 @@ import FavoriteBorderOutlined from "@mui/icons-material/FavoriteBorderOutlined";
 import DeleteOutlineOutlined from "@mui/icons-material/DeleteOutlineOutlined";
 import Download from "@mui/icons-material/DownloadOutlined";
 import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
+import Select from "@mui/icons-material/CheckBoxOutlined";
 import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../../../hooks";
 import {
     hideMessageOptions,
     selectMessageById,
+    setActiveMessageIds,
+    setIsSelectingMessagesActive,
     showDeleteModal,
     showForwardMessageModal,
     showMessageDetails,
@@ -88,7 +91,8 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
             icon: <Shortcut style={{ width: "14px", height: "14px" }} />,
             show: true,
             onClick: () => {
-                dispatch(showForwardMessageModal({ roomId, messageId: id }));
+                dispatch(setActiveMessageIds({ roomId, messageId: id }));
+                dispatch(showForwardMessageModal({ roomId }));
             },
         },
         {
@@ -135,6 +139,16 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
             },
         },
         {
+            name: "select",
+            text: strings.select,
+            icon: <Select style={{ width: "14px", height: "14px" }} />,
+            show: true,
+            onClick: () => {
+                dispatch(setIsSelectingMessagesActive({ roomId, isSelectingMessagesActive: true }));
+                dispatch(setActiveMessageIds({ roomId, messageId: id }));
+            },
+        },
+        {
             name: "details",
             text: strings.details,
             icon: <InfoOutlined style={{ width: "14px", height: "14px" }} />,
@@ -159,7 +173,7 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
             show: true,
             style: { color: "error.main" },
             onClick: () => {
-                dispatch(showDeleteModal({ roomId, messageId: id }));
+                dispatch(showDeleteModal({ roomId, messageIds: [id] }));
             },
         },
     ];

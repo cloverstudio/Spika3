@@ -187,6 +187,9 @@ const en = {
     searchMessages: "Search messages",
     noMessagesFound: "No messages found",
     searchForMessages: "Search for messages",
+    messagesSelected: "messages selected",
+    messageSelected: "message selected",
+    messagesCopied: "Messages copied",
 };
 
 const strings = {
