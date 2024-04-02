@@ -60,7 +60,6 @@ function Message({
     separateWithMarginTop,
     isNextMessageSystems,
     wasPreviousMessageSystems,
-    isSelectingMessagesActive,
 }: {
     id: number;
     previousMessageFromUserId: number | null;
@@ -69,7 +68,6 @@ function Message({
     separateWithMarginTop: boolean;
     isNextMessageSystems: boolean;
     wasPreviousMessageSystems: boolean;
-    isSelectingMessagesActive: boolean;
 }) {
     const roomId = parseInt(useParams().id || "");
     const targetMessageId = useSelector(selectTargetMessage(roomId));
@@ -77,6 +75,8 @@ function Message({
     const user = useSelector(selectUser);
     const status = useSelector(selectMessageStatus(roomId, id));
     const message = useSelector(selectMessageById(roomId, id));
+
+    const isSelectingMessagesActive = useSelector(selectIsSelectingMessagesActive(roomId));
 
     if (!message) return <Box>Error loading undefined message</Box>; // to be determined (this is just testing for determining bug on production -  message destructure bug)
 
@@ -157,12 +157,7 @@ function Message({
     }
 
     return (
-        <MessageContainer
-            id={id}
-            side={side}
-            handleMouseLeave={handleMouseLeave}
-            isSelectingMessagesActive={isSelectingMessagesActive}
-        >
+        <MessageContainer id={id} side={side} handleMouseLeave={handleMouseLeave}>
             {shouldDisplaySenderLabel && (
                 <Typography
                     lineHeight={1}
@@ -242,16 +237,14 @@ function Message({
                                 />
                             )}
 
-                            {!isSelectingMessagesActive && (
-                                <Menu
-                                    id={id}
-                                    mouseOver={mouseOver}
-                                    showReactionMenu={showReactionMenu}
-                                    setShowReactionMenu={setShowReactionMenu}
-                                    setMouseOver={setMouseOver}
-                                    createdAt={createdAt}
-                                />
-                            )}
+                            <Menu
+                                id={id}
+                                mouseOver={mouseOver && !isSelectingMessagesActive}
+                                showReactionMenu={showReactionMenu}
+                                setShowReactionMenu={setShowReactionMenu}
+                                setMouseOver={setMouseOver}
+                                createdAt={createdAt}
+                            />
                         </Box>
                     </Box>
                     {shouldDisplayStatusIcons && <StatusIcon status={status} id={id} />}
@@ -277,23 +270,17 @@ function Message({
 type MessageContainerProps = {
     id: number;
     side: "left" | "right";
-    isSelectingMessagesActive: boolean;
     children: React.ReactNode;
     handleMouseLeave: () => void;
 };
 
-function MessageContainer({
-    side,
-    children,
-    id,
-    handleMouseLeave,
-    isSelectingMessagesActive,
-}: MessageContainerProps) {
+function MessageContainer({ side, children, id, handleMouseLeave }: MessageContainerProps) {
     const roomId = parseInt(useParams().id || "");
     const hasReactions = useSelector(selectHasMessageReactions(roomId, id));
     const message = useSelector(selectMessageById(roomId, id));
 
     const isMessageSelected = useSelector(selectIsMessageSelected(roomId, id));
+    const isSelectingMessagesActive = useSelector(selectIsSelectingMessagesActive(roomId));
 
     const dispatch = useAppDispatch();
 
@@ -330,19 +317,20 @@ function MessageContainer({
                 }
             }}
         >
-            {isSelectingMessagesActive && !message.deleted && (
-                <Slide direction={"right"} in={true} mountOnEnter unmountOnExit>
-                    <Checkbox
-                        sx={{ height: "0" }}
-                        size="small"
-                        checked={isMessageSelected}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            dispatch(setActiveMessageIds({ roomId, messageId: id }));
-                        }}
-                    />
-                </Slide>
-            )}
+            <Checkbox
+                sx={{
+                    height: "0",
+                    visibility:
+                        isSelectingMessagesActive && !message.deleted ? "visible" : "hidden",
+                }}
+                size="small"
+                checked={!!isMessageSelected}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    dispatch(setActiveMessageIds({ roomId, messageId: id }));
+                }}
+            />
+
             <Box
                 display="grid"
                 gap={1}
