@@ -319,9 +319,10 @@ function MessageContainer({ side, children, id, handleMouseLeave }: MessageConta
         >
             <Checkbox
                 sx={{
-                    height: "0",
-                    visibility:
-                        isSelectingMessagesActive && !message.deleted ? "visible" : "hidden",
+                    "&:hover": {
+                        bgcolor: "transparent",
+                    },
+                    display: isSelectingMessagesActive && !message.deleted ? "flex" : "none",
                 }}
                 size="small"
                 checked={!!isMessageSelected}
