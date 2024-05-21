@@ -8,7 +8,7 @@ import useTheme from "@mui/material/styles/useTheme";
 import Messages from "./components/Messages";
 import ChatInput from "./components/ChatInput";
 import ConfCall from "../confcall";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useGetRoomQuery } from "./api/room";
 import BotInfo from "./components/BotInfo";
 import { selectUserId } from "../../store/userSlice";
@@ -20,10 +20,20 @@ import {
     setIsSelectingMessagesActive,
     setTargetMessage,
 } from "./slices/messages";
+import { setActiveNoteId, toggleRightSidebar } from "./slices/rightSidebar";
 
 export default function Room(): React.ReactElement {
+    const dispatch = useAppDispatch();
     const isCall = /^.+\/call.*$/.test(window.location.pathname);
     const roomId = parseInt(useParams().id || "");
+    const noteId = parseInt(useParams().noteId || "");
+
+    useEffect(() => {
+        if (noteId) {
+            dispatch(toggleRightSidebar());
+            dispatch(setActiveNoteId(noteId));
+        }
+    }, [noteId]);
 
     return (
         <RoomContainer key={roomId}>

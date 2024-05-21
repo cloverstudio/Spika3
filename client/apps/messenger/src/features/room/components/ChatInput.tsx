@@ -434,16 +434,17 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
     }, [message, dispatch]);
 
     useEffect(() => {
-        if (!url) {
-            dispatch(removeThumbnailData({ roomId }));
-            return;
-        }
-
         let timer: NodeJS.Timeout;
 
         timer = setTimeout(() => {
             dispatch(fetchThumbnailData({ url: url, roomId }));
         }, 600);
+
+        if (!url) {
+            clearTimeout(timer);
+            dispatch(removeThumbnailData({ roomId }));
+            return;
+        }
 
         return () => clearTimeout(timer);
     }, [url, dispatch]);
@@ -547,6 +548,7 @@ function TextArea({ onSend }: { onSend: () => void }): React.ReactElement {
     const message = useSelector(selectInputText(roomId));
     const dispatch = useAppDispatch();
     const inputRef = useRef<HTMLTextAreaElement>();
+    const replyMessage = useSelector(selectReplyMessage(roomId));
 
     const cursorPosition = useAppSelector(
         (state) => state.input.list[roomId]?.messageCursorPosition,
@@ -569,6 +571,12 @@ function TextArea({ onSend }: { onSend: () => void }): React.ReactElement {
             inputRef.current.setSelectionRange(cursorPosition, cursorPosition);
         }
     }, [message]);
+
+    useEffect(() => {
+        if (replyMessage) {
+            inputRef.current.focus();
+        }
+    }, [replyMessage]);
 
     const handleSetMessageText = (text: string) => dispatch(setInputText({ text, roomId }));
 
