@@ -62,7 +62,7 @@ export default function Auth(): React.ReactElement {
             const signUpResponse = await signUp({
                 telephoneNumber,
                 telephoneNumberHashed: sha256(telephoneNumber),
-                deviceId: generateRandomString(14),
+                deviceId: deviceId,
             }).unwrap();
 
             if (signUpResponse.browserDeviceId) {

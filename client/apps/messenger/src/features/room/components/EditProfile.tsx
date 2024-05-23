@@ -194,7 +194,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
     const handleLogout = async () => {
         await logout(null).unwrap();
         window.localStorage.removeItem(Constants.LSKEY_ACCESSTOKEN);
-        window.localStorage.removeItem(Constants.LSKEY_DEVICEID);
+        //window.localStorage.removeItem(Constants.LSKEY_DEVICEID);
 
         dispatch({ type: "USER_LOGOUT" });
         window.location.href = "/messenger/";
@@ -213,7 +213,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                     .unwrap()
                     .then(() => {
                         window.localStorage.removeItem(Constants.LSKEY_ACCESSTOKEN);
-                        window.localStorage.removeItem(Constants.LSKEY_DEVICEID);
+                        //window.localStorage.removeItem(Constants.LSKEY_DEVICEID);
 
                         dispatch({ type: "USER_LOGOUT" });
                         window.location.href = "/messenger/";
