@@ -116,12 +116,13 @@ function DeleteMessageDialog({
                             value="all"
                             control={<Radio />}
                             label={strings.deleteForEveryone}
-                            disabled={messages.some((m) => m.fromUserId !== me.id)}
+                            disabled={messages.some((m) => m.fromUserId !== me.id) || isLoading}
                         />
                         <FormControlLabel
                             value="user"
                             control={<Radio />}
                             label={strings.deleteForMe}
+                            disabled={isLoading}
                         />
                     </RadioGroup>
                 </FormControl>

@@ -300,7 +300,12 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
                     </Box>
                 )}
                 {isItPrivateGroup ? (
-                    <Typography variant="h6">{otherUser.displayName}</Typography>
+                    <Box>
+                        <Typography variant="h6">{otherUser.displayName}</Typography>
+                        <Typography fontSize="16px" mt={1}>
+                            {otherUser.telephoneNumber}
+                        </Typography>
+                    </Box>
                 ) : (
                     <>
                         {editGroupName ? (
