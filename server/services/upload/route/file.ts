@@ -286,6 +286,8 @@ async function checkHashes(hashed: string, filePath: string) {
                     return resolve(false);
                 }
 
+                console.log(`result: ${result} : hashed : ${hashed}`)
+
                 return resolve(result == hashed);
             });
 
