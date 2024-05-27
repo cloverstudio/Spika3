@@ -151,6 +151,7 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
         const sseService: SSEService = new SSEService();
         sseService.start({
             rabbitMQChannel,
+            redisClient,
         });
 
         app.use("/api/sse", sseService.getRoutes());
@@ -160,16 +161,21 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
         const messageRecordsSSE: MessageRecordsSSEService = new MessageRecordsSSEService();
         messageRecordsSSE.start({
             rabbitMQChannel,
+            redisClient,
         });
     }
 
     const messagesSSE = new MessagesSSEService();
-    messagesSSE.start({});
+    messagesSSE.start({
+        rabbitMQChannel,
+        redisClient,
+    });
 
     if (+process.env["USE_WEBHOOK"]) {
         const webhook: WebhookService = new WebhookService();
         webhook.start({
             rabbitMQChannel,
+            redisClient,
         });
     }
 
@@ -187,6 +193,7 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
         const confcallService: ConfcallService = new ConfcallService();
         confcallService.start({
             rabbitMQChannel,
+            redisClient,
             server,
         });
 

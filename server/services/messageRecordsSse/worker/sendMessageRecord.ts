@@ -172,10 +172,11 @@ async function getDeviceIdsFromMessageId(messageId: number, fromUserId: number):
               })
             : [];
 
+        
+    
     return message.room.users
         .filter((u) => !usersWhoBlockedSender.map((m) => m.userId).includes(u.user.id))
         .reduce((acc, curr) => [...acc, ...curr.user.device], [])
-        .filter((d) => +d.createdAt <= +message.createdAt)
         .map((d) => d.id);
 }
 
