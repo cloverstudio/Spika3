@@ -15,7 +15,7 @@ export const DOCUMENTS_PAGING_LIMIT = 10;
 
 export const TOKEN_VALID_DAY = 30;
 export const CONTACT_SYNC_LIMIT = 100;
-export const MESSAGE_RECORD_SYNC_LIMIT = 500;
+export const MESSAGE_RECORD_SYNC_LIMIT = 5000;
 export const SYNC_LIMIT = 100;
 
 export const BACKDOOR_VERIFICATION_CODE = "000000";
