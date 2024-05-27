@@ -147,12 +147,30 @@ export default (): Router => {
             await writeFile(filePath, "");
             const writeStream = fs.createWriteStream(filePath);
 
-            for (const chunkIndex of allChunks) {
-                const content = await readFile(tempFileDir + `/${chunkIndex}-chunk`);
-                writeStream.write(content);
+            const streamWritePromise = (stream:fs.WriteStream,content:Buffer): Promise<boolean> => {
+                return new Promise<boolean>((res,rej)=>{
+                    writeStream.write(content,(err)=>{
+                        if(err) rej();
+                        else res(true);
+                    });
+                })
             }
 
-            writeStream.end();
+            const streamEndPromise = (stream:fs.WriteStream): Promise<boolean> => {
+                return new Promise<boolean>((res,rej)=>{
+                    writeStream.end(null,()=>{
+                        res(true);
+                    });
+                })
+            }
+
+            for (const chunkIndex of allChunks) {
+                const content = await readFile(tempFileDir + `/${chunkIndex}-chunk`);
+                //writeStream.write(content);
+                await streamWritePromise(writeStream,content);
+            }
+
+            await streamEndPromise(writeStream);
 
             const hashMatches = await checkHashes(fileHash, filePath);
             if (!hashMatches) {
