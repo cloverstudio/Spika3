@@ -74,7 +74,7 @@ export default function AuthBase({ children }: Props): React.ReactElement {
             if (ev.ctrlKey && ev.key === "o") {
                 ev.preventDefault();
                 window.localStorage.removeItem(constants.LSKEY_ACCESSTOKEN);
-                window.localStorage.removeItem(constants.LSKEY_DEVICEID);
+                //window.localStorage.removeItem(constants.LSKEY_DEVICEID);
                 navigate("/");
             }
         };
