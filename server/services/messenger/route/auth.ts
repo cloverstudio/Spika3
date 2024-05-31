@@ -15,10 +15,11 @@ import prisma from "../../../components/prisma";
 import { handleNewUser } from "../../../components/agent";
 import { UserRequest } from "../lib/types";
 import auth, { isTester } from "../lib/auth";
+import { regexp } from "linkifyjs";
 
 const authSchema = yup.object().shape({
     body: yup.object().shape({
-        telephoneNumber: yup.string().required(),
+        telephoneNumber: yup.string().required().matches(/^\+?\d+$/,"Wrong telephone number"),
         deviceId: yup.string().required(),
     }),
 });
