@@ -99,7 +99,7 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
             name: "copy",
             text: strings.copy,
             icon: <ContentCopy style={{ width: "14px", height: "14px" }} />,
-            show: true,
+            show: message.type === "text",
             onClick: async () => {
                 await navigator.clipboard.writeText(message.body.text);
                 dispatch(hideMessageOptions(roomId));
