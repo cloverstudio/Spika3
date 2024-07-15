@@ -42,8 +42,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                 const fromUserId = userReq.user.id;
                 const fromDeviceId = userReq.device.id;
 
-                const roomIds: number[] = req.body.roomIds;
-                const userIds: number[] = req.body.userIds;
+                const roomIds: number[] = req.body.roomIds || [];
+                const userIds: number[] = req.body.userIds || [];
                 const messages: { body: any; type: string }[] = req.body.messages;
 
                 const roomsFromRoomIds = await Promise.all(
@@ -75,6 +75,40 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                         .send(
                             errorResponse(
                                 "User is not in one or more rooms sent in roomIds",
+                                userReq.lang,
+                            ),
+                        );
+                }
+
+                // return error when to try sending message to request user
+                if (userIds.filter(id => id === userReq.user.id).length >= 1) {
+                    return res
+                        .status(400)
+                        .send(
+                            errorResponse(
+                                `You can't send message to yourself.`,
+                                userReq.lang,
+                            ),
+                        );
+                }
+
+                // check user existance
+                const users = await Promise.all(
+                    userIds.map(async (id) => {
+                        return await prisma.user.findUnique({
+                            where: {
+                                id,
+                            }
+                        });
+                    }),
+                );
+
+                if (users.filter(r => r !== null).length !== userIds.length) {
+                    return res
+                        .status(400)
+                        .send(
+                            errorResponse(
+                                `User doesn't exist.`,
                                 userReq.lang,
                             ),
                         );
