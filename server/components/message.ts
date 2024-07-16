@@ -8,7 +8,7 @@ export async function formatMessageBody(body: any, messageType: string): Promise
 
     const formatted = { ...body };
 
-    if (body.fileId) {
+    if (body?.fileId) {
         const file = await prisma.file.findUnique({
             where: {
                 id: body.fileId,
@@ -25,7 +25,7 @@ export async function formatMessageBody(body: any, messageType: string): Promise
         formatted.file = file;
     }
 
-    if (body.thumbId) {
+    if (body?.thumbId) {
         const thumb = await prisma.file.findUnique({
             where: {
                 id: body.thumbId,
