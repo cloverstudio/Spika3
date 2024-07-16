@@ -45,6 +45,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
                 const fromUserId = userReq.user.id;
                 const fromDeviceId = userReq.device.id;
 
+                console.log("new message",body);
+
                 const roomUser = await prisma.roomUser.findFirst({
                     where: { roomId, userId: fromUserId },
                 });
