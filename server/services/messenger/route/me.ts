@@ -12,6 +12,8 @@ import Utils from "../../../components/utils";
 import { InitRouterParams } from "../../types/serviceInterface";
 import * as Constants from "../../../components/consts";
 import prisma from "../../../components/prisma";
+import path from "path";
+import fs from "fs";
 
 const updateSchema = yup.object().shape({
     body: yup.object().shape({
@@ -65,6 +67,19 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     .send(errorResponse("User with that telephoneNumber exists", userReq.lang));
             }
 
+            if (avatarFileId) {
+                const currAvatarId = userReq.user.avatarFileId;
+                const file = await prisma.file.findFirst({
+                    where: { id: currAvatarId }
+                });
+                const pathToFile = path.resolve(process.env["UPLOAD_FOLDER"], "files/", file.clientId);
+                if (!fs.existsSync(pathToFile)) {
+                    fs.unlinkSync(pathToFile)
+                }
+                await prisma.file.delete({
+                    where: { id: currAvatarId }
+                });
+            }
             const user = await prisma.user.update({
                 where: { id },
                 data: {
