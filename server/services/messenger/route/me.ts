@@ -72,13 +72,17 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 const file = await prisma.file.findFirst({
                     where: { id: currAvatarId }
                 });
-                const pathToFile = path.resolve(process.env["UPLOAD_FOLDER"], "files/", file.clientId);
-                if (!fs.existsSync(pathToFile)) {
-                    fs.unlinkSync(pathToFile)
+
+                if (file) {
+                    const pathToFile = path.resolve(process.env["UPLOAD_FOLDER"], "files/", file.clientId);
+                    if (fs.existsSync(pathToFile)) {
+                        fs.unlinkSync(pathToFile)
+                    }
+                    await prisma.file.delete({
+                        where: { id: currAvatarId }
+                    });
                 }
-                await prisma.file.delete({
-                    where: { id: currAvatarId }
-                });
+
             }
             const user = await prisma.user.update({
                 where: { id },
