@@ -11,7 +11,7 @@ export default (params: InitRouterParams) => {
 
     router.get("/", async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
-
+        console.log("---- test");
         try {
             res.send(successResponse("test", userReq.lang));
         } catch (e: any) {
