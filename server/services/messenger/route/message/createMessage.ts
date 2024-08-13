@@ -36,6 +36,8 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
             const userReq: UserRequest = req as UserRequest;
 
             try {
+
+                console.log("---- create message API");
                 const roomId = parseInt(req.body.roomId as string);
                 const type = req.body.type;
                 const body = req.body.body;
