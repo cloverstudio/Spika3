@@ -13,7 +13,7 @@ export default (params: InitRouterParams) => {
         const userReq: UserRequest = req as UserRequest;
         console.log("---- test");
         try {
-            res.send(successResponse("test", userReq.lang));
+            res.send(successResponse("test test", userReq.lang));
         } catch (e: any) {
             le(e);
             res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
