@@ -206,7 +206,8 @@ console.log("starting qa server");
     // test
 
     app.get("/api/test", (req: express.Request, res: express.Response) => {
-        res.send("test");
+        console.log("----- test")
+        res.send("test test");
     });
 
     app.all("/", (req: express.Request, res: express.Response) => {
