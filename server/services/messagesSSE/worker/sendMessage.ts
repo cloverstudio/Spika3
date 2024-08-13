@@ -27,6 +27,10 @@ class sendMessageWorker implements QueueWorkerInterface {
         const sseMessageRecordsNotify = createSSEMessageRecordsNotify(rabbitMQChannel);
 
         try {
+
+            console.log("------1")
+
+
             const { room, message } = payload;
 
             const allReceivers = room.users;
