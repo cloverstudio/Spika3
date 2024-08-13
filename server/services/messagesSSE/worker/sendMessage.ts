@@ -103,9 +103,13 @@ class sendMessageWorker implements QueueWorkerInterface {
                 return otherUser.user.avatarFileId;
             }
 
+            console.log("------a")
+
             while (devices.length) {
                 await Promise.all(
                     devices.splice(0, 10).map(async (device) => {
+
+                        console.log("------b")
                         if (!device) {
                             return;
                         }
@@ -139,7 +143,10 @@ class sendMessageWorker implements QueueWorkerInterface {
                             return true;
                         };
 
+                        console.log("------c")
                         if (checkIfShouldSendPush()) {
+
+                            console.log("------d")
                             const roomAvatarFileId = getRoomAvatarFileId(room, device.userId);
 
                             rabbitMQChannel.sendToQueue(
@@ -163,6 +170,7 @@ class sendMessageWorker implements QueueWorkerInterface {
                             );
                         }
 
+                        console.log("------e")
                         rabbitMQChannel.sendToQueue(
                             QUEUE_SSE,
                             Buffer.from(
