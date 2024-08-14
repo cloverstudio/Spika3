@@ -114,6 +114,8 @@ export default async function sendFcmMessage({
     if (response.status !== 200) {
         // le(`FCM ERROR, ${JSON.stringify({ data, resData: response.data }, null, 4)}`);
         throw new Error("FCM error");
+    } else {
+        console.log(`Push sent `,data )
     }
 
     return response.data;
