@@ -80,8 +80,6 @@ export default async function sendFcmMessage({
         },
     };
 
-    console.log(`sending push ${token}`);
-    
     const data = {
         message: {
             token,
@@ -115,9 +113,10 @@ export default async function sendFcmMessage({
 
     if (response.status !== 200) {
         // le(`FCM ERROR, ${JSON.stringify({ data, resData: response.data }, null, 4)}`);
+        console.log(`Push failed `,token )
         throw new Error("FCM error");
     } else {
-        console.log(`Push sent `,data )
+        console.log(`Push sent `,token )
     }
 
     return response.data;
