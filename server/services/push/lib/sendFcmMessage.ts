@@ -80,6 +80,8 @@ export default async function sendFcmMessage({
         },
     };
 
+    console.log(`sending push ${token}`);
+    
     const data = {
         message: {
             token,
