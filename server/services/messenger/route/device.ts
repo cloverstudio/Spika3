@@ -36,6 +36,8 @@ export default (): Router => {
         try {
             const { pushToken } = req.body;
 
+            console.log("updating push token", pushToken);
+            
             const device = await prisma.device.update({
                 where: { id },
                 data: {
