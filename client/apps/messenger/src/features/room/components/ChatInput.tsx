@@ -617,8 +617,7 @@ function TextArea({ onSend }: { onSend: () => void }): React.ReactElement {
                     getCursorPosition();
                 }
             }}
-            // placeholder={strings.typeHere}
-            placeholder={"Napiši ovdje..."}
+            placeholder={strings.typeHere}
             rows={1}
             style={{
                 color: "inherit",

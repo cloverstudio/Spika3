@@ -152,8 +152,7 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
                             width: "100%",
                         }}
                     >
-                        <ExitToApp style={{ fill: "red" }} />
-                        {/* <DoDisturb style={{ fill: "red" }} /> */}
+                        <DoDisturb style={{ fill: "red" }} />
                         <Typography variant="subtitle1" color="red">
                             {strings.blockUser}
                         </Typography>

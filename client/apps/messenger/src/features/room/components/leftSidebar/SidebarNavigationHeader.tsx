@@ -21,8 +21,7 @@ export default function SidebarNavigationHeader({
                 >
                     <ArrowBackIosIcon
                         sx={{
-                            color: "background.default",
-                            //   color: "primary.main",
+                            color: "primary.main",
                             position: "relative",
                             left: 3,
                         }}
