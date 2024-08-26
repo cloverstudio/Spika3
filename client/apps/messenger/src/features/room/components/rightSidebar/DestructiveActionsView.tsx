@@ -139,7 +139,7 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
                         },
                         width: "100%",
                     }}
-                    onClick={handleBlock}
+                    // onClick={handleBlock}
                 >
                     <Stack
                         direction="row"
@@ -152,7 +152,8 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
                             width: "100%",
                         }}
                     >
-                        <DoDisturb style={{ fill: "red" }} />
+                        <ExitToApp style={{ fill: "red" }} />
+                        {/* <DoDisturb style={{ fill: "red" }} /> */}
                         <Typography variant="subtitle1" color="red">
                             {strings.blockUser}
                         </Typography>

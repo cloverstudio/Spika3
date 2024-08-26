@@ -192,6 +192,9 @@ export default function ForwardMessageModal() {
                     fullWidth
                     size="medium"
                     onClick={handleSave}
+                    sx={{
+                        borderRadius: 0,
+                    }}
                 >
                     {strings.forward}
                 </Button>
