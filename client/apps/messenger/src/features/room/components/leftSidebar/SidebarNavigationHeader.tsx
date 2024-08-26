@@ -20,7 +20,12 @@ export default function SidebarNavigationHeader({
                     onClick={() => handleBack()}
                 >
                     <ArrowBackIosIcon
-                        sx={{ color: "primary.main", position: "relative", left: 3 }}
+                        sx={{
+                            color: "background.default",
+                            //   color: "primary.main",
+                            position: "relative",
+                            left: 3,
+                        }}
                     />
                 </IconButton>
                 <Typography fontWeight={500} lineHeight="">

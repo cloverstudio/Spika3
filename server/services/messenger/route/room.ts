@@ -16,6 +16,8 @@ import createSSERoomsNotify, { createSSERoomsRemovedNotify } from "../lib/sseRoo
 import prisma from "../../../components/prisma";
 import { createClient } from "redis";
 import { handleNewRoom } from "../../../components/agent";
+import path from "path";
+import fs from "fs";
 
 const postRoomSchema = yup.object().shape({
     body: yup.object().shape({
@@ -66,11 +68,14 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
 
         try {
             const {
-                avatarFileId,
                 type: userDefinedType,
                 userIds,
                 adminUserIds,
                 name: userDefinedName,
+            } = req.body;
+
+            let {
+                avatarFileId,
             } = req.body;
 
             if (!adminUserIds.includes(userReq.user.id)) {
@@ -170,6 +175,9 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                             .send(errorResponse("Other user is not your contact", userReq.lang));
                     }
                 }
+
+                // private room doesn't have avatar id
+                avatarFileId = null;
             }
 
             const room = await prisma.room.create({
@@ -370,6 +378,24 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                         ...(userCount > 2 && { type: "group" }),
                     };
                     break;
+            }
+
+            if (avatarFileId) {
+                const currAvatarId = room.avatarFileId;
+                const file = await prisma.file.findFirst({
+                    where: { id: currAvatarId }
+                });
+
+                if (file) {
+                    const pathToFile = path.resolve(process.env["UPLOAD_FOLDER"], "files/", file.clientId);
+                    if (fs.existsSync(pathToFile)) {
+                        fs.unlinkSync(pathToFile)
+                    }
+                    await prisma.file.delete({
+                        where: { id: currAvatarId }
+                    });
+                }
+
             }
 
             const updated = await prisma.room.update({
@@ -1679,9 +1705,8 @@ async function sendUpdateRoomUsersSystemMessage({
             const displayNamesOfAddedUsers = room.users
                 .filter((u) => userIds.includes(u.userId))
                 .map((u) => u.user.displayName);
-            body.text = `${user.displayName} added ${displayNamesOfAddedUsers.join(", ")} ${
-                isUpdatingAdmins ? "as admin(s)" : "to the group"
-            }`;
+            body.text = `${user.displayName} added ${displayNamesOfAddedUsers.join(", ")} ${isUpdatingAdmins ? "as admin(s)" : "to the group"
+                }`;
             body.type = isUpdatingAdmins
                 ? Constants.SYSTEM_MESSAGE_TYPE_ADD_GROUP_ADMINS
                 : Constants.SYSTEM_MESSAGE_TYPE_ADD_GROUP_MEMBERS;
@@ -1705,9 +1730,8 @@ async function sendUpdateRoomUsersSystemMessage({
             });
             const displayNamesOfRemovedUsers = removedUsers.map((u) => u.displayName);
 
-            body.text = `${user.displayName} removed ${displayNamesOfRemovedUsers.join(", ")} ${
-                isUpdatingAdmins ? "from admin(s)" : "from the group"
-            }`;
+            body.text = `${user.displayName} removed ${displayNamesOfRemovedUsers.join(", ")} ${isUpdatingAdmins ? "from admin(s)" : "from the group"
+                }`;
             body.type = isUpdatingAdmins
                 ? Constants.SYSTEM_MESSAGE_TYPE_REMOVE_GROUP_ADMINS
                 : Constants.SYSTEM_MESSAGE_TYPE_REMOVE_GROUP_MEMBERS;

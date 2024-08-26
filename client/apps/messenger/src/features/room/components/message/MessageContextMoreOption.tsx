@@ -8,6 +8,7 @@ import FavoriteBorderOutlined from "@mui/icons-material/FavoriteBorderOutlined";
 import DeleteOutlineOutlined from "@mui/icons-material/DeleteOutlineOutlined";
 import Download from "@mui/icons-material/DownloadOutlined";
 import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
+import AttachmentIcon from "@mui/icons-material/Attachment";
 import Select from "@mui/icons-material/CheckBoxOutlined";
 import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../../../hooks";
@@ -113,7 +114,8 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
         {
             name: "copyPermalink",
             text: strings.copyPermalink,
-            icon: <ShareOutlinedIcon style={{ width: "14px", height: "14px" }} />,
+            // icon: <ShareOutlinedIcon style={{ width: "14px", height: "14px" }} />,
+            icon: <AttachmentIcon style={{ width: "14px", height: "14px" }} />,
             show: true,
             onClick: async () => {
                 const parsedUrl = new URL(window.location.href);
