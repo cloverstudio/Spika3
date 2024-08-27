@@ -351,10 +351,9 @@ function RoomRow({ id, isActive, lastMessage, unreadCount }: RoomRowProps) {
                                     "& .MuiBadge-badge": {
                                         position: "relative",
                                         transform: "none",
-                                        bgcolor: "#E84E4E",
                                     },
                                 }}
-                                // color="primary"
+                                color="primary"
                                 badgeContent={unreadCount}
                                 max={99}
                             />

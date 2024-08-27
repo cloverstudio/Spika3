@@ -69,8 +69,7 @@ export default function TelephoneNumberForm({
                     id="submitButton"
                     sx={{ marginTop: "1em" }}
                 >
-                    {/* {strings.next} */}
-                    Nexxt
+                    {strings.next}
                 </Button>
             </Box>
         </>
