@@ -44,7 +44,7 @@ export default function RightSidebarHeader({ type }: RightSidebarHeaderProps): R
                     <Typography variant="h6">{strings.notes}</Typography>
                     <Box ml="auto" flex={1} textAlign="right">
                         <IconButton
-                            // onClick={() => dispatch(setActiveTab("createNote"))}
+                            onClick={() => dispatch(setActiveTab("createNote"))}
                             style={{ borderRadius: "10px" }}
                         >
                             <AddCircleOutline />

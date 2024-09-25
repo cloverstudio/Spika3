@@ -107,9 +107,9 @@ function DeleteMessageDialog({
                     <RadioGroup
                         defaultValue="user"
                         value={target}
-                        // onChange={(e) => {
-                        //     setTarget(e.target.value as "all" | "user");
-                        // }}
+                        onChange={(e) => {
+                            setTarget(e.target.value as "all" | "user");
+                        }}
                         name="radio-buttons-group"
                     >
                         <FormControlLabel
@@ -127,12 +127,7 @@ function DeleteMessageDialog({
                     </RadioGroup>
                 </FormControl>
 
-                <Button
-                    // onClick={handleSubmit}
-                    fullWidth
-                    variant="contained"
-                    disabled={isLoading}
-                >
+                <Button onClick={handleSubmit} fullWidth variant="contained" disabled={isLoading}>
                     {strings.delete}
                 </Button>
             </Box>
