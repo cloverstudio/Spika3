@@ -28,7 +28,7 @@ import {
     selectActiveMessage,
     selectShowMessageDetails,
 } from "../../slices/messages";
-import useStrings from "../../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import ImportExport from "@mui/icons-material/ImportExport";
 import { useAppDispatch } from "../../../../hooks";
 
@@ -52,7 +52,7 @@ export default function MessageDetailsDialogContainer() {
 }
 
 function MessageDetailsDialog({ message, onClose }: { message: MessageType; onClose: () => void }) {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const me = useSelector(selectUser);
 
     const { data } = useGetMessageRecordsByIdQuery(
@@ -82,9 +82,7 @@ function MessageDetailsDialog({ message, onClose }: { message: MessageType; onCl
                 py={2}
                 sx={{ overflowY: "auto", position: "relative" }}
             >
-                <DialogTitle sx={{ textAlign: "center", p: 0, mb: 2 }}>
-                    {strings.details}
-                </DialogTitle>
+                <DialogTitle sx={{ textAlign: "center", p: 0, mb: 2 }}>{t("details")}</DialogTitle>
                 <IconButton
                     size="large"
                     sx={{
@@ -108,7 +106,7 @@ function MessageDetailsDialog({ message, onClose }: { message: MessageType; onCl
                         <Box>
                             <Box display="flex" alignItems="center" mb={2.25} gap={0.5}>
                                 <DoneAll color="info" sx={{ width: 16, height: 16 }} />
-                                <Typography fontSize="0.85rem">{strings.readBy}</Typography>
+                                <Typography fontSize="0.85rem">{t("readBy")}</Typography>
                             </Box>
 
                             <List sx={{ pt: 0 }}>
@@ -123,7 +121,7 @@ function MessageDetailsDialog({ message, onClose }: { message: MessageType; onCl
                         <Box>
                             <Box display="flex" alignItems="center" mb={2.25} gap={0.5}>
                                 <DoneAll sx={{ width: 16, height: 16 }} />
-                                <Typography fontSize="0.85rem">{strings.deliveredTo}</Typography>
+                                <Typography fontSize="0.85rem">{t("deliveredTo")}</Typography>
                             </Box>
 
                             <List sx={{ pt: 0 }}>
@@ -178,14 +176,14 @@ function MessageDetailRow({ record }: MessageDetailsRowProps) {
 }
 
 function SenderActions({ message }: { message: MessageType }) {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const { data, isLoading } = useGetUserByIdQuery(message.fromUserId);
 
     return (
         <Box mb={2.75}>
             <Box display="flex" alignItems="center" mb={2.25} gap={0.5}>
                 <ImportExport sx={{ width: 16, height: 16 }} />
-                <Typography fontSize="0.85rem">{strings.senderActions}</Typography>
+                <Typography fontSize="0.85rem">{t("senderActions")}</Typography>
             </Box>
             <Box display="flex" justifyContent="space-between" alignItems="center">
                 <Box display="flex" alignItems="center">

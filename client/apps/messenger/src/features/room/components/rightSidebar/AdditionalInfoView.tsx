@@ -18,7 +18,7 @@ import {
 
 import { selectUserId } from "../../../../../src/store/userSlice";
 
-import useStrings from "../../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import { fetchHistory, setKeyword } from "../../slices/leftSidebar";
 import { useAppDispatch } from "../../../../hooks";
 
@@ -27,7 +27,7 @@ export interface Props {
 }
 
 export function DetailsAdditionalInfoView(props: Props) {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const room: RoomType = props.roomData;
     const dispatch = useAppDispatch();
     const showSnackBar = useShowSnackBar();
@@ -95,7 +95,7 @@ export function DetailsAdditionalInfoView(props: Props) {
                         cursor: "pointer",
                     }}
                 >
-                    <Box component="span">{strings.sharedMediaLinksAndDocs}</Box>
+                    <Box component="span">{t("sharedMediaLinksAndDocs")}</Box>
                     <ChevronRight />
                 </Stack>
                 <Stack
@@ -111,7 +111,7 @@ export function DetailsAdditionalInfoView(props: Props) {
                         cursor: "pointer",
                     }}
                 >
-                    <Box component="span">{strings.notes}</Box>
+                    <Box component="span">{t("notes")}</Box>
                     <ChevronRight />
                 </Stack>
                 {((type === "group" && userIsAdmin) || type === "private") && (
@@ -128,7 +128,7 @@ export function DetailsAdditionalInfoView(props: Props) {
                             cursor: "pointer",
                         }}
                     >
-                        <Box component="span">{strings.settings}</Box>
+                        <Box component="span">{t("settings")}</Box>
                         <ChevronRight />
                     </Stack>
                 )}
@@ -144,7 +144,7 @@ export function DetailsAdditionalInfoView(props: Props) {
                         width: "100%",
                     }}
                 >
-                    <Box component="span">{strings.pinChat}</Box>
+                    <Box component="span">{t("pinChat")}</Box>
                     <Switch
                         checked={room.pinned}
                         onChange={async (e) => {
@@ -178,7 +178,7 @@ export function DetailsAdditionalInfoView(props: Props) {
                         width: "100%",
                     }}
                 >
-                    <Box component="span">{strings.muteNotifications}</Box>
+                    <Box component="span">{t("muteNotifications")}</Box>
                     <Switch
                         checked={room.muted}
                         onChange={async (e) => {

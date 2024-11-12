@@ -1,6 +1,5 @@
 import React from "react";
 import { Box } from "@mui/material";
-import useStrings from "../../../../hooks/useStrings";
 
 interface Props {
     isUsersMessage: boolean;
@@ -15,7 +14,6 @@ export default function MessageActionIndicator({
     icon,
     styles,
 }: Props) {
-    const strings = useStrings();
     return (
         <Box
             sx={{

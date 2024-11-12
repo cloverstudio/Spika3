@@ -29,7 +29,7 @@ import * as Constants from "../../../../../../lib/constants";
 
 import ThemeSwitch from "./leftSidebar/ThemeSwitch";
 import { ThemeContext, ThemeType } from "../../../theme";
-import useStrings from "../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import { ContactRow } from "./leftSidebar/ContactList";
 import { useGetBlockedUsersQuery, useRemoveUserFromBlockListMutation } from "../api/user";
 import getFileType from "../lib/getFileType";
@@ -39,6 +39,7 @@ import { useUpdateDeviceMutation } from "../../../api/device";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { useShowBasicDialog } from "../../../hooks/useModal";
 import { useAppDispatch } from "../../../hooks";
+import { ChangeLanguageModal } from "./leftSidebar/ChangeLanguageModal";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -48,7 +49,7 @@ export interface EditProfileProps {
 }
 
 export function EditProfileView({ onClose, user }: EditProfileProps) {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const imageRef = useRef(null);
     const [name, setName] = useState("");
     const [proposedName, setProposedName] = useState("");
@@ -66,6 +67,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
     const [remove] = useRemoveMutation();
     const showBasicDialog = useShowBasicDialog();
     const themeObject = useTheme();
+    const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
 
     const isMobile = useMediaQuery(themeObject.breakpoints.down("md"));
 
@@ -203,10 +205,10 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
     const handleDelete = async () => {
         showBasicDialog(
             {
-                allowButtonLabel: strings.yes,
-                denyButtonLabel: strings.cancel,
-                text: strings.deleteUserDescription,
-                title: strings.deleteUserQuestion,
+                allowButtonLabel: t("yes"),
+                denyButtonLabel: t("cancel"),
+                text: t("deleteUserDescription"),
+                title: t("deleteUserQuestion"),
             },
             () => {
                 remove(null)
@@ -258,7 +260,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                                     sx={{ color: "primary.main", position: "relative", left: 3 }}
                                 />
                             </IconButton>
-                            <Typography variant="h6">{strings.blockedUsers}</Typography>
+                            <Typography variant="h6">{t("blockedUsers")}</Typography>
                         </Stack>
                     </Box>
                 </Box>
@@ -289,7 +291,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                                 sx={{ color: "primary.main", position: "relative", left: 3 }}
                             />
                         </IconButton>
-                        <Typography variant="h6">{strings.settings}</Typography>
+                        <Typography variant="h6">{t("settings")}</Typography>
                     </Box>
                 </Box>
             </Box>
@@ -374,7 +376,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                             >
                                 <TextField
                                     id="outlined-basic"
-                                    label={strings.username}
+                                    label={t("username")}
                                     variant="outlined"
                                     sx={{ width: "100%" }}
                                     value={proposedName}
@@ -393,7 +395,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                                             }
                                         }}
                                     >
-                                        {strings.save}
+                                        {t("save")}
                                     </Button>
                                 )}
                             </Stack>
@@ -419,7 +421,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                         alignItems="center"
                         justifyContent="space-between"
                     >
-                        {strings.colorSchema}
+                        {t("colorSchema")}
                         <ThemeSwitch
                             checked={theme === "dark"}
                             onChange={(e) => {
@@ -428,6 +430,24 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                                 window.localStorage.setItem(Constants.LSKEY_THEME, mode);
                             }}
                         />
+                    </Stack>
+
+                    <Stack
+                        direction="row"
+                        alignItems="center"
+                        spacing={1}
+                        onClick={() => setIsLanguageModalOpen(true)}
+                        sx={{
+                            height: "40px",
+                            display: "flex",
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            width: "100%",
+                            cursor: "pointer",
+                        }}
+                    >
+                        <Box component="span">{t("languages")}</Box>
+                        <ChevronRight />
                     </Stack>
 
                     <Stack
@@ -444,7 +464,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                             cursor: "pointer",
                         }}
                     >
-                        <Box component="span">{strings.blockedUsers}</Box>
+                        <Box component="span">{t("blockedUsers")}</Box>
                         <ChevronRight />
                     </Stack>
 
@@ -466,7 +486,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                             color: "inherit",
                         }}
                     >
-                        <Box component="span">{strings.termsAndConditions}</Box>
+                        <Box component="span">{t("termsAndConditions")}</Box>
                         <ChevronRight />
                     </Stack>
 
@@ -485,7 +505,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                                 cursor: "pointer",
                             }}
                         >
-                            <Box component="span">{strings.enableDesktopNotifications}</Box>
+                            <Box component="span">{t("enableDesktopNotifications")}</Box>
                             <ChevronRight />
                         </Stack>
                     )}
@@ -505,7 +525,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                             cursor: "pointer",
                         }}
                     >
-                        <Box component="span">{strings.deleteMyAccount}</Box>
+                        <Box component="span">{t("deleteMyAccount")}</Box>
                     </Stack>
 
                     <Stack
@@ -522,7 +542,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                             cursor: "pointer",
                         }}
                     >
-                        <Box component="span">{strings.logout}</Box>
+                        <Box component="span">{t("logout")}</Box>
                         <LogoutIcon />
                     </Stack>
                 </Box>
@@ -534,6 +554,10 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                         havePhoto={user.avatarFileId > 0}
                     />
                 ) : null}
+                <ChangeLanguageModal
+                    isOpen={isLanguageModalOpen}
+                    onClose={() => setIsLanguageModalOpen(false)}
+                />
             </Box>
         </Box>
     );
@@ -547,7 +571,7 @@ export interface EditPhotoDialogProps {
 }
 
 export function EditPhotoDialog(props: EditPhotoDialogProps) {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const { onClose, open, onConfirm } = props;
     const [value, setValue] = React.useState("upload");
     const handleClose = () => {
@@ -601,13 +625,13 @@ export function EditPhotoDialog(props: EditPhotoDialogProps) {
                         <FormControlLabel
                             value="upload"
                             control={<Radio />}
-                            label={strings.uploadPhoto}
+                            label={t("uploadPhoto")}
                         />
                         <FormControlLabel
                             value="remove"
                             control={<Radio />}
                             disabled={!props.havePhoto}
-                            label={strings.removePhoto}
+                            label={t("removePhoto")}
                         />
                     </RadioGroup>
                 </FormControl>
@@ -621,7 +645,7 @@ export function EditPhotoDialog(props: EditPhotoDialogProps) {
                     handleClose();
                 }}
             >
-                {strings.confirm}
+                {t("confirm")}
             </Button>
         </Dialog>
     );
@@ -630,7 +654,7 @@ export function EditPhotoDialog(props: EditPhotoDialogProps) {
 function BlockedUsersList() {
     const { data: blockedUsers, isLoading } = useGetBlockedUsersQuery();
     const [remove] = useRemoveUserFromBlockListMutation();
-    const strings = useStrings();
+    const { t } = useTranslation();
 
     if (isLoading) {
         return null;
@@ -639,7 +663,7 @@ function BlockedUsersList() {
     if (!blockedUsers.length) {
         return (
             <Box mt={3} px={2.5}>
-                {strings.noBlockedUsers}
+                {t("noBlockedUsers")}
             </Box>
         );
     }

@@ -3,7 +3,6 @@ import React from "react";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import ArrowBackIos from "@mui/icons-material/ArrowBackIos";
-import useStrings from "../../../../../hooks/useStrings";
 
 import { ActiveTabType, setActiveTab } from "../../../slices/rightSidebar";
 import { useAppDispatch } from "../../../../../hooks";

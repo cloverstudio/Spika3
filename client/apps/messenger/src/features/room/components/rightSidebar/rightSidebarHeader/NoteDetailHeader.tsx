@@ -20,11 +20,11 @@ import {
 import { useDeleteNoteMutation, useGetNoteByIdQuery } from "../../../api/note";
 import { useParams } from "react-router-dom";
 import { useShowSnackBar } from "../../../../../hooks/useModal";
-import useStrings from "../../../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import { useAppDispatch } from "../../../../../hooks";
 
 export default function NoteDetailHeader() {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const noteId = useSelector(selectRightSidebarActiveNoteId);
     const roomId = +useParams().id;
@@ -43,7 +43,7 @@ export default function NoteDetailHeader() {
 
         showSnackbar({
             severity: "success",
-            text: strings.linkCopied,
+            text: t("linkCopied"),
         });
     };
 
@@ -60,7 +60,7 @@ export default function NoteDetailHeader() {
                 >
                     <ArrowBackIos sx={{ color: "primary.main", position: "relative", left: 3 }} />
                 </IconButton>
-                <Typography variant="h6">{strings.noteNotFound}</Typography>
+                <Typography variant="h6">{t("noteNotFound")}</Typography>
             </>
         );
     }
@@ -108,7 +108,7 @@ type DeleteNoteDialogProps = {
 };
 
 function DeleteNoteDialog({ onClose, open, onConfirm }: DeleteNoteDialogProps) {
-    const strings = useStrings();
+    const { t } = useTranslation();
     return (
         <Dialog
             sx={{
@@ -121,7 +121,7 @@ function DeleteNoteDialog({ onClose, open, onConfirm }: DeleteNoteDialogProps) {
             open={open}
             maxWidth="xs"
         >
-            <DialogTitle sx={{ textAlign: "center" }}>{strings.confirm}</DialogTitle>
+            <DialogTitle sx={{ textAlign: "center" }}>{t("confirm")}</DialogTitle>
             <IconButton
                 disableRipple
                 sx={{
@@ -140,7 +140,7 @@ function DeleteNoteDialog({ onClose, open, onConfirm }: DeleteNoteDialogProps) {
                 <Close />
             </IconButton>
             <Box sx={{ width: "300px", margin: 2 }}>
-                <Typography variant="body1">{strings.areYouSure}</Typography>
+                <Typography variant="body1">{t("areYouSure")}</Typography>
             </Box>
             <Button
                 variant="contained"
@@ -151,7 +151,7 @@ function DeleteNoteDialog({ onClose, open, onConfirm }: DeleteNoteDialogProps) {
                     onClose();
                 }}
             >
-                {strings.yesDelete}
+                {t("yesDelete")}
             </Button>
         </Dialog>
     );

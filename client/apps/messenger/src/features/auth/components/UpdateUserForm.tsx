@@ -8,7 +8,7 @@ import Alert from "@mui/material/Alert";
 import AlertTitle from "@mui/material/AlertTitle";
 
 import uploadImage from "../../../assets/upload-image.svg";
-import useStrings from "../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 
 type UpdateUserFormProps = {
     onSubmit: ({ username, file }: { username: string; file: File }) => void;
@@ -19,7 +19,7 @@ export default function UpdateUserForm({
     onSubmit,
     error,
 }: UpdateUserFormProps): React.ReactElement {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const [username, setUsername] = useState("");
     const [file, setFile] = useState<File>();
     const uploadFileRef = React.useRef(null);
@@ -58,13 +58,13 @@ export default function UpdateUserForm({
                 </Alert>
             )}
             <Box textAlign="left" mb={{ xs: 3, md: 6 }}>
-                <FormLabel sx={{ mb: 1.5, display: "block" }}>{strings.username}</FormLabel>
+                <FormLabel sx={{ mb: 1.5, display: "block" }}>{t("username")}</FormLabel>
                 <TextField
                     sx={{ mb: 3 }}
                     required
                     fullWidth
                     id="username"
-                    placeholder={strings.enter}
+                    placeholder={t("enter")}
                     name="username"
                     autoComplete="username"
                     autoFocus
@@ -77,7 +77,7 @@ export default function UpdateUserForm({
                     fullWidth
                     variant="contained"
                 >
-                    {strings.next}
+                    {t("next")}
                 </Button>
             </Box>
         </>

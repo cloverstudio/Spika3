@@ -52,7 +52,7 @@ import {
     showDeleteModal,
     showForwardMessageModal,
 } from "../slices/messages";
-import useStrings from "../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import { useRemoveBlockByIdMutation } from "../api/user";
 import DoDisturb from "@mui/icons-material/DoDisturb";
 import useAutoSizeTextArea from "../hooks/useAutoSizeTextArea";
@@ -69,7 +69,7 @@ export default function ChatInputContainer(): React.ReactElement {
     const inputType = useSelector(selectInputType(roomId));
     const { data: roomBlock } = useGetRoomBlockedQuery(roomId);
     const [removeBlock] = useRemoveBlockByIdMutation();
-    const strings = useStrings();
+    const { t } = useTranslation();
 
     const [files, setFiles] = useState(AttachmentManager.getFiles(roomId) || []);
     const canvasRef = useRef<HTMLCanvasElement>();
@@ -122,13 +122,13 @@ export default function ChatInputContainer(): React.ReactElement {
                         <DoDisturb />
 
                         <Typography>
-                            {strings.youBlockedThisContact}{" "}
+                            {t("youBlockedThisContact")}{" "}
                             <Box
                                 component="span"
                                 sx={{ textDecoration: "underline", cursor: "pointer" }}
                                 onClick={() => removeBlock(roomBlock.id)}
                             >
-                                {strings.clickHereToUnblock}
+                                {t("clickHereToUnblock")}
                             </Box>
                         </Typography>
                     </Stack>
@@ -262,7 +262,7 @@ function SelectMessagesActionBar() {
     const activeMessages = useAppSelector((state) => selectActiveMessages(state, roomId));
     const { data: room } = useGetRoomQuery(roomId);
 
-    const strings = useStrings();
+    const { t } = useTranslation();
     const showSnackBar = useShowSnackBar();
 
     const copySelectedMessages = () => {
@@ -291,8 +291,7 @@ function SelectMessagesActionBar() {
         navigator.clipboard.writeText(text);
         showSnackBar({
             severity: "info",
-            text:
-                selectedTextMessages.length === 1 ? strings.messageCopied : strings.messagesCopied,
+            text: selectedTextMessages.length === 1 ? t("messageCopied") : t("messagesCopied"),
         });
     };
 
@@ -337,9 +336,7 @@ function SelectMessagesActionBar() {
                     }}
                 >
                     {activeMessageIds.length}{" "}
-                    {activeMessageIds.length === 1
-                        ? strings.messageSelected
-                        : strings.messagesSelected}
+                    {activeMessageIds.length === 1 ? t("messageSelected") : t("messagesSelected")}
                 </Box>
 
                 <Box
@@ -404,7 +401,7 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
     const roomId = parseInt(useParams().id || "");
     const editMessage = useSelector(selectEditMessage(roomId));
 
-    const strings = useStrings();
+    const { t } = useTranslation();
     const message = useSelector(selectInputText(roomId));
     const dispatch = useAppDispatch();
     const inputType = useSelector(selectInputType(roomId));
@@ -480,10 +477,10 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
 
                 <Box display="flex" gap={0.5}>
                     <Button size="small" onClick={handleCloseEdit} variant="text">
-                        {strings.cancel}
+                        {t("cancel")}
                     </Button>
                     <Button size="small" onClick={onSend} variant="contained">
-                        {strings.save}
+                        {t("save")}
                     </Button>
                 </Box>
             </Box>
@@ -544,7 +541,7 @@ function TextInput({ onSend }: { onSend: () => void }): React.ReactElement {
 function TextArea({ onSend }: { onSend: () => void }): React.ReactElement {
     const roomId = parseInt(useParams().id || "");
 
-    const strings = useStrings();
+    const { t } = useTranslation();
     const message = useSelector(selectInputText(roomId));
     const dispatch = useAppDispatch();
     const inputRef = useRef<HTMLTextAreaElement>();
@@ -617,7 +614,7 @@ function TextArea({ onSend }: { onSend: () => void }): React.ReactElement {
                     getCursorPosition();
                 }
             }}
-            placeholder={strings.typeHere}
+            placeholder={t("typeHere")}
             rows={1}
             style={{
                 color: "inherit",

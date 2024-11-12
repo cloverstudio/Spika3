@@ -6,7 +6,7 @@ import { getGroupedEmojis, searchEmoji } from "./utils/getEmojis";
 import EmojiGrid from "./EmojiGrid";
 import { Emoji } from "./types";
 import Tabs from "./Tabs";
-import useStrings from "../../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import axios from "axios";
 import AttachmentManager from "../../lib/AttachmentManager";
 import { useParams } from "react-router-dom";
@@ -33,7 +33,7 @@ export default function EmojiPickerContainer({
     const roomId = parseInt(useParams().id || "");
 
     const [showType, setShowType] = useState<"emoji" | "gif">("emoji");
-    const strings = useStrings();
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
 
     useEffect(() => {
@@ -67,7 +67,7 @@ export default function EmojiPickerContainer({
                         backgroundColor: showType === "emoji" ? "background.paper" : "transparent",
                     }}
                 >
-                    {strings.emojis}
+                    {t("emojis")}
                 </Button>
                 <Button
                     onClick={() => {
@@ -84,7 +84,7 @@ export default function EmojiPickerContainer({
                         backgroundColor: showType === "gif" ? "background.paper" : "transparent",
                     }}
                 >
-                    {strings.gifs}
+                    {t("gifs")}
                 </Button>
 
                 <IconButton
@@ -105,7 +105,7 @@ export default function EmojiPickerContainer({
 }
 
 function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void }) {
-    const strings = useStrings();
+    const { t } = useTranslation();
 
     const [results, setResults] = useState<Emoji[] | undefined>(undefined);
     const [tabIndex, setTabIndex] = useState(0);
@@ -146,7 +146,7 @@ function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void }) {
                     <Box maxWidth="100%" width="100%" padding="16px 0">
                         <Input
                             disableUnderline={true}
-                            placeholder={strings.search}
+                            placeholder={t("search")}
                             fullWidth
                             sx={{
                                 backgroundColor: "background.paper",
@@ -208,7 +208,7 @@ function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void }) {
 }
 
 function GifPicker() {
-    const strings = useStrings();
+    const { t } = useTranslation();
 
     const roomId = parseInt(useParams().id || "");
 
@@ -344,7 +344,7 @@ function GifPicker() {
                     <Box maxWidth="100%" width="100%" padding="16px 0">
                         <Input
                             disableUnderline={true}
-                            placeholder={strings.searchGifs}
+                            placeholder={t("searchGifs")}
                             autoFocus
                             fullWidth
                             sx={{
@@ -393,7 +393,7 @@ function GifPicker() {
                             mt: "12px",
                         }}
                     >
-                        {strings.noData}
+                        {t("noData")}
                     </Box>
                 )}
 
@@ -405,7 +405,7 @@ function GifPicker() {
                             mt: "12px",
                         }}
                     >
-                        {strings.anErrorHasOccurred}
+                        {t("anErrorHasOccurred")}
                     </Box>
                 )}
 

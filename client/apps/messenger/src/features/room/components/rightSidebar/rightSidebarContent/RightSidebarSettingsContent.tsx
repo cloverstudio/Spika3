@@ -8,7 +8,7 @@ import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 
-import useStrings from "../../../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import isValidURL from "../../../../../utils/isValidURL";
 import {
     useCreateApiKeyMutation,
@@ -38,7 +38,7 @@ export default function RightSidebarEditNoteContent({
 }
 
 function WebhookSettings(): React.ReactElement {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const roomId = parseInt(useParams().id || "");
 
     const [url, setUrl] = useState("");
@@ -56,7 +56,7 @@ function WebhookSettings(): React.ReactElement {
 
     const handleSubmit = async () => {
         if (!isValidURL(url)) {
-            setError(strings.notValidUrl);
+            setError(t("notValidUrl"));
             return;
         }
 
@@ -81,7 +81,7 @@ function WebhookSettings(): React.ReactElement {
     return (
         <Box mb={4}>
             <Typography mb={2} variant="h6">
-                {strings.webhook}
+                {t("webhook")}
             </Typography>
 
             <TextField
@@ -89,7 +89,7 @@ function WebhookSettings(): React.ReactElement {
                 required
                 fullWidth
                 size="small"
-                placeholder={strings.url}
+                placeholder={t("url")}
                 id="url"
                 name="url"
                 autoFocus
@@ -100,7 +100,7 @@ function WebhookSettings(): React.ReactElement {
 
             {verifySignature && (
                 <Typography mb={2}>
-                    {strings.verifySignature}: {verifySignature}
+                    {t("verifySignature")}: {verifySignature}
                 </Typography>
             )}
 
@@ -112,11 +112,11 @@ function WebhookSettings(): React.ReactElement {
                 }}
             >
                 <Button onClick={handleSubmit} disabled={!url} sx={{ mr: 1 }} variant="contained">
-                    {webhookData?.id ? strings.save : strings.create}
+                    {webhookData?.id ? t("save") : t("create")}
                 </Button>
                 {webhookData?.id && (
                     <Button onClick={handleRemove} variant="outlined" color="error">
-                        {strings.remove}
+                        {t("remove")}
                     </Button>
                 )}
             </Box>
@@ -131,7 +131,7 @@ function WebhookSettings(): React.ReactElement {
 }
 
 function ApiKeySettings(): React.ReactElement {
-    const strings = useStrings();
+    const { t } = useTranslation();
 
     const roomId = parseInt(useParams().id || "");
     const [displayName, setDisplayName] = useState("");
@@ -169,7 +169,7 @@ function ApiKeySettings(): React.ReactElement {
     return (
         <Box>
             <Typography mb={2} variant="h6">
-                {strings.apiKey}
+                {t("apiKey")}
             </Typography>
 
             <TextField
@@ -177,7 +177,7 @@ function ApiKeySettings(): React.ReactElement {
                 required
                 fullWidth
                 size="small"
-                placeholder={strings.displayName}
+                placeholder={t("displayName")}
                 id="displayName"
                 name="displayName"
                 autoFocus
@@ -188,12 +188,12 @@ function ApiKeySettings(): React.ReactElement {
 
             {key && (
                 <Typography mb={2}>
-                    {strings.apiKey}: {key}
+                    {t("apiKey")}: {key}
                 </Typography>
             )}
             {key && (
                 <Typography mb={2}>
-                    {strings.postUrl}: {API_BASE_URL}/messaging/messages
+                    {t("postUrl")}: {API_BASE_URL}/messaging/messages
                 </Typography>
             )}
 
@@ -210,12 +210,12 @@ function ApiKeySettings(): React.ReactElement {
                     sx={{ mr: 1 }}
                     variant="contained"
                 >
-                    {apiKeyData?.id ? strings.save : strings.create}
+                    {apiKeyData?.id ? t("save") : t("create")}
                 </Button>
 
                 {apiKeyData?.id && (
                     <Button onClick={handleRemove} variant="outlined" color="error">
-                        {strings.remove}
+                        {t("remove")}
                     </Button>
                 )}
             </Box>

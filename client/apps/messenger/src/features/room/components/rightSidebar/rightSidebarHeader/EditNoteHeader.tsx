@@ -4,14 +4,14 @@ import { useSelector } from "react-redux";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import ArrowBackIos from "@mui/icons-material/ArrowBackIos";
-import useStrings from "../../../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 
 import { useEditNoteMutation, useGetNoteByIdQuery } from "../../../api/note";
 import { selectRightSidebarActiveNoteId, setActiveNoteId } from "../../../slices/rightSidebar";
 import { useAppDispatch, useAppSelector } from "../../../../../hooks";
 
 export default function EditNoteHeader() {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const noteId = useSelector(selectRightSidebarActiveNoteId);
 
@@ -59,7 +59,7 @@ export default function EditNoteHeader() {
             >
                 <ArrowBackIos sx={{ color: "primary.main", position: "relative", left: 3 }} />
             </IconButton>
-            <Typography variant="h6">{strings.editNote}</Typography>
+            <Typography variant="h6">{t("editNote")}</Typography>
             <IconButton
                 sx={{
                     position: "absolute",
@@ -77,7 +77,7 @@ export default function EditNoteHeader() {
                         ...(isSaveDisabled && { opacity: "0.5" }),
                     }}
                 >
-                    {strings.save}
+                    {t("save")}
                 </Typography>
             </IconButton>
         </>

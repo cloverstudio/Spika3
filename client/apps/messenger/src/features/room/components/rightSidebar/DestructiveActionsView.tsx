@@ -19,7 +19,7 @@ import { useSelector } from "react-redux";
 import { hideRightSidebar } from "../../slices/rightSidebar";
 import { removeRoom } from "../../slices/leftSidebar";
 import { selectUserId } from "../../../../store/userSlice";
-import useStrings from "../../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import { useBlockUserMutation, useRemoveUserFromBlockListMutation } from "../../api/user";
 import { useAppDispatch } from "../../../../hooks";
 
@@ -28,7 +28,7 @@ export interface DetailsDestructiveActionsProps {
 }
 
 export function DetailsDestructiveActionsView({ room }: DetailsDestructiveActionsProps) {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const { type, id, users } = room;
 
     const userId = useSelector(selectUserId);
@@ -50,18 +50,18 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
 
         if (!haveOtherAdmins) {
             return showBasicDialog({
-                text: strings.cantLeaveAdminGroup,
-                title: strings.unavailableAction,
-                allowButtonLabel: strings.ok,
+                text: t("cantLeaveAdminGroup"),
+                title: t("unavailableAction"),
+                allowButtonLabel: t("ok"),
             });
         }
 
         showBasicDialog(
             {
-                text: strings.leaveGroupQuestion,
-                title: strings.confirm,
-                allowButtonLabel: strings.ok,
-                denyButtonLabel: strings.cancel,
+                text: t("leaveGroupQuestion"),
+                title: t("confirm"),
+                allowButtonLabel: t("ok"),
+                denyButtonLabel: t("cancel"),
             },
             () =>
                 leaveRoom({ roomId: id })
@@ -77,10 +77,10 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
     const handleDelete = () => {
         showBasicDialog(
             {
-                text: strings.deleteGroupQuestion,
-                title: strings.confirm,
-                allowButtonLabel: strings.ok,
-                denyButtonLabel: strings.cancel,
+                text: t("deleteGroupQuestion"),
+                title: t("confirm"),
+                allowButtonLabel: t("ok"),
+                denyButtonLabel: t("cancel"),
             },
             () =>
                 deleteRoom({ roomId: id })
@@ -96,10 +96,10 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
     const handleBlock = () => {
         showBasicDialog(
             {
-                text: strings.blockUserQuestion,
-                title: strings.confirm,
-                allowButtonLabel: strings.yes,
-                denyButtonLabel: strings.cancel,
+                text: t("blockUserQuestion"),
+                title: t("confirm"),
+                allowButtonLabel: t("yes"),
+                denyButtonLabel: t("cancel"),
             },
             () =>
                 blockUser(otherUserId)
@@ -113,10 +113,10 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
     const handleUnblock = () => {
         showBasicDialog(
             {
-                text: strings.unblockUserQuestion,
-                title: strings.confirm,
-                allowButtonLabel: strings.yes,
-                denyButtonLabel: strings.cancel,
+                text: t("unblockUserQuestion"),
+                title: t("confirm"),
+                allowButtonLabel: t("yes"),
+                denyButtonLabel: t("cancel"),
             },
             () =>
                 unblockUser(otherUserId)
@@ -154,7 +154,7 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
                     >
                         <DoDisturb style={{ fill: "red" }} />
                         <Typography variant="subtitle1" color="red">
-                            {strings.blockUser}
+                            {t("blockUser")}
                         </Typography>
                     </Stack>
                 </IconButton>
@@ -183,7 +183,7 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
                         }}
                     >
                         <Typography variant="subtitle1" color="red">
-                            {strings.unblockUser}
+                            {t("unblockUser")}
                         </Typography>
                     </Stack>
                 </IconButton>
@@ -213,7 +213,7 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
                         <ExitToApp style={{ fill: "red" }} />
 
                         <Typography variant="subtitle1" color="red">
-                            {strings.exitGroup}
+                            {t("exitGroup")}
                         </Typography>
                     </Stack>
                 </IconButton>
@@ -243,7 +243,7 @@ export function DetailsDestructiveActionsView({ room }: DetailsDestructiveAction
                         <DeleteOutline style={{ fill: "red" }} />
 
                         <Typography variant="subtitle1" color="red">
-                            {strings.deleteGroup}
+                            {t("deleteGroup")}
                         </Typography>
                     </Stack>
                 </IconButton>

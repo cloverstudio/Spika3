@@ -25,7 +25,7 @@ import { useShowSnackBar } from "../../../../hooks/useModal";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { useMessageContainerContext } from "./MessagesContainer";
-import useStrings from "../../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import { DOWNLOAD_URL } from "../../../../../../../lib/constants";
 
 interface Props {
@@ -47,7 +47,7 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
 
     const menuRef = useRef(null);
 
-    const strings = useStrings();
+    const { t } = useTranslation();
 
     const { messageContainerRef } = useMessageContainerContext();
 
@@ -75,7 +75,7 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
     const menuOptions = [
         {
             name: "download",
-            text: strings.download,
+            text: t("download"),
             icon: <Download style={{ width: "14px", height: "14px" }} />,
             show: message.type === "image" || message.type === "video",
             onClick: () => {
@@ -87,7 +87,7 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
         },
         {
             name: "forward",
-            text: strings.forwardMessage,
+            text: t("forwardMessage"),
             icon: <Shortcut style={{ width: "14px", height: "14px" }} />,
             show: true,
             onClick: () => {
@@ -97,7 +97,7 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
         },
         {
             name: "copy",
-            text: strings.copy,
+            text: t("copy"),
             icon: <ContentCopy style={{ width: "14px", height: "14px" }} />,
             show: message.type === "text",
             onClick: async () => {
@@ -105,14 +105,14 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
                 dispatch(hideMessageOptions(roomId));
                 showSnackBar({
                     severity: "info",
-                    text: strings.messageCopied,
+                    text: t("messageCopied"),
                 });
                 setMouseOver(false);
             },
         },
         {
             name: "copyPermalink",
-            text: strings.copyPermalink,
+            text: t("copyPermalink"),
             icon: <ShareOutlinedIcon style={{ width: "14px", height: "14px" }} />,
             show: true,
             onClick: async () => {
@@ -123,14 +123,14 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
                 dispatch(hideMessageOptions(roomId));
                 showSnackBar({
                     severity: "info",
-                    text: strings.permalinkCopied,
+                    text: t("permalinkCopied"),
                 });
                 setMouseOver(false);
             },
         },
         {
             name: "edit",
-            text: strings.edit,
+            text: t("edit"),
             icon: <ModeEditOutlineOutlined style={{ width: "14px", height: "14px" }} />,
             show: isUsersMessage && message.type === "text" && !message.isForwarded,
             onClick: () => {
@@ -140,7 +140,7 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
         },
         {
             name: "select",
-            text: strings.select,
+            text: t("select"),
             icon: <Select style={{ width: "14px", height: "14px" }} />,
             show: true,
             onClick: () => {
@@ -150,7 +150,7 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
         },
         {
             name: "details",
-            text: strings.details,
+            text: t("details"),
             icon: <InfoOutlined style={{ width: "14px", height: "14px" }} />,
             show: true,
             onClick: () => {
@@ -159,7 +159,7 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
         },
         {
             name: "favorite",
-            text: strings.addToFavorite,
+            text: t("addToFavorite"),
             icon: <FavoriteBorderOutlined style={{ width: "14px", height: "14px" }} />,
             show: false, // functionality not implemented
             onClick: () => {
@@ -168,7 +168,7 @@ export default function MessageContextMoreOption({ isUsersMessage, id, setMouseO
         },
         {
             name: "delete",
-            text: strings.delete,
+            text: t("delete"),
             icon: <DeleteOutlineOutlined style={{ width: "14px", height: "14px" }} />,
             show: true,
             style: { color: "error.main" },

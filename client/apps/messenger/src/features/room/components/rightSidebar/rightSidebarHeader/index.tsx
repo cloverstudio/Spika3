@@ -17,7 +17,7 @@ import {
 import EditNoteHeader from "./EditNoteHeader";
 import NavigateBackHeader from "./NavigateBackHeader";
 import NoteDetailHeader from "./NoteDetailHeader";
-import useStrings from "../../../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import { useAppDispatch } from "../../../../../hooks";
 
 type RightSidebarHeaderProps = {
@@ -25,7 +25,7 @@ type RightSidebarHeaderProps = {
 };
 
 export default function RightSidebarHeader({ type }: RightSidebarHeaderProps): React.ReactElement {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const activeTab = useSelector(selectRightSidebarActiveTab);
     const dispatch = useAppDispatch();
 
@@ -41,7 +41,7 @@ export default function RightSidebarHeader({ type }: RightSidebarHeaderProps): R
                             sx={{ color: "primary.main", position: "relative", left: 3 }}
                         />
                     </IconButton>
-                    <Typography variant="h6">{strings.notes}</Typography>
+                    <Typography variant="h6">{t("notes")}</Typography>
                     <Box ml="auto" flex={1} textAlign="right">
                         <IconButton
                             onClick={() => dispatch(setActiveTab("createNote"))}
@@ -65,7 +65,7 @@ export default function RightSidebarHeader({ type }: RightSidebarHeaderProps): R
                             sx={{ color: "primary.main", position: "relative", left: 3 }}
                         />
                     </IconButton>
-                    <Typography variant="h6">{strings.newNote}</Typography>
+                    <Typography variant="h6">{t("newNote")}</Typography>
                 </>
             );
         }
@@ -79,15 +79,15 @@ export default function RightSidebarHeader({ type }: RightSidebarHeaderProps): R
         }
 
         if (activeTab === "settings") {
-            return <NavigateBackHeader headerTitle={strings.settings} />;
+            return <NavigateBackHeader headerTitle={t("settings")} />;
         }
 
         if (activeTab === "media") {
-            return <NavigateBackHeader headerTitle={strings.sharedMediaLinksAndDocs} />;
+            return <NavigateBackHeader headerTitle={t("sharedMediaLinksAndDocs")} />;
         }
 
         if (activeTab === "search") {
-            return <NavigateBackHeader headerTitle={strings.searchMessages} />;
+            return <NavigateBackHeader headerTitle={t("searchMessages")} />;
         }
     };
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 
 import { Box, CircularProgress, IconButton, Typography, useTheme } from "@mui/material";
-import useStrings from "../../../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../../../../../hooks";
 import {
     getRightSidebarFiles,
@@ -29,7 +29,7 @@ import useEscapeKey from "../../../../../hooks/useEscapeKey";
 import { toggleRightSidebar } from "../../../slices/rightSidebar";
 
 export default function RightSidebarMediaContent() {
-    const strings = useStrings();
+    const { t } = useTranslation();
 
     const [activeButton, setActiveButton] = useState<"media" | "link" | "doc">("media");
 
@@ -73,7 +73,7 @@ export default function RightSidebarMediaContent() {
                     }}
                     onClick={() => setActiveButton("media")}
                 >
-                    {strings.media}
+                    {t("media")}
                 </Box>
                 <Box
                     sx={{
@@ -85,7 +85,7 @@ export default function RightSidebarMediaContent() {
                     }}
                     onClick={() => setActiveButton("link")}
                 >
-                    {strings.links}
+                    {t("links")}
                 </Box>
                 <Box
                     sx={{
@@ -97,7 +97,7 @@ export default function RightSidebarMediaContent() {
                     }}
                     onClick={() => setActiveButton("doc")}
                 >
-                    {strings.docs}
+                    {t("docs")}
                 </Box>
             </Box>
 
@@ -119,7 +119,7 @@ function ImagesAndVideosContent() {
     const roomId = parseInt(useParams().id || "");
     const mediaContainerRef = useRef<HTMLDivElement>(null);
 
-    const strings = useStrings();
+    const { t } = useTranslation();
 
     const itemsPerBatch = rightSidebarMediaBatchLimit;
 
@@ -186,8 +186,7 @@ function ImagesAndVideosContent() {
                 Object.keys(mediaSortedByMonth).map((month, i) => {
                     let showThisMonthText = false;
                     const splitMonth = month.split(" ");
-                    let monthText =
-                        strings[splitMonth[0].toLowerCase()] + " " + splitMonth[1] || month;
+                    let monthText = t(splitMonth[0].toLowerCase()) + " " + splitMonth[1] || month;
                     const currentDate = new Date();
 
                     if (i === 0) {
@@ -219,7 +218,7 @@ function ImagesAndVideosContent() {
                                     mb: 1,
                                 }}
                             >
-                                {showThisMonthText ? strings.thisMonth : monthText}
+                                {showThisMonthText ? t("thisMonth") : monthText}
                             </Box>
                             <Box
                                 sx={{
@@ -256,7 +255,7 @@ function ImagesAndVideosContent() {
                     );
                 })
             ) : (
-                <Box textAlign="center">{!isLoading && strings.noData}</Box>
+                <Box textAlign="center">{!isLoading && t("noData")}</Box>
             )}
             {isLoading && !media?.length && (
                 <Box sx={{ textAlign: "center" }}>
@@ -272,7 +271,7 @@ function LinksContent() {
     const dispatch = useAppDispatch();
     const linksContainerRef = useRef<HTMLDivElement>(null);
 
-    const strings = useStrings();
+    const { t } = useTranslation();
     const linkMessages = useAppSelector((state) => state.messages[roomId]?.rightSidebarLinks);
 
     const itemsPerBatch = rightSidebarLinkMessagesBatchLimit;
@@ -354,8 +353,7 @@ function LinksContent() {
                 Object.keys(linksSortedByMonth).map((month, i) => {
                     let showThisMonthText = false;
                     const splitMonth = month.split(" ");
-                    let monthText =
-                        strings[splitMonth[0].toLowerCase()] + " " + splitMonth[1] || month;
+                    let monthText = t(splitMonth[0].toLowerCase()) + " " + splitMonth[1] || month;
                     const currentDate = new Date();
 
                     if (i === 0) {
@@ -388,7 +386,7 @@ function LinksContent() {
                                     overflow: "hidden",
                                 }}
                             >
-                                {showThisMonthText ? strings.thisMonth : monthText}
+                                {showThisMonthText ? t("thisMonth") : monthText}
                             </Box>
 
                             <Box
@@ -412,7 +410,7 @@ function LinksContent() {
                     );
                 })
             ) : (
-                <Box textAlign="center">{strings.noData}</Box>
+                <Box textAlign="center">{t("noData")}</Box>
             )}
 
             {isLoading && !linkMessages?.length && (
@@ -435,7 +433,7 @@ function DocsContent() {
     const itemsPerBatch = rightSidebarFilesBatchLimit;
     const files = useAppSelector((state) => state.messages[roomId]?.rightSidebarFiles);
     const count = useAppSelector((state) => state.messages[roomId]?.rightSidebarFilesCount);
-    const strings = useStrings();
+    const { t } = useTranslation();
 
     const sortedFiles = getSortedMediaByMonthAndYear(files);
 
@@ -494,8 +492,7 @@ function DocsContent() {
                 Object.keys(sortedFiles).map((month, i) => {
                     let showThisMonthText = false;
                     const splitMonth = month.split(" ");
-                    let monthText =
-                        strings[splitMonth[0].toLowerCase()] + " " + splitMonth[1] || month;
+                    let monthText = t(splitMonth[0].toLowerCase()) + " " + splitMonth[1] || month;
                     const currentDate = new Date();
 
                     if (i === 0) {
@@ -527,7 +524,7 @@ function DocsContent() {
                                     mb: 1,
                                 }}
                             >
-                                {showThisMonthText ? strings.thisMonth : monthText}
+                                {showThisMonthText ? t("thisMonth") : monthText}
                             </Box>
 
                             {sortedFiles[month].map((file) => {
@@ -537,7 +534,7 @@ function DocsContent() {
                     );
                 })
             ) : (
-                <Box textAlign="center">{!isLoading && strings.noData}</Box>
+                <Box textAlign="center">{!isLoading && t("noData")}</Box>
             )}
             {isLoading && !files?.length && (
                 <Box sx={{ textAlign: "center" }}>
@@ -562,6 +559,7 @@ interface FileItemProps {
 function FileItem({ file }: FileItemProps) {
     const theme = useTheme();
     const isDarkMode = theme.palette.mode === "dark";
+    const { t } = useTranslation();
 
     const Icon = getFileIcon(file.body.file.mimeType);
     const sizeInMB = (file.body.file.size / 1024 / 1024).toFixed(2);
@@ -609,7 +607,7 @@ function FileItem({ file }: FileItemProps) {
                         color: isDarkMode ? "text.primary" : "text.tertiary",
                     }}
                 >
-                    {getGalleryFormattedDate(file.date)}
+                    {getGalleryFormattedDate(file.date, t)}
                 </Typography>
             </Box>
             <Box
@@ -694,6 +692,8 @@ interface MessageProps {
 }
 
 export function MessageItem({ message, onClick, highlightSearchedText = false }: MessageProps) {
+    const { t } = useTranslation();
+
     return (
         <Box
             sx={{
@@ -735,7 +735,7 @@ export function MessageItem({ message, onClick, highlightSearchedText = false }:
                             fontWeight: 400,
                         }}
                     >
-                        {getGalleryFormattedDate(message.date)}
+                        {getGalleryFormattedDate(message.date, t)}
                     </Typography>
                 </Box>
                 <TextMessage

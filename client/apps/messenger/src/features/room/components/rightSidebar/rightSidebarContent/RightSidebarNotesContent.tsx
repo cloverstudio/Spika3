@@ -7,13 +7,13 @@ import Typography from "@mui/material/Typography";
 import ArrowRightAltOutlined from "@mui/icons-material/ArrowRightAltOutlined";
 
 import Loader from "../../../../../components/Loader";
-import useStrings from "../../../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import { useGetNotesByRoomIdQuery } from "../../../api/note";
 import { setActiveNoteId } from "../../../slices/rightSidebar";
 import { useAppDispatch } from "../../../../../hooks";
 
 export default function RightSidebarNotesContent(): React.ReactElement {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const roomId = +useParams().id;
     const dispatch = useAppDispatch();
 
@@ -24,7 +24,7 @@ export default function RightSidebarNotesContent(): React.ReactElement {
     }
 
     if (data.notes.length === 0) {
-        return <Box>{strings.noNotes}</Box>;
+        return <Box>{t("noNotes")}</Box>;
     }
 
     return (

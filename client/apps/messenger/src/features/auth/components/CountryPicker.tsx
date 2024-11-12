@@ -15,7 +15,7 @@ import Search from "@mui/icons-material/Search";
 import { FixedSizeList, ListChildComponentProps } from "react-window";
 import countries, { CountryType } from "../lib/countries";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import useStrings from "../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 
 const CountryPicker = (props: any) => {
     const [searchText, setSearchText] = React.useState("");
@@ -23,7 +23,7 @@ const CountryPicker = (props: any) => {
     const [countryCode, setCountryCode] = React.useState("385");
     const [openMenu, setOpenMenu] = React.useState(false);
     const [staticBoxCoordinates, setStaticBoxCoordinates] = React.useState<DOMRect>(null);
-    const strings = useStrings();
+    const { t } = useTranslation();
 
     const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchText(event.target.value);
@@ -35,7 +35,7 @@ const CountryPicker = (props: any) => {
     };
     const handleListItemClick = (
         event: React.MouseEvent<HTMLDivElement, MouseEvent>,
-        index: number
+        index: number,
     ) => {
         setCountryCode(tempCountries[index].phone);
         props.code(tempCountries[index].phone);
@@ -94,7 +94,7 @@ const CountryPicker = (props: any) => {
         const filter: CountryType[] = countries.filter(
             (country) =>
                 country.label.toLowerCase().includes(search.toLowerCase()) ||
-                country.phone.includes(search)
+                country.phone.includes(search),
         );
         setTempCountries(filter);
     };
@@ -129,7 +129,7 @@ const CountryPicker = (props: any) => {
                         fullWidth
                         autoFocus
                         size="small"
-                        placeholder={strings.phoneNumberExample}
+                        placeholder={t("phoneNumberExample")}
                         id="phoneNumber"
                         InputProps={{
                             type: "number",
@@ -189,7 +189,7 @@ const CountryPicker = (props: any) => {
                             }}
                             value={searchText}
                             onChange={handleSearch}
-                            placeholder={strings.search}
+                            placeholder={t("search")}
                             InputProps={{
                                 startAdornment: (
                                     <InputAdornment position="start">
@@ -212,7 +212,7 @@ const CountryPicker = (props: any) => {
                             textTransform="uppercase"
                             marginLeft="1em"
                         >
-                            {strings.allCountries}
+                            {t("allCountries")}
                         </Typography>
                         <FixedSizeList
                             height={200}

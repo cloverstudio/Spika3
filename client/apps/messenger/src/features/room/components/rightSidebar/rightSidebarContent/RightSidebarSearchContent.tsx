@@ -12,7 +12,7 @@ import {
 import { useParams } from "react-router-dom";
 import SearchBox from "../../SearchBox";
 import { MessageItem } from "./RightSidebarMediaContent";
-import useStrings from "../../../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import { rightSidebarSearchMessagesBatchLimit } from "../../../lib/consts";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import { DatePicker } from "../../../../../components/DatePicker";
@@ -28,7 +28,7 @@ export default function RightSidebarSearchContent() {
     const count = useAppSelector((state) => state.messages[roomId]?.searchedMessagesCount);
     const isLoading = useAppSelector((state) => state.messages[roomId]?.loading);
     const keyword = useAppSelector((state) => state.messages[roomId]?.keyword);
-    const strings = useStrings();
+    const { t } = useTranslation();
     const themeObject = useTheme();
     const isMobile = useMediaQuery(themeObject.breakpoints.down("md"));
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -209,12 +209,12 @@ export default function RightSidebarSearchContent() {
                 ))}
                 {(!keyword || keyword?.length < 3) && !isLoading && (
                     <Box textAlign="center" mt={2}>
-                        {strings.searchForMessages}
+                        {t("searchForMessages")}
                     </Box>
                 )}
                 {keyword && keyword.length >= 3 && !isLoading && messages?.length === 0 && (
                     <Box textAlign="center" mt={2}>
-                        {strings.noMessagesFound}
+                        {t("noMessagesFound")}
                     </Box>
                 )}
             </Box>

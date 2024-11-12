@@ -14,8 +14,8 @@ import { useGetDeviceQuery } from "../api/device";
 import handleSSE from "../utils/handleSSE";
 import * as constants from "../../../../lib/constants";
 import { showSnackBar } from "../store/modalSlice";
-import useStrings from "../hooks/useStrings";
 import { useAppDispatch } from "../hooks";
+import { useTranslation } from "react-i18next";
 
 declare const API_BASE_URL: string;
 
@@ -30,7 +30,7 @@ export default function AuthBase({ children }: Props): React.ReactElement {
     const { data: deviceData } = useGetDeviceQuery();
     const [SSEConnectionState, setSSEConnectionState] = useState("pending");
     const [shouldDisplayBackOnlineSnackbar, setShouldDisplayBackOnlineSnackbar] = useState(false);
-    const strings = useStrings();
+    const { t } = useTranslation();
 
     useEffect(() => {
         function createSource() {
@@ -90,20 +90,20 @@ export default function AuthBase({ children }: Props): React.ReactElement {
             dispatch(
                 showSnackBar({
                     severity: "error",
-                    text: strings.connectionLost,
+                    text: t("connectionLost"),
                     autoHideDuration: 5 * 60 * 1000,
                 }),
             );
             setShouldDisplayBackOnlineSnackbar(true);
         }
-    }, [SSEConnectionState, dispatch, strings.connectionLost]);
+    }, [SSEConnectionState, dispatch, t]);
 
     useEffect(() => {
         if (shouldDisplayBackOnlineSnackbar && SSEConnectionState === "open") {
             dispatch(
                 showSnackBar({
                     severity: "success",
-                    text: strings.connectionReestablished,
+                    text: t("connectionReestablished"),
                 }),
             );
             setShouldDisplayBackOnlineSnackbar(false);
@@ -112,12 +112,7 @@ export default function AuthBase({ children }: Props): React.ReactElement {
                 window.location.reload();
             }, 5000);
         }
-    }, [
-        SSEConnectionState,
-        shouldDisplayBackOnlineSnackbar,
-        dispatch,
-        strings.connectionReestablished,
-    ]);
+    }, [SSEConnectionState, shouldDisplayBackOnlineSnackbar, dispatch, t]);
 
     if (isLoading) {
         return (

@@ -9,7 +9,7 @@ import {
     setActiveTab,
 } from "../../slices/rightSidebar";
 import { useTheme } from "@mui/material/styles";
-import useStrings from "../../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import { useEditNoteMutation } from "../../api/note";
 
 export const SaveNoteEditModal = () => {
@@ -25,7 +25,7 @@ export const SaveNoteEditModal = () => {
     const theme = useTheme();
     const isDarkTheme = theme.palette.mode === "dark";
 
-    const strings = useStrings();
+    const { t } = useTranslation();
 
     const closeModalHandler = () => {
         dispatch(hideNoteEditModal());
@@ -80,7 +80,7 @@ export const SaveNoteEditModal = () => {
                 }}
             >
                 <DialogTitle sx={{ textAlign: "center", p: 0, m: 0 }}>
-                    {strings.saveEditsTitle}
+                    {t("saveEditsTitle")}
                 </DialogTitle>
 
                 <IconButton
@@ -99,7 +99,7 @@ export const SaveNoteEditModal = () => {
                     <Close />
                 </IconButton>
 
-                <Typography sx={{ fontWeight: 500 }}>{strings.saveEditsContent}</Typography>
+                <Typography sx={{ fontWeight: 500 }}>{t("saveEditsContent")}</Typography>
 
                 <Box
                     sx={{
@@ -122,7 +122,7 @@ export const SaveNoteEditModal = () => {
                             },
                         }}
                     >
-                        {strings.discard}
+                        {t("discard")}
                     </Button>
                     <Button
                         variant="contained"
@@ -132,7 +132,7 @@ export const SaveNoteEditModal = () => {
                         onClick={saveHandler}
                         sx={{ borderRadius: "12px" }}
                     >
-                        {strings.save}
+                        {t("save")}
                     </Button>
                 </Box>
             </Box>
