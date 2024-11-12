@@ -19,7 +19,7 @@ import uploadImage from "../../assets/upload-image.svg";
 
 import { crop } from "../../utils/crop";
 import * as Constants from "../../../../../lib/constants";
-import useStrings from "../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import SelectedMembers from "./components/SelectedMembers";
 import getFileType from "./lib/getFileType";
 import FileUploader from "../../utils/FileUploader";
@@ -45,14 +45,14 @@ function LeftSidebarNewChat({
 }: {
     setSidebar: (s: string) => void;
 }): React.ReactElement {
-    const strings = useStrings();
+    const { t } = useTranslation();
 
     return (
         <LeftSidebarLayout>
             <SidebarNavigationHeader handleBack={() => setSidebar("")} title="New chat" />
 
             <Box textAlign="center" mb={1}>
-                <Button onClick={() => setSidebar("new_group")}>{strings.newGroupChat}</Button>
+                <Button onClick={() => setSidebar("new_group")}>{t("newGroupChat")}</Button>
             </Box>
             <SidebarContactList />
         </LeftSidebarLayout>
@@ -64,7 +64,7 @@ function LeftSidebarNewGroup({
 }: {
     setSidebar: (s: string) => void;
 }): React.ReactElement {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const [step, setStep] = useState<"select_members" | "edit_group_info">("select_members");
     const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
     const [name, setName] = useState("");
@@ -144,8 +144,8 @@ function LeftSidebarNewGroup({
         }
     };
 
-    const title = step === "select_members" ? strings.selectMembers : strings.groupMembers;
-    const buttonText = step === "select_members" ? strings.next : strings.create;
+    const title = step === "select_members" ? t("selectMembers") : t("groupMembers");
+    const buttonText = step === "select_members" ? t("next") : t("create");
     const buttonIsDisabled = step === "edit_group_info" && !name;
 
     return (
@@ -185,7 +185,7 @@ function LeftSidebarNewGroup({
                         required
                         fullWidth
                         id="name"
-                        placeholder={strings.groupName}
+                        placeholder={t("groupName")}
                         name="name"
                         autoFocus
                         value={name}
@@ -199,7 +199,7 @@ function LeftSidebarNewGroup({
                         lineHeight="1.25rem"
                         sx={{ px: 2.5, py: 2 }}
                     >
-                        {selectedUsers.length} {strings.peopleSelected}
+                        {selectedUsers.length} {t("peopleSelected")}
                     </Typography>
                     <Box flexGrow={1} sx={{ overflowY: "auto" }}>
                         {selectedUsers.map((user) => (

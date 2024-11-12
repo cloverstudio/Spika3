@@ -14,7 +14,7 @@ import Close from "@mui/icons-material/Close";
 import { useSelector } from "react-redux";
 
 import * as Constants from "../../../../../../../lib/constants";
-import useStrings from "../../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import { selectUser } from "../../../../store/userSlice";
 import { RoomType, UpdateGroupAction } from "../../../../types/Rooms";
 import { crop } from "../../../../utils/crop";
@@ -35,7 +35,7 @@ export interface DetailsBasicInfoProps {
 }
 
 export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const { roomData } = props;
     const isItPrivateGroup = roomData.type === "private";
     const otherUserId = useSelector(selectOtherUserIdInPrivateRoom(roomData.id));
@@ -330,7 +330,7 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
                                 >
                                     <TextField
                                         id="outlined-basic"
-                                        label={strings.groupName}
+                                        label={t("groupName")}
                                         variant="outlined"
                                         sx={{ width: "70%" }}
                                         value={proposedName}
@@ -349,7 +349,7 @@ export function DetailsBasicInfoView(props: DetailsBasicInfoProps) {
                                             }}
                                             disabled={proposedName === roomData.name}
                                         >
-                                            {strings.save}
+                                            {t("save")}
                                         </Button>
                                     )}
                                 </Stack>

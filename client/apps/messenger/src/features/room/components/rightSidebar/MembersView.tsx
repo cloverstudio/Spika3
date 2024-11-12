@@ -15,7 +15,7 @@ import { useSelector } from "react-redux";
 import { RoomUserType, UpdateGroupAction } from "../../../../types/Rooms";
 import { selectUserId } from "../../../../store/userSlice";
 import { useCreateRoomMutation, useUpdateRoomMutation } from "../../api/room";
-import useStrings from "../../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { dynamicBaseQuery } from "../../../../api/api";
 import { numberOfMembersDisplayed } from "../../lib/consts";
@@ -29,7 +29,7 @@ export interface DetailsMembersProps {
 }
 
 export function DetailsMemberView(props: DetailsMembersProps) {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const { members, roomId } = props;
     const [createRoom] = useCreateRoomMutation();
 
@@ -115,7 +115,7 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                 }}
             >
                 <Typography variant="h6">
-                    {members.length} {strings.members}
+                    {members.length} {t("members")}
                 </Typography>
                 {userIsAdmin && (
                     <IconButton size="large" color="primary" onClick={() => setOpenAddDialog(true)}>
@@ -165,14 +165,14 @@ export function DetailsMemberView(props: DetailsMembersProps) {
                                         sx={{ cursor: "pointer" }}
                                     />
                                     <Box>
-                                        {user.displayName} {user.isBot ? ` (${strings.bot}) ` : ""}{" "}
+                                        {user.displayName} {user.isBot ? ` (${t("bot")}) ` : ""}{" "}
                                     </Box>
                                 </Box>
 
                                 <Box>
                                     {roomUser.isAdmin ? (
                                         <Box display="flex" gap={1} alignItems="center">
-                                            <Typography>{strings.admin}</Typography>
+                                            <Typography>{t("admin")}</Typography>
                                             {userIsAdmin && user.id !== userId ? (
                                                 <UserMenu
                                                     onRemove={() => removeMemberWithId(user.id)}
@@ -216,7 +216,7 @@ export function DetailsMemberView(props: DetailsMembersProps) {
 
                 {hasMore && (
                     <Button onClick={() => setShowMore(!showMore)} fullWidth variant="text">
-                        {showMore ? strings.showLess : strings.showMore}
+                        {showMore ? t("showLess") : t("showMore")}
                     </Button>
                 )}
             </Box>
@@ -250,7 +250,7 @@ function UserMenu({
     hideRemove,
     hideGoToChat,
 }: UserMenuProps) {
-    const strings = useStrings();
+    const { t } = useTranslation();
 
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
@@ -282,7 +282,7 @@ function UserMenu({
                             handleClose();
                         }}
                     >
-                        {strings.dismissAsAdmin}
+                        {t("dismissAsAdmin")}
                     </MenuItem>
                 )}
                 {!hideRemove && (
@@ -292,7 +292,7 @@ function UserMenu({
                             handleClose();
                         }}
                     >
-                        {strings.remove}
+                        {t("remove")}
                     </MenuItem>
                 )}
                 {onPromote && (
@@ -302,7 +302,7 @@ function UserMenu({
                             handleClose();
                         }}
                     >
-                        {strings.makeAdmin}
+                        {t("makeAdmin")}
                     </MenuItem>
                 )}
 
@@ -313,7 +313,7 @@ function UserMenu({
                             handleClose();
                         }}
                     >
-                        {strings.goToChat}
+                        {t("goToChat")}
                     </MenuItem>
                 )}
             </Menu>

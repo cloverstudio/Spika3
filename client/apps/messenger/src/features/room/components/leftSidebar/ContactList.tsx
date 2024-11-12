@@ -21,10 +21,10 @@ import User from "../../../../types/User";
 import useIsInViewport from "../../../../hooks/useIsInViewport";
 
 import SearchBox from "../SearchBox";
-import useStrings from "../../../../hooks/useStrings";
 import { useAppDispatch, useAppSelector } from "../../../../hooks";
 import { showNoteEditModal } from "../../slices/rightSidebar";
 import { RoomUserType } from "../../../../types/Rooms";
+import { useTranslation } from "react-i18next";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -45,7 +45,7 @@ export default function SidebarContactList({
     existingMembers?: RoomUserType[];
     hideExistingMembers?: boolean;
 }): React.ReactElement {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const loading = useSelector(selectContactLoading());
     const isFetching = loading === "pending";
@@ -125,7 +125,7 @@ export default function SidebarContactList({
                         onClick={() => setDisplayBots(false)}
                         sx={{ width: "100%" }}
                     >
-                        {strings.contacts}
+                        {t("contacts")}
                     </Button>
                     <Button
                         size="small"
@@ -134,14 +134,14 @@ export default function SidebarContactList({
                         onClick={() => setDisplayBots(true)}
                         sx={{ width: "100%" }}
                     >
-                        {strings.bots}
+                        {t("bots")}
                     </Button>
                 </Box>
             )}
 
             <Box sx={{ height: "100%", overflowY: "scroll" }}>
                 {!sortedByDisplayName.length && !isFetching && (
-                    <Typography align="center">{strings.noContacts}</Typography>
+                    <Typography align="center">{t("noContacts")}</Typography>
                 )}
                 {sortedByDisplayName.map(([letter, contactList]) => {
                     return (

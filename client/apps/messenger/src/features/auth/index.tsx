@@ -12,7 +12,7 @@ import { generateRandomString, sha256 } from "../../../../../lib/utils";
 import useCountdownTimer from "./hooks/useCountdownTimer";
 import * as constants from "../../../../../lib/constants";
 import { getDeviceId } from "../../../../../lib/utils";
-import useStrings from "../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import { showSnackBar } from "../../store/modalSlice";
 import getFileType from "../room/lib/getFileType";
 import FileUploader from "../../utils/FileUploader";
@@ -20,7 +20,7 @@ import TermsAndConditions from "./components/TearmsAndConditions";
 import { useAppDispatch } from "../../hooks";
 
 export default function Auth(): React.ReactElement {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const deviceId = getDeviceId();
     const dispatch = useAppDispatch();
@@ -48,11 +48,11 @@ export default function Auth(): React.ReactElement {
             dispatch(
                 showSnackBar({
                     severity: "error",
-                    text: strings.youHaveBeenLoggedOut,
+                    text: t("youHaveBeenLoggedOut"),
                 }),
             );
         }
-    }, [dispatch, strings.youHaveBeenLoggedOut]);
+    }, [dispatch, t]);
 
     const handleSignUp = async (telephoneNumber: string) => {
         try {
@@ -73,7 +73,7 @@ export default function Auth(): React.ReactElement {
                 throw new Error("No browserDeviceId returned");
             }
 
-            if (sentCount > 0) setInfoMsg(strings.verificationCodeResent);
+            if (sentCount > 0) setInfoMsg(t("verificationCodeResent"));
 
             setStep(1);
         } catch (error) {

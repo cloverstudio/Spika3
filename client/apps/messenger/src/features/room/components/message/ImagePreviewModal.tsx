@@ -21,10 +21,12 @@ import { getGalleryFormattedDate } from "../../lib/formatDate";
 import { galleryImageBatchLimitMobile, galleryImageBatchLimitNonMobile } from "../../lib/consts";
 import ErrorImageLight from "../../../../../../messenger/src/assets/CantLoadImageLight.jpg";
 import ErrorImageDark from "../../../../../../messenger/src/assets/CantLoadImageDark.jpg";
+import { useTranslation } from "react-i18next";
 
 export const ImagePreviewModal = () => {
     const roomId = parseInt(useParams().id || "");
     const dispatch = useAppDispatch();
+    const { t } = useTranslation();
 
     const [fileLoaded, setFileLoaded] = useState(false);
 
@@ -261,7 +263,7 @@ export const ImagePreviewModal = () => {
                             {message.username}
                         </Typography>
                         <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
-                            {getGalleryFormattedDate(message.date)}
+                            {getGalleryFormattedDate(message.date, t)}
                         </Typography>
                     </Box>
                     <Box width="70vw" height="70vh">
@@ -514,12 +516,12 @@ function GalleryImageItem({
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-
+    const { t } = useTranslation();
     if (!galleryImage.body.thumbId || !galleryImage.body.fileId) {
         return null;
     }
 
-    const formattedDate = getGalleryFormattedDate(galleryImage.date);
+    const formattedDate = getGalleryFormattedDate(galleryImage.date, t);
 
     return (
         <Box
@@ -578,6 +580,7 @@ export function ImageItem({
     showHoveredOverlay = false,
 }: ImageItemProp) {
     const [loadingImageError, setLoadingImageError] = useState(false);
+    const { t } = useTranslation();
 
     const [isHovered, setIsHovered] = useState(false);
 
@@ -648,7 +651,7 @@ export function ImageItem({
                 >
                     <Box sx={{ fontSize: "12px", fontWeight: 600 }}>{galleryImage.username}</Box>
                     <Box sx={{ fontSize: "12px", fontWeight: 400 }}>
-                        {getGalleryFormattedDate(galleryImage.date)}
+                        {getGalleryFormattedDate(galleryImage.date, t)}
                     </Box>
                 </Box>
             )}

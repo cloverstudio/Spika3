@@ -21,7 +21,7 @@ import {
     setIsSelectingMessagesActive,
 } from "../../slices/messages";
 import { selectUser } from "../../../../store/userSlice";
-import useStrings from "../../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "../../../../hooks";
 
 export default function DeleteMessageDialogContainer() {
@@ -56,7 +56,7 @@ function DeleteMessageDialog({
     messages: MessageType[];
     onClose: () => void;
 }) {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const roomId = parseInt(useParams().id || "");
     const dispatch = useAppDispatch();
 
@@ -83,7 +83,7 @@ function DeleteMessageDialog({
             maxWidth="xs"
             sx={{ "& .MuiDialog-paper": { width: "100%" } }}
         >
-            <DialogTitle sx={{ textAlign: "center" }}>{strings.delete}</DialogTitle>
+            <DialogTitle sx={{ textAlign: "center" }}>{t("delete")}</DialogTitle>
             <IconButton
                 disableRipple
                 size="large"
@@ -115,20 +115,20 @@ function DeleteMessageDialog({
                         <FormControlLabel
                             value="all"
                             control={<Radio />}
-                            label={strings.deleteForEveryone}
+                            label={t("deleteForEveryone")}
                             disabled={messages.some((m) => m.fromUserId !== me.id) || isLoading}
                         />
                         <FormControlLabel
                             value="user"
                             control={<Radio />}
-                            label={strings.deleteForMe}
+                            label={t("deleteForMe")}
                             disabled={isLoading}
                         />
                     </RadioGroup>
                 </FormControl>
 
                 <Button onClick={handleSubmit} fullWidth variant="contained" disabled={isLoading}>
-                    {strings.delete}
+                    {t("delete")}
                 </Button>
             </Box>
         </Dialog>

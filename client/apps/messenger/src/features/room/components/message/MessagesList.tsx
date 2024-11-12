@@ -7,7 +7,7 @@ import DoDisturb from "@mui/icons-material/DoDisturb";
 import { Box } from "@mui/material";
 import Button from "@mui/material/Button";
 import { useShowBasicDialog } from "../../../../hooks/useModal";
-import useStrings from "../../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import { useBlockUserMutation } from "../../api/user";
 import {
     fetchMessages,
@@ -44,7 +44,7 @@ export default function MessagesList(): React.ReactElement {
     const messageId = searchParams.get("messageId");
     const targetMessageId = useSelector(selectTargetMessage(roomId));
     const targetMessageIsInMessageList = useSelector(selectTargetMessageIsInList(roomId));
-    const strings = useStrings();
+    const { t } = useTranslation();
     const showBasicDialog = useShowBasicDialog();
 
     const [blockUser] = useBlockUserMutation();
@@ -135,10 +135,10 @@ export default function MessagesList(): React.ReactElement {
     const handleBlock = () => {
         showBasicDialog(
             {
-                text: strings.blockUserQuestion,
-                title: strings.confirm,
-                allowButtonLabel: strings.yes,
-                denyButtonLabel: strings.cancel,
+                text: t("blockUserQuestion"),
+                title: t("confirm"),
+                allowButtonLabel: t("yes"),
+                denyButtonLabel: t("cancel"),
             },
             () => {
                 blockUser(otherUserId)
@@ -199,7 +199,7 @@ export default function MessagesList(): React.ReactElement {
                         startIcon={<DoDisturb />}
                         onClick={handleBlock}
                     >
-                        {strings.blockUser}
+                        {t("blockUser")}
                     </Button>
                 </Box>
             )}

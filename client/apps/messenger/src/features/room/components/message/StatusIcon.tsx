@@ -9,7 +9,7 @@ import { removeMessage, resendMessage, showMessageDetails } from "../../slices/m
 import { useParams } from "react-router-dom";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
-import useStrings from "../../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import Delete from "@mui/icons-material/DeleteOutline";
 import UploadOutlined from "@mui/icons-material/UploadRounded";
 import { useAppDispatch } from "../../../../hooks";
@@ -20,7 +20,7 @@ type StatusIconProps = {
 };
 
 export default function StatusIcon({ status, id }: StatusIconProps): React.ReactElement {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const roomId = parseInt(useParams().id || "");
     const dispatch = useAppDispatch();
@@ -98,13 +98,13 @@ export default function StatusIcon({ status, id }: StatusIconProps): React.React
                 <MenuItem onClick={handleResend}>
                     <Box display="flex" gap={1}>
                         <UploadOutlined />
-                        <Typography>{strings.resend}</Typography>
+                        <Typography>{t("resend")}</Typography>
                     </Box>
                 </MenuItem>
                 <MenuItem onClick={handleRemove}>
                     <Box display="flex" gap={1} color="red">
                         <Delete />
-                        <Typography>{strings.delete}</Typography>
+                        <Typography>{t("delete")}</Typography>
                     </Box>
                 </MenuItem>
             </Menu>

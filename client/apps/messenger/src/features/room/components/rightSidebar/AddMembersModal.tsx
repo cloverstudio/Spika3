@@ -12,7 +12,7 @@ import Close from "@mui/icons-material/Close";
 import Check from "@mui/icons-material/Check";
 import { RoomUserType } from "../../../../types/Rooms";
 import User from "../../../../types/User";
-import useStrings from "../../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import SidebarContactList from "../leftSidebar/ContactList";
 import SelectedMembers from "../SelectedMembers";
 import { ThemeContext } from "../../../../theme";
@@ -30,7 +30,7 @@ type AddMembersModalProps = {
 };
 
 export default function AddMembersModal(props: AddMembersModalProps) {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
     const { theme } = useContext(ThemeContext);
 
@@ -66,7 +66,7 @@ export default function AddMembersModal(props: AddMembersModalProps) {
         >
             <Box px={2.5} py={2} sx={{ overflow: "hidden" }} className={theme}>
                 <DialogTitle sx={{ textAlign: "center", p: 0, mb: 2 }}>
-                    {strings.addMembers}
+                    {t("addMembers")}
                 </DialogTitle>
                 <IconButton
                     size="large"
@@ -108,7 +108,7 @@ export default function AddMembersModal(props: AddMembersModalProps) {
                 </Box>
 
                 <Button variant="contained" fullWidth size="medium" onClick={handleSave}>
-                    {strings.add}
+                    {t("add")}
                 </Button>
             </Box>
         </Dialog>

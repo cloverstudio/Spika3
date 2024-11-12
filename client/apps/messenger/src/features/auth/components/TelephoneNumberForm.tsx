@@ -6,7 +6,7 @@ import { Box } from "@mui/material";
 import Typography from "@mui/material/Typography";
 
 import CountryPicker from "./CountryPicker";
-import useStrings from "../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import { APP_NAME } from "../../../../../../lib/constants";
 
 type TelephoneNumberFormProps = {
@@ -16,7 +16,7 @@ type TelephoneNumberFormProps = {
 export default function TelephoneNumberForm({
     onSubmit,
 }: TelephoneNumberFormProps): React.ReactElement {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const [countryCode, setCountryCode] = useState("385");
     const [phoneNumber, setPhoneNumber] = useState("");
     const [validPhoneNumber, setValidPhoneNumber] = useState(false);
@@ -38,7 +38,7 @@ export default function TelephoneNumberForm({
                 variant="h3"
                 fontWeight="bold"
             >
-                {strings.welcome}
+                {t("welcome")}
             </Typography>
 
             <Typography
@@ -49,11 +49,11 @@ export default function TelephoneNumberForm({
                 mb={{ xs: 5, md: 10 }}
                 fontWeight="medium"
             >
-                {`${strings.enterYourPhoneNumber} ${APP_NAME}`}
+                {`${t("enterYourPhoneNumber")} ${APP_NAME}`}
             </Typography>
 
             <Box textAlign="left" mb={{ xs: 3, md: 6 }}>
-                <FormLabel sx={{ mb: 1.5, display: "block" }}>{strings.phoneNumber}</FormLabel>
+                <FormLabel sx={{ mb: 1.5, display: "block" }}>{t("phoneNumber")}</FormLabel>
                 <CountryPicker
                     code={setCountryCode}
                     setPhoneNumber={setPhoneNumber}
@@ -69,7 +69,7 @@ export default function TelephoneNumberForm({
                     id="submitButton"
                     sx={{ marginTop: "1em" }}
                 >
-                    {strings.next}
+                    {t("next")}
                 </Button>
             </Box>
         </>

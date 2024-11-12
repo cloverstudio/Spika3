@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import { Box } from "@mui/material";
 import TextField from "@mui/material/TextField";
 
-import useStrings from "../../../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 
 import { useGetNoteByIdQuery } from "../../../api/note";
 import {
@@ -15,7 +15,7 @@ import {
 import { useAppDispatch, useAppSelector } from "../../../../../hooks";
 
 export default function RightSidebarEditNoteContent(): React.ReactElement {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const noteId = useSelector(selectRightSidebarActiveNoteId);
     const dispatch = useAppDispatch();
 
@@ -37,7 +37,7 @@ export default function RightSidebarEditNoteContent(): React.ReactElement {
                 sx={{ mb: 2 }}
                 required
                 fullWidth
-                placeholder={strings.title}
+                placeholder={t("title")}
                 id="title"
                 name="title"
                 autoFocus
@@ -48,7 +48,7 @@ export default function RightSidebarEditNoteContent(): React.ReactElement {
                 sx={{ mb: 2 }}
                 required
                 fullWidth
-                placeholder={strings.description}
+                placeholder={t("description")}
                 id="content"
                 name="content"
                 minRows={20}

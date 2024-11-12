@@ -6,9 +6,9 @@ import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { selectChangeTerm } from "../../../slices/messages";
 import { useTheme } from "@mui/material/styles";
-import useStrings from "../../../../../hooks/useStrings";
 import { selectRightSidebarOpen } from "../../../slices/rightSidebar";
 import { useAppSelector } from "../../../../../hooks";
+import { useTranslation } from "react-i18next";
 
 interface ThumbnailData {
     title: string;
@@ -51,7 +51,7 @@ export default function TextMessage({
 
     const keyword = useAppSelector((state) => state.messages[roomId]?.keyword);
 
-    const strings = useStrings();
+    const { t } = useTranslation();
     const [isSeeMoreClicked, setIsSeeMoreClicked] = useState(false);
     const isDark = themeObject.palette.mode === "dark";
 
@@ -187,7 +187,7 @@ export default function TextMessage({
                                     fontSize: "12px",
                                 }}
                             >
-                                {isSeeMoreClicked ? strings.seeLess : "... " + strings.seeMore}
+                                {isSeeMoreClicked ? t("seeLess") : "... " + t("seeMore")}
                             </Box>
                         }
                     </Box>

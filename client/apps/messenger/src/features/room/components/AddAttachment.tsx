@@ -12,10 +12,10 @@ import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import AttachmentManager from "../lib/AttachmentManager";
 import { useSelector } from "react-redux";
 import { selectInputText, selectInputType } from "../slices/input";
-import useStrings from "../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 
 export default function AddAttachment(): ReactElement {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const roomId = parseInt(useParams().id || "");
     const [attachmentMenuOpen, setAttachmentMenuOpen] = useState(false);
     const uploadFilesRef = useRef(null);
@@ -132,7 +132,7 @@ export default function AddAttachment(): ReactElement {
                                 lineHeight="0.9rem"
                                 color="primary"
                             >
-                                {strings.files}
+                                {t("files")}
                             </Typography>
                             <input
                                 onChange={handleFilesUpload}
@@ -162,7 +162,7 @@ export default function AddAttachment(): ReactElement {
                                 fontWeight="medium"
                                 color="primary"
                             >
-                                {strings.library}
+                                {t("library")}
                             </Typography>
                             <input
                                 onChange={handleFilesUpload}

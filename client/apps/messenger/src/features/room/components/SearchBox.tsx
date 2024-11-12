@@ -3,9 +3,9 @@ import { Box } from "@mui/material";
 import Input from "@mui/material/Input";
 import InputAdornment from "@mui/material/InputAdornment";
 import Search from "@mui/icons-material/Search";
-import useStrings from "../../../hooks/useStrings";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { CSSProperties } from "@mui/material/styles/createMixins";
+import { useTranslation } from "react-i18next";
 
 type SearchBoxProps = {
     onSearch?: (keyword: string) => void;
@@ -22,8 +22,8 @@ export default function SearchBox({
     marginBottom = 2,
     onFocus,
 }: SearchBoxProps): React.ReactElement {
-    const strings = useStrings();
     const [keyword, setKeyword] = useState("");
+    const { t } = useTranslation();
 
     return (
         <Box mb={marginBottom} px={2.5} sx={customStyles}>
@@ -37,7 +37,7 @@ export default function SearchBox({
                 fullWidth
                 autoFocus
                 id="search"
-                placeholder={strings.search}
+                placeholder={t("search")}
                 sx={{
                     backgroundColor: "background.paper",
                     px: "20px",
@@ -91,7 +91,7 @@ export function ControlledSearchBox({
     keyword,
     setKeyword,
 }: ControlledSearchBoxProps): React.ReactElement {
-    const strings = useStrings();
+    const { t, i18n } = useTranslation();
 
     return (
         <Box mb={marginBottom} px={2.5}>
@@ -104,7 +104,7 @@ export function ControlledSearchBox({
                 }
                 fullWidth
                 id="search"
-                placeholder={strings.search}
+                placeholder={t("search")}
                 sx={{
                     backgroundColor: "background.paper",
                     px: "20px",

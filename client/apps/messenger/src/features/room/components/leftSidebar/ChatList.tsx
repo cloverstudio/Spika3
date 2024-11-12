@@ -25,7 +25,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { ControlledSearchBox } from "../SearchBox";
 import NotificationsOff from "@mui/icons-material/NotificationsOff";
 import Pin from "@mui/icons-material/PushPin";
-import useStrings from "../../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import { useGetRoomQuery } from "../../api/room";
 import formatRoomInfo from "../../lib/formatRoomInfo";
 import { selectUser } from "../../../../store/userSlice";
@@ -43,7 +43,7 @@ export default function SidebarChatList({
 }: {
     setSidebar: Dispatch<React.SetStateAction<string>>;
 }): React.ReactElement {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const dispatch = useDispatch<AppDispatch>();
     const activeRoomId = parseInt(useParams().id || "");
 
@@ -126,7 +126,7 @@ export default function SidebarChatList({
 
             <Box sx={{ overflowY: "auto", height: "95%" }}>
                 {list.length === 0 && !isFetching && (
-                    <Typography align="center">{strings.noRooms}</Typography>
+                    <Typography align="center">{t("noRooms")}</Typography>
                 )}
 
                 {sortRooms().map(({ roomId, unreadCount, lastMessage }) => {
@@ -157,7 +157,7 @@ type RoomRowProps = {
 };
 
 function RoomRow({ id, isActive, lastMessage, unreadCount }: RoomRowProps) {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const me = useSelector(selectUser);
     const [time, setTime] = useState(
         lastMessage?.createdAt && dayjs(lastMessage.createdAt).fromNow(),
@@ -225,15 +225,14 @@ function RoomRow({ id, isActive, lastMessage, unreadCount }: RoomRowProps) {
     let lastMessageText = <LastMessageText lastMessage="" />;
 
     const senderUser = users.find((u) => u.userId === lastMessage?.fromUserId)?.user;
-    const sender =
-        type === "group" ? `${senderUser?.displayName || strings.removedUser}` : undefined;
+    const sender = type === "group" ? `${senderUser?.displayName || t("removedUser")}` : undefined;
 
     if (lastMessage && lastMessageType !== "text") {
         if (lastMessageType === "image") {
             lastMessageText = (
                 <LastMessageText
                     sender={sender}
-                    lastMessage={strings.photo}
+                    lastMessage={t("photo")}
                     icon={<CameraIcon sx={{ width: "20px", color: "text.tertiary" }} />}
                 />
             );
@@ -242,7 +241,7 @@ function RoomRow({ id, isActive, lastMessage, unreadCount }: RoomRowProps) {
             lastMessageText = (
                 <LastMessageText
                     sender={sender}
-                    lastMessage={strings.video}
+                    lastMessage={t("video")}
                     icon={<VideocamIcon sx={{ width: "20px", color: "text.tertiary" }} />}
                 />
             );
@@ -251,7 +250,7 @@ function RoomRow({ id, isActive, lastMessage, unreadCount }: RoomRowProps) {
             lastMessageText = (
                 <LastMessageText
                     sender={sender}
-                    lastMessage={strings.document}
+                    lastMessage={t("document")}
                     icon={<DocumentIcon sx={{ width: "20px", color: "text.tertiary" }} />}
                 />
             );
@@ -319,7 +318,7 @@ function RoomRow({ id, isActive, lastMessage, unreadCount }: RoomRowProps) {
                         lineHeight="1rem"
                         flexShrink={0}
                     >
-                        {time === "a few seconds ago" ? strings.now : time}
+                        {time === "a few seconds ago" ? t("now") : time}
                     </Typography>
                 </Box>
 

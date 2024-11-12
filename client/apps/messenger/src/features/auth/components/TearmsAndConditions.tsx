@@ -4,7 +4,7 @@ import Button from "@mui/material/Button";
 import { Box } from "@mui/material";
 import Typography from "@mui/material/Typography";
 
-import useStrings from "../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import { TERMS_AND_CONDITIONS_URL } from "../../../../../../lib/constants";
 import { useTheme } from "@mui/material/styles";
 
@@ -15,7 +15,7 @@ type TermsAndConditionsProps = {
 export default function TermsAndConditions({
     onSubmit,
 }: TermsAndConditionsProps): React.ReactElement {
-    const strings = useStrings();
+    const { t } = useTranslation();
 
     const theme = useTheme();
     const isDarkTheme = theme.palette.mode === "dark";
@@ -29,7 +29,7 @@ export default function TermsAndConditions({
                 variant="h3"
                 fontWeight="bold"
             >
-                {strings.welcome}
+                {t("welcome")}
             </Typography>
 
             <Typography
@@ -40,18 +40,20 @@ export default function TermsAndConditions({
                 mb={{ xs: 5, md: 10 }}
                 fontWeight="medium"
             >
-                {`${strings.acceptTermsInstructions}`}
+                {t("acceptTermsInstructions")}
                 <a
                     href={TERMS_AND_CONDITIONS_URL}
                     target="_blank"
                     rel="noreferrer"
                     style={{ color: isDarkTheme ? "#0078FF" : "default" }}
-                >{` ${strings.termsAndConditions}`}</a>
+                >
+                    {t("termsAndConditions")}
+                </a>
             </Typography>
 
             <Box textAlign="left" mb={{ xs: 3, md: 6 }}>
                 <Button onClick={onSubmit} fullWidth variant="contained">
-                    {strings.agreeAndContinue}
+                    {t("agreeAndContinue")}
                 </Button>
             </Box>
         </>

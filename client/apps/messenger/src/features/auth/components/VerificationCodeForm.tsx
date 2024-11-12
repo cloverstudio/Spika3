@@ -9,7 +9,7 @@ import AlertTitle from "@mui/material/AlertTitle";
 
 import PinInput from "./PinInput";
 import CountdownTimer from "./CountdownTimer";
-import useStrings from "../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 
 type VerificationCodeFormProps = {
     onSubmit: (verificationCode: string) => void;
@@ -30,7 +30,7 @@ export default function VerificationCodeForm({
     timeLeft,
     info,
 }: VerificationCodeFormProps): React.ReactElement {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const refs = [
         useRef(null),
         useRef(null),
@@ -42,7 +42,7 @@ export default function VerificationCodeForm({
     const [codeArr, setCodeArr] = useState(
         Array(6)
             .fill(true)
-            .map((_, i) => ({ ref: refs[i], value: "" }))
+            .map((_, i) => ({ ref: refs[i], value: "" })),
     );
     const tryToSubmit = () => {
         if (!timeLeft) {
@@ -82,7 +82,7 @@ export default function VerificationCodeForm({
                 variant="h3"
                 fontWeight="bold"
             >
-                {strings.welcome}
+                {t("welcome")}
             </Typography>
 
             <Typography
@@ -93,7 +93,7 @@ export default function VerificationCodeForm({
                 mb={{ xs: error ? 1 : 5, md: error ? 4 : 10 }}
                 fontWeight="medium"
             >
-                {strings.sentVerificationCode} {telephoneNumber}!
+                {t("sentVerificationCode")} {telephoneNumber}!
             </Typography>
             {error.length > 0 && !someCodeEntered && info.length === 0 && (
                 <Alert sx={{ mb: 4 }} severity="error">
@@ -126,7 +126,7 @@ export default function VerificationCodeForm({
                             variant="body1"
                             textTransform="capitalize"
                         >
-                            {strings.back}
+                            {t("back")}
                         </Link>
                         <Link
                             fontWeight="bold"
@@ -137,7 +137,7 @@ export default function VerificationCodeForm({
                             }}
                             variant="body1"
                         >
-                            {strings.resendCode}
+                            {t("resendCode")}
                         </Link>
                     </Box>
                 </Box>
@@ -147,7 +147,7 @@ export default function VerificationCodeForm({
                     fullWidth
                     variant="contained"
                 >
-                    {strings.next}
+                    {t("next")}
                 </Button>
             </Box>
         </>

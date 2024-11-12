@@ -3,11 +3,11 @@ import { Avatar, Box, Button, Typography } from "@mui/material";
 import UserType from "../../../types/User";
 import CameraAlt from "@mui/icons-material/CameraAlt";
 import ImageIcon from "@mui/icons-material/Image";
-import useStrings from "../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 
 export default function BotInfo({ bot }: { bot: UserType }) {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const [, setSearchParams] = useSearchParams();
 
     const handleStart = () => {
@@ -57,7 +57,7 @@ export default function BotInfo({ bot }: { bot: UserType }) {
                     </Box>
                     <Box>
                         <Button onClick={handleStart} variant="contained">
-                            {strings.startChat}
+                            {t("startChat")}
                         </Button>
                     </Box>
                 </Box>

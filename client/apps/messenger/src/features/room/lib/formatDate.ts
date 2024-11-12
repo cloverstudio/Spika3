@@ -1,9 +1,8 @@
-import useStrings from "../../../hooks/useStrings";
+import { TFunction } from "i18next";
 
-export function getGalleryFormattedDate(date: Date) {
+export function getGalleryFormattedDate(date: Date, t: TFunction) {
     if (!date) return "";
 
-    const strings = useStrings();
 
     const now = new Date();
     const imageDate = new Date(date);
@@ -13,7 +12,7 @@ export function getGalleryFormattedDate(date: Date) {
     yesterdayMidnight.setDate(nowMidnight.getDate() - 1);
 
     if (imageDate >= nowMidnight) {
-        return `${strings.today} ${imageDate.toLocaleTimeString([], {
+        return `${t("today")} ${imageDate.toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",
             hour12: false,
@@ -21,7 +20,7 @@ export function getGalleryFormattedDate(date: Date) {
     }
 
     if (imageDate >= yesterdayMidnight) {
-        return `${strings.yesterday} ${imageDate.toLocaleTimeString([], {
+        return `${t("yesterday")} ${imageDate.toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",
             hour12: false,
@@ -29,12 +28,11 @@ export function getGalleryFormattedDate(date: Date) {
     } else {
         const yearString =
             imageDate.getFullYear() === now.getFullYear() ? "" : `.${imageDate.getFullYear()}`;
-        return `${imageDate.getDate()}.${
-            imageDate.getMonth() + 1
-        }${yearString} ${imageDate.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false,
-        })}`;
+        return `${imageDate.getDate()}.${imageDate.getMonth() + 1
+            }${yearString} ${imageDate.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+            })}`;
     }
 }

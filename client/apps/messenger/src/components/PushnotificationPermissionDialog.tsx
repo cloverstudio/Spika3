@@ -13,11 +13,11 @@ import * as constants from "../../../../lib/constants";
 import PushNotificationInstructionImage from "../assets/pushnotification-instruction.gif";
 
 import { useUpdateDeviceMutation, useGetDeviceQuery } from "../api/device";
-import useStrings from "../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import { Box } from "@mui/material";
 
 export default function PushNotifPermissionDialog(): React.ReactElement {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const [showPermissionDialog, setShowPermissionDialog] = useState(false);
     const [updateDevice] = useUpdateDeviceMutation();
     const { data, isLoading } = useGetDeviceQuery();
@@ -61,10 +61,10 @@ export default function PushNotifPermissionDialog(): React.ReactElement {
             aria-describedby="alert-dialog-description"
             sx={{ "& .MuiDialog-paper": { width: "100%", maxWidth: "md" } }}
         >
-            <DialogTitle id="alert-dialog-title">{strings.usePushNotificationService}</DialogTitle>
+            <DialogTitle id="alert-dialog-title">{t("usePushNotificationService")}</DialogTitle>
             <DialogContent>
                 <DialogContentText id="alert-dialog-description">
-                    {strings.enablePushManually}
+                    {t("enablePushManually")}
                 </DialogContentText>
                 <div
                     style={{
@@ -92,7 +92,7 @@ export default function PushNotifPermissionDialog(): React.ReactElement {
                     autoFocus
                     variant="contained"
                 >
-                    {strings.enableDesktopNotifications}
+                    {t("enableDesktopNotifications")}
                 </Button>
             </DialogActions>
         </Dialog>

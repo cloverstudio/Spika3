@@ -5,14 +5,14 @@ import { Box } from "@mui/material";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 
-import useStrings from "../../../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 
 import { useCreateNoteMutation } from "../../../api/note";
 import { setActiveNoteId } from "../../../slices/rightSidebar";
 import { useAppDispatch } from "../../../../../hooks";
 
 export default function RightSidebarCreateNoteContent(): React.ReactElement {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const roomId = +useParams().id;
     const [title, setTitle] = useState("");
@@ -33,7 +33,7 @@ export default function RightSidebarCreateNoteContent(): React.ReactElement {
                 required
                 fullWidth
                 id="name"
-                placeholder={strings.title}
+                placeholder={t("title")}
                 name="name"
                 autoFocus
                 value={title}
@@ -44,7 +44,7 @@ export default function RightSidebarCreateNoteContent(): React.ReactElement {
                 required
                 fullWidth
                 id="name"
-                placeholder={strings.description}
+                placeholder={t("description")}
                 name="name"
                 minRows={20}
                 multiline
@@ -58,7 +58,7 @@ export default function RightSidebarCreateNoteContent(): React.ReactElement {
                 variant="contained"
                 sx={{ marginTop: "1em" }}
             >
-                {strings.create}
+                {t("create")}
             </Button>
         </Box>
     );

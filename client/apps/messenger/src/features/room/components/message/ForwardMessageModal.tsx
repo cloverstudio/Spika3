@@ -10,7 +10,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Close from "@mui/icons-material/Close";
 
 import User from "../../../../types/User";
-import useStrings from "../../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 import { ContactRow } from "../leftSidebar/ContactList";
 import SelectedMembers from "../SelectedMembers";
 import { ThemeContext } from "../../../../theme";
@@ -39,7 +39,7 @@ import { dynamicBaseQuery } from "../../../../api/api";
 import { showSnackBar } from "../../../../store/modalSlice";
 
 export default function ForwardMessageModal() {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
     const [selectedGroups, setSelectedGroups] = useState<Room[]>([]);
 
@@ -99,7 +99,7 @@ export default function ForwardMessageModal() {
                     dispatch(
                         showSnackBar({
                             severity: "error",
-                            text: strings.roomNotFound,
+                            text: t("roomNotFound"),
                         }),
                     );
                 }
@@ -140,7 +140,7 @@ export default function ForwardMessageModal() {
         >
             <Box px={2.5} py={2} sx={{ overflow: "hidden" }} className={theme}>
                 <DialogTitle sx={{ textAlign: "center", p: 0, mb: 2 }}>
-                    {strings.forwardMessage}
+                    {t("forwardMessage")}
                 </DialogTitle>
                 <IconButton
                     size="large"
@@ -193,7 +193,7 @@ export default function ForwardMessageModal() {
                     size="medium"
                     onClick={handleSave}
                 >
-                    {strings.forward}
+                    {t("forward")}
                 </Button>
             </Box>
         </Dialog>
@@ -215,7 +215,7 @@ function ForwardToList({
     selectedGroupsIds: number[];
     showGroups?: boolean;
 }): React.ReactElement {
-    const strings = useStrings();
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const loading = useSelector(selectContactLoading());
     const isFetching = loading === "pending";
@@ -268,7 +268,7 @@ function ForwardToList({
                         }}
                         sx={{ width: "100%" }}
                     >
-                        {strings.contacts}
+                        {t("contacts")}
                     </Button>
                     {showGroups && (
                         <Button
@@ -280,7 +280,7 @@ function ForwardToList({
                             }}
                             sx={{ width: "100%" }}
                         >
-                            {strings.groups}
+                            {t("groups")}
                         </Button>
                     )}
                 </Box>
@@ -288,11 +288,11 @@ function ForwardToList({
 
             <Box sx={{ overflowY: "auto", overflowX: "hidden", maxHeight: "85%" }}>
                 {!sortedByDisplayName.length && !isFetching && !displayGroups && (
-                    <Typography align="center">{strings.noContacts}</Typography>
+                    <Typography align="center">{t("noContacts")}</Typography>
                 )}
 
                 {!groupsSortedByDisplayName.length && !isFetching && displayGroups && (
-                    <Typography align="center">{strings.noGroups}</Typography>
+                    <Typography align="center">{t("noGroups")}</Typography>
                 )}
 
                 {!displayGroups && !searchKeyword.length && recentUsers?.length > 0 && (

@@ -28,7 +28,7 @@ import MessageReactions from "./Reactions";
 import StatusIcon from "./StatusIcon";
 import { useAppDispatch } from "../../../../hooks";
 import MessageActionIndicator from "./MessageActionIndicator";
-import useStrings from "../../../../hooks/useStrings";
+import { useTranslation } from "react-i18next";
 
 function useSender(id: number) {
     const roomId = parseInt(useParams().id || "");
@@ -105,7 +105,7 @@ function Message({
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-    const strings = useStrings();
+    const { t } = useTranslation();
 
     const side = isUsersMessage ? "right" : "left";
 
@@ -208,7 +208,7 @@ function Message({
                                 !message.deleted && (
                                     <MessageActionIndicator
                                         isUsersMessage={isUsersMessage}
-                                        actionTitle={strings.edited}
+                                        actionTitle={t("edited")}
                                         icon={
                                             <ModeEditOutlineOutlined
                                                 style={{
@@ -223,7 +223,7 @@ function Message({
                             {!mouseOver && message.isForwarded && !message.deleted && (
                                 <MessageActionIndicator
                                     isUsersMessage={isUsersMessage}
-                                    actionTitle={strings.forwarded}
+                                    actionTitle={t("forwarded")}
                                     icon={
                                         <Shortcut
                                             style={{
