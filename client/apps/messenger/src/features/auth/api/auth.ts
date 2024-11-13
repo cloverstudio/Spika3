@@ -43,6 +43,9 @@ const userApi = api.injectEndpoints({
             query: () => "/messenger/me",
             providesTags: [{ type: "Auth", id: "me" }],
         }),
+        checkEmail: build.query<any, string>({
+            query: (email) => `/messenger/users/check-email?emailAddress=${email}`,
+        }),
     }),
     overrideExisting: true,
 });
@@ -54,4 +57,6 @@ export const {
     useGetUserQuery,
     useLogoutMutation,
     useRemoveMutation,
+    useLazyCheckEmailQuery,
+
 } = userApi;
