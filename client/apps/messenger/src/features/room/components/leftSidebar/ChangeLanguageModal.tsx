@@ -3,9 +3,7 @@ import { Box, Button, Dialog, IconButton, Typography, useTheme } from "@mui/mate
 import { useTranslation } from "react-i18next";
 import { Close } from "@mui/icons-material";
 import HRLogo from "../../../../assets/languageFlags/HR.svg";
-import DELogo from "../../../../assets/languageFlags/DE.svg";
 import ENLogo from "../../../../assets/languageFlags/EN.svg";
-import ESLogo from "../../../../assets/languageFlags/ES.svg";
 
 interface Props {
     isOpen: boolean;
@@ -30,17 +28,6 @@ export function ChangeLanguageModal({ isOpen, onClose }: Props): React.ReactElem
             code: "en",
             flag: ENLogo,
         },
-        // {
-        //     name: "german",
-        //     code: "de",
-        //     flag: DELogo,
-        // },
-
-        // {
-        //     name: "spanish",
-        //     code: "es",
-        //     flag: ESLogo,
-        // },
     ];
 
     return (

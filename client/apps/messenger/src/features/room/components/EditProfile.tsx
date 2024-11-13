@@ -40,6 +40,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import { useShowBasicDialog } from "../../../hooks/useModal";
 import { useAppDispatch } from "../../../hooks";
 import { ChangeLanguageModal } from "./leftSidebar/ChangeLanguageModal";
+import EditPersonalDataDialog from "./EditPersonalDataDialog";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -68,6 +69,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
     const showBasicDialog = useShowBasicDialog();
     const themeObject = useTheme();
     const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
+    const [editingPersonalData, setEditingPersonalData] = useState(false);
 
     const isMobile = useMediaQuery(themeObject.breakpoints.down("md"));
 
@@ -417,6 +419,23 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                 <Box display="grid" gap={1} p={2} mt={2}>
                     <Stack
                         direction="row"
+                        alignItems="center"
+                        spacing={1}
+                        onClick={() => setEditingPersonalData(true)}
+                        sx={{
+                            height: "40px",
+                            display: "flex",
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            width: "100%",
+                            cursor: "pointer",
+                        }}
+                    >
+                        <Box component="span">{t("editPersonalData")}</Box>
+                        <ChevronRight />
+                    </Stack>
+                    <Stack
+                        direction="row"
                         spacing={1}
                         alignItems="center"
                         justifyContent="space-between"
@@ -554,6 +573,11 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                         havePhoto={user.avatarFileId > 0}
                     />
                 ) : null}
+                <EditPersonalDataDialog
+                    isOpen={editingPersonalData}
+                    onClose={() => setEditingPersonalData(false)}
+                    user={user}
+                />
                 <ChangeLanguageModal
                     isOpen={isLanguageModalOpen}
                     onClose={() => setIsLanguageModalOpen(false)}
