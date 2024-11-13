@@ -1,0 +1,2162 @@
+swagger: "2.0"
+info:
+    description: "This is the api specification for spika ultimate"
+    version: "1.0.0"
+    title: "Spika3 messenger API"
+    termsOfService: "http://swagger.io/terms/"
+    contact:
+        email: "apiteam@swagger.io"
+    license:
+        name: "Apache 2.0"
+        url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "spika.ultimate.com"
+basePath: "/api/messenger"
+tags:
+    - name: "Auth"
+    - name: "Contact"
+    - name: "File"
+    - name: "Room"
+    - name: "Message"
+    - name: "Settings"
+    - name: "Sync"
+schemes:
+    - "https"
+    - "http"
+paths:
+    /messenger/auth:
+        post:
+            tags:
+                - "Auth"
+            summary: "The first step of signup process"
+            description: "The first step of signup process"
+            operationId: "messengerAuthPOST"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - in: "body"
+                  name: "body"
+                  required: true
+                  schema:
+                      $ref: "#/definitions/body"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        $ref: "#/definitions/inline_response_200"
+                "400":
+                    description: "invalid param"
+            x-swagger-router-controller: "Auth"
+    /messenger/auth/verify:
+        post:
+            tags:
+                - "Auth"
+            summary: "Verifiy SMS code"
+            description: "Verifiy SMS code"
+            operationId: "messengerAuthVerifyPOST"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - in: "body"
+                  name: "body"
+                  required: true
+                  schema:
+                      $ref: "#/definitions/body_1"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        $ref: "#/definitions/inline_response_200"
+                "400":
+                    description: "Bad request"
+                "404":
+                    description: "Device Not found"
+                "422":
+                    description: "invalid pin"
+            x-swagger-router-controller: "Auth"
+    /messenger/contacts:
+        get:
+            tags:
+                - "Contact"
+            summary: "Get contacts"
+            description: "Get contacts"
+            operationId: "messengerContactsGET"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "keyword"
+                  in: "query"
+                  required: false
+                  type: "string"
+                - name: "page"
+                  in: "query"
+                  required: false
+                  type: "number"
+                - name: "displayName"
+                  in: "query"
+                  required: false
+                  type: "string"
+                - name: "country"
+                  in: "query"
+                  required: false
+                  type: "string"
+                - name: "gender"
+                  in: "query"
+                  required: false
+                  type: "string"
+                - name: "birthDate"
+                  in: "query"
+                  required: false
+                  type: "string" 
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        $ref: "#/definitions/inline_response_200_1"
+                "400":
+                    description: "invalid param"
+                "403":
+                    description: "invalid access token"
+            x-swagger-router-controller: "Contact"
+        post:
+            tags:
+                - "Contact"
+            summary: "Update user contact."
+            description: "Client sents hashed phone number list to the server."
+            operationId: "messengerContactsPOST"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - in: "body"
+                  name: "contacts"
+                  required: true
+                  schema:
+                      type: "array"
+                      items:
+                          type: "string"
+                      minItems: 1
+                      maxItems: 500
+            responses:
+                "200":
+                    description: "Return list of users which is already in the system"
+                    schema:
+                        $ref: "#/definitions/inline_response_200_2"
+                "400":
+                    description: "invalid param"
+                "403":
+                    description: "invalid access token"
+            x-swagger-router-controller: "Contact"
+    /messenger/contacts/all:
+        get:
+            tags:
+                - "Contact"
+            summary: "Get all contacts"
+            description: "Get all contacts for team mode"
+            operationId: "messengerContactsAllGET"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "keyword"
+                  in: "query"
+                  required: false
+                  type: "string"
+                - name: "page"
+                  in: "query"
+                  required: false
+                  type: "number"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        $ref: "#/definitions/inline_response_200_1"
+                "400":
+                    description: "invalid param"
+                "403":
+                    description: "invalid access token"
+            x-swagger-router-controller: "Contact"
+    /upload/files:
+        post:
+            tags:
+                - "File"
+            summary: "Upload file chunk"
+            description: "Upload file by chunks"
+            operationId: "uploadFilesPOST"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - in: "body"
+                  name: "body"
+                  required: true
+                  schema:
+                      $ref: "#/definitions/body_2"
+            responses:
+                "200":
+                    description: "Returns list of chunks uploaded"
+                    schema:
+                        $ref: "#/definitions/inline_response_200_3"
+                "400":
+                    description: "invalid param"
+                "403":
+                    description: "invalid access token"
+            x-swagger-router-controller: "File"
+    /upload/files/{fileId}:
+        get:
+            tags:
+                - "File"
+            summary: "Download file"
+            description: "Download file"
+            operationId: "uploadFilesFileIdGET"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "fileId"
+                  in: "path"
+                  required: true
+                  type: "number"
+            responses:
+                "200":
+                    description: "binary file"
+                "400":
+                    description: "invalid param"
+                "403":
+                    description: "invalid access token"
+            x-swagger-router-controller: "File"
+    /upload/files/verify:
+        post:
+            tags:
+                - "File"
+            summary: "Verify file"
+            description: "Creates file if all chunks are uploaded and fileHash matches"
+            operationId: "uploadFilesVerifyPOST"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - in: "body"
+                  name: "body"
+                  required: true
+                  schema:
+                      $ref: "#/definitions/body_3"
+            responses:
+                "200":
+                    description: "Returns file object"
+                    schema:
+                        $ref: "#/definitions/inline_response_200_4"
+                "400":
+                    description: "invalid param"
+                "403":
+                    description: "invalid access token"
+            x-swagger-router-controller: "File"
+    /messenger/rooms:
+        get:
+            tags:
+                - "Room"
+            summary: "Get rooms"
+            description: "Get all rooms belongs to the user"
+            operationId: "messengerRoomsGET"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "page"
+                  in: "query"
+                  required: false
+                  type: "number"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        $ref: "#/definitions/inline_response_200_5"
+                "403":
+                    description: "invalid access token"
+            x-swagger-router-controller: "Room"
+        post:
+            tags:
+                - "Room"
+            summary: "Add new room"
+            description: "Add new room"
+            operationId: "messengerRoomsPOST"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - in: "body"
+                  name: "body"
+                  required: true
+                  schema:
+                      $ref: "#/definitions/body_4"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        $ref: "#/definitions/inline_response_200_6"
+                "400":
+                    description: "invalid param"
+                "409":
+                    description: "Already exists"
+            x-swagger-router-controller: "Room"
+    /messenger/rooms/users/{userId}:
+        get:
+            tags:
+                - "Room"
+            summary: "Get private room"
+            description: "Use this API to check if there is private room with user"
+            operationId: "messengerRoomsUsersUserIdGET"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "userId"
+                  in: "path"
+                  description: "ID of the user to check for a private room"
+                  required: true
+                  type: "integer"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        $ref: "#/definitions/inline_response_200_6"
+                "403":
+                    description: "invalid access token"
+                "404":
+                    description: "room doesn't exist"
+            x-swagger-router-controller: "Room"
+    /messenger/rooms/{id}:
+        get:
+            tags:
+                - "Room"
+            summary: "Get room detail"
+            description: "Get detail by id"
+            operationId: "messengerRoomsIdGET"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "id"
+                  in: "path"
+                  description: "The ID of the room to retrieve details for"
+                  required: true
+                  type: "string"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        $ref: "#/definitions/Room"
+                "403":
+                    description: "invalid access token"
+            x-swagger-router-controller: "Room"
+        put:
+            tags:
+                - "Room"
+            summary: "update a room"
+            description: "update a room"
+            operationId: "messengerRoomsIdPUT"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "id"
+                  in: "path"
+                  description: "The ID of the room to retrieve details for"
+                  required: true
+                  type: "string"
+                - in: "body"
+                  name: "body"
+                  required: true
+                  schema:
+                      $ref: "#/definitions/body_5"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        $ref: "#/definitions/inline_response_200_6"
+                "400":
+                    description: "invalid param"
+            x-swagger-router-controller: "Room"
+        delete:
+            tags:
+                - "Room"
+            summary: "Delete room"
+            description: "Delete room"
+            operationId: "messengerRoomsIdDELETE"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "id"
+                  in: "path"
+                  required: true
+                  type: "number"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        $ref: "#/definitions/inline_response_200_6"
+                "400":
+                    description: "invalid param"
+            x-swagger-router-controller: "Room"
+    /messenger/rooms/leave:
+        post:
+            tags:
+                - "Room"
+            summary: "Leave from room"
+            description: "Leave from room"
+            operationId: "messengerRoomsLeavePOST"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - in: "body"
+                  name: "body"
+                  required: true
+                  schema:
+                      $ref: "#/definitions/body_6"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        $ref: "#/definitions/inline_response_200_6"
+                "400":
+                    description: "invalid param"
+            x-swagger-router-controller: "Room"
+    /messenger/messages:
+        post:
+            tags:
+                - "Message"
+            summary: "Send message"
+            description: "Send messsage"
+            operationId: "messengerMessagesPOST"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - in: "body"
+                  name: "message"
+                  required: true
+                  schema:
+                      $ref: "#/definitions/message"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        $ref: "#/definitions/inline_response_200_7"
+                "400":
+                    description: "invalid param"
+            x-swagger-router-controller: "Message"
+    /messenger/messages/{id}:
+        put:
+            tags:
+                - "Message"
+            summary: "Update message"
+            description: "Update messsage"
+            operationId: "messengerMessagesIdPUT"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "id"
+                  in: "path"
+                  description: "ID of the message to update"
+                  required: true
+                  type: "number"
+                - in: "body"
+                  name: "message"
+                  required: true
+                  schema:
+                      $ref: "#/definitions/message_1"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        $ref: "#/definitions/inline_response_200_7"
+                "400":
+                    description: "invalid param"
+            x-swagger-router-controller: "Message"
+        delete:
+            tags:
+                - "Message"
+            summary: "delete message"
+            description: "delete messsage"
+            operationId: "messengerMessagesIdDELETE"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "id"
+                  in: "path"
+                  description: "ID of the message to update"
+                  required: true
+                  type: "number"
+            responses:
+                "200":
+                    description: "successful operation"
+                "400":
+                    description: "invalid param"
+            x-swagger-router-controller: "Message"
+    /messenger/messages/roomId/{roomId}:
+        get:
+            tags:
+                - "Message"
+            summary: "Get room messages"
+            description: "Get messages from specific room"
+            operationId: "messengerMessagesRoomIdRoomIdGET"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "roomId"
+                  in: "path"
+                  required: true
+                  type: "string"
+                - name: "page"
+                  in: "query"
+                  required: false
+                  type: "number"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        $ref: "#/definitions/inline_response_200_8"
+                "403":
+                    description: "invalid access token"
+            x-swagger-router-controller: "Message"
+    /messenger/messages/{messageId}/message-records:
+        get:
+            tags:
+                - "Message"
+            summary: "Get all message records for specific message"
+            description: "Get all message records for specific message"
+            operationId: "messengerMessagesMessageIdMessage_recordsGET"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "messageId"
+                  in: "path"
+                  required: true
+                  type: "string"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        $ref: "#/definitions/inline_response_200_9"
+            x-swagger-router-controller: "Message"
+    /messenger/messages/delivered:
+        post:
+            tags:
+                - "Message"
+            summary: "Notify backend messages are saved in client side."
+            description: "Notify backend messages are saved in client side."
+            operationId: "messengerMessagesDeliveredPOST"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - in: "body"
+                  name: "messageIds"
+                  required: true
+                  schema:
+                      type: "array"
+                      items:
+                          type: "number"
+                      minItems: 1
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        $ref: "#/definitions/inline_response_200_9"
+                "400":
+                    description: "invalid param"
+            x-swagger-router-controller: "Message"
+    /messenger/messages/{roomId}/seen:
+        post:
+            tags:
+                - "Message"
+            summary: "Notify backend when message are shown in the client side first time."
+            description: "Notify backend when message are shown in the client side first\
+                \ time."
+            operationId: "messengerMessagesRoomIdSeenPOST"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "roomId"
+                  in: "path"
+                  description: "ID of the room for which the messages are seen"
+                  required: true
+                  type: "integer"
+                - in: "body"
+                  name: "seenMessages"
+                  required: true
+                  schema:
+                      $ref: "#/definitions/seenMessages"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        $ref: "#/definitions/inline_response_200_9"
+                "400":
+                    description: "invalid param"
+            x-swagger-router-controller: "Message"
+    /messenger/message-records:
+        post:
+            tags:
+                - "MessageRecord"
+            summary: "Add message record"
+            description: "Add message record"
+            operationId: "messengerMessage_recordsPOST"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - in: "body"
+                  name: "messageRecord"
+                  required: true
+                  schema:
+                      $ref: "#/definitions/messageRecord"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        $ref: "#/definitions/inline_response_200_10"
+                "400":
+                    description: "invalid param"
+            x-swagger-router-controller: "MessageRecord"
+    /messenger/message-records/sync/{lastUpdate}:
+        get:
+            tags:
+                - "Sync"
+            summary: "Get all message records updated and created since last update"
+            description: "Get all message records updated and created since last update"
+            operationId: "messengerMessage_recordsSyncLastUpdateGET"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "lastUpdate"
+                  in: "path"
+                  required: true
+                  type: "string"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        $ref: "#/definitions/inline_response_200_9"
+            x-swagger-router-controller: "Sync"
+    /messenger/me:
+        get:
+            tags:
+                - "User"
+            summary: "Get authenticated user"
+            description: "Returns user model"
+            operationId: "messengerMeGET"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters: []
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        $ref: "#/definitions/inline_response_200_11"
+                "400":
+                    description: "invalid param"
+            x-swagger-router-controller: "User"
+        put:
+            tags:
+                - "User"
+            summary: "Update authenticated user"
+            description: "Updates and returns user model"
+            operationId: "messengerMePUT"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - in: "body"
+                  name: "user"
+                  required: true
+                  schema:
+                      $ref: "#/definitions/user"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        $ref: "#/definitions/inline_response_200_11"
+                "400":
+                    description: "invalid param"
+            x-swagger-router-controller: "User"
+    /messenger/users/{id}:
+        get:
+            tags:
+                - "User"
+            summary: "Get user detail"
+            description: "Returns user model"
+            operationId: "messengerUsersIdGET"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "id"
+                  in: "path"
+                  description: "ID of the user to retrieve"
+                  required: true
+                  type: "string"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        $ref: "#/definitions/inline_response_200_11"
+                "400":
+                    description: "invalid param"
+            x-swagger-router-controller: "User"
+    /messenger/users/sync/{timestamp}:
+        get:
+            tags:
+                - "User"
+            summary: "Get updated users from specified time"
+            description: "Returns users models"
+            operationId: "messengerUsersSyncTimestampGET"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "timestamp"
+                  in: "path"
+                  description: "Timestamp to retrieve users updated since"
+                  required: true
+                  type: "string"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        $ref: "#/definitions/inline_response_200_12"
+                "400":
+                    description: "invalid param"
+            x-swagger-router-controller: "User"
+    /messenger/history:
+        get:
+            tags:
+                - "History"
+            summary: "Get last updated rooms"
+            description: "Returns last updated rooms"
+            operationId: "messengerHistoryGET"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - name: "page"
+                  in: "query"
+                  required: false
+                  type: "number"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        $ref: "#/definitions/inline_response_200_13"
+                "400":
+                    description: "invalid param"
+            x-swagger-router-controller: "History"
+    /messenger/device:
+        get:
+            tags:
+                - "Device"
+            summary: "Get current device"
+            description: "Returns device tied to current access token"
+            operationId: "messengerDeviceGET"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters: []
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        $ref: "#/definitions/inline_response_200_14"
+                "400":
+                    description: "invalid param"
+            x-swagger-router-controller: "Device"
+        put:
+            tags:
+                - "Device"
+            summary: "Update push token"
+            description: "Returns device tied to current access token"
+            operationId: "messengerDevicePUT"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+                - in: "body"
+                  name: "body"
+                  required: true
+                  schema:
+                      $ref: "#/definitions/body_7"
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        $ref: "#/definitions/inline_response_200_14"
+                "400":
+                    description: "invalid param"
+            x-swagger-router-controller: "Device"
+    /messenger/settings:
+        get:
+            tags:
+                - "Settings"
+            summary: "Return server settings to client"
+            description: "Return server settings to client"
+            operationId: "messengerSettingsGET"
+            produces:
+                - "application/json"
+            parameters: []
+            responses:
+                "200":
+                    description: "successful operation"
+                    schema:
+                        $ref: "#/definitions/inline_response_200_15"
+                "403":
+                    description: "invalid access token"
+            x-swagger-router-controller: "Settings"
+securityDefinitions:
+    api_key:
+        type: "apiKey"
+        name: "accesstoken"
+        in: "header"
+definitions:
+    User:
+        type: "object"
+        properties:
+            id:
+                type: "integer"
+                format: "int32"
+            displayName:
+                type: "string"
+                format: "string"
+            gender: 
+                type: "string"
+                format: "string"
+            country:
+                type: "string"
+                format: "string"
+            avatarFileId:
+                type: "integer"
+                format: "int32"
+            telephoneNumber:
+                type: "string"
+                format: "string"
+            telephoneNumberHashed:
+                type: "string"
+                format: "string"
+            emailAddress:
+                type: "string"
+                format: "string"
+            createdAt:
+                type: "integer"
+                format: "int32"
+        example:
+            createdAt: 1
+            emailAddress: "emailAddress"
+            telephoneNumber: "telephoneNumber"
+            displayName: "displayName"
+            avatarFileId: 6
+            id: 0
+            telephoneNumberHashed: "telephoneNumberHashed"
+    Device:
+        type: "object"
+        properties:
+            id:
+                type: "integer"
+                format: "int32"
+            userId:
+                type: "integer"
+                format: "int32"
+            token:
+                type: "string"
+                format: "string"
+            tokenExpiredAt:
+                type: "integer"
+                format: "int32"
+            osName:
+                type: "string"
+                format: "string"
+            osVersion:
+                type: "integer"
+                format: "int32"
+            appVersion:
+                type: "integer"
+                format: "int32"
+            pushToken:
+                type: "string"
+                format: "string"
+        example:
+            appVersion: 9
+            osVersion: 7
+            id: 5
+            tokenExpiredAt: 2
+            osName: "osName"
+            userId: 5
+            pushToken: "pushToken"
+            token: "token"
+    File:
+        type: "object"
+        properties:
+            id:
+                type: "integer"
+                format: "int32"
+            fileName:
+                type: "string"
+            size:
+                type: "integer"
+                format: "int32"
+            mimeType:
+                type: "string"
+            type:
+                type: "string"
+            relationId:
+                type: "integer"
+                format: "int32"
+        example:
+            fileName: "fileName"
+            size: 6
+            relationId: 1
+            id: 0
+            mimeType: "mimeType"
+            type: "type"
+    Room:
+        type: "object"
+        properties:
+            id:
+                type: "integer"
+                format: "int32"
+            name:
+                type: "string"
+            users:
+                type: "array"
+                items:
+                    $ref: "#/definitions/Room_users"
+            avatarFileId:
+                type: "integer"
+                format: "int32"
+            muted:
+                type: "boolean"
+            type:
+                type: "string"
+            createdAt:
+                type: "integer"
+                format: "int32"
+        example:
+            createdAt: 5
+            avatarFileId: 1
+            name: "name"
+            id: 0
+            type: "type"
+            muted: true
+            users:
+                - isAdmin: true
+                  userId: 6
+                  user:
+                      createdAt: 1
+                      emailAddress: "emailAddress"
+                      telephoneNumber: "telephoneNumber"
+                      displayName: "displayName"
+                      avatarFileId: 6
+                      id: 0
+                      telephoneNumberHashed: "telephoneNumberHashed"
+                - isAdmin: true
+                  userId: 6
+                  user:
+                      createdAt: 1
+                      emailAddress: "emailAddress"
+                      telephoneNumber: "telephoneNumber"
+                      displayName: "displayName"
+                      avatarFileId: 6
+                      id: 0
+                      telephoneNumberHashed: "telephoneNumberHashed"
+    Message:
+        type: "object"
+        properties:
+            id:
+                type: "integer"
+                format: "int32"
+            roomId:
+                type: "integer"
+                format: "int32"
+            fromUserId:
+                type: "integer"
+                format: "int32"
+            totalUserCount:
+                type: "integer"
+                format: "int32"
+            deliveredCount:
+                type: "integer"
+                format: "int32"
+            seenCount:
+                type: "integer"
+                format: "int32"
+            type:
+                type: "string"
+            body:
+                type: "object"
+                properties: {}
+            createdAt:
+                type: "integer"
+                format: "int32"
+            localId:
+                type: "string"
+            replyId:
+                type: "integer"
+                format: "int32"
+        example:
+            createdAt: 7
+            totalUserCount: 5
+            fromUserId: 1
+            seenCount: 2
+            replyId: 9
+            deliveredCount: 5
+            id: 0
+            type: "type"
+            body: "{}"
+            localId: "localId"
+            roomId: 6
+    MessageRecord:
+        type: "object"
+        properties:
+            id:
+                type: "integer"
+                format: "int32"
+            messageId:
+                type: "integer"
+                format: "int32"
+            userId:
+                type: "integer"
+                format: "int32"
+            type:
+                type: "string"
+            reaction:
+                type: "string"
+            modifiedAt:
+                type: "integer"
+                format: "int32"
+            createdAt:
+                type: "integer"
+                format: "int32"
+        example:
+            createdAt: 5
+            reaction: "reaction"
+            modifiedAt: 5
+            messageId: 6
+            id: 0
+            type: "type"
+            userId: 1
+    body:
+        type: "object"
+        required:
+            - "deviceId"
+            - "telephoneNumber"
+        properties:
+            telephoneNumber:
+                type: "string"
+            deviceId:
+                type: "string"
+    inline_response_200_data:
+        type: "object"
+        properties:
+            isNewUser:
+                type: "boolean"
+            user:
+                $ref: "#/definitions/User"
+            device:
+                $ref: "#/definitions/Device"
+        example:
+            isNewUser: true
+            user:
+                createdAt: 1
+                emailAddress: "emailAddress"
+                telephoneNumber: "telephoneNumber"
+                displayName: "displayName"
+                avatarFileId: 6
+                id: 0
+                telephoneNumberHashed: "telephoneNumberHashed"
+            device:
+                appVersion: 9
+                osVersion: 7
+                id: 5
+                tokenExpiredAt: 2
+                osName: "osName"
+                userId: 5
+                pushToken: "pushToken"
+                token: "token"
+    inline_response_200:
+        type: "object"
+        properties:
+            status:
+                type: "string"
+                enum:
+                    - "success"
+                    - "error"
+            data:
+                $ref: "#/definitions/inline_response_200_data"
+        example:
+            data:
+                isNewUser: true
+                user:
+                    createdAt: 1
+                    emailAddress: "emailAddress"
+                    telephoneNumber: "telephoneNumber"
+                    displayName: "displayName"
+                    avatarFileId: 6
+                    id: 0
+                    telephoneNumberHashed: "telephoneNumberHashed"
+                device:
+                    appVersion: 9
+                    osVersion: 7
+                    id: 5
+                    tokenExpiredAt: 2
+                    osName: "osName"
+                    userId: 5
+                    pushToken: "pushToken"
+                    token: "token"
+            status: "success"
+    body_1:
+        type: "object"
+        required:
+            - "code"
+            - "deviceId"
+        properties:
+            code:
+                type: "string"
+            deviceId:
+                type: "string"
+    inline_response_200_1_data:
+        type: "object"
+        properties:
+            list:
+                type: "array"
+                items:
+                    $ref: "#/definitions/User"
+            count:
+                type: "number"
+            limit:
+                type: "number"
+        example:
+            count: 0.80082819046101150206595775671303272247314453125
+            limit: 6.02745618307040320615897144307382404804229736328125
+            list:
+                - createdAt: 1
+                  emailAddress: "emailAddress"
+                  telephoneNumber: "telephoneNumber"
+                  displayName: "displayName"
+                  avatarFileId: 6
+                  id: 0
+                  gender: "M",
+                  country: "DE"
+                  telephoneNumberHashed: "telephoneNumberHashed"
+                - createdAt: 1
+                  emailAddress: "emailAddress"
+                  telephoneNumber: "telephoneNumber"
+                  displayName: "displayName"
+                  avatarFileId: 6
+                  id: 0
+                  gender: "M",
+                  country: "DE"
+                  telephoneNumberHashed: "telephoneNumberHashed"
+    inline_response_200_1:
+        type: "object"
+        properties:
+            status:
+                type: "string"
+                enum:
+                    - "success"
+                    - "error"
+            data:
+                $ref: "#/definitions/inline_response_200_1_data"
+        example:
+            data:
+                count: 0.80082819046101150206595775671303272247314453125
+                limit: 6.02745618307040320615897144307382404804229736328125
+                list:
+                    - createdAt: 1
+                      emailAddress: "emailAddress"
+                      telephoneNumber: "telephoneNumber"
+                      displayName: "displayName"
+                      avatarFileId: 6
+                      id: 0
+                      telephoneNumberHashed: "telephoneNumberHashed"
+                    - createdAt: 1
+                      emailAddress: "emailAddress"
+                      telephoneNumber: "telephoneNumber"
+                      displayName: "displayName"
+                      avatarFileId: 6
+                      id: 0
+                      telephoneNumberHashed: "telephoneNumberHashed"
+            status: "success"
+    inline_response_200_2_data:
+        type: "object"
+        properties:
+            list:
+                type: "array"
+                items:
+                    $ref: "#/definitions/User"
+            limit:
+                type: "number"
+            count:
+                type: "number"
+        example:
+            limit: 0.80082819046101150206595775671303272247314453125
+            count: 6.02745618307040320615897144307382404804229736328125
+            list:
+                - createdAt: 1
+                  emailAddress: "emailAddress"
+                  telephoneNumber: "telephoneNumber"
+                  displayName: "displayName"
+                  avatarFileId: 6
+                  id: 0
+                  telephoneNumberHashed: "telephoneNumberHashed"
+                - createdAt: 1
+                  emailAddress: "emailAddress"
+                  telephoneNumber: "telephoneNumber"
+                  displayName: "displayName"
+                  avatarFileId: 6
+                  id: 0
+                  telephoneNumberHashed: "telephoneNumberHashed"
+    inline_response_200_2:
+        type: "object"
+        properties:
+            status:
+                type: "string"
+            data:
+                $ref: "#/definitions/inline_response_200_2_data"
+        example:
+            data:
+                limit: 0.80082819046101150206595775671303272247314453125
+                count: 6.02745618307040320615897144307382404804229736328125
+                list:
+                    - createdAt: 1
+                      emailAddress: "emailAddress"
+                      telephoneNumber: "telephoneNumber"
+                      displayName: "displayName"
+                      avatarFileId: 6
+                      id: 0
+                      telephoneNumberHashed: "telephoneNumberHashed"
+                    - createdAt: 1
+                      emailAddress: "emailAddress"
+                      telephoneNumber: "telephoneNumber"
+                      displayName: "displayName"
+                      avatarFileId: 6
+                      id: 0
+                      telephoneNumberHashed: "telephoneNumberHashed"
+            status: "status"
+    body_2:
+        type: "object"
+        required:
+            - "chunk"
+            - "clientId"
+            - "offset"
+        properties:
+            chunk:
+                type: "string"
+                description: "Base64 encoded text of the chunk"
+            offset:
+                type: "number"
+                description: "The position of the chunk in the entire file"
+            clientId:
+                type: "string"
+                description: "The random string to identify the upload"
+    inline_response_200_3_data:
+        type: "object"
+        properties:
+            uploadedChunks:
+                type: "array"
+                items:
+                    type: "number"
+                    example: 1
+        example:
+            uploadedChunks:
+                - 1
+                - 1
+    inline_response_200_3:
+        type: "object"
+        properties:
+            status:
+                type: "string"
+            data:
+                $ref: "#/definitions/inline_response_200_3_data"
+        example:
+            data:
+                uploadedChunks:
+                    - 1
+                    - 1
+            status: "status"
+    body_3:
+        type: "object"
+        required:
+            - "clientId"
+            - "fileHash"
+            - "fileName"
+            - "mimeType"
+            - "relationId"
+            - "size"
+            - "total"
+            - "type"
+        properties:
+            total:
+                type: "number"
+                description: "Total number of chunks"
+            size:
+                type: "number"
+                description: "File size in bytes"
+            mimeType:
+                type: "string"
+                description: "Mime type of the file"
+            fileName:
+                type: "string"
+                description: "File name"
+            clientId:
+                type: "string"
+                description: "The random string to identify the upload"
+            fileHash:
+                type: "string"
+                description: "SHA256 hash of the file"
+            type:
+                type: "string"
+                description: "The name of another model which the file refers to, e.g., avatar,\
+                    \ message, group avatar"
+            relationId:
+                type: "number"
+                description: "The ID of the model the file refers to"
+    inline_response_200_4_data:
+        type: "object"
+        properties:
+            file:
+                $ref: "#/definitions/File"
+        example:
+            file:
+                fileName: "fileName"
+                size: 6
+                relationId: 1
+                id: 0
+                mimeType: "mimeType"
+                type: "type"
+    inline_response_200_4:
+        type: "object"
+        properties:
+            status:
+                type: "string"
+            data:
+                $ref: "#/definitions/inline_response_200_4_data"
+        example:
+            data:
+                file:
+                    fileName: "fileName"
+                    size: 6
+                    relationId: 1
+                    id: 0
+                    mimeType: "mimeType"
+                    type: "type"
+            status: "status"
+    inline_response_200_5_data:
+        type: "object"
+        properties:
+            list:
+                type: "array"
+                items:
+                    $ref: "#/definitions/Room"
+            count:
+                type: "number"
+            limit:
+                type: "number"
+        example:
+            count: 5.63737665663332876420099637471139430999755859375
+            limit: 2.3021358869347654518833223846741020679473876953125
+            list:
+                - createdAt: 5
+                  avatarFileId: 1
+                  name: "name"
+                  id: 0
+                  type: "type"
+                  muted: true
+                  users:
+                      - isAdmin: true
+                        userId: 6
+                        user:
+                            createdAt: 1
+                            emailAddress: "emailAddress"
+                            telephoneNumber: "telephoneNumber"
+                            displayName: "displayName"
+                            avatarFileId: 6
+                            id: 0
+                            telephoneNumberHashed: "telephoneNumberHashed"
+                      - isAdmin: true
+                        userId: 6
+                        user:
+                            createdAt: 1
+                            emailAddress: "emailAddress"
+                            telephoneNumber: "telephoneNumber"
+                            displayName: "displayName"
+                            avatarFileId: 6
+                            id: 0
+                            telephoneNumberHashed: "telephoneNumberHashed"
+                - createdAt: 5
+                  avatarFileId: 1
+                  name: "name"
+                  id: 0
+                  type: "type"
+                  muted: true
+                  users:
+                      - isAdmin: true
+                        userId: 6
+                        user:
+                            createdAt: 1
+                            emailAddress: "emailAddress"
+                            telephoneNumber: "telephoneNumber"
+                            displayName: "displayName"
+                            avatarFileId: 6
+                            id: 0
+                            telephoneNumberHashed: "telephoneNumberHashed"
+                      - isAdmin: true
+                        userId: 6
+                        user:
+                            createdAt: 1
+                            emailAddress: "emailAddress"
+                            telephoneNumber: "telephoneNumber"
+                            displayName: "displayName"
+                            avatarFileId: 6
+                            id: 0
+                            telephoneNumberHashed: "telephoneNumberHashed"
+    inline_response_200_5:
+        type: "object"
+        properties:
+            status:
+                type: "string"
+                enum:
+                    - "success"
+                    - "error"
+            data:
+                $ref: "#/definitions/inline_response_200_5_data"
+        example:
+            data:
+                count: 5.63737665663332876420099637471139430999755859375
+                limit: 2.3021358869347654518833223846741020679473876953125
+                list:
+                    - createdAt: 5
+                      avatarFileId: 1
+                      name: "name"
+                      id: 0
+                      type: "type"
+                      muted: true
+                      users:
+                          - isAdmin: true
+                            userId: 6
+                            user:
+                                createdAt: 1
+                                emailAddress: "emailAddress"
+                                telephoneNumber: "telephoneNumber"
+                                displayName: "displayName"
+                                avatarFileId: 6
+                                id: 0
+                                telephoneNumberHashed: "telephoneNumberHashed"
+                          - isAdmin: true
+                            userId: 6
+                            user:
+                                createdAt: 1
+                                emailAddress: "emailAddress"
+                                telephoneNumber: "telephoneNumber"
+                                displayName: "displayName"
+                                avatarFileId: 6
+                                id: 0
+                                telephoneNumberHashed: "telephoneNumberHashed"
+                    - createdAt: 5
+                      avatarFileId: 1
+                      name: "name"
+                      id: 0
+                      type: "type"
+                      muted: true
+                      users:
+                          - isAdmin: true
+                            userId: 6
+                            user:
+                                createdAt: 1
+                                emailAddress: "emailAddress"
+                                telephoneNumber: "telephoneNumber"
+                                displayName: "displayName"
+                                avatarFileId: 6
+                                id: 0
+                                telephoneNumberHashed: "telephoneNumberHashed"
+                          - isAdmin: true
+                            userId: 6
+                            user:
+                                createdAt: 1
+                                emailAddress: "emailAddress"
+                                telephoneNumber: "telephoneNumber"
+                                displayName: "displayName"
+                                avatarFileId: 6
+                                id: 0
+                                telephoneNumberHashed: "telephoneNumberHashed"
+            status: "success"
+    body_4:
+        type: "object"
+        required:
+            - "adminUserIds"
+            - "name"
+            - "type"
+            - "userIds"
+        properties:
+            name:
+                type: "string"
+            avatarFileId:
+                type: "integer"
+            userIds:
+                type: "array"
+                items:
+                    type: "integer"
+            adminUserIds:
+                type: "array"
+                items:
+                    type: "integer"
+            type:
+                type: "string"
+    inline_response_200_6_data:
+        type: "object"
+        properties:
+            room:
+                $ref: "#/definitions/Room"
+        example:
+            room:
+                createdAt: 5
+                avatarFileId: 1
+                name: "name"
+                id: 0
+                type: "type"
+                muted: true
+                users:
+                    - isAdmin: true
+                      userId: 6
+                      user:
+                          createdAt: 1
+                          emailAddress: "emailAddress"
+                          telephoneNumber: "telephoneNumber"
+                          displayName: "displayName"
+                          avatarFileId: 6
+                          id: 0
+                          telephoneNumberHashed: "telephoneNumberHashed"
+                    - isAdmin: true
+                      userId: 6
+                      user:
+                          createdAt: 1
+                          emailAddress: "emailAddress"
+                          telephoneNumber: "telephoneNumber"
+                          displayName: "displayName"
+                          avatarFileId: 6
+                          id: 0
+                          telephoneNumberHashed: "telephoneNumberHashed"
+    inline_response_200_6:
+        type: "object"
+        properties:
+            status:
+                type: "string"
+                enum:
+                    - "success"
+                    - "error"
+            data:
+                $ref: "#/definitions/inline_response_200_6_data"
+        example:
+            data:
+                room:
+                    createdAt: 5
+                    avatarFileId: 1
+                    name: "name"
+                    id: 0
+                    type: "type"
+                    muted: true
+                    users:
+                        - isAdmin: true
+                          userId: 6
+                          user:
+                              createdAt: 1
+                              emailAddress: "emailAddress"
+                              telephoneNumber: "telephoneNumber"
+                              displayName: "displayName"
+                              avatarFileId: 6
+                              id: 0
+                              telephoneNumberHashed: "telephoneNumberHashed"
+                        - isAdmin: true
+                          userId: 6
+                          user:
+                              createdAt: 1
+                              emailAddress: "emailAddress"
+                              telephoneNumber: "telephoneNumber"
+                              displayName: "displayName"
+                              avatarFileId: 6
+                              id: 0
+                              telephoneNumberHashed: "telephoneNumberHashed"
+            status: "success"
+    body_5:
+        type: "object"
+        required:
+            - "adminUserIds"
+            - "name"
+            - "userIds"
+        properties:
+            name:
+                type: "string"
+            avatarFileId:
+                type: "integer"
+            userIds:
+                type: "array"
+                items:
+                    type: "integer"
+            adminUserIds:
+                type: "array"
+                items:
+                    type: "integer"
+    body_6:
+        type: "object"
+        required:
+            - "adminUserIds"
+        properties:
+            adminUserIds:
+                type: "array"
+                items:
+                    type: "integer"
+    messengermessages_body:
+        type: "object"
+        properties:
+            text:
+                type: "string"
+                description: "Text of the message"
+            fileId:
+                type: "number"
+                description: "ID of the attached file"
+            thumbId:
+                type: "number"
+                description: "ID of the thumbnail image"
+    message:
+        type: "object"
+        required:
+            - "body"
+            - "roomId"
+            - "type"
+        properties:
+            roomId:
+                type: "integer"
+                description: "ID of the room to send the message to"
+            type:
+                type: "string"
+                description: "Type of the message"
+            body:
+                $ref: "#/definitions/messengermessages_body"
+            localId:
+                type: "string"
+                description: "Local identifier for the message"
+    inline_response_200_7_data:
+        type: "object"
+        properties:
+            message:
+                $ref: "#/definitions/Message"
+        example:
+            message:
+                createdAt: 7
+                totalUserCount: 5
+                fromUserId: 1
+                seenCount: 2
+                replyId: 9
+                deliveredCount: 5
+                id: 0
+                type: "type"
+                body: "{}"
+                localId: "localId"
+                roomId: 6
+    inline_response_200_7:
+        type: "object"
+        properties:
+            status:
+                type: "string"
+                enum:
+                    - "success"
+                    - "error"
+            data:
+                $ref: "#/definitions/inline_response_200_7_data"
+        example:
+            data:
+                message:
+                    createdAt: 7
+                    totalUserCount: 5
+                    fromUserId: 1
+                    seenCount: 2
+                    replyId: 9
+                    deliveredCount: 5
+                    id: 0
+                    type: "type"
+                    body: "{}"
+                    localId: "localId"
+                    roomId: 6
+            status: "success"
+    messengermessagesid_body:
+        type: "object"
+        properties:
+            text:
+                type: "string"
+            fileId:
+                type: "number"
+            thumbId:
+                type: "number"
+    message_1:
+        type: "object"
+        required:
+            - "type"
+        properties:
+            roomId:
+                type: "integer"
+            type:
+                type: "string"
+                description: "Type of the message"
+            body:
+                $ref: "#/definitions/messengermessagesid_body"
+            localId:
+                type: "string"
+    inline_response_200_8_data:
+        type: "object"
+        properties:
+            list:
+                type: "array"
+                items:
+                    $ref: "#/definitions/Message"
+            count:
+                type: "number"
+            limit:
+                type: "number"
+        example:
+            count: 0.80082819046101150206595775671303272247314453125
+            limit: 6.02745618307040320615897144307382404804229736328125
+            list:
+                - createdAt: 7
+                  totalUserCount: 5
+                  fromUserId: 1
+                  seenCount: 2
+                  replyId: 9
+                  deliveredCount: 5
+                  id: 0
+                  type: "type"
+                  body: "{}"
+                  localId: "localId"
+                  roomId: 6
+                - createdAt: 7
+                  totalUserCount: 5
+                  fromUserId: 1
+                  seenCount: 2
+                  replyId: 9
+                  deliveredCount: 5
+                  id: 0
+                  type: "type"
+                  body: "{}"
+                  localId: "localId"
+                  roomId: 6
+    inline_response_200_8:
+        type: "object"
+        properties:
+            status:
+                type: "string"
+                enum:
+                    - "success"
+                    - "error"
+            data:
+                $ref: "#/definitions/inline_response_200_8_data"
+        example:
+            data:
+                count: 0.80082819046101150206595775671303272247314453125
+                limit: 6.02745618307040320615897144307382404804229736328125
+                list:
+                    - createdAt: 7
+                      totalUserCount: 5
+                      fromUserId: 1
+                      seenCount: 2
+                      replyId: 9
+                      deliveredCount: 5
+                      id: 0
+                      type: "type"
+                      body: "{}"
+                      localId: "localId"
+                      roomId: 6
+                    - createdAt: 7
+                      totalUserCount: 5
+                      fromUserId: 1
+                      seenCount: 2
+                      replyId: 9
+                      deliveredCount: 5
+                      id: 0
+                      type: "type"
+                      body: "{}"
+                      localId: "localId"
+                      roomId: 6
+            status: "success"
+    inline_response_200_9_data:
+        type: "object"
+        properties:
+            messageRecords:
+                type: "array"
+                items:
+                    $ref: "#/definitions/MessageRecord"
+        example:
+            messageRecords:
+                - createdAt: 5
+                  reaction: "reaction"
+                  modifiedAt: 5
+                  messageId: 6
+                  id: 0
+                  type: "type"
+                  userId: 1
+                - createdAt: 5
+                  reaction: "reaction"
+                  modifiedAt: 5
+                  messageId: 6
+                  id: 0
+                  type: "type"
+                  userId: 1
+    inline_response_200_9:
+        type: "object"
+        properties:
+            status:
+                type: "string"
+                enum:
+                    - "success"
+                    - "error"
+            data:
+                $ref: "#/definitions/inline_response_200_9_data"
+        example:
+            data:
+                messageRecords:
+                    - createdAt: 5
+                      reaction: "reaction"
+                      modifiedAt: 5
+                      messageId: 6
+                      id: 0
+                      type: "type"
+                      userId: 1
+                    - createdAt: 5
+                      reaction: "reaction"
+                      modifiedAt: 5
+                      messageId: 6
+                      id: 0
+                      type: "type"
+                      userId: 1
+            status: "success"
+    seenMessages:
+        type: "object"
+        required:
+            - "messageIds"
+            - "type"
+        properties:
+            messageIds:
+                type: "array"
+                items:
+                    type: "integer"
+            type:
+                type: "string"
+    messageRecord:
+        type: "object"
+        required:
+            - "messageId"
+            - "type"
+        properties:
+            messageId:
+                type: "number"
+                description: "ID of the message"
+            type:
+                type: "string"
+                description: "Type of the message record"
+            reaction:
+                type: "string"
+                description: "Reaction to the message"
+    inline_response_200_10_data:
+        type: "object"
+        properties:
+            messageRecord:
+                $ref: "#/definitions/MessageRecord"
+        example:
+            messageRecord:
+                createdAt: 5
+                reaction: "reaction"
+                modifiedAt: 5
+                messageId: 6
+                id: 0
+                type: "type"
+                userId: 1
+    inline_response_200_10:
+        type: "object"
+        properties:
+            status:
+                type: "string"
+                enum:
+                    - "success"
+                    - "error"
+            data:
+                $ref: "#/definitions/inline_response_200_10_data"
+        example:
+            data:
+                messageRecord:
+                    createdAt: 5
+                    reaction: "reaction"
+                    modifiedAt: 5
+                    messageId: 6
+                    id: 0
+                    type: "type"
+                    userId: 1
+            status: "success"
+    inline_response_200_11_data:
+        type: "object"
+        properties:
+            user:
+                $ref: "#/definitions/User"
+        example:
+            user:
+                createdAt: 1
+                emailAddress: "emailAddress"
+                telephoneNumber: "telephoneNumber"
+                displayName: "displayName"
+                avatarFileId: 6,
+                gender: "M",
+                country: "DE",
+                id: 0
+                telephoneNumberHashed: "telephoneNumberHashed"
+    inline_response_200_11:
+        type: "object"
+        properties:
+            status:
+                type: "string"
+                enum:
+                    - "success"
+                    - "error"
+            data:
+                $ref: "#/definitions/inline_response_200_11_data"
+        example:
+            data:
+                user:
+                    createdAt: 1
+                    emailAddress: "emailAddress"
+                    telephoneNumber: "telephoneNumber"
+                    displayName: "displayName"
+                    avatarFileId: 6
+                    id: 0
+                    telephoneNumberHashed: "telephoneNumberHashed"
+            status: "success"
+    user:
+        type: "object"
+        required:
+            - "displayName"
+        properties:
+            emailAddress:
+                type: "string"
+                description: "User's email address"
+            displayName:
+                type: "string"
+                description: "User's display name"
+            country:
+                type: "string"
+                description: "User's country"
+            gender:
+                type: "string"
+                description: "User's gender. One of M,F,O."
+            avatarFileId:
+                type: "integer"
+                description: "ID of the user's avatar file"
+    inline_response_200_12_data:
+        type: "object"
+        properties:
+            users:
+                type: "array"
+                items:
+                    $ref: "#/definitions/User"
+        example:
+            users:
+                - createdAt: 1
+                  emailAddress: "emailAddress"
+                  telephoneNumber: "telephoneNumber"
+                  displayName: "displayName"
+                  avatarFileId: 6
+                  id: 0
+                  telephoneNumberHashed: "telephoneNumberHashed"
+                - createdAt: 1
+                  emailAddress: "emailAddress"
+                  telephoneNumber: "telephoneNumber"
+                  displayName: "displayName"
+                  avatarFileId: 6
+                  id: 0
+                  telephoneNumberHashed: "telephoneNumberHashed"
+    inline_response_200_12:
+        type: "object"
+        properties:
+            status:
+                type: "string"
+                enum:
+                    - "success"
+                    - "error"
+            data:
+                $ref: "#/definitions/inline_response_200_12_data"
+        example:
+            data:
+                users:
+                    - createdAt: 1
+                      emailAddress: "emailAddress"
+                      telephoneNumber: "telephoneNumber"
+                      displayName: "displayName"
+                      avatarFileId: 6
+                      id: 0
+                      telephoneNumberHashed: "telephoneNumberHashed"
+                    - createdAt: 1
+                      emailAddress: "emailAddress"
+                      telephoneNumber: "telephoneNumber"
+                      displayName: "displayName"
+                      avatarFileId: 6
+                      id: 0
+                      telephoneNumberHashed: "telephoneNumberHashed"
+            status: "success"
+    inline_response_200_13_data:
+        type: "object"
+        properties:
+            list:
+                type: "array"
+                items:
+                    type: "object"
+                    allOf:
+                        - $ref: "#/definitions/Room"
+                        - type: "object"
+                          properties:
+                              lastMessage:
+                                  $ref: "#/definitions/Message"
+            count:
+                type: "number"
+            limit:
+                type: "number"
+        example:
+            count: 0.80082819046101150206595775671303272247314453125
+            limit: 6.02745618307040320615897144307382404804229736328125
+            list:
+                - ""
+                - ""
+    inline_response_200_13:
+        type: "object"
+        properties:
+            status:
+                type: "string"
+                enum:
+                    - "success"
+                    - "error"
+            data:
+                $ref: "#/definitions/inline_response_200_13_data"
+        example:
+            data:
+                count: 0.80082819046101150206595775671303272247314453125
+                limit: 6.02745618307040320615897144307382404804229736328125
+                list:
+                    - ""
+                    - ""
+            status: "success"
+    inline_response_200_14_data:
+        type: "object"
+        properties:
+            device:
+                $ref: "#/definitions/Device"
+        example:
+            device:
+                appVersion: 9
+                osVersion: 7
+                id: 5
+                tokenExpiredAt: 2
+                osName: "osName"
+                userId: 5
+                pushToken: "pushToken"
+                token: "token"
+    inline_response_200_14:
+        type: "object"
+        properties:
+            status:
+                type: "string"
+                enum:
+                    - "success"
+                    - "error"
+            data:
+                $ref: "#/definitions/inline_response_200_14_data"
+        example:
+            data:
+                device:
+                    appVersion: 9
+                    osVersion: 7
+                    id: 5
+                    tokenExpiredAt: 2
+                    osName: "osName"
+                    userId: 5
+                    pushToken: "pushToken"
+                    token: "token"
+            status: "success"
+    body_7:
+        type: "object"
+        required:
+            - "pushToken"
+        properties:
+            pushToken:
+                type: "string"
+    inline_response_200_15:
+        type: "object"
+        properties:
+            teamMode:
+                type: "boolean"
+        example:
+            teamMode: true
+    Room_users:
+        type: "object"
+        properties:
+            userId:
+                type: "integer"
+                format: "int32"
+            isAdmin:
+                type: "boolean"
+            user:
+                $ref: "#/definitions/User"
+        example:
+            isAdmin: true
+            userId: 6
+            user:
+                createdAt: 1
+                emailAddress: "emailAddress"
+                telephoneNumber: "telephoneNumber"
+                displayName: "displayName"
+                avatarFileId: 6
+                id: 0
+                telephoneNumberHashed: "telephoneNumberHashed"
+externalDocs:
+    description: "Find out more about Swagger"
+    url: "http://swagger.io/terms"

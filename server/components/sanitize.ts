@@ -351,6 +351,8 @@ function sanitizeUser({
     id,
     emailAddress,
     telephoneNumber,
+    gender,
+    country,
     telephoneNumberHashed,
     displayName,
     avatarFileId,
@@ -367,6 +369,8 @@ function sanitizeUser({
     return {
         id,
         displayName,
+        gender,
+        country,
         avatarFileId,
         telephoneNumber,
         telephoneNumberHashed,
