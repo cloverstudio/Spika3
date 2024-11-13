@@ -13,27 +13,28 @@ import sanitize from "../../../components/sanitize";
 import prisma from "../../../components/prisma";
 import { checkForAgentContacts } from "../../../components/agent";
 import removeOlderContacts from "../lib/removeOlderContacts";
+import { Gender } from "@prisma/client";
 
 const postContactsSchema = yup.object().shape({
     body: yup.object().shape({
         contacts: yup.lazy((value) =>
             typeof value === "string"
                 ? yup.string().transform((value) =>
-                      value
-                          .split(",")
-                          .map((v: string) => v.trim())
-                          .filter((v: string) => v),
-                  )
+                    value
+                        .split(",")
+                        .map((v: string) => v.trim())
+                        .filter((v: string) => v),
+                )
                 : yup
-                      .array(yup.string())
-                      .strict()
-                      .min(1)
-                      .max(Constants.CONTACT_SYNC_LIMIT)
-                      .required()
-                      .typeError(
-                          ({ path, originalValue }: errorParams): string =>
-                              `${path} must be array or string, currently: ${originalValue}`,
-                      ),
+                    .array(yup.string())
+                    .strict()
+                    .min(1)
+                    .max(Constants.CONTACT_SYNC_LIMIT)
+                    .required()
+                    .typeError(
+                        ({ path, originalValue }: errorParams): string =>
+                            `${path} must be array or string, currently: ${originalValue}`,
+                    ),
         ),
         isLastPage: yup.boolean().default(false),
     }),
@@ -43,6 +44,10 @@ const getContactsSchema = yup.object().shape({
     query: yup.object().shape({
         cursor: yup.number().nullable(),
         keyword: yup.string().strict(),
+        country: yup.string().strict(),
+        displayName: yup.string().strict(),
+        birthDate: yup.string().strict(),
+        gender: yup.string().oneOf(["M", "F", "O"]).strict(),
     }),
 });
 
@@ -51,9 +56,28 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
 
     router.get("/", auth, validate(getContactsSchema), async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
-        const keyword = req.query.keyword as string;
         const cursor = parseInt(req.query.cursor ? (req.query.cursor as string) : "") || null;
         const take = cursor ? Constants.CONTACT_PAGING_LIMIT + 1 : Constants.CONTACT_PAGING_LIMIT;
+
+        const {
+            keyword,
+            displayName,
+            country,
+            gender,
+            birthDate: birthDateString,
+        } = req.query as {
+            keyword: string;
+            displayName: string;
+            country: string;
+            gender: Gender;
+            birthDate: string;
+        };
+
+        let birthDate: Date | undefined;
+        if (birthDateString) {
+            birthDate = new Date(birthDateString);
+        }
+
 
         if (!cursor) {
             await checkForAgentContacts(userReq.user.id);
@@ -62,26 +86,40 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         const condition: any = {
             ...(keyword
                 ? {
-                      OR: ["startsWith", "contains"].map((key) => ({
-                          displayName: {
-                              [key]: keyword,
-                          },
-                      })),
-                      AND: {
-                          verified: true,
-                          id: {
-                              not: userReq.user.id,
-                          },
-                          deleted: false,
-                      },
-                  }
+                    OR: ["startsWith", "contains"].map((key) => ({
+                        displayName: {
+                            [key]: keyword,
+                        },
+                    })),
+                    AND: {
+                        verified: true,
+                        id: {
+                            not: userReq.user.id,
+                        },
+                        deleted: false,
+                        displayName: {
+                            not: null,
+                        },
+                    },
+                }
                 : {
-                      verified: true,
-                      id: {
-                          not: userReq.user.id,
-                      },
-                      deleted: false,
-                  }),
+                    verified: true,
+                    id: {
+                        not: userReq.user.id,
+                    },
+                    deleted: false,
+                    displayName: {
+                        not: null,
+                    },
+                    ...(displayName && {
+                        displayName: {
+                            contains: displayName,
+                        },
+                    }),
+                    ...(country && { country }),
+                    ...(gender && { gender }),
+                    ...(birthDateString && { birthDate }),
+                }),
         };
 
         try {

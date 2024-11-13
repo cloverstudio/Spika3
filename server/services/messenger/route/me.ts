@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { Device, User, UserSetting } from "@prisma/client";
+import { Device, Gender, User, UserSetting } from "@prisma/client";
 
 import { error as le } from "../../../components/logger";
 import validate from "../../../components/validateMiddleware";
@@ -17,10 +17,12 @@ import fs from "fs";
 
 const updateSchema = yup.object().shape({
     body: yup.object().shape({
-        telephoneNumber: yup.string().strict(),
-        emailAddress: yup.string().strict(),
         displayName: yup.string().strict(),
+        emailAddress: yup.string().strict(),
+        country: yup.string().strict(),
+        gender: yup.string().oneOf(["M", "F", "O"]).strict(),
         avatarFileId: yup.number().strict(),
+        isCallingMuted: yup.boolean().strict(),
     }),
 });
 
@@ -43,7 +45,14 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
         const id = userReq.user.id;
 
         try {
-            const { telephoneNumber, emailAddress, displayName, avatarFileId } = req.body;
+            const { displayName, emailAddress, country, gender, avatarFileId, isCallingMuted } = req.body as {
+                displayName: string;
+                emailAddress: string;
+                country: string;
+                gender: Gender;
+                avatarFileId: number;
+                isCallingMuted: boolean;
+            };
 
             const userWithSameEmailAddress =
                 emailAddress &&
@@ -54,17 +63,6 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                 return res
                     .status(400)
                     .send(errorResponse("User with that email exists", userReq.lang));
-            }
-
-            const userWithSameTelephoneNumber =
-                telephoneNumber &&
-                (await prisma.user.findFirst({
-                    where: { telephoneNumber, id: { not: id } },
-                }));
-            if (userWithSameTelephoneNumber) {
-                return res
-                    .status(400)
-                    .send(errorResponse("User with that telephoneNumber exists", userReq.lang));
             }
 
             if (avatarFileId) {
@@ -87,13 +85,18 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const user = await prisma.user.update({
                 where: { id },
                 data: {
-                    telephoneNumber,
-                    emailAddress,
-                    displayName,
-                    avatarFileId: parseInt(avatarFileId || "0"),
-                    ...(telephoneNumber && {
-                        telephoneNumberHashed: Utils.sha256(telephoneNumber),
-                    }),
+                    ...(emailAddress && { emailAddress }),
+                    ...(displayName && { displayName }),
+                    ...((avatarFileId || avatarFileId === 0) && { avatarFileId }),
+                    ...(country && { country }),
+                    ...(gender && { gender }),
+                    privacySettings: {
+                        update: {
+                            ...(typeof isCallingMuted !== "undefined" && {
+                                isCallingMuted,
+                            }),
+                        },
+                    },
                     modifiedAt: new Date(),
                 },
             });

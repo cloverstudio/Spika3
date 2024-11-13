@@ -10,12 +10,20 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum Gender {
+  M
+  F
+  O
+}
+
 model User {
   id                    Int      @id @default(autoincrement()) @map(name: "id")
   emailAddress          String?  @unique @map(name: "email_address")
   telephoneNumber       String?  @unique @map(name: "telephone_number")
   telephoneNumberHashed String?  @unique @map(name: "telephone_number_hashed")
   displayName           String?  @map(name: "display_name")
+  country               String?  @map(name: "country")
+  gender                Gender?  @map(name: "gender")
   avatarFileId          Int      @default(0) @map(name: "avatar_file_id")
   verificationCode      String?  @map(name: "verification_code")
   verified              Boolean  @default(false) @map(name: "verified")
@@ -27,6 +35,8 @@ model User {
   coverFileId           Int?     @map(name: "cover_file_id")
   shortDescription      String?  @map(name: "short_description")
   longDescription       String?  @map(name: "long_description") @db.Text
+
+  privacySettings UserPrivacySettings?
 
   rooms           RoomUser[]
   device          Device[]
@@ -41,6 +51,15 @@ model User {
 
   @@index([displayName])
   @@map(name: "user")
+}
+
+model UserPrivacySettings {
+  id             Int     @id @default(autoincrement())
+  userId         Int     @unique @map(name: "user_id")
+  isCallingMuted Boolean @default(false) @map(name: "is_calling_muted")
+  User           User    @relation(fields: [userId], references: [id])
+
+  @@map(name: "privacy_settings")
 }
 
 model Block {
