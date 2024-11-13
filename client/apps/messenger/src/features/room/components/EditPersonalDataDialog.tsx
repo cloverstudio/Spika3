@@ -63,9 +63,10 @@ export default function EditPersonalDataDialog({ isOpen, onClose, user }: Props)
 
     const isSubmitDisabled =
         !name.trim() ||
-        !email.trim() ||
+        !email?.trim() ||
         emailError ||
         !country ||
+        !gender ||
         loading ||
         isCheckingEmailValidity;
 
@@ -398,16 +399,16 @@ export default function EditPersonalDataDialog({ isOpen, onClose, user }: Props)
                                         setEmail(enteredEmail);
                                     }}
                                     onBlur={async () => {
-                                        if (!email || email === existingEmail || emailError) return;
-                                        const response = await checkEmail(email);
-                                        if (response.error) {
-                                            setEmailError(true);
-                                            return;
-                                        }
-                                        setEmailError(false);
+                                        // if (!email || email === existingEmail || emailError) return;
+                                        // const response = await checkEmail(email);
+                                        // if (response.error) {
+                                        //     setEmailError(true);
+                                        //     return;
+                                        // }
+                                        // setEmailError(false);
                                     }}
                                     value={email}
-                                    error={!email.trim() || emailError}
+                                    error={!email?.trim() || emailError}
                                 />
                             </Box>
 
