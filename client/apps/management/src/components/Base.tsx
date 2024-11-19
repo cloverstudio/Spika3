@@ -18,7 +18,7 @@ type Props = {
 
 export default function AuthBase({ children }: Props): React.ReactElement {
     const navigate = useNavigate();
-    const { isLoggedIn, loading } = useIsLoggedIn();
+    const { isLoggedIn } = useIsLoggedIn();
 
     useEffect(() => {
         const handleKeyDown = (ev: KeyboardEvent) => {
@@ -36,18 +36,10 @@ export default function AuthBase({ children }: Props): React.ReactElement {
     }, [navigate]);
 
     useEffect(() => {
-        if (!loading && !isLoggedIn) {
+        if (!isLoggedIn) {
             navigate("/login");
         }
-    }, [isLoggedIn, navigate, loading]);
-
-    if (loading) {
-        return (
-            <Base>
-                <Loader />
-            </Base>
-        );
-    }
+    }, [isLoggedIn, navigate]);
 
     if (!isLoggedIn) {
         return null;

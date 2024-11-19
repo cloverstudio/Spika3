@@ -4,6 +4,7 @@ import * as constants from "../../../components/consts";
 import { UserRequest } from "./types";
 import prisma from "../../../components/prisma";
 import { error as le } from "../../../components/logger";
+import Utils from "../../../components/utils";
 
 export default async (
     req: Request,
@@ -12,9 +13,14 @@ export default async (
 ): Promise<Response<any, Record<string, any>> | void> => {
     try {
         const accessToken =
+            (req.cookies[constants.ACCESS_TOKEN] as string) ||
             (req.headers[constants.ACCESS_TOKEN_NEW] as string) ||
             (req.headers[constants.ACCESS_TOKEN] as string);
-        if (!accessToken) return res.status(401).send("No access token");
+
+        if (!accessToken) {
+            Utils.clearAuthCookies(req, res, req.headers.origin);
+            return res.status(401).send("No access token");
+        }
 
         const apiKey = await prisma.apiKey.findFirst({
             where: {
@@ -23,6 +29,7 @@ export default async (
         });
 
         if (!apiKey) {
+            Utils.clearAuthCookies(req, res, req.headers.origin);
             return res.status(401).send("Invalid access token");
         }
 
@@ -33,9 +40,9 @@ export default async (
         });
 
         if (!bot) {
+            Utils.clearAuthCookies(req, res, req.headers.origin);
             return res.status(401).send("Invalid access token");
         }
-
         const userRequest: UserRequest = req as UserRequest;
 
         userRequest.user = bot;

@@ -56,6 +56,31 @@ export default (): Router => {
         }
     });
 
+    router.get("/check-email", auth, async (req: Request, res: Response) => {
+        const emailAddress = req.query.emailAddress as string;
+
+        try {
+            if (!emailAddress) {
+                return res.status(400).send(errorResponse("Email address is required"));
+            }
+
+            const user = await prisma.user.findFirst({
+                where: {
+                    emailAddress,
+                },
+            });
+
+            if (user) {
+                return res.status(409).send(errorResponse(req.i18n.t("emailNotAvailable")));
+            }
+
+            res.send(successResponse({}));
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`));
+        }
+    });
+
     router.get("/sync/:timestamp", auth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         const timestamp = parseInt(req.params.timestamp as string);

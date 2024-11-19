@@ -53,7 +53,11 @@ export const ROOM_PIN_PREFIX = "pin_";
 export const ROOM_PREFIX = "room_";
 export const LAST_MESSAGE_PREFIX = "lastMessage_";
 export const UNREAD_PREFIX = "unread_";
+export const TOKEN_BUCKET_PREFIX = "TOKEN_BUCKET_";
 export const DEVICE_TYPE_BROWSER = "browser";
+
+export const TOKEN_BUCKET_EXPIRY_TIME = 3;
+export const TOKEN_BUCKET_LIMIT = 150;
 
 export const APIKEY_LENGTH = 32;
 

@@ -14,10 +14,14 @@ export default async (
 ): Promise<Response<any, Record<string, any>> | void> => {
     try {
         const accessToken =
+            (req.cookies[constants.ACCESS_TOKEN] as string) ||
             (req.headers[constants.ACCESS_TOKEN_NEW] as string) ||
             (req.headers[constants.ACCESS_TOKEN] as string);
 
-        if (!accessToken) return res.status(401).send("No access token");
+        if (!accessToken) {
+            Utils.clearAuthCookies(req, res, req.headers.origin);
+            return res.status(401).send("No access token");
+        }
 
         const osName = req.headers["os-name"] as string;
         const osVersion = req.headers["os-version"] as string;
@@ -35,14 +39,26 @@ export default async (
             },
         });
 
-        if (!device) return res.status(401).send("Invalid access token");
+        if (!accessToken) {
+            Utils.clearAuthCookies(req, res, req.headers.origin);
+            return res.status(401).send("No access token");
+        }
 
         const tokenExpiredAtTS = +dayjs(device.tokenExpiredAt);
         const now = +dayjs();
 
-        if (now > tokenExpiredAtTS) return res.status(401).send("Expired access token");
-        if (!device.user) return res.status(401).send("User not found");
-        if (!device.user.verified) return res.status(401).send("User is not verified");
+        if (!accessToken) {
+            Utils.clearAuthCookies(req, res, req.headers.origin);
+            return res.status(401).send("Expired access token");
+        }
+        if (!device.user) {
+            Utils.clearAuthCookies(req, res, req.headers.origin);
+            return res.status(401).send("User not found");
+        }
+        if (!device.user.verified) {
+            Utils.clearAuthCookies(req, res, req.headers.origin);
+            return res.status(401).send("User is not verified");
+        }
 
         const tokenNeedsRefresh = now + 1000 * 60 * 60 * 24 * 7 > tokenExpiredAtTS;
 

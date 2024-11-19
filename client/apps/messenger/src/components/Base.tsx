@@ -34,9 +34,9 @@ export default function AuthBase({ children }: Props): React.ReactElement {
 
     useEffect(() => {
         function createSource() {
-            const source = new EventSource(
-                `${API_BASE_URL}/sse?accessToken=${deviceData.device.token}`,
-            );
+            const source = new EventSource(`${API_BASE_URL}/sse`, {
+                withCredentials: true,
+            });
 
             source.onmessage = handleSSE;
             source.onopen = () => {

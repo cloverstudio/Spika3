@@ -5,15 +5,18 @@ import * as constants from "../../../components/consts";
 import { UserRequest } from "./types";
 import prisma from "../../../components/prisma";
 import { error as le } from "../../../components/logger";
+import Utils from "../../../components/utils";
 
 export default async (req: Request, res: Response, next: () => void) => {
     try {
         if (
+            !req.cookies[constants.ACCESS_TOKEN] &&
             !req.headers[constants.ACCESS_TOKEN] &&
             !req.query[constants.ACCESS_TOKEN] &&
             !req.query[constants.ACCESS_TOKEN_NEW] &&
             !req.headers[constants.ACCESS_TOKEN_NEW]
         ) {
+            Utils.clearAuthCookies(req, res, req.headers.origin);
             return res.status(401).send("Invalid access token");
         }
 
@@ -24,6 +27,7 @@ export default async (req: Request, res: Response, next: () => void) => {
         const lang: string = (req.headers["lang"] as string) || "en";
 
         const accessToken =
+            (req.cookies[constants.ACCESS_TOKEN] as string) ||
             (req.headers[constants.ACCESS_TOKEN_NEW] as string) ||
             (req.headers[constants.ACCESS_TOKEN] as string) ||
             (req.query[constants.ACCESS_TOKEN_NEW] as string) ||
@@ -38,12 +42,18 @@ export default async (req: Request, res: Response, next: () => void) => {
             },
         });
 
-        if (!device) return res.status(401).send("Invalid access token");
+        if (!device) {
+            Utils.clearAuthCookies(req, res, req.headers.origin);
+            return res.status(401).send("Invalid access token");
+        }
 
         const tokenExpiredAtTS: number = dayjs(device.tokenExpiredAt).unix();
         const now: number = dayjs().unix();
 
-        if (now > tokenExpiredAtTS) return res.status(401).send("Token is expired");
+        if (now > tokenExpiredAtTS) {
+            Utils.clearAuthCookies(req, res, req.headers.origin);
+            return res.status(401).send("Token is expired");
+        }
 
         const userRequest: UserRequest = req as UserRequest;
 

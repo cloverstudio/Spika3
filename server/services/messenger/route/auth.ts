@@ -19,7 +19,7 @@ import { regexp } from "linkifyjs";
 
 const authSchema = yup.object().shape({
     body: yup.object().shape({
-        telephoneNumber: yup.string().required().matches(/^\+?\d+$/,"Wrong telephone number"),
+        telephoneNumber: yup.string().required().matches(/^\+?\d+$/, "Wrong telephone number"),
         deviceId: yup.string().required(),
     }),
 });
@@ -206,6 +206,14 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
         try {
             const verificationCode = req.body.code as string;
             const deviceId = req.body.deviceId as string;
+            const recaptchaToken = req.body.recaptchaToken as string;
+
+            const response = await Utils.verifyRecaptcha({ recaptchaToken });
+            if (!response.success) {
+                return res
+                    .status(400)
+                    .send(errorResponse("Recaptcha failed, please refresh and try again"));
+            }
 
             let requestDevice = await prisma.device.findFirst({
                 where: {
@@ -259,6 +267,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                 },
             });
 
+            Utils.setAuthCookies(req, res, newToken, findUser.id, req.headers.origin);
+
             handleNewUser(findUser.id);
 
             res.send(
@@ -299,6 +309,8 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                     token: null,
                 },
             });
+
+            Utils.clearAuthCookies(req, res, req.headers.origin);
 
             res.send(
                 successResponse({

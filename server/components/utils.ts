@@ -2,6 +2,8 @@ import crypto from "crypto";
 import dayjs from "dayjs";
 
 import * as Consts from "./consts";
+import Config from "./config";
+import { Request, Response } from "express";
 
 export interface FormData {
     fields: any;
@@ -108,11 +110,11 @@ export default class utils {
     static isValidURL = (str: string) => {
         const pattern = new RegExp(
             "^(https?:\\/\\/)?" + // protocol
-                "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" + // domain name
-                "((\\d{1,3}\\.){3}\\d{1,3}))" + // OR ip (v4) address
-                "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" + // port and path
-                "(\\?[;&a-z\\d%_.~+=-]*)?" + // query string
-                "(\\#[-a-z\\d_]*)?$",
+            "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" + // domain name
+            "((\\d{1,3}\\.){3}\\d{1,3}))" + // OR ip (v4) address
+            "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" + // port and path
+            "(\\?[;&a-z\\d%_.~+=-]*)?" + // query string
+            "(\\#[-a-z\\d_]*)?$",
             "i"
         ); // fragment locator
         return !!pattern.test(str);
@@ -125,4 +127,70 @@ export default class utils {
 
         return (diff[0] * NS_PER_SEC + diff[1]) / NS_TO_MS;
     };
+
+    static verifyRecaptcha = async ({ recaptchaToken }: { recaptchaToken: string }) => {
+        const url = `https://www.google.com/recaptcha/api/siteverify`;
+
+        const params = new URLSearchParams();
+        params.append("secret", process.env.RECAPTCHA_SECRET_KEY);
+        params.append("response", recaptchaToken);
+
+        const res = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: params.toString(),
+        });
+
+        return res.json();
+    };
+
+    static setAuthCookies(
+        request: Request,
+        response: Response,
+        accessToken: string,
+        userId: number,
+        origin: string,
+    ): void {
+        const cookieConfig = { ...Config.cookieConfig };
+
+        if (
+            origin &&
+            (origin.includes("localhost") ||
+                origin.includes("192.168") ||
+                origin.includes("10."))
+        ) {
+            delete cookieConfig.sameSite;
+            cookieConfig.sameSite = "none";
+        }
+
+        response.cookie("accesstoken", accessToken, cookieConfig);
+        response.cookie("userId", userId, cookieConfig);
+
+        const cookieConfigIsLoggedIn = { ...cookieConfig };
+        cookieConfigIsLoggedIn.httpOnly = false;
+        response.cookie("isLoggedIn", true, cookieConfigIsLoggedIn);
+    }
+
+    static clearAuthCookies(request: Request, response: Response, origin: string): void {
+        const cookieConfig = { ...Config.cookieConfig };
+
+        if (
+            origin &&
+            (origin.includes("localhost") ||
+                origin.includes("192.168") ||
+                origin.includes("10."))
+        ) {
+            // delete cookieConfig.domain;
+            delete cookieConfig.sameSite;
+            cookieConfig.sameSite = "none";
+        }
+
+        response.clearCookie("accesstoken", cookieConfig);
+        response.clearCookie("userId", cookieConfig);
+        const cookieConfigIsLoggedIn = { ...cookieConfig };
+        cookieConfigIsLoggedIn.httpOnly = false;
+        response.cookie("isLoggedIn", false, cookieConfigIsLoggedIn);
+    }
 }

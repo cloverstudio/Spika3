@@ -3,6 +3,7 @@ dotenv.config();
 
 import express from "express";
 import http from "http";
+import cookieParser from "cookie-parser";
 import UserManagementAPIService from "./services/management";
 import MessengerAPIService from "./services/messenger";
 import SMSService from "./services/sms";
@@ -19,10 +20,16 @@ import { createClient } from "redis";
 import l, { error as e } from "./components/logger";
 import WebhookService from "./services/webhook";
 import MessagingService from "./services/messaging";
-import utils from "./components/utils";
 
 import { loadAgents } from "./components/agent";
 import MessagesSSEService from "./services/messagesSSE";
+
+import i18next from "i18next";
+import i18nextMiddleware from "i18next-http-middleware";
+import Backend from "i18next-fs-backend";
+
+import { logger, deepTruncate } from "./components/winston-logger";
+import rateLimiter from "./components/rateLimiter";
 
 const app: express.Express = express();
 const redisClient = createClient({ url: process.env.REDIS_URL });
@@ -39,26 +46,50 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
 
     await redisClient.flushAll();
 
+    app.use(cookieParser());
+
     // cors
     app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-        res.header("Access-Control-Allow-Origin", "*");
-        res.header("Access-Control-Allow-Methods", "*");
-        res.header("Access-Control-Allow-Headers", "*");
+        const allowedOrigins = [".spika.chat", "localhost", "192.168", "10."];
+
+        const origin = req.headers.origin;
+        if (
+            origin &&
+            isAnyElementMeetingCondition(allowedOrigins, (allowedOrigin) =>
+                origin?.includes(allowedOrigin),
+            )
+        ) {
+            res.header("Access-Control-Allow-Origin", origin);
+        }
+
+        res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
         res.header(
             "Access-Control-Allow-Headers",
-            "Content-Type, Authorization, access-token, adminAccessToken, accesstoken, accessToken, device-name, os-name, os-version, device-type, app-version",
+            "Content-Type, Authorization, access-token, adminAccessToken, accesstoken, accessToken, device-name, os-name, os-version, device-type, app-version, lang",
         );
+        res.header("Access-Control-Allow-Credentials", "true");
 
-        const start = process.hrtime();
+        const maxLength = 100;
+        let logMessage = `${req.method} ${req.originalUrl}`;
 
-        res.on("finish", () => {
-            const durationInMilliseconds = utils.getDurationInMilliseconds(start);
-            l(
-                `${req.method} ${
-                    req.originalUrl
-                } [FINISHED] ${durationInMilliseconds.toLocaleString()} ms`,
-            );
-        });
+        if (["POST", "PUT", "PATCH"].includes(req.method)) {
+            const truncatedBody = deepTruncate(req.body, maxLength);
+            logMessage += ` body:${JSON.stringify(truncatedBody)}`;
+        }
+
+        if (req.method !== "OPTIONS") {
+            logger.info(`${logMessage}`);
+        }
+
+        // const start = process.hrtime();
+        // res.on("finish", () => {
+        //     const durationInMilliseconds = utils.getDurationInMilliseconds(start);
+        //     l(
+        //         `${req.method} ${
+        //             req.originalUrl
+        //         } [FINISHED] ${durationInMilliseconds.toLocaleString()} ms`,
+        //     );
+        // });
 
         // intercept OPTIONS method
         if ("OPTIONS" === req.method) {
@@ -73,6 +104,26 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
 
         // Load agents
         loadAgents();
+    });
+
+    i18next.use(Backend).init({
+        fallbackLng: "hr",
+        preload: ["en", "de", "es", "hr"],
+        ns: ["translation"],
+        backend: {
+            loadPath: __dirname + "/translation/locales/{{lng}}/{{ns}}.json",
+        },
+        debug: false,
+    });
+
+    app.use(i18nextMiddleware.handle(i18next));
+
+    app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+        const lang = (req.headers["lang"] as string) || "en";
+
+        req.i18n.changeLanguage(lang);
+
+        next();
     });
 
     // override static access only for this file
@@ -103,6 +154,9 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
         process.env["RABBITMQ_URL"] || "amqp://localhost",
     );
     const rabbitMQChannel: amqp.Channel = await rabbitMQConnection.createChannel();
+
+    // access token based rate limiter
+    app.use(rateLimiter(redisClient));
 
     if (+process.env["USE_MNG_API"]) {
         const userManagementAPIService: UserManagementAPIService = new UserManagementAPIService();
@@ -224,5 +278,14 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
         return res.status(500).send(`Server Error ${err.message}`);
     });
 })();
+
+function isAnyElementMeetingCondition(arr, condition) {
+    for (let i = 0; i < arr.length; i++) {
+        if (condition(arr[i])) {
+            return true;
+        }
+    }
+    return false;
+}
 
 export default app;

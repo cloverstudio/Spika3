@@ -8,13 +8,18 @@ import Typography from "@mui/material/Typography";
 import CountryPicker from "./CountryPicker";
 import { useTranslation } from "react-i18next";
 import { APP_NAME } from "../../../../../../lib/constants";
+import ReCaptcha from "../../../components/ReCaptcha";
 
 type TelephoneNumberFormProps = {
     onSubmit: (telephoneNumber: string) => void;
+    setRecaptchaToken: (token: string) => void;
+    recaptchaToken: string;
 };
 
 export default function TelephoneNumberForm({
     onSubmit,
+    setRecaptchaToken,
+    recaptchaToken,
 }: TelephoneNumberFormProps): React.ReactElement {
     const { t } = useTranslation();
     const [countryCode, setCountryCode] = useState("385");
@@ -22,11 +27,20 @@ export default function TelephoneNumberForm({
     const [validPhoneNumber, setValidPhoneNumber] = useState(false);
 
     const handleSubmit = () => {
+        if (!validPhoneNumber || !recaptchaToken) {
+            return;
+        }
         const formattedPhoneNumber = phoneNumber.startsWith("0")
             ? phoneNumber.substring(1)
             : phoneNumber;
 
         onSubmit(`+${countryCode}${formattedPhoneNumber}`);
+    };
+
+    const onReCaptchaChange = async (value: string) => {
+        if (value) {
+            setRecaptchaToken(value);
+        }
     };
 
     return (
@@ -61,9 +75,12 @@ export default function TelephoneNumberForm({
                     validation={setValidPhoneNumber}
                     onEnter={handleSubmit}
                 />
+                <Box sx={{ mt: 2 }}>
+                    <ReCaptcha onChange={onReCaptchaChange} />
+                </Box>
                 <Button
                     onClick={handleSubmit}
-                    disabled={!validPhoneNumber}
+                    disabled={!validPhoneNumber || !recaptchaToken}
                     fullWidth
                     variant="contained"
                     id="submitButton"

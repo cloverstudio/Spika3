@@ -11,6 +11,10 @@ import PushNotificationPermissionDialog from "../components/PushnotificationPerm
 import LeftSidebar from "../features/room/LeftSidebar";
 import RightSidebar from "../features/room/RightSidebar";
 
+import Cookie from "universal-cookie";
+
+const globalCookie = new Cookie();
+
 import {
     selectRightSidebarActiveNoteId,
     selectRightSidebarActiveTab,
@@ -41,7 +45,7 @@ export default function Home(): React.ReactElement {
     const activeTab = useAppSelector(selectRightSidebarActiveTab);
 
     useEffect(() => {
-        if (!loggedInUserId && window.localStorage.getItem(constants.LSKEY_ACCESSTOKEN)) {
+        if (!loggedInUserId && globalCookie.get("isLoggedIn")) {
             dispatch(fetchMe());
             dispatch(fetchSettings());
         }

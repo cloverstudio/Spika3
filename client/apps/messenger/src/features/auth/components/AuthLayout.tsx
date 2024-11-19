@@ -20,7 +20,7 @@ export default function AuthLayout({
     children,
     loading = false,
 }: AuthLayoutProps): React.ReactElement {
-    const { loading: isLoggedInLoading, isLoggedIn } = useIsLoggedIn();
+    const { isLoggedIn } = useIsLoggedIn();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -28,10 +28,6 @@ export default function AuthLayout({
             navigate("/app");
         }
     }, [isLoggedIn, navigate]);
-
-    if (isLoggedInLoading) {
-        return <Loader />;
-    }
 
     return (
         <Base>

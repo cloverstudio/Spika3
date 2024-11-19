@@ -18,6 +18,11 @@ import getFileType from "../room/lib/getFileType";
 import FileUploader from "../../utils/FileUploader";
 import TermsAndConditions from "./components/TearmsAndConditions";
 import { useAppDispatch } from "../../hooks";
+import Cookie from "universal-cookie";
+
+const globalCookie = new Cookie();
+
+declare const ENV: string;
 
 export default function Auth(): React.ReactElement {
     const { t } = useTranslation();
@@ -32,6 +37,7 @@ export default function Auth(): React.ReactElement {
     const [infoMsg, setInfoMsg] = useState<string>("");
     const [errorMsg, setErrorMsg] = useState<string>("");
     const [sentCount, setSentCount] = useState<number>(0);
+    const [recaptchaToken, setRecaptchaToken] = useState("");
 
     const timer = useCountdownTimer(120);
 
@@ -83,11 +89,18 @@ export default function Auth(): React.ReactElement {
 
     const handleVerify = async (code: string) => {
         try {
-            const res = await verify({ code, deviceId }).unwrap();
+            const res = await verify({ code, deviceId, recaptchaToken }).unwrap();
+            setRecaptchaToken("");
 
+            if (ENV === "localhost") {
+                globalCookie.set("isLoggedIn", true, {
+                    path: "/",
+                    expires: new Date(2147483647000),
+                    domain: "localhost",
+                    sameSite: "strict",
+                });
+            }
             if (res.device?.token) {
-                window.localStorage.setItem(constants.LSKEY_ACCESSTOKEN, res.device.token);
-
                 if (signUpMutation?.data?.isNewUser) {
                     setStep(2);
                 } else {
@@ -134,7 +147,13 @@ export default function Auth(): React.ReactElement {
         <AuthLayout loading={signUpMutation.isLoading || verifyMutation.isLoading || loading}>
             <>
                 {step === -1 && <TermsAndConditions onSubmit={() => setStep(0)} />}
-                {step === 0 && <TelephoneNumberForm onSubmit={handleSignUp} />}
+                {step === 0 && (
+                    <TelephoneNumberForm
+                        onSubmit={handleSignUp}
+                        recaptchaToken={recaptchaToken}
+                        setRecaptchaToken={setRecaptchaToken}
+                    />
+                )}
 
                 {step === 1 && (
                     <VerificationCodeForm
