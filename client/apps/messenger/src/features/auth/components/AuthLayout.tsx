@@ -10,24 +10,37 @@ import useIsLoggedIn from "../../../hooks/useIsLoggedIn";
 import Loader from "../../../components/Loader";
 import { useNavigate } from "react-router-dom";
 import { APP_NAME } from "../../../../../../lib/constants";
+import { useGetUserQuery } from "../api/auth";
 
 type AuthLayoutProps = {
     children: React.ReactElement | React.ReactElement[];
+    setStep: (step: number) => void;
     loading?: boolean;
 };
 
 export default function AuthLayout({
     children,
     loading = false,
+    setStep,
 }: AuthLayoutProps): React.ReactElement {
     const { isLoggedIn } = useIsLoggedIn();
     const navigate = useNavigate();
+    const { data: userData, isLoading } = useGetUserQuery();
 
     useEffect(() => {
-        if (isLoggedIn) {
-            navigate("/app");
-        }
-    }, [isLoggedIn, navigate]);
+        if (isLoggedIn && userData) {
+            if (userData?.user.displayName) {
+                navigate("/app");
+            } else {
+                navigate("/");
+                setStep(2);
+            }
+        } else navigate("/");
+    }, [isLoggedIn, navigate, userData]);
+
+    if (isLoading || userData?.user.displayName) {
+        return <Loader />;
+    }
 
     return (
         <Base>

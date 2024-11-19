@@ -144,7 +144,10 @@ export default function Auth(): React.ReactElement {
     };
 
     return (
-        <AuthLayout loading={signUpMutation.isLoading || verifyMutation.isLoading || loading}>
+        <AuthLayout
+            loading={signUpMutation.isLoading || verifyMutation.isLoading || loading}
+            setStep={setStep}
+        >
             <>
                 {step === -1 && <TermsAndConditions onSubmit={() => setStep(0)} />}
                 {step === 0 && (

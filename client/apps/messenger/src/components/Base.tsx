@@ -33,6 +33,12 @@ export default function AuthBase({ children }: Props): React.ReactElement {
     const { t } = useTranslation();
 
     useEffect(() => {
+        if (!isLoading && !user?.user.displayName) {
+            navigate("/");
+        }
+    }, [navigate, user, isLoading]);
+
+    useEffect(() => {
         function createSource() {
             const source = new EventSource(`${API_BASE_URL}/sse`, {
                 withCredentials: true,
@@ -114,7 +120,7 @@ export default function AuthBase({ children }: Props): React.ReactElement {
         }
     }, [SSEConnectionState, shouldDisplayBackOnlineSnackbar, dispatch, t]);
 
-    if (isLoading) {
+    if (isLoading || !user?.user.displayName) {
         return (
             <Base>
                 <Loader />
