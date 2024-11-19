@@ -11,6 +11,7 @@ import Loader from "../../../components/Loader";
 import { useNavigate } from "react-router-dom";
 import { APP_NAME } from "../../../../../../lib/constants";
 import { useGetUserQuery } from "../api/auth";
+import { LanguagePicker } from "../../../components/LanguagePicker";
 
 type AuthLayoutProps = {
     children: React.ReactElement | React.ReactElement[];
@@ -69,19 +70,35 @@ export default function AuthLayout({
                         <Box
                             mb={{ xs: 3, md: 4 }}
                             display="flex"
-                            justifyContent={{ xs: "center", md: "left" }}
+                            flexDirection={{ xs: "column-reverse", md: "row" }}
+                            justifyContent={{ xs: "center", md: "space-between" }}
                             alignItems="center"
+                            gap={{ xs: 4, md: 0 }}
                         >
-                            <Box component="img" src={logo} width={{ xs: "72px", md: "50px" }} />
-                            <Typography
-                                ml={1.5}
-                                display={{ xs: "none", md: "block" }}
-                                component="span"
-                                variant="body1"
-                                fontWeight="bold"
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                }}
                             >
-                                {APP_NAME}
-                            </Typography>
+                                <Box
+                                    component="img"
+                                    src={logo}
+                                    width={{ xs: "72px", md: "50px" }}
+                                />
+                                <Typography
+                                    ml={1.5}
+                                    display={{ xs: "none", md: "block" }}
+                                    component="span"
+                                    variant="body1"
+                                    fontWeight="bold"
+                                >
+                                    {APP_NAME}
+                                </Typography>
+                            </Box>
+                            <Box sx={{}}>
+                                <LanguagePicker />
+                            </Box>
                         </Box>
                         {children}
                     </Box>

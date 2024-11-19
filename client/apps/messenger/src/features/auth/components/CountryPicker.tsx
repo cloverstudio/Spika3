@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { Box } from "@mui/material";
+import { Box, useTheme } from "@mui/material";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
@@ -23,7 +23,11 @@ const CountryPicker = (props: any) => {
     const [countryCode, setCountryCode] = React.useState("385");
     const [openMenu, setOpenMenu] = React.useState(false);
     const [staticBoxCoordinates, setStaticBoxCoordinates] = React.useState<DOMRect>(null);
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const currentLanguage = i18n.language;
+
+    const theme = useTheme();
+    const isDarkMode = theme.palette.mode === "dark";
 
     const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchText(event.target.value);
@@ -59,7 +63,7 @@ const CountryPicker = (props: any) => {
                 component="div"
                 disablePadding
                 secondaryAction={
-                    <Typography color="text.tertiary">+{tempCountries[index].phone}</Typography>
+                    <Typography color="text.dropdown">+{tempCountries[index].phone}</Typography>
                 }
             >
                 <ListItemButton onClick={(event) => handleListItemClick(event, index)}>
@@ -75,8 +79,8 @@ const CountryPicker = (props: any) => {
                         alt=""
                     />
                     <ListItemText
-                        sx={{ marginLeft: 1, color: "text.tertiary" }}
-                        primary={tempCountries[index].label}
+                        sx={{ marginLeft: 1, color: "text.dropdown" }}
+                        primary={tempCountries[index][`label${currentLanguage.toUpperCase()}`]}
                     />
                 </ListItemButton>
             </ListItem>
@@ -93,8 +97,9 @@ const CountryPicker = (props: any) => {
     const filterCountries = async (search: string) => {
         const filter: CountryType[] = countries.filter(
             (country) =>
-                country.label.toLowerCase().includes(search.toLowerCase()) ||
-                country.phone.includes(search),
+                country[`label${currentLanguage.toUpperCase()}`]
+                    .toLowerCase()
+                    .includes(search.toLowerCase()) || country.phone.includes(search),
         );
         setTempCountries(filter);
     };
@@ -105,23 +110,35 @@ const CountryPicker = (props: any) => {
                 sx={{
                     border: "solid",
                     borderWidth: "1px",
-                    borderColor: "divider",
-                    borderRadius: 1,
+                    borderColor: isDarkMode ? "#9AA0A6" : "divider",
+                    borderRadius: "10px",
                     width: "100%",
                 }}
             >
                 <Stack justifyContent="center" alignItems="center" spacing={2} direction="row">
                     <Button onClick={() => handleOpen()}>
-                        <Typography color="primary.main" fontWeight="medium">
+                        <Typography color="text.secondary" fontWeight="medium">
                             +{countryCode}
                         </Typography>
                         {!openMenu ? (
-                            <KeyboardArrowDown color="primary" />
+                            <KeyboardArrowDown
+                                sx={{
+                                    color: "text.secondary",
+                                }}
+                            />
                         ) : (
-                            <KeyboardArrowUp color="primary" />
+                            <KeyboardArrowUp
+                                sx={{
+                                    color: "text.secondary",
+                                }}
+                            />
                         )}
                     </Button>
-                    <Divider orientation="vertical" sx={{ borderColor: "divider" }} flexItem />
+                    <Divider
+                        orientation="vertical"
+                        sx={{ borderColor: isDarkMode ? "#9AA0A6" : "divider" }}
+                        flexItem
+                    />
                     <TextField
                         variant="outlined"
                         margin="normal"
@@ -162,6 +179,7 @@ const CountryPicker = (props: any) => {
                                 props.onEnter();
                             }
                         }}
+                        onFocus={() => setOpenMenu(false)}
                     />
                 </Stack>
                 {openMenu ? (
@@ -171,7 +189,7 @@ const CountryPicker = (props: any) => {
                             backgroundColor: "background.default",
                             zIndex: 10,
                             width: staticBoxCoordinates.width,
-                            left: staticBoxCoordinates.left,
+                            // left: staticBoxCoordinates.left,
                             padding: "0.5em",
                             borderStyle: "none solid solid solid",
                             borderWidth: "1px",
@@ -208,9 +226,9 @@ const CountryPicker = (props: any) => {
                             }}
                         />
                         <Typography
-                            color="text.tertiary"
                             textTransform="uppercase"
                             marginLeft="1em"
+                            color="text.dropdown"
                         >
                             {t("allCountries")}
                         </Typography>
