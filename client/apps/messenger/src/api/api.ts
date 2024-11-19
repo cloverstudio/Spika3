@@ -34,7 +34,6 @@ const axiosBaseQuery =
                     validateStatus: (status) => status < 500,
                 });
 
-                console.log("url ", url)
 
                 if (result.status === 401 && url !== "/messenger/me") {
                     if (dispatch) {

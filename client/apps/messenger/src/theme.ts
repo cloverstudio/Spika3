@@ -164,6 +164,18 @@ const components: any = {
             },
         },
     },
+    MuiAutocomplete: {
+        styleOverrides: {
+
+            listbox: {
+                ".MuiAutocomplete-option": {
+                    fontWeight: 500,
+                    fontSize: "16px",
+                },
+                height: "210px",
+            },
+        },
+    },
 };
 
 export const lightTheme = createTheme({

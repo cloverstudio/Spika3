@@ -213,5 +213,8 @@
     "enableRedirectMsg": "In order to be automatically redirected to the call, please enable the Cropoint application to send pop-ups and redirect via your internet browser.",
     "joinCall": "Join the call",
     "editPersonalData": "Edit personal data",
-    "addImage": "Add photo"
+    "addImage": "Add photo",
+    "newGroupChat": "New group chat",
+    "exitGroup": "Exit group",
+    "deleteGroup": "Delete group"
 }

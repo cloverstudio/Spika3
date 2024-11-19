@@ -2,11 +2,12 @@ import React, { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Avatar from "@mui/material/Avatar";
-import { Box, Button, CircularProgress } from "@mui/material";
+import { Box, Button, CircularProgress, useTheme } from "@mui/material";
 import Typography from "@mui/material/Typography";
-
+import FilterAltOutlinedIcon from "@mui/icons-material/FilterAltOutlined";
+import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import CheckIcon from "@mui/icons-material/Check";
-
+import CancelIcon from "@mui/icons-material/Cancel";
 import { dynamicBaseQuery } from "../../../../api/api";
 import { useCreateRoomMutation } from "../../api/room";
 import {
@@ -14,8 +15,11 @@ import {
     selectContacts,
     selectContactLoading,
     setKeyword,
+    resetAdvanceFilters,
+    resetContactsListPagination,
+    setAdvanceFiltersApplied,
+    setAdvanceFiltersModalOpen,
 } from "../../slices/contacts";
-
 import User from "../../../../types/User";
 
 import useIsInViewport from "../../../../hooks/useIsInViewport";
@@ -25,6 +29,7 @@ import { useAppDispatch, useAppSelector } from "../../../../hooks";
 import { showNoteEditModal } from "../../slices/rightSidebar";
 import { RoomUserType } from "../../../../types/Rooms";
 import { useTranslation } from "react-i18next";
+import { AdvanceFiltersModal } from "./AdvanceFiltersModal";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -50,9 +55,15 @@ export default function SidebarContactList({
     const loading = useSelector(selectContactLoading());
     const isFetching = loading === "pending";
     const [displayBots, setDisplayBots] = React.useState(false);
+    const theme = useTheme();
+    const isDarkMode = theme.palette.mode === "dark";
 
     const { sortedByDisplayName } = useSelector(
         selectContacts({ displayBots, hideExistingMembers, existingMembers }),
+    );
+
+    const { areAdvanceFiltersApplied, isAdvanceFiltersModalOpen, advanceFilters } = useAppSelector(
+        (state) => state.contacts,
     );
 
     const allowToggle = !hideBots;
@@ -108,12 +119,95 @@ export default function SidebarContactList({
     return (
         <>
             {!hideSearchBox && (
-                <SearchBox
-                    onSearch={(keyword: string) => {
-                        dispatch(setKeyword(keyword));
-                        dispatch(fetchContacts());
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-evenly",
+                        mb: 3,
                     }}
-                />
+                >
+                    <SearchBox
+                        onSearch={(keyword: string) => {
+                            dispatch(setKeyword(keyword));
+                            dispatch(fetchContacts());
+                        }}
+                        marginBottom={0}
+                        resetKeyword={areAdvanceFiltersApplied}
+                    />
+                    <Box
+                        sx={{
+                            display: "flex",
+                            cursor: "pointer",
+                            alignItems: "center",
+                            mr: 2,
+                        }}
+                        onClick={() => {
+                            if (areAdvanceFiltersApplied) {
+                                dispatch(setAdvanceFiltersApplied(false));
+                                dispatch(resetAdvanceFilters());
+                                dispatch(resetContactsListPagination());
+                                dispatch(fetchContacts());
+                            } else {
+                                dispatch(setAdvanceFiltersModalOpen(true));
+                            }
+                        }}
+                    >
+                        {areAdvanceFiltersApplied ? (
+                            <FilterAltIcon
+                                fontSize="large"
+                                sx={{
+                                    width: "25px",
+                                    height: "25px",
+                                    color: isDarkMode ? "#fff" : "#4696F0",
+                                }}
+                            />
+                        ) : (
+                            <FilterAltOutlinedIcon
+                                fontSize="large"
+                                sx={{
+                                    width: "25px",
+                                    height: "25px",
+                                    color: isDarkMode ? "#9A9A9A" : "#4696F0",
+                                }}
+                            />
+                        )}
+                        <Box position="relative">
+                            <Typography
+                                sx={{
+                                    fontSize: "16px",
+                                    fontWeight: 500,
+                                    color: isDarkMode ? "#9A9A9A" : "#4696F0",
+                                    ...(areAdvanceFiltersApplied && {
+                                        mr: 1.5,
+                                        ...(isDarkMode && { color: "#fff" }),
+                                    }),
+                                }}
+                            >
+                                {t("filters")}
+                            </Typography>
+                            {areAdvanceFiltersApplied && (
+                                <CancelIcon
+                                    sx={{
+                                        color: isDarkMode ? "#fff" : "#4696F0",
+                                        position: "absolute",
+                                        width: "15px",
+                                        height: "15px",
+                                        top: "-3px",
+                                        right: "-6px",
+                                    }}
+                                />
+                            )}
+                        </Box>
+                    </Box>
+                    <AdvanceFiltersModal
+                        isOpen={isAdvanceFiltersModalOpen}
+                        onClose={() => {
+                            dispatch(setAdvanceFiltersModalOpen(false));
+                            dispatch(resetAdvanceFilters());
+                        }}
+                    />
+                </Box>
             )}
 
             {allowToggle && (

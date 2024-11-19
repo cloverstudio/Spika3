@@ -52,7 +52,7 @@ const navigation: NavigationType[] = [
         icon: ContactIcon,
         Element: () => (
             <Box height="calc(100% - 110px)">
-                <SidebarContactList />
+                <SidebarContactList hideBots />
             </Box>
         ),
         isMuiIcon: true,

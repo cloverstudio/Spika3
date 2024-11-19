@@ -5,6 +5,7 @@ import { dynamicBaseQuery } from "../../../api/api";
 import type { RootState } from "../../../store/store";
 import { Room } from "@prisma/client";
 import { RoomUserType } from "../../../types/Rooms";
+import dayjs from "dayjs";
 
 interface ContactsState {
     list: User[];
@@ -17,18 +18,66 @@ interface ContactsState {
     groupsCursor?: number;
     groupsCount?: number;
     groupMessageRooms: (Room & { type: "group" })[];
+    isAdvanceFiltersModalOpen: boolean;
+    areAdvanceFiltersApplied: boolean;
+    advanceFilters: {
+        displayName?: string;
+        country?: string;
+        gender?: string;
+        birthDate?: dayjs.Dayjs;
+        isNaturalUser?: boolean;
+        isLegalUser?: boolean;
+        selectedInterestIds?: number[];
+    };
 }
 
 export const fetchContacts = createAsyncThunk("user/fetchContact", async (_, thunkAPI) => {
-    const { count, keyword, cursor } = (thunkAPI.getState() as RootState).contacts;
+    const { count, keyword, cursor, advanceFilters } = (thunkAPI.getState() as RootState).contacts;
     const noMore = count === 0 || !!(count && !cursor);
+
+    let url = `/messenger/contacts?keyword=${keyword}`;
 
     if (noMore) {
         throw new Error("Can't fetch");
     }
 
+    if (cursor) {
+        url += `&cursor=${cursor}`;
+    }
+
+    if (advanceFilters.displayName) {
+        url += `&displayName=${advanceFilters.displayName}`;
+    }
+
+    if (advanceFilters.country) {
+        url += `&country=${advanceFilters.country}`;
+    }
+
+    if (advanceFilters.gender) {
+        url += `&gender=${advanceFilters.gender}`;
+    }
+
+    if (advanceFilters.birthDate) {
+        const birthDateFormatted = advanceFilters.birthDate.toString().split("T")[0];
+        url += `&birthDate=${birthDateFormatted}`;
+    }
+
+    if (advanceFilters.isNaturalUser) {
+        url += `&isNaturalUser=${advanceFilters.isNaturalUser}`;
+    }
+
+    if (advanceFilters.isLegalUser) {
+        url += `&isLegalUser=${advanceFilters.isLegalUser}`;
+    }
+
+    if (advanceFilters.selectedInterestIds) {
+        url += `&interestIds=${advanceFilters.selectedInterestIds.join(",")}`;
+    }
+
+
+
     const response = await dynamicBaseQuery(
-        `/messenger/contacts?keyword=${keyword}&${cursor ? `cursor=${cursor}` : ""}`,
+        url,
     );
 
     return {
@@ -48,8 +97,7 @@ export const fetchGroupMessageRooms = createAsyncThunk(
         }
 
         const response = await dynamicBaseQuery(
-            `/messenger/group-message-rooms?keyword=${keyword}&${
-                groupsCursor ? `cursor=${groupsCursor}` : ""
+            `/messenger/group-message-rooms?keyword=${keyword}&${groupsCursor ? `cursor=${groupsCursor}` : ""
             }`,
         );
         return {
@@ -79,6 +127,9 @@ export const contactsSlice = createSlice({
         groupsCursor: null,
         groupsCount: null,
         groupMessageRooms: [],
+        isAdvanceFiltersModalOpen: false,
+        areAdvanceFiltersApplied: false,
+        advanceFilters: {},
     },
     reducers: {
         setKeyword(state, action: { payload: string }) {
@@ -87,7 +138,35 @@ export const contactsSlice = createSlice({
             state.cursor = null;
             state.groupsCursor = null;
             state.groupsCount = null;
-            state.loading = "idle";
+            if (state.areAdvanceFiltersApplied) {
+                state.areAdvanceFiltersApplied = false;
+                state.advanceFilters = {};
+            }
+        },
+        setAdvanceFilters(state, action: { payload: ContactsState["advanceFilters"] }) {
+            state.advanceFilters = { ...state.advanceFilters, ...action.payload };
+        },
+        resetAdvanceFilters(state) {
+            state.advanceFilters = {};
+        },
+        resetContactsListPagination(state) {
+            state.cursor = null;
+            state.groupsCursor = null;
+            state.count = null;
+            state.groupsCount = null;
+            state.list = [];
+            state.groupMessageRooms = [];
+            state.loading = "pending";
+            state.keyword = "";
+        },
+        setAdvanceFiltersModalOpen(state, action: { payload: boolean }) {
+            state.isAdvanceFiltersModalOpen = action.payload;
+        },
+        setAdvanceFiltersApplied(state, action: { payload: boolean }) {
+            state.areAdvanceFiltersApplied = action.payload;
+            if (state.keyword) {
+                state.keyword = "";
+            }
         },
     },
     extraReducers: (builder) => {
@@ -146,7 +225,14 @@ export const contactsSlice = createSlice({
     },
 });
 
-export const {} = contactsSlice.actions;
+export const {
+    setAdvanceFilters,
+    resetAdvanceFilters,
+    resetContactsListPagination,
+    setAdvanceFiltersModalOpen,
+    setAdvanceFiltersApplied,
+    setKeyword,
+} = contactsSlice.actions;
 
 export const selectContacts =
     (options: {
@@ -155,65 +241,64 @@ export const selectContacts =
         hideExistingMembers?: boolean;
         existingMembers?: RoomUserType[];
     }) =>
-    (
-        state: RootState,
-    ): ContactsState & {
-        sortedByDisplayName: [string, User[]][];
-        groupsSortedByDisplayName: [string, Room[]][];
-    } => {
-        const sortedByDisplayNameObj = state.contacts.list
-            .filter(
-                (u) =>
-                    u.isBot === options.displayBots &&
-                    (!options.excludeBlocked ||
-                        !u.blockedBy?.some((bb) => bb.userId === state.user.id)) &&
-                    (!options.hideExistingMembers ||
-                        !options.existingMembers?.some((em) => em.userId === u.id)),
-            )
-            .reduce((acc: any, user) => {
-                if (user.displayName) {
-                    const firstLetter = user.displayName[0].toLocaleUpperCase();
-                    if (acc[firstLetter]) {
-                        acc[firstLetter].push(user);
-                    } else {
-                        acc[firstLetter] = [user];
+        (
+            state: RootState,
+        ): ContactsState & {
+            sortedByDisplayName: [string, User[]][];
+            groupsSortedByDisplayName: [string, Room[]][];
+        } => {
+            const sortedByDisplayNameObj = state.contacts.list
+                .filter(
+                    (u) =>
+                        u.isBot === options.displayBots &&
+                        (!options.excludeBlocked ||
+                            !u.blockedBy?.some((bb) => bb.userId === state.user.id)) &&
+                        (!options.hideExistingMembers ||
+                            !options.existingMembers?.some((em) => em.userId === u.id)),
+                )
+                .reduce((acc: any, user) => {
+                    if (user.displayName) {
+                        const firstLetter = user.displayName[0].toLocaleUpperCase();
+                        if (acc[firstLetter]) {
+                            acc[firstLetter].push(user);
+                        } else {
+                            acc[firstLetter] = [user];
+                        }
                     }
-                }
 
-                return acc;
-            }, {});
+                    return acc;
+                }, {});
 
-        const sortedByDisplayName = Object.entries<User[]>(sortedByDisplayNameObj).sort((a, b) =>
-            a[0] < b[0] ? -1 : 1,
-        );
+            const sortedByDisplayName = Object.entries<User[]>(sortedByDisplayNameObj).sort((a, b) =>
+                a[0] < b[0] ? -1 : 1,
+            );
 
-        const groupsSortedByDisplayNameObj = state.contacts.groupMessageRooms.reduce(
-            (acc: any, group) => {
-                if (group.name) {
-                    const firstLetter = group.name[0].toLocaleUpperCase();
-                    if (acc[firstLetter]) {
-                        acc[firstLetter].push(group);
-                    } else {
-                        acc[firstLetter] = [group];
+            const groupsSortedByDisplayNameObj = state.contacts.groupMessageRooms.reduce(
+                (acc: any, group) => {
+                    if (group.name) {
+                        const firstLetter = group.name[0].toLocaleUpperCase();
+                        if (acc[firstLetter]) {
+                            acc[firstLetter].push(group);
+                        } else {
+                            acc[firstLetter] = [group];
+                        }
                     }
-                }
 
-                return acc;
-            },
-            {},
-        );
+                    return acc;
+                },
+                {},
+            );
 
-        const groupsSortedByDisplayName = Object.entries<Room[]>(groupsSortedByDisplayNameObj).sort(
-            (a, b) => (a[0] < b[0] ? -1 : 1),
-        );
+            const groupsSortedByDisplayName = Object.entries<Room[]>(groupsSortedByDisplayNameObj).sort(
+                (a, b) => (a[0] < b[0] ? -1 : 1),
+            );
 
-        return { ...state.contacts, sortedByDisplayName, groupsSortedByDisplayName };
-    };
+            return { ...state.contacts, sortedByDisplayName, groupsSortedByDisplayName };
+        };
 
 export const selectContactById = (id: number) => (state: RootState) =>
     state.contacts.list.find((u) => u.id === id);
 export const selectContactLoading = () => (state: RootState) => state.contacts.loading;
 export const selectKeyword = () => (state: RootState) => state.contacts.keyword;
 
-export const { setKeyword } = contactsSlice.actions;
 export default contactsSlice.reducer;

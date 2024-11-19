@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Box } from "@mui/material";
 import Input from "@mui/material/Input";
 import InputAdornment from "@mui/material/InputAdornment";
@@ -12,6 +12,7 @@ type SearchBoxProps = {
     customStyles?: CSSProperties;
     marginBottom?: number | null;
     onFocus?: () => void;
+    resetKeyword?: boolean;
 };
 
 let timer: NodeJS.Timeout;
@@ -21,9 +22,16 @@ export default function SearchBox({
     customStyles,
     marginBottom = 2,
     onFocus,
+    resetKeyword,
 }: SearchBoxProps): React.ReactElement {
-    const [keyword, setKeyword] = useState("");
     const { t } = useTranslation();
+    const [keyword, setKeyword] = useState("");
+
+    useEffect(() => {
+        if (resetKeyword) {
+            setKeyword("");
+        }
+    }, [resetKeyword]);
 
     return (
         <Box mb={marginBottom} px={2.5} sx={customStyles}>
@@ -91,7 +99,7 @@ export function ControlledSearchBox({
     keyword,
     setKeyword,
 }: ControlledSearchBoxProps): React.ReactElement {
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
 
     return (
         <Box mb={marginBottom} px={2.5}>
@@ -106,14 +114,14 @@ export function ControlledSearchBox({
                 id="search"
                 placeholder={t("search")}
                 sx={{
-                    backgroundColor: "background.paper",
+                    backgroundColor: "common.input",
                     px: "20px",
                     py: "9px",
                     input: {
                         padding: 0,
                     },
                 }}
-                value={keyword}
+                value={keyword || ""}
                 onChange={(e) => {
                     const value = e.target.value;
                     setKeyword(value);
@@ -125,7 +133,7 @@ export function ControlledSearchBox({
                     }
                 }}
                 endAdornment={
-                    <InputAdornment sx={{ pl: 2 }} position="end">
+                    <InputAdornment sx={{}} position="end">
                         {keyword?.length > 0 && (
                             <Box display="flex" alignItems="center">
                                 <CancelIcon

@@ -213,5 +213,8 @@
     "enableRedirectMsg": "Kako biste automatski bili preusmjereni na poziv, molimo Vas da aplikaciji Cropoint omogućite slanje skočnih prozora i preusmjeravanje putem Vašeg internetskog preglednika.",
     "joinCall": "Pridruži se pozivu",
     "editPersonalData": "Uredi osobne podatke",
-    "addImage": "Dodajte sliku"
+    "addImage": "Dodajte sliku",
+    "newGroupChat": "Novi grupni razgovor",
+    "exitGroup": "Napusti grupu",
+    "deleteGroup": "Izbriši grupu"
 }
