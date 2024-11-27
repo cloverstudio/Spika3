@@ -39,7 +39,7 @@ export default async (
             },
         });
 
-        if (!accessToken) {
+        if (!device) {
             Utils.clearAuthCookies(req, res, req.headers.origin);
             return res.status(401).send("No access token");
         }
