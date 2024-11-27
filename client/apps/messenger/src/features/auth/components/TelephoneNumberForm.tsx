@@ -73,7 +73,6 @@ export default function TelephoneNumberForm({
                     setPhoneNumber={setPhoneNumber}
                     phoneNumber={phoneNumber}
                     validation={setValidPhoneNumber}
-                    onEnter={handleSubmit}
                 />
                 <Box sx={{ mt: 2 }}>
                     <ReCaptcha onChange={onReCaptchaChange} />

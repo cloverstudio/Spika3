@@ -171,7 +171,6 @@
     "termsAndConditions": "Uvjeti i odredbe  ",
     "february": "Veljača  ",
     "verificationCodeResent": "Verifikacijski kod ponovno poslan  ",
-    "sentVerificationCode": "Verifikacijski kod poslan je na <span>{{phoneNumber}}</span>",
     "connectionReestablished": "Veza je ponovno uspostavljena, prozor će se osvježiti za 5 sekundi...  ",
     "connectionLost": "Veza s poslužiteljem je prekinuta, pokušavam ponovno povezivanje...  ",
     "video": "Video  ",
@@ -216,5 +215,6 @@
     "addImage": "Dodajte sliku",
     "newGroupChat": "Novi grupni razgovor",
     "exitGroup": "Napusti grupu",
-    "deleteGroup": "Izbriši grupu"
+    "deleteGroup": "Izbriši grupu",
+    "sentVerificationCode": "Verifikacijski kod poslan je na <span>{{phoneNumber}}</span>"
 }

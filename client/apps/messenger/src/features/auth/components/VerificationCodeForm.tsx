@@ -9,7 +9,7 @@ import AlertTitle from "@mui/material/AlertTitle";
 
 import PinInput from "./PinInput";
 import CountdownTimer from "./CountdownTimer";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 
 type VerificationCodeFormProps = {
     onSubmit: (verificationCode: string) => void;
@@ -93,7 +93,22 @@ export default function VerificationCodeForm({
                 mb={{ xs: error ? 1 : 5, md: error ? 4 : 10 }}
                 fontWeight="medium"
             >
-                {t("sentVerificationCode")} {telephoneNumber}!
+                <Trans
+                    i18nKey="sentVerificationCode"
+                    components={{
+                        span: (
+                            <span
+                                style={{
+                                    fontWeight: "bold",
+                                }}
+                            />
+                        ),
+                    }}
+                    values={{
+                        phoneNumber: telephoneNumber,
+                    }}
+                />
+                .
             </Typography>
             {error.length > 0 && !someCodeEntered && info.length === 0 && (
                 <Alert sx={{ mb: 4 }} severity="error">

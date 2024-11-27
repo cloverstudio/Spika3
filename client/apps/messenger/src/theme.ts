@@ -172,7 +172,7 @@ const components: any = {
                     fontWeight: 500,
                     fontSize: "16px",
                 },
-                height: "210px",
+                height: "200px",
             },
         },
     },

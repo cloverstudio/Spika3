@@ -171,7 +171,6 @@
     "termsAndConditions": "Terms and conditions",
     "february": "February",
     "verificationCodeResent": "Verification code resent",
-    "sentVerificationCode": "Verification code sent to <span>{{phoneNumber}}</span>",
     "connectionReestablished": "Connection has been re-established; the window will refresh in 5 seconds…",
     "connectionLost": "Connection to the server was interrupted; trying to reconnect...",
     "video": "Video",
@@ -216,5 +215,7 @@
     "addImage": "Add photo",
     "newGroupChat": "New group chat",
     "exitGroup": "Exit group",
-    "deleteGroup": "Delete group"
+    "deleteGroup": "Delete group",
+    "sentVerificationCode": "Verification code sent to <span>{{phoneNumber}}</span>"
+
 }
