@@ -5,7 +5,9 @@ import { createClient } from "redis";
 
 export default (redisClient: ReturnType<typeof createClient>) =>
     async (req: Request, res: Response, next: () => void) => {
-        if (!req.headers[constants.ADMIN_ACCESS_TOKEN]) {
+        if (!req.headers[constants.ADMIN_ACCESS_TOKEN] &&
+            !req.cookies[constants.ACCESS_TOKEN]
+        ) {
             return res.status(403).send("Invalid access token");
         }
 
