@@ -183,14 +183,7 @@ export default (): Router => {
                 },
             });
 
-            await prisma.file.update({
-                where: {
-                    id: fileId,
-                },
-                data: {
-                    isPublic: false,
-                },
-            });
+
 
             res.send(successResponse("Suggestion sent", userReq.lang));
         } catch (e: any) {

@@ -55,20 +55,6 @@ export default ({ redisClient }: InitRouterParams) => {
 
             const roomUsers = toAdd.map((userId) => ({ userId, roomId, isAdmin }));
 
-            const file = await prisma.file.update({
-                where: { id: room.avatarFileId },
-                data: {
-                    isPublic: false,
-                },
-            });
-
-            await prisma.filePermissions.createMany({
-                data: userIds.map((u) => ({
-                    fileId: file.id,
-                    userId: u,
-                })),
-            });
-
             if (isAdmin) {
                 await prisma.roomUser.deleteMany({
                     where: {
