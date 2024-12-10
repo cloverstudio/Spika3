@@ -216,5 +216,17 @@
     "newGroupChat": "Novi grupni razgovor",
     "exitGroup": "Napusti grupu",
     "deleteGroup": "Izbriši grupu",
-    "sentVerificationCode": "Verifikacijski kod poslan je na <span>{{phoneNumber}}</span>"
+    "sentVerificationCode": "Verifikacijski kod poslan je na <span>{{phoneNumber}}</span>",
+    "platformImprovementDescription": "Ako imate bilo kakve komentare ili prijedloge za unaprjeđenje platforme ili ste uočili potencijalnu grešku, molimo Vas da isto upišete u nastavku:",
+    "platformImprovement": "Unaprijeđenje platforme",
+    "platformImprovementTextareaPlaceholder": "Ovdje idu sugestije i/ili komentari",
+    "platformImprovementChoosePhoto": "Odaberite i umetnite fotografiju s Vašeg uređaja:",
+    "platformImprovementAcceptedFormats": "Prihvaćeni formati: JPG, PNG",
+    "platformImprovementMaxFileSize": "Maksimalna veličina datoteke: 5 MB",
+    "platformImprovementDrag&Drop": "Dovucite i ispustite fotografiju ili",
+    "errorSubmittingSuggestion": "Greška prilikom slanja sugestije.",
+    "enablePushManually": "Molimo Vas da ručno omogućite push obavijesti u Vašem pregledniku kako biste koristili ovu značajku.",
+    "enableDesktopNotifications": "Omogući obavijesti na radnoj površini",
+    "suggestionSubmittedSuccessfully": "Sugestija/komentar je uspješno poslan",
+    "suggestionThankYou": "Hvala što pomažete unaprijediti platformu!"
 }

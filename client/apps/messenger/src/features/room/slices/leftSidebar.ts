@@ -53,6 +53,8 @@ type InitialState = {
     activeTab: ActiveTabType;
     showProfileEditing: boolean;
     history: HistoryStateType;
+    showSuggestionsModal: boolean;
+
 };
 
 export const leftSidebarSlice = createSlice({
@@ -60,6 +62,7 @@ export const leftSidebarSlice = createSlice({
     initialState: <InitialState>{
         activeTab: "chat",
         showProfileEditing: false,
+        showSuggestionsModal: false,
         history: { list: [], loading: "idle", keyword: "", count: null, page: 1 },
     },
     reducers: {
@@ -68,6 +71,9 @@ export const leftSidebarSlice = createSlice({
         },
         setOpenEditProfile(state, action: { payload: boolean }) {
             state.showProfileEditing = action.payload;
+        },
+        setOpenSuggestionsModal(state, action: { payload: boolean }) {
+            state.showSuggestionsModal = action.payload;
         },
         updateLastMessage(state, { payload: message }: { payload: MessageType }) {
             const list = state.history.list.map((item) => {
@@ -166,9 +172,13 @@ export const selectActiveTab = (state: RootState): "chat" | "call" | "contact" =
 export const shouldShowProfileEditor = (state: RootState): boolean =>
     state.leftSidebar.showProfileEditing;
 
+export const shouldShowSuggestionsModal = (state: RootState): boolean =>
+    state.leftSidebar.showSuggestionsModal;
+
 export const {
     setActiveTab,
     setOpenEditProfile,
+    setOpenSuggestionsModal,
     updateLastMessage,
     removeRoom,
     resetUnreadCount,
@@ -181,9 +191,14 @@ export const selectHistory = (state: RootState): HistoryListItem[] =>
 export const selectKeyword = (state: RootState): string => state.leftSidebar.history.keyword;
 export const selectCurrentKeyword = (state: RootState): string =>
     state.leftSidebar.history.currentKeyword;
+
+
+
 export const selectHistoryLoading =
     () =>
-    (state: RootState): "idle" | "pending" | "succeeded" | "failed" =>
-        state.leftSidebar.history.loading;
+        (state: RootState): "idle" | "pending" | "succeeded" | "failed" =>
+            state.leftSidebar.history.loading;
+
+
 
 export default leftSidebarSlice.reducer;

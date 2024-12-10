@@ -7,7 +7,6 @@ import Typography from "@mui/material/Typography";
 
 import CountryPicker from "./CountryPicker";
 import { useTranslation } from "react-i18next";
-import { APP_NAME } from "../../../../../../lib/constants";
 import ReCaptcha from "../../../components/ReCaptcha";
 
 type TelephoneNumberFormProps = {
@@ -60,10 +59,10 @@ export default function TelephoneNumberForm({
                 variant="body1"
                 mx={{ xs: "auto", md: 0 }}
                 maxWidth={{ xs: "220px", md: "none" }}
-                mb={{ xs: 5, md: 10 }}
+                mb={{ xs: 5, md: 5 }}
                 fontWeight="medium"
             >
-                {`${t("enterYourPhoneNumber")} ${APP_NAME}`}
+                {t("enterYourPhoneNumber")}
             </Typography>
 
             <Box textAlign="left" mb={{ xs: 3, md: 6 }}>

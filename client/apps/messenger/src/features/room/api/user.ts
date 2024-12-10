@@ -33,6 +33,15 @@ const userApi = api.injectEndpoints({
             },
             invalidatesTags: [{ type: "BlockList" }],
         }),
+        addSuggestion: build.mutation<void, { suggestion: string; fileId: number }>({
+            query: ({ suggestion, fileId }) => {
+                return {
+                    method: "POST",
+                    url: `/messenger/users/suggestion`,
+                    data: { suggestion, fileId },
+                };
+            },
+        }),
     }),
     overrideExisting: true,
 });
@@ -43,5 +52,7 @@ export const {
     useRemoveUserFromBlockListMutation,
     useBlockUserMutation,
     useRemoveBlockByIdMutation,
+    useAddSuggestionMutation,
+
 } = userApi;
 export default userApi;

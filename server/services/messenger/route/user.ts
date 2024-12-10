@@ -145,8 +145,64 @@ export default (): Router => {
         }
     });
 
+    /**
+     * @api {post} /api/messenger/users/suggestion Post user suggestion
+     * @apiName Post user suggestion
+     * @apiGroup User
+     * @apiVersion 1.0.0
+     *
+     * @apiDescription This endpoint is used to post user's suggestion.
+     *
+     * @apiBody {String} suggestion The suggestion text.
+     * @apiBody {Number} [fileId] The id of the file related to the suggestion.
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *  HTTP/1.1 200 OK
+     *  {
+     *      "status": "success",
+     *      "data": "Suggestion sent"
+     *  }
+     *
+     */
+
+    router.post("/suggestion", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+
+        try {
+            const { suggestion, fileId } = req.body as { suggestion: string; fileId: number };
+
+            if (!suggestion) {
+                return res.status(400).send(errorResponse("Suggestion is required", userReq.lang));
+            }
+
+            await prisma.suggestion.create({
+                data: {
+                    userId: userReq.user.id,
+                    suggestion,
+                    ...(fileId && { fileId }),
+                },
+            });
+
+            await prisma.file.update({
+                where: {
+                    id: fileId,
+                },
+                data: {
+                    isPublic: false,
+                },
+            });
+
+            res.send(successResponse("Suggestion sent", userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
     return router;
 };
+
+
 
 export async function getUsers(userId: number, timestamp: number, skip: number): Promise<User[]> {
     const userContact = await prisma.contact.findMany({
