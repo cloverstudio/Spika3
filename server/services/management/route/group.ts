@@ -55,6 +55,20 @@ export default ({ redisClient }: InitRouterParams) => {
 
             const roomUsers = toAdd.map((userId) => ({ userId, roomId, isAdmin }));
 
+            const file = await prisma.file.update({
+                where: { id: room.avatarFileId },
+                data: {
+                    isPublic: false,
+                },
+            });
+
+            await prisma.filePermissions.createMany({
+                data: userIds.map((u) => ({
+                    fileId: file.id,
+                    userId: u,
+                })),
+            });
+
             if (isAdmin) {
                 await prisma.roomUser.deleteMany({
                     where: {
@@ -174,20 +188,20 @@ export default ({ redisClient }: InitRouterParams) => {
             where: {
                 ...(keyword
                     ? {
-                          OR: ["startsWith", "contains"].map((key) => ({
-                              name: {
-                                  [key]: keyword,
-                              },
-                          })),
-                          AND: {
-                              deleted: false,
-                              type: "group",
-                          },
-                      }
+                        OR: ["startsWith", "contains"].map((key) => ({
+                            name: {
+                                [key]: keyword,
+                            },
+                        })),
+                        AND: {
+                            deleted: false,
+                            type: "group",
+                        },
+                    }
                     : {
-                          deleted: false,
-                          type: "group",
-                      }),
+                        deleted: false,
+                        type: "group",
+                    }),
             },
             orderBy: {
                 createdAt: "asc",
@@ -204,20 +218,20 @@ export default ({ redisClient }: InitRouterParams) => {
                 where: {
                     ...(keyword
                         ? {
-                              OR: ["startsWith", "contains"].map((key) => ({
-                                  name: {
-                                      [key]: keyword,
-                                  },
-                              })),
-                              AND: {
-                                  deleted: false,
-                                  type: "group",
-                              },
-                          }
+                            OR: ["startsWith", "contains"].map((key) => ({
+                                name: {
+                                    [key]: keyword,
+                                },
+                            })),
+                            AND: {
+                                deleted: false,
+                                type: "group",
+                            },
+                        }
                         : {
-                              deleted: false,
-                              type: "group",
-                          }),
+                            deleted: false,
+                            type: "group",
+                        }),
                 },
             });
 

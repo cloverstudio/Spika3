@@ -31,7 +31,6 @@ export default function TermsAndConditions({
             >
                 {t("welcome")}
             </Typography>
-
             <Typography
                 component="p"
                 variant="body1"
@@ -40,7 +39,7 @@ export default function TermsAndConditions({
                 mb={{ xs: 5, md: 10 }}
                 fontWeight="medium"
             >
-                {t("acceptTermsInstructions")}
+                {t("acceptTermsInstructions")}{" "}
                 <a
                     href={TERMS_AND_CONDITIONS_URL}
                     target="_blank"
@@ -50,7 +49,6 @@ export default function TermsAndConditions({
                     {t("termsAndConditions")}
                 </a>
             </Typography>
-
             <Box textAlign="left" mb={{ xs: 3, md: 6 }}>
                 <Button onClick={onSubmit} fullWidth variant="contained">
                     {t("agreeAndContinue")}

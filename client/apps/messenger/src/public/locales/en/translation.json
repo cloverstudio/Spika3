@@ -163,7 +163,7 @@
     "removePhoto": "Remove photo",
     "removedUser": "User removed",
     "enter": "Enter",
-    "enterYourPhoneNumber": "Please enter your mobile number to start using the app.",
+    "enterYourPhoneNumber": "Please enter your mobile number to start using the application.",
     "edited": "Edited",
     "edit": "Edit",
     "editNote": "Edit note",
@@ -216,6 +216,17 @@
     "newGroupChat": "New group chat",
     "exitGroup": "Exit group",
     "deleteGroup": "Delete group",
-    "sentVerificationCode": "Verification code sent to <span>{{phoneNumber}}</span>"
-
+    "sentVerificationCode": "Verification code sent to <span>{{phoneNumber}}</span>",
+    "platformImprovementDescription": "If you have any comments or suggestions for improving the platform, or you have noticed an error, please enter it here:",
+    "platformImprovement": "Platform improvement",
+    "platformImprovementTextareaPlaceholder": "Write a suggestion and/or comment here",
+    "platformImprovementChoosePhoto": "Choose and upload a photo from your device",
+    "platformImprovementAcceptedFormats": "Acceptable formats: JPG, PNG",
+    "platformImprovementMaxFileSize": "Maximum file size: 5 MB",
+    "platformImprovementDrag&Drop": "Drag and drop photo or",
+    "errorSubmittingSuggestion": "An error occurred while submitting your suggestion",
+    "enablePushManually": "Please enable push notification manually in your browser to use this feature.",
+    "enableDesktopNotifications": "Enable desktop notifications",
+    "suggestionSubmittedSuccessfully": "Suggestion/comment successfully sent",
+    "suggestionThankYou": "Thank you for helping to improve the platform!"
 }

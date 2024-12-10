@@ -21,6 +21,8 @@ import {
     setKeyword,
     fetchHistory,
     setCurrentKeyword,
+    shouldShowSuggestionsModal,
+    setOpenSuggestionsModal,
 } from "../../slices/leftSidebar";
 
 import SidebarContactList from "./ContactList";
@@ -33,6 +35,8 @@ import { useGetUserQuery } from "../../../auth/api/auth";
 import { Link } from "react-router-dom";
 import { useGetUnreadCountQuery } from "../../api/room";
 import { useAppDispatch } from "../../../../hooks";
+import SuggestionsModal from "./SuggestionsModal";
+import RateReviewIcon from "@mui/icons-material/RateReviewOutlined";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -69,8 +73,8 @@ export default function LeftSidebarHome({
     const { data: userData } = useGetUserQuery();
     const theme = useTheme();
 
+    const suggestionsModalOpen = useSelector(shouldShowSuggestionsModal);
     const profileEditingOpen = useSelector(shouldShowProfileEditor);
-
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
     const handleChangeTab = (value: "call" | "chat" | "contact"): void => {
@@ -85,6 +89,8 @@ export default function LeftSidebarHome({
 
     const setOpenEditor = () => dispatch(setOpenEditProfile(!profileEditingOpen));
     const closeEditor = () => dispatch(setOpenEditProfile(false));
+    const toggleSuggestionsModal = () => dispatch(setOpenSuggestionsModal(!suggestionsModalOpen));
+    const closeSuggestionsModal = () => dispatch(setOpenSuggestionsModal(false));
     const ActiveElement = navigation.find((n) => n.name === activeTab)?.Element;
     const generalLayout = !isMobile
         ? { display: "flex", height: "100vh" }
@@ -127,6 +133,19 @@ export default function LeftSidebarHome({
                             )}
                             {isMobile ? (
                                 <Box sx={{ ...settingsBoxProps }}>
+                                    <Box>
+                                        <IconButton onClick={toggleSuggestionsModal}>
+                                            <RateReviewIcon
+                                                fontSize="large"
+                                                sx={{
+                                                    width: "25px",
+                                                    height: "25px",
+                                                    color: "text.navigation",
+                                                    cursor: "pointer",
+                                                }}
+                                            />
+                                        </IconButton>
+                                    </Box>
                                     <Box>
                                         <Avatar
                                             alt={userData?.user.displayName}
@@ -186,7 +205,14 @@ export default function LeftSidebarHome({
                                             />
                                         ))}
                                     </Box>
-                                    <Box mb="24px">
+                                    <Box
+                                        mb="24px"
+                                        sx={{
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            gap: "24px",
+                                        }}
+                                    >
                                         <Avatar
                                             sx={{
                                                 width: "40px",
@@ -197,6 +223,12 @@ export default function LeftSidebarHome({
                                             src={`${UPLOADS_BASE_URL}/${userData?.user.avatarFileId}`}
                                             onClick={() => setOpenEditor()}
                                         />
+                                        <Box>
+                                            <ActionIcon
+                                                Icon={RateReviewIcon}
+                                                handleClick={toggleSuggestionsModal}
+                                            />
+                                        </Box>
                                     </Box>
                                 </Box>
                             )}
@@ -227,6 +259,8 @@ export default function LeftSidebarHome({
                         <ActiveElement isMobile={isMobile} setSidebar={setSidebar} />
                     )}
                 </Box>
+
+                <SuggestionsModal isOpen={suggestionsModalOpen} onClose={closeSuggestionsModal} />
             </Box>
         </LeftSidebarLayout>
     );
@@ -238,7 +272,7 @@ type ActionIconProps = {
     };
     handleClick: () => void;
     isActive?: boolean;
-    isChat: boolean;
+    isChat?: boolean;
     isMuiIcon?: boolean;
 };
 
