@@ -55,6 +55,9 @@ export const LAST_MESSAGE_PREFIX = "lastMessage_";
 export const UNREAD_PREFIX = "unread_";
 export const TOKEN_BUCKET_PREFIX = "TOKEN_BUCKET_";
 export const DEVICE_TYPE_BROWSER = "browser";
+export const ROOM_USER_TPYE_RECORD_PREFIX = "roomUserTypeRecord_";
+
+export const MESSAGE_RECORD_REDIS_EXPIRY_TIME = 5;
 
 export const TOKEN_BUCKET_EXPIRY_TIME = 3;
 export const TOKEN_BUCKET_LIMIT = 150;

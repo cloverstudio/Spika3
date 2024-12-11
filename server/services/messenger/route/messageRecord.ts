@@ -22,9 +22,10 @@ const postMessageRecordSchema = yup.object().shape({
     }),
 });
 
-export default ({ rabbitMQChannel }: InitRouterParams): Router => {
+export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
     const router = Router();
-    const sseMessageRecordsNotify = createSSEMessageRecordsNotify(rabbitMQChannel);
+    const sseMessageRecordsNotify = createSSEMessageRecordsNotify(rabbitMQChannel, redisClient);
+
 
     router.post(
         "/",

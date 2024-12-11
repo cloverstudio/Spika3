@@ -1,5 +1,5 @@
 import { Request, Response, RequestHandler } from "express";
-import { MessageRecord } from "@prisma/client";
+import { Message, MessageRecord } from "@prisma/client";
 
 import { UserRequest } from "../../lib/types";
 import { error as le } from "../../../../components/logger";
@@ -13,7 +13,7 @@ import createSSEMessageRecordsNotify from "../../lib/sseMessageRecordsNotify";
 import prisma from "../../../../components/prisma";
 
 export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHandler[] => {
-    const sseMessageRecordsNotify = createSSEMessageRecordsNotify(rabbitMQChannel);
+    const sseMessageRecordsNotify = createSSEMessageRecordsNotify(rabbitMQChannel, redisClient);
 
     return [
         auth,
@@ -110,3 +110,4 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHand
         },
     ];
 };
+

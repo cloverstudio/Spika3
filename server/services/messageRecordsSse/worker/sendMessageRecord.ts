@@ -61,7 +61,6 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
                         }
                         continue;
                     }
-
                     if (!record) {
                         try {
                             record = await prisma.messageRecord.create({
@@ -87,6 +86,8 @@ class sendMessageRecordWorker implements QueueWorkerInterface {
                                     },
                                 });
                             }
+
+
 
                             messageRecords.push({
                                 ...sanitize({
@@ -164,16 +165,16 @@ async function getDeviceIdsFromMessageId(messageId: number, fromUserId: number):
     const usersWhoBlockedSender =
         message.room.type === "private"
             ? await prisma.block.findMany({
-                  where: {
-                      userId: { in: message.room.users.map((u) => u.user.id) },
-                      blockedId: fromUserId,
-                  },
-                  select: { userId: true },
-              })
+                where: {
+                    userId: { in: message.room.users.map((u) => u.user.id) },
+                    blockedId: fromUserId,
+                },
+                select: { userId: true },
+            })
             : [];
 
-        
-    
+
+
     return message.room.users
         .filter((u) => !usersWhoBlockedSender.map((m) => m.userId).includes(u.user.id))
         .reduce((acc, curr) => [...acc, ...curr.user.device], [])

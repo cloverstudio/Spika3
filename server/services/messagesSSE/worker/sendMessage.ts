@@ -24,7 +24,7 @@ class sendMessageWorker implements QueueWorkerInterface {
         rabbitMQChannel: Channel,
         redisClient: ReturnType<typeof createClient>,
     ) {
-        const sseMessageRecordsNotify = createSSEMessageRecordsNotify(rabbitMQChannel);
+        const sseMessageRecordsNotify = createSSEMessageRecordsNotify(rabbitMQChannel, redisClient);
 
         try {
             const { room, message } = payload;
@@ -39,12 +39,12 @@ class sendMessageWorker implements QueueWorkerInterface {
             const usersWhoBlockedSender =
                 room.type === "private" && message.type !== "system_text"
                     ? await prisma.block.findMany({
-                          where: {
-                              userId: { in: allReceivers.map((u) => u.userId) },
-                              blockedId: fromUserId,
-                          },
-                          select: { userId: true },
-                      })
+                        where: {
+                            userId: { in: allReceivers.map((u) => u.userId) },
+                            blockedId: fromUserId,
+                        },
+                        select: { userId: true },
+                    })
                     : [];
 
             const receivers = allReceivers.filter(

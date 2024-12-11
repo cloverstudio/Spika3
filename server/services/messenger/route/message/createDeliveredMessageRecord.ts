@@ -20,8 +20,8 @@ const deliveredMessagesSchema = yup.object().shape({
     }),
 });
 
-export default ({ rabbitMQChannel }: InitRouterParams): RequestHandler[] => {
-    const sseMessageRecordsNotify = createSSEMessageRecordsNotify(rabbitMQChannel);
+export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHandler[] => {
+    const sseMessageRecordsNotify = createSSEMessageRecordsNotify(rabbitMQChannel, redisClient);
 
     return [
         auth,

@@ -11,8 +11,8 @@ export default (redisClient: ReturnType<typeof createClient>) =>
             return res.status(403).send("Invalid access token");
         }
 
-        const tokenValid = await redisClient.get(
-            `ADMIN_TOKEN_${req.headers[constants.ADMIN_ACCESS_TOKEN] as string}`
+        let tokenValid = await redisClient.get(
+            `ADMIN_TOKEN_${(req.headers[constants.ADMIN_ACCESS_TOKEN] as string) || (req.cookies[constants.ACCESS_TOKEN] as string)}`,
         );
 
         if (!tokenValid) {

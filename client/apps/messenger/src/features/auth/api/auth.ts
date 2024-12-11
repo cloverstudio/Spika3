@@ -58,5 +58,4 @@ export const {
     useLogoutMutation,
     useRemoveMutation,
     useLazyCheckEmailQuery,
-
 } = userApi;

@@ -48,7 +48,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
 
     router.get("/roomId/:roomId/oldest-message-date", getOldestMessageDate({ redisClient }));
 
-    router.post("/delivered", createDeliveredMessageRecordRoute({ rabbitMQChannel }));
+    router.post("/delivered", createDeliveredMessageRecordRoute({ rabbitMQChannel, redisClient }));
     router.post("/:roomId/seen", createSeenMessageRecordRoute({ rabbitMQChannel, redisClient }));
 
     router.get("/sync/modified/:lastUpdate", getModifiedMessagesSyncRoute({}));

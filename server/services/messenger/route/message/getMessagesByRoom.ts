@@ -15,7 +15,7 @@ import prisma from "../../../../components/prisma";
 import { getRoomById } from "../room";
 
 export default ({ rabbitMQChannel, redisClient }: InitRouterParams): RequestHandler[] => {
-    const sseMessageRecordsNotify = createSSEMessageRecordsNotify(rabbitMQChannel);
+    const sseMessageRecordsNotify = createSSEMessageRecordsNotify(rabbitMQChannel, redisClient);
 
     // only web should call this route
     return [
