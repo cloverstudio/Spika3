@@ -224,7 +224,6 @@ const version1_3_0Html = (
             <li>name/nickname</li>
             <li>country</li>
             <li>gender</li>
-            <li>mockup</li>
         </ul>
 
         <Divider
