@@ -228,5 +228,8 @@
     "enablePushManually": "Molimo Vas da ručno omogućite push obavijesti u Vašem pregledniku kako biste koristili ovu značajku.",
     "enableDesktopNotifications": "Omogući obavijesti na radnoj površini",
     "suggestionSubmittedSuccessfully": "Sugestija/komentar je uspješno poslan",
-    "suggestionThankYou": "Hvala što pomažete unaprijediti platformu!"
+    "suggestionThankYou": "Hvala što pomažete unaprijediti platformu!",
+    "releaseNotes": "Zabilješke o verziji",
+    "changeList": "Popis promjena",
+    "version": "Verzija"
 }
