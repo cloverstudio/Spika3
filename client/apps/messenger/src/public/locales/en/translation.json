@@ -228,5 +228,8 @@
     "enablePushManually": "Please enable push notification manually in your browser to use this feature.",
     "enableDesktopNotifications": "Enable desktop notifications",
     "suggestionSubmittedSuccessfully": "Suggestion/comment successfully sent",
-    "suggestionThankYou": "Thank you for helping to improve the platform!"
+    "suggestionThankYou": "Thank you for helping to improve the platform!",
+    "releaseNotes": "Release notes",
+    "changeList": "Change list",
+    "version": "Version"
 }

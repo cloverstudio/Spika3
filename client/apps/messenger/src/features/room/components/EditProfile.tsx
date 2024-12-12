@@ -41,6 +41,7 @@ import { useShowBasicDialog } from "../../../hooks/useModal";
 import { useAppDispatch } from "../../../hooks";
 import { ChangeLanguageModal } from "./leftSidebar/ChangeLanguageModal";
 import EditPersonalDataDialog from "./EditPersonalDataDialog";
+import ReleaseNotesDialog from "./ReleaseNotesDialog";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -70,6 +71,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
     const themeObject = useTheme();
     const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
     const [editingPersonalData, setEditingPersonalData] = useState(false);
+    const [showReleaseNotesModal, setShowReleaseNotesModal] = useState(false);
 
     const isMobile = useMediaQuery(themeObject.breakpoints.down("md"));
 
@@ -297,7 +299,14 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                     </Box>
                 </Box>
             </Box>
-            <Box sx={{ height: "calc(100vh - 75px)", overflowY: "auto" }}>
+            <Box
+                sx={{
+                    height: "calc(100vh - 75px)",
+                    overflowY: "auto",
+                    display: "flex",
+                    flexDirection: "column",
+                }}
+            >
                 <Box
                     sx={{
                         display: "flex",
@@ -416,7 +425,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                     )}
                 </Box>
 
-                <Box display="grid" gap={1} p={2} mt={2}>
+                <Box display="grid" gap={1} p={2}>
                     <Stack
                         direction="row"
                         alignItems="center"
@@ -564,6 +573,44 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                         <Box component="span">{t("logout")}</Box>
                         <LogoutIcon />
                     </Stack>
+                    <Stack
+                        direction="row"
+                        alignItems="center"
+                        spacing={1}
+                        onClick={() => setShowReleaseNotesModal(true)}
+                        sx={{
+                            height: "40px",
+                            display: "flex",
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            width: "100%",
+                            cursor: "pointer",
+                        }}
+                    >
+                        <Box component="span">{t("releaseNotes")}</Box>
+                    </Stack>
+                </Box>
+
+                <Box
+                    sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "flex-end",
+                        flexGrow: 1,
+                    }}
+                >
+                    <Typography
+                        sx={{
+                            fontSize: "14px",
+                            fontWeight: "500",
+                            color: "#9AA0A6",
+                            mb: 2,
+                            mt: 2,
+                        }}
+                    >
+                        {t("version")}: 1.3.0
+                    </Typography>
                 </Box>
                 {editProfilePicture ? (
                     <EditPhotoDialog
@@ -581,6 +628,10 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                 <ChangeLanguageModal
                     isOpen={isLanguageModalOpen}
                     onClose={() => setIsLanguageModalOpen(false)}
+                />
+                <ReleaseNotesDialog
+                    isOpen={showReleaseNotesModal}
+                    onClose={() => setShowReleaseNotesModal(false)}
                 />
             </Box>
         </Box>
