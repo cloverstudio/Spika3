@@ -229,7 +229,7 @@ export default function SuggestionsModal({ isOpen, onClose }: Props) {
                                 </Typography>
                                 <ul
                                     style={{
-                                        color: isDarkMode ? "fff" : "#000080",
+                                        color: "text.secondary",
                                         fontSize: "12px",
                                         paddingLeft: 20,
                                     }}
@@ -302,15 +302,12 @@ export default function SuggestionsModal({ isOpen, onClose }: Props) {
                                         <>
                                             <UploadIcon />
                                             <Stack textAlign="center">
-                                                <Typography
-                                                    fontSize="12px"
-                                                    color={isDarkMode ? "#C9C9CA" : "#000080"}
-                                                >
+                                                <Typography fontSize="12px" color="text.secondary">
                                                     {t("platformImprovementDrag&Drop")}
                                                 </Typography>
                                                 <Link
                                                     fontSize="12px"
-                                                    color={isDarkMode ? "#C9C9CA" : "#000080"}
+                                                    color="text.secondary"
                                                     fontWeight="bold"
                                                     sx={{ cursor: "pointer" }}
                                                     onClick={handleBrowseClick}

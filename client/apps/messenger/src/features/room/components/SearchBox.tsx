@@ -114,7 +114,7 @@ export function ControlledSearchBox({
                 id="search"
                 placeholder={t("search")}
                 sx={{
-                    backgroundColor: "common.input",
+                    backgroundColor: "background.paper",
                     px: "20px",
                     py: "9px",
                     input: {

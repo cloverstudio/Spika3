@@ -31,6 +31,7 @@ import LeftSidebarLayout from "./LeftSidebarLayout";
 import { EditProfileView } from "../EditProfile";
 
 import logo from "../../../../assets/logo.svg";
+import pontisLogo from "../../../../assets/pontis_technology_logo.png";
 import { useGetUserQuery } from "../../../auth/api/auth";
 import { Link } from "react-router-dom";
 import { useGetUnreadCountQuery } from "../../api/room";
@@ -194,6 +195,19 @@ export default function LeftSidebarHome({
                                         mt="24px"
                                         gap="24px"
                                     >
+                                        <Box
+                                            component="img"
+                                            src={pontisLogo}
+                                            width="40x"
+                                            height="38px"
+                                            onClick={() => {
+                                                window.open(
+                                                    "https://pontistechnology.com/",
+                                                    "_blank",
+                                                );
+                                            }}
+                                            sx={{ cursor: "pointer", borderRadius: "12px" }}
+                                        />
                                         {navigation.map((item) => (
                                             <ActionIcon
                                                 key={item.name}
