@@ -18,8 +18,6 @@ import fs from "fs";
 const updateSchema = yup.object().shape({
     body: yup.object().shape({
         displayName: yup.string().strict(),
-        emailAddress: yup.string().strict(),
-        country: yup.string().strict(),
         gender: yup.string().oneOf(["M", "F", "O"]).strict(),
         avatarFileId: yup.number().strict(),
         isCallingMuted: yup.boolean().strict(),
