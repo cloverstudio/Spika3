@@ -184,7 +184,7 @@ export default function SuggestionsModal({ isOpen, onClose }: Props) {
                                 sx={{
                                     fontSize: "16px",
                                     textAlign: "center",
-                                    color: "text.secondary",
+                                    color: "text.primary",
                                     p: 0,
                                 }}
                             >
@@ -205,13 +205,13 @@ export default function SuggestionsModal({ isOpen, onClose }: Props) {
                             >
                                 <Close
                                     sx={{
-                                        color: "text.secondary",
+                                        color: "text.primary",
                                     }}
                                 />
                             </IconButton>
 
                             <Stack gap="8px">
-                                <Typography fontSize="12px" color="text.secondary">
+                                <Typography fontSize="12px" color="text.primary" fontWeight={500}>
                                     {t("platformImprovementDescription")}
                                 </Typography>
                                 <TextField
@@ -224,14 +224,15 @@ export default function SuggestionsModal({ isOpen, onClose }: Props) {
                             </Stack>
 
                             <Stack>
-                                <Typography fontSize="12px" color="text.secondary">
+                                <Typography fontSize="12px" color="text.primary" fontWeight={500}>
                                     {t("platformImprovementChoosePhoto")}
                                 </Typography>
                                 <ul
                                     style={{
-                                        color: "text.secondary",
+                                        color: "text.primary",
                                         fontSize: "12px",
                                         paddingLeft: 20,
+                                        fontWeight: 500,
                                     }}
                                 >
                                     <li>{t("platformImprovementAcceptedFormats")}</li>
@@ -302,12 +303,15 @@ export default function SuggestionsModal({ isOpen, onClose }: Props) {
                                         <>
                                             <UploadIcon />
                                             <Stack textAlign="center">
-                                                <Typography fontSize="12px" color="text.secondary">
+                                                <Typography
+                                                    fontSize="12px"
+                                                    color={isDarkMode ? "text.primary" : "#8F8D8D"}
+                                                >
                                                     {t("platformImprovementDrag&Drop")}
                                                 </Typography>
                                                 <Link
                                                     fontSize="12px"
-                                                    color="text.secondary"
+                                                    color={isDarkMode ? "text.primary" : "#8F8D8D"}
                                                     fontWeight="bold"
                                                     sx={{ cursor: "pointer" }}
                                                     onClick={handleBrowseClick}
@@ -336,7 +340,7 @@ export default function SuggestionsModal({ isOpen, onClose }: Props) {
                                 variant="contained"
                                 color="primary"
                                 type="submit"
-                                sx={{ backgroundColor: "#000080", textTransform: "uppercase" }}
+                                sx={{ textTransform: "uppercase" }}
                                 startIcon={
                                     isLoading ? (
                                         <CircularProgress

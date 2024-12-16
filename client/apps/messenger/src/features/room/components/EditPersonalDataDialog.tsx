@@ -61,14 +61,11 @@ export default function EditPersonalDataDialog({ isOpen, onClose, user }: Props)
     const [update] = useUpdateMutation();
     const [checkEmail, { isFetching: isCheckingEmailValidity }] = useLazyCheckEmailQuery();
 
-    const isSubmitDisabled =
-        !name.trim() ||
-        !email?.trim() ||
-        emailError ||
-        !country ||
-        !gender ||
-        loading ||
-        isCheckingEmailValidity;
+    const isSubmitDisabled = !name.trim() || !gender || loading;
+    // isCheckingEmailValidity ||
+    // !email?.trim() ||
+    // emailError ||
+    // !country
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -248,7 +245,7 @@ export default function EditPersonalDataDialog({ isOpen, onClose, user }: Props)
                                             }}
                                         >
                                             <Close
-                                                htmlColor={isDarkMode ? "#fff" : "#000080"}
+                                                htmlColor={isDarkMode ? "#fff" : "#4696F0"}
                                                 sx={{
                                                     height: "16px",
                                                     width: "16px",
@@ -290,7 +287,7 @@ export default function EditPersonalDataDialog({ isOpen, onClose, user }: Props)
                                         }}
                                     >
                                         <Add
-                                            htmlColor={isDarkMode ? "#fff" : "#000080"}
+                                            htmlColor={isDarkMode ? "#fff" : "#4696F0"}
                                             sx={{
                                                 height: "16px",
                                                 width: "16px",
@@ -318,7 +315,7 @@ export default function EditPersonalDataDialog({ isOpen, onClose, user }: Props)
                                         color: "text.secondary",
                                     }}
                                 >
-                                    {t("nameAndSurname")}
+                                    {t("nameAndSurname")}*
                                 </FormLabel>
                                 <TextField
                                     fullWidth
@@ -408,7 +405,7 @@ export default function EditPersonalDataDialog({ isOpen, onClose, user }: Props)
                                         // setEmailError(false);
                                     }}
                                     value={email}
-                                    error={!email?.trim() || emailError}
+                                    // error={!email?.trim() || emailError}
                                 />
                             </Box>
 
@@ -432,7 +429,7 @@ export default function EditPersonalDataDialog({ isOpen, onClose, user }: Props)
                                         <TextField
                                             {...params}
                                             placeholder={t("country")}
-                                            error={!country}
+                                            // error={!country}
                                         />
                                     )}
                                     value={countries.find((c) => c.code === country) || null}
@@ -453,7 +450,7 @@ export default function EditPersonalDataDialog({ isOpen, onClose, user }: Props)
                                         color: "text.secondary",
                                     }}
                                 >
-                                    {t("gender")}
+                                    {t("gender")}*
                                 </FormLabel>
                                 <RadioGroup
                                     row

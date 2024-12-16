@@ -213,7 +213,7 @@ export const lightTheme = createTheme({
         },
         background: {
             default: "#fff",
-            paper: "#F2F2F2",
+            paper: "#fff",
         },
         action: {
             disabled: "#fff",
