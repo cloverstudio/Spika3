@@ -9,8 +9,8 @@ export default function (...aynthing: any): void {
 
 export function error(...aynthing: any): void {
     if (process.env.LOG_ERROR !== "0") {
-        logger.error(aynthing);
-        //console.error(...aynthing);
+        //logger.error(aynthing);
+        console.error(...aynthing);
     }
 }
 

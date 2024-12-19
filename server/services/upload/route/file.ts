@@ -279,7 +279,7 @@ export default ({ redisClient }: InitRouterParams): Router => {
 
             const file = await prisma.file.findFirst({ where: { id } });
 
-            if (!file.isPublic && !userReq.isAdmin) {
+            if (!file?.isPublic && !userReq.isAdmin) {
                 const filePermissons = await prisma.filePermissions.findFirst({
                     where: {
                         userId: userReq.user.id,
