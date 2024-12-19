@@ -53,15 +53,16 @@ model User {
 
   rooms           RoomUser[]
   device          Device[]
-  contacts        Contact[]       @relation("user")
-  contactee       Contact[]       @relation("contact")
+  contacts        Contact[]         @relation("user")
+  contactee       Contact[]         @relation("contact")
   messages        Message[]
   messagesRecords MessageRecord[]
   callHistory     CallHistory[]
   userSetting     UserSetting[]
-  blocks          Block[]         @relation("blocks")
-  blockedBy       Block[]         @relation("blockedBy")
+  blocks          Block[]           @relation("blocks")
+  blockedBy       Block[]           @relation("blockedBy")
   Suggestion      Suggestion[]
+  FilePermissions FilePermissions[]
 
   @@index([displayName])
   @@map(name: "user")
@@ -112,15 +113,28 @@ model Device {
 }
 
 model File {
-  id         Int    @id @default(autoincrement()) @map(name: "id")
-  type       String @map(name: "type")
-  relationId Int?   @map(name: "relation_id")
-  path       String @map(name: "path")
-  mimeType   String @map(name: "mime_type")
-  fileName   String @map(name: "file_name")
-  size       Float  @map(name: "size")
-  clientId   String @unique @map(name: "client_id")
-  metaData   Json   @default("{}") @map(name: "meta_data")
+  id         Int     @id @default(autoincrement()) @map(name: "id")
+  type       String  @map(name: "type")
+  relationId Int?    @map(name: "relation_id")
+  path       String  @map(name: "path")
+  mimeType   String  @map(name: "mime_type")
+  fileName   String  @map(name: "file_name")
+  size       Float   @map(name: "size")
+  clientId   String  @unique @map(name: "client_id")
+  metaData   Json    @default("{}") @map(name: "meta_data")
+  isPublic   Boolean @default(true) @map(name: "is_public")
+
+  createdAt       DateTime          @default(now()) @map(name: "created_at")
+  modifiedAt      DateTime          @default(now()) @map(name: "modified_at")
+  FilePermissions FilePermissions[]
+
+  @@map(name: "file")
+}
+
+model FilePermissions {
+  id     Int @id @default(autoincrement()) @map(name: "id")
+  userId Int @map(name: "user_id")
+  fileId Int @map(name: "file_id")
 
   createdAt  DateTime @default(now()) @map(name: "created_at")
   modifiedAt DateTime @default(now()) @map(name: "modified_at")

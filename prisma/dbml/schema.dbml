@@ -44,6 +44,7 @@ Table user {
   blocks block [not null]
   blockedBy block [not null]
   Suggestion suggestion [not null]
+  FilePermissions file_permissions [not null]
 }
 
 Table privacy_settings {
@@ -90,6 +91,16 @@ Table file {
   size Float [not null]
   clientId String [unique, not null]
   metaData Json [not null, default: '{}']
+  isPublic Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  modifiedAt DateTime [default: `now()`, not null]
+  FilePermissions file_permissions [not null]
+}
+
+Table file_permissions {
+  id Int [pk, increment]
+  userId Int [not null]
+  fileId Int [not null]
   createdAt DateTime [default: `now()`, not null]
   modifiedAt DateTime [default: `now()`, not null]
   user user [not null]
