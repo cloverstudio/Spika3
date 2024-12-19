@@ -8,8 +8,9 @@ import GroupList from "@/features/groups/GroupList";
 import NewGroupModal from "@/features/groups/NewGroupModal";
 import AddIcon from "@mui/icons-material/Add";
 import SearchBox from "@/features/groups/SearchBox";
+import { RoomType } from "@/types/Room";
 
-export default function Groups(): React.ReactElement {
+export default function Groups({ group }: { group: RoomType }): React.ReactElement {
     const [page, setPage] = useState(1);
     const [keyword, setKeyword] = useState("");
     const [showNewGroupModal, setShowNewGroupModal] = useState(false);
@@ -86,8 +87,9 @@ export default function Groups(): React.ReactElement {
                 <GroupList groups={data.data.list} />
             </Box>
 
-            {showNewGroupModal && <NewGroupModal onClose={() => setShowNewGroupModal(false)} />}
-
+            {showNewGroupModal && (
+                <NewGroupModal group={group} onClose={() => setShowNewGroupModal(false)} />
+            )}
             <Outlet />
         </Box>
     );

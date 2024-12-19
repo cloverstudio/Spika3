@@ -16,6 +16,7 @@ export default ({ redisClient }: InitRouterParams) => {
                 where: {
                     isBot: false,
                     deleted: false,
+                    NOT: { displayName: null },
                 },
             });
 

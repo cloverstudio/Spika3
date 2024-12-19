@@ -25,7 +25,7 @@ export default function EditGroupModal({ onClose, group }: { onClose: () => void
     const showBasicSnackbar = useShowSnackBar();
     const [file, setFile] = useState<File>();
     const [src, setSrc] = useState(
-        group.avatarFileId ? `${UPLOADS_BASE_URL}/${group.avatarFileId}` : uploadImage
+        group.avatarFileId ? `${UPLOADS_BASE_URL}/${group.avatarFileId}` : uploadImage,
     );
     const uploadFileRef = useRef(null);
 
@@ -52,6 +52,7 @@ export default function EditGroupModal({ onClose, group }: { onClose: () => void
                 const fileUploader = new FileUploader({
                     file,
                     type: "image",
+                    roomId: group.id,
                 });
 
                 const uploadedFile = await fileUploader.upload();

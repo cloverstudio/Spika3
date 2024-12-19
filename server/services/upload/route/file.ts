@@ -5,12 +5,15 @@ import fs from "fs";
 import crypto from "crypto";
 import path from "path";
 
+import { InitRouterParams } from "../../types/serviceInterface";
 import { successResponse, errorResponse } from "../../../components/response";
 import { error as le } from "../../../components/logger";
 import validate from "../../../components/validateMiddleware";
 import sanitize from "../../../components/sanitize";
 import { UserRequest } from "../lib/types";
 import prisma from "../../../components/prisma";
+import auth from "../lib/auth";
+import { RoomUser } from "@prisma/client";
 
 const mkdir = util.promisify(fs.mkdir);
 const readDir = util.promisify(fs.readdir);
@@ -48,179 +51,223 @@ const verifyFilesSchema = yup.object().shape({
     }),
 });
 
-export default (): Router => {
+export default ({ redisClient }: InitRouterParams): Router => {
     const router = Router();
 
-    router.post("/", validate(postFilesSchema), async (req: Request, res: Response) => {
-        const userReq: UserRequest = req as UserRequest;
+    router.post(
+        "/",
+        auth(redisClient),
+        validate(postFilesSchema),
+        async (req: Request, res: Response) => {
+            const userReq: UserRequest = req as UserRequest;
 
-        try {
-            const { chunk, offset, clientId } = req.body;
+            try {
+                const { chunk, offset, clientId } = req.body;
 
-            const exists = await prisma.file.findFirst({ where: { clientId } });
+                const exists = await prisma.file.findFirst({ where: { clientId } });
 
-            if (exists) {
-                return res
-                    .status(400)
-                    .send(errorResponse("File with that clientId already exists", userReq.lang));
-            }
+                if (exists) {
+                    return res
+                        .status(400)
+                        .send(
+                            errorResponse("File with that clientId already exists", userReq.lang),
+                        );
+                }
 
-            const tempFileDir = path.resolve(process.env["UPLOAD_FOLDER"], ".temp/", clientId);
+                const tempFileDir = path.resolve(process.env["UPLOAD_FOLDER"], ".temp/", clientId);
 
-            if (!fs.existsSync(tempFileDir)) {
-                console.log("created", tempFileDir);
-                await mkdir(tempFileDir, { recursive: true });
-            }
+                if (!fs.existsSync(tempFileDir)) {
+                    console.log("created", tempFileDir);
+                    await mkdir(tempFileDir, { recursive: true });
+                }
 
-            await writeFile(tempFileDir + `/${offset}-chunk`, Buffer.from(chunk, "base64"));
+                await writeFile(tempFileDir + `/${offset}-chunk`, Buffer.from(chunk, "base64"));
 
-            const files = await readDir(tempFileDir);
+                const files = await readDir(tempFileDir);
 
-            const uploadedChunks = files.map((f) => +f.split("-")[0]);
-
-            return res.send(successResponse({ uploadedChunks }, userReq.lang));
-        } catch (e: any) {
-            le(e);
-            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
-        }
-    });
-
-    router.post("/verify", validate(verifyFilesSchema), async (req: Request, res: Response) => {
-        const userReq: UserRequest = req as UserRequest;
-        try {
-            const {
-                total,
-                size,
-                mimeType,
-                fileName,
-                fileHash,
-                type,
-                relationId,
-                clientId,
-                metaData, // { duration,width,height}
-            } = req.body;
-
-            req.setTimeout(10 * 60 * 1000); // 10 minutes
-
-            const exists = await prisma.file.findFirst({ where: { clientId } });
-
-            if (exists) {
-                return res
-                    .status(409)
-                    .send(errorResponse("File with that clientId already exists", userReq.lang));
-            }
-
-            const tempFileDir = path.resolve(process.env["UPLOAD_FOLDER"], ".temp/", clientId);
-
-            if (!fs.existsSync(tempFileDir)) {
-                await mkdir(tempFileDir, { recursive: true });
-            }
-
-            const files = await readDir(tempFileDir);
-            const allChunks = Array(total)
-                .fill(true)
-                .map((_, i) => i);
-
-            const uploadedChunks = files.map((f) => +f.split("-")[0]);
-            const allChunksUploaded = allChunks.every((c) => uploadedChunks.includes(c));
-            if (!allChunksUploaded) {
-                return res
-                    .status(410)
-                    .send(errorResponse("Not all chunks are uploaded", userReq.lang));
-            }
-
-            const filesDir = path.resolve(process.env["UPLOAD_FOLDER"], "files/");
-
-            if (!fs.existsSync(filesDir)) {
-                await mkdir(filesDir);
-            }
-
-            const filePath = path.join(filesDir, clientId);
-            if (fs.existsSync(filePath)) {
-                // this means that some other chunk started to create file
-                // not sure what to return here as file is not saved yet in db, try log line bellow
-                // const file = await prisma.file.findFirst({ where: { clientId } });
+                const uploadedChunks = files.map((f) => +f.split("-")[0]);
 
                 return res.send(successResponse({ uploadedChunks }, userReq.lang));
+            } catch (e: any) {
+                le(e);
+                res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
             }
+        },
+    );
 
-            await writeFile(filePath, "");
-            const writeStream = fs.createWriteStream(filePath);
+    router.post(
+        "/verify",
+        auth(redisClient),
+        validate(verifyFilesSchema),
+        async (req: Request, res: Response) => {
+            const userReq: UserRequest = req as UserRequest;
 
-            const streamWritePromise = (stream:fs.WriteStream,content:Buffer): Promise<boolean> => {
-                return new Promise<boolean>((res,rej)=>{
-                    writeStream.write(content,(err)=>{
-                        if(err) rej();
-                        else res(true);
-                    });
-                })
-            }
-
-            const streamEndPromise = (stream:fs.WriteStream): Promise<boolean> => {
-                return new Promise<boolean>((res,rej)=>{
-                    writeStream.end(null,()=>{
-                        res(true);
-                    });
-                })
-            }
-
-            for (const chunkIndex of allChunks) {
-                const content = await readFile(tempFileDir + `/${chunkIndex}-chunk`);
-                //writeStream.write(content);
-                await streamWritePromise(writeStream,content);
-            }
-
-            await streamEndPromise(writeStream);
-
-            const hashMatches = await checkHashes(fileHash, filePath);
-            if (!hashMatches) {
-                await removeFile(filePath);
-                return res.status(411).send(errorResponse("Hash doesn't match", userReq.lang));
-            }
-
-            const durationInt: number = metaData?.duration ? parseInt(metaData.duration) : 0;
-            const widthInt: number = metaData?.width ? parseInt(metaData.width) : 0;
-            const heightInt: number = metaData?.height ? parseInt(metaData.height) : 0;
-
-            const file = await prisma.file.create({
-                data: {
-                    fileName,
+            try {
+                const {
+                    total,
                     size,
                     mimeType,
+                    fileName,
+                    fileHash,
                     type,
                     relationId,
                     clientId,
-                    metaData: {
-                        duration: durationInt,
-                        width: widthInt,
-                        height: heightInt,
-                    },
-                    path: "/uploads/files/" + clientId,
-                },
-            });
+                    metaData, // { duration,width,height}
+                    roomId
+                } = req.body;
 
-            res.send(successResponse({ file: sanitize(file).file() }, userReq.lang));
+                req.setTimeout(10 * 60 * 1000); // 10 minutes
 
-            try {
-                for (const fileName of await readDir(tempFileDir)) {
-                    if (fs.existsSync(path.join(tempFileDir, fileName))) {
-                        await removeFile(path.join(tempFileDir, fileName));
+                const exists = await prisma.file.findFirst({ where: { clientId } });
+
+                let roomUsers: RoomUser[] = [];
+
+                if (exists) {
+                    return res
+                        .status(400)
+                        .send(
+                            errorResponse("File with that clientId already exists", userReq.lang),
+                        );
+                }
+
+                if (roomId) {
+                    const room = await prisma.room.findFirst({
+                        where: {
+                            id: roomId,
+                        },
+                    });
+
+                    if (!room) {
+                        return res.status(404).send(errorResponse(`Room not found`, userReq.lang));
+                    }
+
+                    roomUsers = await prisma.roomUser.findMany({
+                        where: {
+                            roomId,
+                        },
+                    });
+
+                    if (!roomUsers.some((ru) => ru.userId === userReq.user.id)) {
+                        return res
+                            .status(403)
+                            .send(errorResponse(`User is not room participant`, userReq.lang));
                     }
                 }
 
-                if (fs.existsSync(tempFileDir)) {
-                    await removeDir(tempFileDir);
-                }
-            } catch (error) {
-                // ignore ENOENT unlink errors that happens because of concurrency
-            }
-        } catch (e: any) {
-            le(e);
-            res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
-        }
-    });
+                const tempFileDir = path.resolve(process.env["UPLOAD_FOLDER"], ".temp/", clientId);
 
-    router.get("/:id", async (req: Request, res: Response) => {
+                if (!fs.existsSync(tempFileDir)) {
+                    await mkdir(tempFileDir, { recursive: true });
+                }
+
+                const files = await readDir(tempFileDir);
+                const allChunks = Array(total)
+                    .fill(true)
+                    .map((_, i) => i);
+
+                const uploadedChunks = files.map((f) => +f.split("-")[0]);
+                const allChunksUploaded = allChunks.every((c) => uploadedChunks.includes(c));
+
+                if (!allChunksUploaded) {
+                    return res
+                        .status(400)
+                        .send(errorResponse("Not all chunks are uploaded", userReq.lang));
+                }
+
+                const filesDir = path.join(process.env["UPLOAD_FOLDER"], "files");
+                if (!fs.existsSync(filesDir)) {
+                    await mkdir(filesDir);
+                }
+
+                const filePath = path.join(filesDir, clientId);
+                if (fs.existsSync(filePath)) {
+                    // this means that some other chunk started to create file
+                    // not sure what to return here as file is not saved yet in db, try log line bellow
+                    // const file = await prisma.file.findFirst({ where: { clientId } });
+
+                    return res.send(successResponse({ uploadedChunks }, userReq.lang));
+                }
+
+                await writeFile(filePath, "");
+                const writeStream = fs.createWriteStream(filePath);
+
+                const streamWritePromise = (
+                    stream: fs.WriteStream,
+                    content: Buffer,
+                ): Promise<boolean> => {
+                    return new Promise<boolean>((res, rej) => {
+                        writeStream.write(content, (err) => {
+                            if (err) rej();
+                            else res(true);
+                        });
+                    });
+                };
+
+                const streamEndPromise = (stream: fs.WriteStream): Promise<boolean> => {
+                    return new Promise<boolean>((res, rej) => {
+                        writeStream.end(null, () => {
+                            res(true);
+                        });
+                    });
+                };
+
+                for (const chunkIndex of allChunks) {
+                    const content = await readFile(tempFileDir + `/${chunkIndex}-chunk`);
+                    //writeStream.write(content);
+                    await streamWritePromise(writeStream, content);
+                }
+
+                writeStream.end();
+
+                const hashMatches = await checkHashes(fileHash, filePath);
+                if (!hashMatches) {
+                    await removeFile(filePath);
+                    return res.status(400).send(errorResponse("Hash doesn't match", userReq.lang));
+                }
+
+                const file = await prisma.file.create({
+                    data: {
+                        fileName,
+                        size,
+                        mimeType,
+                        type,
+                        relationId,
+                        clientId,
+                        path: "/uploads/files/" + clientId,
+                        isPublic: roomId ? false : true,
+                    },
+                });
+
+                res.send(successResponse({ file: sanitize(file).file() }, userReq.lang));
+
+                try {
+                    await prisma.filePermissions.createMany({
+                        data: roomUsers.map((ru) => ({
+                            userId: ru.userId,
+                            fileId: file.id,
+                        })),
+                    });
+
+                    for (const fileName of await readDir(tempFileDir)) {
+                        if (fs.existsSync(path.join(tempFileDir, fileName))) {
+                            await removeFile(path.join(tempFileDir, fileName));
+                        }
+                    }
+
+                    if (fs.existsSync(tempFileDir)) {
+                        await removeDir(tempFileDir);
+                    }
+                } catch (error) {
+                    // ignore ENOENT unlink errors that happens because of concurrency
+                }
+            } catch (e: any) {
+                le(e);
+                res.status(500).send(errorResponse(`Server error ${e}`, userReq.lang));
+            }
+        },
+    );
+
+    router.get("/:id", auth(redisClient), async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
 
         try {
@@ -232,10 +279,22 @@ export default (): Router => {
 
             const file = await prisma.file.findFirst({ where: { id } });
 
+            if (!file.isPublic && !userReq.isAdmin) {
+                const filePermissons = await prisma.filePermissions.findFirst({
+                    where: {
+                        userId: userReq.user.id,
+                        fileId: id,
+                    },
+                });
+
+                if (!filePermissons)
+                    return res.status(403).send(errorResponse("Forbidden", userReq.lang));
+            }
+
             if (!file) {
                 return res.download(
                     path.resolve(__dirname, "..", "assets/no-image-icon.png"),
-                    "no-image-icon.png"
+                    "no-image-icon.png",
                 );
             }
 
@@ -245,7 +304,7 @@ export default (): Router => {
                 le(`File doesn't exists - ${pathToFile}`);
                 return res.download(
                     path.resolve(__dirname, "..", "assets/no-image-icon.png"),
-                    "no-image-icon.png"
+                    "no-image-icon.png",
                 );
             }
 

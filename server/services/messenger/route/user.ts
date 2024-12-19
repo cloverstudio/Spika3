@@ -130,12 +130,7 @@ export default (): Router => {
 
             res.send(
                 successResponse(
-                    {
-                        list: users.map((user) => sanitize(user).user()),
-                        count,
-                        limit: Constants.SYNC_LIMIT,
-                        hasNext,
-                    },
+                    { users: users.map((user) => sanitize(user).user()) },
                     userReq.lang,
                 ),
             );
@@ -182,8 +177,6 @@ export default (): Router => {
                     ...(fileId && { fileId }),
                 },
             });
-
-
 
             res.send(successResponse("Suggestion sent", userReq.lang));
         } catch (e: any) {

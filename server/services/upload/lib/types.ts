@@ -5,6 +5,7 @@ export interface UserRequest extends Request {
     user: User;
     device: Device;
     lang: string;
+    isAdmin: boolean;
 }
 
 export interface errorParams {

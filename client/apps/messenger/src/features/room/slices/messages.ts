@@ -269,6 +269,7 @@ export const sendFileMessage = createAsyncThunk(
             const fileUploader = new FileUploader({
                 file,
                 type,
+                roomId,
                 onProgress,
             });
 
@@ -282,6 +283,7 @@ export const sendFileMessage = createAsyncThunk(
                 const thumbUploader = new FileUploader({
                     file: thumbFile,
                     type: "image",
+                    roomId
                 });
 
                 const thumbFileUploaded = await thumbUploader.upload();
@@ -1806,347 +1808,347 @@ export const {
 
 export const selectRoomMessages =
     (roomId: number) =>
-    (
-        state: RootState,
-    ): {
-        [id: string]: MessageType;
-    } => {
-        return state.messages[roomId]?.messages;
-    };
+        (
+            state: RootState,
+        ): {
+            [id: string]: MessageType;
+        } => {
+            return state.messages[roomId]?.messages;
+        };
 
 export const selectRoomMessagesLength =
     (roomId: number) =>
-    (state: RootState): number => {
-        return Object.keys(state.messages[roomId]?.messages || {}).length;
-    };
+        (state: RootState): number => {
+            return Object.keys(state.messages[roomId]?.messages || {}).length;
+        };
 export const selectRoomMessagesIsLoading =
     (roomId: number) =>
-    (state: RootState): boolean => {
-        return state.messages[roomId]?.loading;
-    };
+        (state: RootState): boolean => {
+            return state.messages[roomId]?.loading;
+        };
 
 export const canLoadMoreMessages =
     (roomId: number) =>
-    (state: RootState): boolean => {
-        const room = state.messages[roomId];
+        (state: RootState): boolean => {
+            const room = state.messages[roomId];
 
-        if (!room) {
+            if (!room) {
+                return true;
+            }
+
+            if (room.loading) {
+                return false;
+            }
+
+            if (room.count && !room.cursor) {
+                return false;
+            }
+
             return true;
-        }
-
-        if (room.loading) {
-            return false;
-        }
-
-        if (room.count && !room.cursor) {
-            return false;
-        }
-
-        return true;
-    };
+        };
 
 export const selectMessageById =
     (roomId: number, id: number) =>
-    (state: RootState): (MessageType & { progress?: number }) | null => {
-        const room = state.messages[roomId];
+        (state: RootState): (MessageType & { progress?: number }) | null => {
+            const room = state.messages[roomId];
 
-        if (!room) {
-            return null;
-        }
+            if (!room) {
+                return null;
+            }
 
-        const message = room.messages[id];
+            const message = room.messages[id];
 
-        if (!message) {
-            return null;
-        }
+            if (!message) {
+                return null;
+            }
 
-        return message;
-    };
+            return message;
+        };
 
 export const selectMessageReactions =
     (roomId: number, id: number) =>
-    (state: RootState): MessageRecordType[] => {
-        const room = state.messages[roomId];
+        (state: RootState): MessageRecordType[] => {
+            const room = state.messages[roomId];
 
-        if (!room) {
-            return null;
-        }
+            if (!room) {
+                return null;
+            }
 
-        return room.reactions[id];
-    };
+            return room.reactions[id];
+        };
 
 export const selectHasMessageReactions =
     (roomId: number, id: number) =>
-    (state: RootState): boolean => {
-        const room = state.messages[roomId];
+        (state: RootState): boolean => {
+            const room = state.messages[roomId];
 
-        if (!room || !room.reactions[id]) {
-            return false;
-        }
+            if (!room || !room.reactions[id]) {
+                return false;
+            }
 
-        return !!room.reactions[id].length;
-    };
+            return !!room.reactions[id].length;
+        };
 
 export const selectMessageStatus =
     (roomId: number, id: number) =>
-    (state: RootState): string => {
-        const room = state.messages[roomId];
+        (state: RootState): string => {
+            const room = state.messages[roomId];
 
-        if (!room) {
+            if (!room) {
+                return "";
+            }
+
+            if (room.messages[id].status) {
+                return room.messages[id].status;
+            }
+
+            if (room.statusCounts[id]) {
+                return getMessageStatus(room.statusCounts[id]);
+            }
+
             return "";
-        }
-
-        if (room.messages[id].status) {
-            return room.messages[id].status;
-        }
-
-        if (room.statusCounts[id]) {
-            return getMessageStatus(room.statusCounts[id]);
-        }
-
-        return "";
-    };
+        };
 
 export const selectShowMessageDetails =
     (roomId: number) =>
-    (state: RootState): boolean => {
-        const room = state.messages[roomId];
+        (state: RootState): boolean => {
+            const room = state.messages[roomId];
 
-        if (!room) {
-            return false;
-        }
+            if (!room) {
+                return false;
+            }
 
-        return room.showDetails;
-    };
+            return room.showDetails;
+        };
 
 export const selectShowEmojiDetails =
     (roomId: number) =>
-    (state: RootState): boolean => {
-        const room = state.messages[roomId];
+        (state: RootState): boolean => {
+            const room = state.messages[roomId];
 
-        if (!room) {
-            return false;
-        }
+            if (!room) {
+                return false;
+            }
 
-        return room.showEmojiDetails;
-    };
+            return room.showEmojiDetails;
+        };
 
 export const selectShowCustomEmojiModal =
     (roomId: number, id: number) =>
-    (state: RootState): boolean => {
-        const room = state.messages[roomId];
+        (state: RootState): boolean => {
+            const room = state.messages[roomId];
 
-        if (!room) {
-            return false;
-        }
+            if (!room) {
+                return false;
+            }
 
-        return room.showCustomEmojiModal && room.activeMessageId === id;
-    };
+            return room.showCustomEmojiModal && room.activeMessageId === id;
+        };
 
 export const selectShowDeleteMessage =
     (roomId: number) =>
-    (state: RootState): boolean => {
-        const room = state.messages[roomId];
+        (state: RootState): boolean => {
+            const room = state.messages[roomId];
 
-        if (!room) {
-            return false;
-        }
+            if (!room) {
+                return false;
+            }
 
-        return room.showDelete;
-    };
+            return room.showDelete;
+        };
 
 export const selectActiveMessage =
     (roomId: number) =>
-    (state: RootState): MessageType | null => {
-        const room = state.messages[roomId];
+        (state: RootState): MessageType | null => {
+            const room = state.messages[roomId];
 
-        if (!room) {
-            return null;
-        }
+            if (!room) {
+                return null;
+            }
 
-        if (!room.activeMessageId) {
-            return null;
-        }
+            if (!room.activeMessageId) {
+                return null;
+            }
 
-        return room.messages[room.activeMessageId] || null;
-    };
+            return room.messages[room.activeMessageId] || null;
+        };
 
 export const selectTargetMessage =
     (roomId: number) =>
-    (state: RootState): number | null => {
-        const room = state.messages[roomId];
+        (state: RootState): number | null => {
+            const room = state.messages[roomId];
 
-        if (!room) {
-            return null;
-        }
+            if (!room) {
+                return null;
+            }
 
-        return room.targetMessageId;
-    };
+            return room.targetMessageId;
+        };
 
 export const selectTargetMessageIsInList =
     (roomId: number) =>
-    (state: RootState): boolean => {
-        const room = state.messages[roomId];
+        (state: RootState): boolean => {
+            const room = state.messages[roomId];
 
-        if (!room) {
-            return false;
-        }
+            if (!room) {
+                return false;
+            }
 
-        if (!room.targetMessageId) {
-            return false;
-        }
+            if (!room.targetMessageId) {
+                return false;
+            }
 
-        return !!room.messages[room.targetMessageId];
-    };
+            return !!room.messages[room.targetMessageId];
+        };
 
 export const selectCursor =
     (roomId: number) =>
-    (state: RootState): number => {
-        const room = state.messages[roomId];
+        (state: RootState): number => {
+            const room = state.messages[roomId];
 
-        return room?.cursor;
-    };
+            return room?.cursor;
+        };
 
 export const selectIsLastMessageFromUser =
     (roomId: number) =>
-    (state: RootState): boolean => {
-        const room = state.messages[roomId];
-        const userId = state.user.id;
+        (state: RootState): boolean => {
+            const room = state.messages[roomId];
+            const userId = state.user.id;
 
-        if (!room) {
-            return false;
-        }
+            if (!room) {
+                return false;
+            }
 
-        const messages = Object.values(room.messages || {});
+            const messages = Object.values(room.messages || {});
 
-        if (!messages || !messages.length) {
-            return false;
-        }
+            if (!messages || !messages.length) {
+                return false;
+            }
 
-        const sortedMessages = messages.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+            const sortedMessages = messages.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 
-        return sortedMessages[0].fromUserId === userId;
-    };
+            return sortedMessages[0].fromUserId === userId;
+        };
 
 export const selectShouldDisplayBlockButton =
     (roomId: number) =>
-    (state: RootState): boolean => {
-        const room = state.messages[roomId];
-        const roomData = state.api.queries[`getRoom(${roomId})`]?.data as RoomType;
-        const roomBlockData = state.api.queries[`getRoomBlocked(${roomId})`]?.data as {
-            id: number;
+        (state: RootState): boolean => {
+            const room = state.messages[roomId];
+            const roomData = state.api.queries[`getRoom(${roomId})`]?.data as RoomType;
+            const roomBlockData = state.api.queries[`getRoomBlocked(${roomId})`]?.data as {
+                id: number;
+            };
+
+            if (roomBlockData) {
+                return false;
+            }
+
+            if (!room || !roomData) {
+                return false;
+            }
+
+            const allMessagesLoaded = room.cursor === null;
+            const noUserMessages = Object.values(room.messages || {}).every(
+                (m) => m.fromUserId !== state.user.id,
+            );
+
+            return allMessagesLoaded && noUserMessages && roomData.type === "private";
         };
-
-        if (roomBlockData) {
-            return false;
-        }
-
-        if (!room || !roomData) {
-            return false;
-        }
-
-        const allMessagesLoaded = room.cursor === null;
-        const noUserMessages = Object.values(room.messages || {}).every(
-            (m) => m.fromUserId !== state.user.id,
-        );
-
-        return allMessagesLoaded && noUserMessages && roomData.type === "private";
-    };
 
 export const selectOtherUserIdInPrivateRoom =
     (roomId: number) =>
-    (state: RootState): number => {
-        const roomData = state.api.queries[`getRoom(${roomId})`]?.data as RoomType;
+        (state: RootState): number => {
+            const roomData = state.api.queries[`getRoom(${roomId})`]?.data as RoomType;
 
-        if (!roomData) {
-            return null;
-        }
+            if (!roomData) {
+                return null;
+            }
 
-        if (roomData.type !== "private") {
-            return null;
-        }
+            if (roomData.type !== "private") {
+                return null;
+            }
 
-        const otherUser = roomData.users.find((m) => m.userId !== state.user.id);
+            const otherUser = roomData.users.find((m) => m.userId !== state.user.id);
 
-        return otherUser?.userId;
-    };
+            return otherUser?.userId;
+        };
 
 export const selectKeyword =
     (roomId: number) =>
-    (state: RootState): string => {
-        const room = state.messages[roomId];
+        (state: RootState): string => {
+            const room = state.messages[roomId];
 
-        return room?.keyword;
-    };
+            return room?.keyword;
+        };
 
 export const selectChangeTerm =
     ({ roomId, text, id }: { roomId: number; text: string; id?: number }) =>
-    (state: RootState): { from: string; to: string } | null => {
-        const room = state.messages[roomId];
+        (state: RootState): { from: string; to: string } | null => {
+            const room = state.messages[roomId];
 
-        if (
-            !room ||
-            !room.messages ||
-            !room.keyword ||
-            room.keyword.length < 3 ||
-            !room.targetMessageId
-        ) {
-            return null;
-        }
+            if (
+                !room ||
+                !room.messages ||
+                !room.keyword ||
+                room.keyword.length < 3 ||
+                !room.targetMessageId
+            ) {
+                return null;
+            }
 
-        if (!text) {
-            return null;
-        }
+            if (!text) {
+                return null;
+            }
 
-        const targetMessage = room.messages[room.targetMessageId];
+            const targetMessage = room.messages[room.targetMessageId];
 
-        if (!targetMessage) {
-            return null;
-        }
+            if (!targetMessage) {
+                return null;
+            }
 
-        const targetMessageText = targetMessage.body?.text;
-        const targetMessageId = targetMessage.id;
+            const targetMessageText = targetMessage.body?.text;
+            const targetMessageId = targetMessage.id;
 
-        if (!targetMessageText) {
-            return null;
-        }
+            if (!targetMessageText) {
+                return null;
+            }
 
-        if (!id) {
-            return null;
-        }
+            if (!id) {
+                return null;
+            }
 
-        const messageIsTargetMessage = id === targetMessageId;
+            const messageIsTargetMessage = id === targetMessageId;
 
-        if (!messageIsTargetMessage) {
-            return null;
-        }
+            if (!messageIsTargetMessage) {
+                return null;
+            }
 
-        const textContainsKeyword = text.match(new RegExp(room.keyword, "gi"));
+            const textContainsKeyword = text.match(new RegExp(room.keyword, "gi"));
 
-        if (!textContainsKeyword) {
-            return null;
-        }
+            if (!textContainsKeyword) {
+                return null;
+            }
 
-        const from = text;
-        const to = text.replace(
-            new RegExp(room.keyword, "gi"),
-            `<span style="background-color: #d7aa5a;">$&</span>`,
-        );
+            const from = text;
+            const to = text.replace(
+                new RegExp(room.keyword, "gi"),
+                `<span style="background-color: #d7aa5a;">$&</span>`,
+            );
 
-        return { from, to };
-    };
+            return { from, to };
+        };
 
 export const selectShowMessageOptions =
     (roomId: number, id: number) =>
-    (state: RootState): boolean => {
-        const room = state.messages[roomId];
+        (state: RootState): boolean => {
+            const room = state.messages[roomId];
 
-        if (!room) {
-            return false;
-        }
+            if (!room) {
+                return false;
+            }
 
-        return room.showMessageOptions && room.activeMessageId === id;
-    };
+            return room.showMessageOptions && room.activeMessageId === id;
+        };
 
 export const selectActiveMessageIds = createSelector(
     (state: RootState, roomId: number) => state.messages[roomId],
@@ -2154,15 +2156,15 @@ export const selectActiveMessageIds = createSelector(
 );
 export const selectIsSelectingMessagesActive =
     (roomId: number) =>
-    (state: RootState): boolean => {
-        const room = state.messages[roomId];
+        (state: RootState): boolean => {
+            const room = state.messages[roomId];
 
-        if (!room) {
-            return false;
-        }
+            if (!room) {
+                return false;
+            }
 
-        return room.isSelectingMessagesActive;
-    };
+            return room.isSelectingMessagesActive;
+        };
 
 export const selectIsMessageSelected = (roomId: number, id: number) => (state: RootState) => {
     const room = state.messages[roomId];

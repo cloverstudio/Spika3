@@ -916,7 +916,7 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
             const room = await getRoomById(id, redisClient);
 
             if (!room) {
-                return res.status(404).send(errorResponse("Chat not found", userReq.lang));
+                return res.status(404).send(errorResponse("Room not found", userReq.lang));
             }
 
             const roomUser = room.users.find((u) => u.userId === userId);

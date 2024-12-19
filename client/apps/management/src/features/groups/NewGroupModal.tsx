@@ -13,12 +13,19 @@ import uploadImage from "@assets/upload-image.svg";
 import FileUploader from "@/utils/FileUploader";
 import { useCreateGroupMutation } from "@/features/groups/api/groups";
 import { useNavigate } from "react-router-dom";
+import { RoomType } from "@/types/Room";
 
 type UpdateUserFormType = {
     name: string;
 };
 
-export default function NewGroupModal({ onClose }: { onClose: () => void }) {
+export default function NewGroupModal({
+    onClose,
+    group,
+}: {
+    onClose: () => void;
+    group: RoomType;
+}) {
     const strings = useStrings();
     const [createGroup, { isLoading }] = useCreateGroupMutation();
     const showBasicSnackbar = useShowSnackBar();
@@ -50,6 +57,7 @@ export default function NewGroupModal({ onClose }: { onClose: () => void }) {
                 const fileUploader = new FileUploader({
                     file,
                     type: "image",
+                    roomId: group.id,
                 });
 
                 const uploadedFile = await fileUploader.upload();

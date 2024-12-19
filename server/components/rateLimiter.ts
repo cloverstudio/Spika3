@@ -23,14 +23,10 @@ export default function rateLimiter(redisClient: ReturnType<typeof createClient>
             );
 
             if (!tokenBucket) {
-                await redisClient.set(
-                    `${Constants.TOKEN_BUCKET_PREFIX}${accessToken}`,
-                    Constants.TOKEN_BUCKET_EXPIRY_TIME,
-                    {
-                        EX: Constants.TOKEN_BUCKET_EXPIRY_TIME,
-                        NX: true,
-                    },
-                );
+                await redisClient.set(`${Constants.TOKEN_BUCKET_PREFIX}${accessToken}`, 1, {
+                    EX: Constants.TOKEN_BUCKET_EXPIRY_TIME,
+                    NX: true,
+                });
             } else {
                 if (parseInt(tokenBucket) >= Constants.TOKEN_BUCKET_LIMIT) {
                     return res.status(429).send(errorResponse("Too many requests"));

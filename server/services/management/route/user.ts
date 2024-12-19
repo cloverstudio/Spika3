@@ -119,20 +119,20 @@ export default ({ redisClient }: InitRouterParams) => {
                 where: {
                     ...(keyword
                         ? {
-                              OR: ["startsWith", "contains"].map((key) => ({
-                                  displayName: {
-                                      [key]: keyword,
-                                  },
-                              })),
-                              AND: {
-                                  deleted: false,
-                                  isBot: !!bots,
-                              },
-                          }
+                            OR: ["startsWith", "contains"].map((key) => ({
+                                displayName: {
+                                    [key]: keyword,
+                                },
+                            })),
+                            AND: {
+                                deleted: false,
+                                isBot: !!bots,
+                            },
+                        }
                         : {
-                              deleted: false,
-                              isBot: !!bots,
-                          }),
+                            deleted: false,
+                            isBot: !!bots,
+                        }),
                 },
                 orderBy: {
                     displayName: "asc",
@@ -145,20 +145,20 @@ export default ({ redisClient }: InitRouterParams) => {
                 where: {
                     ...(keyword
                         ? {
-                              OR: ["startsWith", "contains"].map((key) => ({
-                                  displayName: {
-                                      [key]: keyword,
-                                  },
-                              })),
-                              AND: {
-                                  deleted: false,
-                                  isBot: !!bots,
-                              },
-                          }
+                            OR: ["startsWith", "contains"].map((key) => ({
+                                displayName: {
+                                    [key]: keyword,
+                                },
+                            })),
+                            AND: {
+                                deleted: false,
+                                isBot: !!bots,
+                            },
+                        }
                         : {
-                              deleted: false,
-                              isBot: !!bots,
-                          }),
+                            deleted: false,
+                            isBot: !!bots,
+                        }),
                 },
             });
             res.send(
@@ -202,7 +202,127 @@ export default ({ redisClient }: InitRouterParams) => {
         },
     );
 
-    router.get("/:userId", adminAuth(redisClient), async (req: Request, res: Response) => {
+    router.get("/verified", adminAuth, async (req: Request, res: Response) => {
+        const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 0;
+        const userReq: UserRequest = req as UserRequest;
+        try {
+            const users = await prisma.user.findMany({
+                where: {
+                    verified: true,
+                },
+                orderBy: [
+                    {
+                        createdAt: "asc",
+                    },
+                ],
+                skip: consts.PAGING_LIMIT * page,
+                take: consts.PAGING_LIMIT,
+            });
+
+            const count = users.length;
+            res.send(
+                successResponse(
+                    {
+                        list: users,
+                        count: count,
+                        limit: consts.PAGING_LIMIT,
+                    },
+                    userReq.lang,
+                ),
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.post("/", adminAuth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+        try {
+            const displayName: string = req.body.displayName;
+            const emailAddress: string = req.body.emailAddress;
+            const telephoneNumber: string = req.body.telephoneNumber;
+            const verified: boolean = req.body.verified;
+
+            if (Utils.isEmpty(displayName))
+                return res
+                    .status(400)
+                    .send(errorResponse(`Display name is required`, userReq.lang));
+
+            const user = await prisma.user.findMany({
+                where: {
+                    telephoneNumber: telephoneNumber,
+                },
+            });
+            const email = await prisma.user.findUnique({
+                where: {
+                    emailAddress: emailAddress,
+                },
+            });
+
+            if (user.length > 0 && email != null) {
+                return res
+                    .status(400)
+                    .send(errorResponse(`Phone number and email are already in use`, userReq.lang));
+            } else if (user.length > 0) {
+                return res
+                    .status(400)
+                    .send(errorResponse(`Phone number is already in use`, userReq.lang));
+            } else if (email != null) {
+                return res.status(400).send(errorResponse(`Email is already in use`, userReq.lang));
+            }
+            const newUser = await prisma.user.create({
+                data: {
+                    displayName: displayName,
+                    emailAddress: emailAddress,
+                    telephoneNumber: telephoneNumber,
+                    verified: verified,
+                },
+            });
+
+            return res.send(successResponse({ user: newUser }, userReq.lang));
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    /**
+     * TODO: impliment order
+     */
+    router.get("/", adminAuth, async (req: Request, res: Response) => {
+        const page: number = parseInt(req.query.page ? (req.query.page as string) : "") || 0;
+        const userReq: UserRequest = req as UserRequest;
+        try {
+            const users = await prisma.user.findMany({
+                where: {},
+                orderBy: [
+                    {
+                        createdAt: "asc",
+                    },
+                ],
+                skip: consts.PAGING_LIMIT * page,
+                take: consts.PAGING_LIMIT,
+            });
+
+            const count = await prisma.user.count();
+            res.send(
+                successResponse(
+                    {
+                        list: users,
+                        count: count,
+                        limit: consts.PAGING_LIMIT,
+                    },
+                    userReq.lang,
+                ),
+            );
+        } catch (e: any) {
+            le(e);
+            res.status(500).json(errorResponse(`Server error ${e}`, userReq.lang));
+        }
+    });
+
+    router.get("/:userId", adminAuth, async (req: Request, res: Response) => {
         const userReq: UserRequest = req as UserRequest;
         try {
             const userId: number = parseInt(req.params.userId);

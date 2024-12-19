@@ -187,6 +187,7 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
         const uploadService: UploadService = new UploadService();
         uploadService.start({
             rabbitMQChannel,
+            redisClient
         });
 
         app.use("/api/upload", uploadService.getRoutes());

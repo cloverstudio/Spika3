@@ -125,7 +125,11 @@ model File {
   createdAt  DateTime @default(now()) @map(name: "created_at")
   modifiedAt DateTime @default(now()) @map(name: "modified_at")
 
-  @@map(name: "file")
+  user User @relation(fields: [userId], references: [id])
+  file File @relation(fields: [fileId], references: [id])
+
+  @@unique([userId, fileId], map: "user_file_unique")
+  @@map(name: "file_permissions")
 }
 
 model Contact {

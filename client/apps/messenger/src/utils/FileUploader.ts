@@ -11,6 +11,7 @@ type FileUploaderConstructorType = {
     type: string;
     relationId?: number;
     onProgress?: (progress: number) => void;
+    roomId?: number;
 };
 
 class FileUploader {
@@ -24,13 +25,15 @@ class FileUploader {
     chunksUploaded = 0;
     chunkSize: number;
     totalChunks: number;
+    roomId: number;
 
-    constructor({ file, type, relationId, onProgress }: FileUploaderConstructorType) {
+    constructor({ file, type, relationId, onProgress, roomId }: FileUploaderConstructorType) {
         this.file = file;
         this.type = type;
         this.relationId = relationId;
         this.onProgress = onProgress;
 
+        this.roomId = roomId;
         this.clientId = String(Math.round(Math.random() * 100000000));
         this.chunkSize = this.getChunkSize();
         this.totalChunks = Math.ceil(file.size / this.chunkSize);
@@ -222,6 +225,7 @@ class FileUploader {
                 type: this.type,
                 relationId: this.relationId,
                 clientId: this.clientId,
+                roomId: this.roomId,
                 fileHash,
                 metaData,
             },
