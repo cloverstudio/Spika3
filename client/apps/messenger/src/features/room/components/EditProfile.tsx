@@ -301,7 +301,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
             </Box>
             <Box
                 sx={{
-                    height: "calc(100vh - 75px)",
+                    height: "calc(100dvh - 75px)",
                     overflowY: "auto",
                     display: "flex",
                     flexDirection: "column",
