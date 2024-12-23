@@ -251,7 +251,7 @@ export default function LeftSidebarHome({
                 )}
 
                 {isMobile && !profileEditingOpen && (
-                    <Box order={1} px={5} pt={2} pb={3}>
+                    <Box order={1} px={5} pt={2} pb={3} bgcolor="red">
                         <Box display="flex" justifyContent="space-between">
                             {navigation.map((item) => (
                                 <ActionIcon

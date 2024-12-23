@@ -124,7 +124,7 @@ export default function SidebarChatList({
                 )}
             </Box>
 
-            <Box sx={{ overflowY: "auto", height: "95%" }}>
+            <Box sx={{ overflowY: "auto", height: "calc(100% - 45px)" }}>
                 {list.length === 0 && !isFetching && (
                     <Typography align="center">{t("noRooms")}</Typography>
                 )}

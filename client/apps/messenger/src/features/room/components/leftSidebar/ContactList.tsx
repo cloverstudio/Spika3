@@ -211,7 +211,7 @@ export default function SidebarContactList({
             )}
 
             {allowToggle && (
-                <Box display="flex" gap={1} px={3} mb={2}>
+                <Box display="flex" gap={1} px={3}>
                     <Button
                         size="small"
                         color="inherit"
@@ -233,13 +233,13 @@ export default function SidebarContactList({
                 </Box>
             )}
 
-            <Box sx={{ height: "100%", overflowY: "scroll" }}>
+            <Box sx={{ height: "calc(100% + 58px)", overflowY: "scroll" }}>
                 {!sortedByDisplayName.length && !isFetching && (
                     <Typography align="center">{t("noContacts")}</Typography>
                 )}
                 {sortedByDisplayName.map(([letter, contactList]) => {
                     return (
-                        <Box key={letter} mb={2}>
+                        <Box key={letter}>
                             <Typography ml={4.75} py={1.5} fontWeight="bold">
                                 {letter}
                             </Typography>

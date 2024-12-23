@@ -274,7 +274,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
     }
 
     return (
-        <Box height="100vh">
+        <Box height="100dvh">
             <Box px={2.5} borderBottom="0.5px solid" sx={{ borderColor: "divider" }}>
                 <Box
                     height="72px"
