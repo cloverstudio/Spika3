@@ -9,7 +9,7 @@ export default function LeftSidebarLayout({
     return (
         <Box
             borderRight="1px solid"
-            height="100vh"
+            height="100dvh"
             overflow="hidden"
             display="flex"
             flexDirection="column"
