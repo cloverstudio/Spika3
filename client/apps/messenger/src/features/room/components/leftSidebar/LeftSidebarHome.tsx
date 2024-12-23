@@ -95,7 +95,7 @@ export default function LeftSidebarHome({
     const ActiveElement = navigation.find((n) => n.name === activeTab)?.Element;
     const generalLayout = !isMobile
         ? { display: "flex", height: "100vh" }
-        : { display: "flex", flexDirection: "column", height: "100vh" };
+        : { display: "flex", flexDirection: "column", height: "100dvh" };
     const userSettingsAndMessageLayout = !isMobile
         ? {
               display: "flex",
