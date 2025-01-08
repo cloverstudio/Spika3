@@ -201,6 +201,7 @@
     "startCall": "Pokreni poziv?",
     "start": "Pokreni",
     "incomingCall": "Dolazni poziv",
+    "incomingGroupCall": "Dolazni grupni poziv",
     "calling": "Pozivanje",
     "stopCalling": "Odustani od pozivanja",
     "userUnavailable": "Korisnik trenutno nije u mogućnosti odgovoriti na vaš poziv.",

@@ -20,6 +20,7 @@ export default defineConfig(({ command, mode }) => {
             BASE_URL: JSON.stringify("/template"),
             API_BASE_URL: JSON.stringify(env.API_BASE_URL),
             RECAPTCHA_SITE_KEY: JSON.stringify(env.RECAPTCHA_SITE_KEY),
+            EDUMEET_URL: JSON.stringify(env.EDUMEET_URL),
         },
         server: {
             port: 3001,
@@ -52,7 +53,7 @@ export default defineConfig(({ command, mode }) => {
             GIPHY_API_KEY: JSON.stringify(env.GIPHY_API_KEY),
             GIPHY_API_BASE_URL: JSON.stringify(env.GIPHY_API_BASE_URL),
             RECAPTCHA_SITE_KEY: JSON.stringify(env.RECAPTCHA_SITE_KEY),
-
+            EDUMEET_URL: JSON.stringify(env.EDUMEET_URL),
         },
         server: {
             port: 3001,

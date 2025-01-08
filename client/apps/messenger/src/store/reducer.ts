@@ -10,6 +10,9 @@ import inputReducer from "../features/room/slices/input";
 import messagesReducer from "../features/room/slices/messages";
 import userReducer from "./userSlice";
 import modalReducer from "./modalSlice";
+import meetDialogReducer from "../features/room/slices/startMeetDialog";
+import incomingMeetDialogReducer from "../features/room/slices/incomingMeetDialog";
+import meetIframeReducer from "../features/room/slices/meetIframe";
 
 const appReducer = combineReducers({
     contacts: contactsReducer,
@@ -21,6 +24,9 @@ const appReducer = combineReducers({
     call: callReducer,
     input: inputReducer,
     messages: messagesReducer,
+    startMeet: meetDialogReducer,
+    incomingMeet: incomingMeetDialogReducer,
+    meetIframe: meetIframeReducer,
     [api.reducerPath]: api.reducer,
 });
 

@@ -22,3 +22,5 @@ export const SYSTEM_MESSAGE_TYPE_REMOVE_GROUP_ADMINS = "removed_group_admins";
 export const SYSTEM_MESSAGE_TYPE_CREATE_NOTE = "created_note";
 export const SYSTEM_MESSAGE_TYPE_UPDATE_NOTE = "updated_note";
 export const SYSTEM_MESSAGE_TYPE_DELETE_NOTE = "deleted_note";
+export const SYSTEM_MESSAGE_TYPE_INITIATE_CALL = "initiated_call";
+export const SYSTEM_MESSAGE_TYPE_END_CALL = "ended_call";
