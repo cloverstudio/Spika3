@@ -17,7 +17,14 @@ const VALID_SSE_EVENT_TYPES = [
     "SEEN_ROOM",
     "REMOVED_FROM_ROOM",
     "DELETE_MESSAGE_RECORD",
+    "START_MEET",
+    "ACCEPT_MEET",
+    "REJECT_MEET",
+    "STOP_MEET",
+    "LEAVE_MEET",
 ];
+
+declare const EDUMEET_URL: string;
 
 import { notify as notifyCallEvent } from "../features/confcall/lib/callEventListener";
 import { fetchContacts } from "../features/room/slices/contacts";
@@ -30,6 +37,10 @@ import {
     removeMessageRecord,
 } from "../features/room/slices/messages";
 import UserType from "../types/User";
+import { closeIncomingMeet, addNewIncomingMeet } from "../features/room/slices/incomingMeetDialog";
+import { closeStartMeetDialog, setIsAccepted } from "../features/room/slices/startMeetDialog";
+import { openMeetIframe, closeMeetIframe } from "../features/room/slices/meetIframe";
+import { SYSTEM_MESSAGE_TYPE_INITIATE_CALL } from "../features/room/lib/consts";
 
 export default async function handleSSE(event: MessageEvent): Promise<void> {
     const data = event.data ? JSON.parse(event.data) : {};
@@ -275,6 +286,67 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
             store.dispatch(removeRoom(roomId as number));
             store.dispatch(api.util.invalidateTags([{ type: "UnreadCount" }]));
 
+            return;
+        }
+
+        case "START_MEET": {
+            store.dispatch(
+                addNewIncomingMeet({
+                    roomId: data.roomId,
+                    roomType: data.roomType,
+                    avatarFileId: data.avatarFileId,
+                    displayName: data.displayName,
+                    initiator: data.initiator
+                }),
+            );
+            return;
+        }
+
+        case "STOP_MEET": {
+            if (data.roomType === "group") {
+                const messages = (store.getState() as RootState).messages[data.roomId]?.messages || {};
+                const messagesMap = new Map(Object.entries(messages));
+                messagesMap.forEach((message) => {
+                    if (
+                        message.body?.type === SYSTEM_MESSAGE_TYPE_INITIATE_CALL &&
+                        message.body?.isOngoing === true
+                    ) {
+                        const updatedMessage = {
+                            ...message,
+                            body: {
+                                ...message.body,
+                                isOngoing: false,
+                            },
+                        };
+                        store.dispatch(editMessage(updatedMessage));
+                    }
+                });
+            }
+            store.dispatch(closeIncomingMeet({ roomId: data.roomId }));
+            return;
+        }
+
+        case "ACCEPT_MEET": {
+            const { roomId, enableCamera, showStartMeetDialog } = (store.getState() as RootState)
+                .startMeet;
+            const data = (store.getState() as RootState).api.queries["getUser(undefined)"]
+                ?.data as any;
+
+            if (showStartMeetDialog) {
+                store.dispatch(openMeetIframe({ url: `${EDUMEET_URL}/${roomId}?displayName=${data?.user.displayName}&headless=true&video=${enableCamera}` }))
+                store.dispatch(closeStartMeetDialog());
+                store.dispatch(setIsAccepted());
+            }
+            return;
+        }
+
+        case "REJECT_MEET": {
+            store.dispatch(closeStartMeetDialog());
+            return;
+        }
+
+        case "LEAVE_MEET": {
+            store.dispatch(closeMeetIframe());
             return;
         }
 

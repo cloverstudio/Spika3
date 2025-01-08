@@ -45,6 +45,12 @@ export const PUSH_TYPE_CALL_JOIN = "CALL_JOIN";
 export const PUSH_TYPE_CALL_LEAVE = "CALL_LEAVE";
 export const PUSH_TYPE_CALL_UPDATE = "CALL_UPDATE";
 
+export const START_MEET = "START_MEET";
+export const ACCEPT_MEET = "ACCEPT_MEET";
+export const REJECT_MEET = "REJECT_MEET";
+export const STOP_MEET = "STOP_MEET";
+export const LEAVE_MEET = "LEAVE_MEET";
+
 export const EXCHANGE_NAME = "NOTIFICATION";
 export const MESSAGE_RECORD_VALID_TYPES = ["seen", "delivered", "reaction"];
 
@@ -76,3 +82,6 @@ export const SYSTEM_MESSAGE_TYPE_REMOVE_GROUP_ADMINS = "removed_group_admins";
 export const SYSTEM_MESSAGE_TYPE_CREATE_NOTE = "created_note";
 export const SYSTEM_MESSAGE_TYPE_UPDATE_NOTE = "updated_note";
 export const SYSTEM_MESSAGE_TYPE_DELETE_NOTE = "deleted_note";
+export const SYSTEM_MESSAGE_TYPE_INITIATE_CALL = "initiated_call";
+export const SYSTEM_MESSAGE_TYPE_END_CALL = "ended_call";
+

@@ -11,6 +11,8 @@ import UpdateNoteSystemMessage from "./UpdatedNote";
 import CreatedNoteSystemMessage from "./CreatedNote";
 import DeletedNoteSystemMessage from "./DeletedNote";
 import CreatedGroupSystemMessage from "./CreatedGroup";
+import CallInitiatedSystemMessage from "./CallInitiated";
+import CallEnded from "./CallEnded";
 
 import {
     SYSTEM_MESSAGE_TYPE_CREATE_GROUP,
@@ -24,6 +26,8 @@ import {
     SYSTEM_MESSAGE_TYPE_CREATE_NOTE,
     SYSTEM_MESSAGE_TYPE_UPDATE_NOTE,
     SYSTEM_MESSAGE_TYPE_DELETE_NOTE,
+    SYSTEM_MESSAGE_TYPE_INITIATE_CALL,
+    SYSTEM_MESSAGE_TYPE_END_CALL,
 } from "../../../../lib/consts";
 
 export default function SystemMessage({
@@ -56,6 +60,10 @@ export default function SystemMessage({
             return <DeletedNoteSystemMessage body={body} createdAt={createdAt} />;
         case SYSTEM_MESSAGE_TYPE_USER_LEAVE_GROUP:
             return <LeaveRoomSystemMessage body={body} createdAt={createdAt} />;
+        case SYSTEM_MESSAGE_TYPE_INITIATE_CALL:
+            return <CallInitiatedSystemMessage body={body} createdAt={createdAt} />;
+        case SYSTEM_MESSAGE_TYPE_END_CALL:
+            return <CallEnded body={body} createdAt={createdAt} />;
         default:
             return <div>{body.text}</div>;
     }

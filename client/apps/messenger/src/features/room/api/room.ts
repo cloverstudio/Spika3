@@ -2,6 +2,7 @@ import { RoomType } from "../../../types/Rooms";
 import api from "../../../api/api";
 import { store } from "../../../store/store";
 import formatRoomInfo from "../lib/formatRoomInfo";
+import { refreshHistory } from "../slices/leftSidebar";
 
 const roomApi = api.injectEndpoints({
     endpoints: (build) => ({
@@ -83,6 +84,43 @@ const roomApi = api.injectEndpoints({
                 }, 0),
             providesTags: [{ type: "UnreadCount" }],
         }),
+
+        startMeet: build.mutation<{ roomId: number }, { roomId: number }>({
+            query: ({ roomId }) => {
+                return {
+                    method: "POST",
+                    url: `/meet/start`,
+                    data: { roomId },
+                };
+            },
+        }),
+        acceptMeet: build.mutation<{ roomId: number }, { roomId: number }>({
+            query: ({ roomId }) => {
+                return {
+                    method: "POST",
+                    url: `/meet/accept`,
+                    data: { roomId },
+                };
+            },
+        }),
+        rejectMeet: build.mutation<{ roomId: number }, { roomId: number }>({
+            query: ({ roomId }) => {
+                return {
+                    method: "POST",
+                    url: `/meet/reject`,
+                    data: { roomId },
+                };
+            },
+        }),
+        stopMeet: build.mutation<{ roomId: number }, { roomId: number }>({
+            query: ({ roomId }) => {
+                return {
+                    method: "POST",
+                    url: `/meet/stop`,
+                    data: { roomId },
+                };
+            },
+        }),
     }),
     overrideExisting: true,
 });
@@ -100,6 +138,10 @@ export const {
     usePinRoomMutation,
     useUnpinRoomMutation,
     useGetUnreadCountQuery,
+    useStartMeetMutation,
+    useAcceptMeetMutation,
+    useRejectMeetMutation,
+    useStopMeetMutation,
 } = roomApi;
 
 export default roomApi;
