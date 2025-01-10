@@ -346,7 +346,30 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
         }
 
         case "LEAVE_MEET": {
-            store.dispatch(closeMeetIframe());
+            if (data.roomType === "group") {
+                const messages = (store.getState() as RootState).messages[data.roomId]?.messages || {};
+                const messagesMap = new Map(Object.entries(messages));
+                messagesMap.forEach((message) => {
+                    if (
+                        message.body?.type === SYSTEM_MESSAGE_TYPE_INITIATE_CALL &&
+                        message.body?.isOngoing === true
+                    ) {
+                        const updatedMessage = {
+                            ...message,
+                            body: {
+                                ...message.body,
+                                isOngoing: false,
+                            },
+                        };
+                        store.dispatch(editMessage(updatedMessage));
+                    }
+                });
+            }
+
+            const { showMeetIframe } = (store.getState() as RootState).meetIframe;
+            if (showMeetIframe) {
+                store.dispatch(closeMeetIframe())
+            };
             return;
         }
 

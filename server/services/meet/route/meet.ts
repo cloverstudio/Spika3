@@ -169,7 +169,7 @@ export default (params: InitRouterParams) => {
                 );
             }
 
-            if ((eventType === "stop" || isEnded) && isGroup) {
+            if ((eventType === "stop" || (eventType === "leave" && isEnded)) && isGroup) {
                 const deviceMessages = await prisma.deviceMessage.findMany({
                     where: {
                         message: {
@@ -252,10 +252,23 @@ export default (params: InitRouterParams) => {
             }
 
             if (eventType === "leave") {
-                const deviceIds = await prisma.device.findMany({
+                const userIds = await prisma.roomUser.findMany({
                     where: {
-                        userId: userReq.user.id,
+                        roomId,
                     },
+                    select: {
+                        userId: true,
+                    },
+                });
+
+                const deviceIds = await prisma.device.findMany({
+                    where: isGroup
+                        ? {
+                            userId: { in: userIds.map((obj) => obj.userId) },
+                        }
+                        : {
+                            userId: userReq.user.id,
+                        },
                     select: {
                         id: true,
                     },
