@@ -262,13 +262,9 @@ export default (params: InitRouterParams) => {
                 });
 
                 const deviceIds = await prisma.device.findMany({
-                    where: isGroup
-                        ? {
-                            userId: { in: userIds.map((obj) => obj.userId) },
-                        }
-                        : {
-                            userId: userReq.user.id,
-                        },
+                    where: {
+                        userId: { in: userIds.map((obj) => obj.userId) }
+                    },
                     select: {
                         id: true,
                     },

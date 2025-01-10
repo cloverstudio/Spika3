@@ -369,9 +369,10 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
             const userQuery = (store.getState() as RootState).api.queries["getUser(undefined)"]
                 ?.data as any;
 
-            if (data.userId === userQuery?.user.id) {
-                store.dispatch(closeMeetIframe())
-            };
+            if (data.roomType === "private" || data.userId === userQuery?.user.id) {
+                store.dispatch(closeMeetIframe());
+            }
+
             return;
         }
 
