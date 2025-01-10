@@ -285,6 +285,9 @@ export default (params: InitRouterParams) => {
                                 data: {
                                     type: Constants[eventType.toUpperCase() + "_MEET"],
                                     roomId: room.id,
+                                    roomType: room.type,
+                                    userId: userReq.user.id,
+                                    isEnded
                                 },
                             }),
                         ),
