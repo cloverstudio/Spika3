@@ -609,7 +609,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                             mt: 2,
                         }}
                     >
-                        {t("version")}: 1.3.0
+                        {t("version")}: 1.4.0
                     </Typography>
                 </Box>
                 {editProfilePicture ? (

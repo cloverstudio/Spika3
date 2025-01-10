@@ -119,9 +119,7 @@ function VersionItem({ version, changes }: VersionItemProps) {
             sx={{
                 width: "100%",
                 mb: "13px",
-                cursor: "pointer",
             }}
-            onClick={() => setIsOpen(!isOpen)}
         >
             <Box
                 sx={{
@@ -133,7 +131,9 @@ function VersionItem({ version, changes }: VersionItemProps) {
                     borderColor: "divider",
                     p: "10px",
                     borderRadius: "10px",
+                    cursor: "pointer",
                 }}
+                onClick={() => setIsOpen(!isOpen)}
             >
                 <Typography color="text.primary" fontWeight={500} fontSize="14px">
                     {t("version")} {version}
@@ -307,7 +307,172 @@ const version1_3_0Html = (
     </Box>
 );
 
+const version1_4_0Html = (
+    <Box
+        textAlign="left"
+        sx={{
+            fontSize: "14px",
+            fontWeight: 500,
+            lineHeight: "20px",
+        }}
+    >
+        <Typography
+            sx={{
+                fontWeight: 600,
+            }}
+        >
+            DATE: 09/01/2025
+        </Typography>
+        <Typography
+            sx={{
+                fontWeight: 600,
+            }}
+        >
+            'Vladimir Putcode' patch notes:
+        </Typography>
+        <Typography
+            sx={{
+                fontWeight: 600,
+                fontStyle: "italic",
+            }}
+            mt={2}
+        >
+            Version 1.4.0
+        </Typography>
+        <Typography
+            sx={{
+                fontWeight: 600,
+            }}
+        >
+            New features:
+        </Typography>
+        <ul>
+            <li>
+                <Typography
+                    sx={{
+                        fontWeight: 600,
+                    }}
+                >
+                    Bug reporting/Suggestions/Comments:
+                </Typography>
+                <Typography>
+                    Users can now report bugs, provide suggestions, and offer general feedback for
+                    messenger improvement. Additionally, users can attach file to highlight specific
+                    areas for enhancement.
+                </Typography>
+            </li>
+            <li>
+                <Typography
+                    sx={{
+                        fontWeight: 600,
+                    }}
+                >
+                    Detailed patch notes:
+                </Typography>
+                <Typography>
+                    A new section in profile settings allows users to view a complete history of
+                    past patches and changes to the messenger. Patch notes open in a dedicated modal
+                    for better clarity.
+                </Typography>
+            </li>
+            <li>
+                <Typography
+                    sx={{
+                        fontWeight: 600,
+                    }}
+                >
+                    Pontis Technology icon:
+                </Typography>
+                <Typography>
+                    A Pontis Technology icon has been added to the top-left corner of the messenger
+                    app. Clicking on the icon redirects users to the homepage: &nbsp;
+                    <a
+                        href="https://pontistechnology.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        https://pontistechnology.com
+                    </a>
+                    .
+                </Typography>
+            </li>
+        </ul>
+        <Divider
+            sx={{
+                mt: 1,
+                mb: 1,
+            }}
+        />
+
+        <Typography
+            sx={{
+                fontWeight: 600,
+            }}
+        >
+            Improvements
+        </Typography>
+        <ul>
+            <li>
+                <Typography
+                    sx={{
+                        fontWeight: 600,
+                    }}
+                >
+                    Group chat message records:
+                </Typography>
+                <Typography>
+                    The system for handling seen and delivered states in group chats has been
+                    optimized, ensuring quicker and more reliable updates for message statuses,
+                    resulting in a smoother and more efficient user experience.
+                </Typography>
+            </li>
+            <li>
+                <Typography
+                    sx={{
+                        fontWeight: 600,
+                    }}
+                >
+                    Security enhancements:
+                </Typography>
+                <Typography>
+                    Significant updates have been made to improve the platform's overall security.
+                </Typography>
+            </li>
+            <li>
+                <Typography
+                    sx={{
+                        fontWeight: 600,
+                    }}
+                >
+                    Minor wording changes:
+                </Typography>
+                <Typography>
+                    Adjustments to various text elements within the app for improved clarity and
+                    consistency.
+                </Typography>
+            </li>
+            <li>
+                <Typography
+                    sx={{
+                        fontWeight: 600,
+                    }}
+                >
+                    Bug fixes:
+                </Typography>
+                <Typography>
+                    Several minor bugs have been identified and resolved to ensure a more stable and
+                    reliable messenger.
+                </Typography>
+            </li>
+        </ul>
+    </Box>
+);
+
 const versionList = [
+    {
+        version: "1.4.0",
+        changes: version1_4_0Html,
+    },
     {
         version: "1.3.0",
         changes: version1_3_0Html,
