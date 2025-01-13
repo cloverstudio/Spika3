@@ -6,6 +6,8 @@ import Draggable from "react-draggable";
 import { useSelector } from "react-redux";
 import { selectMeetUrl } from "../slices/meetIframe";
 
+declare const API_BASE_URL: string;
+
 export default function MeetIframe() {
     const [isFullScreen, setIsFullScreen] = useState(true);
     const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
@@ -63,7 +65,7 @@ export default function MeetIframe() {
                     )}
                 </Stack>
                 <iframe
-                    src={meetUrl}
+                    src={`${meetUrl}&leaveApiUrl=${API_BASE_URL}/meet/leave`}
                     allow="camera; microphone"
                     style={{
                         width: "100%",
