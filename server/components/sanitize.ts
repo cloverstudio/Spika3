@@ -10,13 +10,17 @@ import {
     Webhook,
     ApiKey,
     Block,
+    UserPrivacySettings
 } from ".prisma/client";
+
+type SanitizedUserPrivacySettings = Omit<UserPrivacySettings, "id" | "userId">;
 
 type SanitizedUserType = Partial<
     Omit<User, "createdAt" | "modifiedAt"> & {
         createdAt: number;
         modifiedAt: number;
         blockedBy?: { userId: number }[];
+        privacySettings: SanitizedUserPrivacySettings
     }
 >;
 type SanitizedDeviceType = Partial<Omit<Device, "tokenExpiredAt"> & { tokenExpiredAt?: number }>;
@@ -365,7 +369,8 @@ function sanitizeUser({
     longDescription,
     coverFileId,
     blockedBy,
-}: Partial<User & { blockedBy?: { userId: number }[] }>): SanitizedUserType {
+    privacySettings
+}: Partial<User & { blockedBy?: { userId: number }[]; privacySettings: UserPrivacySettings }>): SanitizedUserType {
     return {
         id,
         displayName,
@@ -384,6 +389,7 @@ function sanitizeUser({
         longDescription,
         coverFileId,
         blockedBy,
+        privacySettings
     };
 }
 

@@ -35,7 +35,11 @@ export default async (
                 token: accessToken,
             },
             include: {
-                user: true,
+                user: {
+                    include: {
+                        privacySettings: true
+                    }
+                },
             },
         });
 

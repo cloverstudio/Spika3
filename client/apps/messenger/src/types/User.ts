@@ -5,6 +5,9 @@ type UserType = Partial<
         createdAt: number;
         modifiedAt: number;
         blockedBy?: { userId: number }[];
+        privacySettings: {
+            isCallingMuted: boolean;
+        };
     }
 >;
 

@@ -20,6 +20,8 @@ import ChevronRight from "@mui/icons-material/ChevronRight";
 import Close from "@mui/icons-material/Close";
 import NoUsersPhoto from "../../../../src/assets/no-photo.jpg";
 import { useTheme } from "@mui/material/styles";
+import { useSelector } from "react-redux";
+import { selectUser } from "../../../store/userSlice";
 
 import { useLogoutMutation, useRemoveMutation, useUpdateMutation } from "../../auth/api/auth";
 
@@ -42,6 +44,7 @@ import { useAppDispatch } from "../../../hooks";
 import { ChangeLanguageModal } from "./leftSidebar/ChangeLanguageModal";
 import EditPersonalDataDialog from "./EditPersonalDataDialog";
 import ReleaseNotesDialog from "./ReleaseNotesDialog";
+import BasicSwitch from "./leftSidebar/BasicSwitch";
 
 declare const UPLOADS_BASE_URL: string;
 
@@ -72,6 +75,8 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
     const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
     const [editingPersonalData, setEditingPersonalData] = useState(false);
     const [showReleaseNotesModal, setShowReleaseNotesModal] = useState(false);
+    const me = useSelector(selectUser);
+    const [isCallingMuted, setIsCallingMuted] = useState(me.privacySettings.isCallingMuted);
 
     const isMobile = useMediaQuery(themeObject.breakpoints.down("md"));
 
@@ -237,6 +242,18 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                 await updateDevice({ pushToken }).unwrap();
                 setPushNotificationsAllowed(true);
             }
+        }
+    };
+
+    const handleToggleCallingMuted = async () => {
+        const previousValue = isCallingMuted;
+        setIsCallingMuted(!isCallingMuted);
+
+        try {
+            await update({ isCallingMuted: !me.privacySettings.isCallingMuted }).unwrap();
+        } catch (e) {
+            console.error(e);
+            setIsCallingMuted(previousValue);
         }
     };
 
@@ -448,6 +465,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                         spacing={1}
                         alignItems="center"
                         justifyContent="space-between"
+                        minHeight="40px"
                     >
                         {t("colorSchema")}
                         <ThemeSwitch
@@ -457,6 +475,21 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
                                 setTheme(mode);
                                 window.localStorage.setItem(Constants.LSKEY_THEME, mode);
                             }}
+                        />
+                    </Stack>
+
+                    <Stack
+                        direction="row"
+                        spacing={1}
+                        alignItems="center"
+                        justifyContent="space-between"
+                        minHeight="40px"
+                    >
+                        <Box component="span">{t("callSound")}</Box>
+                        <BasicSwitch
+                            checked={!isCallingMuted}
+                            onChange={handleToggleCallingMuted}
+                            inputProps={{ "aria-label": "CallSoundSwitch" }}
                         />
                     </Stack>
 

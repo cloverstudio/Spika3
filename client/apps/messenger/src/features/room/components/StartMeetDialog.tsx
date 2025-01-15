@@ -16,6 +16,7 @@ import { selectRoomMessages } from "../slices/messages";
 import { SYSTEM_MESSAGE_TYPE_INITIATE_CALL } from "../lib/consts";
 import { editMessage } from "../../../features/room/slices/messages";
 import { shouldShowStartMeetDialog, closeStartMeetDialog } from "../slices/startMeetDialog";
+import { selectUser } from "../../../store/userSlice";
 
 export default function StartMeetDialog() {
     const isOpen = useSelector(shouldShowStartMeetDialog);
@@ -25,6 +26,7 @@ export default function StartMeetDialog() {
     const enableCamera = useSelector(selectStartMeetEnableCamera);
     const isAccepted = useSelector(selectIsAccepted);
     const messages = useSelector(selectRoomMessages(roomId));
+    const me = useSelector(selectUser);
 
     const { t } = useTranslation();
 
@@ -89,7 +91,9 @@ export default function StartMeetDialog() {
                 },
             }}
         >
-            {!isAccepted && <audio src={calling} loop autoPlay />}
+            {!isAccepted && !me.privacySettings.isCallingMuted && (
+                <audio src={calling} loop autoPlay />
+            )}
             <Stack p="32px" pt="21px" minWidth={{ xs: "100%", md: "467px" }}>
                 <IconButton
                     size="large"
