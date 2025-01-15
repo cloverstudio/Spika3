@@ -32,6 +32,10 @@ export default function rateLimiter(redisClient: ReturnType<typeof createClient>
                     return res.status(429).send(errorResponse("Too many requests"));
                 }
                 await redisClient.incr(`${Constants.TOKEN_BUCKET_PREFIX}${accessToken}`);
+                await redisClient.expire(
+                    `${Constants.TOKEN_BUCKET_PREFIX}${accessToken}`,
+                    Constants.TOKEN_BUCKET_EXPIRY_TIME,
+                );
             }
 
             return next();
