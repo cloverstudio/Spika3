@@ -27,6 +27,7 @@ export default function MeetIframe() {
             disabled={isFullScreen}
             position={isFullScreen ? { x: 0, y: 0 } : dragPosition}
             onStop={(e, data) => setDragPosition({ x: data.x, y: data.y })}
+            bounds="parent"
         >
             <Box
                 sx={{
