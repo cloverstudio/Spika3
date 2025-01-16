@@ -91,7 +91,7 @@ export default function StartMeetDialog() {
                 },
             }}
         >
-            {!isAccepted && !me.privacySettings.isCallingMuted && (
+            {!isAccepted && !me.privacySettings?.isCallingMuted && (
                 <audio src={calling} loop autoPlay />
             )}
             <Stack p="32px" pt="21px" minWidth={{ xs: "100%", md: "467px" }}>

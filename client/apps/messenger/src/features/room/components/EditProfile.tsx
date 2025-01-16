@@ -76,7 +76,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
     const [editingPersonalData, setEditingPersonalData] = useState(false);
     const [showReleaseNotesModal, setShowReleaseNotesModal] = useState(false);
     const me = useSelector(selectUser);
-    const [isCallingMuted, setIsCallingMuted] = useState(me.privacySettings.isCallingMuted);
+    const [isCallingMuted, setIsCallingMuted] = useState(me.privacySettings?.isCallingMuted);
 
     const isMobile = useMediaQuery(themeObject.breakpoints.down("md"));
 
@@ -250,7 +250,7 @@ export function EditProfileView({ onClose, user }: EditProfileProps) {
         setIsCallingMuted(!isCallingMuted);
 
         try {
-            await update({ isCallingMuted: !me.privacySettings.isCallingMuted }).unwrap();
+            await update({ isCallingMuted: !me.privacySettings?.isCallingMuted }).unwrap();
         } catch (e) {
             console.error(e);
             setIsCallingMuted(previousValue);

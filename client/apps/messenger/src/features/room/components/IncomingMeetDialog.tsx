@@ -90,7 +90,7 @@ export default function IncomingMeetDialog() {
                 },
             }}
         >
-            {!me.privacySettings.isCallingMuted && <audio src={ringing} loop autoPlay />}
+            {!me.privacySettings?.isCallingMuted && <audio src={ringing} loop autoPlay />}
             <Stack
                 direction="row"
                 justifyContent="center"

@@ -88,6 +88,11 @@ export default ({ rabbitMQChannel }: InitRouterParams): Router => {
                         telephoneNumber,
                         telephoneNumberHashed,
                         verificationCode,
+                        privacySettings: {
+                            create: {
+                                isCallingMuted: false,
+                            },
+                        },
                     },
                 });
 

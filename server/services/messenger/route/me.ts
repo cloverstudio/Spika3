@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { Device, Gender, User, UserSetting } from "@prisma/client";
+import { Device, Gender, User, UserSetting, Prisma } from "@prisma/client";
 
 import { error as le } from "../../../components/logger";
 import validate from "../../../components/validateMiddleware";
@@ -83,23 +83,28 @@ export default ({ rabbitMQChannel, redisClient }: InitRouterParams): Router => {
                     });
                 }
             }
+
+            const userData: Prisma.UserUpdateInput = {
+                ...(emailAddress && { emailAddress }),
+                ...(displayName && { displayName }),
+                ...((avatarFileId || avatarFileId === 0) && { avatarFileId }),
+                ...(country && { country }),
+                ...(gender && { gender }),
+                modifiedAt: new Date(),
+            };
+
+            if (typeof isCallingMuted !== "undefined") {
+                userData.privacySettings = {
+                    upsert: {
+                        create: { isCallingMuted },
+                        update: { isCallingMuted },
+                    },
+                };
+            }
+
             const user = await prisma.user.update({
                 where: { id },
-                data: {
-                    ...(emailAddress && { emailAddress }),
-                    ...(displayName && { displayName }),
-                    ...((avatarFileId || avatarFileId === 0) && { avatarFileId }),
-                    ...(country && { country }),
-                    ...(gender && { gender }),
-                    privacySettings: {
-                        update: {
-                            ...(typeof isCallingMuted !== "undefined" && {
-                                isCallingMuted,
-                            }),
-                        },
-                    },
-                    modifiedAt: new Date(),
-                },
+                data: userData
             });
 
             res.send(successResponse({ user: sanitize(user).user() }));
