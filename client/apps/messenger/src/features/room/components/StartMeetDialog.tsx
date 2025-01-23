@@ -66,18 +66,21 @@ export default function StartMeetDialog() {
                 handleStopMeet();
             }, 30000);
 
-            const handleBeforeUnload = () => {
-                handleStopMeet();
-            };
-
-            window.addEventListener("beforeunload", handleBeforeUnload);
-
             return () => {
                 clearTimeout(timer);
-                window.removeEventListener("beforeunload", handleBeforeUnload);
             };
         }
-    }, [isOpen, messages]);
+    }, [isOpen, handleStopMeet]);
+
+    useEffect(() => {
+        if (isOpen) {
+            window.addEventListener("beforeunload", handleStopMeet);
+
+            return () => {
+                window.removeEventListener("beforeunload", handleStopMeet);
+            };
+        }
+    }, [isOpen]);
 
     return (
         <Dialog
