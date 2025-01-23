@@ -63,6 +63,7 @@ model User {
   blockedBy       Block[]           @relation("blockedBy")
   Suggestion      Suggestion[]
   FilePermissions FilePermissions[]
+  CallParticipant CallParticipant[]
 
   @@index([displayName])
   @@map(name: "user")
@@ -173,6 +174,7 @@ model Room {
   callHistory CallHistory[]
   webhooks    Webhook[]
   apiKeys     ApiKey[]
+  calls       Call[]
 
   @@map(name: "room")
 }
@@ -274,6 +276,31 @@ model Note {
   modifiedAt DateTime @default(now()) @map(name: "modified_at")
 
   @@map(name: "note")
+}
+
+model Call {
+  id           Int               @id @default(autoincrement()) @map(name: "id")
+  room         Room              @relation(fields: [roomId], references: [id])
+  roomId       Int               @map(name: "room_id")
+  startedAt    DateTime          @default(now()) @map(name: "started_at")
+  finishedAt   DateTime?         @map(name: "finished_at")
+  participants CallParticipant[]
+
+  @@map(name: "call")
+}
+
+model CallParticipant {
+  id          Int       @id @default(autoincrement()) @map(name: "id")
+  call        Call      @relation(fields: [callId], references: [id])
+  callId      Int       @map(name: "call_id")
+  user        User      @relation(fields: [userId], references: [id])
+  userId      Int       @map(name: "user_id")
+  isInitiator Boolean   @default(false) @map(name: "is_initiator")
+  joinedAt    DateTime  @default(now()) @map(name: "joined_at")
+  leftAt      DateTime? @map(name: "left_at")
+
+  @@unique([callId, userId], name: "call_user_unique")
+  @@map(name: "call_participant")
 }
 
 model CallSession {

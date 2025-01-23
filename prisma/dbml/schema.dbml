@@ -45,6 +45,7 @@ Table user {
   blockedBy block [not null]
   Suggestion suggestion [not null]
   FilePermissions file_permissions [not null]
+  CallParticipant call_participant [not null]
 }
 
 Table privacy_settings {
@@ -135,6 +136,7 @@ Table room {
   callHistory call_history [not null]
   webhooks webhook [not null]
   apiKeys api_key [not null]
+  calls call [not null]
 }
 
 Table room_user {
@@ -210,6 +212,30 @@ Table note {
   title String [not null, default: '']
   createdAt DateTime [default: `now()`, not null]
   modifiedAt DateTime [default: `now()`, not null]
+}
+
+Table call {
+  id Int [pk, increment]
+  room room [not null]
+  roomId Int [not null]
+  startedAt DateTime [default: `now()`, not null]
+  finishedAt DateTime
+  participants call_participant [not null]
+}
+
+Table call_participant {
+  id Int [pk, increment]
+  call call [not null]
+  callId Int [not null]
+  user user [not null]
+  userId Int [not null]
+  isInitiator Boolean [not null, default: false]
+  joinedAt DateTime [default: `now()`, not null]
+  leftAt DateTime
+
+  indexes {
+    (callId, userId) [unique]
+  }
 }
 
 Table call_session {
@@ -307,6 +333,12 @@ Ref: message_device.messageId > message.id
 Ref: message_record.messageId > message.id
 
 Ref: message_record.userId > user.id
+
+Ref: call.roomId > room.id
+
+Ref: call_participant.callId > call.id
+
+Ref: call_participant.userId > user.id
 
 Ref: call_history.roomId > room.id
 

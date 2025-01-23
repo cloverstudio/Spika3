@@ -29,7 +29,7 @@ export default function CallEnded({
                 <Box component="span" fontWeight="bold">
                     {body.user}
                 </Box>{" "}
-                ended call
+                {body.text || "ended call"}
             </Typography>
         </Box>
     );
