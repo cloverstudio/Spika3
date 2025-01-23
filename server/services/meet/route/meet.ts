@@ -723,6 +723,7 @@ export default (params: InitRouterParams) => {
                                 roomId: room.id,
                                 roomType: room.type,
                                 userId: userReq.user.id,
+                                ...(remainingParticipants === 0 && { isEnded: true })
                             },
                         }),
                     ),

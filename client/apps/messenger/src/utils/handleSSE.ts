@@ -346,7 +346,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
         }
 
         case "LEAVE_MEET": {
-            if (data.roomType === "group") {
+            if (data.roomType === "group" && data.isEnded) {
                 const messages = (store.getState() as RootState).messages[data.roomId]?.messages || {};
                 const messagesMap = new Map(Object.entries(messages));
                 messagesMap.forEach((message) => {
