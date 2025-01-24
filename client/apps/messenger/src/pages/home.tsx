@@ -10,8 +10,8 @@ import Base from "../components/Base";
 import PushNotificationPermissionDialog from "../components/PushnotificationPermissionDialog";
 import LeftSidebar from "../features/room/LeftSidebar";
 import RightSidebar from "../features/room/RightSidebar";
-import StartMeetDialog from "../features/room/components/StartMeetDialog";
-import IncomingMeetDialog from "../features/room/components/IncomingMeetDialog";
+import StartCallDialog from "../features/room/components/StartCallDialog";
+import IncomingCallDialog from "../features/room/components/IncomingCallDialog";
 
 import Cookie from "universal-cookie";
 
@@ -23,14 +23,14 @@ import {
     selectRightSidebarOpen,
 } from "../features/room/slices/rightSidebar";
 
-import { shouldshowMeetIframe } from "../features/room/slices/meetIframe";
+import { shouldshowCallIframe } from "../features/room/slices/callIframe";
 
 import { selectUserId, fetchMe, fetchSettings } from "../../src/store/userSlice";
 import * as constants from "../../../../lib/constants";
 import TitleUpdater from "../features/room/components/TitleUpdater";
 import homeImg from "../assets/home.svg";
 import { useAppDispatch, useAppSelector } from "../hooks";
-import MeetIframe from "../features/room/components/MeetIframe";
+import CallIframe from "../features/room/components/CallIframe";
 
 export default function Home(): React.ReactElement {
     const theme = useTheme();
@@ -44,7 +44,7 @@ export default function Home(): React.ReactElement {
 
     const rightSidebarOpen = useSelector(selectRightSidebarOpen) && !isCall && !!roomId;
     const activeSidebarNoteId = useSelector(selectRightSidebarActiveNoteId);
-    const meetIframeOpen = useSelector(shouldshowMeetIframe);
+    const callIframeOpen = useSelector(shouldshowCallIframe);
 
     const loggedInUserId = useSelector(selectUserId);
 
@@ -61,9 +61,9 @@ export default function Home(): React.ReactElement {
         return (
             <Base>
                 <LeftSidebar />
-                <StartMeetDialog />
-                <IncomingMeetDialog />
-                {meetIframeOpen && <MeetIframe />}
+                <StartCallDialog />
+                <IncomingCallDialog />
+                {callIframeOpen && <CallIframe />}
             </Base>
         );
     }
@@ -86,10 +86,10 @@ export default function Home(): React.ReactElement {
                     }),
                 }}
             >
-                <StartMeetDialog />
-                <IncomingMeetDialog />
+                <StartCallDialog />
+                <IncomingCallDialog />
 
-                {meetIframeOpen && <MeetIframe />}
+                {callIframeOpen && <CallIframe />}
 
                 {!isMobile && <LeftSidebar />}
                 <Outlet />

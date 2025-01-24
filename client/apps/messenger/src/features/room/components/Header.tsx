@@ -13,7 +13,7 @@ import { Box, IconButton } from "@mui/material";
 import Skeleton from "@mui/material/Skeleton";
 import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import { useGetRoomBlockedQuery, useGetRoomQuery, useStartMeetMutation } from "../api/room";
+import { useGetRoomBlockedQuery, useGetRoomQuery, useStartCallMutation } from "../api/room";
 import {
     selectRightSidebarOpen,
     setActiveTab,
@@ -22,8 +22,8 @@ import {
 } from "../slices/rightSidebar";
 import { RoomType } from "../../../types/Rooms";
 import { useAppDispatch, useAppSelector } from "../../../hooks";
-import { openStartMeetDialog } from "../slices/startMeetDialog";
-import { shouldshowMeetIframe } from "../slices/meetIframe";
+import { openStartCallDialog } from "../slices/startCallDialog";
+import { shouldshowCallIframe } from "../slices/callIframe";
 import { selectRoomMessages } from "../slices/messages";
 import { SYSTEM_MESSAGE_TYPE_INITIATE_CALL } from "../lib/consts";
 
@@ -48,9 +48,9 @@ function HeaderContent({ room, roomBlock }: { room: RoomType; roomBlock: { id: n
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
     const isRightSidebarOpen = useSelector(selectRightSidebarOpen);
-    const isMeetIframeOpen = useSelector(shouldshowMeetIframe);
+    const isCallIframeOpen = useSelector(shouldshowCallIframe);
     const messages = useSelector(selectRoomMessages(room.id));
-    const [startMeet] = useStartMeetMutation();
+    const [startCall] = useStartCallMutation();
 
     const isSomeNoteEditing =
         useAppSelector((state) => state.rightSidebar.activeTab) === "editNote";
@@ -67,9 +67,9 @@ function HeaderContent({ room, roomBlock }: { room: RoomType; roomBlock: { id: n
                         message.body?.isOngoing === true,
                 );
             }
-            return !roomBlock && !isMeetIframeOpen && !hasOngoingCall;
+            return !roomBlock && !isCallIframeOpen && !hasOngoingCall;
         }
-    }, [roomBlock, isMeetIframeOpen, messages]);
+    }, [roomBlock, isCallIframeOpen, messages]);
 
     const iconSxProps = {
         width: "25px",
@@ -89,11 +89,11 @@ function HeaderContent({ room, roomBlock }: { room: RoomType; roomBlock: { id: n
         dispatch(toggleRightSidebar());
     };
 
-    const handleStartMeet = async (enableCamera: boolean) => {
+    const handleStartCall = async (enableCamera: boolean) => {
         try {
-            await startMeet({ roomId: room.id }).unwrap();
+            await startCall({ roomId: room.id }).unwrap();
             dispatch(
-                openStartMeetDialog({
+                openStartCallDialog({
                     roomId: room.id,
                     avatarFileId: room.avatarFileId,
                     displayName: room.name,
@@ -131,10 +131,10 @@ function HeaderContent({ room, roomBlock }: { room: RoomType; roomBlock: { id: n
             <Box display="flex" gap={3} alignItems="center">
                 {showCallButtons && (
                     <>
-                        <IconButton sx={iconSxProps} onClick={() => handleStartMeet(false)}>
+                        <IconButton sx={iconSxProps} onClick={() => handleStartCall(false)}>
                             <CallIcon />
                         </IconButton>
-                        <IconButton sx={iconSxProps} onClick={() => handleStartMeet(true)}>
+                        <IconButton sx={iconSxProps} onClick={() => handleStartCall(true)}>
                             <VideoCamIcon />
                         </IconButton>
                     </>

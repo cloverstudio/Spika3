@@ -85,38 +85,38 @@ const roomApi = api.injectEndpoints({
             providesTags: [{ type: "UnreadCount" }],
         }),
 
-        startMeet: build.mutation<{ roomId: number }, { roomId: number }>({
+        startCall: build.mutation<{ roomId: number }, { roomId: number }>({
             query: ({ roomId }) => {
                 return {
                     method: "POST",
-                    url: `/meet/start`,
+                    url: `/call/start`,
                     data: { roomId },
                 };
             },
         }),
-        acceptMeet: build.mutation<{ roomId: number }, { roomId: number }>({
+        acceptCall: build.mutation<{ roomId: number }, { roomId: number }>({
             query: ({ roomId }) => {
                 return {
                     method: "POST",
-                    url: `/meet/accept`,
+                    url: `/call/accept`,
                     data: { roomId },
                 };
             },
         }),
-        rejectMeet: build.mutation<{ roomId: number }, { roomId: number }>({
+        rejectCall: build.mutation<{ roomId: number }, { roomId: number }>({
             query: ({ roomId }) => {
                 return {
                     method: "POST",
-                    url: `/meet/reject`,
+                    url: `/call/reject`,
                     data: { roomId },
                 };
             },
         }),
-        stopMeet: build.mutation<{ roomId: number }, { roomId: number }>({
+        stopCall: build.mutation<{ roomId: number }, { roomId: number }>({
             query: ({ roomId }) => {
                 return {
                     method: "POST",
-                    url: `/meet/stop`,
+                    url: `/call/stop`,
                     data: { roomId },
                 };
             },
@@ -138,10 +138,10 @@ export const {
     usePinRoomMutation,
     useUnpinRoomMutation,
     useGetUnreadCountQuery,
-    useStartMeetMutation,
-    useAcceptMeetMutation,
-    useRejectMeetMutation,
-    useStopMeetMutation,
+    useStartCallMutation,
+    useAcceptCallMutation,
+    useRejectCallMutation,
+    useStopCallMutation,
 } = roomApi;
 
 export default roomApi;

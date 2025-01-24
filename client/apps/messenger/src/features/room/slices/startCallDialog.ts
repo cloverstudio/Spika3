@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../../store/store";
 
 interface InitialState {
-    showStartMeetDialog: boolean;
+    showStartCallDialog: boolean;
     roomId: number | null;
     avatarFileId: number | null;
     displayName: string | null;
@@ -11,7 +11,7 @@ interface InitialState {
 }
 
 const initialState: InitialState = {
-    showStartMeetDialog: false,
+    showStartCallDialog: false,
     roomId: null,
     avatarFileId: null,
     displayName: null,
@@ -19,11 +19,11 @@ const initialState: InitialState = {
     isAccepted: false,
 };
 
-export const startMeetDialogSlice = createSlice({
-    name: "startMeetDialog",
+export const startCallDialogSlice = createSlice({
+    name: "startCallDialog",
     initialState,
     reducers: {
-        openStartMeetDialog(
+        openStartCallDialog(
             state,
             action: PayloadAction<{
                 roomId: number;
@@ -32,15 +32,15 @@ export const startMeetDialogSlice = createSlice({
                 enableCamera: boolean;
             }>,
         ) {
-            state.showStartMeetDialog = true;
+            state.showStartCallDialog = true;
             state.roomId = action.payload.roomId;
             state.avatarFileId = action.payload.avatarFileId;
             state.displayName = action.payload.displayName;
             state.enableCamera = action.payload.enableCamera;
             state.isAccepted = false;
         },
-        closeStartMeetDialog(state) {
-            state.showStartMeetDialog = false;
+        closeStartCallDialog(state) {
+            state.showStartCallDialog = false;
         },
         setIsAccepted(state) {
             state.isAccepted = true;
@@ -48,23 +48,23 @@ export const startMeetDialogSlice = createSlice({
     },
 });
 
-export const shouldShowStartMeetDialog = (state: RootState): boolean =>
-    state.startMeet.showStartMeetDialog;
+export const shouldShowStartCallDialog = (state: RootState): boolean =>
+    state.startCall.showStartCallDialog;
 
-export const selectStartMeetRoomId = (state: RootState): number | null => state.startMeet.roomId;
+export const selectStartCallRoomId = (state: RootState): number | null => state.startCall.roomId;
 
-export const selectStartMeetAvatarFileId = (state: RootState): number | null =>
-    state.startMeet.avatarFileId;
+export const selectStartCallAvatarFileId = (state: RootState): number | null =>
+    state.startCall.avatarFileId;
 
-export const selectStartMeetDisplayName = (state: RootState): string | null =>
-    state.startMeet.displayName;
+export const selectStartCallDisplayName = (state: RootState): string | null =>
+    state.startCall.displayName;
 
-export const selectStartMeetEnableCamera = (state: RootState): boolean =>
-    state.startMeet.enableCamera;
+export const selectStartCallEnableCamera = (state: RootState): boolean =>
+    state.startCall.enableCamera;
 
-export const selectIsAccepted = (state: RootState): boolean => state.startMeet.isAccepted;
+export const selectIsAccepted = (state: RootState): boolean => state.startCall.isAccepted;
 
-export const { openStartMeetDialog, closeStartMeetDialog, setIsAccepted } =
-    startMeetDialogSlice.actions;
+export const { openStartCallDialog, closeStartCallDialog, setIsAccepted } =
+    startCallDialogSlice.actions;
 
-export default startMeetDialogSlice.reducer;
+export default startCallDialogSlice.reducer;

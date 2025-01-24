@@ -17,12 +17,12 @@ export default (params: InitRouterParams) => {
     const rabbitMQChannel: amqp.Channel = params.rabbitMQChannel;
 
     /**
-     * @api {post} /api/meet/:eventType Respond to call event
+     * @api {post} /api/call/:eventType Respond to call event
      * @apiName Respond to call event
      * @apiGroup Event
      * @apiVersion 1.0.0
      *
-     * @apiDescription This endpoint is used to respond to the meet event. Stop should be called when the user wants to stop CALLING (for example. user waits long time for other participant to respond and decide to stop calling). Start should be called when the user wants to start the calling. Accept should be called when the user wants to accept the call. Reject should be called when the user wants to reject the call.
+     * @apiDescription This endpoint is used to respond to the call event. Stop should be called when the user wants to stop CALLING (for example. user waits long time for other participant to respond and decide to stop calling). Start should be called when the user wants to start the calling. Accept should be called when the user wants to accept the call. Reject should be called when the user wants to reject the call.
      *
      * @apiBody {String} roomId Id of the room for which the user accepts the call.
      *
@@ -205,7 +205,7 @@ export default (params: InitRouterParams) => {
                         JSON.stringify({
                             channelId: deviceId,
                             data: {
-                                type: Constants.START_MEET,
+                                type: Constants.START_CALL,
                                 roomId: room.id,
                                 roomType: room.type,
                                 displayName: isGroup ? room.name : userReq.user.displayName,
@@ -380,7 +380,7 @@ export default (params: InitRouterParams) => {
                         JSON.stringify({
                             channelId: deviceId,
                             data: {
-                                type: Constants.STOP_MEET,
+                                type: Constants.STOP_CALL,
                                 roomId: room.id,
                                 roomType: room.type,
                             },
@@ -476,7 +476,7 @@ export default (params: InitRouterParams) => {
                         JSON.stringify({
                             channelId: deviceId,
                             data: {
-                                type: Constants.ACCEPT_MEET,
+                                type: Constants.ACCEPT_CALL,
                                 roomId: room.id,
                                 roomType: room.type,
                             },
@@ -560,7 +560,7 @@ export default (params: InitRouterParams) => {
                             JSON.stringify({
                                 channelId: deviceId,
                                 data: {
-                                    type: Constants.LEAVE_MEET,
+                                    type: Constants.LEAVE_CALL,
                                     roomId: room.id,
                                     roomType: room.type,
                                     userId: userReq.user.id,
@@ -719,7 +719,7 @@ export default (params: InitRouterParams) => {
                         JSON.stringify({
                             channelId: deviceId,
                             data: {
-                                type: Constants.LEAVE_MEET,
+                                type: Constants.LEAVE_CALL,
                                 roomId: room.id,
                                 roomType: room.type,
                                 userId: userReq.user.id,
@@ -808,7 +808,7 @@ export default (params: InitRouterParams) => {
                         JSON.stringify({
                             channelId: deviceId,
                             data: {
-                                type: Constants.REJECT_MEET,
+                                type: Constants.REJECT_CALL,
                                 roomId: room.id,
                                 roomType: room.type,
                             },

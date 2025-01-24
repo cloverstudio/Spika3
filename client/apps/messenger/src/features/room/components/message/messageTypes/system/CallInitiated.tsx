@@ -4,8 +4,8 @@ import { Call, Videocam } from "@mui/icons-material";
 import { useSelector } from "react-redux";
 import { selectUser } from "../../../../../../store/userSlice";
 import { useAppDispatch } from "../../../../../../hooks";
-import { openMeetIframe } from "../../../../slices/meetIframe";
-import { useAcceptMeetMutation } from "../../../../api/room";
+import { openCallIframe } from "../../../../slices/callIframe";
+import { useAcceptCallMutation } from "../../../../api/room";
 
 declare const EDUMEET_URL: string;
 
@@ -34,13 +34,13 @@ export default function CallInitiated({
 
     const dispatch = useAppDispatch();
 
-    const [acceptMeet] = useAcceptMeetMutation();
+    const [acceptCall] = useAcceptCallMutation();
 
-    const handleJoinMeet = async (enableCamera: boolean) => {
+    const handleJoinCall = async (enableCamera: boolean) => {
         try {
-            await acceptMeet({ roomId: body.roomId }).unwrap();
+            await acceptCall({ roomId: body.roomId }).unwrap();
             dispatch(
-                openMeetIframe({
+                openCallIframe({
                     url: `${EDUMEET_URL}/${body.roomId}?displayName=${me.displayName}&headless=true&video=${enableCamera}`,
                 }),
             );
@@ -72,10 +72,10 @@ export default function CallInitiated({
             </Typography>
             {body.isOngoing && (
                 <Stack direction="row" justifyContent="center" gap="8px">
-                    <IconButton sx={iconSxProps} onClick={() => handleJoinMeet(false)}>
+                    <IconButton sx={iconSxProps} onClick={() => handleJoinCall(false)}>
                         <Call />
                     </IconButton>
-                    <IconButton sx={iconSxProps} onClick={() => handleJoinMeet(true)}>
+                    <IconButton sx={iconSxProps} onClick={() => handleJoinCall(true)}>
                         <Videocam />
                     </IconButton>
                 </Stack>

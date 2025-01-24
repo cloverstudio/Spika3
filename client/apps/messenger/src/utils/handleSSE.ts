@@ -17,11 +17,11 @@ const VALID_SSE_EVENT_TYPES = [
     "SEEN_ROOM",
     "REMOVED_FROM_ROOM",
     "DELETE_MESSAGE_RECORD",
-    "START_MEET",
-    "ACCEPT_MEET",
-    "REJECT_MEET",
-    "STOP_MEET",
-    "LEAVE_MEET",
+    "START_CALL",
+    "ACCEPT_CALL",
+    "REJECT_CALL",
+    "STOP_CALL",
+    "LEAVE_CALL",
 ];
 
 declare const EDUMEET_URL: string;
@@ -37,9 +37,9 @@ import {
     removeMessageRecord,
 } from "../features/room/slices/messages";
 import UserType from "../types/User";
-import { closeIncomingMeet, addNewIncomingMeet } from "../features/room/slices/incomingMeetDialog";
-import { closeStartMeetDialog, setIsAccepted } from "../features/room/slices/startMeetDialog";
-import { openMeetIframe, closeMeetIframe } from "../features/room/slices/meetIframe";
+import { closeIncomingCall, addNewIncomingCall } from "../features/room/slices/incomingCallDialog";
+import { closeStartCallDialog, setIsAccepted } from "../features/room/slices/startCallDialog";
+import { openCallIframe, closeCallIframe } from "../features/room/slices/callIframe";
 import { SYSTEM_MESSAGE_TYPE_INITIATE_CALL } from "../features/room/lib/consts";
 
 export default async function handleSSE(event: MessageEvent): Promise<void> {
@@ -289,9 +289,9 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
             return;
         }
 
-        case "START_MEET": {
+        case "START_CALL": {
             store.dispatch(
-                addNewIncomingMeet({
+                addNewIncomingCall({
                     roomId: data.roomId,
                     roomType: data.roomType,
                     avatarFileId: data.avatarFileId,
@@ -302,7 +302,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
             return;
         }
 
-        case "STOP_MEET": {
+        case "STOP_CALL": {
             if (data.roomType === "group") {
                 const messages = (store.getState() as RootState).messages[data.roomId]?.messages || {};
                 const messagesMap = new Map(Object.entries(messages));
@@ -322,30 +322,30 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                     }
                 });
             }
-            store.dispatch(closeIncomingMeet({ roomId: data.roomId }));
+            store.dispatch(closeIncomingCall({ roomId: data.roomId }));
             return;
         }
 
-        case "ACCEPT_MEET": {
-            const { roomId, enableCamera, showStartMeetDialog } = (store.getState() as RootState)
-                .startMeet;
+        case "ACCEPT_CALL": {
+            const { roomId, enableCamera, showStartCallDialog } = (store.getState() as RootState)
+                .startCall;
             const data = (store.getState() as RootState).api.queries["getUser(undefined)"]
                 ?.data as any;
 
-            if (showStartMeetDialog) {
-                store.dispatch(openMeetIframe({ url: `${EDUMEET_URL}/${roomId}?displayName=${data?.user.displayName}&headless=true&video=${enableCamera}` }))
-                store.dispatch(closeStartMeetDialog());
+            if (showStartCallDialog) {
+                store.dispatch(openCallIframe({ url: `${EDUMEET_URL}/${roomId}?displayName=${data?.user.displayName}&headless=true&video=${enableCamera}` }))
+                store.dispatch(closeStartCallDialog());
                 store.dispatch(setIsAccepted());
             }
             return;
         }
 
-        case "REJECT_MEET": {
-            store.dispatch(closeStartMeetDialog());
+        case "REJECT_CALL": {
+            store.dispatch(closeStartCallDialog());
             return;
         }
 
-        case "LEAVE_MEET": {
+        case "LEAVE_CALL": {
             if (data.roomType === "group" && data.isEnded) {
                 const messages = (store.getState() as RootState).messages[data.roomId]?.messages || {};
                 const messagesMap = new Map(Object.entries(messages));
@@ -370,7 +370,7 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                 ?.data as any;
 
             if (data.roomType === "private" || data.userId === userQuery?.user.id) {
-                store.dispatch(closeMeetIframe());
+                store.dispatch(closeCallIframe());
             }
 
             return;

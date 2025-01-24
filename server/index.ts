@@ -12,7 +12,7 @@ import PushService from "./services/push";
 import SSEService from "./services/sse";
 import MessageRecordsSSEService from "./services/messageRecordsSse";
 import ConfcallService from "./services/confcall";
-import MeetService from "./services/meet";
+import CallService from "./services/call";
 import amqp from "amqplib";
 import fs from "fs";
 import path from "path";
@@ -256,14 +256,14 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
         app.use("/api/confcall", confcallService.getRoutes());
     }
 
-    const meetService: MeetService = new MeetService();
-    meetService.start({
+    const callService: CallService = new CallService();
+    callService.start({
         rabbitMQChannel,
         redisClient,
         server,
     });
 
-    app.use("/api/meet", meetService.getRoutes());
+    app.use("/api/call", callService.getRoutes());
 
     // test
 

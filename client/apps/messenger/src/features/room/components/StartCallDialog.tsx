@@ -3,27 +3,27 @@ import { Avatar, Button, Dialog, IconButton, Stack, Typography } from "@mui/mate
 import { Call, Close, Videocam } from "@mui/icons-material";
 import { useSelector, useDispatch } from "react-redux";
 import { useTranslation } from "react-i18next";
-import { useStopMeetMutation } from "../api/room";
+import { useStopCallMutation } from "../api/room";
 import {
-    selectStartMeetRoomId,
-    selectStartMeetAvatarFileId,
-    selectStartMeetDisplayName,
-    selectStartMeetEnableCamera,
+    selectStartCallRoomId,
+    selectStartCallAvatarFileId,
+    selectStartCallDisplayName,
+    selectStartCallEnableCamera,
     selectIsAccepted,
-} from "../slices/startMeetDialog";
+} from "../slices/startCallDialog";
 import calling from "../../../assets/calling.mp3";
 import { selectRoomMessages } from "../slices/messages";
 import { SYSTEM_MESSAGE_TYPE_INITIATE_CALL } from "../lib/consts";
-import { editMessage } from "../../../features/room/slices/messages";
-import { shouldShowStartMeetDialog, closeStartMeetDialog } from "../slices/startMeetDialog";
+import { editMessage } from "../slices/messages";
+import { shouldShowStartCallDialog, closeStartCallDialog } from "../slices/startCallDialog";
 import { selectUser } from "../../../store/userSlice";
 
-export default function StartMeetDialog() {
-    const isOpen = useSelector(shouldShowStartMeetDialog);
-    const roomId = useSelector(selectStartMeetRoomId);
-    const avatarFileId = useSelector(selectStartMeetAvatarFileId);
-    const displayName = useSelector(selectStartMeetDisplayName);
-    const enableCamera = useSelector(selectStartMeetEnableCamera);
+export default function StartCallDialog() {
+    const isOpen = useSelector(shouldShowStartCallDialog);
+    const roomId = useSelector(selectStartCallRoomId);
+    const avatarFileId = useSelector(selectStartCallAvatarFileId);
+    const displayName = useSelector(selectStartCallDisplayName);
+    const enableCamera = useSelector(selectStartCallEnableCamera);
     const isAccepted = useSelector(selectIsAccepted);
     const messages = useSelector(selectRoomMessages(roomId));
     const me = useSelector(selectUser);
@@ -32,11 +32,11 @@ export default function StartMeetDialog() {
 
     const dispatch = useDispatch();
 
-    const [stopMeet] = useStopMeetMutation();
+    const [stopCall] = useStopCallMutation();
 
-    const handleStopMeet = async () => {
+    const handleStopCall = async () => {
         try {
-            await stopMeet({ roomId }).unwrap();
+            await stopCall({ roomId }).unwrap();
 
             const messagesMap = new Map(Object.entries(messages));
             messagesMap.forEach((message) => {
@@ -54,7 +54,7 @@ export default function StartMeetDialog() {
                     dispatch(editMessage(updatedMessage));
                 }
             });
-            dispatch(closeStartMeetDialog());
+            dispatch(closeStartCallDialog());
         } catch (e) {
             console.error(e);
         }
@@ -63,21 +63,21 @@ export default function StartMeetDialog() {
     useEffect(() => {
         if (isOpen) {
             const timer = setTimeout(() => {
-                handleStopMeet();
+                handleStopCall();
             }, 30000);
 
             return () => {
                 clearTimeout(timer);
             };
         }
-    }, [isOpen, handleStopMeet]);
+    }, [isOpen, handleStopCall]);
 
     useEffect(() => {
         if (isOpen) {
-            window.addEventListener("beforeunload", handleStopMeet);
+            window.addEventListener("beforeunload", handleStopCall);
 
             return () => {
-                window.removeEventListener("beforeunload", handleStopMeet);
+                window.removeEventListener("beforeunload", handleStopCall);
             };
         }
     }, [isOpen]);
@@ -85,7 +85,7 @@ export default function StartMeetDialog() {
     return (
         <Dialog
             open={isOpen}
-            onClose={handleStopMeet}
+            onClose={handleStopCall}
             maxWidth="lg"
             scroll="body"
             sx={{
@@ -107,7 +107,7 @@ export default function StartMeetDialog() {
                         p: 0,
                         ml: "auto",
                     }}
-                    onClick={handleStopMeet}
+                    onClick={handleStopCall}
                 >
                     <Close
                         sx={{
@@ -161,7 +161,7 @@ export default function StartMeetDialog() {
                             backgroundColor: "common.errorRed",
                         },
                     }}
-                    onClick={handleStopMeet}
+                    onClick={handleStopCall}
                 >
                     {t("stopCalling")}
                 </Button>

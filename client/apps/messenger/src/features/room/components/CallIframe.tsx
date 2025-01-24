@@ -4,15 +4,15 @@ import Box from "@mui/material/Box";
 import { DragIndicator, FullscreenExit, Fullscreen } from "@mui/icons-material";
 import Draggable from "react-draggable";
 import { useSelector } from "react-redux";
-import { selectMeetUrl } from "../slices/meetIframe";
+import { selectCallUrl } from "../slices/callIframe";
 
 declare const API_BASE_URL: string;
 
-export default function MeetIframe() {
+export default function CallIframe() {
     const [isFullScreen, setIsFullScreen] = useState(true);
     const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
 
-    const meetUrl = useSelector(selectMeetUrl);
+    const callUrl = useSelector(selectCallUrl);
 
     const handleToggleFullScreen = () => {
         if (!isFullScreen) {
@@ -66,7 +66,7 @@ export default function MeetIframe() {
                     )}
                 </Stack>
                 <iframe
-                    src={`${meetUrl}&leaveApiUrl=${API_BASE_URL}/meet/leave`}
+                    src={`${callUrl}&leaveApiUrl=${API_BASE_URL}/call/leave`}
                     allow="camera; microphone"
                     style={{
                         width: "100%",

@@ -3,49 +3,49 @@ import { Avatar, Dialog, IconButton, Stack, Typography, Paper } from "@mui/mater
 import { Call, Close, Videocam, PhoneDisabled } from "@mui/icons-material";
 import { useSelector, useDispatch } from "react-redux";
 import { useTranslation } from "react-i18next";
-import { selectIncomingMeets, closeIncomingMeet } from "../slices/incomingMeetDialog";
+import { selectIncomingCalls, closeIncomingCall } from "../slices/incomingCallDialog";
 import { selectUser } from "../../../store/userSlice";
-import { useAcceptMeetMutation, useRejectMeetMutation } from "../api/room";
+import { useAcceptCallMutation, useRejectCallMutation } from "../api/room";
 import ringing from "../../../assets/ringing.mp3";
-import { openMeetIframe } from "../slices/meetIframe";
+import { openCallIframe } from "../slices/callIframe";
 
 declare const EDUMEET_URL: string;
 
-export default function IncomingMeetDialog() {
-    const incomingMeets = useSelector(selectIncomingMeets);
+export default function IncomingCallDialog() {
+    const incomingCalls = useSelector(selectIncomingCalls);
     const me = useSelector(selectUser);
 
     const { t } = useTranslation();
     const dispatch = useDispatch();
 
-    const [acceptMeet] = useAcceptMeetMutation();
-    const [rejectMeet] = useRejectMeetMutation();
+    const [acceptCall] = useAcceptCallMutation();
+    const [rejectCall] = useRejectCallMutation();
 
-    const handleAcceptMeet = async (enableCamera: boolean, roomId: number, roomType: string) => {
+    const handleAcceptCall = async (enableCamera: boolean, roomId: number, roomType: string) => {
         try {
-            await acceptMeet({ roomId }).unwrap();
+            await acceptCall({ roomId }).unwrap();
             dispatch(
-                openMeetIframe({
+                openCallIframe({
                     url: `${EDUMEET_URL}/${roomId}?displayName=${me.displayName}&headless=true&video=${enableCamera}`,
                 }),
             );
-            dispatch(closeIncomingMeet({ roomId }));
-            const rejectedMeets = incomingMeets.filter((meet) => meet.roomId !== roomId);
-            for (const rejectedMeet of rejectedMeets) {
-                handleRejectMeet(rejectedMeet.roomId, roomType);
+            dispatch(closeIncomingCall({ roomId }));
+            const rejectedCalls = incomingCalls.filter((call) => call.roomId !== roomId);
+            for (const rejectedCall of rejectedCalls) {
+                handleRejectCall(rejectedCall.roomId, roomType);
             }
         } catch (e) {
             console.error(e);
         }
     };
 
-    const handleRejectMeet = async (roomId: number, roomType: string) => {
+    const handleRejectCall = async (roomId: number, roomType: string) => {
         try {
             const isPrivate = roomType === "private";
             if (isPrivate) {
-                await rejectMeet({ roomId }).unwrap();
+                await rejectCall({ roomId }).unwrap();
             }
-            dispatch(closeIncomingMeet({ roomId }));
+            dispatch(closeIncomingCall({ roomId }));
         } catch (e) {
             console.error(e);
         }
@@ -61,24 +61,24 @@ export default function IncomingMeetDialog() {
     };
 
     useEffect(() => {
-        const groupMeetIds = incomingMeets
-            .filter((meet) => meet.roomType === "group")
-            .map((meet) => meet.roomId);
+        const groupCallIds = incomingCalls
+            .filter((call) => call.roomType === "group")
+            .map((call) => call.roomId);
 
-        const timers = groupMeetIds.map((roomId) =>
+        const timers = groupCallIds.map((roomId) =>
             setTimeout(() => {
-                dispatch(closeIncomingMeet({ roomId }));
+                dispatch(closeIncomingCall({ roomId }));
             }, 30000),
         );
 
         return () => {
             timers.forEach((timer) => clearTimeout(timer));
         };
-    }, [incomingMeets]);
+    }, [incomingCalls]);
 
     return (
         <Dialog
-            open={incomingMeets.length > 0}
+            open={incomingCalls.length > 0}
             maxWidth="lg"
             scroll="body"
             PaperProps={{ elevation: 0 }}
@@ -98,7 +98,7 @@ export default function IncomingMeetDialog() {
                 flexWrap="wrap"
                 padding="32px"
             >
-                {incomingMeets.map((meet) => (
+                {incomingCalls.map((call) => (
                     <Paper elevation={24} sx={{ margin: "32px", borderRadius: "1rem" }}>
                         <Stack
                             p="32px"
@@ -122,7 +122,7 @@ export default function IncomingMeetDialog() {
                                             fontSize: "20px",
                                         }}
                                     >
-                                        {meet.roomType === "group"
+                                        {call.roomType === "group"
                                             ? t("incomingGroupCall")
                                             : t("incomingCall")}
                                     </Typography>
@@ -135,7 +135,7 @@ export default function IncomingMeetDialog() {
                                         },
                                         p: 0,
                                     }}
-                                    onClick={() => handleRejectMeet(meet.roomId, meet.roomType)}
+                                    onClick={() => handleRejectCall(call.roomId, call.roomType)}
                                 >
                                     <Close
                                         sx={{
@@ -147,8 +147,8 @@ export default function IncomingMeetDialog() {
                             <Stack gap="8px" alignItems="center" justifyContent="center">
                                 <Avatar
                                     sx={{ width: 100, height: 100 }}
-                                    alt={meet.displayName}
-                                    src={`${UPLOADS_BASE_URL}/${meet.avatarFileId}`}
+                                    alt={call.displayName}
+                                    src={`${UPLOADS_BASE_URL}/${call.avatarFileId}`}
                                 />
                                 <Typography
                                     sx={{
@@ -157,7 +157,7 @@ export default function IncomingMeetDialog() {
                                         fontSize: "24px",
                                     }}
                                 >
-                                    {meet.displayName}
+                                    {call.displayName}
                                 </Typography>
                             </Stack>
 
@@ -165,7 +165,7 @@ export default function IncomingMeetDialog() {
                                 <IconButton
                                     sx={iconButtonSx}
                                     onClick={() =>
-                                        handleAcceptMeet(false, meet.roomId, meet.roomType)
+                                        handleAcceptCall(false, call.roomId, call.roomType)
                                     }
                                 >
                                     <Call htmlColor="white" />
@@ -173,13 +173,13 @@ export default function IncomingMeetDialog() {
                                 <IconButton
                                     sx={iconButtonSx}
                                     onClick={() =>
-                                        handleAcceptMeet(true, meet.roomId, meet.roomType)
+                                        handleAcceptCall(true, call.roomId, call.roomType)
                                     }
                                 >
                                     <Videocam htmlColor="white" />
                                 </IconButton>
                                 <IconButton
-                                    onClick={() => handleRejectMeet(meet.roomId, meet.roomType)}
+                                    onClick={() => handleRejectCall(call.roomId, call.roomType)}
                                     sx={{
                                         height: "52px",
                                         width: "52px",
