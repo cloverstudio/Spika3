@@ -35,6 +35,7 @@ export default function StartCallDialog() {
     const [stopCall] = useStopCallMutation();
 
     const handleStopCall = async () => {
+        dispatch(closeStartCallDialog());
         try {
             await stopCall({ roomId }).unwrap();
 
@@ -54,7 +55,6 @@ export default function StartCallDialog() {
                     dispatch(editMessage(updatedMessage));
                 }
             });
-            dispatch(closeStartCallDialog());
         } catch (e) {
             console.error(e);
         }

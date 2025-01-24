@@ -12,7 +12,7 @@ import CreatedNoteSystemMessage from "./CreatedNote";
 import DeletedNoteSystemMessage from "./DeletedNote";
 import CreatedGroupSystemMessage from "./CreatedGroup";
 import CallInitiatedSystemMessage from "./CallInitiated";
-import CallEnded from "./CallEnded";
+import CallEndedSystemMessage from "./CallEnded";
 
 import {
     SYSTEM_MESSAGE_TYPE_CREATE_GROUP,
@@ -63,7 +63,7 @@ export default function SystemMessage({
         case SYSTEM_MESSAGE_TYPE_INITIATE_CALL:
             return <CallInitiatedSystemMessage body={body} createdAt={createdAt} />;
         case SYSTEM_MESSAGE_TYPE_END_CALL:
-            return <CallEnded body={body} createdAt={createdAt} />;
+            return <CallEndedSystemMessage body={body} createdAt={createdAt} />;
         default:
             return <div>{body.text}</div>;
     }

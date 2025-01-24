@@ -22,7 +22,7 @@ import {
 } from "../slices/rightSidebar";
 import { RoomType } from "../../../types/Rooms";
 import { useAppDispatch, useAppSelector } from "../../../hooks";
-import { openStartCallDialog } from "../slices/startCallDialog";
+import { closeStartCallDialog, openStartCallDialog } from "../slices/startCallDialog";
 import { shouldshowCallIframe } from "../slices/callIframe";
 import { selectRoomMessages } from "../slices/messages";
 import { SYSTEM_MESSAGE_TYPE_INITIATE_CALL } from "../lib/consts";
@@ -90,18 +90,19 @@ function HeaderContent({ room, roomBlock }: { room: RoomType; roomBlock: { id: n
     };
 
     const handleStartCall = async (enableCamera: boolean) => {
+        dispatch(
+            openStartCallDialog({
+                roomId: room.id,
+                avatarFileId: room.avatarFileId,
+                displayName: room.name,
+                enableCamera,
+            }),
+        );
         try {
             await startCall({ roomId: room.id }).unwrap();
-            dispatch(
-                openStartCallDialog({
-                    roomId: room.id,
-                    avatarFileId: room.avatarFileId,
-                    displayName: room.name,
-                    enableCamera,
-                }),
-            );
         } catch (e) {
             console.error(e);
+            dispatch(closeStartCallDialog());
         }
     };
 

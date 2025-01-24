@@ -222,6 +222,7 @@ model Message {
   localId String? @map(name: "local_id")
 
   @@index([roomId, createdAt(sort: Desc)])
+  @@index([roomId, type])
   @@map(name: "message")
 }
 

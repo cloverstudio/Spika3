@@ -273,6 +273,7 @@ export default (params: InitRouterParams) => {
                     where: {
                         message: {
                             roomId: roomId,
+                            type: "system"
                         },
                         body: {
                             path: "$.type",
@@ -606,6 +607,7 @@ export default (params: InitRouterParams) => {
                     where: {
                         message: {
                             roomId: roomId,
+                            type: "system"
                         },
                         body: {
                             path: "$.type",

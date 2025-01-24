@@ -40,12 +40,12 @@ export default function IncomingCallDialog() {
     };
 
     const handleRejectCall = async (roomId: number, roomType: string) => {
+        dispatch(closeIncomingCall({ roomId }));
         try {
             const isPrivate = roomType === "private";
             if (isPrivate) {
                 await rejectCall({ roomId }).unwrap();
             }
-            dispatch(closeIncomingCall({ roomId }));
         } catch (e) {
             console.error(e);
         }
