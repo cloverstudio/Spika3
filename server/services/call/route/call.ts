@@ -115,7 +115,51 @@ export default (params: InitRouterParams) => {
             });
 
             if (ongoingCall) {
-                return res.status(400).send(errorResponse("A call is already ongoing in this room"));
+                await prisma.callParticipant.upsert({
+                    where: {
+                        call_user_unique: {
+                            callId: ongoingCall.id,
+                            userId: userReq.user.id,
+                        },
+                    },
+                    create: {
+                        callId: ongoingCall.id,
+                        userId: userReq.user.id,
+                        joinedAt: new Date(),
+                    },
+                    update: {
+                        leftAt: null,
+                    },
+                });
+
+                const deviceIds = await prisma.device.findMany({
+                    where: {
+                        userId: userReq.user.id
+                    },
+                    select: {
+                        id: true,
+                    },
+                });
+
+                deviceIds.forEach((obj) => {
+                    const deviceId = obj.id;
+
+                    rabbitMQChannel.sendToQueue(
+                        Constants.QUEUE_SSE,
+                        Buffer.from(
+                            JSON.stringify({
+                                channelId: deviceId,
+                                data: {
+                                    type: Constants.ACCEPT_CALL,
+                                    roomId: room.id,
+                                    roomType: room.type,
+                                },
+                            }),
+                        ),
+                    );
+                });
+
+                return res.send(successResponse("Call accepted"));
             }
 
             const call = await prisma.call.create({
@@ -413,24 +457,16 @@ export default (params: InitRouterParams) => {
 
             const call = await prisma.call.findFirst({
                 where: { roomId, finishedAt: null },
+                include: {
+                    participants: true
+                }
             });
 
             if (!call) {
                 return res.status(404).send(errorResponse("No ongoing call found in this room"));
             }
 
-            const ongoingCallParticipant = await prisma.callParticipant.findFirst({
-                where: {
-                    userId: userReq.user.id,
-                    leftAt: null,
-                },
-            });
-
-            if (ongoingCallParticipant) {
-                return res.status(400).send(
-                    errorResponse("You are already in an ongoing call. Please leave the ongoing call before joining another one.")
-                );
-            }
+            const initiator = call.participants.find((participant) => participant.isInitiator);
 
             await prisma.callParticipant.upsert({
                 where: {
@@ -449,32 +485,9 @@ export default (params: InitRouterParams) => {
                 },
             });
 
-            const participantCount = await prisma.callParticipant.count({
-                where: {
-                    callId: call.id,
-                    leftAt: null,
-                },
-            })
-
-            if (participantCount > 2) {
-                return res.send(successResponse("Call accepted"));
-            };
-
-            const userIds = await prisma.roomUser.findMany({
-                where: {
-                    roomId,
-                    userId: {
-                        not: userReq.user.id,
-                    },
-                },
-                select: {
-                    userId: true,
-                },
-            });
-
             const deviceIds = await prisma.device.findMany({
                 where: {
-                    userId: { in: userIds.map((obj) => obj.userId) },
+                    userId: initiator.userId,
                 },
                 select: {
                     id: true,
