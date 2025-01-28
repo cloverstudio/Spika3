@@ -1,41 +1,52 @@
-import React, { useEffect } from "react";
-import { Avatar, Dialog, IconButton, Stack, Typography, Paper } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import {
+    Avatar,
+    Dialog,
+    IconButton,
+    Stack,
+    Typography,
+    Paper,
+    CircularProgress,
+} from "@mui/material";
 import { Call, Close, Videocam, PhoneDisabled } from "@mui/icons-material";
 import { useSelector, useDispatch } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { selectIncomingCalls, closeIncomingCall } from "../slices/incomingCallDialog";
 import { selectUser } from "../../../store/userSlice";
-import { useAcceptCallMutation, useRejectCallMutation } from "../api/room";
+import { useAcceptCallMutation, useRejectCallMutation, useLeaveCallMutation } from "../api/room";
 import ringing from "../../../assets/ringing.mp3";
-import { openCallIframe } from "../slices/callIframe";
-
-declare const EDUMEET_URL: string;
+import { openCallIframe, selectCallData } from "../slices/callIframe";
 
 export default function IncomingCallDialog() {
     const incomingCalls = useSelector(selectIncomingCalls);
     const me = useSelector(selectUser);
+    const [isLoading, setIsLoading] = useState(false);
+    const callData = useSelector(selectCallData);
 
     const { t } = useTranslation();
     const dispatch = useDispatch();
 
     const [acceptCall] = useAcceptCallMutation();
     const [rejectCall] = useRejectCallMutation();
+    const [leaveCall] = useLeaveCallMutation();
 
     const handleAcceptCall = async (enableCamera: boolean, roomId: number, roomType: string) => {
         try {
+            setIsLoading(true);
+            if (callData.showCallIframe) {
+                await leaveCall({ roomId: callData.roomId }).unwrap();
+            }
             await acceptCall({ roomId }).unwrap();
-            dispatch(
-                openCallIframe({
-                    url: `${EDUMEET_URL}/${roomId}?displayName=${me.displayName}&headless=true&video=${enableCamera}`,
-                }),
-            );
+            dispatch(openCallIframe({ roomId, enableCamera }));
             dispatch(closeIncomingCall({ roomId }));
             const rejectedCalls = incomingCalls.filter((call) => call.roomId !== roomId);
             for (const rejectedCall of rejectedCalls) {
                 handleRejectCall(rejectedCall.roomId, roomType);
             }
+            setIsLoading(false);
         } catch (e) {
             console.error(e);
+            setIsLoading(false);
         }
     };
 
@@ -162,38 +173,46 @@ export default function IncomingCallDialog() {
                             </Stack>
 
                             <Stack direction="row" justifyContent="center" gap="16px">
-                                <IconButton
-                                    sx={iconButtonSx}
-                                    onClick={() =>
-                                        handleAcceptCall(false, call.roomId, call.roomType)
-                                    }
-                                >
-                                    <Call htmlColor="white" />
-                                </IconButton>
-                                <IconButton
-                                    sx={iconButtonSx}
-                                    onClick={() =>
-                                        handleAcceptCall(true, call.roomId, call.roomType)
-                                    }
-                                >
-                                    <Videocam htmlColor="white" />
-                                </IconButton>
-                                <IconButton
-                                    onClick={() => handleRejectCall(call.roomId, call.roomType)}
-                                    sx={{
-                                        height: "52px",
-                                        width: "52px",
-                                        bgcolor: "#ED1B24",
-                                        "&.MuiButtonBase-root:hover": {
-                                            bgcolor: "#ED1B24",
-                                        },
-                                    }}
-                                >
-                                    <PhoneDisabled
-                                        htmlColor="white"
-                                        sx={{ transform: "rotate(90deg)" }}
-                                    />
-                                </IconButton>
+                                {isLoading ? (
+                                    <CircularProgress size={52} />
+                                ) : (
+                                    <>
+                                        <IconButton
+                                            sx={iconButtonSx}
+                                            onClick={() =>
+                                                handleAcceptCall(false, call.roomId, call.roomType)
+                                            }
+                                        >
+                                            <Call htmlColor="white" />
+                                        </IconButton>
+                                        <IconButton
+                                            sx={iconButtonSx}
+                                            onClick={() =>
+                                                handleAcceptCall(true, call.roomId, call.roomType)
+                                            }
+                                        >
+                                            <Videocam htmlColor="white" />
+                                        </IconButton>
+                                        <IconButton
+                                            onClick={() =>
+                                                handleRejectCall(call.roomId, call.roomType)
+                                            }
+                                            sx={{
+                                                height: "52px",
+                                                width: "52px",
+                                                bgcolor: "#ED1B24",
+                                                "&.MuiButtonBase-root:hover": {
+                                                    bgcolor: "#ED1B24",
+                                                },
+                                            }}
+                                        >
+                                            <PhoneDisabled
+                                                htmlColor="white"
+                                                sx={{ transform: "rotate(90deg)" }}
+                                            />
+                                        </IconButton>
+                                    </>
+                                )}
                             </Stack>
                         </Stack>
                     </Paper>

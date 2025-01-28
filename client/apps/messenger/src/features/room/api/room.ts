@@ -121,6 +121,15 @@ const roomApi = api.injectEndpoints({
                 };
             },
         }),
+        leaveCall: build.mutation<{ roomId: number }, { roomId: number }>({
+            query: ({ roomId }) => {
+                return {
+                    method: "POST",
+                    url: `/call/leave`,
+                    data: { roomId },
+                };
+            },
+        }),
     }),
     overrideExisting: true,
 });
@@ -142,6 +151,7 @@ export const {
     useAcceptCallMutation,
     useRejectCallMutation,
     useStopCallMutation,
+    useLeaveCallMutation,
 } = roomApi;
 
 export default roomApi;

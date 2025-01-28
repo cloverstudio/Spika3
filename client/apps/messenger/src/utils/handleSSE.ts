@@ -24,8 +24,6 @@ const VALID_SSE_EVENT_TYPES = [
     "LEAVE_CALL",
 ];
 
-declare const EDUMEET_URL: string;
-
 import { notify as notifyCallEvent } from "../features/confcall/lib/callEventListener";
 import { fetchContacts } from "../features/room/slices/contacts";
 import { RoomType } from "../types/Rooms";
@@ -329,11 +327,9 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
         case "ACCEPT_CALL": {
             const { roomId, enableCamera, showStartCallDialog } = (store.getState() as RootState)
                 .startCall;
-            const data = (store.getState() as RootState).api.queries["getUser(undefined)"]
-                ?.data as any;
 
             if (showStartCallDialog) {
-                store.dispatch(openCallIframe({ url: `${EDUMEET_URL}/${roomId}?displayName=${data?.user.displayName}&headless=true&video=${enableCamera}` }))
+                store.dispatch(openCallIframe({ roomId, enableCamera }))
                 store.dispatch(closeStartCallDialog());
                 store.dispatch(setIsAccepted());
             }

@@ -3,12 +3,14 @@ import type { RootState } from "../../../store/store";
 
 interface InitialState {
     showCallIframe: boolean;
-    url: string;
+    roomId: number | null;
+    enableCamera: boolean;
 }
 
 const initialState: InitialState = {
     showCallIframe: false,
-    url: "",
+    roomId: null,
+    enableCamera: null
 };
 
 export const callIframeSlice = createSlice({
@@ -17,10 +19,12 @@ export const callIframeSlice = createSlice({
     reducers: {
         openCallIframe(state,
             action: PayloadAction<{
-                url: string
+                roomId: number,
+                enableCamera: boolean,
             }>,) {
-            state.url = action.payload.url;
             state.showCallIframe = true;
+            state.roomId = action.payload.roomId,
+                state.enableCamera = action.payload.enableCamera
         },
         closeCallIframe(state) {
             state.showCallIframe = false;
@@ -31,7 +35,7 @@ export const callIframeSlice = createSlice({
 export const shouldshowCallIframe = (state: RootState): boolean =>
     state.callIframe.showCallIframe;
 
-export const selectCallUrl = (state: RootState): string => state.callIframe.url;
+export const selectCallData = (state: RootState) => state.callIframe;
 
 export const { openCallIframe, closeCallIframe } =
     callIframeSlice.actions;

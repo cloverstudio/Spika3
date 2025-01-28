@@ -4,15 +4,18 @@ import Box from "@mui/material/Box";
 import { DragIndicator, FullscreenExit, Fullscreen } from "@mui/icons-material";
 import Draggable from "react-draggable";
 import { useSelector } from "react-redux";
-import { selectCallUrl } from "../slices/callIframe";
+import { selectCallData } from "../slices/callIframe";
+import { selectUser } from "../../../store/userSlice";
 
+declare const EDUMEET_URL: string;
 declare const API_BASE_URL: string;
 
 export default function CallIframe() {
     const [isFullScreen, setIsFullScreen] = useState(true);
     const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
 
-    const callUrl = useSelector(selectCallUrl);
+    const callData = useSelector(selectCallData);
+    const me = useSelector(selectUser);
 
     const handleToggleFullScreen = () => {
         if (!isFullScreen) {
@@ -66,7 +69,7 @@ export default function CallIframe() {
                     )}
                 </Stack>
                 <iframe
-                    src={`${callUrl}&leaveApiUrl=${API_BASE_URL}/call/leave`}
+                    src={`${EDUMEET_URL}/${callData.roomId}?displayName=${me.displayName}&headless=true&video=${callData.enableCamera}&leaveApiUrl=${API_BASE_URL}/call/leave`}
                     allow="camera; microphone"
                     style={{
                         width: "100%",

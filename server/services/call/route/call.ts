@@ -419,6 +419,19 @@ export default (params: InitRouterParams) => {
                 return res.status(404).send(errorResponse("No ongoing call found in this room"));
             }
 
+            const ongoingCallParticipant = await prisma.callParticipant.findFirst({
+                where: {
+                    userId: userReq.user.id,
+                    leftAt: null,
+                },
+            });
+
+            if (ongoingCallParticipant) {
+                return res.status(400).send(
+                    errorResponse("You are already in an ongoing call. Please leave the ongoing call before joining another one.")
+                );
+            }
+
             await prisma.callParticipant.upsert({
                 where: {
                     call_user_unique: {

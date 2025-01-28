@@ -1,13 +1,9 @@
 import React from "react";
 import { Box, Typography, Stack, IconButton } from "@mui/material";
 import { Call, Videocam } from "@mui/icons-material";
-import { useSelector } from "react-redux";
-import { selectUser } from "../../../../../../store/userSlice";
 import { useAppDispatch } from "../../../../../../hooks";
 import { openCallIframe } from "../../../../slices/callIframe";
 import { useAcceptCallMutation } from "../../../../api/room";
-
-declare const EDUMEET_URL: string;
 
 export default function CallInitiated({
     body,
@@ -30,8 +26,6 @@ export default function CallInitiated({
         hour12: false,
     });
 
-    const me = useSelector(selectUser);
-
     const dispatch = useAppDispatch();
 
     const [acceptCall] = useAcceptCallMutation();
@@ -41,7 +35,8 @@ export default function CallInitiated({
             await acceptCall({ roomId: body.roomId }).unwrap();
             dispatch(
                 openCallIframe({
-                    url: `${EDUMEET_URL}/${body.roomId}?displayName=${me.displayName}&headless=true&video=${enableCamera}`,
+                    roomId: body.roomId,
+                    enableCamera,
                 }),
             );
         } catch (e) {
