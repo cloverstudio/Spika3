@@ -373,6 +373,9 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                 store.dispatch(closeCallIframe());
             }
 
+            store.dispatch(api.util.invalidateTags([{ type: "Calls" }]));
+
+
             return;
         }
 
