@@ -199,6 +199,8 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
 
             store.dispatch(fetchContacts());
             const queries = (store.getState() as RootState).api.queries;
+            store.dispatch(api.util.invalidateTags([{ type: "Calls" }]));
+
 
             if (!queries) {
                 return;
@@ -332,6 +334,8 @@ export default async function handleSSE(event: MessageEvent): Promise<void> {
                 store.dispatch(openCallIframe({ roomId, enableCamera }))
                 store.dispatch(closeStartCallDialog());
                 store.dispatch(setIsAccepted());
+                store.dispatch(api.util.invalidateTags([{ type: "Calls" }]));
+
             }
             return;
         }

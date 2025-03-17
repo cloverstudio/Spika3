@@ -232,5 +232,10 @@
     "suggestionThankYou": "Thank you for helping to improve the platform!",
     "releaseNotes": "Release notes",
     "changeList": "Change list",
-    "version": "Version"
+    "version": "Version",
+    "callsInProgress_one": "{{count}} call in progress",
+    "callsInProgress_other": "{{count}} calls in progress",
+    "join": "Join",
+    "callInProgress": "Call in progress",
+    "joinWith": "Join with"
 }

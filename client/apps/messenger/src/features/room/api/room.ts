@@ -1,8 +1,7 @@
-import { RoomType } from "../../../types/Rooms";
+import { OngoingCall, RoomType } from "../../../types/Rooms";
 import api from "../../../api/api";
 import { store } from "../../../store/store";
 import formatRoomInfo from "../lib/formatRoomInfo";
-import { refreshHistory } from "../slices/leftSidebar";
 
 const roomApi = api.injectEndpoints({
     endpoints: (build) => ({
@@ -102,6 +101,7 @@ const roomApi = api.injectEndpoints({
                     data: { roomId },
                 };
             },
+            invalidatesTags: [{ type: "Calls" }],
         }),
         rejectCall: build.mutation<{ roomId: number }, { roomId: number }>({
             query: ({ roomId }) => {
@@ -120,6 +120,7 @@ const roomApi = api.injectEndpoints({
                     data: { roomId },
                 };
             },
+            invalidatesTags: [{ type: "Calls" }],
         }),
         leaveCall: build.mutation<{ roomId: number }, { roomId: number }>({
             query: ({ roomId }) => {
@@ -129,7 +130,16 @@ const roomApi = api.injectEndpoints({
                     data: { roomId },
                 };
             },
+            invalidatesTags: [{ type: "Calls" }],
         }),
+        getOngoingCalls: build.query<
+            OngoingCall[]
+            , void>({
+                query: () => {
+                    return `/call/ongoing`;
+                },
+                providesTags: [{ type: "Calls" }],
+            }),
     }),
     overrideExisting: true,
 });
@@ -152,6 +162,7 @@ export const {
     useRejectCallMutation,
     useStopCallMutation,
     useLeaveCallMutation,
+    useGetOngoingCallsQuery,
 } = roomApi;
 
 export default roomApi;

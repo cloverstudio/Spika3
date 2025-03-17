@@ -232,5 +232,11 @@
     "suggestionThankYou": "Hvala što pomažete unaprijediti platformu!",
     "releaseNotes": "Zabilješke o verziji",
     "changeList": "Popis promjena",
-    "version": "Verzija"
+    "version": "Verzija",
+    "callsInProgress_one": "{{count}} poziv u tijeku",
+    "callsInProgress_few": "{{count}} poziva u tijeku",
+    "callsInProgress_other": "{{count}} poziva u tijeku",
+    "join": "Pridruži se",
+    "callInProgress": "Poziv u tijeku",
+    "joinWith": "Pridruži se s"
 }

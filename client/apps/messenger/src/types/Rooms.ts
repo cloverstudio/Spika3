@@ -1,4 +1,4 @@
-import { Room } from ".prisma/client";
+import { Room, User } from ".prisma/client";
 import UserType from "./User";
 import MessageType from "./Message";
 
@@ -30,6 +30,23 @@ export enum UpdateGroupAction {
     CHANGE_NAME = "changeGroupName",
     CHANGE_AVATAR = "changeGroupAvatar",
 }
+
+export type OngoingCall = {
+    id: number;
+    roomId: number;
+    startedAt: Date;
+    finishedAt: Date | null;
+    participants: { user: User }[]
+    room: {
+        id: number;
+        name: string;
+        type: string;
+        avatarFileId: number;
+
+    }
+}
+
+
 
 type RoomsListType = {
     list: RoomType[];
