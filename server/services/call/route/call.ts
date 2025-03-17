@@ -851,6 +851,45 @@ export default (params: InitRouterParams) => {
             res.status(500).send(errorResponse(`Server error ${e}`));
         }
     });
+    router.get("/ongoing", auth, async (req: Request, res: Response) => {
+        const userReq: UserRequest = req as UserRequest;
+
+        try {
+
+            const ongoingCalls = await prisma.call.findMany({
+                where: {
+                    participants: {
+                        some: {
+                            userId: userReq.user.id,
+                        }
+                    },
+                    finishedAt: null
+                },
+                include: {
+                    participants: {
+                        select: {
+                            user: true
+                        }
+                    },
+                    room: {
+                        select: {
+                            id: true,
+                            name: true,
+                            type: true,
+                            avatarFileId: true
+                        }
+                    }
+                }
+
+            })
+
+            res.send(successResponse(ongoingCalls));
+
+        } catch (e: any) {
+            le(e);
+            res.status(500).send(errorResponse(`Server error ${e}`));
+        }
+    });
 
     return router;
 };

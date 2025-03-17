@@ -90,6 +90,7 @@ export default createApi({
         "ApiKeys",
         "BlockList",
         "UnreadCount",
+        "Calls"
     ],
 
     endpoints: () => ({}),

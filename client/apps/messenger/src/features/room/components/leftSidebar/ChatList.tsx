@@ -1,9 +1,9 @@
-import React, { Dispatch, useEffect, useState } from "react";
+import React, { Dispatch, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import Avatar from "@mui/material/Avatar";
 import Badge from "@mui/material/Badge";
-import { Box, CircularProgress, IconButton, Skeleton, useMediaQuery } from "@mui/material";
+import { Box, CircularProgress, IconButton, Skeleton, Stack, useMediaQuery } from "@mui/material";
 import CameraIcon from "@mui/icons-material/CameraAltRounded";
 import VideocamIcon from "@mui/icons-material/VideocamRounded";
 import DocumentIcon from "@mui/icons-material/Description";
@@ -26,7 +26,7 @@ import { ControlledSearchBox } from "../SearchBox";
 import NotificationsOff from "@mui/icons-material/NotificationsOff";
 import Pin from "@mui/icons-material/PushPin";
 import { useTranslation } from "react-i18next";
-import { useGetRoomQuery } from "../../api/room";
+import { useAcceptCallMutation, useGetOngoingCallsQuery, useGetRoomQuery } from "../../api/room";
 import formatRoomInfo from "../../lib/formatRoomInfo";
 import { selectUser } from "../../../../store/userSlice";
 import { useTheme } from "@mui/material/styles";
@@ -34,6 +34,9 @@ import { ReactComponent as NewChatIcon } from "../../../../assets/new-chat.svg";
 import { AppDispatch } from "../../../../store/store";
 import { useAppDispatch, useAppSelector } from "../../../../hooks";
 import { showNoteEditModal } from "../../slices/rightSidebar";
+import { Call, Videocam } from "@mui/icons-material";
+import { openCallIframe, selectCallData } from "../../slices/callIframe";
+import { User } from "@prisma/client";
 
 dayjs.extend(relativeTime);
 declare const UPLOADS_BASE_URL: string;
@@ -50,6 +53,11 @@ export default function SidebarChatList({
     const list = useSelector(selectHistory);
     const loading = useSelector(selectHistoryLoading());
     const currentKeyword = useSelector(selectCurrentKeyword);
+
+    const ongoingCalls = useGetOngoingCallsQuery();
+    const callIframeData = useSelector(selectCallData);
+
+    const [acceptCall] = useAcceptCallMutation();
 
     const { isInViewPort, elementRef } = useIsInViewport();
 
@@ -89,6 +97,22 @@ export default function SidebarChatList({
           }
         : {};
 
+    const handleJoinCall = async (enableCamera: boolean, roomId: number) => {
+        if (callIframeData.showCallIframe && callIframeData.roomId === roomId) return;
+
+        try {
+            await acceptCall({ roomId }).unwrap();
+            dispatch(
+                openCallIframe({
+                    roomId,
+                    enableCamera,
+                }),
+            );
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
     return (
         <Box height="100%">
             <Box sx={{ ...searchBoxProps }}>
@@ -123,6 +147,40 @@ export default function SidebarChatList({
                     </Box>
                 )}
             </Box>
+
+            {ongoingCalls.data?.length > 0 && (
+                <Box
+                    sx={{
+                        borderBottom: "1px solid",
+                        borderColor: "primary.main",
+                        pb: 1,
+                    }}
+                >
+                    <Typography
+                        sx={{
+                            px: 2.5,
+                            mt: 2,
+                            mb: 1,
+                            fontWeight: 600,
+                            textAlign: "center",
+                            color: "primary.main",
+                        }}
+                    >
+                        {t("callsInProgress", {
+                            count: ongoingCalls.data.length,
+                        })}
+                    </Typography>
+                    {ongoingCalls.data.map((call) => {
+                        return (
+                            <OngoingCallsRow
+                                key={call.id}
+                                call={call}
+                                handleJoinCall={handleJoinCall}
+                            />
+                        );
+                    })}
+                </Box>
+            )}
 
             <Box sx={{ overflowY: "auto", height: "calc(100% - 45px)" }}>
                 {list.length === 0 && !isFetching && (
@@ -376,6 +434,104 @@ function LastMessageText({ lastMessage, icon, sender }: LastMessageTextProps) {
             {sender && <Typography fontSize="14px">{sender}: </Typography>}
             {icon && icon}
             <Typography fontSize="14px">{lastMessage}</Typography>
+        </Box>
+    );
+}
+
+interface OngoingCallsRowProps {
+    call: {
+        id: number;
+        roomId: number;
+        startedAt: Date;
+        finishedAt: Date | null;
+        participants: { user: User }[];
+        room: {
+            id: number;
+            name: string;
+            type: string;
+            avatarFileId: number;
+        };
+    };
+    handleJoinCall: (enableCamera: boolean, roomId: number) => void;
+}
+
+function OngoingCallsRow({ call, handleJoinCall }: OngoingCallsRowProps) {
+    const me = useSelector(selectUser);
+    const { t } = useTranslation();
+
+    const { roomName, avatarFileId } = useMemo(() => {
+        const isGroup = call.room.type === "group";
+        const participant = call.participants.find((p) => p.user.id !== me.id);
+
+        return {
+            roomName: isGroup ? call.room.name : participant?.user.displayName,
+            avatarFileId: isGroup ? call.room.avatarFileId : participant?.user.avatarFileId,
+        };
+    }, [call, me.id]);
+
+    const iconSxProps = {
+        width: "25px",
+        height: "25px",
+        color: "primary.main",
+        cursor: "pointer",
+        "&:hover": {
+            backgroundColor: "transparent",
+        },
+    };
+
+    return (
+        <Box px={2.5} py={1.5} display="flex">
+            <Avatar
+                alt={roomName}
+                sx={{ width: 50, height: 50 }}
+                src={`${UPLOADS_BASE_URL}/${avatarFileId}`}
+            />
+
+            <Box ml={2} maxWidth="45%" display="flex" alignItems="center" pr={1}>
+                <Typography
+                    fontWeight="600"
+                    color="text.primary"
+                    sx={{
+                        overflow: "hidden",
+                        display: "-webkit-box",
+                        WebkitBoxOrient: "vertical",
+                        WebkitLineClamp: 2,
+                        lineClamp: 2,
+                        wordBreak: "break-word",
+                    }}
+                >
+                    {roomName}
+                </Typography>
+            </Box>
+            <Box
+                flexGrow={1}
+                sx={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    alignItems: "center",
+                    gap: "8px",
+                }}
+            >
+                <Typography
+                    sx={{
+                        fontSize: "12px",
+                        fontWeight: 500,
+                    }}
+                >
+                    {t("join")}:
+                </Typography>
+                <Stack direction="row" justifyContent="center" gap="8px">
+                    <IconButton
+                        sx={iconSxProps}
+                        onClick={() => handleJoinCall(false, call.room.id)}
+                    >
+                        <Call />
+                    </IconButton>
+                    <IconButton sx={iconSxProps} onClick={() => handleJoinCall(true, call.room.id)}>
+                        <Videocam />
+                    </IconButton>
+                </Stack>
+            </Box>
         </Box>
     );
 }

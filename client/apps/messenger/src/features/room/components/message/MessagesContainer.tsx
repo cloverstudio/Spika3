@@ -1,8 +1,16 @@
-import { Box, CircularProgress, IconButton, useMediaQuery } from "@mui/material";
-import React, { useEffect, useRef, useState } from "react";
+import {
+    Avatar,
+    Box,
+    CircularProgress,
+    IconButton,
+    Stack,
+    Typography,
+    useMediaQuery,
+} from "@mui/material";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { useGetRoomQuery } from "../../api/room";
+import { useAcceptCallMutation, useGetOngoingCallsQuery, useGetRoomQuery } from "../../api/room";
 import AttachmentManager from "../../lib/AttachmentManager";
 import {
     canLoadMoreMessages,
@@ -25,6 +33,12 @@ import { useAppDispatch, useAppSelector } from "../../../../hooks";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 
 import { createContext, useContext } from "react";
+import { OngoingCall } from "../../../../types/Rooms";
+import { selectUserId } from "../../../../store/userSlice";
+import { useTranslation } from "react-i18next";
+import { openCallIframe, selectCallData } from "../../slices/callIframe";
+import { Call, Videocam } from "@mui/icons-material";
+import { selectRightSidebarActiveTab, selectRightSidebarOpen } from "../../slices/rightSidebar";
 export type GlobalContent = {
     messageContainerRef: React.MutableRefObject<HTMLDivElement | null>;
 };
@@ -62,6 +76,12 @@ export default function MessagesContainer({
     const { isLoading: roomIsLoading } = useGetRoomQuery(roomId);
     const loading = useSelector(selectRoomMessagesIsLoading(roomId));
     const searchKeyword = useSelector(selectKeyword(roomId));
+
+    const ongoingCalls = useGetOngoingCallsQuery();
+    const roomOngoingCall = useMemo(
+        () => ongoingCalls.data?.find((call) => call.roomId === roomId) as OngoingCall | undefined,
+        [ongoingCalls.data, roomId],
+    );
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -336,6 +356,7 @@ export default function MessagesContainer({
 
     return (
         <MessagesContainerContext.Provider value={{ messageContainerRef: ref }}>
+            {roomOngoingCall && <OngoingCallInfo ongoingCall={roomOngoingCall} bgColor={bgColor} />}
             <Box
                 flexGrow={1}
                 display="flex"
@@ -433,6 +454,184 @@ export default function MessagesContainer({
                     )}
             </Box>
         </MessagesContainerContext.Provider>
+    );
+}
+
+function OngoingCallInfo({ ongoingCall, bgColor }: { ongoingCall: OngoingCall; bgColor: string }) {
+    const { t } = useTranslation();
+    const [callDuration, setCallDuration] = useState<string>();
+    const meId = useSelector(selectUserId);
+    const [acceptCall] = useAcceptCallMutation();
+    const dispatch = useAppDispatch();
+    const callIframeData = useSelector(selectCallData);
+    const isRightSidebarOpen = useSelector(selectRightSidebarOpen);
+    const activeTab = useSelector(selectRightSidebarActiveTab);
+    const [rightPosition, setRightPosition] = useState<string>();
+    const theme = useTheme();
+    const isMediumScreenSize = useMediaQuery(theme.breakpoints.between("md", "xl"));
+
+    useEffect(() => {
+        let position = "20px";
+
+        if (isRightSidebarOpen) {
+            if (isMediumScreenSize) {
+                position = activeTab === "noteDetail" ? "440px" : "360px";
+            } else {
+                position = activeTab === "noteDetail" ? "660px" : "440px";
+            }
+        }
+
+        setRightPosition(position);
+    }, [isRightSidebarOpen, activeTab, isMediumScreenSize]);
+
+    useEffect(() => {
+        if (!ongoingCall?.startedAt) return;
+        const startedAt = new Date(ongoingCall.startedAt).getTime();
+
+        const updateDuration = () => {
+            const now = new Date().getTime();
+            const diff = now - startedAt;
+            const hours = Math.floor(diff / 3600000)
+                .toString()
+                .padStart(2, "0");
+            const minutes = Math.floor((diff % 3600000) / 60000)
+                .toString()
+                .padStart(2, "0");
+            const seconds = Math.floor((diff % 60000) / 1000)
+                .toString()
+                .padStart(2, "0");
+            setCallDuration(`${hours}:${minutes}:${seconds}`);
+        };
+        const interval = setInterval(updateDuration, 1000);
+        return () => {
+            clearInterval(interval);
+        };
+    }, [ongoingCall.startedAt]);
+
+    const { roomName, avatarFileId } = useMemo(() => {
+        const isGroup = ongoingCall.room.type === "group";
+        const participant = ongoingCall.participants.find((p) => p.user.id !== meId);
+
+        return {
+            isGroupCall: isGroup,
+            roomName: isGroup ? ongoingCall.room.name : participant?.user.displayName,
+            avatarFileId: isGroup ? ongoingCall.room.avatarFileId : participant?.user.avatarFileId,
+        };
+    }, [ongoingCall, meId]);
+
+    const iconSxProps = {
+        width: "25px",
+        height: "25px",
+        color: "primary.main",
+        cursor: "pointer",
+        "&:hover": {
+            backgroundColor: "transparent",
+        },
+    };
+
+    const handleJoinCall = async (enableCamera: boolean) => {
+        if (callIframeData.showCallIframe && callIframeData.roomId === ongoingCall.roomId) return;
+
+        const roomId = ongoingCall.roomId;
+        try {
+            await acceptCall({ roomId }).unwrap();
+            dispatch(
+                openCallIframe({
+                    roomId,
+                    enableCamera,
+                }),
+            );
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    if (!rightPosition) return null;
+
+    return (
+        <Box
+            sx={{
+                position: "absolute",
+                top: "104px",
+                right: rightPosition,
+                width: "184px",
+                height: "96px",
+                zIndex: 10,
+                borderRadius: "18px",
+                p: 1,
+                border: "1px solid",
+                borderColor: "primary.main",
+                bgcolor: bgColor,
+                userSelect: "none",
+            }}
+        >
+            <Box
+                sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    mb: 1,
+                }}
+            >
+                <Avatar
+                    alt={roomName}
+                    sx={{ width: 24, height: 24 }}
+                    src={`${UPLOADS_BASE_URL}/${avatarFileId}`}
+                />
+                <Typography
+                    sx={{
+                        display: "inline",
+                        ml: 1,
+                        fontWeight: 500,
+                        fontSize: "14px",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                    }}
+                >
+                    {roomName}
+                </Typography>
+            </Box>
+            <Box sx={{ display: "flex", gap: "8px", mb: "4px", ml: "10px" }}>
+                <Typography sx={{ fontSize: "12px", fontWeight: 400 }}>
+                    {t("callInProgress")}:
+                </Typography>
+                <Typography
+                    sx={{
+                        fontSize: "12px",
+                        fontWeight: 400,
+                        color: "primary.main",
+                        fontStyle: "italic",
+                    }}
+                >
+                    {callDuration}
+                </Typography>
+            </Box>
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: "8px",
+                }}
+            >
+                <Typography
+                    sx={{
+                        fontSize: "12px",
+                        fontWeight: 500,
+                    }}
+                >
+                    {t("joinWith")}:
+                </Typography>
+                <Stack direction="row" justifyContent="center" gap="8px">
+                    <IconButton sx={iconSxProps} onClick={() => handleJoinCall(false)}>
+                        <Call />
+                    </IconButton>
+                    <IconButton sx={iconSxProps} onClick={() => handleJoinCall(true)}>
+                        <Videocam />
+                    </IconButton>
+                </Stack>
+            </Box>
+        </Box>
     );
 }
 
