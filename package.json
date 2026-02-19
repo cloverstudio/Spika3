@@ -57,6 +57,7 @@
         "i18next-fs-backend": "^2.3.2",
         "i18next-http-backend": "^2.6.2",
         "i18next-http-middleware": "^3.6.0",
+        "react-i18next": "^12.2.0",
         "libphonenumber-js": "^1.10.44",
         "linkify-html": "^4.1.1",
         "linkifyjs": "^4.1.1",
